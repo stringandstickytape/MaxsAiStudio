@@ -1,0 +1,11 @@
+﻿Support bitmaps
+DONE: Support system prompts
+DONE: Support categories
+Delete templates
+Label UI
+Make passwords configurable
+Token counting
+Streaming?! (is it worth it?)
+
+External links?
+Conversations?
