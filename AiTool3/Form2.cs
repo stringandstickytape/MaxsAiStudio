@@ -294,7 +294,7 @@ namespace AiTool3
 
                     // Set the font to Courier New for the selected section, yellow
                     richTextBox.SelectionColor = Color.Yellow;
-                    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont.Size);
+                    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
                 }
             }
 
@@ -501,21 +501,31 @@ namespace AiTool3
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
+            var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
-            var summaryModel = Settings.ApiList.First(x => x.ApiName == "Ollama").Models.First();
-
-            var title = await CurrentConversation.GenerateSummary(summaryModel);
-
-            CurrentConversation.SaveAsJson();
+            string title;
+            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == CurrentConversation.ConvGuid);
 
             // using the title, update the dgvConversations
-            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == CurrentConversation.ConvGuid);
+            
             if (row != null)
             {
+                if (string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
+                {
+                    title = await CurrentConversation.GenerateSummary(summaryModel);
+
+                    CurrentConversation.SaveAsJson();
+                }
+                else title = row.Cells[3].Value.ToString();
+
                 row.Cells[3].Value = title;
             }
             else
             {
+                title = await CurrentConversation.GenerateSummary(summaryModel);
+
+                CurrentConversation.SaveAsJson();
+
                 dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, title);
             }
 
