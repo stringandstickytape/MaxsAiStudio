@@ -673,8 +673,49 @@ namespace AiTool3
                 }
 
                 TopicSet.Save();
+
+                // Refresh category and template combo boxes
+                RefreshCategoryAndTemplateComboBoxes();
+            }
+
+        }
+
+        private void RefreshCategoryAndTemplateComboBoxes()
+        {
+            // Remember the currently selected items
+            string selectedCategory = cbCategories.SelectedItem?.ToString();
+            string selectedTemplate = cbTemplates.SelectedItem?.ToString();
+
+            // Clear and repopulate the category combo box
+            cbCategories.Items.Clear();
+            foreach (var topic in TopicSet.Topics)
+            {
+                cbCategories.Items.Add(topic.Name);
+            }
+
+            // Restore the selected category if it still exists
+            if (!string.IsNullOrEmpty(selectedCategory) && cbCategories.Items.Contains(selectedCategory))
+            {
+                cbCategories.SelectedItem = selectedCategory;
+            }
+
+            // Repopulate the template combo box based on the selected category
+            if (cbCategories.SelectedItem != null)
+            {
+                string category = cbCategories.SelectedItem.ToString();
+                var templates = TopicSet.Topics.First(t => t.Name == category).Templates.Where(x => x.SystemPrompt != null).ToList();
+
+                cbTemplates.Items.Clear();
+                cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
+
+                // Restore the selected template if it still exists
+                if (!string.IsNullOrEmpty(selectedTemplate) && cbTemplates.Items.Contains(selectedTemplate))
+                {
+                    cbTemplates.SelectedItem = selectedTemplate;
+                }
             }
         }
+
 
         private void AddLabelAndTextBox(TableLayoutPanel panel, string labelText, string textBoxContent, int row)
         {
