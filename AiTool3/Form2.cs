@@ -238,138 +238,89 @@ namespace AiTool3
         }
 
 
-        public List<Snippet> FindSnippets(RichTextBox richTextBox, string v)
+        private SnippetManager snippetManager = new SnippetManager();
+
+        public List<Snippet> FindSnippets(RichTextBox richTextBox, string text)
         {
-            richTextBox.Text = v;
-            string pattern = @"```(.*?)```";
-            List<Snippet> snippets = new List<Snippet>();
+            richTextBox.Text = text;
+            var snippets = snippetManager.FindSnippets(text);
 
-            // Save the current selection start and length
-            int originalSelectionStart = richTextBox.SelectionStart;
-            int originalSelectionLength = richTextBox.SelectionLength;
-
-            // Use Regex to find sections between triple backticks
-            var matches = Regex.Matches(v, pattern, RegexOptions.Singleline);
-
-            foreach (Match match in matches) // each of these is a snippet
+            // Apply UI formatting
+            foreach (var snippet in snippets)
             {
-                if (match.Groups.Count > 1)
+                int startIndex = richTextBox.Text.IndexOf(snippet.Code);
+                if (startIndex >= 0)
                 {
-                    // Calculate the start index and length of the matched section
-                    int startIndex = match.Groups[1].Index;
-                    int length = match.Groups[1].Length;
-
-                    // get the line of text before startIndex
-                    var line = richTextBox.GetLineFromCharIndex(startIndex);
-                    var lineStart = richTextBox.GetFirstCharIndexFromLine(line);
-                    var lineEnd = richTextBox.GetFirstCharIndexFromLine(line + 1);
-                    string lineText = richTextBox.Text.Substring(lineStart, lineEnd - lineStart);
-
-                    // get the line before that
-                    var lineBefore = richTextBox.GetLineFromCharIndex(lineStart - 1);
-                    var lineBeforeStart = richTextBox.GetFirstCharIndexFromLine(lineBefore);
-                    var lineBeforeEnd = richTextBox.GetFirstCharIndexFromLine(lineBefore + 1);
-                    string lineBeforeText = richTextBox.Text.Substring(lineBeforeStart, lineBeforeEnd - lineBeforeStart);
-
-                    string type = null;
-                    string filename = null;
-
-                    // if linebeforetext is of the form "### HTML (index.html)\n", get the type and filename into variables
-                    var match2 = Regex.Match(lineBeforeText, @"### (.*?) \((.*?)\)");
-                    if (match2.Success)
-                    {
-                        type = match2.Groups[1].Value;
-                        filename = match2.Groups[2].Value;
-                    }
-
-                    // get the text from startindex to length
-                    var text = richTextBox.Text.Substring(startIndex, length);
-
-                    // Collect the snippet
-                    snippets.Add(new Snippet
-                    {
-                        Type = type,
-                        Filename = filename,
-                        Code = text.Trim()
-                    });
-
-                    // Select the matched section in the RichTextBox
-                    richTextBox.Select(startIndex, length);
-
-                    // Set the font to Courier New for the selected section, yellow
+                    richTextBox.Select(startIndex, snippet.Code.Length);
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
                 }
             }
 
-            // Restore the original selection
-            richTextBox.Select(originalSelectionStart, originalSelectionLength);
+            // Create UI elements for snippets
+            CreateSnippetButtons(snippets);
 
+            return snippets;
+        }
+
+
+        private void CreateSnippetButtons(List<Snippet> snippets)
+        {
             panelSnippets.Controls.Clear();
+            int yOffset = 0;
+
             foreach (var snippet in snippets)
             {
-                var button = new Button();
-                button.Text = $"Copy {snippet.Type ?? "Text"}";
-                button.ForeColor = Color.White;
-
-                // autosize the height
-                button.AutoSize = true;
-                button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-
-
-                button.Tag = snippet;
-                button.Click += (s, e) =>
+                yOffset = CreateButton("Copy " + (snippet.Type ?? "Text"), Color.White, Color.Black, snippet, yOffset, (s, e) =>
                 {
                     var snip = (Snippet)((Button)s).Tag;
-                    // copy to clipboard
                     Clipboard.SetText(snip.Code);
-                };
-                panelSnippets.Controls.Add(button);
+                });
 
-                // add another button which, when clicked, writes the contents to a temp file and launches it in Chrome
-                //if (snippet.Type == "HTML")
-                //{
-                var button2 = new Button();
-                button2.Text = $"View";
-                button2.ForeColor = Color.White;
-                button2.BackColor = Color.Blue;
-                button2.AutoSize = true;
-                button2.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-                button2.Tag = snippet;
-                button2.Click += (s, e) =>
+                yOffset = CreateButton("View", Color.White, Color.Blue, snippet, yOffset, (s, e) =>
                 {
                     LaunchHelpers.LaunchHtml(s);
+                });
 
-                };
-                // position button2 below button
-                button2.Location = new Point(button.Location.X, button.Location.Y + button.Height + 5);
-                panelSnippets.Controls.Add(button2);
-
-                // launch c#
-                var button3 = new Button();
-                button3.Text = $"Run C#";
-                button3.ForeColor = Color.White;
-                button3.BackColor = Color.Blue;
-                button3.AutoSize = true;
-                button3.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-                button3.Tag = snippet;
-                button3.Click += (s, e) =>
+                yOffset = CreateButton("Run C#", Color.White, Color.Blue, snippet, yOffset, (s, e) =>
                 {
                     var code = snippet.Code;
                     if (code.StartsWith("csharp\n"))
                         code = code.Substring(7);
                     LaunchHelpers.LaunchCSharp(code);
+                });
 
-                };
-                // position button2 below button
-                button3.Location = new Point(button2.Location.X, button2.Location.Y + button2.Height + 5);
-                panelSnippets.Controls.Add(button3);
+                yOffset = CreateButton("Launch Txt", Color.White, Color.Green, snippet, yOffset, (s, e) =>
+                {
+                    LaunchHelpers.LaunchTxt(s);
+                }, 15); // Extra space between snippet button groups
+            }
+        }
 
-                //}
+        private int CreateButton(string text, Color foreColor, Color backColor, Snippet snippet, int yOffset, EventHandler clickHandler, int extraSpacing = 5)
+        {
+            var button = new Button
+            {
+                Text = text,
+                ForeColor = foreColor,
+                BackColor = backColor,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Tag = snippet,
+                Location = new Point(0, yOffset)
+            };
+
+            if (backColor == Color.Empty)
+            {
+                button.UseVisualStyleBackColor = true;
             }
 
-            return snippets;
+            button.Click += clickHandler;
+            panelSnippets.Controls.Add(button);
+            return yOffset + button.Height + extraSpacing;
         }
+
+
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
@@ -798,6 +749,68 @@ namespace AiTool3
             }
 
         }
-
     }
+
+    public class SnippetManager
+    {
+        public List<Snippet> FindSnippets(string text)
+        {
+            string pattern = @"```(.*?)```";
+            List<Snippet> snippets = new List<Snippet>();
+
+            var matches = Regex.Matches(text, pattern, RegexOptions.Singleline);
+
+            foreach (Match match in matches)
+            {
+                if (match.Groups.Count > 1)
+                {
+                    int startIndex = match.Groups[1].Index;
+                    int length = match.Groups[1].Length;
+
+                    string type = null;
+                    string filename = null;
+
+                    // Extract type and filename if available
+                    var lineBeforeMatch = Regex.Match(text.Substring(0, startIndex), @"### (.*?) \((.*?)\)");
+                    if (lineBeforeMatch.Success)
+                    {
+                        type = lineBeforeMatch.Groups[1].Value;
+                        filename = lineBeforeMatch.Groups[2].Value;
+                    }
+
+                    var snippetText = text.Substring(startIndex, length);
+
+                    // Remove language name if present at the start of the snippet
+                    snippetText = Regex.Replace(snippetText, @"^\s*(\w+)\s*\n", "");
+
+                    snippets.Add(new Snippet
+                    {
+                        Type = type,
+                        Filename = filename,
+                        Code = snippetText.Trim()
+                    });
+                }
+            }
+
+            return snippets;
+        }
+
+        public string ApplySnippetFormatting(string text)
+        {
+            string pattern = @"```(.*?)```";
+            return Regex.Replace(text, pattern, match =>
+            {
+                if (match.Groups.Count > 1)
+                {
+                    string snippetText = match.Groups[1].Value;
+                    // Remove language name if present at the start of the snippet
+                    snippetText = Regex.Replace(snippetText, @"^\s*(\w+)\s*\n", "");
+                    return $"<snippet>{snippetText}</snippet>";
+                }
+                return match.Value;
+            }, RegexOptions.Singleline);
+        }
+    }
+
+
 }

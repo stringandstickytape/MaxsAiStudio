@@ -46,5 +46,22 @@ namespace AiTool3.UI
             // start chrome
             Process.Start(chromePath, tempFile);
         }
+
+        public static void LaunchTxt(object? s)
+        {
+            var snip = (Snippet)((Button)s).Tag;
+
+            var code = snip.Code;
+
+            // Remove "txt\n" prefix if it exists
+            if (code.StartsWith("txt\n"))
+                code = code.Substring(4);
+
+            var tempFile = $"{Path.GetTempPath()}{Guid.NewGuid().ToString()}.txt";
+            File.WriteAllText(tempFile, code);
+
+            // Launch the default text editor (usually Notepad) for .txt files
+            Process.Start(new ProcessStartInfo(tempFile) { UseShellExecute = true });
+        }
     }
 }
