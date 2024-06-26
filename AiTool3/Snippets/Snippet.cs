@@ -1,4 +1,4 @@
-﻿namespace AiTool3
+﻿namespace AiTool3.Snippets
 {
     public class Snippet
     {

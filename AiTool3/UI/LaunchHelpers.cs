@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Scripting;
+﻿using AiTool3.Snippets;
+using Microsoft.CodeAnalysis.Scripting;
 using System.Diagnostics;
 
 namespace AiTool3.UI
