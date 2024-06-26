@@ -46,11 +46,11 @@ namespace AiTool3
             cbCategories = new ComboBox();
             splitContainer3 = new SplitContainer();
             panelSnippets = new Panel();
+            button3 = new Button();
             btnRestart = new Button();
             btnClear = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
-            button3 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -81,10 +81,14 @@ namespace AiTool3
             ndcConversation.Name = "ndcConversation";
             ndcConversation.NodeBackgroundColor = Color.LightBlue;
             ndcConversation.NodeBorderColor = Color.Blue;
+            ndcConversation.NodeCornerRadius = 10;
             ndcConversation.NodeForegroundColor = Color.Black;
+            ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
+            ndcConversation.NodeGradientStart = Color.White;
             ndcConversation.Size = new Size(335, 602);
             ndcConversation.TabIndex = 0;
             ndcConversation.Text = "networkDiagramControl1";
+            ndcConversation.UseDropShadow = true;
             // 
             // cbEngine
             // 
@@ -287,10 +291,24 @@ namespace AiTool3
             // 
             // panelSnippets
             // 
+            panelSnippets.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             panelSnippets.Location = new Point(1168, 2);
             panelSnippets.Name = "panelSnippets";
             panelSnippets.Size = new Size(144, 274);
             panelSnippets.TabIndex = 7;
+            // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(1216, 21);
+            button3.Name = "button3";
+            button3.Size = new Size(35, 34);
+            button3.TabIndex = 10;
+            button3.Text = "Restart";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
             // 
             // btnRestart
             // 
@@ -333,19 +351,6 @@ namespace AiTool3
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new Size(16, 20);
-            // 
-            // button3
-            // 
-            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button3.BackColor = Color.Black;
-            button3.ForeColor = Color.White;
-            button3.Location = new Point(1216, 21);
-            button3.Name = "button3";
-            button3.Size = new Size(35, 34);
-            button3.TabIndex = 10;
-            button3.Text = "Restart";
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += button3_Click;
             // 
             // Form2
             // 
