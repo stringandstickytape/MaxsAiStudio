@@ -2,6 +2,7 @@
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -18,7 +19,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel,Conversation conversation, string base64image)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image)
         {
             var req = new LocalAIRequest
             {
@@ -29,11 +30,8 @@ namespace AiTool3.Providers
                     {
                         Role = "system",
                         Content = conversation.SystemPromptWithDateTime(),
-
                     }
-
-                }
-                ,
+                },
                 stream = false
             };
 
@@ -41,25 +39,14 @@ namespace AiTool3.Providers
             {
                 Role = m.role,
                 Content = m.content
-
             }));
 
-            //if (base64image != null)
-            //{
-            //    req.messages.Last().Content.Add(new LocalAIContent { Type = "image_url", ImageUrl = new LocalAIImageUrl { ImageUrl = $"data:image/jpeg;base64,{base64image}" } });
-            //}
-
-            var json = System.Text.Json.JsonSerializer.Serialize(req);
+            var json = JsonConvert.SerializeObject(req);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (!IsPortOpen(11434))
             {
-
-
-                //System.Diagnostics.Process.Start("ollama", "run codeqwen:chat");
-
-                // run "ollama run codeqwen:chat" but make sure the window is hidden
                 var psi = new ProcessStartInfo("ollama", "run llama3")
                 {
                     RedirectStandardOutput = true,
@@ -69,13 +56,11 @@ namespace AiTool3.Providers
                 };
                 var process = Process.Start(psi);
 
-                // create a new thread which will kill that process in 1 second
                 new Thread(() =>
                 {
                     Thread.Sleep(1000);
                     process.Kill();
                 }).Start();
-
             }
 
             var response = await client.PostAsync(apiModel.Url, content).ConfigureAwait(false);
@@ -97,35 +82,24 @@ namespace AiTool3.Providers
             }
             var allTxt = sb.ToString();
 
-            // derseialize the response
-
-
-            var completion = System.Text.Json.JsonSerializer.Deserialize<LocalAIChatCompletion>(allTxt);
+            dynamic completion = JsonConvert.DeserializeObject(allTxt);
             Debug.WriteLine(allTxt);
-            // deserialise allTxt dynamic using jsonconvert
+
             dynamic d = JsonConvert.DeserializeObject(allTxt);
 
             string s = d.message.content;
 
-
-
-
-
-
-            //var deltas = ExtractTextDeltas(sb.ToString().Split(new char[] { '\n' }).ToList());
             return new AiResponse { ResponseText = s, Success = true };
         }
 
         bool IsPortOpen(int port)
         {
-
             try
             {
                 var client = new TcpClient();
                 if (client.ConnectAsync("127.0.0.1", port).Wait(100))
                 {
                     return true;
-                    // connection failure
                 }
             }
             catch (Exception)
@@ -136,117 +110,48 @@ namespace AiTool3.Providers
         }
     }
 
-
     public class LocalAIRequest
     {
+        [JsonProperty("model")]
         public string model { get; set; }
+
+        [JsonProperty("messages")]
         public List<LocalAIMessage> messages { get; set; }
+
+        [JsonProperty("stream")]
         public bool stream { get; set; }
     }
 
     public class LocalAILocalAIMessage
     {
+        [JsonProperty("role")]
         public string role { get; set; }
+
+        [JsonProperty("content")]
         public string content { get; set; }
     }
 
-    public class LocalAIChatCompletion
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-
-        [JsonPropertyName("object")]
-        public string Object { get; set; }
-
-        [JsonPropertyName("created")]
-        public long Created { get; set; }
-
-        [JsonPropertyName("model")]
-        public string Model { get; set; }
-
-        [JsonPropertyName("choices")]
-        public List<LocalAIResponseChoice> Choices { get; set; }
-
-        [JsonPropertyName("usage")]
-        public LocalAIUsage Usage { get; set; }
-
-        [JsonPropertyName("system_fingerprint")]
-        public string SystemFingerprint { get; set; }
-    }
-
-    public class LocalAIChoice
-    {
-        [JsonPropertyName("index")]
-        public int Index { get; set; }
-
-        [JsonPropertyName("message")]
-        public LocalAIMessage Message { get; set; }
-
-        [JsonPropertyName("logprobs")]
-        public object Logprobs { get; set; }
-
-        [JsonPropertyName("finish_reason")]
-        public string FinishReason { get; set; }
-    }
-
-    public class LocalAIResponseChoice
-    {
-        [JsonPropertyName("index")]
-        public int Index { get; set; }
-
-        [JsonPropertyName("message")]
-        public LocalAIResponseMessage Message { get; set; }
-
-        [JsonPropertyName("logprobs")]
-        public object Logprobs { get; set; }
-
-        [JsonPropertyName("finish_reason")]
-        public string FinishReason { get; set; }
-    }
-
-
     public class LocalAIMessage
     {
-        [JsonPropertyName("role")]
+        [JsonProperty("role")]
         public string Role { get; set; }
 
-        [JsonPropertyName("content")]
+        [JsonProperty("content")]
         public string Content { get; set; }
     }
 
     public class LocalAIContent
     {
-        [JsonPropertyName("type")]
+        [JsonProperty("type")]
         public string Type { get; set; }
-        [JsonPropertyName("text")]
+
+        [JsonProperty("text")]
         public string Text { get; set; }
-
-    }
-
-    public class LocalAIResponseMessage
-    {
-        [JsonPropertyName("role")]
-        public string Role { get; set; }
-
-        [JsonPropertyName("content")]
-        public string Content { get; set; }
     }
 
     public class LocalAIImageUrl
     {
-        [JsonPropertyName("url")]
+        [JsonProperty("url")]
         public string ImageUrl { get; set; }
-    }
-
-    public class LocalAIUsage
-    {
-        [JsonPropertyName("prompt_tokens")]
-        public int PromptTokens { get; set; }
-
-        [JsonPropertyName("completion_tokens")]
-        public int CompletionTokens { get; set; }
-
-        [JsonPropertyName("total_tokens")]
-        public int TotalTokens { get; set; }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using static System.Windows.Forms.Design.AxImporter;
 
 namespace AiTool3.Providers
@@ -21,36 +21,58 @@ namespace AiTool3.Providers
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
 
-            var req = new OpenAIRequest
+            var req = new JObject
             {
-                model = apiModel.ModelName,
-                messages = new List<OpenAIMessage>
+                ["model"] = apiModel.ModelName,
+                ["messages"] = new JArray
                 {
-                    new OpenAIMessage
+                    new JObject
                     {
-                        Role = "system",
-                        Content = new List<OpenAIContent> { new OpenAIContent { Type = "text", Text = conversation.SystemPromptWithDateTime() } }
+                        ["role"] = "system",
+                        ["content"] = new JArray
+                        {
+                            new JObject
+                            {
+                                ["type"] = "text",
+                                ["text"] = conversation.SystemPromptWithDateTime()
+                            }
+                        }
                     }
                 }
             };
 
-            req.messages.AddRange(conversation.messages.Select(m => new OpenAIMessage
+            foreach (var m in conversation.messages)
             {
-                Role = m.role,
-                Content = new List<OpenAIContent> { new OpenAIContent { Type = "text", Text = m.content } }
-            }));
+                req["messages"].Last.AddAfterSelf(new JObject
+                {
+                    ["role"] = m.role,
+                    ["content"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["type"] = "text",
+                            ["text"] = m.content
+                        }
+                    }
+                });
+            }
 
             if (base64image != null)
             {
-                req.messages.Last().Content.Add(new OpenAIContent { Type = "image_url", ImageUrl = new OpenAIImageUrl { ImageUrl = $"data:image/jpeg;base64,{base64image}" } });
+                ((JArray)req["messages"].Last["content"]).Add(new JObject
+                {
+                    ["type"] = "image_url",
+                    ["image_url"] = new JObject
+                    {
+                        ["url"] = $"data:image/jpeg;base64,{base64image}"
+                    }
+                });
             }
 
-            //serialize the req, excluding null properties
-            var options = new JsonSerializerOptions
+            var json = JsonConvert.SerializeObject(req, new JsonSerializerSettings
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-            var json = JsonSerializer.Serialize(req, options);
+                NullValueHandling = NullValueHandling.Ignore
+            });
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -73,127 +95,11 @@ namespace AiTool3.Providers
             }
             var allTxt = sb.ToString();
 
-            // derseialize the response
-            var completion = JsonSerializer.Deserialize<OpenAIChatCompletion>(allTxt);
-            if (completion.Choices == null)
+            // deserialize the response
+            var completion = JsonConvert.DeserializeObject<JObject>(allTxt);
+            if (completion["choices"] == null)
                 return null;
-            //var deltas = ExtractTextDeltas(sb.ToString().Split(new char[] { '\n' }).ToList());
-            return new AiResponse { ResponseText = completion.Choices[0].Message.Content, Success = true };
+            return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true };
         }
-    }
-
-    public class OpenAIRequest
-    {
-        public bool stream { get; set; }
-        public string model { get; set; }
-        public List<OpenAIMessage> messages { get; set; }
-    }
-
-    public class OpenAIOpenAIMessage
-    {
-        public string role { get; set; }
-        public string content { get; set; }
-    }
-
-    public class OpenAIChatCompletion
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-
-        [JsonPropertyName("object")]
-        public string Object { get; set; }
-
-        [JsonPropertyName("created")]
-        public long Created { get; set; }
-
-        [JsonPropertyName("model")]
-        public string Model { get; set; }
-
-        [JsonPropertyName("choices")]
-        public List<OpenAIResponseChoice> Choices { get; set; }
-
-        [JsonPropertyName("usage")]
-        public OpenAIUsage Usage { get; set; }
-
-        [JsonPropertyName("system_fingerprint")]
-        public string SystemFingerprint { get; set; }
-    }
-
-    public class OpenAIChoice
-    {
-        [JsonPropertyName("index")]
-        public int Index { get; set; }
-
-        [JsonPropertyName("message")]
-        public OpenAIMessage Message { get; set; }
-
-        [JsonPropertyName("logprobs")]
-        public object Logprobs { get; set; }
-
-        [JsonPropertyName("finish_reason")]
-        public string FinishReason { get; set; }
-    }
-
-    public class OpenAIResponseChoice
-    {
-        [JsonPropertyName("index")]
-        public int Index { get; set; }
-
-        [JsonPropertyName("message")]
-        public OpenAIResponseMessage Message { get; set; }
-
-        [JsonPropertyName("logprobs")]
-        public object Logprobs { get; set; }
-
-        [JsonPropertyName("finish_reason")]
-        public string FinishReason { get; set; }
-    }
-
-
-    public class OpenAIMessage
-    {
-        [JsonPropertyName("role")]
-        public string Role { get; set; }
-
-        [JsonPropertyName("content")]
-        public List<OpenAIContent> Content { get; set; }
-    }
-
-    public class OpenAIContent
-    {
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-        [JsonPropertyName("text")]
-        public string Text { get; set; }
-
-        [JsonPropertyName("image_url")]
-        public OpenAIImageUrl ImageUrl { get; set; }
-    }
-
-    public class OpenAIResponseMessage
-    {
-        [JsonPropertyName("role")]
-        public string Role { get; set; }
-
-        [JsonPropertyName("content")]
-        public string Content { get; set; }
-    }
-
-    public class OpenAIImageUrl
-    {
-        [JsonPropertyName("url")]
-        public string ImageUrl { get; set; }
-    }
-
-    public class OpenAIUsage
-    {
-        [JsonPropertyName("prompt_tokens")]
-        public int PromptTokens { get; set; }
-
-        [JsonPropertyName("completion_tokens")]
-        public int CompletionTokens { get; set; }
-
-        [JsonPropertyName("total_tokens")]
-        public int TotalTokens { get; set; }
     }
 }
