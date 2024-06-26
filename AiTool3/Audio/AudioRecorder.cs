@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace AiTool3
+namespace AiTool3.Audio
 {
     public class AudioRecorder
     {

@@ -23,6 +23,8 @@ using System.Windows.Forms;
 using static AiTool3.UI.NetworkDiagramControl;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis;
+using static AiTool3.Form2;
+using AiTool3.Audio;
 
 
 namespace AiTool3
@@ -36,6 +38,8 @@ namespace AiTool3
         public SettingsManager Settings { get; set; } = SettingsManager.ReadFromJson();
 
         public TopicSet TopicSet { get; set; }
+
+        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager();
 
         public Form2()
         {
@@ -568,7 +572,12 @@ namespace AiTool3
             var y = 0;
 
             var rootNode = new Node(root.Content, new Point(100, y), root.Guid);
-            rootNode.BackColor = root.GetColorForEngine();
+
+            // get the model with the same name as the engine
+            var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
+
+
+            rootNode.BackColor = model.Color;
             ndcConversation.AddNode(rootNode);
 
             // recursively draw the children
@@ -816,74 +825,24 @@ namespace AiTool3
 
         private async void button3_Click(object sender, EventArgs e)
         {
-            if (!isRecording)
+
+            if (!audioRecorderManager.IsRecording)
             {
                 // Start recording
-                StartRecording();
+                await audioRecorderManager.StartRecording();
+                button3.Text = "Stop Recording";
             }
             else
             {
                 // Stop recording
-                await StopRecording();
+                await audioRecorderManager.StopRecording();
+                button3.Text = "Start Recording";
+
+                // Get the transcription and update the input
+                string transcription = audioRecorderManager.GetTranscription();
+                rtbInput.Text += transcription;
             }
-        }
 
-        private void StartRecording()
-        {
-            recorder = new AudioRecorder();
-            cts = new CancellationTokenSource();
-
-            // Start recording in a separate task
-            recordingTask = recorder.RecordAudioAsync("output.wav", cts.Token);
-
-            isRecording = true;
-            button3.Text = "Stop Recording"; // Optional: Update button text
-        }
-
-        private async Task StopRecording()
-        {
-            if (cts != null)
-            {
-                // Stop the recording
-                cts.Cancel();
-
-                // Wait for the recording task to complete
-                await recordingTask;
-
-                isRecording = false;
-                button3.Text = "Start Recording"; // Optional: Update button text
-
-                // Clean up
-                cts.Dispose();
-                cts = null;
-                recorder = null;
-
-                Process process = new Process();
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.FileName = "cmd.exe";
-                startInfo.RedirectStandardInput = true;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.UseShellExecute = false;
-                startInfo.CreateNoWindow = false;
-
-                process.StartInfo = startInfo;
-                process.Start();
-
-                process.StandardInput.WriteLine("call C:\\ProgramData\\Miniconda3\\condabin\\activate.bat");
-                process.StandardInput.WriteLine("conda activate whisperx");
-                //process.StandardInput.WriteLine("conda --version");
-                //process.StandardInput.WriteLine("python --version");
-                //process.StandardInput.WriteLine("pip list");
-                process.StandardInput.WriteLine("whisperx output.wav");
-                process.StandardInput.WriteLine("exit");
-
-                // wait for completion
-                process.WaitForExit();
-
-                // get the output from output.txt
-                var output = File.ReadAllText("output.txt");
-                rtbInput.Text += output;
-            }
         }
 
     }
