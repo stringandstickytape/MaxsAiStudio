@@ -507,7 +507,7 @@ namespace AiTool3
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == CurrentConversation.ConvGuid);
 
             // using the title, update the dgvConversations
-            
+
             if (row != null)
             {
                 if (string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
@@ -519,6 +519,7 @@ namespace AiTool3
                 else title = row.Cells[3].Value.ToString();
 
                 row.Cells[3].Value = title;
+                CurrentConversation.SaveAsJson();
             }
             else
             {
@@ -537,7 +538,7 @@ namespace AiTool3
         {
             // starting at PreviousCompletion, walk up the tree to the root node and return a list of nodes
             var nodes = new List<CompletionMessage>();
-            var current = PreviousCompletion.Guid;
+            var current = PreviousCompletion?.Guid;
 
             while (current != null)
             {
@@ -806,5 +807,84 @@ namespace AiTool3
             panelSnippets.Controls.Clear();
             DrawNetworkDiagram();
         }
+
+        private AudioRecorder recorder;
+        private CancellationTokenSource cts;
+        private Task recordingTask;
+        private bool isRecording = false;
+
+
+        private async void button3_Click(object sender, EventArgs e)
+        {
+            if (!isRecording)
+            {
+                // Start recording
+                StartRecording();
+            }
+            else
+            {
+                // Stop recording
+                await StopRecording();
+            }
+        }
+
+        private void StartRecording()
+        {
+            recorder = new AudioRecorder();
+            cts = new CancellationTokenSource();
+
+            // Start recording in a separate task
+            recordingTask = recorder.RecordAudioAsync("output.wav", cts.Token);
+
+            isRecording = true;
+            button3.Text = "Stop Recording"; // Optional: Update button text
+        }
+
+        private async Task StopRecording()
+        {
+            if (cts != null)
+            {
+                // Stop the recording
+                cts.Cancel();
+
+                // Wait for the recording task to complete
+                await recordingTask;
+
+                isRecording = false;
+                button3.Text = "Start Recording"; // Optional: Update button text
+
+                // Clean up
+                cts.Dispose();
+                cts = null;
+                recorder = null;
+
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.FileName = "cmd.exe";
+                startInfo.RedirectStandardInput = true;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.UseShellExecute = false;
+                startInfo.CreateNoWindow = false;
+
+                process.StartInfo = startInfo;
+                process.Start();
+
+                process.StandardInput.WriteLine("call C:\\ProgramData\\Miniconda3\\condabin\\activate.bat");
+                process.StandardInput.WriteLine("conda activate whisperx");
+                //process.StandardInput.WriteLine("conda --version");
+                //process.StandardInput.WriteLine("python --version");
+                //process.StandardInput.WriteLine("pip list");
+                process.StandardInput.WriteLine("whisperx output.wav");
+                process.StandardInput.WriteLine("exit");
+
+                // wait for completion
+                process.WaitForExit();
+
+                // get the output from output.txt
+                var output = File.ReadAllText("output.txt");
+                rtbInput.Text += output;
+            }
+        }
+
     }
 }

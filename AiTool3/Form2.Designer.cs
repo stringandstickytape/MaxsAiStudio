@@ -50,6 +50,7 @@ namespace AiTool3
             btnClear = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
+            button3 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -275,6 +276,7 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(button3);
             splitContainer3.Panel2.Controls.Add(btnRestart);
             splitContainer3.Panel2.Controls.Add(btnClear);
             splitContainer3.Panel2.Controls.Add(rtbInput);
@@ -332,6 +334,19 @@ namespace AiTool3
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new Size(16, 20);
             // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button3.BackColor = Color.Black;
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(1216, 21);
+            button3.Name = "button3";
+            button3.Size = new Size(35, 34);
+            button3.TabIndex = 10;
+            button3.Text = "Restart";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -388,5 +403,6 @@ namespace AiTool3
         private Button button1;
         private Button button2;
         private Button btnRestart;
+        private Button button3;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -30,16 +31,19 @@ namespace AiTool3.UI
         private Point targetPanOffset;
         private float initialZoomFactor;
         private Point initialPanOffset;
-        private const int AnimationDuration = 250; // 1 second
+        private const int AnimationDuration = 250;
         private int animationProgress;
 
         public event EventHandler<NodeClickEventArgs> NodeClicked;
 
-        // New properties for node colors
         public Color NodeBackgroundColor { get; set; } = Color.LightBlue;
         public Color NodeForegroundColor { get; set; } = Color.Black;
         public Color NodeBorderColor { get; set; } = Color.Blue;
         public Color HighlightedNodeBorderColor { get; set; } = Color.Red;
+        public Color NodeGradientStart { get; set; } = Color.White;
+        public Color NodeGradientEnd { get; set; } = Color.LightSkyBlue;
+        public int NodeCornerRadius { get; set; } = 10;
+        public bool UseDropShadow { get; set; } = true;
 
         public NetworkDiagramControl()
         {
@@ -49,7 +53,7 @@ namespace AiTool3.UI
             zoomFactor = 1.0f;
             panOffset = Point.Empty;
             fitAllTimer = new System.Windows.Forms.Timer();
-            fitAllTimer.Interval = 16; // Approximately 60 updates per second
+            fitAllTimer.Interval = 16;
             fitAllTimer.Tick += FitAllTimerTick;
         }
 
@@ -67,27 +71,103 @@ namespace AiTool3.UI
         {
             base.OnPaint(e);
             Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.TranslateTransform(panOffset.X, panOffset.Y);
             g.ScaleTransform(zoomFactor, zoomFactor);
 
-            // Draw connections
             foreach (Connection connection in connections)
             {
-                g.DrawLine(Pens.Black, connection.StartNode.Location, connection.EndNode.Location);
+                DrawConnection(g, connection);
             }
 
-            // Draw nodes
             foreach (Node node in nodes)
             {
-                using (SolidBrush backgroundBrush = new SolidBrush(node.BackColor ?? NodeBackgroundColor))
-                using (Pen borderPen = new Pen(node == HighlightedNode ? HighlightedNodeBorderColor : node.BorderColor ?? NodeBorderColor))
-                using (SolidBrush foregroundBrush = new SolidBrush(node.ForeColor ?? NodeForegroundColor))
+                DrawNode(g, node);
+            }
+        }
+
+        private void DrawConnection(Graphics g, Connection connection)
+        {
+            using (GraphicsPath path = new GraphicsPath())
+            using (Pen pen = new Pen(Color.FromArgb(180, 180, 180), 2f))
+            {
+                Point start = connection.StartNode.Location;
+                Point end = connection.EndNode.Location;
+                Point control1 = new Point(start.X + (end.X - start.X) / 2, start.Y);
+                Point control2 = new Point(start.X + (end.X - start.X) / 2, end.Y);
+
+                path.AddBezier(start, control1, control2, end);
+                g.DrawPath(pen, path);
+
+                DrawArrow(g, pen, control2, end);
+            }
+        }
+
+        private void DrawArrow(Graphics g, Pen pen, Point start, Point end)
+        {
+            float arrowSize = 10f;
+            PointF tip = end;
+            PointF[] arrowHead = new PointF[3];
+            float angle = (float)Math.Atan2(start.Y - end.Y, start.X - end.X);
+            arrowHead[0] = tip;
+            arrowHead[1] = new PointF(tip.X + arrowSize * (float)Math.Cos(angle - Math.PI / 6),
+                                      tip.Y + arrowSize * (float)Math.Sin(angle - Math.PI / 6));
+            arrowHead[2] = new PointF(tip.X + arrowSize * (float)Math.Cos(angle + Math.PI / 6),
+                                      tip.Y + arrowSize * (float)Math.Sin(angle + Math.PI / 6));
+
+            g.FillPolygon(pen.Brush, arrowHead);
+        }
+
+        private void DrawNode(Graphics g, Node node)
+        {
+            Rectangle bounds = node.Bounds;
+
+            if (UseDropShadow)
+            {
+                using (GraphicsPath shadowPath = CreateRoundedRectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height, NodeCornerRadius))
+                using (PathGradientBrush shadowBrush = new PathGradientBrush(shadowPath))
                 {
-                    g.FillRectangle(backgroundBrush, node.Bounds);
-                    g.DrawRectangle(borderPen, node.Bounds);
-                    g.DrawString(node.Label, Font, foregroundBrush, node.Bounds, new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
+                    shadowBrush.CenterColor = Color.FromArgb(100, Color.Black);
+                    shadowBrush.SurroundColors = new Color[] { Color.Transparent };
+                    g.FillPath(shadowBrush, shadowPath);
                 }
             }
+
+            using (GraphicsPath path = CreateRoundedRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height, NodeCornerRadius))
+            using (LinearGradientBrush gradientBrush = new LinearGradientBrush(bounds,
+                node.BackColor ?? NodeGradientStart,
+                node.BackColor != null ? Color.FromArgb(node.BackColor.Value.R - 40, node.BackColor.Value.G - 40, node.BackColor.Value.B - 40) : NodeGradientEnd,
+                LinearGradientMode.Vertical))
+            using (Pen borderPen = new Pen(node == HighlightedNode ? HighlightedNodeBorderColor : node.BorderColor ?? NodeBorderColor, 2f))
+            using (SolidBrush foregroundBrush = new SolidBrush(node.ForeColor ?? NodeForegroundColor))
+            {
+                g.FillPath(gradientBrush, path);
+                g.DrawPath(borderPen, path);
+
+                using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                {
+                    g.DrawString(node.Label, Font, foregroundBrush, bounds, sf);
+                }
+            }
+        }
+
+        private GraphicsPath CreateRoundedRectangle(int x, int y, int width, int height, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            int diameter = radius * 2;
+            Rectangle arc = new Rectangle(x, y, diameter, diameter);
+
+            path.AddArc(arc, 180, 90);
+            arc.X = x + width - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = y + height - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = x;
+            path.AddArc(arc, 90, 90);
+
+            path.CloseFigure();
+            return path;
         }
 
         public Node GetNodeForGuid(string guid)
@@ -121,10 +201,7 @@ namespace AiTool3.UI
             if (selectedNode != null)
             {
                 dragOffset = new Point(transformedPoint.X - selectedNode.Location.X, transformedPoint.Y - selectedNode.Location.Y);
-
-                // Print the GUID of the clicked node to the console
                 Debug.WriteLine($"Clicked node GUID: {selectedNode.Guid}");
-
                 HighlightedNode = selectedNode;
                 NodeClicked?.Invoke(this, new NodeClickEventArgs(selectedNode));
             }
@@ -179,12 +256,8 @@ namespace AiTool3.UI
 
             if (zoomFactor != oldZoom)
             {
-                // Get the mouse position on the screen in the context of the current zoom level and pan offset
                 PointF pt = new PointF((e.X - panOffset.X) / oldZoom, (e.Y - panOffset.Y) / oldZoom);
-
-                // Adjust the pan offset so the point under the cursor remains under the cursor after the zoom
                 panOffset = new Point((int)(e.X - pt.X * zoomFactor), (int)(e.Y - pt.Y * zoomFactor));
-
                 Invalidate();
             }
         }
@@ -211,7 +284,6 @@ namespace AiTool3.UI
                 return;
             }
 
-            // Calculate the bounding rectangle for all nodes
             int left = int.MaxValue;
             int top = int.MaxValue;
             int right = int.MinValue;
@@ -219,22 +291,10 @@ namespace AiTool3.UI
 
             foreach (var node in nodes)
             {
-                if (node.Bounds.Left < left)
-                {
-                    left = node.Bounds.Left;
-                }
-                if (node.Bounds.Top < top)
-                {
-                    top = node.Bounds.Top;
-                }
-                if (node.Bounds.Right > right)
-                {
-                    right = node.Bounds.Right;
-                }
-                if (node.Bounds.Bottom > bottom)
-                {
-                    bottom = node.Bounds.Bottom;
-                }
+                if (node.Bounds.Left < left) left = node.Bounds.Left;
+                if (node.Bounds.Top < top) top = node.Bounds.Top;
+                if (node.Bounds.Right > right) right = node.Bounds.Right;
+                if (node.Bounds.Bottom > bottom) bottom = node.Bounds.Bottom;
             }
 
             left = left - 5;
@@ -244,27 +304,22 @@ namespace AiTool3.UI
 
             Rectangle boundingRect = new Rectangle(left, top, right - left, bottom - top);
 
-            // Calculate the zoom factor to fit the bounding rectangle within the control's client area
             float horizontalZoom = (float)Width / boundingRect.Width;
             float verticalZoom = (float)Height / boundingRect.Height;
             float newZoomFactor = Math.Min(horizontalZoom, verticalZoom);
 
-            // Ensure the new zoom factor is within the allowed range
             newZoomFactor = Math.Min(MaxZoom, Math.Max(MinZoom, newZoomFactor));
 
-            // Calculate the new pan offset to center the bounding rectangle in the control
             float centeredOffsetX = (Width - boundingRect.Width * newZoomFactor) / 2f - boundingRect.Left * newZoomFactor;
             float centeredOffsetY = (Height - boundingRect.Height * newZoomFactor) / 2f - boundingRect.Top * newZoomFactor;
             Point newPanOffset = new Point((int)centeredOffsetX, (int)centeredOffsetY);
 
-            // Prepare animation
             initialZoomFactor = zoomFactor;
             initialPanOffset = panOffset;
             targetZoomFactor = newZoomFactor;
             targetPanOffset = newPanOffset;
             animationProgress = 0;
 
-            // Start animation timer
             fitAllTimer.Start();
         }
 
@@ -299,7 +354,6 @@ namespace AiTool3.UI
 
         internal void CenterOnNode(Node node)
         {
-            // Calculate the new pan offset to center the node, taking the zoom factor into account
             var centerPoint = new PointF(
                 Width / 2f / zoomFactor - node.Location.X,
                 Height / 2f / zoomFactor - node.Location.Y);
@@ -327,6 +381,7 @@ namespace AiTool3.UI
                 Guid = guid;
             }
         }
+
 
         public class NodeClickEventArgs : EventArgs
         {
