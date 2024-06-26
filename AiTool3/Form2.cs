@@ -338,7 +338,7 @@ namespace AiTool3
                 button2.Tag = snippet;
                 button2.Click += (s, e) =>
                 {
-                    LaunchHtml(s);
+                    LaunchHelpers.LaunchHtml(s);
 
                 };
                 // position button2 below button
@@ -358,7 +358,7 @@ namespace AiTool3
                     var code = snippet.Code;
                     if (code.StartsWith("csharp\n"))
                         code = code.Substring(7);
-                    LaunchCSharp(code);
+                    LaunchHelpers.LaunchCSharp(code);
 
                 };
                 // position button2 below button
@@ -369,52 +369,6 @@ namespace AiTool3
             }
 
             return snippets;
-        }
-
-        private static void LaunchHtml(object? s)
-        {
-            var snip = (Snippet)((Button)s).Tag;
-
-            var code = snip.Code;
-
-            if (code.StartsWith("html\n"))
-                code = code.Substring(5);
-
-            var tempFile = $"{Path.GetTempPath()}{Guid.NewGuid().ToString()}.html";
-            File.WriteAllText(tempFile, code);
-
-            // find chrome path from registry
-            var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe");
-            var chromePath = key.GetValue(null).ToString();
-
-            // start chrome
-            Process.Start(chromePath, tempFile);
-        }
-
-        public async void LaunchCSharp(string code)
-        {
-
-
-
-            try
-            {
-                var scriptOptions = ScriptOptions.Default.AddReferences(typeof(Console).Assembly);
-                // evaluate c# in .net core 8
-                var result = await Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.EvaluateAsync(code, scriptOptions);
-
-                MessageBox.Show(result.ToString());
-
-            }
-            catch (CompilationErrorException e)
-            {
-                Console.WriteLine("Compilation error: " + e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Execution error: " + e.Message);
-            }
-
-
         }
 
         private async void btnGo_Click(object sender, EventArgs e)
