@@ -93,11 +93,14 @@ namespace AiTool3
             dgvConversations.Columns.Add("Engine", "Engine");
             dgvConversations.Columns.Add("Title", "Title");
             dgvConversations.Columns[0].Visible = false;
+            dgvConversations.Columns[0].ReadOnly = true;
             dgvConversations.Columns[1].Visible = false;
+            dgvConversations.Columns[1].ReadOnly = true;
             dgvConversations.Columns[2].Visible = false;
+            dgvConversations.Columns[2].ReadOnly = true;
             // make the last column fill the parent
             dgvConversations.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
+            dgvConversations.Columns[3].ReadOnly = true;
 
             // make the columns wrap text
             //dgvConversations.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
@@ -296,8 +299,8 @@ namespace AiTool3
                 var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
 
                 {
-                   // var innerCode = snippet.Code.Substring(endOfFirstLine, snippet.Code.Length - endOfFirstLine - 3);
-                    richTextBox.Select(endOfFirstLine+1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                    // var innerCode = snippet.Code.Substring(endOfFirstLine, snippet.Code.Length - endOfFirstLine - 3);
+                    richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
@@ -311,7 +314,8 @@ namespace AiTool3
                         new MegaBarItem { Title = "Browser", Callback = () => { LaunchHelpers.LaunchHtml(snippet.Code); } },
                         new MegaBarItem { Title = "C# Script", Callback = () => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
                         new MegaBarItem { Title = "Notepad", Callback = () => { LaunchHelpers.LaunchTxt(snippet.Code); } },
-                        new MegaBarItem { Title = "Save As", Callback = () => { SaveFileDialog saveFileDialog = new SaveFileDialog(); saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"; saveFileDialog.RestoreDirectory = true; if (saveFileDialog.ShowDialog() == DialogResult.OK) { File.WriteAllText(saveFileDialog.FileName, snippet.Code); } } }
+                        new MegaBarItem { Title = "Save As", Callback = () => { SaveFileDialog saveFileDialog = new SaveFileDialog(); saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"; saveFileDialog.RestoreDirectory = true; if (saveFileDialog.ShowDialog() == DialogResult.OK) { File.WriteAllText(saveFileDialog.FileName, snippet.Code); } } },
+                        new MegaBarItem { Title = "Copy w/o", Callback = () => { string codeWithoutComments = RemoveComments(snippet.Code); Clipboard.SetText(codeWithoutComments); }},
                     });
                 }
             }
@@ -323,6 +327,19 @@ namespace AiTool3
             return snippets;
         }
 
+        private string RemoveComments(string code)
+        {
+            // Remove single-line comments
+            code = System.Text.RegularExpressions.Regex.Replace(code, @"//.*$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            // Remove multi-line comments
+            code = System.Text.RegularExpressions.Regex.Replace(code, @"/\*[\s\S]*?\*/", "");
+
+            // Remove any trailing whitespace that might be left after removing comments
+            code = System.Text.RegularExpressions.Regex.Replace(code, @"\s+$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            return code;
+        }
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
@@ -876,6 +893,38 @@ namespace AiTool3
             {
                 Base64Image = "";
                 Base64ImageType = "";
+            }
+        }
+
+        private void tbSearch_TextChanged(object sender, EventArgs e)
+        {
+            // get the text in the search bar
+            var searchText = tbSearch.Text;
+
+            // for each row in the dgvConversations, check if any message content contains the search text
+            foreach (DataGridViewRow row in dgvConversations.Rows)
+            {
+                if(row.Cells[0].Value == null)
+                {
+                    continue;
+                }
+                // get the guid
+                var guid = row.Cells[0].Value.ToString();
+                
+                // get all the mssages for tat convo from file
+                var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+
+
+
+                // check if any of the messages contain the search text
+
+                var allMessages = conv.Messages.Select(m => m.Content).ToList();
+
+                var containsSearchText = allMessages.Any(m => m.Contains(searchText, StringComparison.InvariantCultureIgnoreCase));
+
+                // set the visibility of the row based on the search text
+                row.Visible = containsSearchText;
+
             }
         }
     }

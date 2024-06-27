@@ -45,6 +45,7 @@ namespace AiTool3
             cbTemplates = new ComboBox();
             cbCategories = new ComboBox();
             splitContainer3 = new SplitContainer();
+            button5 = new Button();
             button4 = new Button();
             button3 = new Button();
             btnRestart = new Button();
@@ -53,7 +54,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
-            button5 = new Button();
+            tbSearch = new TextBox();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -89,10 +90,12 @@ namespace AiTool3
             ndcConversation.NodeForegroundColor = Color.Black;
             ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
             ndcConversation.NodeGradientStart = Color.White;
+            ndcConversation.PanOffset = new Point(0, 0);
             ndcConversation.Size = new Size(335, 595);
             ndcConversation.TabIndex = 0;
             ndcConversation.Text = "networkDiagramControl1";
             ndcConversation.UseDropShadow = true;
+            ndcConversation.ZoomFactor = 1F;
             // 
             // cbEngine
             // 
@@ -175,6 +178,7 @@ namespace AiTool3
             // 
             // splitContainer5.Panel1
             // 
+            splitContainer5.Panel1.Controls.Add(tbSearch);
             splitContainer5.Panel1.Controls.Add(dgvConversations);
             // 
             // splitContainer5.Panel2
@@ -189,10 +193,10 @@ namespace AiTool3
             dgvConversations.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvConversations.BackgroundColor = Color.Black;
             dgvConversations.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvConversations.Location = new Point(3, 3);
+            dgvConversations.Location = new Point(3, 46);
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
-            dgvConversations.Size = new Size(335, 382);
+            dgvConversations.Size = new Size(335, 339);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
             // 
@@ -291,6 +295,19 @@ namespace AiTool3
             splitContainer3.SplitterDistance = 274;
             splitContainer3.TabIndex = 0;
             // 
+            // button5
+            // 
+            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+            button5.Location = new Point(1227, 3);
+            button5.Name = "button5";
+            button5.Size = new Size(65, 34);
+            button5.TabIndex = 12;
+            button5.Text = "Img";
+            button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
+            // 
             // button4
             // 
             button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
@@ -376,18 +393,13 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
             // 
-            // button5
+            // tbSearch
             // 
-            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button5.BackColor = Color.Black;
-            button5.ForeColor = Color.White;
-            button5.Location = new Point(1227, 3);
-            button5.Name = "button5";
-            button5.Size = new Size(65, 34);
-            button5.TabIndex = 12;
-            button5.Text = "Img";
-            button5.UseVisualStyleBackColor = false;
-            button5.Click += button5_Click;
+            tbSearch.Location = new Point(9, 11);
+            tbSearch.Name = "tbSearch";
+            tbSearch.Size = new Size(315, 31);
+            tbSearch.TabIndex = 1;
+            tbSearch.TextChanged += tbSearch_TextChanged;
             // 
             // Form2
             // 
@@ -406,6 +418,7 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             splitContainer5.Panel1.ResumeLayout(false);
+            splitContainer5.Panel1.PerformLayout();
             splitContainer5.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer5).EndInit();
             splitContainer5.ResumeLayout(false);
@@ -452,5 +465,6 @@ namespace AiTool3
         private ToolStripStatusLabel tokenUsageLabel;
         private Button button4;
         private Button button5;
+        private TextBox tbSearch;
     }
 }
