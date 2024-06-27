@@ -256,10 +256,17 @@ namespace AiTool3
             // Apply UI formatting
             foreach (var snippet in snippets)
             {
-                int startIndex = richTextBox.Text.IndexOf(snippet.Code);
-                if (startIndex >= 0)
+                int startIndex = 0;
+
+                // find the end of the line
+                var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
+
+                // find the length of the first line
+                var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
+
                 {
-                    richTextBox.Select(startIndex, snippet.Code.Length);
+                   // var innerCode = snippet.Code.Substring(endOfFirstLine, snippet.Code.Length - endOfFirstLine - 3);
+                    richTextBox.Select(endOfFirstLine+1, snippet.Code.Length - 4 - lengthOfFirstLine);
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
@@ -268,7 +275,7 @@ namespace AiTool3
                     var lastChar = richTextBox.Text.IndexOf('\n', startIndex);
 
                     //test megabar
-                    richTextBox.AddMegaBar(startIndex > 0 ? startIndex - 1 : 0, new MegaBarItem[] {
+                    richTextBox.AddMegaBar(endOfFirstLine, new MegaBarItem[] {
                         new MegaBarItem { Title = "Copy", Callback = () => { Clipboard.SetText(snippet.Code); } },
                         new MegaBarItem { Title = "Browser", Callback = () => { LaunchHelpers.LaunchHtml(snippet.Code); } },
                         new MegaBarItem { Title = "C# Script", Callback = () => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
@@ -278,6 +285,10 @@ namespace AiTool3
                 }
             }
 
+            richTextBox.DeselectAll();
+
+            // scroll to top
+            richTextBox.SelectionStart = 0;
             return snippets;
         }
 
@@ -321,7 +332,7 @@ namespace AiTool3
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
             // work out the cost
-            var cost = response.TokenUsage.InputTokens * model.output1MTokenPrice / 1000000
+            var cost = response.TokenUsage.InputTokens * model.input1MTokenPrice / 1000000
                 +
                 response.TokenUsage.OutputTokens * model.output1MTokenPrice / 1000000;
 

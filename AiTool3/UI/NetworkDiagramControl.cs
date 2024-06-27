@@ -137,7 +137,7 @@ namespace AiTool3.UI
             using (GraphicsPath path = CreateRoundedRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height, NodeCornerRadius))
             using (LinearGradientBrush gradientBrush = new LinearGradientBrush(bounds,
                 node.BackColor ?? NodeGradientStart,
-                node.BackColor != null ? Color.FromArgb(node.BackColor.Value.R - 40, node.BackColor.Value.G - 40, node.BackColor.Value.B - 40) : NodeGradientEnd,
+                node.BackColor != null ? Color.FromArgb(Math.Abs(node.BackColor.Value.R - 40), Math.Abs(node.BackColor.Value.G - 40), Math.Abs(node.BackColor.Value.B - 40)) : NodeGradientEnd,
                 LinearGradientMode.Vertical))
             using (Pen borderPen = new Pen(node == HighlightedNode ? HighlightedNodeBorderColor : node.BorderColor ?? NodeBorderColor, 2f))
             using (SolidBrush foregroundBrush = new SolidBrush(node.ForeColor ?? NodeForegroundColor))

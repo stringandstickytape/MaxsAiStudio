@@ -14,10 +14,10 @@ namespace AiTool3.Snippets
 
             foreach (Match match in matches)
             {
-                if (match.Groups.Count > 1)
+                if (match.Captures.Count > 0)
                 {
-                    int startIndex = match.Groups[1].Index;
-                    int length = match.Groups[1].Length;
+                    int startIndex = match.Captures[0].Index;
+                    int length = match.Captures[0].Length;
 
                     string type = null;
                     string filename = null;
@@ -39,7 +39,8 @@ namespace AiTool3.Snippets
                     {
                         Type = type,
                         Filename = filename,
-                        Code = snippetText.Trim()
+                        Code = snippetText.Trim(),
+                        StartIndex = startIndex
                     });
                 }
             }
