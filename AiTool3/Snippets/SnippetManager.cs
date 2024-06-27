@@ -22,12 +22,39 @@ namespace AiTool3.Snippets
                     string type = null;
                     string filename = null;
 
+                    // get the first line
+                    var firstLine = text.Substring(startIndex).Split('\n').FirstOrDefault();
+
                     // Extract type and filename if available
-                    var lineBeforeMatch = Regex.Match(text.Substring(0, startIndex), @"### (.*?) \((.*?)\)");
-                    if (lineBeforeMatch.Success)
+                    string pattern2 = @"```[a-zA-Z]+";
+
+                    foreach (Match match2 in Regex.Matches(firstLine, pattern2))
                     {
-                        type = lineBeforeMatch.Groups[1].Value;
-                        filename = lineBeforeMatch.Groups[2].Value;
+                        var language = match2.Value.Substring(3);
+
+                        var fileExt = ".txt";
+
+                        if (language == "csharp")
+                        {
+                            fileExt = ".cs";
+                        }
+                        else if (language == "html" || language == "htm")
+                        {
+                            fileExt = ".html";
+                        }
+                        else if (language == "txt")
+                        {
+                            fileExt = ".txt";
+                        } else if (language == "xml")
+                        {
+                            fileExt = ".xml";
+                        } else if (language == "javascript")
+                        {
+                            fileExt = ".js";
+                        } else fileExt = $".{language}";
+
+                        type = fileExt;
+
                     }
 
                     var snippetText = text.Substring(startIndex, length);

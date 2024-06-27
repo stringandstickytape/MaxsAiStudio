@@ -25,8 +25,8 @@ using Microsoft.CodeAnalysis;
 using static AiTool3.Form2;
 using AiTool3.Audio;
 using AiTool3.Snippets;
-using static AiTool3.UI.ButtonedRichTextBox;
 using System.Drawing.Drawing2D;
+using AiTool3.MegaBar.Items;
 
 
 namespace AiTool3
@@ -308,15 +308,8 @@ namespace AiTool3
 
                     var lastChar = richTextBox.Text.IndexOf('\n', startIndex);
 
-                    //test megabar
-                    richTextBox.AddMegaBar(endOfFirstLine, new MegaBarItem[] {
-                        new MegaBarItem { Title = "Copy", Callback = () => { Clipboard.SetText(snippet.Code); } },
-                        new MegaBarItem { Title = "Browser", Callback = () => { LaunchHelpers.LaunchHtml(snippet.Code); } },
-                        new MegaBarItem { Title = "C# Script", Callback = () => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
-                        new MegaBarItem { Title = "Notepad", Callback = () => { LaunchHelpers.LaunchTxt(snippet.Code); } },
-                        new MegaBarItem { Title = "Save As", Callback = () => { SaveFileDialog saveFileDialog = new SaveFileDialog(); saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"; saveFileDialog.RestoreDirectory = true; if (saveFileDialog.ShowDialog() == DialogResult.OK) { File.WriteAllText(saveFileDialog.FileName, snippet.Code); } } },
-                        new MegaBarItem { Title = "Copy w/o comments", Callback = () => { string codeWithoutComments = RemoveComments(snippet.Code); Clipboard.SetText(codeWithoutComments); }},
-                    });
+                    var thisItems = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code);
+                    richTextBox.AddMegaBar(endOfFirstLine, thisItems.ToArray());
                 }
             }
 
@@ -327,19 +320,6 @@ namespace AiTool3
             return snippets;
         }
 
-        private string RemoveComments(string code)
-        {
-            // Remove single-line comments
-            code = System.Text.RegularExpressions.Regex.Replace(code, @"//.*$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-
-            // Remove multi-line comments
-            code = System.Text.RegularExpressions.Regex.Replace(code, @"/\*[\s\S]*?\*/", "");
-
-            // Remove any trailing whitespace that might be left after removing comments
-            code = System.Text.RegularExpressions.Regex.Replace(code, @"\s+$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-
-            return code;
-        }
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
@@ -928,4 +908,5 @@ namespace AiTool3
             }
         }
     }
+
 }
