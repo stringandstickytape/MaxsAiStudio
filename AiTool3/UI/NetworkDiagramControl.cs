@@ -47,7 +47,7 @@ namespace AiTool3.UI
         }
 
         public const float MaxZoom = 3.0f;
-        public const float MinZoom = 0.3f;
+        public const float MinZoom = 0.05f;
         private Point panOffset;
         private bool isPanning;
         private Point lastMousePosition;
