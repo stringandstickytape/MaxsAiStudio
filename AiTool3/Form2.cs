@@ -270,20 +270,12 @@ namespace AiTool3
                         new MegaBarItem { Title = "C# Script", Callback = () => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
                         new MegaBarItem { Title = "Notepad", Callback = () => { LaunchHelpers.LaunchTxt(snippet.Code); } },
                         new MegaBarItem { Title = "Save As", Callback = () => { SaveFileDialog saveFileDialog = new SaveFileDialog(); saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"; saveFileDialog.RestoreDirectory = true; if (saveFileDialog.ShowDialog() == DialogResult.OK) { File.WriteAllText(saveFileDialog.FileName, snippet.Code); } } }
-
                     });
-
-
                 }
             }
 
             return snippets;
         }
-
-    
-
-
-
 
         private async void btnGo_Click(object sender, EventArgs e)
         {

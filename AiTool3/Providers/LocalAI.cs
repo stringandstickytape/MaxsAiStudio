@@ -87,6 +87,13 @@ namespace AiTool3.Providers
 
             dynamic d = JsonConvert.DeserializeObject(allTxt);
 
+            // {"model":"llama3","created_at":"2024-06-27T01:56:15.5661741Z","message":{"role":"assistant","content":"Hi!"},"done_reason":"stop","done":true,"total_duration":123866400,"load_duration":1042500,"prompt_eval_count":36,"prompt_eval_duration":59031000,"eval_count":3,"eval_duration":61634000}
+
+            // get the number of input and output tokens but don't b0rk if either is missing
+            var inputTokens = d.prompt_eval_count.ToString();
+            var outputTokens = d.eval_count.ToString();
+
+
             string s = d.message.content;
 
             return new AiResponse { ResponseText = s, Success = true };

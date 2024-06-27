@@ -30,7 +30,7 @@ namespace AiTool3.Providers
             {
                 ["model"] = apiModel.ModelName,
                 ["system"] = conversation.SystemPromptWithDateTime(),
-                ["max_tokens"] = 4000,
+                ["max_tokens"] = 4096,
                 ["messages"] = new JArray(
                     conversation.messages.Select(m => new JObject
                     {
@@ -64,7 +64,13 @@ namespace AiTool3.Providers
             var allTxt = sb.ToString();
 
             // deserialize the response
+
             var completion = JsonConvert.DeserializeObject<JObject>(allTxt);
+
+            // get the number of input and output tokens but don't b0rk if either is missing
+            var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
+            var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
+
             if (completion["type"].ToString() == "error")
             {
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };

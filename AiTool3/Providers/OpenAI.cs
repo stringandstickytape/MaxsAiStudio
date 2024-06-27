@@ -97,6 +97,12 @@ namespace AiTool3.Providers
 
             // deserialize the response
             var completion = JsonConvert.DeserializeObject<JObject>(allTxt);
+
+            // get the number of input and output tokens but don't b0rk if either is missing
+            var inputTokens = completion["usage"]?["prompt_tokens"]?.ToString();
+            var outputTokens = completion["usage"]?["completion_tokens"]?.ToString();
+
+
             if (completion["choices"] == null)
                 return null;
             return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true };

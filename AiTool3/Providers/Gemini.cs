@@ -82,6 +82,11 @@ namespace AiTool3.Providers
                         Console.WriteLine(responseContent);
 
                         var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
+                        
+                        // get the number of input and output tokens but don't b0rk if either is missing
+                        var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
+                        var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+
                         return new AiResponse { ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(), Success = true };
                     }
                     else
