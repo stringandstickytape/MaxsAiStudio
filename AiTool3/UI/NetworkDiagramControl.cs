@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.ComponentModel;
 using System.Windows.Forms.Design;
 using System.Diagnostics;
+using static AiTool3.UI.NetworkDiagramControl;
 
 namespace AiTool3.UI
 {
@@ -23,6 +24,8 @@ namespace AiTool3.UI
         private const float ZoomIncrement = 0.1f;
         private FitAllAnimation fitAllAnimation;
 
+        private ContextMenuStrip contextMenu;
+        public event EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected;
         public float ZoomFactor
         {
             get => zoomFactor;
@@ -70,7 +73,8 @@ namespace AiTool3.UI
             zoomFactor = 1.0f;
             panOffset = Point.Empty;
             fitAllAnimation = new FitAllAnimation(this);
-           
+            contextMenu = new ContextMenuStrip();
+            contextMenu.ItemClicked += ContextMenu_ItemClicked;
         }
 
         public Node HighlightedNode
@@ -196,7 +200,14 @@ namespace AiTool3.UI
             base.OnMouseDown(e);
             Point transformedPoint = TransformPoint(e.Location);
             selectedNode = nodes.Find(n => n.Bounds.Contains(transformedPoint));
-            if (selectedNode != null)
+
+            if (e.Button == MouseButtons.Right && selectedNode != null)
+            {
+                HighlightedNode = selectedNode;
+                NodeClicked?.Invoke(this, new NodeClickEventArgs(selectedNode));
+                ShowContextMenu(e.Location);
+            }
+            else if (selectedNode != null)
             {
                 dragOffset = new Point(transformedPoint.X - selectedNode.Location.X, transformedPoint.Y - selectedNode.Location.Y);
                 Debug.WriteLine($"Clicked node GUID: {selectedNode.Guid}");
@@ -290,6 +301,29 @@ namespace AiTool3.UI
             panOffset = new Point((int)(centerPoint.X * zoomFactor), (int)(centerPoint.Y * zoomFactor));
             Invalidate();
         }
+
+
+
+        private void ShowContextMenu(Point location)
+        {
+            contextMenu.Show(this, location);
+        }
+
+        private void ContextMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+            MenuOptionSelected?.Invoke(this, new MenuOptionSelectedEventArgs(highlightedNode, e.ClickedItem.Text));
+        }
+
+        public void SetContextMenuOptions(IEnumerable<string> options)
+        {
+            contextMenu.Items.Clear();
+            foreach (var option in options)
+            {
+                contextMenu.Items.Add(option);
+            }
+        }
+
     }
 
     public class NetworkDiagramControlDesigner : ControlDesigner
@@ -301,6 +335,18 @@ namespace AiTool3.UI
             {
                 EnableDesignMode(control, "NetworkDiagramControl");
             }
+        }
+    }
+
+    public class MenuOptionSelectedEventArgs : EventArgs
+    {
+        public Node SelectedNode { get; }
+        public string SelectedOption { get; }
+
+        public MenuOptionSelectedEventArgs(Node selectedNode, string selectedOption)
+        {
+            SelectedNode = selectedNode;
+            SelectedOption = selectedOption;
         }
     }
 }

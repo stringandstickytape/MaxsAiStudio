@@ -50,6 +50,9 @@ namespace AiTool3
         {
             InitializeComponent();
 
+            ndcConversation.SetContextMenuOptions(new[] { "Save conversation to here as TXT", "Option 2", "Option 3" });
+            ndcConversation.MenuOptionSelected += MenuOptionSelected();
+
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
 
@@ -118,6 +121,34 @@ namespace AiTool3
             }
 
             InitialiseMenus();
+        }
+
+        private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
+        {
+            return (sender, e) =>
+            {
+                Debug.WriteLine($"Node: {e.SelectedNode.Guid}, Option: {e.SelectedOption}");
+
+                if (e.SelectedOption == "Save conversation to here as TXT")
+                {
+                    var nodes = GetParentNodeList();
+                    var json = JsonConvert.SerializeObject(nodes);
+
+                    // pretty-print the conversation from the nodes list
+                    string conversation = nodes.Aggregate("", (acc, node) => acc + $"{node.Role.ToString()}: {node.Content}" + "\n\n");
+
+                    // get a filename from the user
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                    saveFileDialog.RestoreDirectory = true;
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        File.WriteAllText(saveFileDialog.FileName, conversation);
+                        // open the file in default handler
+                        Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                    }
+                }
+            };
         }
 
         private void InitialiseMenus()
