@@ -67,7 +67,7 @@ namespace AiTool3.Conversations
 
             }
             // fetch the response from the api
-            var response = await aiService.FetchResponse(apiModel, conversation, null);
+            var response = await aiService.FetchResponse(apiModel, conversation, null, null);
 
             Debug.WriteLine("Summary : " + response.ResponseText);
 

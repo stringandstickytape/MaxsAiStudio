@@ -17,7 +17,7 @@ namespace AiTool3.Providers
 
         bool clientInitialised = false;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType)
         {
             if (!clientInitialised)
             {
@@ -35,10 +35,38 @@ namespace AiTool3.Providers
                     conversation.messages.Select(m => new JObject
                     {
                         ["role"] = m.role,
-                        ["content"] = m.content
-                    })
-                )
+                        ["content"] = new JArray(
+                              new JObject
+                              {
+                                  ["type"] = "text",
+                                  ["text"] = m.content
+                              }
+                            )
+                    }
+                    )
+                    )
             };
+            
+            if (!string.IsNullOrWhiteSpace(base64image))
+            {
+                // add the base64 image to a new item inside content
+                var imageContent = new JObject
+                {
+                    ["type"] = "image",
+                    ["source"] = new JObject
+                    {
+                        ["type"] = "base64",
+                        ["media_type"] = base64ImageType,
+                        ["data"] = base64image
+                    }
+                };
+
+                // add the image content to the last message
+                req["messages"].Last["content"].Last.AddAfterSelf(imageContent);
+
+
+
+            }
 
             var json = JsonConvert.SerializeObject(req);
 

@@ -45,6 +45,7 @@ namespace AiTool3
             cbTemplates = new ComboBox();
             cbCategories = new ComboBox();
             splitContainer3 = new SplitContainer();
+            button4 = new Button();
             button3 = new Button();
             btnRestart = new Button();
             btnClear = new Button();
@@ -52,7 +53,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
-            button4 = new Button();
+            button5 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -279,6 +280,7 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(button5);
             splitContainer3.Panel2.Controls.Add(button4);
             splitContainer3.Panel2.Controls.Add(button3);
             splitContainer3.Panel2.Controls.Add(btnRestart);
@@ -289,12 +291,25 @@ namespace AiTool3
             splitContainer3.SplitterDistance = 274;
             splitContainer3.TabIndex = 0;
             // 
+            // button4
+            // 
+            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button4.BackColor = Color.Black;
+            button4.ForeColor = Color.White;
+            button4.Location = new Point(1164, 70);
+            button4.Name = "button4";
+            button4.Size = new Size(145, 96);
+            button4.TabIndex = 11;
+            button4.Text = "New\r\n(keep prompt and output)";
+            button4.UseVisualStyleBackColor = false;
+            button4.Click += button4_Click;
+            // 
             // button3
             // 
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button3.BackColor = Color.Black;
             button3.ForeColor = Color.White;
-            button3.Location = new Point(1164, -2);
+            button3.Location = new Point(1186, 3);
             button3.Name = "button3";
             button3.Size = new Size(35, 34);
             button3.TabIndex = 10;
@@ -361,18 +376,18 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
             // 
-            // button4
+            // button5
             // 
-            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button4.BackColor = Color.Black;
-            button4.ForeColor = Color.White;
-            button4.Location = new Point(1164, 70);
-            button4.Name = "button4";
-            button4.Size = new Size(145, 96);
-            button4.TabIndex = 11;
-            button4.Text = "New\r\n(keep prompt and output)";
-            button4.UseVisualStyleBackColor = false;
-            button4.Click += button4_Click;
+            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button5.BackColor = Color.Black;
+            button5.ForeColor = Color.White;
+            button5.Location = new Point(1227, 3);
+            button5.Name = "button5";
+            button5.Size = new Size(65, 34);
+            button5.TabIndex = 12;
+            button5.Text = "Img";
+            button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
             // 
             // Form2
             // 
@@ -436,5 +451,6 @@ namespace AiTool3
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tokenUsageLabel;
         private Button button4;
+        private Button button5;
     }
 }

@@ -15,7 +15,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType)
         {
             // if there's no bearer header set yet...
             if (client.DefaultRequestHeaders.Authorization == null)
@@ -57,14 +57,14 @@ namespace AiTool3.Providers
                 });
             }
 
-            if (base64image != null)
+            if (!string.IsNullOrWhiteSpace(base64image))
             {
                 ((JArray)req["messages"].Last["content"]).Add(new JObject
                 {
                     ["type"] = "image_url",
                     ["image_url"] = new JObject
                     {
-                        ["url"] = $"data:image/jpeg;base64,{base64image}"
+                        ["url"] = $"data:{base64ImageType};base64,{base64image}"
                     }
                 });
             }

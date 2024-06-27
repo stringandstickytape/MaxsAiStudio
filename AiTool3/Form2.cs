@@ -43,6 +43,9 @@ namespace AiTool3
 
         private AudioRecorderManager audioRecorderManager = new AudioRecorderManager();
 
+        public string Base64Image { get; set; }
+        public string Base64ImageType { get; set; }
+
         public Form2()
         {
             InitializeComponent();
@@ -315,7 +318,7 @@ namespace AiTool3
                 conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
             }
             // fetch the response from the api
-            var response = await aiService.FetchResponse(model, conversation, null);
+            var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
             tokenUsageLabel.Text = $"Token Usage: {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
@@ -336,6 +339,7 @@ namespace AiTool3
                 btnGo.Enabled = true;
                 return;
             }
+
             if (PreviousCompletion != null)
             {
                 PreviousCompletion.Children.Add(completionInput.Guid);
@@ -363,6 +367,9 @@ namespace AiTool3
             completionInput.Children.Add(completionResponse.Guid);
 
             PreviousCompletion = completionResponse;
+
+            Base64Image = null;
+            Base64ImageType = null;
 
             btnGo.Enabled = true;
 
@@ -763,7 +770,7 @@ namespace AiTool3
 
             var lastUserMessage = CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
 
-                CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
 
             // create new messages out of the two
 
@@ -795,7 +802,31 @@ namespace AiTool3
 
             PreviousCompletion = assistantMessage;
 
-                DrawNetworkDiagram();
+            DrawNetworkDiagram();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            // prompt the user for an image file.
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
+            openFileDialog.Title = "Select an Image File";
+            openFileDialog.Multiselect = false;
+            openFileDialog.CheckFileExists = true;
+            openFileDialog.CheckPathExists = true;
+            openFileDialog.ShowDialog();
+
+            if (openFileDialog.FileName != "")
+            {
+                // convert the image to base64 and set the type
+                Base64Image = ImageHelpers.ImageToBase64(openFileDialog.FileName);
+                Base64ImageType = ImageHelpers.GetImageType(openFileDialog.FileName);
+            }
+            else
+            {
+                Base64Image = "";
+                Base64ImageType = "";
+            }
         }
     }
 }
