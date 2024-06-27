@@ -18,55 +18,48 @@ namespace AiTool3.Settings
         {
             InitializeComponent();
 
-            // convert settings to json
-            var json = System.Text.Json.JsonSerializer.Serialize(settings);
+            NewSettings = CloneSettings(settings);
 
-            // deserialise to clone
-            var clone = System.Text.Json.JsonSerializer.Deserialize<SettingsManager>(json);
-
-
-            NewSettings = clone;
-
-            // prevent dgv from creating new rows
-            dgvModels.AllowUserToAddRows = false;
-
-            // add dgv column for model name
-            var modelNameColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "ModelName",
-                HeaderText = "Model Name",
-                DataPropertyName = "ModelName",
-                ReadOnly = true
-            };
-            dgvModels.Columns.Add(modelNameColumn);
-
-            // add dgv column for model url
-            var modelUrlColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "ModelUrl",
-                HeaderText = "Model Url",
-                DataPropertyName = "ModelUrl",
-                ReadOnly = true
-            };
-            dgvModels.Columns.Add(modelUrlColumn);
-
-            // add dgv column for model key
-            var modelKeyColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "ModelKey",
-                HeaderText = "Model Key",
-                DataPropertyName = "ModelKey",
-            };
-            dgvModels.Columns.Add(modelKeyColumn);
-
-            // fit all the columns automatically
-            dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
-            // add handler to capture when key is changed
-            dgvModels.CellValueChanged += DgvModels_CellValueChanged;
-
+            InitializeDgvModels();
+            CreateDgvColumns();
             CreateDgvRows(settings);
+        }
 
+        private SettingsManager CloneSettings(SettingsManager settings)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(settings);
+            return System.Text.Json.JsonSerializer.Deserialize<SettingsManager>(json);
+        }
+
+        private void InitializeDgvModels()
+        {
+            dgvModels.AllowUserToAddRows = false;
+            dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvModels.CellValueChanged += DgvModels_CellValueChanged;
+        }
+
+        private void CreateDgvColumns()
+        {
+            var columns = new[]
+            {
+        new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = true },
+        new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = true },
+        new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
+        new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
+        new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false }
+
+            };
+
+            foreach (var col in columns)
+            {
+                dgvModels.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = col.Name,
+                    HeaderText = col.HeaderText,
+                    DataPropertyName = col.Name,
+                    ReadOnly = col.ReadOnly
+                });
+            }
         }
 
         private void CreateDgvRows(SettingsManager settings)
@@ -78,7 +71,7 @@ namespace AiTool3.Settings
                 foreach (var model in api.Models)
                 {
                     // populate the dgv with the model data
-                    dgvModels.Rows.Add(model.ModelName, model.Url, model.Key);
+                    dgvModels.Rows.Add(model.ModelName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice);
                 }
             }
         }
@@ -100,13 +93,23 @@ namespace AiTool3.Settings
             // get the new value
             var newValue = row.Cells[e.ColumnIndex].Value;
 
-            if (columnName == "ModelKey")
+            if (e.ColumnIndex > 2)
             {
                 // get the model from settings
                 var models = NewSettings.ApiList.SelectMany(a => a.Models);
                 var model = models.Where(x => x.ModelName == modelName.ToString()).First();
-                model.Key = (string)newValue;
-
+                switch (e.ColumnIndex)
+                {
+                    case 2:
+                        model.Key = (string)newValue;
+                        break;
+                    case 3:
+                        model.input1MTokenPrice = decimal.Parse(newValue.ToString());
+                        break;
+                    case 4:
+                        model.output1MTokenPrice = decimal.Parse(newValue.ToString());
+                        break;
+                }
             }
         }
 

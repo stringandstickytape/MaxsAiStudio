@@ -7,6 +7,8 @@
         public string Key { get; set; }
         public string Url { get; set; }
 
+        public decimal input1MTokenPrice { get; set; }
+        public decimal output1MTokenPrice { get; set; }
         public Color Color { get; set; }
 
         public override string ToString()

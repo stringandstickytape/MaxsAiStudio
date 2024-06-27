@@ -320,7 +320,15 @@ namespace AiTool3
             // fetch the response from the api
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
-            tokenUsageLabel.Text = $"Token Usage: {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
+            // work out the cost
+            var cost = response.TokenUsage.InputTokens * model.output1MTokenPrice / 1000000
+                +
+                response.TokenUsage.OutputTokens * model.output1MTokenPrice / 1000000;
+
+            // format cost to exactly 2 decimal places
+            var formattedCost = cost.ToString("0.00");
+
+            tokenUsageLabel.Text = $"Token Usage: ${formattedCost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
             // create a completion message for the user input
             var completionInput = new CompletionMessage
