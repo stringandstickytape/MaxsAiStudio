@@ -106,7 +106,8 @@ namespace AiTool3.UI
 
             foreach (var item in megaBar.Items)
             {
-                Rectangle rectangle = new Rectangle(x, y, 100, 22);
+                int buttonWidth = GetStringWidth(item.Title, Font) + 20; // Add padding
+                Rectangle rectangle = new Rectangle(x, y, buttonWidth, 22);
                 int radius = 10;
                 int diameter = radius * 2;
                 Rectangle arc = new Rectangle(rectangle.Location, new Size(diameter, diameter));
@@ -128,9 +129,10 @@ namespace AiTool3.UI
                 g.DrawLine(buttonBorder, rectangle.Left, rectangle.Top + radius, rectangle.Left, rectangle.Bottom - radius);
 
                 g.DrawString(item.Title, Font, Brushes.White, rectangle, new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
-                x += 105;
+                x += buttonWidth + 5; // Add spacing between buttons
             }
         }
+
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -139,17 +141,19 @@ namespace AiTool3.UI
             {
                 foreach (var megaBar in megaBars)
                 {
-                    int x = GetPositionFromCharIndex(megaBar.StartIndex).X;
+                    int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
                     int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
 
-                    for (int i = 0; i < megaBar.Items.Length; i++)
+                    foreach (var item in megaBar.Items)
                     {
-                        Rectangle buttonRect = new Rectangle(x + (i * 105), y, 100, 25);
+                        int buttonWidth = GetStringWidth(item.Title, Font) + 20;
+                        Rectangle buttonRect = new Rectangle(x, y, buttonWidth, 22);
                         if (buttonRect.Contains(e.Location))
                         {
-                            megaBar.Items[i].Callback?.Invoke();
+                            item.Callback?.Invoke();
                             return;
                         }
+                        x += buttonWidth + 5;
                     }
                 }
             }
@@ -184,18 +188,20 @@ namespace AiTool3.UI
 
             foreach (var megaBar in megaBars)
             {
-                int x = GetPositionFromCharIndex(megaBar.StartIndex).X;
+                int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
                 int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
 
-                for (int i = 0; i < megaBar.Items.Length; i++)
+                foreach (var item in megaBar.Items)
                 {
-                    Rectangle buttonRect = new Rectangle(x + (i * 105), y, 100, 25);
+                    int buttonWidth = GetStringWidth(item.Title, Font) + 20;
+                    Rectangle buttonRect = new Rectangle(x, y, buttonWidth, 22);
                     bool isOver = buttonRect.Contains(e.Location);
-                    if (isOver != megaBar.Items[i].IsMouseOver)
+                    if (isOver != item.IsMouseOver)
                     {
-                        megaBar.Items[i].IsMouseOver = isOver;
+                        item.IsMouseOver = isOver;
                         needsRedraw = true;
                     }
+                    x += buttonWidth + 5;
                 }
             }
 
@@ -204,6 +210,7 @@ namespace AiTool3.UI
                 Invalidate();
             }
         }
+
 
         protected override void WndProc(ref Message m)
         {
@@ -214,6 +221,14 @@ namespace AiTool3.UI
                 {
                     OnPaint(new PaintEventArgs(g, ClientRectangle));
                 }
+            }
+        }
+
+        private int GetStringWidth(string text, Font font)
+        {
+            using (var g = CreateGraphics())
+            {
+                return (int)Math.Ceiling(g.MeasureString(text, font).Width);
             }
         }
 
