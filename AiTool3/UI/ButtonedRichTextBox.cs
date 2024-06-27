@@ -29,6 +29,45 @@ namespace AiTool3.UI
         public ButtonedRichTextBox()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+            this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag;
+        }
+
+        private void ButtonedRichTextBox_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
+        {
+            if (e.Action == DragAction.Drop && ModifierKeys == Keys.Control)
+            {
+                e.Action = DragAction.Cancel;
+                PasteWithoutFormatting();
+            }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if ((e.Control && e.KeyCode == Keys.V)
+                ||
+                (e.Shift && e.KeyCode == Keys.Insert))
+            {
+                e.Handled = true;
+                PasteWithoutFormatting();
+            }
+            else
+            {
+                base.OnKeyDown(e);
+            }
+        }
+
+        private void PasteWithoutFormatting()
+        {
+            if (Clipboard.ContainsText())
+            {
+                SuspendLayout();
+                int selectionStart = SelectionStart;
+                string text = Clipboard.GetText(TextDataFormat.Text);
+                SelectedText = text;
+                SelectionStart = selectionStart + text.Length;
+                SelectionLength = 0;
+                ResumeLayout();
+            }
         }
 
         public new void Clear()
