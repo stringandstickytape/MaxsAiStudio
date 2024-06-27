@@ -87,7 +87,7 @@ namespace AiTool3.Providers
                         var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
                         var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
 
-                        return new AiResponse { ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(), Success = true };
+                        return new AiResponse { ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
                     }
                     else
                     {

@@ -26,6 +26,7 @@ using static AiTool3.Form2;
 using AiTool3.Audio;
 using AiTool3.Snippets;
 using static AiTool3.UI.ButtonedRichTextBox;
+using System.Drawing.Drawing2D;
 
 
 namespace AiTool3
@@ -277,6 +278,7 @@ namespace AiTool3
             return snippets;
         }
 
+
         private async void btnGo_Click(object sender, EventArgs e)
         {
             btnGo.Enabled = false;
@@ -314,6 +316,8 @@ namespace AiTool3
             }
             // fetch the response from the api
             var response = await aiService.FetchResponse(model, conversation, null);
+
+            tokenUsageLabel.Text = $"Token Usage: {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
             // create a completion message for the user input
             var completionInput = new CompletionMessage
@@ -360,6 +364,8 @@ namespace AiTool3
 
             PreviousCompletion = completionResponse;
 
+            btnGo.Enabled = true;
+
             // draw the network diagram
             DrawNetworkDiagram();
 
@@ -394,7 +400,7 @@ namespace AiTool3
                 dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, title);
             }
 
-            btnGo.Enabled = true;
+
 
         }
 
@@ -746,6 +752,50 @@ namespace AiTool3
                 rtbInput.Text += transcription;
             }
 
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            var lastAssistantMessage = PreviousCompletion;
+
+            if (lastAssistantMessage.Role == CompletionRole.User)
+                lastAssistantMessage = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
+
+            var lastUserMessage = CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+
+                CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+
+            // create new messages out of the two
+
+            var assistantMessage = new CompletionMessage
+            {
+                Parent = null,
+                Role = CompletionRole.Assistant,
+                Content = lastAssistantMessage.Content,
+                Engine = lastAssistantMessage.Engine,
+                Guid = Guid.NewGuid().ToString(),
+                Children = new List<string>()
+            };
+
+            var userMessage = new CompletionMessage
+            {
+                Parent = null,
+                Role = CompletionRole.User,
+                Content = lastUserMessage.Content,
+                Engine = lastUserMessage.Engine,
+                Guid = Guid.NewGuid().ToString(),
+                Children = new List<string>()
+            };
+
+            assistantMessage.Parent = userMessage.Guid;
+            userMessage.Children.Add(assistantMessage.Guid);
+
+            CurrentConversation.Messages.Add(assistantMessage);
+            CurrentConversation.Messages.Add(userMessage);
+
+            PreviousCompletion = assistantMessage;
+
+                DrawNetworkDiagram();
         }
     }
 }

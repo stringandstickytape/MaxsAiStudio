@@ -75,7 +75,7 @@ namespace AiTool3.Providers
             {
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
             }
-            return new AiResponse { ResponseText = completion["content"][0]["text"].ToString(), Success = true };
+            return new AiResponse { ResponseText = completion["content"][0]["text"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
         }
     }
 }

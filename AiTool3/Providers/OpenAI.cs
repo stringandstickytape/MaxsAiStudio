@@ -105,7 +105,7 @@ namespace AiTool3.Providers
 
             if (completion["choices"] == null)
                 return null;
-            return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true };
+            return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
         }
     }
 }

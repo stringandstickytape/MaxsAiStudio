@@ -96,7 +96,7 @@ namespace AiTool3.Providers
 
             string s = d.message.content;
 
-            return new AiResponse { ResponseText = s, Success = true };
+            return new AiResponse { ResponseText = s, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
         }
 
         bool IsPortOpen(int port)
