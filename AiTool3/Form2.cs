@@ -240,7 +240,7 @@ namespace AiTool3
 
         private SnippetManager snippetManager = new SnippetManager();
 
-        public List<Snippet> FindSnippets(RichTextBox richTextBox, string text)
+        public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text)
         {
             richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
@@ -254,6 +254,10 @@ namespace AiTool3
                     richTextBox.Select(startIndex, snippet.Code.Length);
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
+
+                    // add inline buttons
+                    //richTextBox.AddButton(startIndex, 5, "Click", (sender, e) => MessageBox.Show("Button clicked!"));
+
                 }
             }
 
@@ -790,13 +794,5 @@ namespace AiTool3
             }
 
         }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            buttonedRichTextBox1.Text = "Hello World\nIpsum Dolor\nSit Amet";
-            buttonedRichTextBox1.AddButton(10, 5, "Click", (sender, e) => MessageBox.Show("Button clicked!"));
-        }
     }
-
-
 }

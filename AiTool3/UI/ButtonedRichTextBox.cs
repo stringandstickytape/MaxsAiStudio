@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AiTool3.UI
@@ -11,24 +12,52 @@ namespace AiTool3.UI
     {
         private List<ButtonInfo> buttons = new List<ButtonInfo>();
         private System.Windows.Forms.Timer scrollTimer = new System.Windows.Forms.Timer();
+        private bool mouseOverControl = false;
+        private Point mousePosition;
+        private bool buttonsVisible = false;
 
         public ButtonedRichTextBox()
         {
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             scrollTimer.Interval = 50;
             scrollTimer.Tick += ScrollTimer_Tick;
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+            mouseOverControl = true;
+            UpdateButtonVisibility();
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            mouseOverControl = false;
+            UpdateButtonVisibility();
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            mousePosition = e.Location;
+            UpdateButtonVisibility();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            foreach (var button in buttons)
+
+            if (buttonsVisible)
             {
-                if (button.Visible)
+                foreach (var button in buttons)
                 {
-                    ButtonRenderer.DrawButton(e.Graphics, button.Bounds, button.Text, Font, false,
-                        button.Pressed ? System.Windows.Forms.VisualStyles.PushButtonState.Pressed
-                                       : System.Windows.Forms.VisualStyles.PushButtonState.Normal);
+                    if (button.Visible)
+                    {
+                        ButtonRenderer.DrawButton(e.Graphics, button.Bounds, button.Text, Font, false,
+                            button.Pressed ? System.Windows.Forms.VisualStyles.PushButtonState.Pressed
+                                           : System.Windows.Forms.VisualStyles.PushButtonState.Normal);
+                    }
                 }
             }
         }
@@ -48,12 +77,15 @@ namespace AiTool3.UI
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            foreach (var button in buttons)
+            if (buttonsVisible)
             {
-                if (button.Bounds.Contains(e.Location))
+                foreach (var button in buttons)
                 {
-                    button.Pressed = true;
-                    Invalidate(button.Bounds);
+                    if (button.Bounds.Contains(e.Location))
+                    {
+                        button.Pressed = true;
+                        Invalidate(button.Bounds);
+                    }
                 }
             }
         }
@@ -61,15 +93,18 @@ namespace AiTool3.UI
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
-            foreach (var button in buttons)
+            if (buttonsVisible)
             {
-                if (button.Pressed)
+                foreach (var button in buttons)
                 {
-                    button.Pressed = false;
-                    Invalidate(button.Bounds);
-                    if (button.Bounds.Contains(e.Location))
+                    if (button.Pressed)
                     {
-                        button.OnClick?.Invoke(this, EventArgs.Empty);
+                        button.Pressed = false;
+                        Invalidate(button.Bounds);
+                        if (button.Bounds.Contains(e.Location))
+                        {
+                            button.OnClick?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                 }
             }
@@ -143,23 +178,43 @@ namespace AiTool3.UI
                 {
                     // Text is on a single line
                     button.Bounds = new Rectangle(endPoint.X, startPoint.Y, buttonSize.Width, buttonSize.Height);
-                    button.Visible = true;
                 }
                 else
                 {
                     // Text spans multiple lines, place button at the end
                     button.Bounds = new Rectangle(endPoint.X, endPoint.Y, buttonSize.Width, buttonSize.Height);
-                    button.Visible = true;
                 }
 
                 // Check if the button is within the visible area
-                if (button.Bounds.Y + button.Bounds.Height < 0 || button.Bounds.Y > ClientSize.Height)
-                {
-                    button.Visible = false;
-                }
+                button.Visible = button.Bounds.Y + button.Bounds.Height >= 0 && button.Bounds.Y <= ClientSize.Height;
             }
             ResumeLayout();
-            Invalidate();
+            UpdateButtonVisibility();
+        }
+
+        private void UpdateButtonVisibility()
+        {
+            bool shouldBeVisible = mouseOverControl || IsMouseOverAnyButton();
+            if (buttonsVisible != shouldBeVisible)
+            {
+                buttonsVisible = shouldBeVisible;
+                Invalidate();
+            }
+        }
+
+        private bool IsMouseOverAnyButton()
+        {
+            return buttons.Any(b => b.Visible && b.Bounds.Contains(mousePosition));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && scrollTimer != null)
+            {
+                scrollTimer.Dispose();
+                scrollTimer = null;
+            }
+            base.Dispose(disposing);
         }
 
         private class ButtonInfo
