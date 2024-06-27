@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis;
 using static AiTool3.Form2;
 using AiTool3.Audio;
 using AiTool3.Snippets;
+using static AiTool3.UI.ButtonedRichTextBox;
 
 
 namespace AiTool3
@@ -223,13 +224,15 @@ namespace AiTool3
             PreviousCompletion = clickedCompletion;
             if (PreviousCompletion.Role == CompletionRole.User)
             {
+
+                rtbInput.Clear();
                 rtbInput.Text = PreviousCompletion.Content;
 
                 PreviousCompletion = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
             }
             else
             {
-                rtbInput.Text = "";
+                rtbInput.Clear();
             }
 
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(PreviousCompletion?.Content ?? ""));
@@ -242,6 +245,7 @@ namespace AiTool3
 
         public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text)
         {
+            richTextBox.Clear();
             richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
 
@@ -259,78 +263,23 @@ namespace AiTool3
 
                     var lastChar = richTextBox.Text.IndexOf('\n', startIndex);
 
-                    // test addbuttons
-                    //richTextBox.AddButton(startIndex, 60, new ButtonBasics[] {
-                    //    new ButtonBasics { Text = "Copy", OnClick = (s, e) => { Clipboard.SetText(snippet.Code); } },
-                    //    new ButtonBasics { Text = "Browser", OnClick = (s, e) => { LaunchHelpers.LaunchHtml(s); } },
-                    //    new ButtonBasics { Text = "C# Script", OnClick = (s, e) => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
-                    //    new ButtonBasics { Text = "Notepad", OnClick = (s, e) => { LaunchHelpers.LaunchTxt(s); } }
-                    //});
+                    //test megabar
+                    richTextBox.AddMegaBar(startIndex > 0 ? startIndex - 1 : 0, new MegaBarItem[] {
+                        new MegaBarItem { Title = "Copy", Callback = () => { Clipboard.SetText(snippet.Code); } },
+                        new MegaBarItem { Title = "Browser", Callback = () => { LaunchHelpers.LaunchHtml(snippet.Code); } },
+                        new MegaBarItem { Title = "C# Script", Callback = () => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
+                        new MegaBarItem { Title = "Notepad", Callback = () => { LaunchHelpers.LaunchTxt(snippet.Code); } }
+                    });
 
-                    // Create inline buttons
-                    CreateInlineButtons(richTextBox, lastChar, snippet);
+
                 }
             }
 
             return snippets;
         }
 
-        private void CreateInlineButtons(ButtonedRichTextBox richTextBox, int startIndex, Snippet snippet)
-        {
-            int buttonWidth = 60; // Adjust as needed
-            int spacing = 5; // Spacing between buttons
+    
 
-            // Copy button
-            richTextBox.AddButton(startIndex, buttonWidth, "Copy", (s, e) =>
-            {
-                Clipboard.SetText(snippet.Code);
-            });
-
-            // View button
-            richTextBox.AddButton(startIndex + buttonWidth + spacing, buttonWidth, "View", (s, e) =>
-            {
-                LaunchHelpers.LaunchHtml(s);
-            });
-
-            // Run C# button
-            richTextBox.AddButton(startIndex + 2 * (buttonWidth + spacing), buttonWidth, "Run C#", (s, e) =>
-            {
-                var code = snippet.Code;
-                if (code.StartsWith("csharp\n"))
-                    code = code.Substring(7);
-                LaunchHelpers.LaunchCSharp(code);
-            });
-
-            // Launch Txt button
-            richTextBox.AddButton(startIndex + 3 * (buttonWidth + spacing), buttonWidth, "Launch Txt", (s, e) =>
-            {
-                LaunchHelpers.LaunchTxt(s);
-            });
-        }
-
-
-        private int CreateButton(string text, Color foreColor, Color backColor, Snippet snippet, int yOffset, EventHandler clickHandler, int extraSpacing = 5)
-        {
-            var button = new Button
-            {
-                Text = text,
-                ForeColor = foreColor,
-                BackColor = backColor,
-                AutoSize = true,
-                AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                Tag = snippet,
-                Location = new Point(0, yOffset)
-            };
-
-            if (backColor == Color.Empty)
-            {
-                button.UseVisualStyleBackColor = true;
-            }
-
-            button.Click += clickHandler;
-            panelSnippets.Controls.Add(button);
-            return yOffset + button.Height + extraSpacing;
-        }
 
 
 
@@ -520,15 +469,16 @@ namespace AiTool3
 
         private void btnClear_Click(object sender, EventArgs e)
         {
-            rtbInput.Text = "";
-            rtbSystemPrompt.Text = "";
-            rtbOutput.Text = RtbFunctions.Clear();
+            rtbInput.Clear();
+            rtbSystemPrompt.Clear();
+            rtbOutput.Clear();
             CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             PreviousCompletion = null;
-            panelSnippets.Controls.Clear();
             var template = GetCurrentTemplate();
             if (template != null)
             {
+                rtbSystemPrompt.Clear();
+                rtbInput.Clear();
                 rtbSystemPrompt.Text = template.SystemPrompt;
                 rtbInput.Text = template.InitialPrompt;
             }
@@ -586,6 +536,8 @@ namespace AiTool3
 
             btnClear_Click(null, null);
 
+            rtbInput.Clear();
+            rtbSystemPrompt.Clear();
             rtbInput.Text = template.InitialPrompt;
             rtbSystemPrompt.Text = template.SystemPrompt;
         }
@@ -768,10 +720,9 @@ namespace AiTool3
 
         private void btnRestart_Click(object sender, EventArgs e)
         {
-            rtbOutput.Text = RtbFunctions.Clear();
+            rtbOutput.Clear();
             CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             PreviousCompletion = null;
-            panelSnippets.Controls.Clear();
             DrawNetworkDiagram();
         }
 

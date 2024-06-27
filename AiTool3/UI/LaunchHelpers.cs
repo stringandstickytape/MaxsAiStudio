@@ -30,9 +30,7 @@ namespace AiTool3.UI
 
         public static void LaunchHtml(object? s)
         {
-            var snip = (Snippet)((Button)s).Tag;
-
-            var code = snip.Code;
+            var code = s.ToString();
 
             if (code.StartsWith("html\n"))
                 code = code.Substring(5);
@@ -50,9 +48,7 @@ namespace AiTool3.UI
 
         public static void LaunchTxt(object? s)
         {
-            var snip = (Snippet)((Button)s).Tag;
-
-            var code = snip.Code;
+            var code = s.ToString();
 
             // Remove "txt\n" prefix if it exists
             if (code.StartsWith("txt\n"))

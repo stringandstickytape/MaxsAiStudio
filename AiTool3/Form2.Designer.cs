@@ -45,7 +45,6 @@ namespace AiTool3
             cbTemplates = new ComboBox();
             cbCategories = new ComboBox();
             splitContainer3 = new SplitContainer();
-            panelSnippets = new Panel();
             button3 = new Button();
             btnRestart = new Button();
             btnClear = new Button();
@@ -132,7 +131,7 @@ namespace AiTool3
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
             rtbOutput.Name = "rtbOutput";
-            rtbOutput.Size = new Size(1155, 271);
+            rtbOutput.Size = new Size(1306, 271);
             rtbOutput.TabIndex = 6;
             // 
             // rtbInput
@@ -272,7 +271,6 @@ namespace AiTool3
             // 
             // splitContainer3.Panel1
             // 
-            splitContainer3.Panel1.Controls.Add(panelSnippets);
             splitContainer3.Panel1.Controls.Add(rtbOutput);
             // 
             // splitContainer3.Panel2
@@ -285,14 +283,6 @@ namespace AiTool3
             splitContainer3.Size = new Size(1312, 763);
             splitContainer3.SplitterDistance = 278;
             splitContainer3.TabIndex = 0;
-            // 
-            // panelSnippets
-            // 
-            panelSnippets.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            panelSnippets.Location = new Point(1168, 2);
-            panelSnippets.Name = "panelSnippets";
-            panelSnippets.Size = new Size(144, 274);
-            panelSnippets.TabIndex = 7;
             // 
             // button3
             // 
@@ -401,7 +391,6 @@ namespace AiTool3
         private ToolStripMenuItem toolStripMenuItem1;
         private ComboBox cbTemplates;
         private ComboBox cbCategories;
-        private Panel panelSnippets;
         private Button button1;
         private Button button2;
         private Button btnRestart;
