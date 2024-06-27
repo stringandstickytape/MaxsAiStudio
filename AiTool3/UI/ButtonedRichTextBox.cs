@@ -16,6 +16,19 @@ namespace AiTool3.UI
         private Point mousePosition;
         private bool buttonsVisible = false;
 
+        public new void Clear()
+        {
+            // Clear the text
+            base.Clear();
+
+            // Remove all buttons
+            buttons.Clear();
+
+            // Redraw the control
+            Invalidate();
+        }
+
+
         public ButtonedRichTextBox()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
