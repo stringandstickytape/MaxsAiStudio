@@ -7,6 +7,12 @@ using System.Windows.Forms;
 
 namespace AiTool3.UI
 {
+    public class ButtonBasics
+    {
+        public string Text { get; set; }
+        public EventHandler OnClick { get; set; }
+    }
+
     [Designer(typeof(System.Windows.Forms.Design.ControlDesigner))]
     public class ButtonedRichTextBox : RichTextBox
     {
@@ -18,16 +24,10 @@ namespace AiTool3.UI
 
         public new void Clear()
         {
-            // Clear the text
             base.Clear();
-
-            // Remove all buttons
             buttons.Clear();
-
-            // Redraw the control
             Invalidate();
         }
-
 
         public ButtonedRichTextBox()
         {
@@ -159,6 +159,24 @@ namespace AiTool3.UI
             UpdateButtonPositions();
         }
 
+        public void AddButtons(int startIndex, int length, ButtonBasics[] buttonBasics)
+        {
+            int currentIndex = startIndex;
+            foreach (var buttonBasic in buttonBasics)
+            {
+                var button = new ButtonInfo
+                {
+                    StartIndex = currentIndex,
+                    Length = length,
+                    Text = buttonBasic.Text,
+                    OnClick = buttonBasic.OnClick
+                };
+                buttons.Add(button);
+                currentIndex += length;
+            }
+            UpdateButtonPositions();
+        }
+
         public void RemoveButton(int startIndex, int length)
         {
             buttons.RemoveAll(b => b.StartIndex == startIndex && b.Length == length);
@@ -182,23 +200,19 @@ namespace AiTool3.UI
                 Point startPoint = GetPositionFromCharIndex(startIndex);
                 Point endPoint = GetPositionFromCharIndex(endIndex);
 
-                // Calculate button size based on text
                 Size buttonSize = TextRenderer.MeasureText(button.Text, Font);
-                buttonSize.Width += 10; // Add some padding
+                buttonSize.Width += 10;
                 buttonSize.Height += 4;
 
                 if (startPoint.Y == endPoint.Y)
                 {
-                    // Text is on a single line
                     button.Bounds = new Rectangle(endPoint.X, startPoint.Y, buttonSize.Width, buttonSize.Height);
                 }
                 else
                 {
-                    // Text spans multiple lines, place button at the end
                     button.Bounds = new Rectangle(endPoint.X, endPoint.Y, buttonSize.Width, buttonSize.Height);
                 }
 
-                // Check if the button is within the visible area
                 button.Visible = button.Bounds.Y + button.Bounds.Height >= 0 && button.Bounds.Y <= ClientSize.Height;
             }
             ResumeLayout();

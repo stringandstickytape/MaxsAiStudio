@@ -255,51 +255,59 @@ namespace AiTool3
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
-                    // add inline buttons
-                    //richTextBox.AddButton(startIndex, 5, "Click", (sender, e) => MessageBox.Show("Button clicked!"));
+                    // find the last character of the line
 
+                    var lastChar = richTextBox.Text.IndexOf('\n', startIndex);
+
+                    // test addbuttons
+                    //richTextBox.AddButton(startIndex, 60, new ButtonBasics[] {
+                    //    new ButtonBasics { Text = "Copy", OnClick = (s, e) => { Clipboard.SetText(snippet.Code); } },
+                    //    new ButtonBasics { Text = "Browser", OnClick = (s, e) => { LaunchHelpers.LaunchHtml(s); } },
+                    //    new ButtonBasics { Text = "C# Script", OnClick = (s, e) => { LaunchHelpers.LaunchCSharp(snippet.Code); } },
+                    //    new ButtonBasics { Text = "Notepad", OnClick = (s, e) => { LaunchHelpers.LaunchTxt(s); } }
+                    //});
+
+                    // Create inline buttons
+                    CreateInlineButtons(richTextBox, lastChar, snippet);
                 }
             }
-
-            // Create UI elements for snippets
-            CreateSnippetButtons(snippets);
 
             return snippets;
         }
 
-
-        private void CreateSnippetButtons(List<Snippet> snippets)
+        private void CreateInlineButtons(ButtonedRichTextBox richTextBox, int startIndex, Snippet snippet)
         {
-            panelSnippets.Controls.Clear();
-            int yOffset = 0;
+            int buttonWidth = 60; // Adjust as needed
+            int spacing = 5; // Spacing between buttons
 
-            foreach (var snippet in snippets)
+            // Copy button
+            richTextBox.AddButton(startIndex, buttonWidth, "Copy", (s, e) =>
             {
-                yOffset = CreateButton("Copy " + (snippet.Type ?? "Text"), Color.White, Color.Black, snippet, yOffset, (s, e) =>
-                {
-                    var snip = (Snippet)((Button)s).Tag;
-                    Clipboard.SetText(snip.Code);
-                });
+                Clipboard.SetText(snippet.Code);
+            });
 
-                yOffset = CreateButton("View", Color.White, Color.Blue, snippet, yOffset, (s, e) =>
-                {
-                    LaunchHelpers.LaunchHtml(s);
-                });
+            // View button
+            richTextBox.AddButton(startIndex + buttonWidth + spacing, buttonWidth, "View", (s, e) =>
+            {
+                LaunchHelpers.LaunchHtml(s);
+            });
 
-                yOffset = CreateButton("Run C#", Color.White, Color.Blue, snippet, yOffset, (s, e) =>
-                {
-                    var code = snippet.Code;
-                    if (code.StartsWith("csharp\n"))
-                        code = code.Substring(7);
-                    LaunchHelpers.LaunchCSharp(code);
-                });
+            // Run C# button
+            richTextBox.AddButton(startIndex + 2 * (buttonWidth + spacing), buttonWidth, "Run C#", (s, e) =>
+            {
+                var code = snippet.Code;
+                if (code.StartsWith("csharp\n"))
+                    code = code.Substring(7);
+                LaunchHelpers.LaunchCSharp(code);
+            });
 
-                yOffset = CreateButton("Launch Txt", Color.White, Color.Green, snippet, yOffset, (s, e) =>
-                {
-                    LaunchHelpers.LaunchTxt(s);
-                }, 15); // Extra space between snippet button groups
-            }
+            // Launch Txt button
+            richTextBox.AddButton(startIndex + 3 * (buttonWidth + spacing), buttonWidth, "Launch Txt", (s, e) =>
+            {
+                LaunchHelpers.LaunchTxt(s);
+            });
         }
+
 
         private int CreateButton(string text, Color foreColor, Color backColor, Snippet snippet, int yOffset, EventHandler clickHandler, int extraSpacing = 5)
         {
