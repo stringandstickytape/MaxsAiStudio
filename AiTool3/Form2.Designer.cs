@@ -46,6 +46,8 @@ namespace AiTool3
             cbCategories = new ComboBox();
             splitContainer3 = new SplitContainer();
             panelSnippets = new Panel();
+            button4 = new Button();
+            buttonedRichTextBox1 = new ButtonedRichTextBox();
             button3 = new Button();
             btnRestart = new Button();
             btnClear = new Button();
@@ -142,9 +144,9 @@ namespace AiTool3
             rtbInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbInput.BackColor = Color.Black;
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbInput.Location = new Point(3, 3);
+            rtbInput.Location = new Point(623, 3);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(1155, 475);
+            rtbInput.Size = new Size(535, 475);
             rtbInput.TabIndex = 7;
             rtbInput.Text = "";
             // 
@@ -280,6 +282,8 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(button4);
+            splitContainer3.Panel2.Controls.Add(buttonedRichTextBox1);
             splitContainer3.Panel2.Controls.Add(button3);
             splitContainer3.Panel2.Controls.Add(btnRestart);
             splitContainer3.Panel2.Controls.Add(btnClear);
@@ -296,6 +300,26 @@ namespace AiTool3
             panelSnippets.Name = "panelSnippets";
             panelSnippets.Size = new Size(144, 274);
             panelSnippets.TabIndex = 7;
+            // 
+            // button4
+            // 
+            button4.Location = new Point(194, 349);
+            button4.Name = "button4";
+            button4.Size = new Size(112, 34);
+            button4.TabIndex = 12;
+            button4.Text = "button4";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
+            // 
+            // buttonedRichTextBox1
+            // 
+            buttonedRichTextBox1.BackColor = Color.Lime;
+            buttonedRichTextBox1.ForeColor = Color.RosyBrown;
+            buttonedRichTextBox1.Location = new Point(77, 62);
+            buttonedRichTextBox1.Name = "buttonedRichTextBox1";
+            buttonedRichTextBox1.Size = new Size(379, 237);
+            buttonedRichTextBox1.TabIndex = 11;
+            buttonedRichTextBox1.Text = "buttonedRichTextBox1";
             // 
             // button3
             // 
@@ -409,5 +433,7 @@ namespace AiTool3
         private Button button2;
         private Button btnRestart;
         private Button button3;
+        private ButtonedRichTextBox buttonedRichTextBox1;
+        private Button button4;
     }
 }

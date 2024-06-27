@@ -790,6 +790,12 @@ namespace AiTool3
             }
 
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            buttonedRichTextBox1.Text = "Hello World\nIpsum Dolor\nSit Amet";
+            buttonedRichTextBox1.AddButton(10, 5, "Click", (sender, e) => MessageBox.Show("Button clicked!"));
+        }
     }
 
 
