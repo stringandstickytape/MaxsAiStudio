@@ -12,7 +12,7 @@ namespace AiTool3.UI
 {
     [Designer(typeof(NetworkDiagramControlDesigner))]
     [ToolboxItem(true)]
-    public class NetworkDiagramControl : Control
+    public partial class NetworkDiagramControl : Control
     {
         private List<Node> nodes;
         private List<Connection> connections;
@@ -21,18 +21,33 @@ namespace AiTool3.UI
         private Point dragOffset;
         private float zoomFactor;
         private const float ZoomIncrement = 0.1f;
-        private const float MaxZoom = 3.0f;
-        private const float MinZoom = 0.3f;
+        private FitAllAnimation fitAllAnimation;
+
+        public float ZoomFactor
+        {
+            get => zoomFactor;
+            set
+            {
+                zoomFactor = value;
+                Invalidate();
+            }
+        }
+
+        public Point PanOffset
+        {
+            get => panOffset;
+            set
+            {
+                panOffset = value;
+                Invalidate();
+            }
+        }
+
+        public const float MaxZoom = 3.0f;
+        public const float MinZoom = 0.3f;
         private Point panOffset;
         private bool isPanning;
         private Point lastMousePosition;
-        private System.Windows.Forms.Timer fitAllTimer;
-        private float targetZoomFactor;
-        private Point targetPanOffset;
-        private float initialZoomFactor;
-        private Point initialPanOffset;
-        private const int AnimationDuration = 250;
-        private int animationProgress;
 
         public event EventHandler<NodeClickEventArgs> NodeClicked;
 
@@ -45,6 +60,8 @@ namespace AiTool3.UI
         public int NodeCornerRadius { get; set; } = 10;
         public bool UseDropShadow { get; set; } = true;
 
+
+
         public NetworkDiagramControl()
         {
             nodes = new List<Node>();
@@ -52,9 +69,8 @@ namespace AiTool3.UI
             DoubleBuffered = true;
             zoomFactor = 1.0f;
             panOffset = Point.Empty;
-            fitAllTimer = new System.Windows.Forms.Timer();
-            fitAllTimer.Interval = 16;
-            fitAllTimer.Tick += FitAllTimerTick;
+            fitAllAnimation = new FitAllAnimation(this);
+           
         }
 
         public Node HighlightedNode
@@ -125,7 +141,7 @@ namespace AiTool3.UI
 
             if (UseDropShadow)
             {
-                using (GraphicsPath shadowPath = CreateRoundedRectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height, NodeCornerRadius))
+                using (GraphicsPath shadowPath = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height, NodeCornerRadius))
                 using (PathGradientBrush shadowBrush = new PathGradientBrush(shadowPath))
                 {
                     shadowBrush.CenterColor = Color.FromArgb(100, Color.Black);
@@ -134,7 +150,7 @@ namespace AiTool3.UI
                 }
             }
 
-            using (GraphicsPath path = CreateRoundedRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height, NodeCornerRadius))
+            using (GraphicsPath path = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height, NodeCornerRadius))
             using (LinearGradientBrush gradientBrush = new LinearGradientBrush(bounds,
                 node.BackColor ?? NodeGradientStart,
                 node.BackColor != null ? Color.FromArgb(Math.Abs(node.BackColor.Value.R - 40), Math.Abs(node.BackColor.Value.G - 40), Math.Abs(node.BackColor.Value.B - 40)) : NodeGradientEnd,
@@ -150,24 +166,6 @@ namespace AiTool3.UI
                     g.DrawString(node.Label, Font, foregroundBrush, bounds, sf);
                 }
             }
-        }
-
-        private GraphicsPath CreateRoundedRectangle(int x, int y, int width, int height, int radius)
-        {
-            GraphicsPath path = new GraphicsPath();
-            int diameter = radius * 2;
-            Rectangle arc = new Rectangle(x, y, diameter, diameter);
-
-            path.AddArc(arc, 180, 90);
-            arc.X = x + width - diameter;
-            path.AddArc(arc, 270, 90);
-            arc.Y = y + height - diameter;
-            path.AddArc(arc, 0, 90);
-            arc.X = x;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
         }
 
         public Node GetNodeForGuid(string guid)
@@ -279,78 +277,9 @@ namespace AiTool3.UI
 
         public void FitAll()
         {
-            if (nodes.Count == 0)
-            {
-                return;
-            }
-
-            int left = int.MaxValue;
-            int top = int.MaxValue;
-            int right = int.MinValue;
-            int bottom = int.MinValue;
-
-            foreach (var node in nodes)
-            {
-                if (node.Bounds.Left < left) left = node.Bounds.Left;
-                if (node.Bounds.Top < top) top = node.Bounds.Top;
-                if (node.Bounds.Right > right) right = node.Bounds.Right;
-                if (node.Bounds.Bottom > bottom) bottom = node.Bounds.Bottom;
-            }
-
-            left = left - 5;
-            right = right + 5;
-            top = top - 5;
-            bottom = bottom + 5;
-
-            Rectangle boundingRect = new Rectangle(left, top, right - left, bottom - top);
-
-            float horizontalZoom = (float)Width / boundingRect.Width;
-            float verticalZoom = (float)Height / boundingRect.Height;
-            float newZoomFactor = Math.Min(horizontalZoom, verticalZoom);
-
-            newZoomFactor = Math.Min(MaxZoom, Math.Max(MinZoom, newZoomFactor));
-
-            float centeredOffsetX = (Width - boundingRect.Width * newZoomFactor) / 2f - boundingRect.Left * newZoomFactor;
-            float centeredOffsetY = (Height - boundingRect.Height * newZoomFactor) / 2f - boundingRect.Top * newZoomFactor;
-            Point newPanOffset = new Point((int)centeredOffsetX, (int)centeredOffsetY);
-
-            initialZoomFactor = zoomFactor;
-            initialPanOffset = panOffset;
-            targetZoomFactor = newZoomFactor;
-            targetPanOffset = newPanOffset;
-            animationProgress = 0;
-
-            fitAllTimer.Start();
+            fitAllAnimation.Start(nodes, zoomFactor, panOffset);
         }
 
-        private void FitAllTimerTick(object sender, EventArgs e)
-        {
-            animationProgress += fitAllTimer.Interval;
-            float percentageComplete = Math.Min(1, (float)animationProgress / AnimationDuration);
-
-            zoomFactor = Lerp(initialZoomFactor, targetZoomFactor, percentageComplete);
-            panOffset = Lerp(initialPanOffset, targetPanOffset, percentageComplete);
-
-            Invalidate();
-
-            if (percentageComplete >= 1)
-            {
-                fitAllTimer.Stop();
-            }
-        }
-
-        private float Lerp(float start, float end, float percentage)
-        {
-            return start + (end - start) * percentage;
-        }
-
-        private Point Lerp(Point start, Point end, float percentage)
-        {
-            return new Point(
-                (int)(start.X + (end.X - start.X) * percentage),
-                (int)(start.Y + (end.Y - start.Y) * percentage)
-            );
-        }
 
         internal void CenterOnNode(Node node)
         {
@@ -360,49 +289,6 @@ namespace AiTool3.UI
 
             panOffset = new Point((int)(centerPoint.X * zoomFactor), (int)(centerPoint.Y * zoomFactor));
             Invalidate();
-        }
-
-        public class Node
-        {
-            public string Label { get; set; }
-            public Point Location { get; set; }
-            public Rectangle Bounds => new Rectangle(Location.X - 175, Location.Y - 35, 350, 70);
-
-            public Color? BackColor = null;
-            public Color? ForeColor = null;
-            public Color? BorderColor = null;
-
-            public string Guid { get; set; }
-
-            public Node(string label, Point location, string guid)
-            {
-                Label = label;
-                Location = location;
-                Guid = guid;
-            }
-        }
-
-
-        public class NodeClickEventArgs : EventArgs
-        {
-            public Node ClickedNode { get; }
-
-            public NodeClickEventArgs(Node clickedNode)
-            {
-                ClickedNode = clickedNode;
-            }
-        }
-
-        private class Connection
-        {
-            public Node StartNode { get; set; }
-            public Node EndNode { get; set; }
-
-            public Connection(Node startNode, Node endNode)
-            {
-                StartNode = startNode;
-                EndNode = endNode;
-            }
         }
     }
 
