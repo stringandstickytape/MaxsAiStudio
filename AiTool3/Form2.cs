@@ -27,6 +27,7 @@ using AiTool3.Audio;
 using AiTool3.Snippets;
 using System.Drawing.Drawing2D;
 using AiTool3.MegaBar.Items;
+using System.Net;
 
 
 namespace AiTool3
@@ -201,6 +202,47 @@ namespace AiTool3
             editMenu.DropDownItems.Add(settingsMenuItem);
             menuBar.Items.Add(fileMenu);
             menuBar.Items.Add(editMenu);
+
+            // add a specials menu
+            var specialsMenu = new ToolStripMenuItem("Specials");
+            specialsMenu.BackColor = Color.Black;
+            specialsMenu.ForeColor = Color.White;
+            var restartMenuItem = new ToolStripMenuItem("Pull Readme and update from latest diff");
+            restartMenuItem.ForeColor = Color.White;
+            restartMenuItem.BackColor = Color.Black;
+            restartMenuItem.Click += (s, e) =>
+            {
+                var diff = new WebClient().DownloadString("https://github.com/stringandstickytape/MaxsAiTool/commit/main.diff");
+                var readme = new WebClient().DownloadString("https://raw.githubusercontent.com/stringandstickytape/MaxsAiTool/main/README.md");
+
+                // get AI to compare them
+                var model = (Model)cbEngine.SelectedItem;
+                var userMessage = $"Here's a diff and readme.  Update the readme content to reflect new and changed features, as described by the diff.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
+                var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{model.ServiceName}"));
+                var conversation = new Conversation { systemprompt = "Update the readme", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
+                var response = aiService.FetchResponse(model, conversation, null, null).Result;
+
+                // add the response to the conversation
+                conversation.messages.Add(new ConversationMessage { role = "assistant", content = response.ResponseText});
+
+                // add the next user message: "now give me a full list of the changes you made"
+                conversation.messages.Add(new ConversationMessage { role = "user", content = "Now give me a full, detailed bullet list of the changes you made"});
+
+                // and fetch a second response
+                var response2 = aiService.FetchResponse(model, conversation, null, null).Result;
+
+                // put them into tbOutput, 1 then 2 with env.newline in between using interp
+                //rtbOutput.Text = ;
+
+                FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
+
+
+
+
+
+            };
+            specialsMenu.DropDownItems.Add(restartMenuItem);
+            menuBar.Items.Add(specialsMenu);
         }
 
         private void InitialiseApiList()
