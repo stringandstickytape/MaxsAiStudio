@@ -20,6 +20,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - Network diagram visualization of conversations
 - Snippet detection and formatting in responses
 - Automatic readme update based on latest GitHub diff
+- Suggested next prompt feature
 
 ## Detailed Guide
 
@@ -45,6 +46,7 @@ The main window is divided into several sections:
 - Click the "Go" button or press Ctrl+Enter to send your message.
 - The AI's response will appear in the output area.
 - The conversation will be visualized in the network diagram.
+- If available, a suggested next prompt will be formatted and displayed in the input area.
 
 ### 4. Managing Conversations
 
@@ -76,6 +78,7 @@ The main window is divided into several sections:
 - The network diagram shows the structure of your conversation.
 - Each node represents a message, color-coded by the AI model used.
 - Click on nodes to navigate through the conversation.
+- Node labels are truncated to 500 characters for better visibility.
 
 ### 9. Snippet Detection
 

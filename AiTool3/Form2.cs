@@ -217,7 +217,7 @@ namespace AiTool3
 
                 // get AI to compare them
                 var model = (Model)cbEngine.SelectedItem;
-                var userMessage = $"Here's a diff and readme.  Update the readme content to reflect new and changed features, as described by the diff.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
+                var userMessage = $"{DateTime.Now.Ticks}\nHere's a diff and readme.  Update the readme content to reflect new and changed features, as described by the diff.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
                 var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{model.ServiceName}"));
                 var conversation = new Conversation { systemprompt = "Update the readme", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
                 var response = aiService.FetchResponse(model, conversation, null, null).Result;
