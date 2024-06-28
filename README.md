@@ -19,6 +19,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - Customizable system prompts and user inputs
 - Network diagram visualization of conversations
 - Snippet detection and formatting in responses
+- Automatic readme update based on latest GitHub diff
 
 ## Detailed Guide
 
@@ -101,5 +102,10 @@ The main window is divided into several sections:
 ### 14. Keyboard Shortcuts
 
 - Ctrl+Enter: Send message to AI
+
+### 15. Automatic Readme Update
+
+- The application now includes a feature to automatically update the readme based on the latest GitHub diff.
+- This feature can be accessed through the new "Specials" menu.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.

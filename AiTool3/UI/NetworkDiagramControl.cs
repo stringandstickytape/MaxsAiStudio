@@ -167,7 +167,7 @@ namespace AiTool3.UI
 
                 using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 {
-                    g.DrawString(node.Label, Font, foregroundBrush, bounds, sf);
+                    g.DrawString(node.Label.Substring(0, node.Label.Length < 500 ? node.Label.Length : 500), Font, foregroundBrush, bounds, sf);
                 }
             }
         }

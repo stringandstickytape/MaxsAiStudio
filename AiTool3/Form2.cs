@@ -406,6 +406,11 @@ namespace AiTool3
                 +
                 response.TokenUsage.OutputTokens * model.output1MTokenPrice / 1000000;
 
+            if(response.SuggestedNextPrompt != null)
+            {
+                FindSnippets(rtbInput, RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt));
+            }
+
             // format cost to exactly 2 decimal places
             var formattedCost = cost.ToString("0.00");
 
