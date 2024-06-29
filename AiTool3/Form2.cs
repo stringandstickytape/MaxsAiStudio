@@ -234,49 +234,15 @@ namespace AiTool3
             restartMenuItem.BackColor = Color.Black;
             restartMenuItem.Click += (s, e) =>
             {
-                var diff = new WebClient().DownloadString("https://github.com/stringandstickytape/MaxsAiTool/commit/main.diff");
-                var readme = new WebClient().DownloadString("https://raw.githubusercontent.com/stringandstickytape/MaxsAiTool/main/README.md");
-
-                // pull commit details json from https://api.github.com/repos/stringandstickytape/MaxsAiTool/commits/main
-                // include a User-Agent
-                var client = new WebClient();
-                client.Headers.Add("User-Agent: Other");
-                var jsonText = client.DownloadString("https://api.github.com/repos/stringandstickytape/MaxsAiTool/commits/main");
-                
-
-                // dyn jsonconv
-                dynamic commitDetails = JsonConvert.DeserializeObject(jsonText);
-
-                var commitMessage = commitDetails.commit.message.ToString();
-
-                // get AI to compare them
-                var model = (Model)cbEngine.SelectedItem;
-                var userMessage = $"Random number: {DateTime.Now.Ticks}\nHere's a commit message, diff, and readme.  Update the readme content to reflect new and changed features, as described by the diff and commit message.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```commitmessage{Environment.NewLine}{commitMessage}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
-                var aiService = AiServiceResolver.GetAiService(model.ServiceName);
-                var conversation = new Conversation { systemprompt = "Update the readme", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
-                var response = aiService.FetchResponse(model, conversation, null, null).Result;
-
-                // add the response to the conversation
-                conversation.messages.Add(new ConversationMessage { role = "assistant", content = response.ResponseText});
-
-                // add the next user message: "now give me a full list of the changes you made"
-                conversation.messages.Add(new ConversationMessage { role = "user", content = "Now give me a full, detailed bullet list of the changes you made"});
-
-                // and fetch a second response
-                var response2 = aiService.FetchResponse(model, conversation, null, null).Result;
-
-                // put them into tbOutput, 1 then 2 with env.newline in between using interp
-                //rtbOutput.Text = ;
-
+                AiResponse response, response2;
+                SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response, out response2);
                 var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
 
-                // write directly to C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md, if we can
                 try
                 {
                     var code = snippets.First().Code;
                     // remove first and last lines
-                    code = code.Substring(code.IndexOf('\n') + 1);
-                    code = code.Substring(0, code.LastIndexOf('\n'));
+                    code = SnipperHelper.StripFirstAndLastLine(code);
                     // get first snippet
                     File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
                 }
@@ -289,14 +255,12 @@ namespace AiTool3
             menuBar.Items.Add(specialsMenu);
         }
 
+
         private void InitialiseApiList()
         {
-            foreach (var api in Settings.ApiList)
+            foreach (var model in Settings.ApiList.SelectMany(x => x.Models))
             {
-                foreach (var model in api.Models)
-                {
-                    cbEngine.Items.Add(model);
-                }
+                cbEngine.Items.Add(model);
             }
 
             // preselect the first Local api

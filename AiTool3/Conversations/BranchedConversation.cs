@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Interfaces;
+using AiTool3.Providers;
 using Newtonsoft.Json;
 using System.Diagnostics;
 
@@ -41,7 +42,7 @@ namespace AiTool3.Conversations
         internal async Task<string> GenerateSummary(Model apiModel)
         {
             // instantiate the service from name
-            var aiService = GetAiService (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{apiModel.ServiceName}"));
+            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
 
             Conversation conversation = null;
 
