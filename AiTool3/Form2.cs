@@ -30,7 +30,7 @@ using AiTool3.MegaBar.Items;
 using System.Net;
 using Whisper.net.Ggml;
 using Whisper.net;
-
+using System.Speech.Synthesis;
 
 namespace AiTool3
 {
@@ -40,7 +40,7 @@ namespace AiTool3
         public BranchedConversation CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
         public CompletionMessage PreviousCompletion;
 
-        public SettingsManager Settings { get; set; } = SettingsManager.ReadFromJson();
+        public Settings.Settings Settings { get; set; } = AiTool3.Settings.Settings.ReadFromJson();
 
         public TopicSet TopicSet { get; set; }
 
@@ -210,7 +210,7 @@ namespace AiTool3
                 if (result == DialogResult.OK)
                 {
                     Settings = settingsForm.NewSettings;
-                    SettingsManager.WriteToJson(Settings);
+                    AiTool3.Settings.Settings.WriteToJson(Settings);
                 }
             };
 
@@ -474,6 +474,13 @@ namespace AiTool3
 
             // and display the results in the output box
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)));
+
+            if(Settings.NarrateResponses)
+            {
+                // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
+                var text = rtbOutput.Text;
+                Task.Run(() => TtsHelper.ReadAloud(text));
+            }
 
             completionInput.Children.Add(completionResponse.Guid);
 

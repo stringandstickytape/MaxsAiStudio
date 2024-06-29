@@ -31,6 +31,7 @@
             dgvModels = new DataGridView();
             btnSettingsOK = new Button();
             btnSettingsCancel = new Button();
+            panelToggles = new Panel();
             ((System.ComponentModel.ISupportInitialize)dgvModels).BeginInit();
             SuspendLayout();
             // 
@@ -41,7 +42,7 @@
             dgvModels.Location = new Point(12, 12);
             dgvModels.Name = "dgvModels";
             dgvModels.RowHeadersWidth = 62;
-            dgvModels.Size = new Size(1128, 756);
+            dgvModels.Size = new Size(1128, 362);
             dgvModels.TabIndex = 0;
             // 
             // btnSettingsOK
@@ -64,11 +65,19 @@
             btnSettingsCancel.UseVisualStyleBackColor = true;
             btnSettingsCancel.Click += btnSettingsCancel_Click;
             // 
+            // panelToggles
+            // 
+            panelToggles.Location = new Point(11, 393);
+            panelToggles.Name = "panelToggles";
+            panelToggles.Size = new Size(521, 399);
+            panelToggles.TabIndex = 3;
+            // 
             // SettingsForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1152, 815);
+            Controls.Add(panelToggles);
             Controls.Add(btnSettingsCancel);
             Controls.Add(btnSettingsOK);
             Controls.Add(dgvModels);
@@ -83,5 +92,6 @@
         private DataGridView dgvModels;
         private Button btnSettingsOK;
         private Button btnSettingsCancel;
+        private Panel panelToggles;
     }
 }

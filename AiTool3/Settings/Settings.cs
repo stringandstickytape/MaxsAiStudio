@@ -6,14 +6,18 @@ using System.Threading.Tasks;
 using System.Drawing;
 using AiTool3.ApiManagement;
 using AiTool3.Providers;
+using System.ComponentModel;
 
 namespace AiTool3.Settings
 {
-    public class SettingsManager
+    public class Settings
     {
         public List<Api> ApiList { get; set; }
 
-        public SettingsManager()
+        [MyDisplayNameAttr("Narrate responses using Windows TTS")]
+        public bool NarrateResponses { get; set; } = false;
+
+        public Settings()
         {
             //var existingSettings = ReadFromJson();
             //if (existingSettings != null) return existingSettings;
@@ -81,7 +85,7 @@ namespace AiTool3.Settings
             });
         }
 
-        public static void WriteToJson(SettingsManager mgr)
+        public static void WriteToJson(Settings mgr)
         {
             // write this object to json
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(mgr, Newtonsoft.Json.Formatting.Indented);
@@ -89,20 +93,31 @@ namespace AiTool3.Settings
 
         }
 
-        public static SettingsManager ReadFromJson()
+        public static Settings ReadFromJson()
         {
             try
             {
                 var text = File.ReadAllText("api.json");
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<SettingsManager>(text);
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<Settings>(text);
             }
             catch (FileNotFoundException e)
             {
-                var retVal = new SettingsManager();
+                var retVal = new Settings();
                 retVal.Create();
                 WriteToJson(retVal);
                 return retVal;
             }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class MyDisplayNameAttrAttribute : Attribute
+    {
+        public string DisplayName { get; }
+
+        public MyDisplayNameAttrAttribute(string displayName)
+        {
+            DisplayName = displayName;
         }
     }
 }

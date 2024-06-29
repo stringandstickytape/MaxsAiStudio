@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,8 +14,8 @@ namespace AiTool3.Settings
 {
     public partial class SettingsForm : Form
     {
-        public SettingsManager NewSettings;
-        public SettingsForm(SettingsManager settings)
+        public Settings NewSettings;
+        public SettingsForm(Settings settings)
         {
             InitializeComponent();
 
@@ -23,12 +24,50 @@ namespace AiTool3.Settings
             InitializeDgvModels();
             CreateDgvColumns();
             CreateDgvRows(settings);
+
+            var ypos = 0;
+
+            // for every public bool property on settings...
+            foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(bool)))
+            {
+                var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
+
+                // ... create a new checkbox control
+                var cb = new CheckBox
+                {
+                    Text = displayNameAttr.DisplayName,
+                    Checked = (bool)prop.GetValue(settings),
+                    AutoSize = true
+                };
+
+                cb.Click += (s, e) =>
+                {
+                    prop.SetValue(NewSettings, cb.Checked);
+                };
+
+                // add the control to panelToggles
+                panelToggles.Controls.Add(cb);
+
+                // add a matching label to the right of the checkbox
+                var lbl = new Label
+                {
+                    Text = prop.Name,
+                    AutoSize = true,
+                    Location = new Point(cb.Width + 10, ypos)
+                };
+
+
+                // increment ypos
+                ypos += 30;
+
+            }
+
         }
 
-        private SettingsManager CloneSettings(SettingsManager settings)
+        private Settings CloneSettings(Settings settings)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(settings);
-            return System.Text.Json.JsonSerializer.Deserialize<SettingsManager>(json);
+            return System.Text.Json.JsonSerializer.Deserialize<Settings>(json);
         }
 
         private void InitializeDgvModels()
@@ -62,7 +101,7 @@ namespace AiTool3.Settings
             }
         }
 
-        private void CreateDgvRows(SettingsManager settings)
+        private void CreateDgvRows(Settings settings)
         {
             dgvModels.Rows.Clear();
             // for each model in the settings, add a row to the dgv

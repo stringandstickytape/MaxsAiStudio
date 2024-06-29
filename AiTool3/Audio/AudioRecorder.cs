@@ -34,7 +34,6 @@ namespace AiTool3.Audio
                 waveIn.DataAvailable += (sender, e) =>
                 {
                     writer.Write(e.Buffer, 0, e.BytesRecorded);
-                    Debug.WriteLine(e.BytesRecorded.ToString()+"!");
                     var levelCheck = 7000;
 
                     var max = 0;
@@ -107,6 +106,41 @@ namespace AiTool3.Audio
             }
         }
 
+        public static byte[] ApplyLowPassFilter(byte[] inputWav, int cutoffFrequency)
+        {
+            // Constants
+            const int HEADER_SIZE = 44;
+            const int SAMPLE_RATE = 16000;
+            const int BYTES_PER_SAMPLE = 2;
+
+            // Extract audio data (skip WAV header)
+            short[] audioData = new short[(inputWav.Length - HEADER_SIZE) / BYTES_PER_SAMPLE];
+            Buffer.BlockCopy(inputWav, HEADER_SIZE, audioData, 0, inputWav.Length - HEADER_SIZE);
+
+            // Calculate filter coefficients
+            double dt = 1.0 / SAMPLE_RATE;
+            double rc = 1.0 / (2 * Math.PI * cutoffFrequency);
+            double alpha = dt / (rc + dt);
+
+            // Apply low-pass filter
+            double[] filteredData = new double[audioData.Length];
+            filteredData[0] = audioData[0];
+            for (int i = 1; i < audioData.Length; i++)
+            {
+                filteredData[i] = filteredData[i - 1] + alpha * (audioData[i] - filteredData[i - 1]);
+            }
+
+            // Convert filtered data back to short array
+            short[] filteredAudioData = filteredData.Select(x => (short)Math.Round(x)).ToArray();
+
+            // Create output byte array
+            byte[] outputWav = new byte[inputWav.Length];
+            Buffer.BlockCopy(inputWav, 0, outputWav, 0, HEADER_SIZE);
+            Buffer.BlockCopy(filteredAudioData, 0, outputWav, HEADER_SIZE, filteredAudioData.Length * BYTES_PER_SAMPLE);
+
+            return outputWav;
+        }
+
         private void GetNewMemoryWriter()
         {
             if (writer != null)
@@ -150,6 +184,8 @@ namespace AiTool3.Audio
         private async Task ProcessAudio(byte[] audioData)
         {
             await DownloadModel();
+
+            var filteredAudioData = ApplyLowPassFilter(audioData, 4000);
 
             var retVal = "";
 
