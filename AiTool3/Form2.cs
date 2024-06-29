@@ -288,16 +288,13 @@ namespace AiTool3
         {
             SplitContainer sc = sender as SplitContainer;
 
-            // Set the splitter color
-            Color splitterColor = Color.Yellow;
-
             // Get the position and size of the splitter
             Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
                 : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
 
             // Draw the splitter
-            using (SolidBrush brush = new SolidBrush(splitterColor))
+            using (SolidBrush brush = new SolidBrush(Color.Gray))
             {
                 e.Graphics.FillRectangle(brush, splitterRect);
             }
@@ -310,24 +307,16 @@ namespace AiTool3
 
             var clickedCompletion = CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
             PreviousCompletion = clickedCompletion;
+            rtbInput.Clear();
             if (PreviousCompletion.Role == CompletionRole.User)
             {
-
-                rtbInput.Clear();
                 rtbInput.Text = PreviousCompletion.Content;
 
                 PreviousCompletion = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
             }
-            else
-            {
-                rtbInput.Clear();
-            }
-
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(PreviousCompletion?.Content ?? ""));
 
-
         }
-
 
         private SnippetManager snippetManager = new SnippetManager();
 
