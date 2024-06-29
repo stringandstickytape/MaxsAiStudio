@@ -1,11 +1,17 @@
-﻿Support bitmaps
+﻿TODO:
+
+DONE: Support bitmaps (OpenAI and Claude)
 DONE: Support system prompts
 DONE: Support categories
 Delete templates
-Label UI
+Add labels to UI
+Amend ButtonedRichTextBox with a param, if true, flash when content updated
 Make passwords configurable
-Token counting
+DONE: Token counting
+Token counting across reporting periods
 Streaming?! (is it worth it?)
 
 External links?
 Conversations?
+
+Handle if there's no local AI

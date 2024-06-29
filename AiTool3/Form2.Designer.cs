@@ -126,6 +126,7 @@ namespace AiTool3
             // 
             rtbSystemPrompt.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbSystemPrompt.BackColor = Color.Black;
+            rtbSystemPrompt.FlashOnUpdate = false;
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 49);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
@@ -136,6 +137,7 @@ namespace AiTool3
             // 
             rtbOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbOutput.BackColor = Color.Black;
+            rtbOutput.FlashOnUpdate = true;
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
             rtbOutput.Name = "rtbOutput";
@@ -146,6 +148,7 @@ namespace AiTool3
             // 
             rtbInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbInput.BackColor = Color.Black;
+            rtbInput.FlashOnUpdate = false;
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
             rtbInput.Name = "rtbInput";

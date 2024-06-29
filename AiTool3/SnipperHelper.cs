@@ -10,7 +10,7 @@ namespace AiTool3
             return code.Substring(code.IndexOf('\n') + 1, code.LastIndexOf('\n') - code.IndexOf('\n') - 1);
         }
 
-        public static int GetLastChar(ButtonedRichTextBox richTextBox, int startIndex)
+        public static int GetLastCharOfFirstLine(ButtonedRichTextBox richTextBox, int startIndex)
         {
             return richTextBox.Text.IndexOf('\n', startIndex);
         }

@@ -482,29 +482,25 @@ namespace AiTool3
 
             // using the title, update the dgvConversations
 
-            if (row != null)
+            if(row==null)
             {
-                if (string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
-                {
-                    title = await CurrentConversation.GenerateSummary(summaryModel);
-
-                    CurrentConversation.SaveAsJson();
-                }
-                else title = row.Cells[3].Value.ToString();
-
-                row.Cells[3].Value = title;
-                CurrentConversation.SaveAsJson();
-            }
-            else
-            {
-                title = await CurrentConversation.GenerateSummary(summaryModel);
-
                 CurrentConversation.SaveAsJson();
 
-                dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, title);
+                dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, "");
+
+                row = dgvConversations.Rows[0];
             }
 
             btnGo.Enabled = true;
+
+            if (row != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
+            {
+                title = await CurrentConversation.GenerateSummary(summaryModel);
+                row.Cells[3].Value = title;
+                CurrentConversation.SaveAsJson();
+            }
+
+            
 
         }
 

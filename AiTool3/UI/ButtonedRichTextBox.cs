@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Timers;
 using System.Windows.Forms;
 
 namespace AiTool3.UI
@@ -12,6 +13,14 @@ namespace AiTool3.UI
         private List<MegaBar> megaBars = new List<MegaBar>();
         private bool isMouseOver = false;
         private Point mousePosition;
+
+        private System.Timers.Timer flashTimer;
+        private Color originalBackColor;
+
+        [Category("Behavior")]
+        [Description("Determines whether the control should flash when text is updated.")]
+        public bool FlashOnUpdate { get; set; }
+
 
         public class MegaBarItem
         {
@@ -28,8 +37,59 @@ namespace AiTool3.UI
 
         public ButtonedRichTextBox()
         {
+
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag;
+
+            flashTimer = new System.Timers.Timer(500);
+            flashTimer.Elapsed += FlashTimer_Elapsed;
+            flashTimer.AutoReset = false;
+
+        }
+
+        private void FlashTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => ResetBackColor()));
+            }
+            else
+            {
+                ResetBackColor();
+            }
+        }
+
+        
+
+        private void ResetBackColor()
+        {
+            BackColor = originalBackColor;
+        }
+
+        public override string Text
+        {
+            get { return base.Text; }
+            set
+            {
+                if (base.Text != value)
+                {
+                    base.Text = value;
+                    if (FlashOnUpdate)
+                    {
+                        FlashBackground();
+                    }
+                }
+            }
+        }
+
+        private void FlashBackground()
+        {
+            if (BackColor != Color.Red)
+            {
+                originalBackColor = BackColor;
+                BackColor = Color.Red;
+                flashTimer.Start();
+            }
         }
 
         private void ButtonedRichTextBox_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
