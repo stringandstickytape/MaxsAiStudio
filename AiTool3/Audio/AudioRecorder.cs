@@ -4,12 +4,16 @@ namespace AiTool3.Audio
 {
     public class AudioRecorder
     {
-        private WaveInEvent waveIn;
         private WaveFileWriter writer;
 
         public async Task RecordAudioAsync(string outputFilePath, CancellationToken cancellationToken)
         {
-            using (waveIn = new WaveInEvent())
+            // record at 16khz
+;
+            using (WaveInEvent waveIn = new WaveInEvent
+            {
+                WaveFormat = new WaveFormat(16000, 1)
+            })
             using (writer = new WaveFileWriter(outputFilePath, waveIn.WaveFormat))
             {
                 var tcs = new TaskCompletionSource<bool>();

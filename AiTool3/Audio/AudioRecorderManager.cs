@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-
+using Whisper.net.Ggml;
+using Whisper.net;
 
 namespace AiTool3.Audio
 {
@@ -10,10 +11,13 @@ namespace AiTool3.Audio
         private Task recordingTask;
         public bool IsRecording { get; private set; }
 
+        public const string ModelName = "ggml-smallen.bin";
+
         public async Task StartRecording()
         {
             recorder = new AudioRecorder();
             cts = new CancellationTokenSource();
+            
 
             // Start recording in a separate task
             recordingTask = recorder.RecordAudioAsync("output.wav", cts.Token);
@@ -21,7 +25,7 @@ namespace AiTool3.Audio
             IsRecording = true;
         }
 
-        public async Task StopRecording()
+        public async Task<string> StopRecordingAndReturnTranscription()
         {
             if (cts != null)
             {
@@ -38,37 +42,40 @@ namespace AiTool3.Audio
                 cts = null;
                 recorder = null;
 
-                await ProcessAudio();
+                return await ProcessAudio();
+
             }
+            return "error";
         }
 
-        private async Task ProcessAudio()
+        private async Task<string> ProcessAudio()
         {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.FileName = "cmd.exe";
-            startInfo.RedirectStandardInput = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = false;
+            // requires specific DLLs...
 
-            process.StartInfo = startInfo;
-            process.Start();
+            if (!File.Exists(ModelName))
+            {
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.SmallEn);
+                using var fileWriter = File.OpenWrite(ModelName);
+                await modelStream.CopyToAsync(fileWriter);
+            }
 
-            process.StandardInput.WriteLine("call C:\\ProgramData\\Miniconda3\\condabin\\activate.bat");
-            process.StandardInput.WriteLine("conda activate whisperx");
-            process.StandardInput.WriteLine("whisperx output.wav");
-            process.StandardInput.WriteLine("exit");
+            var retVal = "";
 
-            // wait for completion
-            await process.WaitForExitAsync();
-        }
 
-        public string GetTranscription()
-        {
-            // get the output from output.txt
-            return File.ReadAllText("output.txt");
+            using var whisperFactory = WhisperFactory.FromPath(ModelName);
+
+            using var processor = whisperFactory.CreateBuilder()
+                .WithLanguage("auto")
+                .Build();
+
+            using var fileStream = File.OpenRead("output.wav");
+
+            await foreach (var result in processor.ProcessAsync(fileStream))
+            {
+                // write to output.txt
+                retVal = $"{retVal}{result.Text}";
+            }
+            return retVal;
         }
     }
-
 }

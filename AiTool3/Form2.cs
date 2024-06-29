@@ -28,6 +28,8 @@ using AiTool3.Snippets;
 using System.Drawing.Drawing2D;
 using AiTool3.MegaBar.Items;
 using System.Net;
+using Whisper.net.Ggml;
+using Whisper.net;
 
 
 namespace AiTool3
@@ -835,7 +837,6 @@ namespace AiTool3
 
         private async void button3_Click(object sender, EventArgs e)
         {
-
             if (!audioRecorderManager.IsRecording)
             {
                 // Start recording
@@ -845,14 +846,11 @@ namespace AiTool3
             else
             {
                 // Stop recording
-                await audioRecorderManager.StopRecording();
+                string transcription = await audioRecorderManager.StopRecordingAndReturnTranscription();
                 button3.Text = "Start Recording";
 
-                // Get the transcription and update the input
-                string transcription = audioRecorderManager.GetTranscription();
                 rtbInput.Text += transcription;
             }
-
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -941,10 +939,7 @@ namespace AiTool3
                 // get all the mssages for tat convo from file
                 var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
 
-
-
                 // check if any of the messages contain the search text
-
                 var allMessages = conv.Messages.Select(m => m.Content).ToList();
 
                 var containsSearchText = allMessages.Any(m => m.Contains(searchText, StringComparison.InvariantCultureIgnoreCase));
