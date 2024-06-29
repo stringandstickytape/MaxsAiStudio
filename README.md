@@ -66,7 +66,8 @@ The main window is divided into several sections:
 
 - Click the "Start Recording" button to begin audio recording.
 - Speak your message.
-- Click "Stop Recording" to end the recording and transcribe it to text.
+- Click "Stop Recording" to end the recording and automatically transcribe it to text using Whisper.
+- The transcribed text will be added to the input area.
 
 ### 7. Image Input
 
