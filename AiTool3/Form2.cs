@@ -345,7 +345,7 @@ namespace AiTool3
 
                     // find the last character of the line
 
-                    var lastChar = richTextBox.Text.IndexOf('\n', startIndex);
+                    var lastChar = SnipperHelper.GetLastCharOfFirstLine(richTextBox, startIndex);
 
                     var thisItems = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code);
                     richTextBox.AddMegaBar(endOfFirstLine, thisItems.ToArray());
@@ -358,6 +358,7 @@ namespace AiTool3
             richTextBox.SelectionStart = 0;
             return snippets;
         }
+
 
 
         private async void btnGo_Click(object sender, EventArgs e)
