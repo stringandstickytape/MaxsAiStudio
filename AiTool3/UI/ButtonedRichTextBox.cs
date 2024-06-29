@@ -16,6 +16,7 @@ namespace AiTool3.UI
 
         private System.Timers.Timer flashTimer;
         private Color originalBackColor;
+        private int flashCount = 0;
 
         [Category("Behavior")]
         [Description("Determines whether the control should flash when text is updated.")]
@@ -51,15 +52,36 @@ namespace AiTool3.UI
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(() => ResetBackColor()));
+                Invoke(new Action(() => ContinueFlashing()));
             }
             else
             {
-                ResetBackColor();
+                ContinueFlashing();
             }
         }
 
-        
+        private void ContinueFlashing()
+        {
+            flashCount++;
+            if (flashCount % 2 == 0)
+            {
+                BackColor = backColorHighlight;
+            }
+            else
+            {
+                BackColor = originalBackColor;
+            }
+
+            if (flashCount < 6)
+            {
+                flashTimer.Start();
+            }
+            else
+            {
+                BackColor = originalBackColor;
+            }
+        }
+
 
         private void ResetBackColor()
         {
@@ -82,15 +104,31 @@ namespace AiTool3.UI
             }
         }
 
+        private Color backColorHighlight = Color.FromArgb(40, 20, 20);
+
         private void FlashBackground()
         {
-            if (BackColor != Color.Red)
+            if (BackColor != backColorHighlight)
             {
                 originalBackColor = BackColor;
-                BackColor = Color.Red;
-                flashTimer.Start();
+                flashCount = 0;
+                FlashBackgroundOnce();
             }
         }
+
+        private void FlashBackgroundOnce()
+        {
+            if (flashCount < 3)
+            {
+                BackColor = backColorHighlight;
+                flashTimer.Start();
+            }
+            else
+            {
+                flashCount = 0;
+            }
+        }
+
 
         private void ButtonedRichTextBox_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
         {
