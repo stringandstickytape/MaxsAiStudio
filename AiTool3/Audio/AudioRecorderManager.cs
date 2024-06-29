@@ -9,6 +9,9 @@ namespace AiTool3.Audio
     {
         private AudioRecorder recorder;
         private CancellationTokenSource cts;
+
+        public event EventHandler<string> AudioProcessed;
+
         private Task recordingTask;
         public bool IsRecording { get; private set; }
 
@@ -17,6 +20,12 @@ namespace AiTool3.Audio
         public async Task StartRecording()
         {
             recorder = new AudioRecorder();
+            recorder.AudioProcessed += (sender, result) =>
+            {
+                Debug.WriteLine($"Processed audio result: {result}");
+                AudioProcessed?.Invoke(this, result);
+            };
+
             cts = new CancellationTokenSource();
             var ggmlType = GgmlType.TinyEn;
             var modelFileName = "ggml-tiny.bin";

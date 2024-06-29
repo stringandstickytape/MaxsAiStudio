@@ -15,7 +15,11 @@ namespace AiTool3.Audio
         public bool soundDetected = false;
         public DateTime? lastDateTimeAboveThreshold { get; set; }
 
+        // Define the event
+        public event EventHandler<string> AudioProcessed;
+
         public async Task RecordAudioAsync(CancellationToken cancellationToken)
+
         {
             memoryStream = new MemoryStream();
 
@@ -59,16 +63,27 @@ namespace AiTool3.Audio
                     }
 
                     // if sound detectes and mroe than 3 seconds of silence, transcribe audio and begin new memory stream
-                    if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold.Value > TimeSpan.FromSeconds(1))
+
+
+                    if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold.Value > TimeSpan.FromMilliseconds(1000))
                     {
+
+                        Debug.WriteLine("((");
                         writer.Flush();
                         memoryStream.Position = 0;
                         var buffer = new byte[memoryStream.Length];
                         memoryStream.Read(buffer, 0, buffer.Length);
 
-                        // run processaudio in a new thread
-                        var t = Task.Run(() => { var x = ProcessAudio(buffer).Result;
-                            Debug.WriteLine(x);
+                        // Run processaudio in a new thread
+                        var t = Task.Run(async () =>
+                        {
+                            var x = await ProcessAudio(buffer);
+                            if (!string.IsNullOrWhiteSpace(x))
+                            {
+                                Debug.WriteLine(x);
+                                // Fire the event
+                                OnAudioProcessed(x);
+                            }
 
                         });
 
@@ -77,6 +92,7 @@ namespace AiTool3.Audio
                         soundDetected = false;
                         lastDateTimeAboveThreshold = DateTime.Now;
                     }
+
                 };
 
                 waveIn.RecordingStopped += (sender, e) =>
@@ -156,7 +172,7 @@ namespace AiTool3.Audio
                 Debug.WriteLine(">>>");
                 await foreach (var result in processor.ProcessAsync(memoryStream))
                 {
-                    retVal += $"recorder: {result.Text}{Environment.NewLine}";
+                    retVal += $"{result.Text}";
                     Debug.WriteLine(result.Text);
                 }
             }
@@ -167,5 +183,12 @@ namespace AiTool3.Audio
 
             return retVal;
         }
+
+        // Method to invoke the event
+        protected virtual void OnAudioProcessed(string result)
+        {
+            AudioProcessed?.Invoke(this, result);
+        }
+
     }
 }

@@ -52,7 +52,7 @@ namespace AiTool3
         public Form2()
         {
             InitializeComponent();
-
+            audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
             ndcConversation.SetContextMenuOptions(new[] { "Save conversation to here as TXT", "Option 2", "Option 3" });
             ndcConversation.MenuOptionSelected += MenuOptionSelected();
 
@@ -127,6 +127,21 @@ namespace AiTool3
             }
 
             InitialiseMenus();
+        }
+
+        private void AudioRecorderManager_AudioProcessed(object? sender, string e)
+        {
+            if (rtbInput.InvokeRequired)
+            {
+                rtbInput.Invoke(new Action(() =>
+                {
+                    rtbInput.Text += e;
+                }));
+            }
+            else
+            {
+                rtbInput.Text += e;
+            }
         }
 
         private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
