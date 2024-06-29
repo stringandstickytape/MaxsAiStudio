@@ -117,6 +117,7 @@ The main window is divided into several sections:
 
 - The application now includes a feature to automatically update the readme based on the latest GitHub diff and commit message.
 - This feature can be accessed through the new "Specials" menu.
+- For users with the appropriate setup, the updated README is now written directly to the repository.
 
 ### 16. Text-to-Speech (TTS)
 

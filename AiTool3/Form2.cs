@@ -263,12 +263,17 @@ namespace AiTool3
                 // put them into tbOutput, 1 then 2 with env.newline in between using interp
                 //rtbOutput.Text = ;
 
-                FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
+                var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
 
                 // write directly to C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md, if we can
                 try
                 {
-                    File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", response2.ResponseText);
+                    var code = snippets.First().Code;
+                    // remove first and last lines
+                    code = code.Substring(code.IndexOf('\n') + 1);
+                    code = code.Substring(0, code.LastIndexOf('\n'));
+                    // get first snippet
+                    File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
                 }
                 catch (Exception ex)
                 {
