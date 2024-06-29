@@ -2,24 +2,28 @@
 using System.Diagnostics;
 using Whisper.net.Ggml;
 using Whisper.net;
+using System.IO;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace AiTool3.Audio
 {
     public class AudioRecorder
     {
+        private MemoryStream memoryStream;
         private WaveFileWriter writer;
 
+        public bool soundDetected = false;
         public DateTime? lastDateTimeAboveThreshold { get; set; }
 
-        public async Task RecordAudioAsync(string outputFilePath, CancellationToken cancellationToken)
+        public async Task RecordAudioAsync(CancellationToken cancellationToken)
         {
-            // record at 16khz
-;
+            memoryStream = new MemoryStream();
+
             using (WaveInEvent waveIn = new WaveInEvent
             {
                 WaveFormat = new WaveFormat(16000, 1)
             })
-            using (writer = new WaveFileWriter(new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite), waveIn.WaveFormat))
+            using (writer = new WaveFileWriter(memoryStream, waveIn.WaveFormat))
             {
                 var tcs = new TaskCompletionSource<bool>();
 
@@ -27,8 +31,7 @@ namespace AiTool3.Audio
                 {
                     writer.Write(e.Buffer, 0, e.BytesRecorded);
 
-                    // check whether ever a higher level than 50
-                    var levelCheck = 5000;
+                    var levelCheck = 10000;
                     var max = 0;
                     for (int i = 0; i < e.BytesRecorded; i += 2)
                     {
@@ -42,25 +45,58 @@ namespace AiTool3.Audio
                     {
                         lastDateTimeAboveThreshold = DateTime.Now;
                         Debug.WriteLine($"Level is higher than {levelCheck}");
+                        soundDetected = true;
+                    }
+                    else
+                    {
+                        //memoryStream.Position = 0;
+                        //memoryStream.SetLength(0);
+
+                        if (!soundDetected)
+                        {
+                            GetNewMemoryWriter();
+                        }
+                    }
+
+                    // if sound detectes and mroe than 3 seconds of silence, transcribe audio and begin new memory stream
+                    if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold.Value > TimeSpan.FromSeconds(1))
+                    {
+                        writer.Flush();
+                        memoryStream.Position = 0;
+                        var buffer = new byte[memoryStream.Length];
+                        memoryStream.Read(buffer, 0, buffer.Length);
+
+                        // run processaudio in a new thread
+                        var t = Task.Run(() => { var x = ProcessAudio(buffer).Result;
+                            Debug.WriteLine(x);
+
+                        });
+
+                        writer.Dispose();
+                        GetNewMemoryWriter();
+                        soundDetected = false;
+                        lastDateTimeAboveThreshold = DateTime.Now;
                     }
                 };
 
                 waveIn.RecordingStopped += (sender, e) =>
                 {
                     writer.Flush();
-
-                    writer.Close();
+                    writer.Dispose();
                     tcs.TrySetResult(true);
-
-                    var bytes = File.ReadAllBytes(outputFilePath);
-                    ProcessAudio();
                 };
 
                 cancellationToken.Register(() =>
                 {
+                    writer.Flush();
+                    // copy memory stream to byte array
+                    memoryStream.Position = 0;
+                    var buffer = new byte[memoryStream.Length];
+                    memoryStream.Read(buffer, 0, buffer.Length);
+
+                    var output = ProcessAudio(buffer);
+
                     waveIn.StopRecording();
-
-
                 });
 
                 waveIn.StartRecording();
@@ -69,9 +105,21 @@ namespace AiTool3.Audio
             }
         }
 
+        private void GetNewMemoryWriter()
+        {
+            if (writer != null)
+                writer.Dispose();
+            if (memoryStream != null)
+                memoryStream.Dispose();
+
+            memoryStream = new MemoryStream();
+            writer = new WaveFileWriter(memoryStream, new WaveFormat(16000,1));
+
+
+        }
+
         internal async Task<int> GetAudioLevelAsync()
         {
-           // work out how many milliseconds since last time level was above 50
             if (lastDateTimeAboveThreshold.HasValue)
             {
                 var timeSinceLastAbove50 = DateTime.Now - lastDateTimeAboveThreshold.Value;
@@ -83,14 +131,13 @@ namespace AiTool3.Audio
             }
         }
 
-        private async Task<string> ProcessAudio()
+        private async Task<string> ProcessAudio(byte[] audioData)
         {
-            // requires specific DLLs...
-            var modelName = "ggml-tiny.bin";
+            var modelName = "ggml-meden.bin";
 
             if (!File.Exists(modelName))
             {
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.Tiny);
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.MediumEn);
                 using var fileWriter = File.OpenWrite(modelName);
                 await modelStream.CopyToAsync(fileWriter);
             }
@@ -99,28 +146,26 @@ namespace AiTool3.Audio
 
             try
             {
-
                 using var whisperFactory = WhisperFactory.FromPath(modelName);
 
                 using var processor = whisperFactory.CreateBuilder()
                     .WithLanguage("auto")
                     .Build();
 
-                using var fileStream = File.OpenRead("output.wav");
-
-                await foreach (var result in processor.ProcessAsync(fileStream))
+                using var memoryStream = new MemoryStream(audioData);
+                Debug.WriteLine(">>>");
+                await foreach (var result in processor.ProcessAsync(memoryStream))
                 {
-                    // write to output.txt
-                    retVal = $"{retVal}{result.Text}";
+                    retVal += $"recorder: {result.Text}{Environment.NewLine}";
+                    Debug.WriteLine(result.Text);
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
+
             return retVal;
         }
     }
-
 }
-

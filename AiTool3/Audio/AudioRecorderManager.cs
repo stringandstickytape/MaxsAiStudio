@@ -28,7 +28,7 @@ namespace AiTool3.Audio
             }
 
             // Start recording in a separate task
-            recordingTask = recorder.RecordAudioAsync(wavFileName, cts.Token);
+            recordingTask = recorder.RecordAudioAsync(cts.Token);
 
             IsRecording = true;
 
