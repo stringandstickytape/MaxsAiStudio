@@ -265,10 +265,15 @@ namespace AiTool3
 
                 FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
 
-
-
-
-
+                // write directly to C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md, if we can
+                try
+                {
+                    File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", response2.ResponseText);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error writing to file: {ex.Message}");
+                }
             };
             specialsMenu.DropDownItems.Add(restartMenuItem);
             menuBar.Items.Add(specialsMenu);

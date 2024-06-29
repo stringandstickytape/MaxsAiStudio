@@ -19,7 +19,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - Customizable system prompts and user inputs
 - Network diagram visualization of conversations
 - Snippet detection and formatting in responses
-- Automatic readme update based on latest GitHub diff
+- Automatic readme update based on latest GitHub diff and commit message
 - Suggested next prompt feature
 - Text-to-Speech (TTS) for AI responses
 - Low-pass filter for audio processing
@@ -115,7 +115,7 @@ The main window is divided into several sections:
 
 ### 15. Automatic Readme Update
 
-- The application now includes a feature to automatically update the readme based on the latest GitHub diff.
+- The application now includes a feature to automatically update the readme based on the latest GitHub diff and commit message.
 - This feature can be accessed through the new "Specials" menu.
 
 ### 16. Text-to-Speech (TTS)
