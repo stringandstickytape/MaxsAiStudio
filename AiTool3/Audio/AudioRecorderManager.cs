@@ -12,14 +12,14 @@ namespace AiTool3.Audio
         private Task recordingTask;
         public bool IsRecording { get; private set; }
 
-        public const string ModelName = "ggml-smallen.bin";
+        public const string ModelName = "ggml-tiny.bin";
 
         public async Task StartRecording()
         {
             recorder = new AudioRecorder();
             cts = new CancellationTokenSource();
             var ggmlType = GgmlType.TinyEn;
-            var modelFileName = "ggml-tinyen.bin";
+            var modelFileName = "ggml-tiny.bin";
             var wavFileName = "output.wav";
 
             if (!File.Exists(modelFileName))
@@ -74,7 +74,7 @@ namespace AiTool3.Audio
 
             if (!File.Exists(ModelName))
             {
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.SmallEn);
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.Tiny);
                 using var fileWriter = File.OpenWrite(ModelName);
                 await modelStream.CopyToAsync(fileWriter);
             }

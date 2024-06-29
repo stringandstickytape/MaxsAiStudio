@@ -1,5 +1,7 @@
 ﻿using NAudio.Wave;
 using System.Diagnostics;
+using Whisper.net.Ggml;
+using Whisper.net;
 
 namespace AiTool3.Audio
 {
@@ -46,12 +48,19 @@ namespace AiTool3.Audio
                 waveIn.RecordingStopped += (sender, e) =>
                 {
                     writer.Flush();
+
+                    writer.Close();
                     tcs.TrySetResult(true);
+
+                    var bytes = File.ReadAllBytes(outputFilePath);
+                    ProcessAudio();
                 };
 
                 cancellationToken.Register(() =>
                 {
                     waveIn.StopRecording();
+
+
                 });
 
                 waveIn.StartRecording();
@@ -72,6 +81,44 @@ namespace AiTool3.Audio
             {
                 return -1;
             }
+        }
+
+        private async Task<string> ProcessAudio()
+        {
+            // requires specific DLLs...
+            var modelName = "ggml-tiny.bin";
+
+            if (!File.Exists(modelName))
+            {
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.Tiny);
+                using var fileWriter = File.OpenWrite(modelName);
+                await modelStream.CopyToAsync(fileWriter);
+            }
+
+            var retVal = "";
+
+            try
+            {
+
+                using var whisperFactory = WhisperFactory.FromPath(modelName);
+
+                using var processor = whisperFactory.CreateBuilder()
+                    .WithLanguage("auto")
+                    .Build();
+
+                using var fileStream = File.OpenRead("output.wav");
+
+                await foreach (var result in processor.ProcessAsync(fileStream))
+                {
+                    // write to output.txt
+                    retVal = $"{retVal}{result.Text}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            return retVal;
         }
     }
 
