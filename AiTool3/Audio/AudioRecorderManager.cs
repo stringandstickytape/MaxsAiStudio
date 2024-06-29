@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Whisper.net.Ggml;
 using Whisper.net;
+using Whisper.net.Wave;
 
 namespace AiTool3.Audio
 {
@@ -17,14 +18,33 @@ namespace AiTool3.Audio
         {
             recorder = new AudioRecorder();
             cts = new CancellationTokenSource();
-            
+            var ggmlType = GgmlType.TinyEn;
+            var modelFileName = "ggml-tinyen.bin";
+            var wavFileName = "output.wav";
+
+            if (!File.Exists(modelFileName))
+            {
+                await DownloadModel(modelFileName, ggmlType);
+            }
 
             // Start recording in a separate task
-            recordingTask = recorder.RecordAudioAsync("output.wav", cts.Token);
+            recordingTask = recorder.RecordAudioAsync(wavFileName, cts.Token);
 
             IsRecording = true;
-        }
 
+            // check whether the level is silent
+            var level = await recorder.GetAudioLevelAsync();
+
+
+
+        }
+        static async Task DownloadModel(string fileName, GgmlType ggmlType)
+        {
+            Console.WriteLine($"Downloading Model {fileName}");
+            using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(ggmlType);
+            using var fileWriter = File.OpenWrite(fileName);
+            await modelStream.CopyToAsync(fileWriter);
+        }
         public async Task<string> StopRecordingAndReturnTranscription()
         {
             if (cts != null)
@@ -77,5 +97,7 @@ namespace AiTool3.Audio
             }
             return retVal;
         }
+
+
     }
 }
