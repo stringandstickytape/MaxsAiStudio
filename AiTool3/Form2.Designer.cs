@@ -38,6 +38,7 @@ namespace AiTool3
             rtbInput = new ButtonedRichTextBox();
             splitContainer1 = new SplitContainer();
             splitContainer5 = new SplitContainer();
+            tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             splitContainer2 = new SplitContainer();
             button2 = new Button();
@@ -54,7 +55,6 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
-            tbSearch = new TextBox();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -188,6 +188,14 @@ namespace AiTool3
             splitContainer5.SplitterDistance = 388;
             splitContainer5.TabIndex = 1;
             // 
+            // tbSearch
+            // 
+            tbSearch.Location = new Point(9, 11);
+            tbSearch.Name = "tbSearch";
+            tbSearch.Size = new Size(315, 31);
+            tbSearch.TabIndex = 1;
+            tbSearch.TextChanged += tbSearch_TextChanged;
+            // 
             // dgvConversations
             // 
             dgvConversations.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -300,9 +308,9 @@ namespace AiTool3
             button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button5.BackColor = Color.Black;
             button5.ForeColor = Color.White;
-            button5.Location = new Point(1227, 3);
+            button5.Location = new Point(1259, 3);
             button5.Name = "button5";
-            button5.Size = new Size(65, 34);
+            button5.Size = new Size(50, 43);
             button5.TabIndex = 12;
             button5.Text = "Img";
             button5.UseVisualStyleBackColor = false;
@@ -326,11 +334,11 @@ namespace AiTool3
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button3.BackColor = Color.Black;
             button3.ForeColor = Color.White;
-            button3.Location = new Point(1186, 3);
+            button3.Location = new Point(1164, 3);
             button3.Name = "button3";
-            button3.Size = new Size(35, 34);
+            button3.Size = new Size(89, 61);
             button3.TabIndex = 10;
-            button3.Text = "Restart";
+            button3.Text = "Start\r\nRecord";
             button3.UseVisualStyleBackColor = false;
             button3.Click += button3_Click;
             // 
@@ -392,14 +400,6 @@ namespace AiTool3
             tokenUsageLabel.Name = "tokenUsageLabel";
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
-            // 
-            // tbSearch
-            // 
-            tbSearch.Location = new Point(9, 11);
-            tbSearch.Name = "tbSearch";
-            tbSearch.Size = new Size(315, 31);
-            tbSearch.TabIndex = 1;
-            tbSearch.TextChanged += tbSearch_TextChanged;
             // 
             // Form2
             // 

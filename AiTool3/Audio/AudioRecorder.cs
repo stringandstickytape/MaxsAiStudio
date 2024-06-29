@@ -34,8 +34,9 @@ namespace AiTool3.Audio
                 waveIn.DataAvailable += (sender, e) =>
                 {
                     writer.Write(e.Buffer, 0, e.BytesRecorded);
+                    Debug.WriteLine(e.BytesRecorded.ToString()+"!");
+                    var levelCheck = 7000;
 
-                    var levelCheck = 10000;
                     var max = 0;
                     for (int i = 0; i < e.BytesRecorded; i += 2)
                     {
@@ -75,16 +76,9 @@ namespace AiTool3.Audio
                         memoryStream.Read(buffer, 0, buffer.Length);
 
                         // Run processaudio in a new thread
-                        var t = Task.Run(async () =>
+                        Task.Run(async () =>
                         {
-                            var x = await ProcessAudio(buffer);
-                            if (!string.IsNullOrWhiteSpace(x))
-                            {
-                                Debug.WriteLine(x);
-                                // Fire the event
-                                OnAudioProcessed(x);
-                            }
-
+                            await ProcessAudio(buffer);
                         });
 
                         writer.Dispose();
@@ -104,14 +98,6 @@ namespace AiTool3.Audio
 
                 cancellationToken.Register(() =>
                 {
-                    writer.Flush();
-                    // copy memory stream to byte array
-                    memoryStream.Position = 0;
-                    var buffer = new byte[memoryStream.Length];
-                    memoryStream.Read(buffer, 0, buffer.Length);
-
-                    var output = ProcessAudio(buffer);
-
                     waveIn.StopRecording();
                 });
 
@@ -146,31 +132,32 @@ namespace AiTool3.Audio
                 return -1;
             }
         }
-
-        private async Task<string> ProcessAudio(byte[] audioData)
+        private string modelName;
+        public AudioRecorder(string modelNameIn)
         {
-            var modelName = "ggml-meden.bin";
+            modelName = modelNameIn;
+            DownloadModel();
+                
+            WhisperFactory = WhisperFactory.FromPath(modelName);
+            WhisperProcessor = WhisperFactory.CreateBuilder()
+                    .WithLanguage("en")
+                    .Build(); ;
+        }
 
-            if (!File.Exists(modelName))
-            {
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.MediumEn);
-                using var fileWriter = File.OpenWrite(modelName);
-                await modelStream.CopyToAsync(fileWriter);
-            }
+        private WhisperFactory WhisperFactory;
+        private WhisperProcessor WhisperProcessor;
+
+        private async Task ProcessAudio(byte[] audioData)
+        {
+            await DownloadModel();
 
             var retVal = "";
 
             try
             {
-                using var whisperFactory = WhisperFactory.FromPath(modelName);
-
-                using var processor = whisperFactory.CreateBuilder()
-                    .WithLanguage("auto")
-                    .Build();
-
                 using var memoryStream = new MemoryStream(audioData);
                 Debug.WriteLine(">>>");
-                await foreach (var result in processor.ProcessAsync(memoryStream))
+                await foreach (var result in WhisperProcessor.ProcessAsync(memoryStream))
                 {
                     retVal += $"{result.Text}";
                     Debug.WriteLine(result.Text);
@@ -181,7 +168,23 @@ namespace AiTool3.Audio
                 Debug.WriteLine(ex.Message);
             }
 
-            return retVal;
+            if (!string.IsNullOrWhiteSpace(retVal))
+            {
+                // Fire the event
+                OnAudioProcessed(retVal);
+            }
+
+            return;
+        }
+
+        private async Task DownloadModel()
+        {
+            if (!File.Exists(modelName))
+            {
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.MediumEn);
+                using var fileWriter = File.OpenWrite(modelName);
+                await modelStream.CopyToAsync(fileWriter);
+            }
         }
 
         // Method to invoke the event

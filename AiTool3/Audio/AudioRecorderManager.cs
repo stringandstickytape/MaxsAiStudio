@@ -15,14 +15,22 @@ namespace AiTool3.Audio
         private Task recordingTask;
         public bool IsRecording { get; private set; }
 
-        public const string ModelName = "ggml-tiny.bin";
+        private GgmlType ggmlType;
+
+        private string modelName { get; set; }
+            
+        public AudioRecorderManager(GgmlType ggmlType)
+        {
+            this.ggmlType = ggmlType;
+            modelName = $"{ggmlType.ToString().ToLower()}.bin";
+        }
+
 
         public async Task StartRecording()
         {
-            recorder = new AudioRecorder();
+            recorder = new AudioRecorder(modelName);
             recorder.AudioProcessed += (sender, result) =>
             {
-                Debug.WriteLine($"Processed audio result: {result}");
                 AudioProcessed?.Invoke(this, result);
             };
 
@@ -49,12 +57,11 @@ namespace AiTool3.Audio
         }
         static async Task DownloadModel(string fileName, GgmlType ggmlType)
         {
-            Console.WriteLine($"Downloading Model {fileName}");
             using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(ggmlType);
             using var fileWriter = File.OpenWrite(fileName);
             await modelStream.CopyToAsync(fileWriter);
         }
-        public async Task<string> StopRecordingAndReturnTranscription()
+        public async Task StopRecording()
         {
             if (cts != null)
             {
@@ -71,27 +78,27 @@ namespace AiTool3.Audio
                 cts = null;
                 recorder = null;
 
-                return await ProcessAudio();
+                return;
 
             }
-            return "error";
+            return;
         }
 
         private async Task<string> ProcessAudio()
         {
             // requires specific DLLs...
 
-            if (!File.Exists(ModelName))
+            if (!File.Exists(modelName))
             {
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.Tiny);
-                using var fileWriter = File.OpenWrite(ModelName);
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(ggmlType);
+                using var fileWriter = File.OpenWrite(modelName);
                 await modelStream.CopyToAsync(fileWriter);
             }
 
             var retVal = "";
 
 
-            using var whisperFactory = WhisperFactory.FromPath(ModelName);
+            using var whisperFactory = WhisperFactory.FromPath(modelName);
 
             using var processor = whisperFactory.CreateBuilder()
                 .WithLanguage("auto")

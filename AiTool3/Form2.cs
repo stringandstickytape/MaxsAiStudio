@@ -44,7 +44,7 @@ namespace AiTool3
 
         public TopicSet TopicSet { get; set; }
 
-        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager();
+        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
 
         public string Base64Image { get; set; }
         public string Base64ImageType { get; set; }
@@ -856,15 +856,15 @@ namespace AiTool3
             {
                 // Start recording
                 await audioRecorderManager.StartRecording();
-                button3.Text = "Stop Recording";
+                button3.BackColor = Color.Red;
+                button3.Text = "Stop\r\nRecord";
             }
             else
             {
                 // Stop recording
-                string transcription = await audioRecorderManager.StopRecordingAndReturnTranscription();
-                button3.Text = "Start Recording";
-
-                rtbInput.Text += transcription;
+                await audioRecorderManager.StopRecording();
+                button3.BackColor = Color.Black;
+                button3.Text = "Start\r\nRecord";
             }
         }
 
