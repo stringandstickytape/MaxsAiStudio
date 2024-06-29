@@ -21,6 +21,9 @@ This application is an advanced AI conversation tool that allows users to intera
 - Snippet detection and formatting in responses
 - Automatic readme update based on latest GitHub diff
 - Suggested next prompt feature
+- Text-to-Speech (TTS) for AI responses
+- Low-pass filter for audio processing
+- Customizable settings with toggle options
 
 ## Detailed Guide
 
@@ -47,6 +50,7 @@ The main window is divided into several sections:
 - The AI's response will appear in the output area.
 - The conversation will be visualized in the network diagram.
 - If available, a suggested next prompt will be formatted and displayed in the input area.
+- If enabled, the AI's response will be read aloud using Text-to-Speech.
 
 ### 4. Managing Conversations
 
@@ -68,6 +72,7 @@ The main window is divided into several sections:
 - Speak your message.
 - Click "Stop Recording" to end the recording and automatically transcribe it to text using Whisper.
 - The transcribed text will be added to the input area.
+- A low-pass filter is applied to the audio for improved quality.
 
 ### 7. Image Input
 
@@ -97,6 +102,7 @@ The main window is divided into several sections:
 ### 12. Settings
 
 - Access the settings menu to configure API keys, model selection, and other preferences.
+- New toggle options are available for customizing features like Text-to-Speech.
 
 ### 13. Saving and Exporting
 
@@ -111,5 +117,10 @@ The main window is divided into several sections:
 
 - The application now includes a feature to automatically update the readme based on the latest GitHub diff.
 - This feature can be accessed through the new "Specials" menu.
+
+### 16. Text-to-Speech (TTS)
+
+- AI responses can be read aloud using Windows TTS.
+- This feature can be toggled on/off in the settings.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.

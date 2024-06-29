@@ -232,9 +232,21 @@ namespace AiTool3
                 var diff = new WebClient().DownloadString("https://github.com/stringandstickytape/MaxsAiTool/commit/main.diff");
                 var readme = new WebClient().DownloadString("https://raw.githubusercontent.com/stringandstickytape/MaxsAiTool/main/README.md");
 
+                // pull commit details json from https://api.github.com/repos/stringandstickytape/MaxsAiTool/commits/main
+                // include a User-Agent
+                var client = new WebClient();
+                client.Headers.Add("User-Agent: Other");
+                var jsonText = client.DownloadString("https://api.github.com/repos/stringandstickytape/MaxsAiTool/commits/main");
+                
+
+                // dyn jsonconv
+                dynamic commitDetails = JsonConvert.DeserializeObject(jsonText);
+
+                var commitMessage = commitDetails.commit.message.ToString();
+
                 // get AI to compare them
                 var model = (Model)cbEngine.SelectedItem;
-                var userMessage = $"{DateTime.Now.Ticks}\nHere's a diff and readme.  Update the readme content to reflect new and changed features, as described by the diff.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
+                var userMessage = $"Random number: {DateTime.Now.Ticks}\nHere's a commit message, diff, and readme.  Update the readme content to reflect new and changed features, as described by the diff and commit message.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```commitmessage{Environment.NewLine}{commitMessage}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
                 var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{model.ServiceName}"));
                 var conversation = new Conversation { systemprompt = "Update the readme", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
                 var response = aiService.FetchResponse(model, conversation, null, null).Result;
