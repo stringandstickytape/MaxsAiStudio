@@ -31,6 +31,7 @@ using System.Net;
 using Whisper.net.Ggml;
 using Whisper.net;
 using System.Speech.Synthesis;
+using AiTool3.Providers;
 
 namespace AiTool3
 {
@@ -49,6 +50,10 @@ namespace AiTool3
         public string Base64Image { get; set; }
         public string Base64ImageType { get; set; }
 
+        private AudioRecorder recorder;
+        private CancellationTokenSource cts;
+        private Task recordingTask;
+        private bool isRecording = false;
         public Form2()
         {
             InitializeComponent();
@@ -247,7 +252,7 @@ namespace AiTool3
                 // get AI to compare them
                 var model = (Model)cbEngine.SelectedItem;
                 var userMessage = $"Random number: {DateTime.Now.Ticks}\nHere's a commit message, diff, and readme.  Update the readme content to reflect new and changed features, as described by the diff and commit message.  Don't change formatting or whitespace. Give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```commitmessage{Environment.NewLine}{commitMessage}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
-                var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{model.ServiceName}"));
+                var aiService = AiServiceResolver.GetAiService(model.ServiceName);
                 var conversation = new Conversation { systemprompt = "Update the readme", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
                 var response = aiService.FetchResponse(model, conversation, null, null).Result;
 
@@ -413,7 +418,7 @@ namespace AiTool3
             var serviceName = model.ServiceName;
 
             // instantiate the service from the appropriate api
-            var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{serviceName}"));
+            var aiService = AiServiceResolver.GetAiService(serviceName);
 
             Conversation conversation = null;
 
@@ -445,7 +450,7 @@ namespace AiTool3
                 +
                 response.TokenUsage.OutputTokens * model.output1MTokenPrice / 1000000;
 
-            if(response.SuggestedNextPrompt != null)
+            if (response.SuggestedNextPrompt != null)
             {
                 FindSnippets(rtbInput, RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt));
             }
@@ -497,7 +502,7 @@ namespace AiTool3
             // and display the results in the output box
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)));
 
-            if(Settings.NarrateResponses)
+            if (Settings.NarrateResponses)
             {
                 // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
                 var text = rtbOutput.Text;
@@ -510,8 +515,6 @@ namespace AiTool3
 
             Base64Image = null;
             Base64ImageType = null;
-
-            btnGo.Enabled = true;
 
             // draw the network diagram
             DrawNetworkDiagram();
@@ -547,7 +550,7 @@ namespace AiTool3
                 dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, title);
             }
 
-
+            btnGo.Enabled = true;
 
         }
 
@@ -873,10 +876,7 @@ namespace AiTool3
             DrawNetworkDiagram();
         }
 
-        private AudioRecorder recorder;
-        private CancellationTokenSource cts;
-        private Task recordingTask;
-        private bool isRecording = false;
+
 
 
         private async void button3_Click(object sender, EventArgs e)

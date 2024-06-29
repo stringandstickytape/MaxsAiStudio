@@ -41,7 +41,7 @@ namespace AiTool3.Conversations
         internal async Task<string> GenerateSummary(Model apiModel)
         {
             // instantiate the service from name
-            var aiService = (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{apiModel.ServiceName}"));
+            var aiService = GetAiService (IAiService)Activator.CreateInstance(Type.GetType($"AiTool3.Providers.{apiModel.ServiceName}"));
 
             Conversation conversation = null;
 
