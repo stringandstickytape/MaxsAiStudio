@@ -1,5 +1,6 @@
 ﻿using AiTool3.UI;
 using Microsoft.CodeAnalysis;
+using Microsoft.Web.WebView2.WinForms;
 using static AiTool3.UI.ButtonedRichTextBox;
 
 
@@ -27,6 +28,19 @@ namespace AiTool3.MegaBar.Items
             {
                 string codeWithoutComments = RemoveComments(SnipperHelper.StripFirstAndLastLine(code));
                 Clipboard.SetText(codeWithoutComments);
+            },
+            [MegaBarItemType.WebView] = code => () =>
+            {
+                // create a new form of 256x256
+                var form = new Form();
+                form.Size = new Size(256, 256);
+                form.StartPosition = FormStartPosition.CenterScreen;
+
+                // create a WebView2 that fills the window
+                var wvForm = new WebviewForm(code);
+                wvForm.Show();
+                
+
             }
         };
 

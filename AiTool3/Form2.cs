@@ -251,8 +251,21 @@ namespace AiTool3
                     MessageBox.Show($"Error writing to file: {ex.Message}");
                 }
             };
-            specialsMenu.DropDownItems.Add(restartMenuItem);
-            menuBar.Items.Add(specialsMenu);
+
+            var reviewCodeMenuItem = new ToolStripMenuItem("Review Code");
+            reviewCodeMenuItem.ForeColor = Color.White;
+            reviewCodeMenuItem.BackColor = Color.Black;
+            reviewCodeMenuItem.Click += (s, e) =>
+            {
+                // go up from the working directory until you get to "MaxsAiTool"
+                SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
+                rtbInput.Text = userMessage;
+
+            };
+                specialsMenu.DropDownItems.Add(restartMenuItem);
+                specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+                menuBar.Items.Add(specialsMenu);
+            
         }
 
 
@@ -314,6 +327,11 @@ namespace AiTool3
 
                 PreviousCompletion = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
             }
+            if (PreviousCompletion?.SystemPrompt != null)
+            {
+                rtbSystemPrompt.Text = PreviousCompletion.SystemPrompt;
+            }
+            else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(PreviousCompletion?.Content ?? ""));
 
         }
@@ -422,7 +440,9 @@ namespace AiTool3
                 Parent = PreviousCompletion?.Guid,
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>()
+                Children = new List<string>(),
+                SystemPrompt = rtbSystemPrompt.Text
+                
             };
 
             if (response == null)
@@ -447,7 +467,8 @@ namespace AiTool3
                 Parent = completionInput.Guid,
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>()
+                Children = new List<string>(),
+                SystemPrompt = rtbSystemPrompt.Text
             };
 
             // add it to the current conversation
@@ -482,10 +503,10 @@ namespace AiTool3
 
             // using the title, update the dgvConversations
 
-            if(row==null)
-            {
-                CurrentConversation.SaveAsJson();
+            CurrentConversation.SaveAsJson();
 
+            if (row==null)
+            {
                 dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, "");
 
                 row = dgvConversations.Rows[0];
@@ -499,7 +520,7 @@ namespace AiTool3
                 row.Cells[3].Value = title;
                 CurrentConversation.SaveAsJson();
             }
-
+            
             
 
         }

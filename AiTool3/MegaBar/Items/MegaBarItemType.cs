@@ -11,6 +11,9 @@
         [MegaBarItemInfo(Title = "Browser", SupportedTypes = new[] { ".html", "*" })]
         Browser,
 
+        [MegaBarItemInfo(Title = "WebView", SupportedTypes = new[] { ".html", "*" })]
+        WebView,
+
         [MegaBarItemInfo(Title = "C# Script", SupportedTypes = new[] { ".cs", "*" })]
         CSharpScript,
 

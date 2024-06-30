@@ -5,6 +5,8 @@
         public CompletionRole Role { get; set; }
         public string Content { get; set; }
 
+        public string SystemPrompt { get; set; }
+
         public string Guid { get; set; }
 
         public List<string> Children { get; set; }
