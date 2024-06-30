@@ -1,6 +1,7 @@
 ﻿using AiTool3.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.Web.WebView2.WinForms;
+using System.Diagnostics;
 using static AiTool3.UI.ButtonedRichTextBox;
 
 
@@ -40,6 +41,20 @@ namespace AiTool3.MegaBar.Items
                 var wvForm = new WebviewForm(code);
                 wvForm.Show();
                 
+             },
+             [MegaBarItemType.LaunchInVisualStudio] = code => () =>
+             {
+                 string tempFile = Path.GetTempFileName();
+                 File.WriteAllText(tempFile, SnipperHelper.StripFirstAndLastLine(code));
+                 string vsPath = @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe";
+                 if (File.Exists(vsPath))
+                 {
+                     Process.Start(vsPath, tempFile);
+                 }
+                 else
+                 {
+                     MessageBox.Show("Visual Studio not found. Please install it or update the path.");
+                 }
 
             }
         };

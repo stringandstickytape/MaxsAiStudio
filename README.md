@@ -130,7 +130,7 @@ The main window is divided into several sections:
 
 - The application now supports viewing HTML content in a WebView.
 - This feature allows for better rendering and interaction with HTML responses from the AI.
-
+.
 ### 18. Code Review Function
 
 - A new code review function has been added for project maintainers.

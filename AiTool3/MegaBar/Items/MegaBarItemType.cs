@@ -24,7 +24,11 @@
         SaveAs,
 
         [MegaBarItemInfo(Title = "Copy w/o comments", SupportedTypes = new[] { ".cs", ".html", "*" })]
-        CopyWithoutComments
+        CopyWithoutComments,
+
+        [MegaBarItemInfo(Title = "Launch in VS", SupportedTypes = new[] { "*.cs", ".ts", "*" })]
+        LaunchInVisualStudio
+
     }
 
 }
