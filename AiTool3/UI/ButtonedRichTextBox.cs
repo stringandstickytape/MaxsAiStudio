@@ -15,8 +15,12 @@ namespace AiTool3.UI
         private Point mousePosition;
 
         private System.Timers.Timer flashTimer;
-        private Color originalBackColor;
         private int flashCount = 0;
+
+        private Color currentBackColor;
+        private int fadeDuration = 2000; // Total fade duration in milliseconds
+        private int fadeInterval = 100; // Interval between color updates in milliseconds
+        private int fadeProgress = 0;
 
         [Category("Behavior")]
         [Description("Determines whether the control should flash when text is updated.")]
@@ -41,52 +45,47 @@ namespace AiTool3.UI
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag;
-
-            flashTimer = new System.Timers.Timer(500);
-            flashTimer.Elapsed += FlashTimer_Elapsed;
-            flashTimer.AutoReset = false;
+            flashTimer = new System.Timers.Timer(fadeInterval);
+            flashTimer.Elapsed += FadeTimer_Elapsed;
+            flashTimer.AutoReset = true;
 
         }
 
-        private void FlashTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void FadeTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(() => ContinueFlashing()));
+                Invoke(new Action(() => UpdateFade()));
             }
             else
             {
-                ContinueFlashing();
+                UpdateFade();
             }
         }
 
-        private void ContinueFlashing()
+        private void UpdateFade()
         {
-            flashCount++;
-            if (flashCount % 2 == 0)
+            fadeProgress += fadeInterval;
+            if (fadeProgress >= fadeDuration)
             {
-                BackColor = backColorHighlight;
+                BackColor = Color.Black;
+                flashTimer.Stop();
             }
             else
             {
-                BackColor = originalBackColor;
-            }
-
-            if (flashCount < 6)
-            {
-                flashTimer.Start();
-            }
-            else
-            {
-                BackColor = originalBackColor;
+                float progress = (float)fadeProgress / fadeDuration;
+                BackColor = InterpolateColor(backColorHighlight, Color.Black, progress);
             }
         }
 
-
-        private void ResetBackColor()
+        private Color InterpolateColor(Color start, Color end, float progress)
         {
-            BackColor = originalBackColor;
+            int r = (int)(start.R + (end.R - start.R) * progress);
+            int g = (int)(start.G + (end.G - start.G) * progress);
+            int b = (int)(start.B + (end.B - start.B) * progress);
+            return Color.FromArgb(r, g, b);
         }
+
 
         public override string Text
         {
@@ -104,29 +103,18 @@ namespace AiTool3.UI
             }
         }
 
-        private Color backColorHighlight = Color.FromArgb(40, 20, 20);
+        private Color backColorHighlight = Color.FromArgb(20, 90, 30);
 
         private void FlashBackground()
         {
-            if (BackColor != backColorHighlight)
-            {
-                originalBackColor = BackColor;
-                flashCount = 0;
-                FlashBackgroundOnce();
-            }
-        }
-
-        private void FlashBackgroundOnce()
-        {
-            if (flashCount < 3)
+            if (BackColor == Color.Black)
             {
                 BackColor = backColorHighlight;
+                fadeProgress = 0;
+                flashTimer.Interval = fadeInterval;
                 flashTimer.Start();
             }
-            else
-            {
-                flashCount = 0;
-            }
+            else fadeProgress = 0;
         }
 
 
