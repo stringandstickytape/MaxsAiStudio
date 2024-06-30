@@ -564,7 +564,7 @@ namespace AiTool3
             var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
 
 
-            rootNode.BackColor = model.Color;
+            rootNode.BackColor = root.GetColorForEngine();
             ndcConversation.AddNode(rootNode);
 
             // recursively draw the children

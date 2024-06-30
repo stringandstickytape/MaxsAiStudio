@@ -24,6 +24,8 @@ This application is an advanced AI conversation tool that allows users to intera
 - Text-to-Speech (TTS) for AI responses
 - Low-pass filter for audio processing
 - Customizable settings with toggle options
+- View HTML in WebView
+- Code review function (for project maintainers)
 
 ## Detailed Guide
 
@@ -123,5 +125,15 @@ The main window is divided into several sections:
 
 - AI responses can be read aloud using Windows TTS.
 - This feature can be toggled on/off in the settings.
+
+### 17. View HTML in WebView
+
+- The application now supports viewing HTML content in a WebView.
+- This feature allows for better rendering and interaction with HTML responses from the AI.
+
+### 18. Code Review Function
+
+- A new code review function has been added for project maintainers.
+- This feature can analyze the project's C# code and provide feedback on potential bugs.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.
