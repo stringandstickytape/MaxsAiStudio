@@ -580,7 +580,7 @@ namespace AiTool3
             ndcConversation.AddNode(rootNode);
 
             // recursively draw the children
-            DrawChildren(root, rootNode, 300, ref y);
+            DrawChildren(root, rootNode, 300+100, ref y);
 
         }
 
