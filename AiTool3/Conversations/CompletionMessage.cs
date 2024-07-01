@@ -41,6 +41,19 @@
                 return Color.Thistle;
             }
         }
+
+        public int InputTokens { get; set; }
+        public int OutputTokens { get; set; }
+
+        public string InfoLabel
+        {
+            get
+            {
+                var inputTokens = InputTokens == 0 ? "" : $"In: {InputTokens}";
+                var outputTokens = OutputTokens == 0 ? "" : $"Out: {OutputTokens}";
+                return $"{inputTokens}{outputTokens} : {Engine}";
+            }
+        }
     }
 
     public enum CompletionRole

@@ -13,12 +13,14 @@
             public Color? BorderColor = null;
 
             public string Guid { get; set; }
+            public string NodeInfoLabel { get; set; }
 
-            public Node(string label, Point location, string guid)
+            public Node(string label, Point location, string guid, string nodeInfoLabel)
             {
                 Label = label;
                 Location = location;
                 Guid = guid;
+                NodeInfoLabel = nodeInfoLabel;
             }
         }
     }

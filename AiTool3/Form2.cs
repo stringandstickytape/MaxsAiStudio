@@ -441,8 +441,9 @@ namespace AiTool3
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
                 Children = new List<string>(),
-                SystemPrompt = rtbSystemPrompt.Text
-                
+                SystemPrompt = rtbSystemPrompt.Text,
+                InputTokens = response.TokenUsage.InputTokens,
+                OutputTokens = 0
             };
 
             if (response == null)
@@ -468,7 +469,9 @@ namespace AiTool3
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
                 Children = new List<string>(),
-                SystemPrompt = rtbSystemPrompt.Text
+                SystemPrompt = rtbSystemPrompt.Text,
+                InputTokens = 0,
+                OutputTokens = response.TokenUsage.OutputTokens
             };
 
             // add it to the current conversation
@@ -558,7 +561,7 @@ namespace AiTool3
             }
             var y = 0;
 
-            var rootNode = new Node(root.Content, new Point(100, y), root.Guid);
+            var rootNode = new Node(root.Content, new Point(100, y), root.Guid, root.InfoLabel);
 
             // get the model with the same name as the engine
             var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
@@ -580,7 +583,7 @@ namespace AiTool3
                 // get from child string
                 var childMsg = CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
 
-                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid);
+                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel);
                 childNode.BackColor = childMsg.GetColorForEngine();
                 ndcConversation.AddNode(childNode);
                 ndcConversation.AddConnection(rootNode, childNode);

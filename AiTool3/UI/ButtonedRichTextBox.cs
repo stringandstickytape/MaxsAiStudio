@@ -43,7 +43,10 @@ namespace AiTool3.UI
         public ButtonedRichTextBox()
         {
 
-            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer |
+         ControlStyles.AllPaintingInWmPaint, true);
+            UpdateStyles();
+
             this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag;
             flashTimer = new System.Timers.Timer(fadeInterval);
             flashTimer.Elapsed += FadeTimer_Elapsed;

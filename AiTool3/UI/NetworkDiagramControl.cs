@@ -169,6 +169,21 @@ namespace AiTool3.UI
                 {
                     g.DrawString(node.Label.Substring(0, node.Label.Length < 500 ? node.Label.Length : 500), Font, foregroundBrush, bounds, sf);
                 }
+
+                if (!string.IsNullOrEmpty(node.NodeInfoLabel))
+                {
+                    using (Font labelFont = new Font(Font.FontFamily, 10f))
+                    using (SolidBrush labelBrush = new SolidBrush(Color.White))
+                    {
+                        SizeF labelSize = g.MeasureString(node.NodeInfoLabel, labelFont);
+                        float labelX = bounds.Right - labelSize.Width;
+                        float labelY = bounds.Bottom;
+                        RectangleF labelRect = new RectangleF(labelX, labelY, labelSize.Width, labelSize.Height);
+
+                        g.FillRectangle(Brushes.Black, labelRect);
+                        g.DrawString(node.NodeInfoLabel, labelFont, labelBrush, labelX, labelY);
+                    }
+                }
             }
         }
 
@@ -177,9 +192,9 @@ namespace AiTool3.UI
             return nodes.FirstOrDefault(n => n.Guid == guid);
         }
 
-        public void AddNode(string label, Point location, string guid)
+        public void AddNode(string label, Point location, string guid, string nodeInfoLabel)
         {
-            nodes.Add(new Node(label, location, guid));
+            nodes.Add(new Node(label, location, guid, nodeInfoLabel));
             Invalidate();
         }
 
