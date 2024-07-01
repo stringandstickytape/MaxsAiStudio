@@ -334,12 +334,7 @@ namespace AiTool3
             else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""));
 
-            if (clickedCompletion == ConversationManager.CurrentConversation.Messages.First())
-            {
-                ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-                ConversationManager.PreviousCompletion = null;
-                DrawNetworkDiagram();
-            }
+
         }
 
         private SnippetManager snippetManager = new SnippetManager();
@@ -416,6 +411,9 @@ namespace AiTool3
 
                 foreach (var node in nodes)
                 {
+                    if (node.Role == CompletionRole.Root)
+                        continue;
+
                     conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
                 }
                 conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
@@ -525,7 +523,7 @@ namespace AiTool3
 
             if (row != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                title = await ConversationManager.CurrentConversation.GenerateSummary(summaryModel);
+                title = await ConversationManager.GenerateConversationSummary(summaryModel);
                 row.Cells[3].Value = title;
                 ConversationManager.SaveConversation();
             }
@@ -587,14 +585,26 @@ namespace AiTool3
             rtbOutput.Clear();
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.PreviousCompletion = null;
-            var template = GetCurrentTemplate();
-            if (template != null)
+
+            // add a root message to the conversation
+            ConversationManager.CurrentConversation.Messages.Add(new CompletionMessage
             {
-                rtbSystemPrompt.Clear();
-                rtbInput.Clear();
-                rtbSystemPrompt.Text = template.SystemPrompt;
-                rtbInput.Text = template.InitialPrompt;
-            }
+                Guid = Guid.NewGuid().ToString(),
+                Content = "Begin Conversation",
+                Role = CompletionRole.Root,
+                Children = new List<string>(),
+            });
+            ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
+
+
+            //var template = GetCurrentTemplate();
+            //if (template != null)
+            //{
+            //    rtbSystemPrompt.Clear();
+            //    rtbInput.Clear();
+            //    rtbSystemPrompt.Text = template.SystemPrompt;
+            //    rtbInput.Text = template.InitialPrompt;
+            //}
             DrawNetworkDiagram();
 
 
@@ -606,7 +616,7 @@ namespace AiTool3
 
             var guid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
             // load that conversation from the json file
-            ConversationManager.CurrentConversation = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+            ConversationManager.LoadConversation(guid);
 
             // draw the network diagram
             DrawNetworkDiagram();
@@ -957,5 +967,4 @@ namespace AiTool3
             }
         }
     }
-
 }

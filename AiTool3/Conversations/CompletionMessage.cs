@@ -16,6 +16,7 @@
 
         public Color GetColorForEngine()
         {
+            if (Engine == null) return Color.White;
             if (Engine.StartsWith("gpt"))
             {
                 return Color.LavenderBlush;
@@ -59,6 +60,7 @@
     public enum CompletionRole
     {
         User,
-        Assistant
+        Assistant,
+        Root
     }
 }

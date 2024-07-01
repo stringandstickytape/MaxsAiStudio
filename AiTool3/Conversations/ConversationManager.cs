@@ -19,14 +19,9 @@ namespace AiTool3.Conversations
         public ConversationManager()
         {
             CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+
+
         }
-
-        //public void StartNewConversation()
-        //{
-        //    CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-        //    PreviousCompletion = null;
-        //}
-
 
         public List<CompletionMessage> GetParentNodeList()
         {
