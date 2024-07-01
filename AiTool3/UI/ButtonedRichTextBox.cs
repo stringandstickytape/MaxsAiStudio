@@ -14,7 +14,6 @@ namespace AiTool3.UI
         private bool isMouseOver = false;
         private Point mousePosition;
 
-        private Bitmap buttonLayer;
         private System.Timers.Timer flashTimer;
         private int flashCount = 0;
 
@@ -49,7 +48,6 @@ namespace AiTool3.UI
             flashTimer = new System.Timers.Timer(fadeInterval);
             flashTimer.Elapsed += FadeTimer_Elapsed;
             flashTimer.AutoReset = true;
-            buttonLayer = new Bitmap(1, 1);
 
         }
 
@@ -77,7 +75,6 @@ namespace AiTool3.UI
             {
                 float progress = (float)fadeProgress / fadeDuration;
                 BackColor = InterpolateColor(backColorHighlight, Color.Black, progress);
-                Invalidate();
             }
         }
 
@@ -163,7 +160,6 @@ namespace AiTool3.UI
         {
             base.Clear();
             megaBars.Clear();
-            UpdateButtonLayer();
             Invalidate();
         }
 
@@ -171,44 +167,28 @@ namespace AiTool3.UI
         {
             megaBars.Add(new MegaBar { StartIndex = startIndex, Items = items });
             Invalidate();
-            UpdateButtonLayer();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            if (isMouseOver && buttonLayer != null)
+            if (isMouseOver)
             {
-                e.Graphics.DrawImage(buttonLayer, 0, 0);
-            }
-        }
-
-        private void UpdateButtonLayer()
-        {
-            if (Width <= 0 || Height <= 0)
-                return;
-
-            buttonLayer?.Dispose();
-            buttonLayer = new Bitmap(Width, Height);
-
-            using (Graphics g = Graphics.FromImage(buttonLayer))
-            {
-                g.Clear(Color.Transparent);
                 foreach (var megaBar in megaBars)
                 {
-                    DrawMegaBar(g, megaBar);
+                    DrawMegaBar(e.Graphics, megaBar);
                 }
             }
         }
 
         private void DrawMegaBar(Graphics g, MegaBar megaBar)
         {
+            int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
+            int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
+
             Pen buttonBorder = Pens.Yellow;
             Brush highlightColour = Brushes.Gray;
             Brush backgroundColour = Brushes.Black;
-
-            int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
-            int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
 
             foreach (var item in megaBar.Items)
             {
@@ -239,6 +219,7 @@ namespace AiTool3.UI
             }
         }
 
+
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
@@ -268,7 +249,6 @@ namespace AiTool3.UI
         {
             base.OnMouseEnter(e);
             isMouseOver = true;
-            UpdateButtonLayer();
             Invalidate();
         }
 
@@ -283,7 +263,6 @@ namespace AiTool3.UI
                     item.IsMouseOver = false;
                 }
             }
-            UpdateButtonLayer();
             Invalidate();
         }
 
@@ -314,7 +293,6 @@ namespace AiTool3.UI
 
             if (needsRedraw)
             {
-                UpdateButtonLayer();
                 Invalidate();
             }
         }
@@ -336,24 +314,12 @@ namespace AiTool3.UI
         {
             using (var g = CreateGraphics())
             {
-                return (int)Math.Ceiling(g.MeasureString(text, font, int.MaxValue, StringFormat.GenericTypographic).Width);
+                return (int)Math.Ceiling(g.MeasureString(text, font).Width);
             }
         }
 
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
-            UpdateButtonLayer();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            buttonLayer?.Dispose();
-            base.Dispose(disposing);
-        }
-
-// Other overridden methods remain unchanged
-protected override void OnMouseUp(MouseEventArgs e) { base.OnMouseUp(e); }
+        // Other overridden methods remain unchanged
+        protected override void OnMouseUp(MouseEventArgs e) { base.OnMouseUp(e); }
         protected override void OnVScroll(EventArgs e) { base.OnVScroll(e); }
         protected override void OnTextChanged(EventArgs e) { base.OnTextChanged(e); }
         protected override void OnSizeChanged(EventArgs e) { base.OnSizeChanged(e); }
