@@ -46,7 +46,9 @@ namespace AiTool3.Conversations
 
         public async Task<string> GenerateConversationSummary(Model summaryModel)
         {
-            return await CurrentConversation.GenerateSummary(summaryModel);
+            var retVal = await CurrentConversation.GenerateSummary(summaryModel);
+            SaveConversation();
+            return retVal;
         }
 
         public void LoadConversation(string guid)

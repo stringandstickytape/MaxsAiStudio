@@ -441,10 +441,9 @@ namespace AiTool3
 
             btnGo.Enabled = true;
 
-            if (row != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
+            if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
                 row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel); 
-                ConversationManager.SaveConversation();
             }
         }
 
@@ -470,7 +469,6 @@ namespace AiTool3
 
             // recursively draw the children
             DrawChildren(root, rootNode, 300+100, ref y);
-
         }
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
@@ -508,44 +506,31 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
             DrawNetworkDiagram();
-
-
         }
 
         private void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            // work out the guid of the clicked row (first col)
+            var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
+            
+            ConversationManager.LoadConversation(clickedGuid);
 
-            var guid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
-            // load that conversation from the json file
-            ConversationManager.LoadConversation(guid);
-
-            // draw the network diagram
             DrawNetworkDiagram();
 
-            var currentResponseNode = ndcConversation.GetNodeForGuid(ConversationManager.CurrentConversation.Messages.Last().Guid);
-            //ndcConversation.CenterOnNode(currentResponseNode);
             ndcConversation.FitAll();
         }
 
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // get the selected item
+            // populate the cbTemplates with the templates for the selected category
             var selected = cbCategories.SelectedItem.ToString();
 
-            // get all topics that match the selected item
             var topics = TopicSet.Topics.Where(t => t.Name == selected).ToList();
 
-            // get all the templates for those topics
             var templates = topics.SelectMany(t => t.Templates).Where(x => x.SystemPrompt != null).ToList();
 
-            // and add them to cbTemplates using LINQ
             cbTemplates.Items.Clear();
             cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
-
-            // drop the cbtemplates down
             cbTemplates.DroppedDown = true;
-
         }
 
         private void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
