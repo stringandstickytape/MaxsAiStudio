@@ -1,4 +1,5 @@
-﻿using AiTool3.Conversations;
+﻿using AiTool3.ApiManagement;
+using AiTool3.Conversations;
 using AiTool3.Settings;
 using AiTool3.Topics;
 using AiTool3.UI;
@@ -13,7 +14,6 @@ using AiTool3.MegaBar.Items;
 using Whisper.net.Ggml;
 using AiTool3.Providers;
 using AiTool3.Helpers;
-using AiTool3.ApiManagement;
 
 namespace AiTool3
 {
@@ -21,54 +21,61 @@ namespace AiTool3
     {
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public Settings.Settings Settings { get; set; } = AiTool3.Settings.Settings.ReadFromJson();
+
         public TopicSet TopicSet { get; set; }
+
+        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
+
         public string Base64Image { get; set; }
         public string Base64ImageType { get; set; }
 
-        private readonly AudioRecorderManager audioRecorderManager;
-        private readonly SnippetManager snippetManager = new SnippetManager();
-
+        private AudioRecorder recorder;
+        private CancellationTokenSource cts;
+        private Task recordingTask;
+        private bool isRecording = false;
         public Form2()
         {
             InitializeComponent();
-            audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-            InitializeComponents();
-            LoadTopics();
-            InitialiseApiList();
-            SetupEventHandlers();
-            DataGridViewHelper.InitialiseDataGridView(dgvConversations);
-            InitialiseMenus();
-        }
-
-        private void InitializeComponents()
-        {
             ndcConversation.SetContextMenuOptions(new[] { "Save conversation to here as TXT", "Option 2", "Option 3" });
             ndcConversation.MenuOptionSelected += MenuOptionSelected();
-        }
 
-        private void LoadTopics()
-        {
+            // if topics.json exists, load it
             TopicSet = TopicSet.Load();
+
             foreach (var topic in TopicSet.Topics)
             {
                 cbCategories.Items.Add(topic.Name);
             }
-        }
 
-        private void SetupEventHandlers()
-        {
+            InitialiseApiList();
+
             ndcConversation.NodeClicked += NdcConversation_NodeClicked;
+
             SetSplitContainerEvents();
-            rtbInput.KeyDown += (s, e) => CheckForCtrlReturn(e);
-            this.KeyDown += (s, e) => CheckForCtrlReturn(e);
+
+            rtbInput.KeyDown += (s, e) =>
+            {
+                CheckForCtrlReturn(e);
+            };
+            this.KeyDown += (s, e) =>
+            {
+                CheckForCtrlReturn(e);
+            };
+
+            DataGridViewHelper.InitialiseDataGridView(dgvConversations);
+
+            InitialiseMenus();
         }
 
-        private void AudioRecorderManager_AudioProcessed(object sender, string e)
+        private void AudioRecorderManager_AudioProcessed(object? sender, string e)
         {
             if (rtbInput.InvokeRequired)
             {
-                rtbInput.Invoke(new Action(() => rtbInput.Text += e));
+                rtbInput.Invoke(new Action(() =>
+                {
+                    rtbInput.Text += e;
+                }));
             }
             else
             {
@@ -82,90 +89,126 @@ namespace AiTool3
             {
                 if (e.SelectedOption == "Save conversation to here as TXT")
                 {
-                    SaveConversationToFile();
+                    var nodes = ConversationManager.GetParentNodeList();
+                    var json = JsonConvert.SerializeObject(nodes);
+
+                    // pretty-print the conversation from the nodes list
+                    string conversation = nodes.Aggregate("", (acc, node) => acc + $"{node.Role.ToString()}: {node.Content}" + "\n\n");
+
+                    // get a filename from the user
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                    saveFileDialog.RestoreDirectory = true;
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        File.WriteAllText(saveFileDialog.FileName, conversation);
+                        // open the file in default handler
+                        Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                    }
                 }
             };
         }
 
-        private void SaveConversationToFile()
-        {
-            var nodes = ConversationManager.GetParentNodeList();
-            string conversation = string.Join("\n\n", nodes.Select(node => $"{node.Role}: {node.Content}"));
-
-            SaveFileDialog saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
-                RestoreDirectory = true
-            };
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                File.WriteAllText(saveFileDialog.FileName, conversation);
-                Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
-            }
-        }
-
         private void InitialiseMenus()
         {
-            var fileMenu = CreateMenu("File", new (string, Action<object, EventArgs>)[] { ("Quit", (s, e) => Application.Exit()) });
-            var editMenu = CreateMenu("Edit", new (string, Action<object, EventArgs>)[] { ("Clear", (s, e) => btnClear_Click(null, null)), ("Settings", OpenSettingsForm) });
-            var specialsMenu = CreateMenu("Specials", new (string, Action<object, EventArgs>)[]
+            // add menu bar with file -> quit
+            var fileMenu = new ToolStripMenuItem("File");
+            fileMenu.BackColor = Color.Black;
+            fileMenu.ForeColor = Color.White;
+            var quitMenuItem = new ToolStripMenuItem("Quit");
+            quitMenuItem.ForeColor = Color.White;
+            quitMenuItem.BackColor = Color.Black;
+            quitMenuItem.Click += (s, e) =>
             {
-                ("Pull Readme and update from latest diff", PullReadmeAndUpdate),
-                ("Review Code", ReviewCode)
-            });
+                Application.Exit();
+            };
 
-            menuBar.Items.AddRange(new ToolStripItem[] { fileMenu, editMenu, specialsMenu });
+            // add an edit menu
+            var editMenu = new ToolStripMenuItem("Edit");
+            editMenu.BackColor = Color.Black;
+            editMenu.ForeColor = Color.White;
+            var clearMenuItem = new ToolStripMenuItem("Clear");
+            clearMenuItem.ForeColor = Color.White;
+            clearMenuItem.BackColor = Color.Black;
+            clearMenuItem.Click += (s, e) =>
+            {
+                btnClear_Click(null, null);
+            };
+
+            // add settings option.  When chosen, invokes SettingsForm modally
+            var settingsMenuItem = new ToolStripMenuItem("Settings");
+            settingsMenuItem.ForeColor = Color.White;
+            settingsMenuItem.BackColor = Color.Black;
+            settingsMenuItem.Click += (s, e) =>
+            {
+                var settingsForm = new SettingsForm(Settings);
+                var result = settingsForm.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    Settings = settingsForm.NewSettings;
+                    AiTool3.Settings.Settings.WriteToJson(Settings);
+                }
+            };
+
+            fileMenu.DropDownItems.Add(quitMenuItem);
+            editMenu.DropDownItems.Add(clearMenuItem);
+            editMenu.DropDownItems.Add(settingsMenuItem);
+            menuBar.Items.Add(fileMenu);
+            menuBar.Items.Add(editMenu);
+
+            // add a specials menu
+            var specialsMenu = new ToolStripMenuItem("Specials");
+            specialsMenu.BackColor = Color.Black;
+            specialsMenu.ForeColor = Color.White;
+            var restartMenuItem = new ToolStripMenuItem("Pull Readme and update from latest diff");
+            restartMenuItem.ForeColor = Color.White;
+            restartMenuItem.BackColor = Color.Black;
+            restartMenuItem.Click += (s, e) =>
+            {
+                AiResponse response, response2;
+                SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response, out response2);
+                var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}", null, null);
+
+                try
+                {
+                    var code = snippets.First().Code;
+                    // remove first and last lines
+                    code = SnipperHelper.StripFirstAndLastLine(code);
+                    // get first snippet
+                    File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error writing to file: {ex.Message}");
+                }
+            };
+
+            var reviewCodeMenuItem = new ToolStripMenuItem("Review Code");
+            reviewCodeMenuItem.ForeColor = Color.White;
+            reviewCodeMenuItem.BackColor = Color.Black;
+            reviewCodeMenuItem.Click += (s, e) =>
+            {
+                // go up from the working directory until you get to "MaxsAiTool"
+                SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
+                rtbInput.Text = userMessage;
+
+            };
+            specialsMenu.DropDownItems.Add(restartMenuItem);
+            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+            menuBar.Items.Add(specialsMenu);
+
         }
 
-        private ToolStripMenuItem CreateMenu(string name, (string, Action<object, EventArgs>)[] items)
-        {
-            var menu = new ToolStripMenuItem(name) { BackColor = Color.Black, ForeColor = Color.White };
-            foreach (var (itemName, action) in items)
-            {
-                var item = new ToolStripMenuItem(itemName) { ForeColor = Color.White, BackColor = Color.Black };
-                item.Click += new EventHandler(action);
-                menu.DropDownItems.Add(item);
-            }
-            return menu;
-        }
-
-        private void OpenSettingsForm(object sender, EventArgs e)
-        {
-            var settingsForm = new SettingsForm(Settings);
-            if (settingsForm.ShowDialog() == DialogResult.OK)
-            {
-                Settings = settingsForm.NewSettings;
-                AiTool3.Settings.Settings.WriteToJson(Settings);
-            }
-        }
-
-        private void PullReadmeAndUpdate(object sender, EventArgs e)
-        {
-            AiResponse response, response2;
-            SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response, out response2);
-            var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}", null, null);
-
-            try
-            {
-                var code = SnipperHelper.StripFirstAndLastLine(snippets.First().Code);
-                File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error writing to file: {ex.Message}");
-            }
-        }
-
-        private void ReviewCode(object sender, EventArgs e)
-        {
-            SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
-            rtbInput.Text = userMessage;
-        }
 
         private void InitialiseApiList()
         {
-            cbEngine.Items.AddRange(Settings.ApiList.SelectMany(x => x.Models).ToArray());
+            foreach (var model in Settings.ApiList.SelectMany(x => x.Models))
+            {
+                cbEngine.Items.Add(model);
+            }
+
+            // preselect the first Local api
             cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
@@ -180,47 +223,49 @@ namespace AiTool3
 
         private void SetSplitContainerEvents()
         {
-            Action<SplitContainer> setSplitterPaint = sc => sc.Paint += SplitContainer_Paint;
-            setSplitterPaint(splitContainer1);
-            setSplitterPaint(splitContainer2);
-            setSplitterPaint(splitContainer3);
-            setSplitterPaint(splitContainer5);
+            // for each split container incl in child items
+            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint);
+            splitContainer2.Paint += new PaintEventHandler(SplitContainer_Paint);
+            splitContainer3.Paint += new PaintEventHandler(SplitContainer_Paint);
+            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint);
         }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
         {
-            if (sender is SplitContainer sc)
-            {
-                Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
-                    ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
-                    : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
+            SplitContainer sc = sender as SplitContainer;
 
-                using (SolidBrush brush = new SolidBrush(Color.Gray))
-                {
-                    e.Graphics.FillRectangle(brush, splitterRect);
-                }
+            Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
+                ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
+                : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
+
+            using (SolidBrush brush = new SolidBrush(Color.Gray))
+            {
+                e.Graphics.FillRectangle(brush, splitterRect);
             }
         }
 
-        private void NdcConversation_NodeClicked(object sender, NodeClickEventArgs e)
+        private void NdcConversation_NodeClicked(object? sender, NodeClickEventArgs e)
         {
+
             var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
             ConversationManager.PreviousCompletion = clickedCompletion;
 
-            UpdateInputAndSystemPrompt(clickedCompletion);
+            rtbInput.Clear();
+            if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
+            {
+                rtbInput.Text = ConversationManager.PreviousCompletion.Content;
+
+                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+            }
+            if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
+            {
+                rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
+            }
+            else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
         }
 
-        private void UpdateInputAndSystemPrompt(CompletionMessage clickedCompletion)
-        {
-            rtbInput.Clear();
-            if (clickedCompletion.Role == CompletionRole.User)
-            {
-                rtbInput.Text = clickedCompletion.Content;
-                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(clickedCompletion.Parent);
-            }
-            rtbSystemPrompt.Text = ConversationManager.PreviousCompletion?.SystemPrompt ?? "";
-        }
+        private SnippetManager snippetManager = new SnippetManager();
 
         public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
         {
@@ -228,37 +273,88 @@ namespace AiTool3
             richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
 
+            // Apply UI formatting
             foreach (var snippet in snippets.Snippets)
             {
-                ApplySnippetFormatting(richTextBox, text, snippet, messageGuid, messages);
+                int startIndex = 0;
+
+                // find the end of the line
+                var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
+
+                // find the length of the first line
+                var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
+
+                {
+                    // var innerCode = snippet.Code.Substring(endOfFirstLine, snippet.Code.Length - endOfFirstLine - 3);
+                    richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                    richTextBox.SelectionColor = Color.Yellow;
+                    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
+
+                    var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
+                    richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
+                }
             }
 
             richTextBox.DeselectAll();
+
+            // scroll to top
             richTextBox.SelectionStart = 0;
             return snippets.Snippets;
-        }
-
-        private void ApplySnippetFormatting(ButtonedRichTextBox richTextBox, string text, Snippet snippet, string messageGuid, List<CompletionMessage> messages)
-        {
-            int endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
-            int lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
-
-            richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-            richTextBox.SelectionColor = Color.Yellow;
-            richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
-
-            var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, false, messageGuid, messages);
-            richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
         }
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
             btnGo.Enabled = false;
             var model = (Model)cbEngine.SelectedItem;
-            var aiService = AiServiceResolver.GetAiService(model.ServiceName);
 
-            var conversation = CreateConversation();
+            // get the name of the service for the model
+            var serviceName = model.ServiceName;
+
+            // instantiate the service from the appropriate api
+            var aiService = AiServiceResolver.GetAiService(serviceName);
+
+            Conversation conversation = null;
+
+            conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+            conversation.systemprompt = rtbSystemPrompt.Text;
+            conversation.messages = new List<ConversationMessage>();
+            List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
+
+            Debug.WriteLine(nodes);
+
+            foreach (var node in nodes)
+            {
+                if (node.Role == CompletionRole.Root)
+                    continue;
+
+                conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
+            }
+            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
+
+            // fetch the response from the api
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
+
+            // work out the cost
+            var cost = model.GetCost(response.TokenUsage);
+
+            if (response.SuggestedNextPrompt != null)
+            {
+                RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
+            }
+
+            // create a completion message for the user input
+            var completionInput = new CompletionMessage
+            {
+                Role = CompletionRole.User,
+                Content = rtbInput.Text,
+                Parent = ConversationManager.PreviousCompletion?.Guid,
+                Engine = model.ModelName,
+                Guid = System.Guid.NewGuid().ToString(),
+                Children = new List<string>(),
+                SystemPrompt = rtbSystemPrompt.Text,
+                InputTokens = response.TokenUsage.InputTokens,
+                OutputTokens = 0
+            };
 
             if (response == null)
             {
@@ -267,236 +363,193 @@ namespace AiTool3
                 return;
             }
 
-            ProcessResponse(model, response);
-
-            DrawNetworkDiagram();
-            UpdateUI(response);
-
-            btnGo.Enabled = true;
-        }
-
-        private Conversation CreateConversation()
-        {
-            var conversation = new Conversation
+            if (ConversationManager.PreviousCompletion != null)
             {
-                systemprompt = rtbSystemPrompt.Text,
-                messages = ConversationManager.GetParentNodeList()
-                    .Where(node => node.Role != CompletionRole.Root)
-                    .Select(node => new ConversationMessage
-                    {
-                        role = node.Role == CompletionRole.User ? "user" : "assistant",
-                        content = node.Content
-                    })
-                    .ToList()
-            };
-            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
-            return conversation;
-        }
-
-        private void ProcessResponse(Model model, AiResponse response)
-        {
-            var completionInput = CreateCompletionMessage(CompletionRole.User, rtbInput.Text, model, response.TokenUsage.InputTokens);
-            var completionResponse = CreateCompletionMessage(CompletionRole.Assistant, response.ResponseText, model, response.TokenUsage.OutputTokens);
-
-            UpdateConversation(completionInput, completionResponse);
-
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(response.ResponseText), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
-
-            if (Settings.NarrateResponses)
-            {
-                Task.Run(() => TtsHelper.ReadAloud(rtbOutput.Text));
+                ConversationManager.PreviousCompletion.Children.Add(completionInput.Guid);
             }
 
-            ConversationManager.PreviousCompletion = completionResponse;
-            Base64Image = null;
-            Base64ImageType = null;
-        }
+            ConversationManager.CurrentConversation.Messages.Add(completionInput);
 
-        private CompletionMessage CreateCompletionMessage(CompletionRole role, string content, Model model, int tokens)
-        {
-            return new CompletionMessage
+            // Create a new completion object to store the response in
+            var completionResponse = new CompletionMessage
             {
-                Timestamp = DateTime.Now,
-                Role = role,
-                Content = content,
-                Parent = role == CompletionRole.User ? ConversationManager.PreviousCompletion?.Guid : null,
+                Role = CompletionRole.Assistant,
+                Content = response.ResponseText,
+                Parent = completionInput.Guid,
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
                 Children = new List<string>(),
                 SystemPrompt = rtbSystemPrompt.Text,
-                InputTokens = role == CompletionRole.User ? tokens : 0,
-                OutputTokens = role == CompletionRole.Assistant ? tokens : 0
+                InputTokens = 0,
+                OutputTokens = response.TokenUsage.OutputTokens
             };
-        }
 
-        private void UpdateConversation(CompletionMessage input, CompletionMessage response)
-        {
-            if (ConversationManager.PreviousCompletion != null)
+            // add it to the current conversation
+            ConversationManager.CurrentConversation.Messages.Add(completionResponse);
+
+            // and display the results in the output box
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
+
+            if (Settings.NarrateResponses)
             {
-                ConversationManager.PreviousCompletion.Children.Add(input.Guid);
+                // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
+                var text = rtbOutput.Text;
+                Task.Run(() => TtsHelper.ReadAloud(text));
             }
 
-            ConversationManager.CurrentConversation.Messages.Add(input);
-            ConversationManager.CurrentConversation.Messages.Add(response);
+            completionInput.Children.Add(completionResponse.Guid);
 
-            input.Children.Add(response.Guid);
-        }
+            ConversationManager.PreviousCompletion = completionResponse;
 
-        private void UpdateUI(AiResponse response)
-        {
-            var cost = ((Model)cbEngine.SelectedItem).GetCost(response.TokenUsage);
-            UpdateConversationDataGridView();
-            tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
-        }
+            Base64Image = null;
+            Base64ImageType = null;
 
-        private async void UpdateConversationDataGridView()
-        {
+            // draw the network diagram
+            DrawNetworkDiagram();
+
+            var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
+            ndcConversation.CenterOnNode(currentResponseNode);
+            var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+
+            string title;
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
+
+            // using the title, update the dgvConversations
 
             ConversationManager.SaveConversation();
 
             if (row == null)
             {
                 dgvConversations.Rows.Insert(0, ConversationManager.CurrentConversation.ConvGuid, ConversationManager.CurrentConversation.Messages[0].Content, ConversationManager.CurrentConversation.Messages[0].Engine, "");
+
                 row = dgvConversations.Rows[0];
             }
 
+            tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
+
+            btnGo.Enabled = true;
+
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
                 row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, Settings.GenerateSummariesUsingLocalAi);
             }
         }
 
-
         private void DrawNetworkDiagram()
         {
+            // Clear the diagram
             ndcConversation.Clear();
 
             var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
-            if (root == null) return;
-
+            if (root == null)
+            {
+                return;
+            }
             var y = 100;
-            var rootNode = CreateNode(root, new Point(300, y));
+
+            var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel);
+
+            // get the model with the same name as the engine
+            var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
+
+            rootNode.BackColor = root.GetColorForEngine();
             ndcConversation.AddNode(rootNode);
 
-            DrawChildren(root, rootNode, 400, ref y);
+            // recursively draw the children
+            DrawChildren(root, rootNode, 300 + 100, ref y);
         }
 
-        private Node CreateNode(CompletionMessage message, Point location)
+        private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
         {
-            var node = new Node(message.Content, location, message.Guid, message.InfoLabel)
+            y += 100;
+            foreach (var child in root.Children)
             {
-                BackColor = message.GetColorForEngine()
-            };
-            return node;
-        }
+                // get from child string
+                var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
 
-        private void DrawChildren(CompletionMessage parent, Node parentNode, int x, ref int y)
-        {
-            foreach (var childGuid in parent.Children)
-            {
-                y += 100;
-                var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == childGuid);
-                var childNode = CreateNode(childMsg, new Point(x, y));
+                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel);
+                childNode.BackColor = childMsg.GetColorForEngine();
                 ndcConversation.AddNode(childNode);
-                ndcConversation.AddConnection(parentNode, childNode);
-                DrawChildren(childMsg, childNode, x + 100, ref y);
+                ndcConversation.AddConnection(rootNode, childNode);
+                DrawChildren(childMsg, childNode, v + 100, ref y);
             }
         }
 
         private void btnClear_Click(object sender, EventArgs e)
         {
-            ClearAllFields();
-            ResetConversation();
-            DrawNetworkDiagram();
-        }
-
-        private void ClearAllFields()
-        {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
             rtbOutput.Clear();
-        }
 
-        private void ResetConversation()
-        {
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
+
+            DrawNetworkDiagram();
         }
 
         private void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
             var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
+
             ConversationManager.LoadConversation(clickedGuid);
+
             DrawNetworkDiagram();
+
             ndcConversation.FitAll();
         }
 
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateTemplatesComboBox();
-        }
+            // populate the cbTemplates with the templates for the selected category
+            var selected = cbCategories.SelectedItem.ToString();
 
-        private void UpdateTemplatesComboBox()
-        {
-            var selected = cbCategories.SelectedItem?.ToString();
-            if (string.IsNullOrEmpty(selected)) return;
+            var topics = TopicSet.Topics.Where(t => t.Name == selected).ToList();
 
-            var templates = TopicSet.Topics
-                .Where(t => t.Name == selected)
-                .SelectMany(t => t.Templates)
-                .Where(x => x.SystemPrompt != null)
-                .Select(t => t.TemplateName)
-                .ToArray();
+            var templates = topics.SelectMany(t => t.Templates).Where(x => x.SystemPrompt != null).ToList();
 
             cbTemplates.Items.Clear();
-            cbTemplates.Items.AddRange(templates);
+            cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
             cbTemplates.DroppedDown = true;
         }
 
         private void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ApplySelectedTemplate();
-        }
-
-        private void ApplySelectedTemplate()
-        {
-            var template = GetCurrentTemplate();
-            if (template == null) return;
+            // find the template
+            var template = TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
 
             btnClear_Click(null, null);
+
+            rtbInput.Clear();
+            rtbSystemPrompt.Clear();
             rtbInput.Text = template.InitialPrompt;
             rtbSystemPrompt.Text = template.SystemPrompt;
         }
 
         private void buttonEditTemplate_Click(object sender, EventArgs e)
         {
-            var template = GetCurrentTemplate();
-            if (template != null)
-            {
-                EditAndSaveTemplate(template);
-            }
+            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return;
+
+            EditAndSaveTemplate(GetCurrentTemplate());
         }
 
         private ConversationTemplate GetCurrentTemplate()
         {
-            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return null;
-
+            ConversationTemplate template;
+            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
+            {
+                return null;
+            }
             var category = cbCategories.SelectedItem.ToString();
             var templateName = cbTemplates.SelectedItem.ToString();
-            if (string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(templateName)) return null;
+            if (string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(templateName))
+                return null;
 
-            return TopicSet.Topics
-                .First(t => t.Name == category)
-                .Templates
-                .First(t => t.TemplateName == templateName);
+            template = TopicSet.Topics.First(t => t.Name == category).Templates.First(t => t.TemplateName == templateName);
+            return template;
         }
 
-        private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string category = null)
+        private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
         {
             TemplatesHelper.UpdateTemplates(template, add, category, new Form(), TopicSet, cbCategories, cbTemplates);
         }
@@ -506,6 +559,7 @@ namespace AiTool3
             if (string.IsNullOrWhiteSpace(cbCategories.Text)) return;
 
             var template = new ConversationTemplate("System Prompt", "Initial Prompt");
+
             EditAndSaveTemplate(template, true, cbCategories.Text);
         }
 
@@ -521,106 +575,83 @@ namespace AiTool3
         {
             if (!audioRecorderManager.IsRecording)
             {
-                await StartRecording();
+                await audioRecorderManager.StartRecording();
+                buttonStartRecording.BackColor = Color.Red;
+                buttonStartRecording.Text = "Stop\r\nRecord";
             }
             else
             {
-                await StopRecording();
+                await audioRecorderManager.StopRecording();
+                buttonStartRecording.BackColor = Color.Black;
+                buttonStartRecording.Text = "Start\r\nRecord";
             }
-        }
-
-        private async Task StartRecording()
-        {
-            await audioRecorderManager.StartRecording();
-            buttonStartRecording.BackColor = Color.Red;
-            buttonStartRecording.Text = "Stop\r\nRecord";
-        }
-
-        private async Task StopRecording()
-        {
-            await audioRecorderManager.StopRecording();
-            buttonStartRecording.BackColor = Color.Black;
-            buttonStartRecording.Text = "Start\r\nRecord";
         }
 
         private void buttonNewKeepAll_Click(object sender, EventArgs e)
         {
-            var lastAssistantMessage = GetLastAssistantMessage();
+            var lastAssistantMessage = ConversationManager.PreviousCompletion;
+
+            if (lastAssistantMessage.Role == CompletionRole.User)
+                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+
             var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
 
-            CreateNewConversationWithLastMessages(lastAssistantMessage, lastUserMessage);
-            DrawNetworkDiagram();
-        }
-
-        private CompletionMessage GetLastAssistantMessage()
-        {
-            var lastMessage = ConversationManager.PreviousCompletion;
-            return lastMessage.Role == CompletionRole.User
-                ? ConversationManager.CurrentConversation.FindByGuid(lastMessage.Parent)
-                : lastMessage;
-        }
-
-        private void CreateNewConversationWithLastMessages(CompletionMessage assistantMessage, CompletionMessage userMessage)
-        {
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
 
-            var newUserMessage = CreateNewMessage(userMessage, CompletionRole.User);
-            var newAssistantMessage = CreateNewMessage(assistantMessage, CompletionRole.Assistant, newUserMessage.Guid);
+            // create new messages out of the two
 
-            newUserMessage.Children.Add(newAssistantMessage.Guid);
-
-            ConversationManager.CurrentConversation.Messages.Add(newUserMessage);
-            ConversationManager.CurrentConversation.Messages.Add(newAssistantMessage);
-
-            ConversationManager.PreviousCompletion = newAssistantMessage;
-        }
-
-        private CompletionMessage CreateNewMessage(CompletionMessage originalMessage, CompletionRole role, string parentGuid = null)
-        {
-            return new CompletionMessage
+            var assistantMessage = new CompletionMessage
             {
-                Timestamp = DateTime.Now,
-                Parent = parentGuid,
-                Role = role,
-                Content = originalMessage.Content,
-                Engine = originalMessage.Engine,
+                Parent = null,
+                Role = CompletionRole.Assistant,
+                Content = lastAssistantMessage.Content,
+                Engine = lastAssistantMessage.Engine,
                 Guid = Guid.NewGuid().ToString(),
                 Children = new List<string>()
             };
+
+            var userMessage = new CompletionMessage
+            {
+                Parent = null,
+                Role = CompletionRole.User,
+                Content = lastUserMessage.Content,
+                Engine = lastUserMessage.Engine,
+                Guid = Guid.NewGuid().ToString(),
+                Children = new List<string>()
+            };
+
+            assistantMessage.Parent = userMessage.Guid;
+            userMessage.Children.Add(assistantMessage.Guid);
+
+            ConversationManager.CurrentConversation.Messages.Add(assistantMessage);
+            ConversationManager.CurrentConversation.Messages.Add(userMessage);
+
+            ConversationManager.PreviousCompletion = assistantMessage;
+
+            DrawNetworkDiagram();
         }
 
         private void buttonAttachImage_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageDialog();
 
-            if (openFileDialog.FileName != "")
-            {
-                Base64Image = ImageHelpers.ImageToBase64(openFileDialog.FileName);
-                Base64ImageType = ImageHelpers.GetImageType(openFileDialog.FileName);
-            }
-            else
-            {
-                Base64Image = "";
-                Base64ImageType = "";
-            }
+            Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
+            Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
         }
 
         private void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            FilterConversations(tbSearch.Text);
-        }
-
-        private void FilterConversations(string searchText)
-        {
             foreach (DataGridViewRow row in dgvConversations.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
-
+                
                 var guid = row.Cells[0].Value.ToString();
+
                 var conv = BranchedConversation.LoadConversation(guid);
+
                 var allMessages = conv.Messages.Select(m => m.Content).ToList();
 
-                row.Visible = allMessages.Any(m => m.Contains(searchText, StringComparison.InvariantCultureIgnoreCase));
+                row.Visible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
             }
         }
 

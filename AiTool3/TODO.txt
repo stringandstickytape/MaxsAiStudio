@@ -22,5 +22,4 @@ add clear-search button
 
 add time-taken to search results and timestamp to all convo messages
 
-
-DONE: add "continue..." funcitionality that concats messages
+add "continue..." funcitionality that concats messages, prob don't need to keep sensible history of this

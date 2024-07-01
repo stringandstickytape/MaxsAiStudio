@@ -13,7 +13,7 @@
         public string Parent { get; set; }
 
         public string Engine { get; set; }
-        public DateTime Timestamp { get; set; }
+
         public Color GetColorForEngine()
         {
             if (Engine == null) return Color.White;
@@ -52,7 +52,7 @@
             {
                 var inputTokens = InputTokens == 0 ? "" : $"in: {InputTokens}";
                 var outputTokens = OutputTokens == 0 ? "" : $"out: {OutputTokens}";
-                return $"{inputTokens}{outputTokens} - {Timestamp.ToShortDateString()} {Timestamp.ToShortTimeString()}\r\n{Engine}";
+                return $"({inputTokens}{outputTokens})  {Engine}";
             }
         }
     }

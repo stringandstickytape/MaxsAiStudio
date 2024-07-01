@@ -13,12 +13,7 @@ namespace AiTool3.MegaBar.Items
     {
         private static readonly Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>> ItemCallbacks = new Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>>
         {
-            [MegaBarItemType.Copy] = (code,guid,messages) => () =>
-            {
-                var processedCode = PrependParentIfUnterminated(guid, messages, code);
-                Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(processedCode));
-                },
-
+            [MegaBarItemType.Copy] = (code,guid,messages) => () => Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(code)),
             [MegaBarItemType.Browser] = (code,guid,messages) => () => LaunchHelpers.LaunchHtml(SnipperHelper.StripFirstAndLastLine(code)),
             [MegaBarItemType.CSharpScript] = (code,guid,messages) => () => LaunchHelpers.LaunchCSharp(SnipperHelper.StripFirstAndLastLine(code)),
             [MegaBarItemType.Notepad] = (code,guid,messages) => () => LaunchHelpers.LaunchTxt(SnipperHelper.StripFirstAndLastLine(code)),
@@ -80,28 +75,24 @@ namespace AiTool3.MegaBar.Items
 
             if (!string.IsNullOrWhiteSpace(snippets.UnterminatedSnippet))
             {
-                // Ask the user (yes/no) whether they want to concat the previous unfinished message
-                var result = MessageBox.Show("The previous message was not terminated. Do you want to include it in the snippet?", "Unfinished Snippet", MessageBoxButtons.YesNo);
-                if (result == DialogResult.Yes)
+                string prefixCode = snippets.UnterminatedSnippet;
+
+                // get the last line of unterm sip
+                var lastLine = prefixCode.Split('\n').Last();
+
+                // get the first line of code execept the `s
+                var firstLine = processedCode.Split('\n').Skip(1).First();
+
+                
+
+                // if the first line contains the last line...
+                if (firstLine.Contains(lastLine) && lastLine.Length > 0)
                 {
-
-                    string prefixCode = snippets.UnterminatedSnippet;
-
-                    // get the last line of unterm sip
-                    var lastLine = prefixCode.Split('\n').Last();
-
-                    // get the first line of code execept the `s
-                    var firstLine = processedCode.Split('\n').Skip(1).First();
-
-                    // if the first line contains the last line...
-                    if (firstLine.Contains(lastLine) && lastLine.Length > 0)
-                    {
-                        // remove the last line from prefixCode
-                        prefixCode = prefixCode.Substring(0, prefixCode.LastIndexOf(lastLine));
-                    }
-
-                    processedCode = $"{SnipperHelper.StripFirstAndLastLine(prefixCode)}{Environment.NewLine}{SnipperHelper.StripFirstAndLastLine(processedCode)}";
+                    // remove the last line from prefixCode
+                    prefixCode = prefixCode.Substring(0, prefixCode.LastIndexOf(lastLine));
                 }
+                
+                processedCode = $"{SnipperHelper.StripFirstAndLastLine(prefixCode)}{Environment.NewLine}{SnipperHelper.StripFirstAndLastLine(processedCode)}";
             }
 
             return processedCode;
@@ -148,6 +139,17 @@ namespace AiTool3.MegaBar.Items
                     });
                 }
             }
+
+           //if(unterminated)
+           //{
+           //    items.Add(new MegaBarItem
+           //    {
+           //        Title = "Unterminated",
+           //        Callback = () => { 
+           //            MessageBox.Show("This snippet is unterminated. Please close the code block.");
+           //        }
+           //    });
+           //}
 
             return items;
         }
