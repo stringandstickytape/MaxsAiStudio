@@ -80,24 +80,30 @@ namespace AiTool3.MegaBar.Items
 
             if (!string.IsNullOrWhiteSpace(snippets.UnterminatedSnippet))
             {
-                string prefixCode = snippets.UnterminatedSnippet;
-
-                // get the last line of unterm sip
-                var lastLine = prefixCode.Split('\n').Last();
-
-                // get the first line of code execept the `s
-                var firstLine = processedCode.Split('\n').Skip(1).First();
-
-                
-
-                // if the first line contains the last line...
-                if (firstLine.Contains(lastLine) && lastLine.Length > 0)
+                // Ask the user (yes/no) whether they want to concat the previous unfinished message
+                var result = MessageBox.Show("The previous message was not terminated. Do you want to include it in the snippet?", "Unfinished Snippet", MessageBoxButtons.YesNo);
+                if (result == DialogResult.Yes)
                 {
-                    // remove the last line from prefixCode
-                    prefixCode = prefixCode.Substring(0, prefixCode.LastIndexOf(lastLine));
+
+                    string prefixCode = snippets.UnterminatedSnippet;
+
+                    // get the last line of unterm sip
+                    var lastLine = prefixCode.Split('\n').Last();
+
+                    // get the first line of code execept the `s
+                    var firstLine = processedCode.Split('\n').Skip(1).First();
+
+
+
+                    // if the first line contains the last line...
+                    if (firstLine.Contains(lastLine) && lastLine.Length > 0)
+                    {
+                        // remove the last line from prefixCode
+                        prefixCode = prefixCode.Substring(0, prefixCode.LastIndexOf(lastLine));
+                    }
+
+                    processedCode = $"{SnipperHelper.StripFirstAndLastLine(prefixCode)}{Environment.NewLine}{SnipperHelper.StripFirstAndLastLine(processedCode)}";
                 }
-                
-                processedCode = $"{SnipperHelper.StripFirstAndLastLine(prefixCode)}{Environment.NewLine}{SnipperHelper.StripFirstAndLastLine(processedCode)}";
             }
 
             return processedCode;
@@ -144,17 +150,6 @@ namespace AiTool3.MegaBar.Items
                     });
                 }
             }
-
-           //if(unterminated)
-           //{
-           //    items.Add(new MegaBarItem
-           //    {
-           //        Title = "Unterminated",
-           //        Callback = () => { 
-           //            MessageBox.Show("This snippet is unterminated. Please close the code block.");
-           //        }
-           //    });
-           //}
 
             return items;
         }
