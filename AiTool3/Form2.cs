@@ -599,12 +599,7 @@ namespace AiTool3
 
         private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
         {
-            var form = new Form();
-            var topicSet = TopicSet;
-            var categoriesComboBox = cbCategories;
-            var templatesComboBox = cbTemplates;
-            TemplatesHelper.UpdateTemplates(template, add, category, form, topicSet, categoriesComboBox, templatesComboBox);
-
+            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), TopicSet, cbCategories, cbTemplates);
         }
 
         private void buttonAdd_Click(object sender, EventArgs e)
@@ -623,9 +618,6 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = null;
             DrawNetworkDiagram();
         }
-
-
-
 
         private async void buttonStartRecording_Click(object sender, EventArgs e)
         {
