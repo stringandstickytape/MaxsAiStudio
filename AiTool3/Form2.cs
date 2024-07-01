@@ -1,36 +1,17 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using System;
-using System.Threading.Tasks;
-using AiTool3.ApiManagement;
+﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
-using AiTool3.Interfaces;
 using AiTool3.Settings;
 using AiTool3.Topics;
 using AiTool3.UI;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using static AiTool3.UI.NetworkDiagramControl;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis;
-using static AiTool3.Form2;
 using AiTool3.Audio;
 using AiTool3.Snippets;
-using System.Drawing.Drawing2D;
 using AiTool3.MegaBar.Items;
-using System.Net;
 using Whisper.net.Ggml;
-using Whisper.net;
-using System.Speech.Synthesis;
 using AiTool3.Providers;
 
 namespace AiTool3
@@ -380,12 +361,20 @@ namespace AiTool3
 
 
 
-        private async void btnGo_Click(object sender, EventArgs e)
+        private  async void btnGo_Click(object sender, EventArgs e)
         {
             btnGo.Enabled = false;
+            //
+
 
             // Current Model
             var model = (Model)cbEngine.SelectedItem;
+
+            //rtbSystemPrompt.Text
+            //rtbInput.Text
+            //ConversationManager
+            // Base64Image
+            // Base64ImageType
 
             // get the name of the service for the model
             var serviceName = model.ServiceName;
@@ -395,29 +384,22 @@ namespace AiTool3
 
             Conversation conversation = null;
 
-            if (ConversationManager.CurrentConversation.Messages.Count == 0)
+            conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+            conversation.systemprompt = rtbSystemPrompt.Text;
+            conversation.messages = new List<ConversationMessage>();
+            List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
+
+            Debug.WriteLine(nodes);
+
+            foreach (var node in nodes)
             {
-                // create a conversation from the system prompt and user input
-                conversation = new Conversation(rtbSystemPrompt.Text, rtbInput.Text);
+                if (node.Role == CompletionRole.Root)
+                    continue;
+
+                conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
             }
-            else
-            {
-                conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
-                conversation.systemprompt = rtbSystemPrompt.Text;
-                conversation.messages = new List<ConversationMessage>();
-                List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
-
-                Debug.WriteLine(nodes);
-
-                foreach (var node in nodes)
-                {
-                    if (node.Role == CompletionRole.Root)
-                        continue;
-
-                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
-                }
-                conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
-            }
+            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
+            
             // fetch the response from the api
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
@@ -432,7 +414,7 @@ namespace AiTool3
             // format cost to exactly 2 decimal places
             var formattedCost = cost.ToString("0.00");
 
-            tokenUsageLabel.Text = $"Token Usage: ${formattedCost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
+            
 
             // create a completion message for the user input
             var completionInput = new CompletionMessage
@@ -499,6 +481,7 @@ namespace AiTool3
             // draw the network diagram
             DrawNetworkDiagram();
 
+
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
             var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
@@ -521,13 +504,9 @@ namespace AiTool3
 
             if (row != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                title = await ConversationManager.GenerateConversationSummary(summaryModel);
-                row.Cells[3].Value = title;
+                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel); 
                 ConversationManager.SaveConversation();
             }
-            
-            
-
         }
 
 
