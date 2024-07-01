@@ -594,15 +594,6 @@ namespace AiTool3
             });
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
-
-            //var template = GetCurrentTemplate();
-            //if (template != null)
-            //{
-            //    rtbSystemPrompt.Clear();
-            //    rtbInput.Clear();
-            //    rtbSystemPrompt.Text = template.SystemPrompt;
-            //    rtbInput.Text = template.InitialPrompt;
-            //}
             DrawNetworkDiagram();
 
 
@@ -663,7 +654,7 @@ namespace AiTool3
             rtbSystemPrompt.Text = template.SystemPrompt;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void buttonEditTemplate_Click(object sender, EventArgs e)
         {
             ConversationTemplate template;
             if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
@@ -821,22 +812,13 @@ namespace AiTool3
             panel.Controls.Add(textBox, 1, row);
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void buttonAdd_Click(object sender, EventArgs e)
         {
-            ConversationTemplate template;
-            if (string.IsNullOrWhiteSpace(cbCategories.Text))
-            {
-                // create a new template
-                //template = new ConversationTemplate("System Prompt", "Initial Prompt");
-                return;
-            }
-            var category = cbCategories.Text;
+            if (string.IsNullOrWhiteSpace(cbCategories.Text)) return;
+            
+            var template = new ConversationTemplate("System Prompt", "Initial Prompt");
 
-            template = new ConversationTemplate("System Prompt", "Initial Prompt");
-
-            EditAndSaveTemplate(template, true, category);
-
-
+            EditAndSaveTemplate(template, true, cbCategories.Text);
         }
 
         private void btnRestart_Click(object sender, EventArgs e)

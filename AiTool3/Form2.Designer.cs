@@ -42,10 +42,10 @@ namespace AiTool3
             dgvConversations = new DataGridView();
             splitContainer2 = new SplitContainer();
             groupBox1 = new GroupBox();
-            button2 = new Button();
+            buttonAddTemplate = new Button();
             cbCategories = new ComboBox();
             cbTemplates = new ComboBox();
-            button1 = new Button();
+            buttonEditTemplate = new Button();
             splitContainer3 = new SplitContainer();
             button5 = new Button();
             button4 = new Button();
@@ -238,10 +238,10 @@ namespace AiTool3
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            groupBox1.Controls.Add(button2);
+            groupBox1.Controls.Add(buttonAddTemplate);
             groupBox1.Controls.Add(cbCategories);
             groupBox1.Controls.Add(cbTemplates);
-            groupBox1.Controls.Add(button1);
+            groupBox1.Controls.Add(buttonEditTemplate);
             groupBox1.ForeColor = Color.White;
             groupBox1.Location = new Point(623, 61);
             groupBox1.Name = "groupBox1";
@@ -250,18 +250,18 @@ namespace AiTool3
             groupBox1.TabStop = false;
             groupBox1.Text = "Templates";
             // 
-            // button2
+            // buttonAddTemplate
             // 
-            button2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button2.BackColor = Color.Black;
-            button2.ForeColor = Color.White;
-            button2.Location = new Point(317, 130);
-            button2.Name = "button2";
-            button2.Size = new Size(75, 34);
-            button2.TabIndex = 9;
-            button2.Text = "Add";
-            button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
+            buttonAddTemplate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonAddTemplate.BackColor = Color.Black;
+            buttonAddTemplate.ForeColor = Color.White;
+            buttonAddTemplate.Location = new Point(317, 130);
+            buttonAddTemplate.Name = "buttonAddTemplate";
+            buttonAddTemplate.Size = new Size(75, 34);
+            buttonAddTemplate.TabIndex = 9;
+            buttonAddTemplate.Text = "Add";
+            buttonAddTemplate.UseVisualStyleBackColor = false;
+            buttonAddTemplate.Click += buttonAdd_Click;
             // 
             // cbCategories
             // 
@@ -289,18 +289,18 @@ namespace AiTool3
             cbTemplates.TabIndex = 7;
             cbTemplates.SelectedIndexChanged += cbTemplates_SelectedIndexChanged;
             // 
-            // button1
+            // buttonEditTemplate
             // 
-            button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button1.BackColor = Color.Black;
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(242, 130);
-            button1.Name = "button1";
-            button1.Size = new Size(69, 34);
-            button1.TabIndex = 8;
-            button1.Text = "Edit";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            buttonEditTemplate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonEditTemplate.BackColor = Color.Black;
+            buttonEditTemplate.ForeColor = Color.White;
+            buttonEditTemplate.Location = new Point(242, 130);
+            buttonEditTemplate.Name = "buttonEditTemplate";
+            buttonEditTemplate.Size = new Size(69, 34);
+            buttonEditTemplate.TabIndex = 8;
+            buttonEditTemplate.Text = "Edit";
+            buttonEditTemplate.UseVisualStyleBackColor = false;
+            buttonEditTemplate.Click += buttonEditTemplate_Click;
             // 
             // splitContainer3
             // 
@@ -481,8 +481,8 @@ namespace AiTool3
         private ToolStripMenuItem toolStripMenuItem1;
         private ComboBox cbTemplates;
         private ComboBox cbCategories;
-        private Button button1;
-        private Button button2;
+        private Button buttonEditTemplate;
+        private Button buttonAddTemplate;
         private Button btnRestart;
         private Button button3;
         private StatusStrip statusStrip1;
