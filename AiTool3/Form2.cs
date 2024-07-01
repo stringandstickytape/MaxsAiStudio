@@ -154,7 +154,7 @@ namespace AiTool3
 
                 if (e.SelectedOption == "Save conversation to here as TXT")
                 {
-                    var nodes = GetParentNodeList();
+                    var nodes = ConversationManager.GetParentNodeList();
                     var json = JsonConvert.SerializeObject(nodes);
 
                     // pretty-print the conversation from the nodes list
@@ -410,7 +410,7 @@ namespace AiTool3
                 conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
                 conversation.systemprompt = rtbSystemPrompt.Text;
                 conversation.messages = new List<ConversationMessage>();
-                List<CompletionMessage> nodes = GetParentNodeList();
+                List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
 
                 Debug.WriteLine(nodes);
 
@@ -512,7 +512,7 @@ namespace AiTool3
 
             // using the title, update the dgvConversations
 
-            ConversationManager.CurrentConversation.SaveAsJson();
+            ConversationManager.SaveConversation();
 
             if (row==null)
             {
@@ -527,30 +527,13 @@ namespace AiTool3
             {
                 title = await ConversationManager.CurrentConversation.GenerateSummary(summaryModel);
                 row.Cells[3].Value = title;
-                ConversationManager.CurrentConversation.SaveAsJson();
+                ConversationManager.SaveConversation();
             }
             
             
 
         }
 
-        private List<CompletionMessage> GetParentNodeList()
-        {
-            // starting at PreviousCompletion, walk up the tree to the root node and return a list of nodes
-            var nodes = new List<CompletionMessage>();
-            var current = ConversationManager.PreviousCompletion?.Guid;
-
-            while (current != null)
-            {
-                var node = ConversationManager.CurrentConversation.FindByGuid(current);
-                nodes.Add(node);
-                current = node.Parent;
-            }
-
-            nodes.Reverse();
-
-            return nodes;
-        }
 
 
         private void DrawNetworkDiagram()
