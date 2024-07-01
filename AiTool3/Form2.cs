@@ -252,8 +252,6 @@ namespace AiTool3
             var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
             ConversationManager.PreviousCompletion = clickedCompletion;
 
-
-
             rtbInput.Clear();
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
@@ -267,8 +265,6 @@ namespace AiTool3
             }
             else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""));
-
-
         }
 
         private SnippetManager snippetManager = new SnippetManager();
@@ -317,17 +313,7 @@ namespace AiTool3
         private  async void btnGo_Click(object sender, EventArgs e)
         {
             btnGo.Enabled = false;
-            //
-
-
-            // Current Model
             var model = (Model)cbEngine.SelectedItem;
-
-            //rtbSystemPrompt.Text
-            //rtbInput.Text
-            //ConversationManager
-            // Base64Image
-            // Base64ImageType
 
             // get the name of the service for the model
             var serviceName = model.ServiceName;
@@ -462,15 +448,11 @@ namespace AiTool3
             }
         }
 
-
-
         private void DrawNetworkDiagram()
         {
             // Clear the diagram
             ndcConversation.Clear();
-
-
-            // find the root node
+            
             var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
             if (root == null)
             {
@@ -482,7 +464,6 @@ namespace AiTool3
 
             // get the model with the same name as the engine
             var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
-
 
             rootNode.BackColor = root.GetColorForEngine();
             ndcConversation.AddNode(rootNode);
@@ -710,14 +691,7 @@ namespace AiTool3
 
         private void buttonAttachImage_Click(object sender, EventArgs e)
         {
-            // prompt the user for an image file.
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
-            openFileDialog.Title = "Select an Image File";
-            openFileDialog.Multiselect = false;
-            openFileDialog.CheckFileExists = true;
-            openFileDialog.CheckPathExists = true;
-            openFileDialog.ShowDialog();
+            OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageDialog();
 
             if (openFileDialog.FileName != "")
             {

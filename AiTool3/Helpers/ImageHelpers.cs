@@ -32,5 +32,18 @@
                 }
             }
         }
+
+        public static OpenFileDialog ShowAttachImageDialog()
+        {
+            // prompt the user for an image file.
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
+            openFileDialog.Title = "Select an Image File";
+            openFileDialog.Multiselect = false;
+            openFileDialog.CheckFileExists = true;
+            openFileDialog.CheckPathExists = true;
+            openFileDialog.ShowDialog();
+            return openFileDialog;
+        }
     }
 }
