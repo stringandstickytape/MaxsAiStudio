@@ -51,7 +51,9 @@ namespace AiTool3.Conversations
 
         public void LoadConversation(string guid)
         {
-            CurrentConversation = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+            CurrentConversation = BranchedConversation.LoadConversation(guid);
         }
+
+
     }
 }

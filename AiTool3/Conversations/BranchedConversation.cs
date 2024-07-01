@@ -109,5 +109,10 @@ namespace AiTool3.Conversations
 
             return nodes;
         }
+
+        public static BranchedConversation LoadConversation(string guid)
+        {
+            return JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+        }
     }
 }

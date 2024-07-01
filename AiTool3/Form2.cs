@@ -954,7 +954,7 @@ namespace AiTool3
                 var guid = row.Cells[0].Value.ToString();
                 
                 // get all the mssages for tat convo from file
-                var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+                var conv = BranchedConversation.LoadConversation(guid);
 
                 // check if any of the messages contain the search text
                 var allMessages = conv.Messages.Select(m => m.Content).ToList();
