@@ -61,53 +61,7 @@ namespace AiTool3
             {
                 CheckForCtrlReturn(e);
             };
-
-
-            // hide dgv headers
-            dgvConversations.ColumnHeadersVisible = false;
-            // Setting the default cell style for the DataGridView
-            DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
-            cellStyle.BackColor = System.Drawing.Color.Black;
-            cellStyle.ForeColor = System.Drawing.Color.White;
-            cellStyle.WrapMode = DataGridViewTriState.True;
-
-            dgvConversations.DefaultCellStyle = cellStyle;
-
-            // add cols to dgv
-            dgvConversations.Columns.Add("ConvGuid", "ConvGuid");
-            dgvConversations.Columns.Add("Content", "Content");
-            dgvConversations.Columns.Add("Engine", "Engine");
-            dgvConversations.Columns.Add("Title", "Title");
-            dgvConversations.Columns[0].Visible = false;
-            dgvConversations.Columns[0].ReadOnly = true;
-            dgvConversations.Columns[1].Visible = false;
-            dgvConversations.Columns[1].ReadOnly = true;
-            dgvConversations.Columns[2].Visible = false;
-            dgvConversations.Columns[2].ReadOnly = true;
-            // make the last column fill the parent
-            dgvConversations.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgvConversations.Columns[3].ReadOnly = true;
-
-            // make the columns wrap text
-            //dgvConversations.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dgvConversations.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-
-            // make the selection column thin
-            dgvConversations.RowHeadersWidth = 10;
-
-
-            // populate dgvConversations with the conversation files in the current directory, ordered by date desc
-            var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "v3-conversation-*.json").OrderByDescending(f => new FileInfo(f).LastWriteTime);
-            foreach (var file in files)
-            {
-                var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(file));
-                if (!conv.Messages.Any())
-                    continue;
-
-                dgvConversations.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.Title);
-
-
-            }
+            DataGridViewHelper.InitialiseDataGridView(dgvConversations);
 
             InitialiseMenus();
         }
