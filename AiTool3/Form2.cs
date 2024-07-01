@@ -422,9 +422,7 @@ namespace AiTool3
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
             // work out the cost
-            var cost = response.TokenUsage.InputTokens * model.input1MTokenPrice / 1000000
-                +
-                response.TokenUsage.OutputTokens * model.output1MTokenPrice / 1000000;
+            var cost = model.GetCost(response.TokenUsage);
 
             if (response.SuggestedNextPrompt != null)
             {

@@ -1,4 +1,8 @@
-﻿namespace AiTool3.ApiManagement
+﻿using AiTool3.ApiManagement;
+using AiTool3;
+using AiTool3.Providers;
+
+namespace AiTool3.ApiManagement
 {
     public class Model
     {
@@ -14,6 +18,11 @@
         public override string ToString()
         {
             return $"{ServiceName}: {ModelName}";
+        }
+
+        public decimal GetCost(TokenUsage tokenUsage)
+        {
+            return (tokenUsage.InputTokens * input1MTokenPrice / 1000000) + (tokenUsage.OutputTokens * output1MTokenPrice / 1000000);
         }
     }
 }
