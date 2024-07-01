@@ -37,10 +37,7 @@ namespace AiTool3
 {
     public partial class Form2 : Form
     {
-
-        public BranchedConversation CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-        public CompletionMessage PreviousCompletion;
-
+        public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public Settings.Settings Settings { get; set; } = AiTool3.Settings.Settings.ReadFromJson();
 
         public TopicSet TopicSet { get; set; }
@@ -318,29 +315,29 @@ namespace AiTool3
         private void NdcConversation_NodeClicked(object? sender, NodeClickEventArgs e)
         {
 
-            var clickedCompletion = CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
-            PreviousCompletion = clickedCompletion;
+            var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
+            ConversationManager.PreviousCompletion = clickedCompletion;
 
 
 
             rtbInput.Clear();
-            if (PreviousCompletion.Role == CompletionRole.User)
+            if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
-                rtbInput.Text = PreviousCompletion.Content;
+                rtbInput.Text = ConversationManager.PreviousCompletion.Content;
 
-                PreviousCompletion = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
+                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
             }
-            if (PreviousCompletion?.SystemPrompt != null)
+            if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
             {
-                rtbSystemPrompt.Text = PreviousCompletion.SystemPrompt;
+                rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
             }
             else rtbSystemPrompt.Text = "";
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(PreviousCompletion?.Content ?? ""));
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""));
 
-            if (clickedCompletion == CurrentConversation.Messages.First())
+            if (clickedCompletion == ConversationManager.CurrentConversation.Messages.First())
             {
-                CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-                PreviousCompletion = null;
+                ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+                ConversationManager.PreviousCompletion = null;
                 DrawNetworkDiagram();
             }
         }
@@ -403,7 +400,7 @@ namespace AiTool3
 
             Conversation conversation = null;
 
-            if (CurrentConversation.Messages.Count == 0)
+            if (ConversationManager.CurrentConversation.Messages.Count == 0)
             {
                 // create a conversation from the system prompt and user input
                 conversation = new Conversation(rtbSystemPrompt.Text, rtbInput.Text);
@@ -446,7 +443,7 @@ namespace AiTool3
             {
                 Role = CompletionRole.User,
                 Content = rtbInput.Text,
-                Parent = PreviousCompletion?.Guid,
+                Parent = ConversationManager.PreviousCompletion?.Guid,
                 Engine = model.ModelName,
                 Guid = System.Guid.NewGuid().ToString(),
                 Children = new List<string>(),
@@ -462,12 +459,12 @@ namespace AiTool3
                 return;
             }
 
-            if (PreviousCompletion != null)
+            if (ConversationManager.PreviousCompletion != null)
             {
-                PreviousCompletion.Children.Add(completionInput.Guid);
+                ConversationManager.PreviousCompletion.Children.Add(completionInput.Guid);
             }
 
-            CurrentConversation.Messages.Add(completionInput);
+            ConversationManager.CurrentConversation.Messages.Add(completionInput);
 
             // Create a new completion object to store the response in
             var completionResponse = new CompletionMessage
@@ -484,7 +481,7 @@ namespace AiTool3
             };
 
             // add it to the current conversation
-            CurrentConversation.Messages.Add(completionResponse);
+            ConversationManager.CurrentConversation.Messages.Add(completionResponse);
 
             // and display the results in the output box
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)));
@@ -498,7 +495,7 @@ namespace AiTool3
 
             completionInput.Children.Add(completionResponse.Guid);
 
-            PreviousCompletion = completionResponse;
+            ConversationManager.PreviousCompletion = completionResponse;
 
             Base64Image = null;
             Base64ImageType = null;
@@ -511,15 +508,15 @@ namespace AiTool3
             var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
             string title;
-            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == CurrentConversation.ConvGuid);
+            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
 
             // using the title, update the dgvConversations
 
-            CurrentConversation.SaveAsJson();
+            ConversationManager.CurrentConversation.SaveAsJson();
 
             if (row==null)
             {
-                dgvConversations.Rows.Insert(0, CurrentConversation.ConvGuid, CurrentConversation.Messages[0].Content, CurrentConversation.Messages[0].Engine, "");
+                dgvConversations.Rows.Insert(0, ConversationManager.CurrentConversation.ConvGuid, ConversationManager.CurrentConversation.Messages[0].Content, ConversationManager.CurrentConversation.Messages[0].Engine, "");
 
                 row = dgvConversations.Rows[0];
             }
@@ -528,9 +525,9 @@ namespace AiTool3
 
             if (row != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                title = await CurrentConversation.GenerateSummary(summaryModel);
+                title = await ConversationManager.CurrentConversation.GenerateSummary(summaryModel);
                 row.Cells[3].Value = title;
-                CurrentConversation.SaveAsJson();
+                ConversationManager.CurrentConversation.SaveAsJson();
             }
             
             
@@ -541,11 +538,11 @@ namespace AiTool3
         {
             // starting at PreviousCompletion, walk up the tree to the root node and return a list of nodes
             var nodes = new List<CompletionMessage>();
-            var current = PreviousCompletion?.Guid;
+            var current = ConversationManager.PreviousCompletion?.Guid;
 
             while (current != null)
             {
-                var node = CurrentConversation.FindByGuid(current);
+                var node = ConversationManager.CurrentConversation.FindByGuid(current);
                 nodes.Add(node);
                 current = node.Parent;
             }
@@ -563,7 +560,7 @@ namespace AiTool3
 
 
             // find the root node
-            var root = CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
+            var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
             if (root == null)
             {
                 return;
@@ -590,7 +587,7 @@ namespace AiTool3
             foreach (var child in root.Children)
             {
                 // get from child string
-                var childMsg = CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
+                var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
 
                 var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel);
                 childNode.BackColor = childMsg.GetColorForEngine();
@@ -605,8 +602,8 @@ namespace AiTool3
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
             rtbOutput.Clear();
-            CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            PreviousCompletion = null;
+            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            ConversationManager.PreviousCompletion = null;
             var template = GetCurrentTemplate();
             if (template != null)
             {
@@ -626,12 +623,12 @@ namespace AiTool3
 
             var guid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
             // load that conversation from the json file
-            CurrentConversation = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+            ConversationManager.CurrentConversation = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
 
             // draw the network diagram
             DrawNetworkDiagram();
 
-            var currentResponseNode = ndcConversation.GetNodeForGuid(CurrentConversation.Messages.Last().Guid);
+            var currentResponseNode = ndcConversation.GetNodeForGuid(ConversationManager.CurrentConversation.Messages.Last().Guid);
             //ndcConversation.CenterOnNode(currentResponseNode);
             ndcConversation.FitAll();
         }
@@ -854,8 +851,8 @@ namespace AiTool3
         private void btnRestart_Click(object sender, EventArgs e)
         {
             rtbOutput.Clear();
-            CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            PreviousCompletion = null;
+            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            ConversationManager.PreviousCompletion = null;
             DrawNetworkDiagram();
         }
 
@@ -882,14 +879,14 @@ namespace AiTool3
 
         private void button4_Click(object sender, EventArgs e)
         {
-            var lastAssistantMessage = PreviousCompletion;
+            var lastAssistantMessage = ConversationManager.PreviousCompletion;
 
             if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = CurrentConversation.FindByGuid(PreviousCompletion.Parent);
+                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
 
-            var lastUserMessage = CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
 
-            CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
 
             // create new messages out of the two
 
@@ -916,10 +913,10 @@ namespace AiTool3
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
 
-            CurrentConversation.Messages.Add(assistantMessage);
-            CurrentConversation.Messages.Add(userMessage);
+            ConversationManager.CurrentConversation.Messages.Add(assistantMessage);
+            ConversationManager.CurrentConversation.Messages.Add(userMessage);
 
-            PreviousCompletion = assistantMessage;
+            ConversationManager.PreviousCompletion = assistantMessage;
 
             DrawNetworkDiagram();
         }
