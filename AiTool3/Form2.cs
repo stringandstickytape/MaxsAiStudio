@@ -107,14 +107,7 @@ namespace AiTool3
 
         private void InitialiseMenus()
         {
-            var fileMenu = CreateMenu("File", new (string, Action<object, EventArgs>)[] { ("Quit", (s, e) =>
-            {
-                // quit app
-                Application.Exit();
-
-            }
-            
-            ) });
+            var fileMenu = CreateMenu("File", new (string, Action<object, EventArgs>)[] { ("Quit", (s, e) => Application.Exit()) });
             var editMenu = CreateMenu("Edit", new (string, Action<object, EventArgs>)[] { ("Clear", (s, e) => btnClear_Click(null, null)), ("Settings", OpenSettingsForm) });
             var specialsMenu = CreateMenu("Specials", new (string, Action<object, EventArgs>)[]
             {
