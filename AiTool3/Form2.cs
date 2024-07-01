@@ -440,7 +440,7 @@ namespace AiTool3
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel);
+                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, Settings.GenerateSummariesUsingLocalAi);
             }
         }
 
@@ -489,17 +489,9 @@ namespace AiTool3
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
             rtbOutput.Clear();
-            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            ConversationManager.PreviousCompletion = null;
 
-            // add a root message to the conversation
-            ConversationManager.CurrentConversation.Messages.Add(new CompletionMessage
-            {
-                Guid = Guid.NewGuid().ToString(),
-                Content = "Begin Conversation",
-                Role = CompletionRole.Root,
-                Children = new List<string>(),
-            });
+            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
             DrawNetworkDiagram();

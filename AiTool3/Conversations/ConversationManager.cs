@@ -44,9 +44,9 @@ namespace AiTool3.Conversations
             CurrentConversation.SaveAsJson();
         }
 
-        public async Task<string> GenerateConversationSummary(Model summaryModel)
+        public async Task<string> GenerateConversationSummary(Model summaryModel, bool useLocalAi)
         {
-            var retVal = await CurrentConversation.GenerateSummary(summaryModel);
+            var retVal = await CurrentConversation.GenerateSummary(summaryModel, useLocalAi);
             SaveConversation();
             return retVal;
         }

@@ -37,7 +37,8 @@ namespace AiTool3.Settings
                 {
                     Text = displayNameAttr.DisplayName,
                     Checked = (bool)prop.GetValue(settings),
-                    AutoSize = true
+                    AutoSize = true,
+                    Location = new Point(0, ypos)
                 };
 
                 cb.Click += (s, e) =>
