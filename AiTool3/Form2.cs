@@ -550,14 +550,8 @@ namespace AiTool3
 
         private void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // get the selected item
-            var selected = cbTemplates.SelectedItem.ToString();
-
-            // get the category
-            var category = cbCategories.SelectedItem.ToString();
-
             // find the template
-            var template = TopicSet.Topics.First(t => t.Name == category).Templates.First(t => t.TemplateName == selected);
+            var template = TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
 
             btnClear_Click(null, null);
 
@@ -569,16 +563,9 @@ namespace AiTool3
 
         private void buttonEditTemplate_Click(object sender, EventArgs e)
         {
-            ConversationTemplate template;
-            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
-            {
-                // create a new template
-                //template = new ConversationTemplate("System Prompt", "Initial Prompt");
-                return;
-            }
-            template = GetCurrentTemplate();
-
-            EditAndSaveTemplate(template);
+            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return;
+            
+            EditAndSaveTemplate(GetCurrentTemplate());
         }
 
         private ConversationTemplate GetCurrentTemplate()
