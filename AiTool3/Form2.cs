@@ -714,25 +714,25 @@ namespace AiTool3
 
 
 
-        private async void button3_Click(object sender, EventArgs e)
+        private async void buttonStartRecording_Click(object sender, EventArgs e)
         {
             if (!audioRecorderManager.IsRecording)
             {
                 // Start recording
                 await audioRecorderManager.StartRecording();
-                button3.BackColor = Color.Red;
-                button3.Text = "Stop\r\nRecord";
+                buttonStartRecording.BackColor = Color.Red;
+                buttonStartRecording.Text = "Stop\r\nRecord";
             }
             else
             {
                 // Stop recording
                 await audioRecorderManager.StopRecording();
-                button3.BackColor = Color.Black;
-                button3.Text = "Start\r\nRecord";
+                buttonStartRecording.BackColor = Color.Black;
+                buttonStartRecording.Text = "Start\r\nRecord";
             }
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void buttonNewKeepAll_Click(object sender, EventArgs e)
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
 
@@ -776,7 +776,7 @@ namespace AiTool3
             DrawNetworkDiagram();
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void buttonAttachImage_Click(object sender, EventArgs e)
         {
             // prompt the user for an image file.
             OpenFileDialog openFileDialog = new OpenFileDialog();
