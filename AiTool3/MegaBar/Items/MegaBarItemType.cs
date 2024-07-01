@@ -27,7 +27,10 @@
         CopyWithoutComments,
 
         [MegaBarItemInfo(Title = "Launch in VS", SupportedTypes = new[] { "*.cs", ".ts", "*" })]
-        LaunchInVisualStudio
+        LaunchInVisualStudio,
+
+        // RequestMore
+
 
     }
 

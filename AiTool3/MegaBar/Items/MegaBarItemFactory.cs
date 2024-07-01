@@ -1,4 +1,5 @@
-﻿using AiTool3.Helpers;
+﻿using AiTool3.Conversations;
+using AiTool3.Helpers;
 using AiTool3.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.Web.WebView2.WinForms;
@@ -10,13 +11,13 @@ namespace AiTool3.MegaBar.Items
 {
     public class MegaBarItemFactory
     {
-        private static readonly Dictionary<MegaBarItemType, Func<string, Action>> ItemCallbacks = new Dictionary<MegaBarItemType, Func<string, Action>>
+        private static readonly Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>> ItemCallbacks = new Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>>
         {
-            [MegaBarItemType.Copy] = code => () => Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(code)),
-            [MegaBarItemType.Browser] = code => () => LaunchHelpers.LaunchHtml(SnipperHelper.StripFirstAndLastLine(code)),
-            [MegaBarItemType.CSharpScript] = code => () => LaunchHelpers.LaunchCSharp(SnipperHelper.StripFirstAndLastLine(code)),
-            [MegaBarItemType.Notepad] = code => () => LaunchHelpers.LaunchTxt(SnipperHelper.StripFirstAndLastLine(code)),
-            [MegaBarItemType.SaveAs] = code => () =>
+            [MegaBarItemType.Copy] = (code,guid,messages) => () => Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(code)),
+            [MegaBarItemType.Browser] = (code,guid,messages) => () => LaunchHelpers.LaunchHtml(SnipperHelper.StripFirstAndLastLine(code)),
+            [MegaBarItemType.CSharpScript] = (code,guid,messages) => () => LaunchHelpers.LaunchCSharp(SnipperHelper.StripFirstAndLastLine(code)),
+            [MegaBarItemType.Notepad] = (code,guid,messages) => () => LaunchHelpers.LaunchTxt(SnipperHelper.StripFirstAndLastLine(code)),
+            [MegaBarItemType.SaveAs] = (code,guid,messages) => () =>
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -26,24 +27,27 @@ namespace AiTool3.MegaBar.Items
                     File.WriteAllText(saveFileDialog.FileName, SnipperHelper.StripFirstAndLastLine(code));
                 }
             },
-            [MegaBarItemType.CopyWithoutComments] = code => () =>
+            [MegaBarItemType.CopyWithoutComments] = (code,guid,messages) => () =>
             {
                 string codeWithoutComments = RemoveComments(SnipperHelper.StripFirstAndLastLine(code));
                 Clipboard.SetText(codeWithoutComments);
             },
-            [MegaBarItemType.WebView] = code => () =>
+            [MegaBarItemType.WebView] = (code,guid,messages) => () =>
             {
+
+                var processedCode = PrependParentIfUnterminated(guid, messages, code);
+
                 // create a new form of 256x256
                 var form = new Form();
                 form.Size = new Size(256, 256);
                 form.StartPosition = FormStartPosition.CenterScreen;
 
                 // create a WebView2 that fills the window
-                var wvForm = new WebviewForm(code);
+                var wvForm = new WebviewForm(processedCode);
                 wvForm.Show();
-                
-             },
-             [MegaBarItemType.LaunchInVisualStudio] = code => () =>
+
+            },
+             [MegaBarItemType.LaunchInVisualStudio] = (code,guid,messages) => () =>
              {
                  string tempFile = Path.GetTempFileName();
                  File.WriteAllText(tempFile, SnipperHelper.StripFirstAndLastLine(code));
@@ -56,9 +60,48 @@ namespace AiTool3.MegaBar.Items
                  {
                      MessageBox.Show("Visual Studio not found. Please install it or update the path.");
                  }
-
             }
         };
+
+        private static string PrependParentIfUnterminated(string guid, List<CompletionMessage> messages, string processedCode)
+        {
+            // use the guid to find the message
+            var message = messages.FirstOrDefault(m => m.Guid == guid);
+            var parentMessage = messages.FirstOrDefault(m => m.Guid == message.Parent);
+            var parentOfParent = messages.FirstOrDefault(m => m.Guid == parentMessage.Parent);
+
+            var snippetMgr = new Snippets.SnippetManager();
+            var snippets = snippetMgr.FindSnippets(parentOfParent.Content);
+
+            if (!string.IsNullOrWhiteSpace(snippets.UnterminatedSnippet))
+            {
+                string prefixCode = snippets.UnterminatedSnippet;
+
+                // get the last line of unterm sip
+                var lastLine = prefixCode.Split('\n').Last();
+
+                // get the first line of code execept the `s
+                var firstLine = processedCode.Split('\n').Skip(1).First();
+
+                
+
+                // if the first line contains the last line...
+                if (firstLine.Contains(lastLine) && lastLine.Length > 0)
+                {
+                    // remove the last line from prefixCode
+                    prefixCode = prefixCode.Substring(0, prefixCode.LastIndexOf(lastLine));
+                }
+                
+                processedCode = $"{SnipperHelper.StripFirstAndLastLine(prefixCode)}{Environment.NewLine}{SnipperHelper.StripFirstAndLastLine(processedCode)}";
+            }
+
+            return processedCode;
+        }
+
+        private static object StripFirstAndLastLine(string code)
+        {
+            throw new NotImplementedException();
+        }
 
         private static string RemoveComments(string code)
         {
@@ -75,7 +118,7 @@ namespace AiTool3.MegaBar.Items
         }
 
 
-        public static List<MegaBarItem> CreateItems(string snippetType, string snippetCode)
+        public static List<MegaBarItem> CreateItems(string snippetType, string snippetCode, bool unterminated, string messageGuid, List<Conversations.CompletionMessage> messages)
         {
             var items = new List<MegaBarItem>();
 
@@ -90,10 +133,23 @@ namespace AiTool3.MegaBar.Items
                     items.Add(new MegaBarItem
                     {
                         Title = attr.Title,
-                        Callback = ItemCallbacks[itemType](snippetCode)
+                        Callback = ItemCallbacks[itemType](snippetCode, messageGuid, messages),
+                        OriginatingMessage = messageGuid,
+                        OriginatingConversation = messages
                     });
                 }
             }
+
+           //if(unterminated)
+           //{
+           //    items.Add(new MegaBarItem
+           //    {
+           //        Title = "Unterminated",
+           //        Callback = () => { 
+           //            MessageBox.Show("This snippet is unterminated. Please close the code block.");
+           //        }
+           //    });
+           //}
 
             return items;
         }

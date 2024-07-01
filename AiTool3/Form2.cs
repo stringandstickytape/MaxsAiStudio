@@ -168,7 +168,7 @@ namespace AiTool3
             {
                 AiResponse response, response2;
                 SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response, out response2);
-                var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}");
+                var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}", null, null);
 
                 try
                 {
@@ -223,6 +223,7 @@ namespace AiTool3
 
         private void SetSplitContainerEvents()
         {
+            // for each split container incl in child items
             splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint);
             splitContainer2.Paint += new PaintEventHandler(SplitContainer_Paint);
             splitContainer3.Paint += new PaintEventHandler(SplitContainer_Paint);
@@ -233,19 +234,15 @@ namespace AiTool3
         {
             SplitContainer sc = sender as SplitContainer;
 
-            // Get the position and size of the splitter
             Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
                 : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
 
-            // Draw the splitter
             using (SolidBrush brush = new SolidBrush(Color.Gray))
             {
                 e.Graphics.FillRectangle(brush, splitterRect);
             }
         }
-
-        // summarise our conversation in six words or fewer as a json object
 
         private void NdcConversation_NodeClicked(object? sender, NodeClickEventArgs e)
         {
@@ -265,19 +262,19 @@ namespace AiTool3
                 rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
             }
             else rtbSystemPrompt.Text = "";
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""));
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
         }
 
         private SnippetManager snippetManager = new SnippetManager();
 
-        public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text)
+        public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
         {
             richTextBox.Clear();
             richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
 
             // Apply UI formatting
-            foreach (var snippet in snippets)
+            foreach (var snippet in snippets.Snippets)
             {
                 int startIndex = 0;
 
@@ -293,12 +290,8 @@ namespace AiTool3
                     richTextBox.SelectionColor = Color.Yellow;
                     richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
-                    // find the last character of the line
-
-                    var lastChar = SnipperHelper.GetLastCharOfFirstLine(richTextBox, startIndex);
-
-                    var thisItems = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code);
-                    richTextBox.AddMegaBar(endOfFirstLine, thisItems.ToArray());
+                    var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
+                    richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
                 }
             }
 
@@ -306,10 +299,8 @@ namespace AiTool3
 
             // scroll to top
             richTextBox.SelectionStart = 0;
-            return snippets;
+            return snippets.Snippets;
         }
-
-
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
@@ -348,7 +339,7 @@ namespace AiTool3
 
             if (response.SuggestedNextPrompt != null)
             {
-                FindSnippets(rtbInput, RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt));
+                RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
             }
 
             // create a completion message for the user input
@@ -397,7 +388,7 @@ namespace AiTool3
             ConversationManager.CurrentConversation.Messages.Add(completionResponse);
 
             // and display the results in the output box
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)));
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
             if (Settings.NarrateResponses)
             {

@@ -1,11 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 
 namespace AiTool3.Snippets
 {
     public class SnippetManager
     {
-        public List<Snippet> FindSnippets(string text)
+        public SnippetSet FindSnippets(string text)
         {
             string pattern = @"```(.*?)```";
             List<Snippet> snippets = new List<Snippet>();
@@ -25,37 +26,7 @@ namespace AiTool3.Snippets
                     // get the first line
                     var firstLine = text.Substring(startIndex).Split('\n').FirstOrDefault();
 
-                    // Extract type and filename if available
-                    string pattern2 = @"```[a-zA-Z]+";
-
-                    foreach (Match match2 in Regex.Matches(firstLine, pattern2))
-                    {
-                        var language = match2.Value.Substring(3);
-
-                        var fileExt = ".txt";
-
-                        if (language == "csharp")
-                        {
-                            fileExt = ".cs";
-                        }
-                        else if (language == "html" || language == "htm")
-                        {
-                            fileExt = ".html";
-                        }
-                        else if (language == "txt")
-                        {
-                            fileExt = ".txt";
-                        } else if (language == "xml")
-                        {
-                            fileExt = ".xml";
-                        } else if (language == "javascript")
-                        {
-                            fileExt = ".js";
-                        } else fileExt = $".{language}";
-
-                        type = fileExt;
-
-                    }
+                    type = GetFileExtFromFirstLine(type, firstLine);
 
                     var snippetText = text.Substring(startIndex, length);
 
@@ -72,7 +43,65 @@ namespace AiTool3.Snippets
                 }
             }
 
-            return snippets;
+            // Check for unterminated three-hashes pairs
+            int lastIndex = 0;
+            int prevLastIndex = 0;
+            bool isOpen = false;
+            string unterminatedSnippet = null;
+            while ((lastIndex = text.IndexOf("```", lastIndex)) != -1)
+            {
+                isOpen = !isOpen;
+                lastIndex += 3;
+                prevLastIndex = lastIndex;
+            }
+
+            if (isOpen)
+            {
+                // get contents of unterminated pair
+                unterminatedSnippet = text.Substring(prevLastIndex);
+            }
+
+
+            return new SnippetSet { Snippets = snippets, UnterminatedSnippet = unterminatedSnippet };
+        }
+
+        private static string GetFileExtFromFirstLine(string type, string? firstLine)
+        {
+            string pattern2 = @"```[a-zA-Z]+";
+
+            foreach (Match match2 in Regex.Matches(firstLine, pattern2))
+            {
+                var language = match2.Value.Substring(3);
+
+                var fileExt = ".txt";
+
+                if (language == "csharp")
+                {
+                    fileExt = ".cs";
+                }
+                else if (language == "html" || language == "htm")
+                {
+                    fileExt = ".html";
+                }
+                else if (language == "txt")
+                {
+                    fileExt = ".txt";
+                }
+                else if (language == "xml")
+                {
+                    fileExt = ".xml";
+                }
+                else if (language == "javascript")
+                {
+                    fileExt = ".js";
+                }
+                else fileExt = $".{language}";
+
+                type = fileExt;
+
+            }
+
+            return type;
         }
 
         public string ApplySnippetFormatting(string text)
@@ -93,4 +122,10 @@ namespace AiTool3.Snippets
     }
 
 
+    public class  SnippetSet
+    {
+        public List<Snippet> Snippets;
+
+        public string? UnterminatedSnippet { get; set; }
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AiTool3.Conversations;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -32,6 +33,8 @@ namespace AiTool3.UI
             public string Title { get; set; }
             public Action Callback { get; set; }
             public bool IsMouseOver { get; set; }
+            public string OriginatingMessage { get; set; }
+            public List<CompletionMessage> OriginatingConversation { get; set; }
         }
 
         private class MegaBar
