@@ -49,9 +49,9 @@
         {
             get
             {
-                var inputTokens = InputTokens == 0 ? "" : $"In: {InputTokens}";
-                var outputTokens = OutputTokens == 0 ? "" : $"Out: {OutputTokens}";
-                return $"{inputTokens}{outputTokens} : {Engine}";
+                var inputTokens = InputTokens == 0 ? "" : $"in: {InputTokens}";
+                var outputTokens = OutputTokens == 0 ? "" : $"out: {OutputTokens}";
+                return $"({inputTokens}{outputTokens})  {Engine}";
             }
         }
     }

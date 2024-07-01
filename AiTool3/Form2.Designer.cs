@@ -93,7 +93,7 @@ namespace AiTool3
             ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
             ndcConversation.NodeGradientStart = Color.White;
             ndcConversation.PanOffset = new Point(0, 0);
-            ndcConversation.Size = new Size(335, 595);
+            ndcConversation.Size = new Size(616, 595);
             ndcConversation.TabIndex = 0;
             ndcConversation.Text = "networkDiagramControl1";
             ndcConversation.UseDropShadow = true;
@@ -106,7 +106,7 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(904, 3);
+            cbEngine.Location = new Point(623, 3);
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(405, 40);
             cbEngine.TabIndex = 3;
@@ -116,7 +116,7 @@ namespace AiTool3
             btnGo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnGo.BackColor = Color.Black;
             btnGo.ForeColor = Color.White;
-            btnGo.Location = new Point(1164, 338);
+            btnGo.Location = new Point(883, 347);
             btnGo.Name = "btnGo";
             btnGo.Size = new Size(145, 136);
             btnGo.TabIndex = 4;
@@ -132,7 +132,7 @@ namespace AiTool3
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(882, 234);
+            rtbSystemPrompt.Size = new Size(601, 221);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -143,7 +143,7 @@ namespace AiTool3
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
             rtbOutput.Name = "rtbOutput";
-            rtbOutput.Size = new Size(1306, 267);
+            rtbOutput.Size = new Size(1025, 271);
             rtbOutput.TabIndex = 6;
             // 
             // rtbInput
@@ -154,7 +154,7 @@ namespace AiTool3
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(1155, 471);
+            rtbInput.Size = new Size(874, 480);
             rtbInput.TabIndex = 7;
             // 
             // splitContainer1
@@ -171,7 +171,7 @@ namespace AiTool3
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
             splitContainer1.Size = new Size(1669, 1002);
-            splitContainer1.SplitterDistance = 347;
+            splitContainer1.SplitterDistance = 628;
             splitContainer1.TabIndex = 9;
             // 
             // splitContainer5
@@ -189,7 +189,7 @@ namespace AiTool3
             // splitContainer5.Panel2
             // 
             splitContainer5.Panel2.Controls.Add(ndcConversation);
-            splitContainer5.Size = new Size(341, 993);
+            splitContainer5.Size = new Size(622, 993);
             splitContainer5.SplitterDistance = 388;
             splitContainer5.TabIndex = 1;
             // 
@@ -198,7 +198,7 @@ namespace AiTool3
             tbSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             tbSearch.Location = new Point(9, 11);
             tbSearch.Name = "tbSearch";
-            tbSearch.Size = new Size(315, 31);
+            tbSearch.Size = new Size(596, 31);
             tbSearch.TabIndex = 1;
             tbSearch.TextChanged += tbSearch_TextChanged;
             // 
@@ -210,13 +210,14 @@ namespace AiTool3
             dgvConversations.Location = new Point(3, 46);
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
-            dgvConversations.Size = new Size(335, 339);
+            dgvConversations.Size = new Size(616, 339);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
             // 
             // splitContainer2
             // 
             splitContainer2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer2.IsSplitterFixed = true;
             splitContainer2.Location = new Point(3, 3);
             splitContainer2.Name = "splitContainer2";
             splitContainer2.Orientation = Orientation.Horizontal;
@@ -230,8 +231,8 @@ namespace AiTool3
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
-            splitContainer2.Size = new Size(1312, 999);
-            splitContainer2.SplitterDistance = 240;
+            splitContainer2.Size = new Size(1031, 999);
+            splitContainer2.SplitterDistance = 227;
             splitContainer2.TabIndex = 8;
             // 
             // groupBox1
@@ -242,7 +243,7 @@ namespace AiTool3
             groupBox1.Controls.Add(cbTemplates);
             groupBox1.Controls.Add(button1);
             groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(904, 61);
+            groupBox1.Location = new Point(623, 61);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(398, 170);
             groupBox1.TabIndex = 10;
@@ -321,8 +322,8 @@ namespace AiTool3
             splitContainer3.Panel2.Controls.Add(btnClear);
             splitContainer3.Panel2.Controls.Add(rtbInput);
             splitContainer3.Panel2.Controls.Add(btnGo);
-            splitContainer3.Size = new Size(1312, 755);
-            splitContainer3.SplitterDistance = 274;
+            splitContainer3.Size = new Size(1031, 768);
+            splitContainer3.SplitterDistance = 278;
             splitContainer3.TabIndex = 0;
             // 
             // button5
@@ -330,7 +331,7 @@ namespace AiTool3
             button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button5.BackColor = Color.Black;
             button5.ForeColor = Color.White;
-            button5.Location = new Point(1259, 3);
+            button5.Location = new Point(978, 12);
             button5.Name = "button5";
             button5.Size = new Size(50, 43);
             button5.TabIndex = 12;
@@ -343,7 +344,7 @@ namespace AiTool3
             button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button4.BackColor = Color.Black;
             button4.ForeColor = Color.White;
-            button4.Location = new Point(1164, 70);
+            button4.Location = new Point(883, 79);
             button4.Name = "button4";
             button4.Size = new Size(145, 96);
             button4.TabIndex = 11;
@@ -356,7 +357,7 @@ namespace AiTool3
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             button3.BackColor = Color.Black;
             button3.ForeColor = Color.White;
-            button3.Location = new Point(1164, 3);
+            button3.Location = new Point(883, 12);
             button3.Name = "button3";
             button3.Size = new Size(89, 61);
             button3.TabIndex = 10;
@@ -369,7 +370,7 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(1164, 172);
+            btnRestart.Location = new Point(883, 181);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 77);
             btnRestart.TabIndex = 9;
@@ -382,7 +383,7 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(1164, 255);
+            btnClear.Location = new Point(883, 264);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(145, 77);
             btnClear.TabIndex = 8;
