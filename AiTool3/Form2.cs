@@ -350,11 +350,6 @@ namespace AiTool3
                 FindSnippets(rtbInput, RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt));
             }
 
-            // format cost to exactly 2 decimal places
-            var formattedCost = cost.ToString("0.00");
-
-            
-
             // create a completion message for the user input
             var completionInput = new CompletionMessage
             {
@@ -420,7 +415,6 @@ namespace AiTool3
             // draw the network diagram
             DrawNetworkDiagram();
 
-
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
             var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
@@ -438,6 +432,8 @@ namespace AiTool3
 
                 row = dgvConversations.Rows[0];
             }
+
+            tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
             btnGo.Enabled = true;
 

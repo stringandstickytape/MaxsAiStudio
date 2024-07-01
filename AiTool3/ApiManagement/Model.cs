@@ -20,9 +20,9 @@ namespace AiTool3.ApiManagement
             return $"{ServiceName}: {ModelName}";
         }
 
-        public decimal GetCost(TokenUsage tokenUsage)
+        public string GetCost(TokenUsage tokenUsage)
         {
-            return (tokenUsage.InputTokens * input1MTokenPrice / 1000000) + (tokenUsage.OutputTokens * output1MTokenPrice / 1000000);
+            return ((tokenUsage.InputTokens * input1MTokenPrice / 1000000) + (tokenUsage.OutputTokens * output1MTokenPrice / 1000000)).ToString("0.00");
         }
     }
 }
