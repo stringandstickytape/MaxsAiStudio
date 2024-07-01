@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using System.Data;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class TemplatesHelper
     {

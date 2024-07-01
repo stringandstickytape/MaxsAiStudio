@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class DataGridViewHelper
     {
@@ -14,8 +14,8 @@ namespace AiTool3
             dgv.ColumnHeadersVisible = false;
             // Setting the default cell style for the DataGridView
             DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
-            cellStyle.BackColor = System.Drawing.Color.Black;
-            cellStyle.ForeColor = System.Drawing.Color.White;
+            cellStyle.BackColor = Color.Black;
+            cellStyle.ForeColor = Color.White;
             cellStyle.WrapMode = DataGridViewTriState.True;
 
             dgv.DefaultCellStyle = cellStyle;

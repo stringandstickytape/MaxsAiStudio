@@ -1,5 +1,4 @@
-﻿
-namespace AiTool3
+﻿namespace AiTool3.Helpers
 {
     internal class ImageHelpers
     {

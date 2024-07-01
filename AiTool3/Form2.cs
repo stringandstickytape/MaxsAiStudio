@@ -13,6 +13,7 @@ using AiTool3.Snippets;
 using AiTool3.MegaBar.Items;
 using Whisper.net.Ggml;
 using AiTool3.Providers;
+using AiTool3.Helpers;
 
 namespace AiTool3
 {
@@ -85,8 +86,6 @@ namespace AiTool3
         {
             return (sender, e) =>
             {
-                Debug.WriteLine($"Node: {e.SelectedNode.Guid}, Option: {e.SelectedOption}");
-
                 if (e.SelectedOption == "Save conversation to here as TXT")
                 {
                     var nodes = ConversationManager.GetParentNodeList();

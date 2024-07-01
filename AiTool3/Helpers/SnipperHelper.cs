@@ -1,6 +1,6 @@
 ﻿using AiTool3.UI;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class SnipperHelper
     {

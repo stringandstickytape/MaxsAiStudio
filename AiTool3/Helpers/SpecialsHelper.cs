@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class SpecialsHelper
     {
