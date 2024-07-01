@@ -62,6 +62,7 @@ namespace AiTool3
             {
                 CheckForCtrlReturn(e);
             };
+
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
 
             InitialiseMenus();
@@ -193,10 +194,10 @@ namespace AiTool3
                 rtbInput.Text = userMessage;
 
             };
-                specialsMenu.DropDownItems.Add(restartMenuItem);
-                specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
-                menuBar.Items.Add(specialsMenu);
-            
+            specialsMenu.DropDownItems.Add(restartMenuItem);
+            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+            menuBar.Items.Add(specialsMenu);
+
         }
 
 
@@ -310,7 +311,7 @@ namespace AiTool3
 
 
 
-        private  async void btnGo_Click(object sender, EventArgs e)
+        private async void btnGo_Click(object sender, EventArgs e)
         {
             btnGo.Enabled = false;
             var model = (Model)cbEngine.SelectedItem;
@@ -338,7 +339,7 @@ namespace AiTool3
                 conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
             }
             conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
-            
+
             // fetch the response from the api
             var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
@@ -426,7 +427,7 @@ namespace AiTool3
 
             ConversationManager.SaveConversation();
 
-            if (row==null)
+            if (row == null)
             {
                 dgvConversations.Rows.Insert(0, ConversationManager.CurrentConversation.ConvGuid, ConversationManager.CurrentConversation.Messages[0].Content, ConversationManager.CurrentConversation.Messages[0].Engine, "");
 
@@ -439,7 +440,7 @@ namespace AiTool3
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel); 
+                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel);
             }
         }
 
@@ -447,7 +448,7 @@ namespace AiTool3
         {
             // Clear the diagram
             ndcConversation.Clear();
-            
+
             var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
             if (root == null)
             {
@@ -464,7 +465,7 @@ namespace AiTool3
             ndcConversation.AddNode(rootNode);
 
             // recursively draw the children
-            DrawChildren(root, rootNode, 300+100, ref y);
+            DrawChildren(root, rootNode, 300 + 100, ref y);
         }
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
@@ -507,7 +508,7 @@ namespace AiTool3
         private void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
-            
+
             ConversationManager.LoadConversation(clickedGuid);
 
             DrawNetworkDiagram();
@@ -545,7 +546,7 @@ namespace AiTool3
         private void buttonEditTemplate_Click(object sender, EventArgs e)
         {
             if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return;
-            
+
             EditAndSaveTemplate(GetCurrentTemplate());
         }
 
@@ -573,7 +574,7 @@ namespace AiTool3
         private void buttonAdd_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(cbCategories.Text)) return;
-            
+
             var template = new ConversationTemplate("System Prompt", "Initial Prompt");
 
             EditAndSaveTemplate(template, true, cbCategories.Text);
@@ -591,14 +592,12 @@ namespace AiTool3
         {
             if (!audioRecorderManager.IsRecording)
             {
-                // Start recording
                 await audioRecorderManager.StartRecording();
                 buttonStartRecording.BackColor = Color.Red;
                 buttonStartRecording.Text = "Stop\r\nRecord";
             }
             else
             {
-                // Stop recording
                 await audioRecorderManager.StopRecording();
                 buttonStartRecording.BackColor = Color.Black;
                 buttonStartRecording.Text = "Start\r\nRecord";
@@ -653,38 +652,26 @@ namespace AiTool3
         {
             OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageDialog();
 
-                // convert the image to base64 and set the type
             Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
             Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
         }
 
         private void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            // get the text in the search bar
-            var searchText = tbSearch.Text;
-
-            // for each row in the dgvConversations, check if any message content contains the search text
             foreach (DataGridViewRow row in dgvConversations.Rows)
             {
-                if(row.Cells[0].Value == null)
-                {
-                    continue;
-                }
-                // get the guid
-                var guid = row.Cells[0].Value.ToString();
+                if (row.Cells[0].Value == null) continue;
                 
-                // get all the mssages for tat convo from file
+                var guid = row.Cells[0].Value.ToString();
+
                 var conv = BranchedConversation.LoadConversation(guid);
 
-                // check if any of the messages contain the search text
                 var allMessages = conv.Messages.Select(m => m.Content).ToList();
 
-                var containsSearchText = allMessages.Any(m => m.Contains(searchText, StringComparison.InvariantCultureIgnoreCase));
-
-                // set the visibility of the row based on the search text
-                row.Visible = containsSearchText;
-
+                row.Visible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
             }
         }
+
+        private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
     }
 }

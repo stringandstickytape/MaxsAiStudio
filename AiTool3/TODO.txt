@@ -16,7 +16,7 @@ External links to other apps or handlers?
 
 Handle if there's no local AI
 
-Add dummy root message to conversations, to join root user messages together
+DONE: Add dummy root message to conversations, to join root user messages together
 
 add clear-search button
 

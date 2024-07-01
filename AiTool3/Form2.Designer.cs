@@ -56,6 +56,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
+            btnClearSearch = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -183,6 +184,7 @@ namespace AiTool3
             // 
             // splitContainer5.Panel1
             // 
+            splitContainer5.Panel1.Controls.Add(btnClearSearch);
             splitContainer5.Panel1.Controls.Add(tbSearch);
             splitContainer5.Panel1.Controls.Add(dgvConversations);
             // 
@@ -198,7 +200,7 @@ namespace AiTool3
             tbSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             tbSearch.Location = new Point(9, 11);
             tbSearch.Name = "tbSearch";
-            tbSearch.Size = new Size(596, 31);
+            tbSearch.Size = new Size(567, 31);
             tbSearch.TabIndex = 1;
             tbSearch.TextChanged += tbSearch_TextChanged;
             // 
@@ -424,6 +426,16 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
             // 
+            // btnClearSearch
+            // 
+            btnClearSearch.Location = new Point(588, 10);
+            btnClearSearch.Name = "btnClearSearch";
+            btnClearSearch.Size = new Size(31, 34);
+            btnClearSearch.TabIndex = 2;
+            btnClearSearch.Text = "X";
+            btnClearSearch.UseVisualStyleBackColor = true;
+            btnClearSearch.Click += btnClearSearch_Click;
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -491,5 +503,6 @@ namespace AiTool3
         private Button buttonAttachImage;
         private TextBox tbSearch;
         private GroupBox groupBox1;
+        private Button btnClearSearch;
     }
 }
