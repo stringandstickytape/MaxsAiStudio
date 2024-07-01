@@ -693,17 +693,9 @@ namespace AiTool3
         {
             OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageDialog();
 
-            if (openFileDialog.FileName != "")
-            {
                 // convert the image to base64 and set the type
-                Base64Image = ImageHelpers.ImageToBase64(openFileDialog.FileName);
-                Base64ImageType = ImageHelpers.GetImageType(openFileDialog.FileName);
-            }
-            else
-            {
-                Base64Image = "";
-                Base64ImageType = "";
-            }
+            Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
+            Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
         }
 
         private void tbSearch_TextChanged(object sender, EventArgs e)
