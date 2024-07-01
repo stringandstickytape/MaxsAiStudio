@@ -320,6 +320,9 @@ namespace AiTool3
 
             var clickedCompletion = CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
             PreviousCompletion = clickedCompletion;
+
+
+
             rtbInput.Clear();
             if (PreviousCompletion.Role == CompletionRole.User)
             {
@@ -334,6 +337,12 @@ namespace AiTool3
             else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(PreviousCompletion?.Content ?? ""));
 
+            if (clickedCompletion == CurrentConversation.Messages.First())
+            {
+                CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+                PreviousCompletion = null;
+                DrawNetworkDiagram();
+            }
         }
 
         private SnippetManager snippetManager = new SnippetManager();
