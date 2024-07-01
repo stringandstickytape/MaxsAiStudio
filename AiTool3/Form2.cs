@@ -316,6 +316,7 @@ namespace AiTool3
         {
             return new CompletionMessage
             {
+                Timestamp = DateTime.Now,
                 Role = role,
                 Content = content,
                 Parent = role == CompletionRole.User ? ConversationManager.PreviousCompletion?.Guid : null,
@@ -578,6 +579,7 @@ namespace AiTool3
         {
             return new CompletionMessage
             {
+                Timestamp = DateTime.Now,
                 Parent = parentGuid,
                 Role = role,
                 Content = originalMessage.Content,

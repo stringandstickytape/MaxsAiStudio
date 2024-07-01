@@ -103,6 +103,7 @@ namespace AiTool3.Conversations
         {
             var m = new CompletionMessage
             {
+                Timestamp = DateTime.Now,
                 Guid = Guid.NewGuid().ToString(),
                 Content = "Begin Conversation",
                 Role = CompletionRole.Root,

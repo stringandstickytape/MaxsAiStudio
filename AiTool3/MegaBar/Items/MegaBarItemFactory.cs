@@ -93,8 +93,6 @@ namespace AiTool3.MegaBar.Items
                     // get the first line of code execept the `s
                     var firstLine = processedCode.Split('\n').Skip(1).First();
 
-
-
                     // if the first line contains the last line...
                     if (firstLine.Contains(lastLine) && lastLine.Length > 0)
                     {
