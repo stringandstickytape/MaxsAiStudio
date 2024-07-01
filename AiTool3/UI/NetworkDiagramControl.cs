@@ -145,11 +145,11 @@ namespace AiTool3.UI
 
             if (UseDropShadow)
             {
-                using (GraphicsPath shadowPath = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height, NodeCornerRadius))
+                using (GraphicsPath shadowPath = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X + 10, bounds.Y + 10, bounds.Width, bounds.Height, NodeCornerRadius))
                 using (PathGradientBrush shadowBrush = new PathGradientBrush(shadowPath))
                 {
                     shadowBrush.CenterColor = Color.FromArgb(100, Color.Black);
-                    shadowBrush.SurroundColors = new Color[] { Color.Transparent };
+                    shadowBrush.SurroundColors = new Color[] { Color.FromArgb(90, Color.Black) };
                     g.FillPath(shadowBrush, shadowPath);
                 }
             }
@@ -172,7 +172,7 @@ namespace AiTool3.UI
 
                 if (!string.IsNullOrEmpty(node.NodeInfoLabel))
                 {
-                    using (Font labelFont = new Font(Font.FontFamily, 10f))
+                    using (Font labelFont = new Font(Font.FontFamily, 8f, FontStyle.Bold))
                     using (SolidBrush labelBrush = new SolidBrush(Color.White))
                     {
                         SizeF labelSize = g.MeasureString(node.NodeInfoLabel, labelFont);
@@ -180,7 +180,9 @@ namespace AiTool3.UI
                         float labelY = bounds.Bottom;
                         RectangleF labelRect = new RectangleF(labelX, labelY, labelSize.Width, labelSize.Height);
 
-                        g.FillRectangle(Brushes.Black, labelRect);
+                        // fill rect 50% opacity
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), labelRect);
+
                         g.DrawString(node.NodeInfoLabel, labelFont, labelBrush, labelX, labelY);
                     }
                 }

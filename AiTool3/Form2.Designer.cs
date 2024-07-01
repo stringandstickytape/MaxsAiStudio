@@ -41,10 +41,11 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             splitContainer2 = new SplitContainer();
+            groupBox1 = new GroupBox();
             button2 = new Button();
-            button1 = new Button();
-            cbTemplates = new ComboBox();
             cbCategories = new ComboBox();
+            cbTemplates = new ComboBox();
+            button1 = new Button();
             splitContainer3 = new SplitContainer();
             button5 = new Button();
             button4 = new Button();
@@ -68,6 +69,7 @@ namespace AiTool3
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
@@ -104,9 +106,9 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(994, 3);
+            cbEngine.Location = new Point(904, 3);
             cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(315, 40);
+            cbEngine.Size = new Size(405, 40);
             cbEngine.TabIndex = 3;
             // 
             // btnGo
@@ -128,9 +130,9 @@ namespace AiTool3
             rtbSystemPrompt.BackColor = Color.Black;
             rtbSystemPrompt.FlashOnUpdate = false;
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbSystemPrompt.Location = new Point(3, 49);
+            rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(1306, 188);
+            rtbSystemPrompt.Size = new Size(882, 234);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -193,6 +195,7 @@ namespace AiTool3
             // 
             // tbSearch
             // 
+            tbSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             tbSearch.Location = new Point(9, 11);
             tbSearch.Name = "tbSearch";
             tbSearch.Size = new Size(315, 31);
@@ -220,10 +223,7 @@ namespace AiTool3
             // 
             // splitContainer2.Panel1
             // 
-            splitContainer2.Panel1.Controls.Add(button2);
-            splitContainer2.Panel1.Controls.Add(button1);
-            splitContainer2.Panel1.Controls.Add(cbTemplates);
-            splitContainer2.Panel1.Controls.Add(cbCategories);
+            splitContainer2.Panel1.Controls.Add(groupBox1);
             splitContainer2.Panel1.Controls.Add(cbEngine);
             splitContainer2.Panel1.Controls.Add(rtbSystemPrompt);
             // 
@@ -234,11 +234,27 @@ namespace AiTool3
             splitContainer2.SplitterDistance = 240;
             splitContainer2.TabIndex = 8;
             // 
+            // groupBox1
+            // 
+            groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            groupBox1.Controls.Add(button2);
+            groupBox1.Controls.Add(cbCategories);
+            groupBox1.Controls.Add(cbTemplates);
+            groupBox1.Controls.Add(button1);
+            groupBox1.ForeColor = Color.White;
+            groupBox1.Location = new Point(904, 61);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(398, 170);
+            groupBox1.TabIndex = 10;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Templates";
+            // 
             // button2
             // 
+            button2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             button2.BackColor = Color.Black;
             button2.ForeColor = Color.White;
-            button2.Location = new Point(913, 7);
+            button2.Location = new Point(317, 130);
             button2.Name = "button2";
             button2.Size = new Size(75, 34);
             button2.TabIndex = 9;
@@ -246,41 +262,44 @@ namespace AiTool3
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
             // 
+            // cbCategories
+            // 
+            cbCategories.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            cbCategories.BackColor = Color.Black;
+            cbCategories.Font = new Font("Segoe UI", 12F);
+            cbCategories.ForeColor = Color.White;
+            cbCategories.FormattingEnabled = true;
+            cbCategories.Location = new Point(12, 38);
+            cbCategories.Name = "cbCategories";
+            cbCategories.Size = new Size(380, 40);
+            cbCategories.TabIndex = 6;
+            cbCategories.SelectedIndexChanged += cbCategories_SelectedIndexChanged;
+            // 
+            // cbTemplates
+            // 
+            cbTemplates.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            cbTemplates.BackColor = Color.Black;
+            cbTemplates.Font = new Font("Segoe UI", 12F);
+            cbTemplates.ForeColor = Color.White;
+            cbTemplates.FormattingEnabled = true;
+            cbTemplates.Location = new Point(12, 84);
+            cbTemplates.Name = "cbTemplates";
+            cbTemplates.Size = new Size(380, 40);
+            cbTemplates.TabIndex = 7;
+            cbTemplates.SelectedIndexChanged += cbTemplates_SelectedIndexChanged;
+            // 
             // button1
             // 
+            button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             button1.BackColor = Color.Black;
             button1.ForeColor = Color.White;
-            button1.Location = new Point(838, 6);
+            button1.Location = new Point(242, 130);
             button1.Name = "button1";
             button1.Size = new Size(69, 34);
             button1.TabIndex = 8;
             button1.Text = "Edit";
             button1.UseVisualStyleBackColor = false;
             button1.Click += button1_Click;
-            // 
-            // cbTemplates
-            // 
-            cbTemplates.BackColor = Color.Black;
-            cbTemplates.Font = new Font("Segoe UI", 12F);
-            cbTemplates.ForeColor = Color.White;
-            cbTemplates.FormattingEnabled = true;
-            cbTemplates.Location = new Point(389, 3);
-            cbTemplates.Name = "cbTemplates";
-            cbTemplates.Size = new Size(443, 40);
-            cbTemplates.TabIndex = 7;
-            cbTemplates.SelectedIndexChanged += cbTemplates_SelectedIndexChanged;
-            // 
-            // cbCategories
-            // 
-            cbCategories.BackColor = Color.Black;
-            cbCategories.Font = new Font("Segoe UI", 12F);
-            cbCategories.ForeColor = Color.White;
-            cbCategories.FormattingEnabled = true;
-            cbCategories.Location = new Point(3, 3);
-            cbCategories.Name = "cbCategories";
-            cbCategories.Size = new Size(380, 40);
-            cbCategories.TabIndex = 6;
-            cbCategories.SelectedIndexChanged += cbCategories_SelectedIndexChanged;
             // 
             // splitContainer3
             // 
@@ -430,6 +449,7 @@ namespace AiTool3
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            groupBox1.ResumeLayout(false);
             splitContainer3.Panel1.ResumeLayout(false);
             splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
@@ -469,5 +489,6 @@ namespace AiTool3
         private Button button4;
         private Button button5;
         private TextBox tbSearch;
+        private GroupBox groupBox1;
     }
 }
