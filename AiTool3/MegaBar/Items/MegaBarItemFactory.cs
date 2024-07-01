@@ -13,7 +13,12 @@ namespace AiTool3.MegaBar.Items
     {
         private static readonly Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>> ItemCallbacks = new Dictionary<MegaBarItemType, Func<string, string, List<CompletionMessage>, Action>>
         {
-            [MegaBarItemType.Copy] = (code,guid,messages) => () => Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(code)),
+            [MegaBarItemType.Copy] = (code,guid,messages) => () =>
+            {
+                var processedCode = PrependParentIfUnterminated(guid, messages, code);
+                Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(processedCode));
+                },
+
             [MegaBarItemType.Browser] = (code,guid,messages) => () => LaunchHelpers.LaunchHtml(SnipperHelper.StripFirstAndLastLine(code)),
             [MegaBarItemType.CSharpScript] = (code,guid,messages) => () => LaunchHelpers.LaunchCSharp(SnipperHelper.StripFirstAndLastLine(code)),
             [MegaBarItemType.Notepad] = (code,guid,messages) => () => LaunchHelpers.LaunchTxt(SnipperHelper.StripFirstAndLastLine(code)),
