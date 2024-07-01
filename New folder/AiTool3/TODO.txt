@@ -1,0 +1,25 @@
+﻿TODO:
+DONE: Token counting
+DONE: Support bitmaps (OpenAI and Claude)
+DONE: Support system prompts
+DONE: Support categories
+DONE: Amend ButtonedRichTextBox with a param, if true, flash when content updated
+DONE: Make passwords configurable
+
+Delete templates
+Add labels to UI
+
+Token counting across reporting periods
+Streaming?! (is it worth it?)
+
+External links to other apps or handlers?
+
+Handle if there's no local AI
+
+DONE: Add dummy root message to conversations, to join root user messages together
+
+add clear-search button
+
+add time-taken to search results and timestamp to all convo messages
+
+add "continue..." funcitionality that concats messages, prob don't need to keep sensible history of this

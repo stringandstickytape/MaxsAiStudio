@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Configurations>Debug;Release;DebugCublas</Configurations>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugCublas'">
+	  <DefineConstants>DEBUG;TRACE;CUBLAS</DefineConstants>
+	  <DebugSymbols>true</DebugSymbols>
+	  <DebugType>full</DebugType>
+	  <Optimize>false</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+	  <DefineConstants>DEBUG;TRACE</DefineConstants>
+	  <DebugSymbols>true</DebugSymbols>
+	  <DebugType>full</DebugType>
+	  <Optimize>false</Optimize>
+	</PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'DebugCublas'">
+    <PackageReference Include="Whisper.net.Runtime.Cublas" Version="1.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' != 'DebugCublas'">
+    <PackageReference Include="Whisper.net.Runtime" Version="1.5.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="CSharpScript" Version="1.0.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2592.51" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Speech" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.2" />
+	<PackageReference Include="Whisper.net" Version="1.5.0" />
+  </ItemGroup>
+
+</Project>
