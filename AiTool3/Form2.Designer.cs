@@ -81,7 +81,7 @@ namespace AiTool3
             // ndcConversation
             // 
             ndcConversation.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            ndcConversation.BackColor = Color.DimGray;
+            ndcConversation.BackColor = Color.FromArgb(64, 64, 64);
             ndcConversation.HighlightedNode = null;
             ndcConversation.HighlightedNodeBorderColor = Color.Red;
             ndcConversation.Location = new Point(3, 3);

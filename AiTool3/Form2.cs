@@ -568,9 +568,9 @@ namespace AiTool3
             {
                 return;
             }
-            var y = 0;
+            var y = 100;
 
-            var rootNode = new Node(root.Content, new Point(100, y), root.Guid, root.InfoLabel);
+            var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel);
 
             // get the model with the same name as the engine
             var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
@@ -580,7 +580,7 @@ namespace AiTool3
             ndcConversation.AddNode(rootNode);
 
             // recursively draw the children
-            DrawChildren(root, rootNode, 100, ref y);
+            DrawChildren(root, rootNode, 300, ref y);
 
         }
 
