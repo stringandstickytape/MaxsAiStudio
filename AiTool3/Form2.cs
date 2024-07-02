@@ -37,7 +37,7 @@ namespace AiTool3
         {
             InitializeComponent();
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-            ndcConversation.SetContextMenuOptions(new[] { "Save conversation to here as TXT", "Option 2", "Option 3" });
+            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Option 2", "Option 3" });
             ndcConversation.MenuOptionSelected += MenuOptionSelected();
 
             // if topics.json exists, load it
@@ -66,6 +66,8 @@ namespace AiTool3
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
 
             InitialiseMenus();
+
+            BeginNewConversation();
         }
 
         private void AudioRecorderManager_AudioProcessed(object? sender, string e)
@@ -476,6 +478,11 @@ namespace AiTool3
         }
 
         private void btnClear_Click(object sender, EventArgs e)
+        {
+            BeginNewConversation();
+        }
+
+        private void BeginNewConversation()
         {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();

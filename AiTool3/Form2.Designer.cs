@@ -38,6 +38,7 @@ namespace AiTool3
             rtbInput = new ButtonedRichTextBox();
             splitContainer1 = new SplitContainer();
             splitContainer5 = new SplitContainer();
+            btnClearSearch = new Button();
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             splitContainer2 = new SplitContainer();
@@ -56,7 +57,6 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
-            btnClearSearch = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -94,7 +94,7 @@ namespace AiTool3
             ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
             ndcConversation.NodeGradientStart = Color.White;
             ndcConversation.PanOffset = new Point(0, 0);
-            ndcConversation.Size = new Size(616, 595);
+            ndcConversation.Size = new Size(616, 589);
             ndcConversation.TabIndex = 0;
             ndcConversation.Text = "networkDiagramControl1";
             ndcConversation.UseDropShadow = true;
@@ -117,7 +117,7 @@ namespace AiTool3
             btnGo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnGo.BackColor = Color.Black;
             btnGo.ForeColor = Color.White;
-            btnGo.Location = new Point(883, 347);
+            btnGo.Location = new Point(883, 343);
             btnGo.Name = "btnGo";
             btnGo.Size = new Size(145, 136);
             btnGo.TabIndex = 4;
@@ -133,7 +133,7 @@ namespace AiTool3
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(601, 221);
+            rtbSystemPrompt.Size = new Size(601, 218);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -144,7 +144,7 @@ namespace AiTool3
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
             rtbOutput.Name = "rtbOutput";
-            rtbOutput.Size = new Size(1025, 271);
+            rtbOutput.Size = new Size(1025, 268);
             rtbOutput.TabIndex = 6;
             // 
             // rtbInput
@@ -155,7 +155,7 @@ namespace AiTool3
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(874, 480);
+            rtbInput.Size = new Size(874, 476);
             rtbInput.TabIndex = 7;
             // 
             // splitContainer1
@@ -171,7 +171,7 @@ namespace AiTool3
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
-            splitContainer1.Size = new Size(1669, 1002);
+            splitContainer1.Size = new Size(1669, 992);
             splitContainer1.SplitterDistance = 628;
             splitContainer1.TabIndex = 9;
             // 
@@ -191,9 +191,19 @@ namespace AiTool3
             // splitContainer5.Panel2
             // 
             splitContainer5.Panel2.Controls.Add(ndcConversation);
-            splitContainer5.Size = new Size(622, 993);
-            splitContainer5.SplitterDistance = 388;
+            splitContainer5.Size = new Size(622, 983);
+            splitContainer5.SplitterDistance = 384;
             splitContainer5.TabIndex = 1;
+            // 
+            // btnClearSearch
+            // 
+            btnClearSearch.Location = new Point(588, 10);
+            btnClearSearch.Name = "btnClearSearch";
+            btnClearSearch.Size = new Size(31, 34);
+            btnClearSearch.TabIndex = 2;
+            btnClearSearch.Text = "X";
+            btnClearSearch.UseVisualStyleBackColor = true;
+            btnClearSearch.Click += btnClearSearch_Click;
             // 
             // tbSearch
             // 
@@ -212,7 +222,7 @@ namespace AiTool3
             dgvConversations.Location = new Point(3, 46);
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
-            dgvConversations.Size = new Size(616, 339);
+            dgvConversations.Size = new Size(616, 335);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
             // 
@@ -233,8 +243,8 @@ namespace AiTool3
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
-            splitContainer2.Size = new Size(1031, 999);
-            splitContainer2.SplitterDistance = 227;
+            splitContainer2.Size = new Size(1031, 989);
+            splitContainer2.SplitterDistance = 224;
             splitContainer2.TabIndex = 8;
             // 
             // groupBox1
@@ -324,8 +334,8 @@ namespace AiTool3
             splitContainer3.Panel2.Controls.Add(btnClear);
             splitContainer3.Panel2.Controls.Add(rtbInput);
             splitContainer3.Panel2.Controls.Add(btnGo);
-            splitContainer3.Size = new Size(1031, 768);
-            splitContainer3.SplitterDistance = 278;
+            splitContainer3.Size = new Size(1031, 761);
+            splitContainer3.SplitterDistance = 275;
             splitContainer3.TabIndex = 0;
             // 
             // buttonAttachImage
@@ -333,7 +343,7 @@ namespace AiTool3
             buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(978, 12);
+            buttonAttachImage.Location = new Point(978, 8);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(50, 43);
             buttonAttachImage.TabIndex = 12;
@@ -346,7 +356,7 @@ namespace AiTool3
             buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(883, 79);
+            buttonNewKeepAll.Location = new Point(883, 75);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 96);
             buttonNewKeepAll.TabIndex = 11;
@@ -359,7 +369,7 @@ namespace AiTool3
             buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(883, 12);
+            buttonStartRecording.Location = new Point(883, 8);
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(89, 61);
             buttonStartRecording.TabIndex = 10;
@@ -372,7 +382,7 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(883, 181);
+            btnRestart.Location = new Point(883, 177);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 77);
             btnRestart.TabIndex = 9;
@@ -385,7 +395,7 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(883, 264);
+            btnClear.Location = new Point(883, 260);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(145, 77);
             btnClear.TabIndex = 8;
@@ -425,16 +435,6 @@ namespace AiTool3
             tokenUsageLabel.Name = "tokenUsageLabel";
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
-            // 
-            // btnClearSearch
-            // 
-            btnClearSearch.Location = new Point(588, 10);
-            btnClearSearch.Name = "btnClearSearch";
-            btnClearSearch.Size = new Size(31, 34);
-            btnClearSearch.TabIndex = 2;
-            btnClearSearch.Text = "X";
-            btnClearSearch.UseVisualStyleBackColor = true;
-            btnClearSearch.Click += btnClearSearch_Click;
             // 
             // Form2
             // 

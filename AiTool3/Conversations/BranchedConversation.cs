@@ -92,7 +92,12 @@ namespace AiTool3.Conversations
                 Title = obj.summary;
             }
             // jsonconvert to dynamic
-            else Title = Messages.First(x => x.Role != CompletionRole.Root).Content.Substring(0, 100);
+            else
+            {
+                var msg = Messages.First(x => x.Role != CompletionRole.Root).Content;
+
+                Title = msg.Length > 100 ? msg.Substring(0, 100) : msg;
+            }
 
             SaveAsJson();
 

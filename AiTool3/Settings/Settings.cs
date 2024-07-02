@@ -17,7 +17,7 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
         public bool NarrateResponses { get; set; } = false;
 
-        [MyDisplayNameAttr("Generate summaries using Local AI (ollama) on port 11394")]
+        [MyDisplayNameAttr("Generate summaries using Local AI (ollama) on port 11434")]
         public bool GenerateSummariesUsingLocalAi { get; set; } = false;
         public Settings()
         {
