@@ -110,7 +110,7 @@ The main window is divided into several sections:
 ### 13. Saving and Exporting
 
 - Conversations are automatically saved.
-- Right-click on a node in the network diagram and select "Save this branch as TXT" to save the conversation as a text file.
+- Right-click on a node in the network diagram to save the conversation branch as a text file or HTML page.
 
 ### 14. Keyboard Shortcuts
 
@@ -136,5 +136,11 @@ The main window is divided into several sections:
 
 - A new code review function has been added for project maintainers.
 - This feature can analyze the project's C# code and provide feedback on potential bugs.
+
+### 19. Disable Nodes
+
+- Users can now disable specific nodes in the conversation.
+- Disabled nodes are omitted from the conversation with AI and not saved as part of the conversation.
+- Right-click on a node in the network diagram and select "Disable" to toggle this feature.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.
