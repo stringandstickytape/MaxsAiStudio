@@ -1,4 +1,5 @@
-﻿namespace AiTool3.Conversations
+﻿
+namespace AiTool3.Conversations
 {
     public class CompletionMessage
     {
@@ -50,11 +51,14 @@
         {
             get
             {
-                var inputTokens = InputTokens == 0 ? "" : $"in: {InputTokens}";
-                var outputTokens = OutputTokens == 0 ? "" : $"out: {OutputTokens}";
-                return $"({inputTokens}{outputTokens})  {Engine}";
+                var inputTokens = InputTokens == 0 ? "" : $"{InputTokens} in";
+                var outputTokens = OutputTokens == 0 ? "" : $"{OutputTokens} out";
+                return $"{Engine} / {(TimeTaken == null ? "" : String.Format("{0:00}:{1:00}:{2:00}",
+                    TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))} / {inputTokens}{outputTokens}";
             }
         }
+
+        public TimeSpan TimeTaken { get; set; }
     }
 
     public enum CompletionRole

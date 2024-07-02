@@ -14,6 +14,7 @@ using AiTool3.MegaBar.Items;
 using Whisper.net.Ggml;
 using AiTool3.Providers;
 using AiTool3.Helpers;
+using System.Reflection;
 
 namespace AiTool3
 {
@@ -33,6 +34,11 @@ namespace AiTool3
         private CancellationTokenSource cts;
         private Task recordingTask;
         private bool isRecording = false;
+
+        private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
+
+
         public Form2()
         {
             InitializeComponent();
@@ -68,6 +74,20 @@ namespace AiTool3
             InitialiseMenus();
 
             BeginNewConversation();
+
+            updateTimer.Interval = 100; // Update every 100 milliseconds
+            updateTimer.Tick += UpdateTimer_Tick;
+
+        }
+
+        private void UpdateTimer_Tick(object sender, EventArgs e)
+        {
+            if (stopwatch.IsRunning)
+            {
+                TimeSpan ts = stopwatch.Elapsed;
+                tokenUsageLabel.Text = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            }
         }
 
         private void AudioRecorderManager_AudioProcessed(object? sender, string e)
@@ -306,108 +326,125 @@ namespace AiTool3
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
-            btnGo.Enabled = false;
-            var model = (Model)cbEngine.SelectedItem;
+            stopwatch.Restart();
+            updateTimer.Start();
 
-            // get the name of the service for the model
-            var serviceName = model.ServiceName;
+            CompletionMessage completionResponse;
+            AiResponse? response;
+            Model model;
 
-            // instantiate the service from the appropriate api
-            var aiService = AiServiceResolver.GetAiService(serviceName);
 
-            Conversation conversation = null;
-
-            conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
-            conversation.systemprompt = rtbSystemPrompt.Text;
-            conversation.messages = new List<ConversationMessage>();
-            List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
-
-            Debug.WriteLine(nodes);
-
-            foreach (var node in nodes)
+            try
             {
-                if (node.Role == CompletionRole.Root)
-                    continue;
+                btnGo.Enabled = false;
+                model = (Model)cbEngine.SelectedItem;
 
-                conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
+                // get the name of the service for the model
+                var serviceName = model.ServiceName;
+
+                // instantiate the service from the appropriate api
+                var aiService = AiServiceResolver.GetAiService(serviceName);
+
+                Conversation conversation = null;
+
+                conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+                conversation.systemprompt = rtbSystemPrompt.Text;
+                conversation.messages = new List<ConversationMessage>();
+                List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
+
+                Debug.WriteLine(nodes);
+
+                foreach (var node in nodes)
+                {
+                    if (node.Role == CompletionRole.Root)
+                        continue;
+
+                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
+                }
+                conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
+
+                // fetch the response from the api
+                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
+
+                if (response.SuggestedNextPrompt != null)
+                {
+                    rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
+                }
+
+                // create a completion message for the user input
+                var completionInput = new CompletionMessage
+                {
+                    Role = CompletionRole.User,
+                    Content = rtbInput.Text,
+                    Parent = ConversationManager.PreviousCompletion?.Guid,
+                    Engine = model.ModelName,
+                    Guid = System.Guid.NewGuid().ToString(),
+                    Children = new List<string>(),
+                    SystemPrompt = rtbSystemPrompt.Text,
+                    InputTokens = response.TokenUsage.InputTokens,
+                    OutputTokens = 0
+                };
+
+                if (response == null)
+                {
+                    MessageBox.Show("Response is null");
+                    btnGo.Enabled = true;
+                    return;
+                }
+
+                if (ConversationManager.PreviousCompletion != null)
+                {
+                    ConversationManager.PreviousCompletion.Children.Add(completionInput.Guid);
+                }
+
+                ConversationManager.CurrentConversation.Messages.Add(completionInput);
+
+                // Create a new completion object to store the response in
+                completionResponse = new CompletionMessage
+                {
+                    Role = CompletionRole.Assistant,
+                    Content = response.ResponseText,
+                    Parent = completionInput.Guid,
+                    Engine = model.ModelName,
+                    Guid = System.Guid.NewGuid().ToString(),
+                    Children = new List<string>(),
+                    SystemPrompt = rtbSystemPrompt.Text,
+                    InputTokens = 0,
+                    OutputTokens = response.TokenUsage.OutputTokens,
+                    TimeTaken = stopwatch.Elapsed
+                };
+
+                // add it to the current conversation
+                ConversationManager.CurrentConversation.Messages.Add(completionResponse);
+
+                // and display the results in the output box
+                FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
+
+                if (Settings.NarrateResponses)
+                {
+                    // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
+                    var text = rtbOutput.Text;
+                    Task.Run(() => TtsHelper.ReadAloud(text));
+                }
+
+                completionInput.Children.Add(completionResponse.Guid);
+
+                ConversationManager.PreviousCompletion = completionResponse;
+
+                Base64Image = null;
+                Base64ImageType = null;
+
+                // draw the network diagram
+                DrawNetworkDiagram();
+
             }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
-
-            // fetch the response from the api
-            var response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
-
-            // work out the cost
-            var cost = model.GetCost(response.TokenUsage);
-
-            if (response.SuggestedNextPrompt != null)
+            finally
             {
-                RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
+                stopwatch.Stop();
+                updateTimer.Stop();
+                TimeSpan ts = stopwatch.Elapsed;
             }
 
-            // create a completion message for the user input
-            var completionInput = new CompletionMessage
-            {
-                Role = CompletionRole.User,
-                Content = rtbInput.Text,
-                Parent = ConversationManager.PreviousCompletion?.Guid,
-                Engine = model.ModelName,
-                Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>(),
-                SystemPrompt = rtbSystemPrompt.Text,
-                InputTokens = response.TokenUsage.InputTokens,
-                OutputTokens = 0
-            };
-
-            if (response == null)
-            {
-                MessageBox.Show("Response is null");
-                btnGo.Enabled = true;
-                return;
-            }
-
-            if (ConversationManager.PreviousCompletion != null)
-            {
-                ConversationManager.PreviousCompletion.Children.Add(completionInput.Guid);
-            }
-
-            ConversationManager.CurrentConversation.Messages.Add(completionInput);
-
-            // Create a new completion object to store the response in
-            var completionResponse = new CompletionMessage
-            {
-                Role = CompletionRole.Assistant,
-                Content = response.ResponseText,
-                Parent = completionInput.Guid,
-                Engine = model.ModelName,
-                Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>(),
-                SystemPrompt = rtbSystemPrompt.Text,
-                InputTokens = 0,
-                OutputTokens = response.TokenUsage.OutputTokens
-            };
-
-            // add it to the current conversation
-            ConversationManager.CurrentConversation.Messages.Add(completionResponse);
-
-            // and display the results in the output box
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
-
-            if (Settings.NarrateResponses)
-            {
-                // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
-                var text = rtbOutput.Text;
-                Task.Run(() => TtsHelper.ReadAloud(text));
-            }
-
-            completionInput.Children.Add(completionResponse.Guid);
-
-            ConversationManager.PreviousCompletion = completionResponse;
-
-            Base64Image = null;
-            Base64ImageType = null;
-
-            // draw the network diagram
-            DrawNetworkDiagram();
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
@@ -426,6 +463,8 @@ namespace AiTool3
 
                 row = dgvConversations.Rows[0];
             }
+
+            var cost = model.GetCost(response.TokenUsage);
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
