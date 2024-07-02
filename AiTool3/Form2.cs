@@ -15,6 +15,7 @@ using Whisper.net.Ggml;
 using AiTool3.Providers;
 using AiTool3.Helpers;
 using System.Reflection;
+using System.Text;
 
 namespace AiTool3
 {
@@ -43,7 +44,7 @@ namespace AiTool3
         {
             InitializeComponent();
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Option 2", "Option 3" });
+            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
             ndcConversation.MenuOptionSelected += MenuOptionSelected();
 
             // if topics.json exists, load it
@@ -109,7 +110,7 @@ namespace AiTool3
         {
             return (sender, e) =>
             {
-                if (e.SelectedOption == "Save conversation to here as TXT")
+                if (e.SelectedOption == "Save this branch as TXT")
                 {
                     var nodes = ConversationManager.GetParentNodeList();
                     var json = JsonConvert.SerializeObject(nodes);
@@ -127,6 +128,177 @@ namespace AiTool3
                         // open the file in default handler
                         Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
                     }
+                }
+                if (e.SelectedOption == "Save this branch as HTML")
+                {
+                    var nodes = ConversationManager.GetParentNodeList();
+                    var json = JsonConvert.SerializeObject(nodes);
+
+                    StringBuilder htmlBuilder = new StringBuilder();
+                    htmlBuilder.Append(@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Conversation Export</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+        }
+        .conversation {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .message {
+            background-color: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            transition: max-height 1s ease, background-color 0.5s ease;
+            max-height: 200px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .message.expanded {
+            max-height: 2000px;
+        }
+        .message:last-child {
+            margin-bottom: 0;
+        }
+        .message:hover {
+            background-color: #333333;
+        }
+        .role {
+            font-weight: bold;
+            color: #b0b0b0;
+            margin-bottom: 5px;
+        }
+        .content {
+            white-space: pre-wrap;
+        }
+        .human .role {
+            color: #64b5f6;
+        }
+        .assistant .role {
+            color: #81c784;
+        }
+        .more {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(42, 42, 42, 0) 0%, rgba(42, 42, 42, 1) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 5px;
+            transition: opacity 0.8s ease;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+        .more span {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #e0e0e0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: transform 0.8s ease;
+        }
+        .message.expanded .more {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .message.expanded .more span {
+            transform: rotate(180deg);
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .message {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+    <script>
+        function toggleExpand(element) {
+            element.classList.toggle('expanded');
+            checkOverflow(element);
+        }
+
+        function checkOverflow(element) {
+            const content = element.querySelector('.content');
+            const more = element.querySelector('.more');
+            if (content.scrollHeight > element.clientHeight) {
+                more.style.display = 'flex';
+            } else {
+                more.style.display = 'none';
+            }
+        }
+
+        window.onload = function() {
+            document.querySelectorAll('.message').forEach(checkOverflow);
+        };
+    </script>
+</head>
+<body>
+    <div class='conversation'>
+");
+
+                    foreach (var node in nodes.Where(x => !x.Omit))
+                    {
+                        string roleClass = node.Role.ToString().ToLower();
+                        htmlBuilder.Append($@"
+        <div class='message {roleClass}' onclick='toggleExpand(this)'>
+            <div class='role'>{node.Role}:</div>
+            <div class='content'>{System.Web.HttpUtility.HtmlEncode(node.Content)}</div>
+            <div class='more'><span>more...</span></div>
+        </div>
+");
+                    }
+
+                    htmlBuilder.Append(@"
+    </div>
+</body>
+</html>
+");
+
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "HTML files (*.html)|*.html|All files (*.*)|*.*";
+                    saveFileDialog.RestoreDirectory = true;
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        System.IO.File.WriteAllText(saveFileDialog.FileName, htmlBuilder.ToString());
+                        Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                    }
+                }
+
+
+
+                else if (e.SelectedOption == "Disable")
+                {
+                    var selectedGuid = e.SelectedNode.Guid;
+                    var selectedMessage = ConversationManager.CurrentConversation.FindByGuid(selectedGuid);
+                    selectedMessage.Omit = !selectedMessage.Omit;
+                    e.SelectedNode.IsDisabled = selectedMessage.Omit;
+
+                    DrawNetworkDiagram();
+                }
+                else if (e.SelectedOption == "Option 3")
+                {
+                    // do nothing
                 }
             };
         }
@@ -333,7 +505,6 @@ namespace AiTool3
             AiResponse? response;
             Model model;
 
-
             try
             {
                 btnGo.Enabled = false;
@@ -356,7 +527,7 @@ namespace AiTool3
 
                 foreach (var node in nodes)
                 {
-                    if (node.Role == CompletionRole.Root)
+                    if (node.Role == CompletionRole.Root || node.Omit)
                         continue;
 
                     conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
@@ -490,7 +661,7 @@ namespace AiTool3
             }
             var y = 100;
 
-            var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel);
+            var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel, root.Omit);
 
             // get the model with the same name as the engine
             var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
@@ -510,7 +681,7 @@ namespace AiTool3
                 // get from child string
                 var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
 
-                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel);
+                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel, childMsg.Omit);
                 childNode.BackColor = childMsg.GetColorForEngine();
                 ndcConversation.AddNode(childNode);
                 ndcConversation.AddConnection(rootNode, childNode);

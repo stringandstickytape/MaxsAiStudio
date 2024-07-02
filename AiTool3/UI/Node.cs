@@ -15,12 +15,15 @@
             public string Guid { get; set; }
             public string NodeInfoLabel { get; set; }
 
-            public Node(string label, Point location, string guid, string nodeInfoLabel)
+            public bool IsDisabled { get; set; }
+
+            public Node(string label, Point location, string guid, string nodeInfoLabel, bool isDisabled)
             {
                 Label = label;
                 Location = location;
                 Guid = guid;
                 NodeInfoLabel = nodeInfoLabel;
+                IsDisabled = isDisabled;
             }
         }
     }

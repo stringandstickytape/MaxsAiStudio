@@ -141,6 +141,7 @@ namespace AiTool3.UI
 
         private void DrawNode(Graphics g, Node node)
         {
+            // we have node.IsDisabled, so we can draw a big cross over the top if it's disabled
             Rectangle bounds = node.Bounds;
 
             if (UseDropShadow)
@@ -187,17 +188,23 @@ namespace AiTool3.UI
                     }
                 }
             }
+
+            // draw big cross over the top of the roundedrectangle area
+            if (node.IsDisabled)
+            {
+                using (Pen crossPen = new Pen(Color.Red, 2f))
+                {
+                    g.DrawLine(crossPen, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom);
+                    g.DrawLine(crossPen, bounds.Left, bounds.Bottom, bounds.Right, bounds.Top);
+                }
+            }
+            
+
         }
 
         public Node GetNodeForGuid(string guid)
         {
             return nodes.FirstOrDefault(n => n.Guid == guid);
-        }
-
-        public void AddNode(string label, Point location, string guid, string nodeInfoLabel)
-        {
-            nodes.Add(new Node(label, location, guid, nodeInfoLabel));
-            Invalidate();
         }
 
         public void AddNode(Node newNode)
@@ -299,7 +306,7 @@ namespace AiTool3.UI
             connections = new List<Connection>();
             DoubleBuffered = true;
             zoomFactor = 1.0f;
-            panOffset = Point.Empty;
+            //panOffset = Point.Empty;
             Invalidate();
         }
 

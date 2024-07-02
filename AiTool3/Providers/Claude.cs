@@ -113,7 +113,6 @@ namespace AiTool3.Providers
 
             string suggestedNextPrompt = null;
 
-            // disabled, for now
             if (false && match.Success) 
             {
                 // get the matched text

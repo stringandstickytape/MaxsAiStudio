@@ -28,4 +28,6 @@ fix images ren't included in history
 
 add multiple files attach button
 
+add delete-template and save-as-new-template
 
+add delete-node-chain with are-you-sure? (is it chain, or just node?)

@@ -1,4 +1,6 @@
 ﻿
+using Newtonsoft.Json;
+
 namespace AiTool3.Conversations
 {
     public class CompletionMessage
@@ -13,6 +15,9 @@ namespace AiTool3.Conversations
         public List<string> Children { get; set; }
         public string Parent { get; set; }
 
+        // don't json this
+        [JsonIgnore]
+        public bool Omit { get; set; }
         public string Engine { get; set; }
 
         public Color GetColorForEngine()
