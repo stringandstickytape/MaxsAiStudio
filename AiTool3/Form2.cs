@@ -474,6 +474,8 @@ namespace AiTool3
             {
                 row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, Settings.GenerateSummariesUsingLocalAi);
             }
+
+            //await ConversationManager.RegenerateAllSummaries(summaryModel, Settings.GenerateSummariesUsingLocalAi, dgvConversations);
         }
 
         private void DrawNetworkDiagram()

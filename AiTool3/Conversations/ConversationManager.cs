@@ -56,6 +56,28 @@ namespace AiTool3.Conversations
             CurrentConversation = BranchedConversation.LoadConversation(guid);
         }
 
+        public async Task RegenerateAllSummaries(Model summaryModel, bool useLocalAi, DataGridView dgv)
+        {
+            // Get all conversation files
+            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "v3-conversation-*.json").OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
+
+            // get the guids from v3-conversation-{guid}.json
+            
+            foreach (string file in files)
+            {
+                // Load each conversation
+                string guid = Path.GetFileNameWithoutExtension(file).Replace("v3-conversation-", "").Replace(".json","");
+                LoadConversation(guid);
+
+                // Regenerate summary
+                string newSummary = await GenerateConversationSummary(summaryModel, useLocalAi);
+
+            }
+
+            // Refresh the DataGridView
+            dgv.Refresh();
+        }
+
 
     }
 }
