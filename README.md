@@ -100,6 +100,7 @@ The main window is divided into several sections:
 ### 11. Search Functionality
 
 - Use the search bar to filter conversations based on their content.
+- A clear search button has been added for convenience.
 
 ### 12. Settings
 
@@ -109,7 +110,7 @@ The main window is divided into several sections:
 ### 13. Saving and Exporting
 
 - Conversations are automatically saved.
-- Right-click on a node in the network diagram to save the conversation as a text file.
+- Right-click on a node in the network diagram and select "Save this branch as TXT" to save the conversation as a text file.
 
 ### 14. Keyboard Shortcuts
 
