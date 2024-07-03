@@ -696,6 +696,65 @@ namespace AiTool3
         private void btnClear_Click(object sender, EventArgs e)
         {
             BeginNewConversation();
+            PopulateUiForTemplate(GetCurrentlySelectedTemplate());
+        }
+
+        private void btnRestart_Click(object sender, EventArgs e)
+        {
+            BeginNewConversationPreserveInputAndSystemPrompts();
+        }
+
+        private void BeginNewConversationPreserveInputAndSystemPrompts()
+        {
+            var currentPrompt = rtbInput.Text;
+            var currentSystemPrompt = rtbSystemPrompt.Text;
+            BeginNewConversation();
+            rtbInput.Text = currentPrompt;
+            rtbSystemPrompt.Text = currentSystemPrompt;
+        }
+
+        private void buttonNewKeepAll_Click(object sender, EventArgs e)
+        {
+            var lastAssistantMessage = ConversationManager.PreviousCompletion;
+
+            if (lastAssistantMessage.Role == CompletionRole.User)
+                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+
+            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+
+            BeginNewConversationPreserveInputAndSystemPrompts();
+
+            // create new messages out of the two
+
+            var assistantMessage = new CompletionMessage
+            {
+                Parent = null,
+                Role = CompletionRole.Assistant,
+                Content = lastAssistantMessage.Content,
+                Engine = lastAssistantMessage.Engine,
+                Guid = Guid.NewGuid().ToString(),
+                Children = new List<string>()
+            };
+
+            var rootMessage = ConversationManager.CurrentConversation.GetRootNode();
+
+            var userMessage = new CompletionMessage
+            {
+                Parent = rootMessage.Guid,
+                Role = CompletionRole.User,
+                Content = lastUserMessage.Content,
+                Engine = lastUserMessage.Engine,
+                Guid = Guid.NewGuid().ToString(),
+                Children = new List<string>()
+            };
+            rootMessage.Children.Add(userMessage.Guid);
+            assistantMessage.Parent = userMessage.Guid;
+            userMessage.Children.Add(assistantMessage.Guid);
+
+            ConversationManager.CurrentConversation.Messages.AddRange(new[] { assistantMessage, userMessage });
+            ConversationManager.PreviousCompletion = assistantMessage;
+
+            DrawNetworkDiagram();
         }
 
         private void BeginNewConversation()
@@ -738,11 +797,17 @@ namespace AiTool3
 
         private void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // find the template
-            var template = TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
-
             btnClear_Click(null, null);
+            PopulateUiForTemplate(GetCurrentlySelectedTemplate());
+        }
 
+        private ConversationTemplate GetCurrentlySelectedTemplate()
+        {
+            return TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
+        }
+
+        private void PopulateUiForTemplate(ConversationTemplate template)
+        {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
             rtbInput.Text = template.InitialPrompt;
@@ -786,14 +851,6 @@ namespace AiTool3
             EditAndSaveTemplate(template, true, cbCategories.Text);
         }
 
-        private void btnRestart_Click(object sender, EventArgs e)
-        {
-            rtbOutput.Clear();
-            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            ConversationManager.PreviousCompletion = null;
-            DrawNetworkDiagram();
-        }
-
         private async void buttonStartRecording_Click(object sender, EventArgs e)
         {
             if (!audioRecorderManager.IsRecording)
@@ -810,49 +867,7 @@ namespace AiTool3
             }
         }
 
-        private void buttonNewKeepAll_Click(object sender, EventArgs e)
-        {
-            var lastAssistantMessage = ConversationManager.PreviousCompletion;
 
-            if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
-
-            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
-
-            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-
-            // create new messages out of the two
-
-            var assistantMessage = new CompletionMessage
-            {
-                Parent = null,
-                Role = CompletionRole.Assistant,
-                Content = lastAssistantMessage.Content,
-                Engine = lastAssistantMessage.Engine,
-                Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>()
-            };
-
-            var userMessage = new CompletionMessage
-            {
-                Parent = null,
-                Role = CompletionRole.User,
-                Content = lastUserMessage.Content,
-                Engine = lastUserMessage.Engine,
-                Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>()
-            };
-
-            assistantMessage.Parent = userMessage.Guid;
-            userMessage.Children.Add(assistantMessage.Guid);
-
-            ConversationManager.CurrentConversation.Messages.Add(assistantMessage);
-            ConversationManager.CurrentConversation.Messages.Add(userMessage);
-
-            ConversationManager.PreviousCompletion = assistantMessage;
-
-            DrawNetworkDiagram();
-        }
 
         private void buttonAttachImage_Click(object sender, EventArgs e)
         {

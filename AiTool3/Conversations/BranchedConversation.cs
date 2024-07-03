@@ -139,5 +139,10 @@ namespace AiTool3.Conversations
         {
             return JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
         }
+
+        public CompletionMessage GetRootNode()
+        {
+            return Messages.First(x => x.Role == CompletionRole.Root);
+        }
     }
 }

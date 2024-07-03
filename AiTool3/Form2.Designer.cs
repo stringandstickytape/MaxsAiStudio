@@ -360,7 +360,7 @@ namespace AiTool3
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 96);
             buttonNewKeepAll.TabIndex = 11;
-            buttonNewKeepAll.Text = "New\r\n(keep prompt and output)";
+            buttonNewKeepAll.Text = "New\r\n(keep 2-msg context)";
             buttonNewKeepAll.UseVisualStyleBackColor = false;
             buttonNewKeepAll.Click += buttonNewKeepAll_Click;
             // 
@@ -386,7 +386,7 @@ namespace AiTool3
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 77);
             btnRestart.TabIndex = 9;
-            btnRestart.Text = "New\r\n(keep prompt)";
+            btnRestart.Text = "New\r\n(keep prompts)";
             btnRestart.UseVisualStyleBackColor = false;
             btnRestart.Click += btnRestart_Click;
             // 
