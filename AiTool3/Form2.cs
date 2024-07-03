@@ -534,6 +534,9 @@ namespace AiTool3
                 }
                 conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
 
+                var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
+                var inputText = rtbInput.Text;
+                var systemPrompt = rtbSystemPrompt.Text;
                 // fetch the response from the api
                 response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
 
@@ -546,12 +549,12 @@ namespace AiTool3
                 var completionInput = new CompletionMessage
                 {
                     Role = CompletionRole.User,
-                    Content = rtbInput.Text,
-                    Parent = ConversationManager.PreviousCompletion?.Guid,
+                    Content = inputText,
+                    Parent = previousCompletionGuidBeforeAwait,
                     Engine = model.ModelName,
                     Guid = System.Guid.NewGuid().ToString(),
                     Children = new List<string>(),
-                    SystemPrompt = rtbSystemPrompt.Text,
+                    SystemPrompt = systemPrompt,
                     InputTokens = response.TokenUsage.InputTokens,
                     OutputTokens = 0
                 };
@@ -562,10 +565,11 @@ namespace AiTool3
                     btnGo.Enabled = true;
                     return;
                 }
+                var pc = ConversationManager.CurrentConversation.FindByGuid(previousCompletionGuidBeforeAwait);
 
-                if (ConversationManager.PreviousCompletion != null)
+                if (pc != null)
                 {
-                    ConversationManager.PreviousCompletion.Children.Add(completionInput.Guid);
+                    pc.Children.Add(completionInput.Guid);
                 }
 
                 ConversationManager.CurrentConversation.Messages.Add(completionInput);
@@ -579,7 +583,7 @@ namespace AiTool3
                     Engine = model.ModelName,
                     Guid = System.Guid.NewGuid().ToString(),
                     Children = new List<string>(),
-                    SystemPrompt = rtbSystemPrompt.Text,
+                    SystemPrompt = systemPrompt,
                     InputTokens = 0,
                     OutputTokens = response.TokenUsage.OutputTokens,
                     TimeTaken = stopwatch.Elapsed
