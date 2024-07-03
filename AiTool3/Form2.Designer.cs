@@ -343,11 +343,11 @@ namespace AiTool3
             buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(978, 8);
+            buttonAttachImage.Location = new Point(964, 3);
             buttonAttachImage.Name = "buttonAttachImage";
-            buttonAttachImage.Size = new Size(50, 43);
+            buttonAttachImage.Size = new Size(64, 61);
             buttonAttachImage.TabIndex = 12;
-            buttonAttachImage.Text = "Img";
+            buttonAttachImage.Text = "Img/\r\nTxt";
             buttonAttachImage.UseVisualStyleBackColor = false;
             buttonAttachImage.Click += buttonAttachImage_Click;
             // 
@@ -369,9 +369,9 @@ namespace AiTool3
             buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(883, 8);
+            buttonStartRecording.Location = new Point(883, 3);
             buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(89, 61);
+            buttonStartRecording.Size = new Size(75, 61);
             buttonStartRecording.TabIndex = 10;
             buttonStartRecording.Text = "Start\r\nRecord";
             buttonStartRecording.UseVisualStyleBackColor = false;

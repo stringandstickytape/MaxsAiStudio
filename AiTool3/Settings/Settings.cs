@@ -19,10 +19,18 @@ namespace AiTool3.Settings
 
         [MyDisplayNameAttr("Generate summaries using Local AI (ollama) on port 11434")]
         public bool GenerateSummariesUsingLocalAi { get; set; } = false;
+
+        public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
         public Settings()
         {
             //var existingSettings = ReadFromJson();
             //if (existingSettings != null) return existingSettings;
+        }
+
+        public void SetDefaultPath(string v)
+        {
+            DefaultPath = v;
+            Settings.Save(this);
         }
 
         private void Create()
@@ -87,7 +95,7 @@ namespace AiTool3.Settings
             });
         }
 
-        public static void WriteToJson(Settings mgr)
+        public static void Save(Settings mgr)
         {
             // write this object to json
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(mgr, Newtonsoft.Json.Formatting.Indented);
@@ -95,7 +103,7 @@ namespace AiTool3.Settings
 
         }
 
-        public static Settings ReadFromJson()
+        public static Settings Load()
         {
             try
             {
@@ -106,10 +114,11 @@ namespace AiTool3.Settings
             {
                 var retVal = new Settings();
                 retVal.Create();
-                WriteToJson(retVal);
+                Save(retVal);
                 return retVal;
             }
         }
+
     }
 
     [AttributeUsage(AttributeTargets.Property)]

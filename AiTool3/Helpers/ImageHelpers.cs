@@ -33,13 +33,28 @@
             }
         }
 
-        public static OpenFileDialog ShowAttachImageDialog()
+        public static OpenFileDialog ShowAttachImageFileDialog(string defaultPath)
         {
             // prompt the user for an image file.
             OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = defaultPath;
             openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
             openFileDialog.Title = "Select an Image File";
             openFileDialog.Multiselect = false;
+            openFileDialog.CheckFileExists = true;
+            openFileDialog.CheckPathExists = true;
+            openFileDialog.ShowDialog();
+            return openFileDialog;
+        }
+
+        public static OpenFileDialog ShowAttachTextFilesDialog(string defaultPath)
+        {
+            // prompt the user for an image file.
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = defaultPath;
+            openFileDialog.Filter = "All files|*.*";
+            openFileDialog.Title = "Select text file(s)";
+            openFileDialog.Multiselect = true;
             openFileDialog.CheckFileExists = true;
             openFileDialog.CheckPathExists = true;
             openFileDialog.ShowDialog();

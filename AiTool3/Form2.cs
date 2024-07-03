@@ -22,7 +22,7 @@ namespace AiTool3
     public partial class Form2 : Form
     {
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
-        public Settings.Settings Settings { get; set; } = AiTool3.Settings.Settings.ReadFromJson();
+        public Settings.Settings CurrentSettings { get; set; } = AiTool3.Settings.Settings.Load();
 
         public TopicSet TopicSet { get; set; }
 
@@ -335,13 +335,13 @@ namespace AiTool3
             settingsMenuItem.BackColor = Color.Black;
             settingsMenuItem.Click += (s, e) =>
             {
-                var settingsForm = new SettingsForm(Settings);
+                var settingsForm = new SettingsForm(CurrentSettings);
                 var result = settingsForm.ShowDialog();
 
                 if (result == DialogResult.OK)
                 {
-                    Settings = settingsForm.NewSettings;
-                    AiTool3.Settings.Settings.WriteToJson(Settings);
+                    CurrentSettings = settingsForm.NewSettings;
+                    AiTool3.Settings.Settings.Save(CurrentSettings);
                 }
             };
 
@@ -397,7 +397,7 @@ namespace AiTool3
 
         private void InitialiseApiList()
         {
-            foreach (var model in Settings.ApiList.SelectMany(x => x.Models))
+            foreach (var model in CurrentSettings.ApiList.SelectMany(x => x.Models))
             {
                 cbEngine.Items.Add(model);
             }
@@ -595,7 +595,7 @@ namespace AiTool3
                 // and display the results in the output box
                 FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
-                if (Settings.NarrateResponses)
+                if (CurrentSettings.NarrateResponses)
                 {
                     // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
                     var text = rtbOutput.Text;
@@ -623,7 +623,7 @@ namespace AiTool3
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
-            var summaryModel = Settings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+            var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
             string title;
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
@@ -647,7 +647,7 @@ namespace AiTool3
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, Settings.GenerateSummariesUsingLocalAi);
+                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, CurrentSettings.GenerateSummariesUsingLocalAi);
             }
 
             //await ConversationManager.RegenerateAllSummaries(summaryModel, Settings.GenerateSummariesUsingLocalAi, dgvConversations);
@@ -668,7 +668,7 @@ namespace AiTool3
             var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel, root.Omit);
 
             // get the model with the same name as the engine
-            var model = Settings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
+            var model = CurrentSettings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
 
             rootNode.BackColor = root.GetColorForEngine();
             ndcConversation.AddNode(rootNode);
@@ -856,10 +856,51 @@ namespace AiTool3
 
         private void buttonAttachImage_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageDialog();
+            // pop a mb asking attach image or text with image and text buttons
+            var r = ShowAttachmentDialog();
 
-            Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
-            Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
+            switch (r)
+            { 
+                case DialogResult.Yes:
+                    OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(CurrentSettings.DefaultPath);
+
+                    Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
+                    Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
+                    break;
+                case DialogResult.No:
+                    OpenFileDialog attachTextFilesDialog = ImageHelpers.ShowAttachTextFilesDialog(CurrentSettings.DefaultPath);
+
+                    if (attachTextFilesDialog.FileNames.Length > 0)
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        foreach (var file in attachTextFilesDialog.FileNames)
+                        {
+                            sb.Append("```");
+                            sb.Append(Path.GetFileName(file));
+                            sb.Append(Environment.NewLine);
+                            sb.Append(File.ReadAllText(file));
+                            sb.Append(Environment.NewLine);
+                            sb.Append("```");
+                            sb.Append(Environment.NewLine);
+                            sb.Append(Environment.NewLine);
+                        }
+                        rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
+
+                        CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName));
+                        
+                    }
+
+
+
+                    break;
+                case DialogResult.Cancel:
+                    break;
+            }
+
+
+
+
+
         }
 
         private void tbSearch_TextChanged(object sender, EventArgs e)
@@ -879,5 +920,36 @@ namespace AiTool3
         }
 
         private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
+
+        public static DialogResult ShowAttachmentDialog()
+        {
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Attach image or text?",
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            Button imageButton = new Button() { Left = 50, Top = 30, AutoSize = true, Text = "Image" };
+            Button textButton = new Button() { Left = 150, Top = 30, AutoSize = true, Text = "Text" };
+            Button cancelButton = new Button() { Left = 260, Top = 30, AutoSize = true, Text = "Cancel" };
+
+            imageButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Yes; };
+            textButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.No; };
+            cancelButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Cancel; };
+
+            prompt.Controls.Add(imageButton);
+            prompt.Controls.Add(textButton);
+            prompt.Controls.Add(cancelButton);
+
+            return prompt.ShowDialog();
+        }
+
+
     }
+
+
+
 }
