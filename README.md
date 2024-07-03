@@ -76,10 +76,11 @@ The main window is divided into several sections:
 - The transcribed text will be added to the input area.
 - A low-pass filter is applied to the audio for improved quality.
 
-### 7. Image Input
+### 7. Image and Text File Input
 
-- Click the "Choose Image" button to select an image file.
-- The image will be encoded and included with your next message to the AI.
+- Click the "Img/Txt" button to choose between attaching an image or text files.
+- For images: Select an image file to be encoded and included with your next message to the AI.
+- For text files: Select one or more text files to be added to the input area.
 
 ### 8. Conversation Visualization
 
