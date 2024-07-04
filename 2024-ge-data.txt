@@ -1,4 +1,3 @@
-Constituency	Area	2019 (est)	2019 Maj	YouGov	Survation	MiC	Focaldata	Actual
 Aberafan Maesteg	Wales	Lab	30.3	Lab	Lab	Lab	Lab	
 Aberdeen North	Scotland	SNP	28.3	SNP	SNP	SNP	SNP	
 Aberdeen South	Scotland	SNP	10.9	SNP	SNP	Lab	SNP	
