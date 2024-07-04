@@ -5,6 +5,7 @@ namespace AiTool3.Conversations
 {
     public class CompletionMessage
     {
+
         public CompletionRole Role { get; set; }
         public string Content { get; set; }
 
@@ -19,6 +20,8 @@ namespace AiTool3.Conversations
         [JsonIgnore]
         public bool Omit { get; set; }
         public string Engine { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
 
         public Color GetColorForEngine()
         {
@@ -58,8 +61,8 @@ namespace AiTool3.Conversations
             {
                 var inputTokens = InputTokens == 0 ? "" : $"{InputTokens} in";
                 var outputTokens = OutputTokens == 0 ? "" : $"{OutputTokens} out";
-                return $"{Engine} / {(TimeTaken == null ? "" : String.Format("{0:00}:{1:00}:{2:00}",
-                    TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))} / {inputTokens}{outputTokens}";
+                return $"{(CreatedAt != null ? "Created at" : "")} {CreatedAt?.ToShortTimeString()} {CreatedAt?.ToShortDateString()} {(CreatedAt != null && !string.IsNullOrWhiteSpace(Engine)? "by" : "")} {Engine}{Environment.NewLine}{(TimeTaken == null ? "" : String.Format("{0:00}:{1:00}:{2:00}",
+                    TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))}  {inputTokens}{outputTokens}";
             }
         }
 

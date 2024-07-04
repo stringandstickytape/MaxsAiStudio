@@ -32,7 +32,7 @@ namespace AiTool3
         public string Base64ImageType { get; set; }
 
         private AudioRecorder recorder;
-        private CancellationTokenSource cts;
+        private CancellationTokenSource _cts;
         private Task recordingTask;
         private bool isRecording = false;
 
@@ -498,16 +498,21 @@ namespace AiTool3
 
         private async void btnGo_Click(object sender, EventArgs e)
         {
+            // Cancel any ongoing operation
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+
             stopwatch.Restart();
             updateTimer.Start();
 
-            CompletionMessage completionResponse;
-            AiResponse? response;
-            Model model;
+            CompletionMessage completionResponse = null;
+            AiResponse? response = null;
+            Model model = null;
 
             try
             {
                 btnGo.Enabled = false;
+                btnCancel.Enabled = true; // Enable cancel button
                 model = (Model)cbEngine.SelectedItem;
 
                 // get the name of the service for the model
@@ -518,7 +523,7 @@ namespace AiTool3
 
                 Conversation conversation = null;
 
-                conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+                conversation = new Conversation();
                 conversation.systemprompt = rtbSystemPrompt.Text;
                 conversation.messages = new List<ConversationMessage>();
                 List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
@@ -538,7 +543,7 @@ namespace AiTool3
                 var inputText = rtbInput.Text;
                 var systemPrompt = rtbSystemPrompt.Text;
                 // fetch the response from the api
-                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType);
+                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType, _cts.Token);
 
                 if (response.SuggestedNextPrompt != null)
                 {
@@ -556,7 +561,8 @@ namespace AiTool3
                     Children = new List<string>(),
                     SystemPrompt = systemPrompt,
                     InputTokens = response.TokenUsage.InputTokens,
-                    OutputTokens = 0
+                    OutputTokens = 0,
+                    CreatedAt = DateTime.Now,
                 };
 
                 if (response == null)
@@ -586,7 +592,8 @@ namespace AiTool3
                     SystemPrompt = systemPrompt,
                     InputTokens = 0,
                     OutputTokens = response.TokenUsage.OutputTokens,
-                    TimeTaken = stopwatch.Elapsed
+                    TimeTaken = stopwatch.Elapsed,
+                    CreatedAt = DateTime.Now,
                 };
 
                 // add it to the current conversation
@@ -611,15 +618,25 @@ namespace AiTool3
 
                 // draw the network diagram
                 DrawNetworkDiagram();
-
+            }
+            catch (OperationCanceledException)
+            {
+                MessageBox.Show("Operation was cancelled.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+                return;
             }
             finally
             {
                 stopwatch.Stop();
                 updateTimer.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
+                btnGo.Enabled = true;
+                btnCancel.Enabled = false; // Disable cancel button
             }
-
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
@@ -649,8 +666,6 @@ namespace AiTool3
             {
                 row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, CurrentSettings.GenerateSummariesUsingLocalAi);
             }
-
-            //await ConversationManager.RegenerateAllSummaries(summaryModel, Settings.GenerateSummariesUsingLocalAi, dgvConversations);
         }
 
         private void DrawNetworkDiagram()
@@ -679,7 +694,7 @@ namespace AiTool3
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
         {
-            y += 100;
+            y += 130;
             foreach (var child in root.Children)
             {
                 // get from child string
@@ -733,7 +748,8 @@ namespace AiTool3
                 Content = lastAssistantMessage.Content,
                 Engine = lastAssistantMessage.Engine,
                 Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>()
+                Children = new List<string>(),
+                CreatedAt = DateTime.Now,
             };
 
             var rootMessage = ConversationManager.CurrentConversation.GetRootNode();
@@ -745,7 +761,8 @@ namespace AiTool3
                 Content = lastUserMessage.Content,
                 Engine = lastUserMessage.Engine,
                 Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>()
+                Children = new List<string>(),
+                CreatedAt = DateTime.Now,
             };
             rootMessage.Children.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
@@ -803,6 +820,10 @@ namespace AiTool3
 
         private ConversationTemplate GetCurrentlySelectedTemplate()
         {
+            if(cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
+            {
+                return null;
+            }
             return TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
         }
 
@@ -810,8 +831,11 @@ namespace AiTool3
         {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
-            rtbInput.Text = template.InitialPrompt;
-            rtbSystemPrompt.Text = template.SystemPrompt;
+            if (template != null)
+            {
+                rtbInput.Text = template.InitialPrompt;
+                rtbSystemPrompt.Text = template.SystemPrompt;
+            }
         }
 
         private void buttonEditTemplate_Click(object sender, EventArgs e)
@@ -875,7 +899,7 @@ namespace AiTool3
             var r = ShowAttachmentDialog();
 
             switch (r)
-            { 
+            {
                 case DialogResult.Yes:
                     OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(CurrentSettings.DefaultPath);
 
@@ -902,7 +926,7 @@ namespace AiTool3
                         rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
 
                         CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName));
-                        
+
                     }
 
 
@@ -923,7 +947,7 @@ namespace AiTool3
             foreach (DataGridViewRow row in dgvConversations.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
-                
+
                 var guid = row.Cells[0].Value.ToString();
 
                 var conv = BranchedConversation.LoadConversation(guid);
@@ -962,7 +986,11 @@ namespace AiTool3
             return prompt.ShowDialog();
         }
 
-
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            _cts?.Cancel();
+            btnCancel.Enabled = false;
+        }
     }
 
 

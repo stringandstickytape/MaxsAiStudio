@@ -18,7 +18,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
         {
             string url = $"{apiModel.Url}{apiModel.ModelName}:generateContent?key={apiModel.Key}";
 
@@ -74,7 +74,7 @@ namespace AiTool3.Providers
             {
                 using (HttpContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
                 {
-                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    HttpResponseMessage response = await client.PostAsync(url, content, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {

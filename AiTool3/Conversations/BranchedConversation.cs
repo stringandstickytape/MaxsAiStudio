@@ -73,7 +73,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null);
+                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false));
 
                 Debug.WriteLine("Summary : " + response.ResponseText);
 
@@ -109,9 +109,10 @@ namespace AiTool3.Conversations
             var m = new CompletionMessage
             {
                 Guid = Guid.NewGuid().ToString(),
-                Content = "Begin Conversation",
+                Content = "Conversation Start",
                 Role = CompletionRole.Root,
                 Children = new List<string>(),
+                CreatedAt = DateTime.Now,
             };
             Messages.Add(m);
             return m.Guid;

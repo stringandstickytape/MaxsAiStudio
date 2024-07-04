@@ -48,6 +48,7 @@ namespace AiTool3
             cbTemplates = new ComboBox();
             buttonEditTemplate = new Button();
             splitContainer3 = new SplitContainer();
+            btnCancel = new Button();
             buttonAttachImage = new Button();
             buttonNewKeepAll = new Button();
             buttonStartRecording = new Button();
@@ -82,14 +83,14 @@ namespace AiTool3
             // ndcConversation
             // 
             ndcConversation.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            ndcConversation.BackColor = Color.FromArgb(64, 64, 64);
+            ndcConversation.BackColor = SystemColors.WindowFrame;
             ndcConversation.HighlightedNode = null;
             ndcConversation.HighlightedNodeBorderColor = Color.Red;
             ndcConversation.Location = new Point(3, 3);
             ndcConversation.Name = "ndcConversation";
             ndcConversation.NodeBackgroundColor = Color.LightBlue;
-            ndcConversation.NodeBorderColor = Color.Blue;
-            ndcConversation.NodeCornerRadius = 10;
+            ndcConversation.NodeBorderColor = Color.Black;
+            ndcConversation.NodeCornerRadius = 2;
             ndcConversation.NodeForegroundColor = Color.Black;
             ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
             ndcConversation.NodeGradientStart = Color.White;
@@ -117,9 +118,9 @@ namespace AiTool3
             btnGo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnGo.BackColor = Color.Black;
             btnGo.ForeColor = Color.White;
-            btnGo.Location = new Point(883, 343);
+            btnGo.Location = new Point(3, 388);
             btnGo.Name = "btnGo";
-            btnGo.Size = new Size(145, 136);
+            btnGo.Size = new Size(160, 85);
             btnGo.TabIndex = 4;
             btnGo.Text = "Go (CTRL-Return)";
             btnGo.UseVisualStyleBackColor = false;
@@ -155,7 +156,7 @@ namespace AiTool3
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(874, 476);
+            rtbInput.Size = new Size(1025, 379);
             rtbInput.TabIndex = 7;
             // 
             // splitContainer1
@@ -327,6 +328,7 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(btnCancel);
             splitContainer3.Panel2.Controls.Add(buttonAttachImage);
             splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
             splitContainer3.Panel2.Controls.Add(buttonStartRecording);
@@ -338,16 +340,29 @@ namespace AiTool3
             splitContainer3.SplitterDistance = 275;
             splitContainer3.TabIndex = 0;
             // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnCancel.BackColor = Color.Black;
+            btnCancel.ForeColor = Color.White;
+            btnCancel.Location = new Point(169, 388);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(74, 85);
+            btnCancel.TabIndex = 13;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = false;
+            btnCancel.Click += btnCancel_Click;
+            // 
             // buttonAttachImage
             // 
             buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(964, 3);
+            buttonAttachImage.Location = new Point(785, 391);
             buttonAttachImage.Name = "buttonAttachImage";
-            buttonAttachImage.Size = new Size(64, 61);
+            buttonAttachImage.Size = new Size(89, 85);
             buttonAttachImage.TabIndex = 12;
-            buttonAttachImage.Text = "Img/\r\nTxt";
+            buttonAttachImage.Text = "Attach";
             buttonAttachImage.UseVisualStyleBackColor = false;
             buttonAttachImage.Click += buttonAttachImage_Click;
             // 
@@ -356,24 +371,24 @@ namespace AiTool3
             buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(883, 75);
+            buttonNewKeepAll.Location = new Point(635, 391);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
-            buttonNewKeepAll.Size = new Size(145, 96);
+            buttonNewKeepAll.Size = new Size(145, 85);
             buttonNewKeepAll.TabIndex = 11;
-            buttonNewKeepAll.Text = "New\r\n(keep 2-msg context)";
+            buttonNewKeepAll.Text = "New\r\n(keep prompts and context)";
             buttonNewKeepAll.UseVisualStyleBackColor = false;
             buttonNewKeepAll.Click += buttonNewKeepAll_Click;
             // 
             // buttonStartRecording
             // 
-            buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(883, 3);
+            buttonStartRecording.Location = new Point(880, 391);
             buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(75, 61);
+            buttonStartRecording.Size = new Size(148, 85);
             buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Start\r\nRecord";
+            buttonStartRecording.Text = "Start\r\nRecording";
             buttonStartRecording.UseVisualStyleBackColor = false;
             buttonStartRecording.Click += buttonStartRecording_Click;
             // 
@@ -382,9 +397,9 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(883, 177);
+            btnRestart.Location = new Point(483, 391);
             btnRestart.Name = "btnRestart";
-            btnRestart.Size = new Size(145, 77);
+            btnRestart.Size = new Size(145, 85);
             btnRestart.TabIndex = 9;
             btnRestart.Text = "New\r\n(keep prompts)";
             btnRestart.UseVisualStyleBackColor = false;
@@ -395,9 +410,9 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(883, 260);
+            btnClear.Location = new Point(349, 391);
             btnClear.Name = "btnClear";
-            btnClear.Size = new Size(145, 77);
+            btnClear.Size = new Size(128, 82);
             btnClear.TabIndex = 8;
             btnClear.Text = "New";
             btnClear.UseVisualStyleBackColor = false;
@@ -421,6 +436,7 @@ namespace AiTool3
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.Black;
             statusStrip1.ImageScalingSize = new Size(24, 24);
             statusStrip1.Items.AddRange(new ToolStripItem[] { tokenUsageLabel });
             statusStrip1.Location = new Point(0, 1037);
@@ -504,5 +520,6 @@ namespace AiTool3
         private TextBox tbSearch;
         private GroupBox groupBox1;
         private Button btnClearSearch;
+        private Button btnCancel;
     }
 }

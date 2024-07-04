@@ -20,7 +20,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
         {
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
@@ -48,9 +48,9 @@ namespace AiTool3.Providers
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(apiModel.Url, content).ConfigureAwait(false);
+            var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
 
-            var stream = await response.Content.ReadAsStreamAsync();
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var buffer = new byte[256];
             var bytesRead = 0;
 

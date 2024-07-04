@@ -19,7 +19,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
         {
             var req = new LocalAIRequest
             {
@@ -63,7 +63,7 @@ namespace AiTool3.Providers
                 }).Start();
             }
 
-            var response = await client.PostAsync(apiModel.Url, content).ConfigureAwait(false);
+            var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
 
             var stream = await response.Content.ReadAsStreamAsync();
             var buffer = new byte[256];

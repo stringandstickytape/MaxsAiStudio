@@ -60,8 +60,8 @@ namespace AiTool3.UI
         public Color HighlightedNodeBorderColor { get; set; } = Color.Red;
         public Color NodeGradientStart { get; set; } = Color.White;
         public Color NodeGradientEnd { get; set; } = Color.LightSkyBlue;
-        public int NodeCornerRadius { get; set; } = 10;
-        public bool UseDropShadow { get; set; } = true;
+        public int NodeCornerRadius { get; set; } = 2;
+        public bool UseDropShadow { get; set; } = false;
 
 
 
@@ -144,16 +144,16 @@ namespace AiTool3.UI
             // we have node.IsDisabled, so we can draw a big cross over the top if it's disabled
             Rectangle bounds = node.Bounds;
 
-            if (UseDropShadow)
-            {
-                using (GraphicsPath shadowPath = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X + 10, bounds.Y + 10, bounds.Width, bounds.Height, NodeCornerRadius))
-                using (PathGradientBrush shadowBrush = new PathGradientBrush(shadowPath))
-                {
-                    shadowBrush.CenterColor = Color.FromArgb(100, Color.Black);
-                    shadowBrush.SurroundColors = new Color[] { Color.FromArgb(90, Color.Black) };
-                    g.FillPath(shadowBrush, shadowPath);
-                }
-            }
+            //if (UseDropShadow)
+            //{
+            //    using (GraphicsPath shadowPath = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X + 10, bounds.Y + 10, bounds.Width, bounds.Height, NodeCornerRadius))
+            //    using (PathGradientBrush shadowBrush = new PathGradientBrush(shadowPath))
+            //    {
+            //        shadowBrush.CenterColor = Color.FromArgb(100, Color.Black);
+            //        shadowBrush.SurroundColors = new Color[] { Color.FromArgb(90, Color.Black) };
+            //        g.FillPath(shadowBrush, shadowPath);
+            //    }
+            //}
 
             using (GraphicsPath path = NetworkDiagramControlHelpers.CreateRoundedRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height, NodeCornerRadius))
             using (LinearGradientBrush gradientBrush = new LinearGradientBrush(bounds,
@@ -177,14 +177,22 @@ namespace AiTool3.UI
                     using (SolidBrush labelBrush = new SolidBrush(Color.White))
                     {
                         SizeF labelSize = g.MeasureString(node.NodeInfoLabel, labelFont);
-                        float labelX = bounds.Right - labelSize.Width;
+                        float labelX = bounds.X + (bounds.Width - labelSize.Width) / 2; // Center the label horizontally
                         float labelY = bounds.Bottom;
                         RectangleF labelRect = new RectangleF(labelX, labelY, labelSize.Width, labelSize.Height);
 
                         // fill rect 50% opacity
                         g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), labelRect);
 
-                        g.DrawString(node.NodeInfoLabel, labelFont, labelBrush, labelX, labelY);
+                        // Create StringFormat for center alignment
+                        using (StringFormat sf = new StringFormat())
+                        {
+                            sf.Alignment = StringAlignment.Center;
+                            sf.LineAlignment = StringAlignment.Center;
+
+                            // Draw the string in the center of the rectangle
+                            g.DrawString(node.NodeInfoLabel, labelFont, labelBrush, labelRect, sf);
+                        }
                     }
                 }
             }
