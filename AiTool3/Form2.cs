@@ -16,6 +16,8 @@ using AiTool3.Providers;
 using AiTool3.Helpers;
 using System.Reflection;
 using System.Text;
+using System.Drawing.Drawing2D;
+using System.Linq.Expressions;
 
 namespace AiTool3
 {
@@ -43,6 +45,13 @@ namespace AiTool3
         public Form2()
         {
             InitializeComponent();
+
+            SetPaperclipIcon(buttonAttachImage);
+
+            rtbSystemPrompt.SetOverlayText("System Prompt");
+            rtbInput.SetOverlayText("User Input");
+            rtbOutput.SetOverlayText("AI Response");
+
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
             ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
             ndcConversation.MenuOptionSelected += MenuOptionSelected();
@@ -378,22 +387,32 @@ namespace AiTool3
                 }
             };
 
-            var reviewCodeMenuItem = new ToolStripMenuItem("Review Code");
-            reviewCodeMenuItem.ForeColor = Color.White;
-            reviewCodeMenuItem.BackColor = Color.Black;
-            reviewCodeMenuItem.Click += (s, e) =>
-            {
-                // go up from the working directory until you get to "MaxsAiTool"
-                SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
-                rtbInput.Text = userMessage;
+            AddSpecial(specialsMenu, "Review Code", (s, e) =>
+                {
+                    // go up from the working directory until you get to "MaxsAiTool"
+                    SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
+                    rtbInput.Text = userMessage;
+                });
 
-            };
+            //AddSpecial(specialsMenu, "TestForm thing", (s, e) =>
+            //{
+            //    var result = WebViewTestForm.OpenWebViewWithHtml().Result;
+            //});
+
             specialsMenu.DropDownItems.Add(restartMenuItem);
-            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
             menuBar.Items.Add(specialsMenu);
 
         }
 
+        private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
+        {
+            var reviewCodeMenuItem = new ToolStripMenuItem(l);
+            reviewCodeMenuItem.ForeColor = Color.White;
+            reviewCodeMenuItem.BackColor = Color.Black;
+            reviewCodeMenuItem.Click += q;
+
+            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+        }
 
         private void InitialiseApiList()
         {
@@ -820,7 +839,7 @@ namespace AiTool3
 
         private ConversationTemplate GetCurrentlySelectedTemplate()
         {
-            if(cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
+            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
             {
                 return null;
             }
@@ -991,8 +1010,66 @@ namespace AiTool3
             _cts?.Cancel();
             btnCancel.Enabled = false;
         }
+
+        public static void SetPaperclipIcon(Button button)
+        {
+            try
+            {
+                int width = 200;
+                int height = 300;
+
+                using (Bitmap bmp = new Bitmap(width, height))
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    g.Clear(Color.Transparent);
+
+                    using (GraphicsPath path = new GraphicsPath())
+                    {
+                        path.StartFigure();
+                        path.AddBezier(20, 40, 20, 20, 40, 20, 60, 20);
+                        path.AddLine(140, 20, 140, 20);
+                        path.AddBezier(160, 20, 160, 40, 160, 40, 160, 80);
+                        path.AddLine(160, 220, 160, 220);
+                        path.AddBezier(160, 240, 140, 240, 140, 240, 100, 240);
+                        path.AddBezier(80, 240, 80, 220, 80, 220, 80, 80);
+                        path.AddBezier(80, 60, 100, 60, 100, 60, 120, 60);
+                        path.AddBezier(140, 60, 140, 80, 140, 80, 140, 180);
+                        path.AddBezier(140, 200, 120, 200, 120, 200, 60, 200);
+                        path.AddBezier(40, 200, 40, 180, 40, 180, 40, 40);
+                        path.CloseFigure();
+
+                        using (Pen pen = new Pen(Color.White, 16))
+                        {
+                            pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                            pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                            pen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+                            g.DrawPath(pen, path);
+                        }
+                    }
+
+                    Bitmap bmp2 = new Bitmap(24, 24);
+                    using (Graphics g2 = Graphics.FromImage(bmp2))
+                    {
+                        g2.DrawImage(bmp, 0, 0, 24, 24);
+                    }
+
+                    button.Image = bmp2;
+                    button.ImageAlign = ContentAlignment.MiddleCenter;
+                    button.TextImageRelation = TextImageRelation.ImageBeforeText;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the exception as needed
+                Console.WriteLine($"Error setting paperclip icon: {ex.Message}");
+            }
+        }
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            await WebViewTestForm.OpenWebViewWithHtml();
+
+        }
     }
-
-
-
 }

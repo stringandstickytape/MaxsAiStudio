@@ -1,8 +1,11 @@
 ﻿using AiTool3.Conversations;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
+using System.Security.Policy;
 using System.Timers;
 using System.Windows.Forms;
 
@@ -23,10 +26,14 @@ namespace AiTool3.UI
         private int fadeInterval = 100; // Interval between color updates in milliseconds
         private int fadeProgress = 0;
 
+        private TransparentLabel overlayLabel;
+
         [Category("Behavior")]
         [Description("Determines whether the control should flash when text is updated.")]
         public bool FlashOnUpdate { get; set; }
 
+        [Category("Behavior")]
+        public string EmptyLabel { get; set; }
 
         public class MegaBarItem
         {
@@ -45,6 +52,7 @@ namespace AiTool3.UI
 
         public ButtonedRichTextBox()
         {
+            LinkClicked += new LinkClickedEventHandler(richTextBox1_LinkClicked);
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer |
          ControlStyles.AllPaintingInWmPaint, true);
@@ -55,7 +63,138 @@ namespace AiTool3.UI
             flashTimer.Elapsed += FadeTimer_Elapsed;
             flashTimer.AutoReset = true;
 
+            overlayLabel = new TransparentLabel
+            {
+                Text = string.IsNullOrWhiteSpace(EmptyLabel) ? "DISPLAY" : EmptyLabel,
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill,
+                ForeColor = Color.Gray,
+                BackColor = Color.Transparent,
+                Font = new Font(Font.FontFamily, 20, FontStyle.Bold)
+            };
+
+            Controls.Add(overlayLabel);
+            overlayLabel.BringToFront();
+
+            // Initial check to show/hide the overlay
+            UpdateOverlayVisibility();
+
         }
+
+        private void richTextBox1_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            try
+            {
+                string url = e.LinkText;
+                url = url.Replace("&", "^&");
+                //Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                OpenUrlUsingDefaultBrowser(url);
+
+                // Launch URL in default browser
+                //ProcessStartInfo psi = new ProcessStartInfo
+                //{
+                //    FileName = e.LinkText,
+                //    UseShellExecute = true
+                //};
+                //Process.Start(psi);
+
+
+                //System.Diagnostics.Process.Start(e.LinkText);
+                // http://www.amazon.com/best-books-of-the-year-2024
+                // gives 'An error occurred trying to start process 'http://www.amazon.com/best-books-of-the-year-2024' with working directory 'C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\bin\DebugCublas\net8.0-windows'. The system cannot find the file specified.'
+
+
+                // sometimes this gives file not found, so retry
+
+
+
+
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Unable to open link: " + ex.Message);
+            }
+        }
+
+        public void SetOverlayText(string text)
+        {
+            overlayLabel.Text = text;
+        }
+
+
+        public static void OpenUrlUsingDefaultBrowser(string url)
+        {
+            try
+            {
+                string browserPath = GetDefaultBrowserPath();
+                if (string.IsNullOrEmpty(browserPath))
+                {
+                    throw new Exception("Default browser not found.");
+                }
+
+                ProcessStartInfo psi = new ProcessStartInfo(browserPath, url);
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+
+        private static string GetDefaultBrowserPath()
+        {
+            string browser = string.Empty;
+            try
+            {
+                // Get the default browser from the registry
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice"))
+                {
+                    if (key != null)
+                    {
+                        string progId = key.GetValue("ProgId") as string;
+                        if (!string.IsNullOrEmpty(progId))
+                        {
+                            using (RegistryKey pathKey = Registry.ClassesRoot.OpenSubKey($@"{progId}\shell\open\command"))
+                            {
+                                if (pathKey != null)
+                                {
+                                    string command = pathKey.GetValue(null) as string;
+                                    if (!string.IsNullOrEmpty(command))
+                                    {
+                                        // Extract the path from the command
+                                        browser = command.Split('"')[1];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting default browser: {ex.Message}");
+            }
+
+            return browser;
+        }
+
+
+        protected override void OnTextChanged(EventArgs e)
+        {
+            base.OnTextChanged(e);
+            UpdateOverlayVisibility();
+        }
+
+        private void UpdateOverlayVisibility()
+        {
+            overlayLabel.Visible = string.IsNullOrWhiteSpace(Text);
+        }
+
 
         private void FadeTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -327,7 +466,46 @@ namespace AiTool3.UI
         // Other overridden methods remain unchanged
         protected override void OnMouseUp(MouseEventArgs e) { base.OnMouseUp(e); }
         protected override void OnVScroll(EventArgs e) { base.OnVScroll(e); }
-        protected override void OnTextChanged(EventArgs e) { base.OnTextChanged(e); }
-        protected override void OnSizeChanged(EventArgs e) { base.OnSizeChanged(e); }
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            // Ensure the overlay label covers the entire control
+            overlayLabel.Size = this.ClientSize;
+        }
+
     }
+    // Custom transparent label class
+    public class TransparentLabel : Label
+    {
+        public TransparentLabel()
+        {
+            SetStyle(ControlStyles.Selectable, false);
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x20;  // WS_EX_TRANSPARENT
+                return cp;
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCHITTEST = 0x0084;
+            const int HTTRANSPARENT = (-1);
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                m.Result = (IntPtr)HTTRANSPARENT;
+            }
+            else
+            {
+                base.WndProc(ref m);
+            }
+        }
+    }
+
 }

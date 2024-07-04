@@ -48,6 +48,7 @@ namespace AiTool3
             cbTemplates = new ComboBox();
             buttonEditTemplate = new Button();
             splitContainer3 = new SplitContainer();
+            button1 = new Button();
             btnCancel = new Button();
             buttonAttachImage = new Button();
             buttonNewKeepAll = new Button();
@@ -130,6 +131,7 @@ namespace AiTool3
             // 
             rtbSystemPrompt.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbSystemPrompt.BackColor = Color.Black;
+            rtbSystemPrompt.EmptyLabel = "System Prompt";
             rtbSystemPrompt.FlashOnUpdate = false;
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
@@ -141,6 +143,7 @@ namespace AiTool3
             // 
             rtbOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbOutput.BackColor = Color.Black;
+            rtbOutput.EmptyLabel = "AI Output";
             rtbOutput.FlashOnUpdate = true;
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
@@ -152,6 +155,7 @@ namespace AiTool3
             // 
             rtbInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbInput.BackColor = Color.Black;
+            rtbInput.EmptyLabel = "User Input";
             rtbInput.FlashOnUpdate = false;
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
@@ -328,6 +332,7 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(button1);
             splitContainer3.Panel2.Controls.Add(btnCancel);
             splitContainer3.Panel2.Controls.Add(buttonAttachImage);
             splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
@@ -339,6 +344,16 @@ namespace AiTool3
             splitContainer3.Size = new Size(1031, 761);
             splitContainer3.SplitterDistance = 275;
             splitContainer3.TabIndex = 0;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(269, 391);
+            button1.Name = "button1";
+            button1.Size = new Size(54, 34);
+            button1.TabIndex = 14;
+            button1.Text = "Test";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // btnCancel
             // 
@@ -521,5 +536,6 @@ namespace AiTool3
         private GroupBox groupBox1;
         private Button btnClearSearch;
         private Button btnCancel;
+        private Button button1;
     }
 }
