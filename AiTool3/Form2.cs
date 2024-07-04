@@ -361,8 +361,8 @@ namespace AiTool3
             restartMenuItem.Click += (s, e) =>
             {
                 AiResponse response, response2;
-                SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response, out response2);
-                var snippets = FindSnippets(rtbOutput, $"{response.ResponseText}{Environment.NewLine}{response2.ResponseText}", null, null);
+                SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response);
+                var snippets = FindSnippets(rtbOutput, response.ResponseText, null, null);
 
                 try
                 {

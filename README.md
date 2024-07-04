@@ -53,6 +53,7 @@ The main window is divided into several sections:
 - The conversation will be visualized in the network diagram.
 - If available, a suggested next prompt will be formatted and displayed in the input area.
 - If enabled, the AI's response will be read aloud using Text-to-Speech.
+- You can now cancel ongoing AI operations using the new "Cancel" button.
 
 ### 4. Managing Conversations
 
@@ -78,7 +79,7 @@ The main window is divided into several sections:
 
 ### 7. Image and Text File Input
 
-- Click the "Img/Txt" button to choose between attaching an image or text files.
+- Click the "Attach" button to choose between attaching an image or text files.
 - For images: Select an image file to be encoded and included with your next message to the AI.
 - For text files: Select one or more text files to be added to the input area.
 
@@ -132,7 +133,7 @@ The main window is divided into several sections:
 
 - The application now supports viewing HTML content in a WebView.
 - This feature allows for better rendering and interaction with HTML responses from the AI.
-.
+
 ### 18. Code Review Function
 
 - A new code review function has been added for project maintainers.
