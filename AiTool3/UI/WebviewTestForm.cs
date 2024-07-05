@@ -2,6 +2,7 @@
 using Microsoft.Web.WebView2.WinForms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,10 @@ namespace AiTool3.UI
             webView.WebMessageReceived += WebView_WebMessageReceived;
         }
 
+        // event to raise when a menu option is selected
+        public event EventHandler<WebNdcContextMenuOptionSelectedEventArgs> WebNdcContextMenuOptionSelected;
+        public event EventHandler<WebNdcNodeClickedEventArgs> WebNdcNodeClicked;
+
         private void WebView_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string jsonMessage = e.WebMessageAsJson;
@@ -32,6 +37,9 @@ namespace AiTool3.UI
             switch (message["type"])
             {
                 case "nodeClicked":
+                    string clickedNodeId = message["nodeId"];
+                    string clickedNodeLabel = message["nodeLabel"];
+                    WebNdcNodeClicked?.Invoke(this, new WebNdcNodeClickedEventArgs(clickedNodeId, clickedNodeLabel));
                     // Handle node click (existing code)
                     break;
 
@@ -55,7 +63,8 @@ namespace AiTool3.UI
 
                     // Handle the selected option
                     Debug.WriteLine($"Node: {selectedNodeId} ({selectedNodeLabel}), Selected option: {selectedOption}");
-                    // Perform actions based on the selected option
+                    // raise event
+                    WebNdcContextMenuOptionSelected?.Invoke(this, new WebNdcContextMenuOptionSelectedEventArgs());
                     break;
             }
         }
@@ -79,19 +88,42 @@ namespace AiTool3.UI
         internal static async Task<WebViewTestForm> OpenWebViewWithJs(string result)
         {
             var form = new WebViewTestForm();
+            form.WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
             await form.InitializeAsync();
             await form.EvaluateJavascriptAsync(result);
             form.Show();
             return form ;
         }//<insertscripthere/>
 
+        private static void Form_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
+        {
+            
+        }
+
         internal static async Task<WebViewTestForm> OpenWebViewWithHtml(string result)
         {
             var form = new WebViewTestForm();
+            form.WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
             await form.InitializeAsync();
             form.NavigateToHtml(result);
             form.Show(); // returns instantly
             return form;
         }//<insertscripthere/>
+    }
+
+    public class WebNdcContextMenuOptionSelectedEventArgs
+    {
+    }
+
+    public class WebNdcNodeClickedEventArgs
+    {
+        public string NodeId { get; }
+        public string NodeLabel { get; }
+
+        public WebNdcNodeClickedEventArgs(string nodeId, string nodeLabel)
+        {
+            NodeId = nodeId;
+            NodeLabel = nodeLabel;
+        }
     }
 }

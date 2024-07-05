@@ -55,9 +55,13 @@ namespace AiTool3
             rtbOutput.SetOverlayText("AI Response");
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
-            ndcConversation.MenuOptionSelected += MenuOptionSelected();
 
+            CreateNewWebNdc();
+
+            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
+
+            ndcConversation.MenuOptionSelected += MenuOptionSelected();
+            
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
 
@@ -69,6 +73,7 @@ namespace AiTool3
             InitialiseApiList();
 
             ndcConversation.NodeClicked += NdcConversation_NodeClicked;
+            
 
             SetSplitContainerEvents();
 
@@ -90,6 +95,31 @@ namespace AiTool3
             updateTimer.Interval = 100; // Update every 100 milliseconds
             updateTimer.Tick += UpdateTimer_Tick;
 
+        }
+
+        private void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
+        {
+            //var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
+            //ConversationManager.PreviousCompletion = clickedCompletion;
+            //
+            //rtbInput.Clear();
+            //if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
+            //{
+            //    rtbInput.Text = ConversationManager.PreviousCompletion.Content;
+            //
+            //    ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+            //}
+            //if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
+            //{
+            //    rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
+            //}
+            //else rtbSystemPrompt.Text = "";
+            //FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
+        }
+
+        private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void UpdateTimer_Tick(object sender, EventArgs e)
@@ -116,6 +146,7 @@ namespace AiTool3
                 rtbInput.Text += e;
             }
         }
+
 
         private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
         {
@@ -1072,7 +1103,12 @@ namespace AiTool3
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            if(webViewNdc != null)
+            await CreateNewWebNdc();
+        }
+
+        private async Task<bool> CreateNewWebNdc()
+        {
+            if (webViewNdc != null)
             {
                 if (!webViewNdc.IsDisposed)
                 {
@@ -1088,8 +1124,12 @@ namespace AiTool3
 
             string result = html.Replace("<insertscripthere/>", jsAndCss);
 
-            //webViewNdc = await WebViewTestForm.OpenWebViewWithHtml(result);
             webViewNdc = await WebViewTestForm.OpenWebViewWithJs(jsAndCss);
+
+            webViewNdc.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
+            webViewNdc.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
+
+            return true;
         }
 
         private static string GetEmbeddedAssembly(string resourceName)
