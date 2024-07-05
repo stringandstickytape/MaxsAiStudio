@@ -56,12 +56,15 @@ namespace AiTool3
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
-            CreateNewWebNdc();
-
-            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
-
-            ndcConversation.MenuOptionSelected += MenuOptionSelected();
             
+
+            // not converted
+            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
+            // not converted
+            ndcConversation.MenuOptionSelected += MenuOptionSelected();
+            // converted
+            ndcConversation.NodeClicked += NdcConversation_NodeClicked;
+
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
 
@@ -71,9 +74,6 @@ namespace AiTool3
             }
 
             InitialiseApiList();
-
-            ndcConversation.NodeClicked += NdcConversation_NodeClicked;
-            
 
             SetSplitContainerEvents();
 
@@ -90,31 +90,13 @@ namespace AiTool3
 
             InitialiseMenus();
 
+            CreateNewWebNdc();
+
             BeginNewConversation();
 
             updateTimer.Interval = 100; // Update every 100 milliseconds
             updateTimer.Tick += UpdateTimer_Tick;
 
-        }
-
-        private void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
-        {
-            //var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
-            //ConversationManager.PreviousCompletion = clickedCompletion;
-            //
-            //rtbInput.Clear();
-            //if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
-            //{
-            //    rtbInput.Text = ConversationManager.PreviousCompletion.Content;
-            //
-            //    ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
-            //}
-            //if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
-            //{
-            //    rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
-            //}
-            //else rtbSystemPrompt.Text = "";
-            //FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
         }
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
@@ -337,6 +319,7 @@ namespace AiTool3
                     e.SelectedNode.IsDisabled = selectedMessage.Omit;
 
                     DrawNetworkDiagram();
+                    var a = WebNdcDrawNetworkDiagram().Result;
                 }
                 else if (e.SelectedOption == "Option 3")
                 {
@@ -494,6 +477,26 @@ namespace AiTool3
         {
 
             var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
+            ConversationManager.PreviousCompletion = clickedCompletion;
+
+            rtbInput.Clear();
+            if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
+            {
+                rtbInput.Text = ConversationManager.PreviousCompletion.Content;
+
+                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+            }
+            if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
+            {
+                rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
+            }
+            else rtbSystemPrompt.Text = "";
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
+        }
+
+        private void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
+        {
+            var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
             ConversationManager.PreviousCompletion = clickedCompletion;
 
             rtbInput.Clear();
@@ -670,6 +673,7 @@ namespace AiTool3
 
                 // draw the network diagram
                 DrawNetworkDiagram();
+                var a = await WebNdcDrawNetworkDiagram();
             }
             catch (OperationCanceledException)
             {
@@ -692,6 +696,8 @@ namespace AiTool3
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
+            webViewNdc.CentreOnNode(completionResponse.Guid);
+
             var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
             string title;
@@ -720,6 +726,24 @@ namespace AiTool3
             }
         }
 
+        private async Task<bool> WebNdcDrawNetworkDiagram()
+        {
+            if (webViewNdc == null) return false;
+
+            var a = await webViewNdc.Clear();
+
+            var nodes = ConversationManager.CurrentConversation.Messages.Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
+
+            var links2 = ConversationManager.CurrentConversation.Messages
+                .Where(x => x.Parent != null)
+                .Select(x => new Link { source = x.Parent, target = x.Guid }).ToList();
+
+
+            await webViewNdc.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
+            await webViewNdc.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
+            return true;
+        }
+
         private void DrawNetworkDiagram()
         {
             // Clear the diagram
@@ -742,6 +766,8 @@ namespace AiTool3
 
             // recursively draw the children
             DrawChildren(root, rootNode, 300 + 100, ref y);
+
+            
         }
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
@@ -824,6 +850,7 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = assistantMessage;
 
             DrawNetworkDiagram();
+            var a = WebNdcDrawNetworkDiagram().Result;
         }
 
         private void BeginNewConversation()
@@ -837,15 +864,17 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
             DrawNetworkDiagram();
+            var a = WebNdcDrawNetworkDiagram().Result;
         }
 
-        private void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
 
             ConversationManager.LoadConversation(clickedGuid);
 
             DrawNetworkDiagram();
+            await WebNdcDrawNetworkDiagram();
 
             ndcConversation.FitAll();
         }
@@ -1129,6 +1158,8 @@ namespace AiTool3
             webViewNdc.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
             webViewNdc.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
 
+            
+
             return true;
         }
 
@@ -1148,27 +1179,7 @@ namespace AiTool3
 
         private async void button2_Click(object sender, EventArgs e)
         {
-            //var nodes = new List<IdNodePair>();
-            //nodes.Add(new IdNodePair { id = "node1", label = "Node 1" });
-            //nodes.Add(new IdNodePair { id = "node2", label = "Node 2" });
-            //nodes.Add(new IdNodePair { id = "node3", label = "Node 3" });
-
-            var links = new List<Link>();
-            links.Add(new Link { source = "node1", target = "node2" });
-            links.Add(new Link { source = "node2", target = "node3" });
-            links.Add(new Link { source = "node1", target = "node3" });
-
-            var nodes = ConversationManager.CurrentConversation.Messages.Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
-
-            var links2 = ConversationManager.CurrentConversation.Messages
-                .Where(x => x.Parent != null)
-                .Select(x => new Link { source = x.Parent, target = x.Guid }).ToList();
-                
-
-            await webViewNdc.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
-            await webViewNdc.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
-
-            //await webViewNdc.EvaluateJavascriptAsync("addNodes([\r\n    { id: 'node1', label: 'Node 1' },\r\n    { id: 'node2', label: 'Node 2' },\r\n    { id: 'node3', label: 'Node 3' }\r\n]);\r\n\r\n\r\n// Example usage:\r\naddLinks([\r\n    { source: 'node1', target: 'node2' },\r\n    { source: 'node2', target: 'node3' },\r\n    { source: 'node1', target: 'node3' }\r\n]);");
+            await webViewNdc.Clear();
         }
     }
 

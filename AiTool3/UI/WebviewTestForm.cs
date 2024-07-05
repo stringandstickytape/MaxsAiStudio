@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static AiTool3.UI.NetworkDiagramControl;
 
 namespace AiTool3.UI
 {
@@ -78,6 +79,17 @@ namespace AiTool3.UI
         public void NavigateToHtml(string html)
         {
             webView.NavigateToString(html);
+        }
+
+        public async void CentreOnNode(string guid)
+        {
+            await webView.CoreWebView2.ExecuteScriptAsync($"centerOnNode('{guid}')");
+        }
+
+        public async Task<bool> Clear()
+        {
+            await webView.CoreWebView2.ExecuteScriptAsync($"clear('')");
+            return true;
         }
 
         public async Task<string> EvaluateJavascriptAsync(string html)

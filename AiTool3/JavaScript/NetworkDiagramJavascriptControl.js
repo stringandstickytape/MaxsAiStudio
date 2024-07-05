@@ -58,12 +58,12 @@
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'text-wrap': 'wrap',
-                        'text-max-width': '100px',
-                        'width': 'label',
+                        'text-max-width': '1000px', // Changed from 100px to 200px
+                        'width': '1000px',
                         'height': 'label',
-                        'font-size': '12px',
+                        'font-size': '30px',
                         'content': function (ele) {
-                            return ele.data('label').length > 100 ? ele.data('label').substring(0, 97) + '...' : ele.data('label');
+                            return ele.data('label').length > 200 ? ele.data('label').substring(0, 197) + '...' : ele.data('label');
                         }
                     }
                 },
@@ -74,7 +74,7 @@
                         'line-color': '#999',
                         'target-arrow-color': '#999',
                         'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier'
+                        'curve-style': 'bezier',
                     }
                 },
                 {
@@ -101,8 +101,9 @@
                 name: 'breadthfirst',
                 directed: true,
                 padding: 10,
-                spacingFactor: 1.25,
-                animate: false
+                spacingFactor: 1, 
+                animate: false,
+                boundingBox: { x1: 0, y1: 0, w: 1000, h: 10 }
             },
             userZoomingEnabled: true,
             userPanningEnabled: true,
@@ -318,6 +319,29 @@
             }
         }
 
+        function centerOnNode(nodeId) {
+            const node = cy.getElementById(nodeId);
+            if (node.length > 0) {
+                cy.animate({
+                    center: {
+                        eles: node
+                    },
+                    duration: 1000,
+                    easing: 'ease-in-out'
+                });
+            } else {
+                console.warn(`Node with ID '${nodeId}' not found.`);
+            }
+        }
+
+        function clear() {
+            cy.elements().remove(); // Remove all elements (nodes and edges)
+            cy.fit(); // Reset the viewport to fit the empty graph
+        }
+
+
+        window.clear = clear;
+        window.centerOnNode = centerOnNode; 
         window.updateContextMenuOptions = updateContextMenuOptions;
         window.showContextMenu = showContextMenu;
         window.addNode = addNode;
