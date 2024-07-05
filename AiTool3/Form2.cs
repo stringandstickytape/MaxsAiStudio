@@ -18,6 +18,8 @@ using System.Reflection;
 using System.Text;
 using System.Drawing.Drawing2D;
 using System.Linq.Expressions;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
+using System.Windows.Forms;
 
 namespace AiTool3
 {
@@ -1066,10 +1068,78 @@ namespace AiTool3
             }
         }
 
+        WebViewTestForm webViewNdc = null;
+
         private async void button1_Click(object sender, EventArgs e)
         {
-            await WebViewTestForm.OpenWebViewWithHtml();
+            if(webViewNdc != null)
+            {
+                if (!webViewNdc.IsDisposed)
+                {
+                    webViewNdc.Close();
+                    webViewNdc.Dispose();
+                }
+            }
+            string js = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
+            var css = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
 
+            string jsAndCss = js.Replace("{magiccsstoken}", css);
+            string html = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
+
+            string result = html.Replace("<insertscripthere/>", jsAndCss);
+
+            //webViewNdc = await WebViewTestForm.OpenWebViewWithHtml(result);
+            webViewNdc = await WebViewTestForm.OpenWebViewWithJs(jsAndCss);
         }
+
+        private static string GetEmbeddedAssembly(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var stream = assembly.GetManifestResourceStream(resourceName);
+
+            string result = "";
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                result = reader.ReadToEnd();
+            }
+
+            return result;
+        }
+
+        private async void button2_Click(object sender, EventArgs e)
+        {
+            //var nodes = new List<IdNodePair>();
+            //nodes.Add(new IdNodePair { id = "node1", label = "Node 1" });
+            //nodes.Add(new IdNodePair { id = "node2", label = "Node 2" });
+            //nodes.Add(new IdNodePair { id = "node3", label = "Node 3" });
+
+            var links = new List<Link>();
+            links.Add(new Link { source = "node1", target = "node2" });
+            links.Add(new Link { source = "node2", target = "node3" });
+            links.Add(new Link { source = "node1", target = "node3" });
+
+            var nodes = ConversationManager.CurrentConversation.Messages.Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
+
+            var links2 = ConversationManager.CurrentConversation.Messages
+                .Where(x => x.Parent != null)
+                .Select(x => new Link { source = x.Parent, target = x.Guid }).ToList();
+                
+
+            await webViewNdc.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
+            await webViewNdc.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
+
+            //await webViewNdc.EvaluateJavascriptAsync("addNodes([\r\n    { id: 'node1', label: 'Node 1' },\r\n    { id: 'node2', label: 'Node 2' },\r\n    { id: 'node3', label: 'Node 3' }\r\n]);\r\n\r\n\r\n// Example usage:\r\naddLinks([\r\n    { source: 'node1', target: 'node2' },\r\n    { source: 'node2', target: 'node3' },\r\n    { source: 'node1', target: 'node3' }\r\n]);");
+        }
+    }
+
+    public class IdNodePair
+    { 
+        public string id { get; set; }
+        public string label { get; set; }
+    }
+    public class Link
+    {
+        public string source { get; set; }
+        public string target { get; set; }
     }
 }

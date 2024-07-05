@@ -40,9 +40,9 @@ namespace AiTool3.UI
             webView.NavigateToString(html);
         }
 
-        public async void EvaluateJavascript(string html)
+        public async Task<string> EvaluateJavascriptAsync(string html)
         {
-            var x = await webView.CoreWebView2.ExecuteScriptAsync(html);
+            return await webView.CoreWebView2.ExecuteScriptAsync(html);
         }
 
         public async void bork()
@@ -54,7 +54,7 @@ namespace AiTool3.UI
         {
         }
 
-
+        /*
         public static async Task<bool> OpenWebViewWithHtml()
         {
             string html = @"<!DOCTYPE html>
@@ -112,6 +112,24 @@ namespace AiTool3.UI
             form.EvaluateJavascript("setInput(\"fun!\")");
             form.Show();
             return true;
-        }
+        }*/
+
+        internal static async Task<WebViewTestForm> OpenWebViewWithJs(string result)
+        {
+            var form = new WebViewTestForm();
+            await form.InitializeAsync();
+            await form.EvaluateJavascriptAsync(result);
+            form.Show();
+            return form ;
+        }//<insertscripthere/>
+
+        internal static async Task<WebViewTestForm> OpenWebViewWithHtml(string result)
+        {
+            var form = new WebViewTestForm();
+            await form.InitializeAsync();
+            form.NavigateToHtml(result);
+            form.Show(); // returns instantly
+            return form;
+        }//<insertscripthere/>
     }
 }

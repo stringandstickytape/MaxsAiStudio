@@ -30,6 +30,18 @@
   <ItemGroup Condition="'$(Configuration)' != 'DebugCublas'">
     <PackageReference Include="Whisper.net.Runtime" Version="1.5.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="JavaScript\NetworkDiagramCssControl.css" />
+    <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
+    <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
+    <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
+    <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="CSharpScript" Version="1.0.0" />

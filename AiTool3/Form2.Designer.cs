@@ -59,6 +59,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
+            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -332,6 +333,7 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
+            splitContainer3.Panel2.Controls.Add(button2);
             splitContainer3.Panel2.Controls.Add(button1);
             splitContainer3.Panel2.Controls.Add(btnCancel);
             splitContainer3.Panel2.Controls.Add(buttonAttachImage);
@@ -467,6 +469,16 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
             // 
+            // button2
+            // 
+            button2.Location = new Point(269, 431);
+            button2.Name = "button2";
+            button2.Size = new Size(54, 34);
+            button2.TabIndex = 15;
+            button2.Text = "Test";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -537,5 +549,6 @@ namespace AiTool3
         private Button btnClearSearch;
         private Button btnCancel;
         private Button button1;
+        private Button button2;
     }
 }
