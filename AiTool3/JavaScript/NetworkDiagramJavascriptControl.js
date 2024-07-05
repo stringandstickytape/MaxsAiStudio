@@ -12,10 +12,24 @@
 
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js').then(() => {
         // Create and append necessary DOM elements
+
+        // Create and append necessary DOM elements
         const style = document.createElement('style');
 
         style.textContent = `
         {magiccsstoken}
+        #cy {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        #cy * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
         `;
         document.head.appendChild(style);
 
@@ -96,9 +110,42 @@
             wheelSensitivity: 0.1
         });
 
+
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            return false;
+        }, { capture: true });
+
+
+        // Right-click context menu
+
+        cy.on('cxttap', 'node', function (evt) {
+            evt.preventDefault();
+            var node = evt.target;
+
+            // Get context menu options from C#
+            window.chrome.webview.postMessage({
+                type: 'getContextMenuOptions',
+                nodeId: node.id(),
+                nodeLabel: node.data('label')
+            });
+
+            // Show context menu immediately with placeholder options
+            showContextMenu(['Loading...'], node.id(), node.data('label'), evt.renderedPosition.x, evt.renderedPosition.y);
+        });
+
+
+
+
         cy.on('tap', 'node', function (evt) {
             var node = evt.target;
             console.log('tapped ' + node.id());
+            // Call back to C# with the node ID
+            window.chrome.webview.postMessage({
+                type: 'nodeClicked',
+                nodeId: node.id(),
+                nodeLabel: node.data('label')
+            });
         });
 
         var layouts = [
@@ -157,7 +204,7 @@
             cy.layout(layouts[currentLayoutIndex]).run();
         }
 
-        
+
         function addLink(sourceId, targetId) {
             cy.add({
                 group: 'edges',
@@ -176,14 +223,109 @@
             cy.layout(layouts[currentLayoutIndex]).run();
         }
 
+        // Function to show context menu
 
-        ///// end C# interface
 
-        // Make these functions globally accessible
+
+        // Right-click context menu
+        cy.on('cxttap', 'node', function (evt) {
+            evt.preventDefault();
+            var node = evt.target;
+
+            // Get context menu options from C#
+            window.chrome.webview.postMessage({
+                type: 'getContextMenuOptions',
+                nodeId: node.id(),
+                nodeLabel: node.data('label')
+            });
+
+            // Show context menu immediately with placeholder options
+            showContextMenu(['Loading...'], node.id(), node.data('label'), evt.renderedPosition.x, evt.renderedPosition.y);
+        });
+
+        // Function to show context menu
+        function showContextMenu(options, nodeId, nodeLabel, x, y) {
+            // Remove existing context menu if any
+            var existingMenu = document.getElementById('context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+
+            // Create context menu
+            var menu = document.createElement('div');
+            menu.id = 'context-menu';
+            menu.style.position = 'absolute';
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.style.backgroundColor = 'white';
+            menu.style.border = '1px solid black';
+            menu.style.padding = '5px';
+            menu.style.zIndex = '1000';
+
+            // Store nodeId and nodeLabel for later use
+            menu.dataset.nodeId = nodeId;
+            menu.dataset.nodeLabel = nodeLabel;
+
+            options.forEach(function (option) {
+                var item = document.createElement('div');
+                item.textContent = option;
+                item.style.cursor = 'pointer';
+                item.style.padding = '5px';
+                item.addEventListener('click', function () {
+                    // Callback to C# with the selected option
+                    window.chrome.webview.postMessage({
+                        type: 'contextMenuOptionSelected',
+                        nodeId: nodeId,
+                        nodeLabel: nodeLabel,
+                        option: option
+                    });
+                    menu.remove();
+                });
+                menu.appendChild(item);
+            });
+
+            document.body.appendChild(menu);
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }
+
+        function updateContextMenuOptions(options) {
+            var menu = document.getElementById('context-menu');
+            if (menu) {
+                menu.innerHTML = '';
+                options.forEach(function (option) {
+                    var item = document.createElement('div');
+                    item.textContent = option;
+                    item.style.cursor = 'pointer';
+                    item.style.padding = '5px';
+                    item.addEventListener('click', function () {
+                        window.chrome.webview.postMessage({
+                            type: 'contextMenuOptionSelected',
+                            nodeId: menu.dataset.nodeId,
+                            nodeLabel: menu.dataset.nodeLabel,
+                            option: option
+                        });
+                        menu.remove();
+                    });
+                    menu.appendChild(item);
+                });
+            }
+        }
+
+        window.updateContextMenuOptions = updateContextMenuOptions;
+        window.showContextMenu = showContextMenu;
         window.addNode = addNode;
         window.addLink = addLink;
         window.addNodes = addNodes;
         window.addLinks = addLinks;
+
+        ///// end C# interface
 
         document.getElementById('toggleBtn').addEventListener('click', function () {
             currentLayoutIndex = (currentLayoutIndex + 1) % layouts.length;
