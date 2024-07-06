@@ -1,0 +1,200 @@
+﻿function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+let svg;
+
+// Create SVG container
+const svgContainer = document.createElement('div');
+svgContainer.id = 'svg-container';
+svgContainer.style.width = '100%';
+svgContainer.style.height = '100%';
+document.body.appendChild(svgContainer);
+
+loadScript('https://d3js.org/d3.v7.min.js')
+    .then(() => {
+        svg = d3.select('#svg-container')
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%');
+
+        // Initialize the graph
+        initializeGraph();
+    })
+    .catch(error => {
+        console.error('Error loading scripts:', error);
+    });
+
+function initializeGraph() {
+    zoom = d3.zoom()
+        .on('zoom', (event) => {
+            svg.select('g').attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
+
+    // Add a group for all graph elements (if not already present)
+    if (svg.select('g').empty()) {
+        svg.append('g');
+    }
+}
+
+
+function initializeContextMenu() {
+    // D3 doesn't have a built-in context menu, so we'll need to implement it manually
+    // This is a placeholder for the context menu functionality
+    console.log('Context menu initialized');
+}
+
+function clear() {
+    console.log("Clearing graph");
+    svg.select('g').selectAll('*').remove();
+    console.log("Cleared");
+}
+
+function fitAll() {
+    const g = svg.select('g');
+    const bounds = g.node().getBBox();
+    const fullWidth = svg.node().clientWidth;
+    const fullHeight = svg.node().clientHeight;
+    const width = bounds.width;
+    const height = bounds.height;
+    const midX = bounds.x + width / 2;
+    const midY = bounds.y + height / 2;
+
+    if (width === 0 || height === 0) return; // nothing to fit
+
+    const scale = 0.95 / Math.max(width / fullWidth, height / fullHeight);
+    const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+    svg.transition().duration(750)
+        .call(
+            zoom.transform,
+            d3.zoomIdentity
+                .translate(translate[0], translate[1])
+                .scale(scale)
+        );
+}
+
+
+function addNodes(nodes) {
+    console.log("Adding nodes: ", nodes);
+    const nodeGroup = svg.select('g').selectAll('.node')
+        .data(nodes, d => d.id)
+        .enter()
+        .append('g')
+        .attr('class', 'node')
+        .attr('id', d => d.id);
+
+    nodeGroup.append('rect')
+        .attr('width', d => Math.min(d.label.length * 8, 200))
+        .attr('height', 40)
+        .attr('fill', '#f2f2f2')
+        .attr('stroke', '#666')
+        .attr('stroke-width', 1);
+
+    nodeGroup.append('text')
+        .attr('x', 5)
+        .attr('y', 25)
+        .text(d => d.label.length > 100 ? d.label.substring(0, 100) + '...' : d.label)
+        .attr('fill', 'black')
+        .attr('font-size', '12px')
+        .call(wrap, 190);
+
+    function wrap(text, width) {
+        text.each(function () {
+            let text = d3.select(this),
+                words = text.text().split(/\s+/).reverse(),
+                word,
+                line = [],
+                lineNumber = 0,
+                lineHeight = 1.1,
+                x = text.attr("x"),
+                y = text.attr("y"),
+                dy = 0,
+                tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+            while (word = words.pop()) {
+                line.push(word);
+                tspan.text(line.join(" "));
+                if (tspan.node().getComputedTextLength() > width) {
+                    line.pop();
+                    tspan.text(line.join(" "));
+                    line = [word];
+                    tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                }
+            }
+        });
+    }
+
+    updateLayout();
+    initializeContextMenu();
+}
+
+function addLinks(links) {
+    console.log("Adding links: ", links);
+    svg.select('g').selectAll('.link')
+        .data(links)
+        .enter()
+        .insert('path', '.node')
+        .attr('class', 'link')
+        .attr('id', d => `${d.source}-${d.target}`)
+        .attr('stroke', '#999')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
+
+    updateLayout();
+}
+
+function updateLayout() {
+    const simulation = d3.forceSimulation(svg.selectAll('.node').data())
+        .force('link', d3.forceLink(svg.selectAll('.link').data()).id(d => d.id).distance(100))
+        .force('charge', d3.forceManyBody().strength(-500))
+        .force('center', d3.forceCenter(svg.node().clientWidth / 2, svg.node().clientHeight / 2))
+        .on('tick', ticked);
+
+    function ticked() {
+        svg.selectAll('.link')
+            .attr('d', d => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`);
+
+        svg.selectAll('.node')
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+}
+
+function centerOnNode(id) {
+    console.log("Centre on node");
+    const node = svg.select(`#${id}`);
+    if (node.empty()) {
+        console.warn(`Node with id '${id}' not found.`);
+        return;
+    }
+
+    const bounds = node.node().getBBox();
+    const fullWidth = svg.node().clientWidth;
+    const fullHeight = svg.node().clientHeight;
+    const scale = 0.5; // You can adjust this value to change the zoom level
+    const x = bounds.x + bounds.width / 2;
+    const y = bounds.y + bounds.height / 2;
+
+    svg.transition().duration(750)
+        .call(
+            zoom.transform,
+            d3.zoomIdentity
+                .translate(fullWidth / 2, fullHeight / 2)
+                .scale(scale)
+                .translate(-x, -y)
+        );
+}
+
+
+// Commented out as in the original file
+//window.updateContextMenuOptions = updateContextMenuOptions;
+//window.showContextMenu = showContextMenu;
+//window.addNode = addNode;
+//window.addLink = addLink;

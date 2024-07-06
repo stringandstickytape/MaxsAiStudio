@@ -56,7 +56,7 @@ namespace AiTool3
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
-            
+
 
             // not converted
             ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
@@ -744,6 +744,7 @@ namespace AiTool3
             return true;
         }
 
+
         private void DrawNetworkDiagram()
         {
             // Clear the diagram
@@ -767,7 +768,7 @@ namespace AiTool3
             // recursively draw the children
             DrawChildren(root, rootNode, 300 + 100, ref y);
 
-            
+
         }
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
@@ -797,11 +798,11 @@ namespace AiTool3
             BeginNewConversationPreserveInputAndSystemPrompts();
         }
 
-        private void BeginNewConversationPreserveInputAndSystemPrompts()
+        private async void BeginNewConversationPreserveInputAndSystemPrompts()
         {
             var currentPrompt = rtbInput.Text;
             var currentSystemPrompt = rtbSystemPrompt.Text;
-            BeginNewConversation();
+            await BeginNewConversation();
             rtbInput.Text = currentPrompt;
             rtbSystemPrompt.Text = currentSystemPrompt;
         }
@@ -809,11 +810,13 @@ namespace AiTool3
         private void buttonNewKeepAll_Click(object sender, EventArgs e)
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
-
+            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+            if (lastUserMessage == null)
+                return;
             if (lastAssistantMessage.Role == CompletionRole.User)
                 lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
 
-            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+            
 
             BeginNewConversationPreserveInputAndSystemPrompts();
 
@@ -853,7 +856,7 @@ namespace AiTool3
             var a = WebNdcDrawNetworkDiagram().Result;
         }
 
-        private void BeginNewConversation()
+        private async Task BeginNewConversation()
         {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
@@ -864,7 +867,7 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
             DrawNetworkDiagram();
-            var a = WebNdcDrawNetworkDiagram().Result;
+            await WebNdcDrawNetworkDiagram();
         }
 
         private async void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -1148,17 +1151,21 @@ namespace AiTool3
             string js = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
             var css = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
 
-            string jsAndCss = js.Replace("{magiccsstoken}", css);
+            
             string html = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
+            //string htmlAndCss = html.Replace("{magiccsstoken}", css);
+            string result = html.Replace("<insertscripthere />", js);
 
-            string result = html.Replace("<insertscripthere/>", jsAndCss);
+            webViewNdc = await WebViewTestForm.OpenWebViewWithJs("");
 
-            webViewNdc = await WebViewTestForm.OpenWebViewWithJs(jsAndCss);
+            //Thread.Sleep(2000);
+
+            webViewNdc.NavigateToHtml(result);
 
             webViewNdc.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
             webViewNdc.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
 
-            
+
 
             return true;
         }
@@ -1180,6 +1187,11 @@ namespace AiTool3
         private async void button2_Click(object sender, EventArgs e)
         {
             await webViewNdc.Clear();
+        }
+
+        private void Form2_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            webViewNdc.webView.Dispose();
         }
     }
 

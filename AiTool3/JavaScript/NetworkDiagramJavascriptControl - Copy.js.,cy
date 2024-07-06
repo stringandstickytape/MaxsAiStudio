@@ -1,0 +1,206 @@
+﻿
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+let cy2;
+// Create Cytoscape container div
+const cyDiv = document.createElement('div');
+cyDiv.id = 'cy';
+cyDiv.style.width = '100%';
+cyDiv.style.height = '100%';
+document.body.appendChild(cyDiv);
+
+loadScript('https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js')
+
+    .then(() => loadScript('https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js'))
+    .then(() => loadScript('https://cdn.jsdelivr.net/npm/cytoscape-cxtmenu@3.4.0/cytoscape-cxtmenu.min.js'))
+    .then(() => loadScript('https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js'))
+    .then(() => {
+        cytoscape.use(cytoscapeCxtmenu);
+        const cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: [
+                //{ data: { id: 'a', label: 'This is node A with a very long label that should be truncated and wrapped' } },
+            ],
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'shape': 'rectangle',
+                        'background-color': '#f2f2f2',
+                        'border-color': '#666',
+                        'border-width': 1,
+                        'padding': '10px',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '200px',
+                        'width': 'label',
+                        'height': 'label',
+                        'label': function (ele) {
+                            return ele.data('label').substring(0, 100) + (ele.data('label').length > 100 ? '...' : '');
+                        }
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#999',
+                        'target-arrow-color': '#999',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier'
+                    }
+                }
+            ],
+            layout: {
+                name: 'dagre',
+                rankDir: 'LR',
+                nodeSep: 60,
+                rankSep: 10,
+                padding: 10,
+                edgeWeight: function (edge) { return 1; }, 
+                fit: true,
+                spacingFactor: 0.25
+            }
+
+        });
+        cy2 = cy;
+    }).catch(error => {
+        console.error('Error loading scripts:', error);
+    });
+
+function initializeCxtmenu() {
+    cy2.cxtmenu({
+        selector: 'node',
+        commands: [
+            {
+                content: 'Edit',
+                select: function (ele) {
+                    console.log('Edit node: ' + ele.id());
+                    // Add your edit functionality here
+                }
+            },
+            {
+                content: 'Delete',
+                select: function (ele) {
+                    console.log('Delete node: ' + ele.id());
+                    cy2.remove(ele);
+                }
+            },
+            // Add more menu items as needed
+        ]
+    });
+}
+
+function clear() {
+    console.log("Clearing graph");
+    // Remove all elements (nodes and edges) from the graph
+    cy2.elements().remove();
+
+    // Optionally, you can trigger a layout update if needed
+    cy2.layout({
+        name: 'dagre',
+        rankDir: 'TB',
+        nodeSep: 60,
+        rankSep: 120,
+        padding: 10
+    }).run();
+    console.log("Cleared");
+}
+
+function fitAll() {
+    cy2.animate({
+        fit: {
+            eles: cy2.elements(),
+            padding: 50
+        },
+        duration: 1000, // Animation duration in milliseconds
+        easing: 'ease-in-out-cubic'
+    });
+}
+
+function addNodes(nodes) {
+    console.log("Adding nodes: ", nodes);
+    // Create an array to hold the new elements
+    const newElements = nodes.map(node => ({
+        group: 'nodes',
+        data: {
+            id: node.id,
+            label: node.label
+        }
+    }));
+
+    // Add the new nodes to the graph
+    cy2.add(newElements);
+
+    // Rerun the layout to incorporate the new nodes
+    cy2.layout({
+        name: 'dagre',
+        rankDir: 'TB',
+        nodeSep: 60,
+        rankSep: 120,
+        padding: 10
+    }).run();
+
+        // Initialize the context menu after adding nodes
+    initializeCxtmenu();
+
+}
+
+function addLinks(links) {
+    console.log("Adding links: ", links);
+    // Create an array to hold the new elements
+    const newElements = links.map(link => ({
+        group: 'edges',
+        data: {
+            id: `${link.source}-${link.target}`,
+            source: link.source,
+            target: link.target
+        }
+    }));
+
+    // Add the new edges to the graph
+    cy2.add(newElements);
+
+    // Rerun the layout to incorporate the new edges
+    cy2.layout({
+        name: 'dagre',
+        rankDir: 'TB',
+        nodeSep: 60,
+        rankSep: 120,
+        padding: 10
+    }).run();
+}
+
+function centerOnNode(id) {
+    console.log("Centre on node");
+    // Find the node with the given id
+    const node = cy2.getElementById(id);
+
+    // Check if the node exists
+    if (node.length > 0) {
+        // Center the view on the node
+        cy2.animate({
+            fit: {
+                eles: node,
+                padding: 50
+            },
+            duration: 1000, // Animation duration in milliseconds
+            easing: 'ease-in-out-cubic'
+        });
+    } else {
+        console.warn(`Node with id '${id}' not found.`);
+    }
+}
+
+//window.updateContextMenuOptions = updateContextMenuOptions;
+//window.showContextMenu = showContextMenu;
+//window.addNode = addNode;
+//window.addLink = addLink;

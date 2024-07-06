@@ -12,7 +12,7 @@ namespace AiTool3.UI
 {
     public class WebViewTestForm : Form
     {
-        private WebView2 webView;
+        public WebView2 webView;
 
         public WebViewTestForm()
         {
@@ -20,6 +20,10 @@ namespace AiTool3.UI
             this.Text = "Node Diagram WebView";
 
             webView = new WebView2();
+
+
+
+
             webView.Dock = DockStyle.Fill;
             this.Controls.Add(webView);
             
@@ -94,12 +98,19 @@ namespace AiTool3.UI
 
         public async Task<string> EvaluateJavascriptAsync(string html)
         {
-            return await webView.CoreWebView2.ExecuteScriptAsync(html);
+            var a = await webView.CoreWebView2.ExecuteScriptAsync(html);
+            return a;
         }
 
         internal static async Task<WebViewTestForm> OpenWebViewWithJs(string result)
         {
+
+
             var form = new WebViewTestForm();
+            await form.webView.EnsureCoreWebView2Async(null);
+            await form.webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
+            // open dev tools
+            form.webView.CoreWebView2.OpenDevToolsWindow();
             form.WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
             await form.InitializeAsync();
             await form.EvaluateJavascriptAsync(result);
