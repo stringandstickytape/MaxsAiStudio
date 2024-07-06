@@ -9,6 +9,7 @@
 }
 
 let svg, g, zoom, root;
+let isVertical = true; // New variable to track the current layout
 
 // Create SVG container
 const svgContainer = document.createElement('div');
@@ -16,6 +17,15 @@ svgContainer.id = 'svg-container';
 svgContainer.style.width = '100%';
 svgContainer.style.height = '100%';
 document.body.appendChild(svgContainer);
+
+// Create toggle button
+const toggleButton = document.createElement('button');
+toggleButton.textContent = 'Toggle Layout';
+toggleButton.style.position = 'absolute';
+toggleButton.style.top = '10px';
+toggleButton.style.left = '10px';
+toggleButton.addEventListener('click', toggleLayout);
+document.body.appendChild(toggleButton);
 
 loadScript('https://d3js.org/d3.v7.min.js')
     .then(() => {
@@ -70,7 +80,7 @@ function fitAll() {
     const scale = 0.95 / Math.max(width / fullWidth, height / fullHeight);
     const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-    svg.transition().duration(750)
+    svg.transition().duration(1000)
         .call(
             zoom.transform,
             d3.zoomIdentity
@@ -85,6 +95,7 @@ function addNodes(nodes) {
         root.children.push({ id: node.id, label: node.label, children: [] });
     });
     updateGraph();
+    
 }
 
 function addLinks(links) {
@@ -100,6 +111,8 @@ function addLinks(links) {
         }
     });
     updateGraph();
+    // in 1 sec, run fitall
+    setTimeout(fitAll, 50);
 }
 
 function findNode(node, id) {
@@ -116,8 +129,7 @@ function findNode(node, id) {
 function updateGraph() {
     const nodeWidth = 200;
     const nodeHeight = 40;
-    const horizontalSpacing = 100;
-    const verticalSpacing = 60;
+    const spacing = 100;
 
     // Recursive function to position nodes
     function positionNode(node, x, y, level) {
@@ -125,12 +137,17 @@ function updateGraph() {
         node.y = y;
 
         if (node.children && node.children.length > 0) {
-            const childrenHeight = (node.children.length - 1) * (nodeHeight + verticalSpacing);
-            let childY = y - childrenHeight / 2;
+            const childrenSize = (node.children.length - 1) * (isVertical ? (nodeWidth + spacing) : (nodeHeight + spacing));
+            let childPos = isVertical ? x - childrenSize / 2 : y - childrenSize / 2;
 
             node.children.forEach(child => {
-                positionNode(child, x + nodeWidth + horizontalSpacing, childY, level + 1);
-                childY += nodeHeight + verticalSpacing;
+                if (isVertical) {
+                    positionNode(child, childPos, y + nodeHeight + spacing, level + 1);
+                    childPos += nodeWidth + spacing;
+                } else {
+                    positionNode(child, x + nodeWidth + spacing, childPos, level + 1);
+                    childPos += nodeHeight + spacing;
+                }
             });
         }
     }
@@ -148,7 +165,13 @@ function updateGraph() {
         .merge(links)
         .attr('fill', 'none')
         .attr('stroke', '#999')
-        .attr('d', d => `M${d.source.x + nodeWidth},${d.source.y + nodeHeight / 2} C${(d.source.x + d.target.x + nodeWidth) / 2},${d.source.y + nodeHeight / 2} ${(d.source.x + d.target.x + nodeWidth) / 2},${d.target.y + nodeHeight / 2} ${d.target.x},${d.target.y + nodeHeight / 2}`);
+        .attr('d', d => {
+            if (isVertical) {
+                return `M${d.source.x + nodeWidth / 2},${d.source.y + nodeHeight} C${d.source.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${d.target.y}`;
+            } else {
+                return `M${d.source.x + nodeWidth},${d.source.y + nodeHeight / 2} C${(d.source.x + d.target.x + nodeWidth) / 2},${d.source.y + nodeHeight / 2} ${(d.source.x + d.target.x + nodeWidth) / 2},${d.target.y + nodeHeight / 2} ${d.target.x},${d.target.y + nodeHeight / 2}`;
+            }
+        });
 
     links.exit().remove();
 
@@ -179,12 +202,12 @@ function updateGraph() {
 
     nodes.merge(nodeEnter)
         .transition()
-        .duration(750)
+        .duration(1)
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
     nodes.exit().remove();
 
-    fitAll();
+    
 }
 
 function getNodes(node) {
@@ -224,7 +247,7 @@ function centerOnNode(id) {
     const x = bounds.x + bounds.width / 2;
     const y = bounds.y + bounds.height / 2;
 
-    svg.transition().duration(750)
+    svg.transition().duration(1)
         .call(
             zoom.transform,
             d3.zoomIdentity
@@ -232,4 +255,10 @@ function centerOnNode(id) {
                 .scale(scale)
                 .translate(-x, -y)
         );
+}
+
+function toggleLayout() {
+    isVertical = !isVertical;
+    updateGraph();
+    fitAll();
 }
