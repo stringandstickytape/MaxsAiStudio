@@ -34,6 +34,13 @@ loadScript('https://d3js.org/d3.v7.min.js')
             .attr('width', '100%')
             .attr('height', '100%');
 
+        // Add this block to create a background rectangle
+        svg.append('rect')
+            .attr('width', '100%')
+            .attr('height', '100%')
+            .attr('fill', '#444444');
+
+
         // Initialize the graph
         initializeGraph();
     })
@@ -129,7 +136,7 @@ function findNode(node, id) {
 function updateGraph() {
     const nodeWidth = 200;
     const nodeHeight = 40;
-    const spacing = 100;
+    const spacing = 10;
 
     // Recursive function to position nodes
     function positionNode(node, x, y, level) {
@@ -197,7 +204,8 @@ function updateGraph() {
         .attr('y', nodeHeight / 2)
         .attr('text-anchor', 'start')
         .attr('fill', 'black')
-        .attr('font-size', '12px')
+        .attr('font-size', '24px')
+        .attr('font-family', 'Calibri, Arial, sans-serif')  // Add this line
         .text(d => d.label.length > 25 ? d.label.substring(0, 25) + '...' : d.label);
 
     nodes.merge(nodeEnter)
