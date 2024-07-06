@@ -61,7 +61,7 @@ function initializeGraph() {
         .attr('transform', `translate(${svg.node().clientWidth / 2},${svg.node().clientHeight / 2})`);
 
     // Initialize root of the tree
-    root = { id: 'root', children: [] };
+    root = { id: 'root', label: 'Conversation Start', children: [] };
 }
 
 function clear() {
@@ -99,7 +99,7 @@ function fitAll() {
 function addNodes(nodes) {
     console.log("Adding nodes: ", nodes);
     nodes.forEach(node => {
-        root.children.push({ id: node.id, label: node.label, children: [] });
+        root.children.push({ id: node.id, label: node.label.substring(0,100), children: [] });
     });
     updateGraph();
     
@@ -135,8 +135,8 @@ function findNode(node, id) {
 
 function updateGraph() {
     const nodeWidth = 200;
-    const nodeHeight = 40;
-    const spacing = 10;
+    const nodeHeight = 80;
+    const spacing = 40;
 
     // Recursive function to position nodes
     function positionNode(node, x, y, level) {
@@ -198,15 +198,25 @@ function updateGraph() {
         .attr('stroke', '#666')
         .attr('stroke-width', 1);
 
-    nodeEnter.append('text')
-        .attr('dy', '0.31em')
-        .attr('x', 5)
-        .attr('y', nodeHeight / 2)
-        .attr('text-anchor', 'start')
-        .attr('fill', 'black')
-        .attr('font-size', '24px')
-        .attr('font-family', 'Calibri, Arial, sans-serif')  // Add this line
-        .text(d => d.label.length > 25 ? d.label.substring(0, 25) + '...' : d.label);
+    nodeEnter.append('foreignObject')
+        .attr('width', nodeWidth)
+        .attr('height', nodeHeight)
+        .append('xhtml:div')
+        .style('width', '100%')
+        .style('height', '100%')
+        .style('display', 'flex')
+        .style('align-items', 'center')
+        .style('justify-content', 'center') // Add this line
+        .style('padding', '5px')
+        .style('box-sizing', 'border-box')
+        .style('overflow', 'hidden')
+        .append('xhtml:p')
+        .style('margin', '0')
+        .style('font-size', '14px')
+        .style('line-height', '1.2')
+        .style('font-family', 'Calibri, Arial, sans-serif')
+        .style('text-align', 'center') // Add this line
+        .text(d => d.label);
 
     nodes.merge(nodeEnter)
         .transition()
@@ -214,6 +224,7 @@ function updateGraph() {
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
     nodes.exit().remove();
+
 
     
 }

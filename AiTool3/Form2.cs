@@ -732,7 +732,9 @@ namespace AiTool3
 
             var a = await webViewNdc.Clear();
 
-            var nodes = ConversationManager.CurrentConversation.Messages.Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
+            var nodes = ConversationManager.CurrentConversation.Messages
+                .Where(x => x.Role != CompletionRole.Root)
+                .Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
 
             var links2 = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Parent != null)
