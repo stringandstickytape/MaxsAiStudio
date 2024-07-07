@@ -63,11 +63,11 @@ namespace AiTool3
 
 
             // not converted
-            ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
+            //ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
             // not converted
-            ndcConversation.MenuOptionSelected += MenuOptionSelected();
+            //ndcConversation.MenuOptionSelected += MenuOptionSelected();
             // converted
-            ndcConversation.NodeClicked += NdcConversation_NodeClicked;
+            //ndcConversation.NodeClicked += NdcConversation_NodeClicked;
 
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
@@ -699,8 +699,6 @@ namespace AiTool3
                 btnCancel.Enabled = false; // Disable cancel button
             }
 
-            var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
-            ndcConversation.CenterOnNode(currentResponseNode);
             webViewManager.CentreOnNode(completionResponse.Guid);
 
             var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
@@ -754,44 +752,44 @@ namespace AiTool3
 
         private void DrawNetworkDiagram()
         {
-            // Clear the diagram
-            ndcConversation.Clear();
-
-            var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
-            if (root == null)
-            {
-                return;
-            }
-            var y = 100;
-
-            var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel, root.Omit);
-
-            // get the model with the same name as the engine
-            var model = CurrentSettings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
-
-            rootNode.BackColor = root.GetColorForEngine();
-            ndcConversation.AddNode(rootNode);
-
-            // recursively draw the children
-            DrawChildren(root, rootNode, 300 + 100, ref y);
+            //// Clear the diagram
+            //ndcConversation.Clear();
+            //
+            //var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
+            //if (root == null)
+            //{
+            //    return;
+            //}
+            //var y = 100;
+            //
+            //var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel, root.Omit);
+            //
+            //// get the model with the same name as the engine
+            //var model = CurrentSettings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
+            //
+            //rootNode.BackColor = root.GetColorForEngine();
+            //ndcConversation.AddNode(rootNode);
+            //
+            //// recursively draw the children
+            //DrawChildren(root, rootNode, 300 + 100, ref y);
 
 
         }
 
         private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
         {
-            y += 130;
-            foreach (var child in root.Children)
-            {
-                // get from child string
-                var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
-
-                var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel, childMsg.Omit);
-                childNode.BackColor = childMsg.GetColorForEngine();
-                ndcConversation.AddNode(childNode);
-                ndcConversation.AddConnection(rootNode, childNode);
-                DrawChildren(childMsg, childNode, v + 100, ref y);
-            }
+            //y += 130;
+            //foreach (var child in root.Children)
+            //{
+            //    // get from child string
+            //    var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
+            //
+            //    var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel, childMsg.Omit);
+            //    childNode.BackColor = childMsg.GetColorForEngine();
+            //    ndcConversation.AddNode(childNode);
+            //    ndcConversation.AddConnection(rootNode, childNode);
+            //    DrawChildren(childMsg, childNode, v + 100, ref y);
+            //}
         }
 
         private void btnClear_Click(object sender, EventArgs e)
@@ -886,7 +884,7 @@ namespace AiTool3
             DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
 
-            ndcConversation.FitAll();
+            //ndcConversation.FitAll();
         }
 
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)

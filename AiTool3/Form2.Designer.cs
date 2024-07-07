@@ -30,7 +30,6 @@ namespace AiTool3
         /// </summary>
         private void InitializeComponent()
         {
-            ndcConversation = new NetworkDiagramControl();
             cbEngine = new ComboBox();
             btnGo = new Button();
             rtbSystemPrompt = new ButtonedRichTextBox();
@@ -83,28 +82,6 @@ namespace AiTool3
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
-            // 
-            // ndcConversation
-            // 
-            ndcConversation.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            ndcConversation.BackColor = SystemColors.WindowFrame;
-            ndcConversation.HighlightedNode = null;
-            ndcConversation.HighlightedNodeBorderColor = Color.Red;
-            ndcConversation.Location = new Point(3, 3);
-            ndcConversation.Name = "ndcConversation";
-            ndcConversation.NodeBackgroundColor = Color.LightBlue;
-            ndcConversation.NodeBorderColor = Color.Black;
-            ndcConversation.NodeCornerRadius = 2;
-            ndcConversation.NodeForegroundColor = Color.Black;
-            ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
-            ndcConversation.NodeGradientStart = Color.White;
-            ndcConversation.PanOffset = new Point(0, 0);
-            ndcConversation.Size = new Size(292, 589);
-            ndcConversation.TabIndex = 0;
-            ndcConversation.Text = "networkDiagramControl1";
-            ndcConversation.UseDropShadow = true;
-            ndcConversation.Visible = false;
-            ndcConversation.ZoomFactor = 1F;
             // 
             // cbEngine
             // 
@@ -200,7 +177,6 @@ namespace AiTool3
             // splitContainer5.Panel2
             // 
             splitContainer5.Panel2.Controls.Add(ndcWeb);
-            splitContainer5.Panel2.Controls.Add(ndcConversation);
             splitContainer5.Size = new Size(622, 983);
             splitContainer5.SplitterDistance = 384;
             splitContainer5.TabIndex = 1;
@@ -537,8 +513,6 @@ namespace AiTool3
         }
 
         #endregion
-
-        private NetworkDiagramControl ndcConversation;
         private Button btnGo;
         private ComboBox cbEngine;
         private ButtonedRichTextBox rtbSystemPrompt;
