@@ -87,8 +87,7 @@ The main window is divided into several sections:
 
 - The network diagram shows the structure of your conversation.
 - Each node represents a message, color-coded by the AI model used.
-- Click on nodes to navigate through the conversation.
-- Node labels are truncated to 500 characters for better visibility.
+- Click on nodes to navigate through the conversation. 
 
 ### 9. Snippet Detection
 
@@ -144,5 +143,14 @@ The main window is divided into several sections:
 - Users can now disable specific nodes in the conversation.
 - Disabled nodes are omitted from the conversation with AI and not saved as part of the conversation.
 - Right-click on a node in the network diagram and select "Disable" to toggle this feature.
+
+### 20. Local AI Model
+
+- The application now uses the Gemma model for local AI processing, replacing the previously used Llama model.
+
+### 21. Regenerate All Summaries
+
+- A new feature has been added to regenerate summaries for all conversations.
+- This can be accessed through the "Specials" menu.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.
