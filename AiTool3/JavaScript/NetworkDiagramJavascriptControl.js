@@ -148,7 +148,7 @@ function addNodes(nodes) {
     nodes.forEach(node => {
         root.children.push({
             id: node.id,
-            label: node.label.substring(0, 160),
+            label: node.label.length > 160 ? node.label.substring(0, 157) + '...' : node.label,
             role: node.role,
             color: node.colour, // Add this line to store the color
             children: []
