@@ -40,6 +40,8 @@ namespace AiTool3
         private Task recordingTask;
         private bool isRecording = false;
 
+        private WebViewManager webViewManager = null;
+
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
 
@@ -47,6 +49,8 @@ namespace AiTool3
         public Form2()
         {
             InitializeComponent();
+
+            webViewManager = new WebViewManager(ndcWeb);
 
             SetPaperclipIcon(buttonAttachImage);
 
@@ -413,10 +417,6 @@ namespace AiTool3
             {
                 ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
             });
-            //AddSpecial(specialsMenu, "TestForm thing", (s, e) =>
-            //{
-            //    var result = WebViewTestForm.OpenWebViewWithHtml().Result;
-            //});
 
             specialsMenu.DropDownItems.Add(restartMenuItem);
             menuBar.Items.Add(specialsMenu);
@@ -701,7 +701,7 @@ namespace AiTool3
 
             var currentResponseNode = ndcConversation.GetNodeForGuid(completionResponse.Guid);
             ndcConversation.CenterOnNode(currentResponseNode);
-            webViewNdc.CentreOnNode(completionResponse.Guid);
+            webViewManager.CentreOnNode(completionResponse.Guid);
 
             var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
@@ -733,9 +733,9 @@ namespace AiTool3
 
         private async Task<bool> WebNdcDrawNetworkDiagram()
         {
-            if (webViewNdc == null) return false;
+            if (webViewManager == null || webViewManager.webView.CoreWebView2 == null) return false;
 
-            var a = await webViewNdc.Clear();
+            var a = await webViewManager.Clear();
 
             var nodes = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Role != CompletionRole.Root)
@@ -746,8 +746,8 @@ namespace AiTool3
                 .Select(x => new Link { source = x.Parent, target = x.Guid }).ToList();
 
 
-            await webViewNdc.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
-            await webViewNdc.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
+            await webViewManager.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
+            await webViewManager.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
             return true;
         }
 
@@ -1138,7 +1138,7 @@ namespace AiTool3
             }
         }
 
-        WebViewTestForm webViewNdc = null;
+        
 
         private async void button1_Click(object sender, EventArgs e)
         {
@@ -1147,14 +1147,13 @@ namespace AiTool3
 
         private async Task<bool> CreateNewWebNdc()
         {
-            if (webViewNdc != null)
-            {
-                if (!webViewNdc.IsDisposed)
-                {
-                    webViewNdc.Close();
-                    webViewNdc.Dispose();
-                }
-            }
+            //if (webViewNdc != null)
+            //{
+            //    if (!webViewNdc.IsDisposed)
+            //    {
+            //        webViewNdc.Dispose();
+            //    }
+            //}
             string js = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
             var css = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
 
@@ -1163,14 +1162,14 @@ namespace AiTool3
             string htmlAndCss = html.Replace("{magiccsstoken}", css);
             string result = htmlAndCss.Replace("<insertscripthere />", js);
 
-            webViewNdc = await WebViewTestForm.OpenWebViewWithJs("");
+            await webViewManager.OpenWebViewWithJs("");
 
             //Thread.Sleep(2000);
 
-            webViewNdc.NavigateToHtml(result);
+            webViewManager.NavigateToHtml(result);
 
-            webViewNdc.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
-            webViewNdc.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
+            webViewManager.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
+            webViewManager.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
 
 
 
@@ -1193,12 +1192,12 @@ namespace AiTool3
 
         private async void button2_Click(object sender, EventArgs e)
         {
-            await webViewNdc.Clear();
+            await webViewManager.Clear();
         }
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            webViewNdc.webView.Dispose();
+            webViewManager.webView.Dispose();
         }
     }
 

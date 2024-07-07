@@ -10,23 +10,14 @@ using static AiTool3.UI.NetworkDiagramControl;
 
 namespace AiTool3.UI
 {
-    public class WebViewTestForm : Form
+    public class WebViewManager
     {
-        public WebView2 webView;
+        public WebView2 webView { get; internal set; }
 
-        public WebViewTestForm()
+        public WebViewManager(WebView2 webViewIn)
         {
-            this.Size = new System.Drawing.Size(800, 600);
-            this.Text = "Node Diagram WebView";
-
-            webView = new WebView2();
-
-
-
-
+            webView = webViewIn;
             webView.Dock = DockStyle.Fill;
-            this.Controls.Add(webView);
-            
             webView.WebMessageReceived += WebView_WebMessageReceived;
         }
 
@@ -102,20 +93,17 @@ namespace AiTool3.UI
             return a;
         }
 
-        internal static async Task<WebViewTestForm> OpenWebViewWithJs(string result)
+        internal async Task OpenWebViewWithJs(string result)
         {
 
 
-            var form = new WebViewTestForm();
-            await form.webView.EnsureCoreWebView2Async(null);
-            await form.webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
-            // open dev tools
-            form.webView.CoreWebView2.OpenDevToolsWindow();
-            form.WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
-            await form.InitializeAsync();
-            await form.EvaluateJavascriptAsync(result);
-            form.Show();
-            return form ;
+            await webView.EnsureCoreWebView2Async(null);
+            await webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
+            webView.CoreWebView2.OpenDevToolsWindow();
+            WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
+            await InitializeAsync();
+            await EvaluateJavascriptAsync(result);
+            return;
         }//<insertscripthere/>
 
         private static void Form_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
@@ -123,14 +111,12 @@ namespace AiTool3.UI
             
         }
 
-        internal static async Task<WebViewTestForm> OpenWebViewWithHtml(string result)
+        internal async Task OpenWebViewWithHtml(string result)
         {
-            var form = new WebViewTestForm();
-            form.WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
-            await form.InitializeAsync();
-            form.NavigateToHtml(result);
-            form.Show(); // returns instantly
-            return form;
+            WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
+            await InitializeAsync();
+            NavigateToHtml(result);
+            return;
         }//<insertscripthere/>
     }
 

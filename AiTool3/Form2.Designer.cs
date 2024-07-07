@@ -41,6 +41,7 @@ namespace AiTool3
             btnClearSearch = new Button();
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
+            ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
             splitContainer2 = new SplitContainer();
             groupBox1 = new GroupBox();
             buttonAddTemplate = new Button();
@@ -69,6 +70,7 @@ namespace AiTool3
             splitContainer5.Panel2.SuspendLayout();
             splitContainer5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvConversations).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)ndcWeb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
@@ -97,10 +99,11 @@ namespace AiTool3
             ndcConversation.NodeGradientEnd = Color.LightSkyBlue;
             ndcConversation.NodeGradientStart = Color.White;
             ndcConversation.PanOffset = new Point(0, 0);
-            ndcConversation.Size = new Size(616, 589);
+            ndcConversation.Size = new Size(292, 589);
             ndcConversation.TabIndex = 0;
             ndcConversation.Text = "networkDiagramControl1";
             ndcConversation.UseDropShadow = true;
+            ndcConversation.Visible = false;
             ndcConversation.ZoomFactor = 1F;
             // 
             // cbEngine
@@ -196,6 +199,7 @@ namespace AiTool3
             // 
             // splitContainer5.Panel2
             // 
+            splitContainer5.Panel2.Controls.Add(ndcWeb);
             splitContainer5.Panel2.Controls.Add(ndcConversation);
             splitContainer5.Size = new Size(622, 983);
             splitContainer5.SplitterDistance = 384;
@@ -231,6 +235,18 @@ namespace AiTool3
             dgvConversations.Size = new Size(616, 335);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
+            // 
+            // ndcWeb
+            // 
+            ndcWeb.AllowExternalDrop = true;
+            ndcWeb.BackColor = Color.DarkGray;
+            ndcWeb.CreationProperties = null;
+            ndcWeb.DefaultBackgroundColor = Color.White;
+            ndcWeb.Location = new Point(90, 140);
+            ndcWeb.Name = "ndcWeb";
+            ndcWeb.Size = new Size(446, 329);
+            ndcWeb.TabIndex = 1;
+            ndcWeb.ZoomFactor = 1D;
             // 
             // splitContainer2
             // 
@@ -502,6 +518,7 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)splitContainer5).EndInit();
             splitContainer5.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvConversations).EndInit();
+            ((System.ComponentModel.ISupportInitialize)ndcWeb).EndInit();
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
@@ -551,5 +568,6 @@ namespace AiTool3
         private Button btnCancel;
         private Button button1;
         private Button button2;
+        private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
     }
 }
