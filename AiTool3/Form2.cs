@@ -734,7 +734,7 @@ namespace AiTool3
 
             var nodes = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new IdNodePair { id = m.Guid, label = m.Content }).ToList();
+                .Select(m => new IdNodeRole { id = m.Guid, label = m.Content, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
 
             var links2 = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Parent != null)
@@ -1197,10 +1197,14 @@ namespace AiTool3
         }
     }
 
-    public class IdNodePair
-    { 
+    public class IdNodeRole
+    {
+        public string role { get; set; }
+
         public string id { get; set; }
         public string label { get; set; }
+
+        public string colour { get; set; }
     }
     public class Link
     {

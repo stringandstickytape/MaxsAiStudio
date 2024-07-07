@@ -43,8 +43,8 @@ namespace AiTool3.UI
             {
                 case "nodeClicked":
                     string clickedNodeId = message["nodeId"];
-                    string clickedNodeLabel = message["nodeLabel"];
-                    WebNdcNodeClicked?.Invoke(this, new WebNdcNodeClickedEventArgs(clickedNodeId, clickedNodeLabel));
+                    //string clickedNodeLabel = message["nodeLabel"];
+                    WebNdcNodeClicked?.Invoke(this, new WebNdcNodeClickedEventArgs(clickedNodeId));
                     // Handle node click (existing code)
                     break;
 
@@ -141,12 +141,10 @@ namespace AiTool3.UI
     public class WebNdcNodeClickedEventArgs
     {
         public string NodeId { get; }
-        public string NodeLabel { get; }
 
-        public WebNdcNodeClickedEventArgs(string nodeId, string nodeLabel)
+        public WebNdcNodeClickedEventArgs(string nodeId)
         {
             NodeId = nodeId;
-            NodeLabel = nodeLabel;
         }
     }
 }

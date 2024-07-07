@@ -48,6 +48,15 @@ loadScript('https://d3js.org/d3.v7.min.js')
         console.error('Error loading scripts:', error);
     });
 
+
+function toggleGraphVisibility() {
+    const container = document.getElementById('svg-container');
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+}
 function initializeGraph() {
     zoom = d3.zoom()
         .on('zoom', (event) => {
@@ -97,14 +106,20 @@ function fitAll() {
 }
 
 function addNodes(nodes) {
+    
     console.log("Adding nodes: ", nodes);
     nodes.forEach(node => {
-        root.children.push({ id: node.id, label: node.label.substring(0,100), children: [] });
+        root.children.push({
+            id: node.id,
+            label: node.label.substring(0, 100),
+            role: node.role,
+            color: node.colour, // Add this line to store the color
+            children: []
+        });
     });
     updateGraph();
     
 }
-
 function addLinks(links) {
     console.log("Adding links: ", links);
     links.forEach(link => {
@@ -134,10 +149,10 @@ function findNode(node, id) {
 }
 
 function updateGraph() {
-    const nodeWidth = 200;
+    const nodeWidth = 300;
     const nodeHeight = 80;
     const spacing = 40;
-
+    
     // Recursive function to position nodes
     function positionNode(node, x, y, level) {
         node.x = x;
@@ -171,14 +186,20 @@ function updateGraph() {
         .attr('class', 'link')
         .merge(links)
         .attr('fill', 'none')
-        .attr('stroke', '#999')
+        .attr('stroke', '#ae3')
+        .attr('stroke-width', 3)
+        .attr('opacity', 0) // Set initial opacity to 0
         .attr('d', d => {
             if (isVertical) {
                 return `M${d.source.x + nodeWidth / 2},${d.source.y + nodeHeight} C${d.source.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${d.target.y}`;
             } else {
                 return `M${d.source.x + nodeWidth},${d.source.y + nodeHeight / 2} C${(d.source.x + d.target.x + nodeWidth) / 2},${d.source.y + nodeHeight / 2} ${(d.source.x + d.target.x + nodeWidth) / 2},${d.target.y + nodeHeight / 2} ${d.target.x},${d.target.y + nodeHeight / 2}`;
             }
-        });
+
+        })
+        .transition() // Add transition
+        .duration(500) // Set duration (adjust as needed)
+        .attr('opacity', 1); // Fade in to full opacity
 
     links.exit().remove();
 
@@ -189,14 +210,29 @@ function updateGraph() {
     const nodeEnter = nodes.enter()
         .append('g')
         .attr('class', 'node')
-        .attr('id', d => d.id);
+        .attr('id', d => d.id)
+        .attr('opacity', 0); // Set initial opacity to 0
+
+    nodeEnter.on('click', function (event, d) {
+        if (event.button === 0) { // 0 is the left mouse button
+            let nodeId = d.id;
+
+            window.chrome.webview.postMessage({
+                type: 'nodeClicked',
+                nodeId: nodeId
+            });
+
+        }
+    });
 
     nodeEnter.append('rect')
         .attr('width', nodeWidth)
         .attr('height', nodeHeight)
-        .attr('fill', '#f2f2f2')
-        .attr('stroke', '#666')
+        .attr('fill', d => d.color || (d.role === 'Assistant' ? '#e6f3ff' : d.role === 'User' ? '#fff0e6' : '#f2f2f2'))
+        .attr('stroke', d => d.role === 'Assistant' ? '#4da6ff' : d.role === 'User' ? '#ffa64d' : '#666')
         .attr('stroke-width', 1);
+
+
 
     nodeEnter.append('foreignObject')
         .attr('width', nodeWidth)
@@ -217,14 +253,18 @@ function updateGraph() {
         .style('font-family', 'Calibri, Arial, sans-serif')
         .style('text-align', 'center') // Add this line
         .text(d => d.label);
-
+    
     nodes.merge(nodeEnter)
         .transition()
-        .duration(1)
-        .attr('transform', d => `translate(${d.x},${d.y})`);
+        .duration(500) // Set duration (adjust as needed)
+        .attr('transform', d => `translate(${d.x},${d.y})`)
+        .attr('opacity', 1); // Fade in to full opacity
 
     nodes.exit().remove();
 
+    setTimeout(fitAll, 150); // Slightly longer than the transition duration
+    setTimeout(fitAll, 350); // Slightly longer than the transition duration
+    setTimeout(fitAll, 550); // Slightly longer than the transition duration
 
     
 }
