@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -68,9 +69,11 @@ namespace AiTool3.Conversations
                 // Load each conversation
                 string guid = Path.GetFileNameWithoutExtension(file).Replace("v3-conversation-", "").Replace(".json","");
                 LoadConversation(guid);
-
+                
                 // Regenerate summary
                 string newSummary = await GenerateConversationSummary(summaryModel, useLocalAi);
+
+                Debug.WriteLine(newSummary);
 
             }
 

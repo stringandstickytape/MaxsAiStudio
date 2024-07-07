@@ -43,7 +43,7 @@ namespace AiTool3.Conversations
         internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi)
         {
             string responseText = "";
-
+            Debug.WriteLine(Title);
             if (useLocalAi)
             {
                 // instantiate the service from name
@@ -59,13 +59,13 @@ namespace AiTool3.Conversations
 
                     Debug.WriteLine(nodes);
 
-                    foreach (var node in nodes.Take(2))
+                    foreach (var node in nodes.Skip(1).Take(2))
                     {
                         var nodeContent = node.Content;
                         // truncate to 500 chars if necc
-                        if (nodeContent.Length > 500)
+                        if (nodeContent.Length > 300)
                         {
-                            nodeContent = nodeContent.Substring(0, 500);
+                            nodeContent = nodeContent.Substring(0, 300);
                         }
                         conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                     }

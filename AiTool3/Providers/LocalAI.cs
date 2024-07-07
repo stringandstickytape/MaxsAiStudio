@@ -47,7 +47,7 @@ namespace AiTool3.Providers
 
             if (!IsPortOpen(11434))
             {
-                var psi = new ProcessStartInfo("ollama", "run llama3")
+                var psi = new ProcessStartInfo("ollama", "run gemma2")
                 {
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,

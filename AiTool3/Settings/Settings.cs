@@ -56,7 +56,7 @@ namespace AiTool3.Settings
                 ApiUrl = "http://localhost:11434/api/chat/",
                 Models = new List<Model>
                 {
-                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3", Color = Color.FromArgb(255, 255, 186)},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
                 },
             });
 

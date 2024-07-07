@@ -45,9 +45,11 @@ namespace AiTool3.Helpers
 
             // populate dgv with the conversation files in the current directory, ordered by date desc
             var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "v3-conversation-*.json").OrderByDescending(f => new FileInfo(f).LastWriteTime);
-            foreach (var file in files)
+
+            var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x))).ToList();
+
+            foreach (var conv in convs.OrderByDescending(x => x.Messages[0].CreatedAt))
             {
-                var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(file));
                 if (!conv.Messages.Any())
                     continue;
 

@@ -388,7 +388,7 @@ namespace AiTool3
                 AiResponse response, response2;
                 SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response);
                 var snippets = FindSnippets(rtbOutput, response.ResponseText, null, null);
-
+                
                 try
                 {
                     var code = snippets.First().Code;
@@ -409,7 +409,10 @@ namespace AiTool3
                     SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
                     rtbInput.Text = userMessage;
                 });
-
+            AddSpecial(specialsMenu, "Rewrite Summaries", (s, e) =>
+            {
+                ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+            });
             //AddSpecial(specialsMenu, "TestForm thing", (s, e) =>
             //{
             //    var result = WebViewTestForm.OpenWebViewWithHtml().Result;

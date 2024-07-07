@@ -36,7 +36,7 @@ namespace AiTool3.Conversations
             {
                 return Color.LavenderBlush;
             }
-            else if (Engine.StartsWith("llama"))
+            else if (Engine.StartsWith("gemma"))
             {
                 return Color.MistyRose;
             }
