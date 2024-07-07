@@ -48,7 +48,34 @@ loadScript('https://d3js.org/d3.v7.min.js')
         console.error('Error loading scripts:', error);
     });
 
+function createContextMenu() {
+    const menu = d3.select('body')
+        .append('div')
+        .attr('class', 'context-menu')
+        .style('position', 'absolute')
+        .style('background-color', 'white')
+        .style('border', '1px solid black')
+        .style('padding', '5px')
+        .style('display', 'none');
 
+    menu.append('div')
+        .text('Option 1')
+        .attr('class', 'context-menu-item')
+        .on('click', () => {
+            console.log('lol');
+            menu.style('display', 'none');
+        });
+
+    menu.append('div')
+        .text('Option 2')
+        .attr('class', 'context-menu-item')
+        .on('click', () => {
+            console.log('lol');
+            menu.style('display', 'none');
+        });
+
+    return menu;
+}
 function toggleGraphVisibility() {
     const container = document.getElementById('svg-container');
     if (container.style.display === 'none') {
@@ -71,6 +98,16 @@ function initializeGraph() {
 
     // Initialize root of the tree
     root = { id: 'root', label: 'Conversation Start', children: [] };
+
+    // Create context menu
+    const contextMenu = createContextMenu();
+
+    // Add event listener to hide context menu on document click
+    document.addEventListener('click', () => {
+        contextMenu.style('display', 'none');
+    });
+
+
 }
 
 function clear() {
@@ -111,7 +148,7 @@ function addNodes(nodes) {
     nodes.forEach(node => {
         root.children.push({
             id: node.id,
-            label: node.label.substring(0, 100),
+            label: node.label.substring(0, 160),
             role: node.role,
             color: node.colour, // Add this line to store the color
             children: []
@@ -133,8 +170,6 @@ function addLinks(links) {
         }
     });
     updateGraph();
-    // in 1 sec, run fitall
-    setTimeout(fitAll, 50);
 }
 
 function findNode(node, id) {
@@ -225,6 +260,15 @@ function updateGraph() {
         }
     });
 
+    nodeEnter.on('contextmenu', function (event, d) {
+        event.preventDefault();
+        const contextMenu = d3.select('.context-menu');
+        contextMenu.style('left', (event.pageX + 5) + 'px')
+            .style('top', (event.pageY + 5) + 'px')
+            .style('display', 'block');
+    });
+
+
     nodeEnter.append('rect')
         .attr('width', nodeWidth)
         .attr('height', nodeHeight)
@@ -262,8 +306,6 @@ function updateGraph() {
 
     nodes.exit().remove();
 
-    setTimeout(fitAll, 150); // Slightly longer than the transition duration
-    setTimeout(fitAll, 350); // Slightly longer than the transition duration
     setTimeout(fitAll, 550); // Slightly longer than the transition duration
 
     

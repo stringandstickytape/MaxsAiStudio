@@ -497,6 +497,8 @@ namespace AiTool3
         private void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
         {
             var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
+            if (clickedCompletion == null)
+                return;
             ConversationManager.PreviousCompletion = clickedCompletion;
 
             rtbInput.Clear();
@@ -1155,8 +1157,8 @@ namespace AiTool3
 
             
             string html = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
-            //string htmlAndCss = html.Replace("{magiccsstoken}", css);
-            string result = html.Replace("<insertscripthere />", js);
+            string htmlAndCss = html.Replace("{magiccsstoken}", css);
+            string result = htmlAndCss.Replace("<insertscripthere />", js);
 
             webViewNdc = await WebViewTestForm.OpenWebViewWithJs("");
 

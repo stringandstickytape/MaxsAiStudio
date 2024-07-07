@@ -3,3 +3,16 @@
     margin: 0;
     padding: 0;
 }
+
+.context-menu {
+    font-family: Calibri, Arial, sans-serif;
+}
+
+.context-menu-item {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.context-menu-item:hover {
+    background-color: #c4c4c4;
+}
