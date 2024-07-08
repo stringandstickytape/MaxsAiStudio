@@ -73,9 +73,10 @@ The main window is divided into several sections:
 
 - Click the "Start Recording" button to begin audio recording.
 - Speak your message.
-- Click "Stop Recording" to end the recording and automatically transcribe it to text using Whisper.
+- Click "Stop Recording" to end the recording and automatically transcribe it to text "live" using Whisper.
 - The transcribed text will be added to the input area.
 - A low-pass filter is applied to the audio for improved quality.
+- This is expperimental and can only work if WhisperX is installed already
 
 ### 7. Image and Text File Input
 
@@ -147,6 +148,7 @@ The main window is divided into several sections:
 ### 20. Local AI Model
 
 - The application now uses the Gemma model for local AI processing, replacing the previously used Llama model.
+- The port defaults to 11434 in the UI, but can nonetheless be overridden in Settings
 
 ### 21. Regenerate All Summaries
 
