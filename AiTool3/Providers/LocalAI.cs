@@ -41,11 +41,14 @@ namespace AiTool3.Providers
                 Content = m.content
             }));
 
+            // bit thin, this...
+            var a = AiTool3.Settings.Settings.Load();
+
             var json = JsonConvert.SerializeObject(req);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (!IsPortOpen(11434))
+            if (!IsPortOpen(a.OllamaLocalPort))
             {
                 var psi = new ProcessStartInfo("ollama", "run gemma2")
                 {
@@ -61,6 +64,13 @@ namespace AiTool3.Providers
                     Thread.Sleep(1000);
                     process.Kill();
                 }).Start();
+            }
+
+            var url = apiModel.Url;
+
+            if(url.Contains("11434") && a.OllamaLocalPort != 11434)
+            {
+                url = url.Replace("11434", a.OllamaLocalPort.ToString());
             }
 
             var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);

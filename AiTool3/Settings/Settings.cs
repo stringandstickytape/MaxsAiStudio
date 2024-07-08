@@ -17,8 +17,11 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
         public bool NarrateResponses { get; set; } = false;
 
-        [MyDisplayNameAttr("Generate summaries using Local AI (ollama) on port 11434")]
+        [MyDisplayNameAttr("Generate summaries using Local AI (ollama)")]
         public bool GenerateSummariesUsingLocalAi { get; set; } = false;
+
+        [MyDisplayNameAttr("Ollama Local Port")]
+        public int OllamaLocalPort { get; set; } = 11434;
 
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
         public Settings()
@@ -52,7 +55,7 @@ namespace AiTool3.Settings
 
             ApiList.Add(new Api
             {
-                ApiName = "Ollama Port 11434",
+                ApiName = "Ollama (Port 11434 default)",
                 ApiUrl = "http://localhost:11434/api/chat/",
                 Models = new List<Model>
                 {

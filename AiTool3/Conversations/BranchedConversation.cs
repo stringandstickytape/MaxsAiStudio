@@ -86,10 +86,16 @@ namespace AiTool3.Conversations
 
                 // remove ```json and ``` from the response
                 responseText = responseText.Replace("```json", "").Replace("```", "");
+                try
+                {
+                    dynamic obj = JsonConvert.DeserializeObject(responseText);
 
-                dynamic obj = JsonConvert.DeserializeObject(responseText);
-
-                Title = obj.summary;
+                    Title = obj.summary;
+                }
+                catch
+                {
+                    Title = "Summary failed";
+                }
             }
             // jsonconvert to dynamic
             else

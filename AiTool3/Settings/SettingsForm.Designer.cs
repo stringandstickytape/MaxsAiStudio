@@ -77,10 +77,13 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1152, 815);
+            ControlBox = false;
             Controls.Add(panelToggles);
             Controls.Add(btnSettingsCancel);
             Controls.Add(btnSettingsOK);
             Controls.Add(dgvModels);
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "SettingsForm";
             Text = "SettingsForm";
             ((System.ComponentModel.ISupportInitialize)dgvModels).EndInit();

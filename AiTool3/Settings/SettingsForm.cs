@@ -49,18 +49,50 @@ namespace AiTool3.Settings
                 // add the control to panelToggles
                 panelToggles.Controls.Add(cb);
 
-                // add a matching label to the right of the checkbox
-                var lbl = new Label
-                {
-                    Text = prop.Name,
-                    AutoSize = true,
-                    Location = new Point(cb.Width + 10, ypos)
-                };
 
 
                 // increment ypos
                 ypos += 30;
 
+            }
+
+            // for every public int property on settings...
+            foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(int)))
+            {
+                var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
+
+
+
+                // create a new numeric up down control
+                var nud = new NumericUpDown
+                {
+                    Minimum = 0,
+                    Maximum = 65535,
+                    Location = new Point(0, ypos-1)
+                };
+
+                nud.Value = (int)prop.GetValue(settings);
+
+                // click
+                nud.ValueChanged += (s, e) =>
+                {
+                    prop.SetValue(NewSettings, (int)(nud.Value));
+                };
+                
+                // add to panel
+                panelToggles.Controls.Add(nud);
+                // add matching label to the right
+
+                var lbl = new Label
+                {
+                    Text = prop.Name,
+                    AutoSize = true,
+                    Location = new Point(nud.Width + 5, ypos)
+                };
+                panelToggles.Controls.Add(lbl);
+
+
+                ypos += 30;
             }
 
         }
