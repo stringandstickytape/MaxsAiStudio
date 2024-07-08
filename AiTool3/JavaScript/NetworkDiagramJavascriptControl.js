@@ -75,7 +75,6 @@ function createContextMenu() {
         .text('Save this branch as HTML')
         .attr('class', 'context-menu-item')
         .on('click', (a,b) => {
-            debugger;
             window.chrome.webview.postMessage({
                 type: 'saveHtml',
                 nodeId: selectedNode

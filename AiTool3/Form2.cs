@@ -20,6 +20,7 @@ using System.Drawing.Drawing2D;
 using System.Linq.Expressions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 using System.Windows.Forms;
+using FontAwesome.Sharp;
 
 namespace AiTool3
 {
@@ -52,7 +53,7 @@ namespace AiTool3
 
             webViewManager = new WebViewManager(ndcWeb);
 
-            SetPaperclipIcon(buttonAttachImage);
+            //SetPaperclipIcon(buttonAttachImage);
 
             rtbSystemPrompt.SetOverlayText("System Prompt");
             rtbInput.SetOverlayText("User Input");
@@ -60,7 +61,12 @@ namespace AiTool3
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
-
+            SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
+            SetButtonIcon(IconChar.PaperPlane, btnGo);
+            SetButtonIcon(IconChar.CircleXmark, btnCancel);
+            SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
+            SetButtonIcon(IconChar.SquarePlus, btnRestart);
+            SetButtonIcon(IconChar.SquarePlus, btnClear);
 
             // not converted
             //ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
@@ -101,6 +107,14 @@ namespace AiTool3
             updateTimer.Interval = 100; // Update every 100 milliseconds
             updateTimer.Tick += UpdateTimer_Tick;
 
+        }
+
+        private static void SetButtonIcon(IconChar iconChar, Button button)
+        {
+            button.ImageAlign = ContentAlignment.TopCenter;
+            button.TextImageRelation = TextImageRelation.ImageAboveText;
+            button.Image = iconChar.ToBitmap(Color.White, 48);
+            //button.Text = "";
         }
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
@@ -1040,20 +1054,63 @@ namespace AiTool3
 
 
         }
+        private CancellationTokenSource _cts2;
 
-        private void tbSearch_TextChanged(object sender, EventArgs e)
+        private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow row in dgvConversations.Rows)
+            // Cancel the previous operation if it's still running
+            _cts2?.Cancel();
+
+            _cts2 = new CancellationTokenSource();
+
+            try
             {
-                if (row.Cells[0].Value == null) continue;
+                await Task.Run(() =>
+                {
+                    foreach (DataGridViewRow row in dgvConversations.Rows)
+                    {
+                        // Check if cancellation was requested
+                        _cts2.Token.ThrowIfCancellationRequested();
 
-                var guid = row.Cells[0].Value.ToString();
+                        if (row.Cells[0].Value == null) continue;
 
-                var conv = BranchedConversation.LoadConversation(guid);
+                        var guid = row.Cells[0].Value.ToString();
 
-                var allMessages = conv.Messages.Select(m => m.Content).ToList();
+                        var conv = BranchedConversation.LoadConversation(guid);
 
-                row.Visible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
+                        var allMessages = conv.Messages.Select(m => m.Content).ToList();
+
+                        //bool isVisible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
+                        bool isVisible = false;
+                        foreach (string message in allMessages)
+                        {
+                            if (message.IndexOf(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                            {
+                                isVisible = true;
+                                break;
+                            }
+                            _cts2.Token.ThrowIfCancellationRequested();
+                        }
+
+
+                        this.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+                            row.Visible = isVisible;
+                        });
+                        // sleep 1000
+                        _cts2.Token.ThrowIfCancellationRequested();
+                    }
+                }, _cts2.Token);
+
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("OCE");
+                // Operation was cancelled, do nothing
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
 
@@ -1128,15 +1185,14 @@ namespace AiTool3
                         }
                     }
 
-                    Bitmap bmp2 = new Bitmap(24, 24);
-                    using (Graphics g2 = Graphics.FromImage(bmp2))
-                    {
-                        g2.DrawImage(bmp, 0, 0, 24, 24);
-                    }
+                    //Bitmap bmp2 = new Bitmap(24, 24);
+                    //using (Graphics g2 = Graphics.FromImage(bmp2))
+                    //{
+                    //    g2.DrawImage(bmp, 0, 0, 24, 24);
+                    //}
+                    //
+                    //button.Image = bmp2;
 
-                    button.Image = bmp2;
-                    button.ImageAlign = ContentAlignment.MiddleCenter;
-                    button.TextImageRelation = TextImageRelation.ImageBeforeText;
                 }
             }
             catch (Exception ex)
@@ -1148,10 +1204,7 @@ namespace AiTool3
 
         
 
-        private async void button1_Click(object sender, EventArgs e)
-        {
-            await CreateNewWebNdc();
-        }
+
 
         private async Task<bool> CreateNewWebNdc()
         {
@@ -1198,11 +1251,7 @@ namespace AiTool3
             return result;
         }
 
-        private async void button2_Click(object sender, EventArgs e)
-        {
-            await webViewManager.Clear();
-        }
-
+ 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             webViewManager.webView.Dispose();

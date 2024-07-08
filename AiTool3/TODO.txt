@@ -33,3 +33,5 @@ add delete-template and save-as-new-template
 add delete-node-chain with are-you-sure? (is it chain, or just node?)
 
 do more to not mess up the conversation if user changes nodes while the AI is running
+
+inline js dependencies and add open-source licenses
