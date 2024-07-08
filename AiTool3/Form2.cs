@@ -105,41 +105,9 @@ namespace AiTool3
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
         {
-            throw new NotImplementedException();
-        }
-
-        private void UpdateTimer_Tick(object sender, EventArgs e)
-        {
-            if (stopwatch.IsRunning)
+            switch(e.MenuOption)
             {
-                TimeSpan ts = stopwatch.Elapsed;
-                tokenUsageLabel.Text = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                    ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
-            }
-        }
-
-        private void AudioRecorderManager_AudioProcessed(object? sender, string e)
-        {
-            if (rtbInput.InvokeRequired)
-            {
-                rtbInput.Invoke(new Action(() =>
-                {
-                    rtbInput.Text += e;
-                }));
-            }
-            else
-            {
-                rtbInput.Text += e;
-            }
-        }
-
-
-        private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
-        {
-            return (sender, e) =>
-            {
-                if (e.SelectedOption == "Save this branch as TXT")
-                {
+                case "saveTxt":
                     var nodes = ConversationManager.GetParentNodeList();
                     var json = JsonConvert.SerializeObject(nodes);
 
@@ -156,11 +124,10 @@ namespace AiTool3
                         // open the file in default handler
                         Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
                     }
-                }
-                if (e.SelectedOption == "Save this branch as HTML")
-                {
-                    var nodes = ConversationManager.GetParentNodeList();
-                    var json = JsonConvert.SerializeObject(nodes);
+                    break;
+                case "saveHtml":
+                    var nodes2 = ConversationManager.GetParentNodeList();
+                    var json2 = JsonConvert.SerializeObject(nodes2);
 
                     StringBuilder htmlBuilder = new StringBuilder();
                     htmlBuilder.Append(@"
@@ -285,7 +252,7 @@ namespace AiTool3
     <div class='conversation'>
 ");
 
-                    foreach (var node in nodes.Where(x => !x.Omit))
+                    foreach (var node in nodes2.Where(x => !x.Omit))
                     {
                         string roleClass = node.Role.ToString().ToLower();
                         htmlBuilder.Append($@"
@@ -303,14 +270,57 @@ namespace AiTool3
 </html>
 ");
 
-                    SaveFileDialog saveFileDialog = new SaveFileDialog();
-                    saveFileDialog.Filter = "HTML files (*.html)|*.html|All files (*.*)|*.*";
-                    saveFileDialog.RestoreDirectory = true;
-                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    SaveFileDialog saveFileDialog2 = new SaveFileDialog();
+                    saveFileDialog2.Filter = "HTML files (*.html)|*.html|All files (*.*)|*.*";
+                    saveFileDialog2.RestoreDirectory = true;
+                    if (saveFileDialog2.ShowDialog() == DialogResult.OK)
                     {
-                        System.IO.File.WriteAllText(saveFileDialog.FileName, htmlBuilder.ToString());
-                        Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                        System.IO.File.WriteAllText(saveFileDialog2.FileName, htmlBuilder.ToString());
+                        Process.Start(new ProcessStartInfo(saveFileDialog2.FileName) { UseShellExecute = true });
                     }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private void UpdateTimer_Tick(object sender, EventArgs e)
+        {
+            if (stopwatch.IsRunning)
+            {
+                TimeSpan ts = stopwatch.Elapsed;
+                tokenUsageLabel.Text = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            }
+        }
+
+        private void AudioRecorderManager_AudioProcessed(object? sender, string e)
+        {
+            if (rtbInput.InvokeRequired)
+            {
+                rtbInput.Invoke(new Action(() =>
+                {
+                    rtbInput.Text += e;
+                }));
+            }
+            else
+            {
+                rtbInput.Text += e;
+            }
+        }
+
+
+        private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
+        {
+            return (sender, e) =>
+            {
+                if (e.SelectedOption == "Save this branch as TXT")
+                {
+
+                }
+                if (e.SelectedOption == "Save this branch as HTML")
+                {
+
                 }
 
 

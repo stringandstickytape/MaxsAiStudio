@@ -10,6 +10,7 @@
 
 let svg, g, zoom, root;
 let isVertical = true; // New variable to track the current layout
+let selectedNode;
 
 // Create SVG container
 const svgContainer = document.createElement('div');
@@ -59,20 +60,38 @@ function createContextMenu() {
         .style('display', 'none');
 
     menu.append('div')
-        .text('Option 1')
+        .text('Save this branch as TXT')
+        .attr('class', 'context-menu-item')
+        .on('click', () => {
+            window.chrome.webview.postMessage({
+                type: 'saveTxt',
+                nodeId: selectedNode
+            });
+
+            menu.style('display', 'none');
+        });
+
+    menu.append('div')
+        .text('Save this branch as HTML')
+        .attr('class', 'context-menu-item')
+        .on('click', (a,b) => {
+            debugger;
+            window.chrome.webview.postMessage({
+                type: 'saveHtml',
+                nodeId: selectedNode
+            });
+
+            menu.style('display', 'none');
+        });
+
+    menu.append('div')
+        .text('Disable')
         .attr('class', 'context-menu-item')
         .on('click', () => {
             console.log('lol');
             menu.style('display', 'none');
         });
 
-    menu.append('div')
-        .text('Option 2')
-        .attr('class', 'context-menu-item')
-        .on('click', () => {
-            console.log('lol');
-            menu.style('display', 'none');
-        });
 
     return menu;
 }
@@ -101,6 +120,10 @@ function initializeGraph() {
 
     // Create context menu
     const contextMenu = createContextMenu();
+    window.chrome.webview.postMessage({
+        type: 'getContextMenuOptions'
+    });
+
 
     // Add event listener to hide context menu on document click
     document.addEventListener('click', () => {
@@ -248,20 +271,24 @@ function updateGraph() {
         .attr('id', d => d.id)
         .attr('opacity', 0); // Set initial opacity to 0
 
-    nodeEnter.on('click', function (event, d) {
-        if (event.button === 0) { // 0 is the left mouse button
-            let nodeId = d.id;
 
+
+    nodeEnter.on('click', function (event, d) {
+        selectedNode = d.id;
+            
             window.chrome.webview.postMessage({
                 type: 'nodeClicked',
-                nodeId: nodeId
+                nodeId: selectedNode 
             });
-
-        }
     });
 
     nodeEnter.on('contextmenu', function (event, d) {
         event.preventDefault();
+        selectedNode = d.id;
+        window.chrome.webview.postMessage({
+            type: 'nodeClicked',
+            nodeId: selectedNode
+        });
         const contextMenu = d3.select('.context-menu');
         contextMenu.style('left', (event.pageX + 5) + 'px')
             .style('top', (event.pageY + 5) + 'px')

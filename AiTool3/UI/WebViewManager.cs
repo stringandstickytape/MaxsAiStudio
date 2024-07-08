@@ -25,7 +25,7 @@ namespace AiTool3.UI
         public event EventHandler<WebNdcContextMenuOptionSelectedEventArgs> WebNdcContextMenuOptionSelected;
         public event EventHandler<WebNdcNodeClickedEventArgs> WebNdcNodeClicked;
 
-        private void WebView_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+        private async void WebView_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
@@ -40,11 +40,7 @@ namespace AiTool3.UI
                     break;
 
                 case "getContextMenuOptions":
-                    string nodeId = message["nodeId"];
-                    string nodeLabel = message["nodeLabel"];
-
-                    // Define your context menu options here
-                    var options = new[] { "Option 1", "Option 2", "Option 3" };
+                    var options = new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable" };
 
                     // Send options back to JavaScript to update the menu
                     string optionsJson = System.Text.Json.JsonSerializer.Serialize(options);
@@ -53,15 +49,21 @@ namespace AiTool3.UI
                     break;
 
                 case "contextMenuOptionSelected":
-                    string selectedNodeId = message["nodeId"];
-                    string selectedNodeLabel = message["nodeLabel"];
-                    string selectedOption = message["option"];
+                    //string selectedNodeId = message["nodeId"];
+                    //string selectedNodeLabel = message["nodeLabel"];
+                    //string selectedOption = message["option"];
 
                     // Handle the selected option
-                    Debug.WriteLine($"Node: {selectedNodeId} ({selectedNodeLabel}), Selected option: {selectedOption}");
+                    //Debug.WriteLine($"Node: {selectedNodeId} ({selectedNodeLabel}), Selected option: {selectedOption}");
                     // raise event
-                    WebNdcContextMenuOptionSelected?.Invoke(this, new WebNdcContextMenuOptionSelectedEventArgs());
+                    //WebNdcContextMenuOptionSelected?.Invoke(this, new WebNdcContextMenuOptionSelectedEventArgs("contex"));
                     break;
+                case "saveHtml":
+                case "saveTxt":
+                    string nodeId = message["nodeId"];
+                    WebNdcContextMenuOptionSelected?.Invoke(this, new WebNdcContextMenuOptionSelectedEventArgs(message["type"], nodeId));
+                    break;
+
             }
         }
 
@@ -95,8 +97,6 @@ namespace AiTool3.UI
 
         internal async Task OpenWebViewWithJs(string result)
         {
-
-
             await webView.EnsureCoreWebView2Async(null);
             await webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
             webView.CoreWebView2.OpenDevToolsWindow();
@@ -122,6 +122,14 @@ namespace AiTool3.UI
 
     public class WebNdcContextMenuOptionSelectedEventArgs
     {
+        public string MenuOption { get; set; }
+        public string Guid { get; set; }
+
+        public WebNdcContextMenuOptionSelectedEventArgs(string menuOption, string guid)
+        {
+            MenuOption = menuOption;
+            Guid = guid;
+        }
     }
 
     public class WebNdcNodeClickedEventArgs
