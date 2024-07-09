@@ -9,6 +9,7 @@ using AiTool3.Conversations;
 using AiTool3.Interfaces;
 using AiTool3.Settings;
 using Newtonsoft.Json;
+using static AiTool3.AutoSuggestForm;
 
 namespace AiTool3.Conversations
 {
@@ -17,11 +18,19 @@ namespace AiTool3.Conversations
         public BranchedConversation CurrentConversation { get; set; }
         public CompletionMessage PreviousCompletion { get; set; }
 
+        public event StringSelectedEventHandler StringSelected;
+
         public ConversationManager()
         {
+            
             CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            CurrentConversation.StringSelected += CurrentConversation_StringSelected;
+        }
 
-
+        private void CurrentConversation_StringSelected(string selectedString)
+        {
+            // pass thru
+            StringSelected?.Invoke(selectedString);
         }
 
         public List<CompletionMessage> GetParentNodeList()
@@ -55,6 +64,8 @@ namespace AiTool3.Conversations
         public void LoadConversation(string guid)
         {
             CurrentConversation = BranchedConversation.LoadConversation(guid);
+            CurrentConversation.StringSelected += CurrentConversation_StringSelected;
+
         }
 
         public async Task RegenerateAllSummaries(Model summaryModel, bool useLocalAi, DataGridView dgv)
@@ -81,6 +92,9 @@ namespace AiTool3.Conversations
             dgv.Refresh();
         }
 
-
+        public async Task Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false)
+        {
+            var autoSuggests = await CurrentConversation.GenerateAutosuggests(model, useLocalAi, fun);
+        }
     }
 }

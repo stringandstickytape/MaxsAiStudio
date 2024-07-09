@@ -51,6 +51,8 @@ namespace AiTool3
         {
             InitializeComponent();
 
+            ConversationManager.StringSelected += ConversationManager_StringSelected;
+
             webViewManager = new WebViewManager(ndcWeb);
 
             //SetPaperclipIcon(buttonAttachImage);
@@ -108,6 +110,24 @@ namespace AiTool3
             updateTimer.Tick += UpdateTimer_Tick;
 
         }
+
+        private void ConversationManager_StringSelected(string selectedString)
+        {
+            // put selected string into the input box, invoking if necessary
+            if (rtbInput.InvokeRequired)
+            {
+                rtbInput.Invoke(new Action(() =>
+                {
+                    rtbInput.Text = selectedString;
+                }));
+            }
+            else
+            {
+                rtbInput.Text = selectedString;
+            }
+
+        }
+
 
         private static void SetButtonIcon(IconChar iconChar, Button button)
         {
@@ -441,6 +461,19 @@ namespace AiTool3
             {
                 ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
             });
+
+            AddSpecial(specialsMenu, "Autosuggest", (s, e) =>
+            {
+                ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+            });
+
+            AddSpecial(specialsMenu, "Autosuggest (Fun)", (s, e) =>
+            {
+                ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+            });
+
+            // based on our conversation so far, give me ten things I might ask you to do next, in a bullet-point list
+
 
             specialsMenu.DropDownItems.Add(restartMenuItem);
             menuBar.Items.Add(specialsMenu);
@@ -894,6 +927,7 @@ namespace AiTool3
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
+            ConversationManager.StringSelected += ConversationManager_StringSelected;
 
             DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
