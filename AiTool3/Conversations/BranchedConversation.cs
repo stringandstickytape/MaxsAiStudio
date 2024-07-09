@@ -136,9 +136,9 @@ namespace AiTool3.Conversations
                     {
                         var nodeContent = node.Content;
                         // truncate to 500 chars if necc
-                        if (nodeContent.Length > 300)
+                        if (nodeContent.Length > 1000)
                         {
-                            nodeContent = nodeContent.Substring(0, 300);
+                            nodeContent = nodeContent.Substring(0, 1000);
                         }
                         conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                     }
@@ -161,6 +161,12 @@ namespace AiTool3.Conversations
                 {
                     responseText = responseText.Substring(0, responseText.IndexOf("```", 3));
                 }
+                // if there is anything before the first ```, remove it but not the ```
+                if (responseText.IndexOf("```") > 0)
+                {
+                    responseText = responseText.Substring(responseText.IndexOf("```"));
+                }
+
 
                 // remove ```json and ``` from the response
                 responseText = responseText.Replace("```json", "").Replace("```", "");
