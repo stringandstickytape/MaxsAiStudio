@@ -26,6 +26,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - Customizable settings with toggle options
 - View HTML in WebView
 - Code review function (for project maintainers)
+- AutoSuggest function
 
 ## Detailed Guide
 
@@ -154,5 +155,11 @@ The main window is divided into several sections:
 
 - A new feature has been added to regenerate summaries for all conversations.
 - This can be accessed through the "Specials" menu.
+
+### 22. AutoSuggest Function
+
+- A new AutoSuggest feature has been added to provide suggestions for continuing the conversation.
+- This feature can be accessed through the "Specials" menu, with options for regular and "fun" suggestions.
+- Suggestions are presented in a separate window, and selecting one will populate the input box.
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.
