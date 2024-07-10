@@ -351,6 +351,7 @@ namespace AiTool3
             btnCancel.TabIndex = 13;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = false;
+            btnCancel.Visible = false;
             btnCancel.Click += btnCancel_Click;
             // 
             // buttonAttachImage
@@ -388,7 +389,7 @@ namespace AiTool3
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(148, 85);
             buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Record";
+            buttonStartRecording.Text = "Voice Prompt";
             buttonStartRecording.UseVisualStyleBackColor = false;
             buttonStartRecording.Click += buttonStartRecording_Click;
             // 

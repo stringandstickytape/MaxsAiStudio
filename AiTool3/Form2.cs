@@ -51,8 +51,6 @@ namespace AiTool3
         {
             InitializeComponent();
 
-            ConversationManager.StringSelected += ConversationManager_StringSelected;
-
             webViewManager = new WebViewManager(ndcWeb);
 
             //SetPaperclipIcon(buttonAttachImage);
@@ -102,7 +100,7 @@ namespace AiTool3
 
             InitialiseMenus();
 
-            CreateNewWebNdc();
+            CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             BeginNewConversation();
 
@@ -111,7 +109,7 @@ namespace AiTool3
 
         }
 
-        private void ConversationManager_StringSelected(string selectedString)
+        private void AutoSuggestStringSelected(string selectedString)
         {
             // put selected string into the input box, invoking if necessary
             if (rtbInput.InvokeRequired)
@@ -462,14 +460,16 @@ namespace AiTool3
                 ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
             });
 
-            AddSpecial(specialsMenu, "Autosuggest", (s, e) =>
+            AddSpecial(specialsMenu, "Autosuggest",async (s, e) =>
             {
-                ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
-            AddSpecial(specialsMenu, "Autosuggest (Fun)", (s, e) =>
+            AddSpecial(specialsMenu, "Autosuggest (Fun)", async (s, e) =>
             {
-                ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
             // based on our conversation so far, give me ten things I might ask you to do next, in a bullet-point list
@@ -629,7 +629,8 @@ namespace AiTool3
             try
             {
                 btnGo.Enabled = false;
-                btnCancel.Enabled = true; // Enable cancel button
+                
+                btnCancel.Visible = true; // Enable cancel button
                 model = (Model)cbEngine.SelectedItem;
 
                 // get the name of the service for the model
@@ -753,7 +754,7 @@ namespace AiTool3
                 updateTimer.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
                 btnGo.Enabled = true;
-                btnCancel.Enabled = false; // Disable cancel button
+                btnCancel.Visible = false; // Disable cancel button
             }
 
             webViewManager.CentreOnNode(completionResponse.Guid);
@@ -927,7 +928,6 @@ namespace AiTool3
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
-            ConversationManager.StringSelected += ConversationManager_StringSelected;
 
             DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
@@ -1179,7 +1179,7 @@ namespace AiTool3
         private void btnCancel_Click(object sender, EventArgs e)
         {
             _cts?.Cancel();
-            btnCancel.Enabled = false;
+            btnCancel.Visible = false;
         }
 
         public static void SetPaperclipIcon(Button button)
@@ -1240,7 +1240,7 @@ namespace AiTool3
 
 
 
-        private async Task<bool> CreateNewWebNdc()
+        private async Task<bool> CreateNewWebNdc(bool showDevTools)
         {
             //if (webViewNdc != null)
             //{
@@ -1257,7 +1257,7 @@ namespace AiTool3
             string htmlAndCss = html.Replace("{magiccsstoken}", css);
             string result = htmlAndCss.Replace("<insertscripthere />", js);
 
-            await webViewManager.OpenWebViewWithJs("");
+            await webViewManager.OpenWebViewWithJs("", showDevTools);
 
             //Thread.Sleep(2000);
 

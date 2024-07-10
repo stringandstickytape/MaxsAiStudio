@@ -4,6 +4,7 @@ using AiTool3.Providers;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using static AiTool3.AutoSuggestForm;
 
 namespace AiTool3.Conversations
@@ -113,8 +114,9 @@ namespace AiTool3.Conversations
 
         public event StringSelectedEventHandler StringSelected;
 
-        internal async Task<string> GenerateAutosuggests(Model apiModel, bool useLocalAi, bool fun)
+        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool useLocalAi, bool fun)
         {
+            AutoSuggestForm form = null;
             string responseText = "";
             Debug.WriteLine(Title);
                 // instantiate the service from name
@@ -171,33 +173,23 @@ namespace AiTool3.Conversations
                 // remove ```json and ``` from the response
                 responseText = responseText.Replace("```json", "").Replace("```", "");
 
-                
+                // regex to match a json array
+            var regex = new System.Text.RegularExpressions.Regex(@"\[[\s\S]*\]");
+
+            var matches = regex.Matches(responseText);
+            responseText = matches[0].Value;
 
                 try
                 {
                 Debug.WriteLine(responseText);
                 dynamic obj = JsonConvert.DeserializeObject(responseText);
-                /*
-                 
-[
-  "Add a high-score feature to the Arkanoid clone",
-  "Create a different classic arcade game, like Pac-Man or Space Invaders",
-  "Implement power-ups in the Arkanoid game",
-  "Design a responsive mobile version of the game",
-  "Add sound effects and background music to the game",
-  "Implement multiple levels with increasing difficulty",
-  "Create a two-player mode for the Arkanoid clone",
-  "Optimize the game's performance for smoother gameplay",
-  "Add customization options for the paddle and ball",
-  "Implement a level editor for users to create their own stages"
-]
- */
-                // dump to debug
+
+
+
+            // convert obj to string array
+            var suggestions = obj.ToObject<string[]>();
                 
-                // convert obj to string array
-                var suggestions = obj.ToObject<string[]>();
-                
-                var form = new AutoSuggestForm(suggestions);
+                form = new AutoSuggestForm(suggestions);
                 form.StringSelected += Form_StringSelected;
                 form.Show();
 
@@ -206,10 +198,10 @@ namespace AiTool3.Conversations
                 catch(Exception e)
                 {
                 MessageBox.Show($"Something went wrong with AutoSuggest: {e.Message}");
-                }
+            }
 
 
-            return "";
+            return form;
         }
 
         private void Form_StringSelected(string selectedString)

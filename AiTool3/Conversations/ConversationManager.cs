@@ -92,9 +92,9 @@ namespace AiTool3.Conversations
             dgv.Refresh();
         }
 
-        public async Task Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false)
+        public async Task<AutoSuggestForm> Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false)
         {
-            var autoSuggests = await CurrentConversation.GenerateAutosuggests(model, useLocalAi, fun);
+            return await CurrentConversation.GenerateAutosuggests(model, useLocalAi, fun);
         }
     }
 }

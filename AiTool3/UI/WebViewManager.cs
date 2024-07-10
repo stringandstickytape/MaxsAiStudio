@@ -95,11 +95,13 @@ namespace AiTool3.UI
             return a;
         }
 
-        internal async Task OpenWebViewWithJs(string result)
+        internal async Task OpenWebViewWithJs(string result, bool showDevTools)
         {
             await webView.EnsureCoreWebView2Async(null);
             await webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
-            webView.CoreWebView2.OpenDevToolsWindow();
+
+            if(showDevTools) webView.CoreWebView2.OpenDevToolsWindow();
+
             WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
             await InitializeAsync();
             await EvaluateJavascriptAsync(result);

@@ -23,6 +23,9 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Ollama Local Port")]
         public int OllamaLocalPort { get; set; } = 11434;
 
+        [MyDisplayNameAttr("Show Developer Tools for WebViews (requires app restart)")]
+        public bool ShowDevTools { get; set; } = false;
+
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
         public Settings()
         {
