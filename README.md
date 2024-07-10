@@ -72,7 +72,7 @@ The main window is divided into several sections:
 
 ### 6. Audio Input
 
-- Click the "Start Recording" button to begin audio recording.
+- Click the "Voice Prompt" button to begin audio recording.
 - Speak your message.
 - Click "Stop Recording" to end the recording and automatically transcribe it to text "live" using Whisper.
 - The transcribed text will be added to the input area.
@@ -109,6 +109,7 @@ The main window is divided into several sections:
 
 - Access the settings menu to configure API keys, model selection, and other preferences.
 - New toggle options are available for customizing features like Text-to-Speech.
+- A new "Show Developer Tools for WebViews" setting has been added (requires app restart).
 
 ### 13. Saving and Exporting
 
