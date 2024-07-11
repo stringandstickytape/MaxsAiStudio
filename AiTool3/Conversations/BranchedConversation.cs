@@ -114,7 +114,7 @@ namespace AiTool3.Conversations
 
         public event StringSelectedEventHandler StringSelected;
 
-        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool useLocalAi, bool fun)
+        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool useLocalAi, bool fun, string userAutoSuggestPrompt)
         {
             AutoSuggestForm form = null;
             string responseText = "";
@@ -124,10 +124,16 @@ namespace AiTool3.Conversations
 
                 Conversation conversation = null;
 
-                {
-                    conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
-                    conversation.systemprompt = fun ? "you are a bot who makes fun and interesting suggestions on how a user might proceed with a conversation."
+            string systemprompt = "";
+
+            if (string.IsNullOrEmpty(userAutoSuggestPrompt))
+                systemprompt = fun ? "you are a bot who makes fun and interesting suggestions on how a user might proceed with a conversation."
                     : "you are a bot who suggests how a user might proceed with a conversation.";
+            else systemprompt = userAutoSuggestPrompt;
+
+            {
+                    conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+                    conversation.systemprompt = systemprompt;
                     conversation.messages = new List<ConversationMessage>();
                     conversation.systemprompt += $" {DateTime.Now.Ticks}";
                     List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);

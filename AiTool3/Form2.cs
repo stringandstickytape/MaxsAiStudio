@@ -472,6 +472,34 @@ namespace AiTool3
                 autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
+            AddSpecial(specialsMenu, "Autosuggest (User-Specified)", async (s, e) =>
+            {
+                var userInputForm = new AutoSuggestUserInput();
+
+                var prefix = "you are a bot who makes ";
+                var suffix = " suggestions on how a user might proceed with a conversation.";
+                userInputForm.Controls["label1"].Text = prefix;
+                userInputForm.Controls["label2"].Text = suffix;
+                var result = userInputForm.ShowDialog();
+
+                if(result == DialogResult.OK)
+                {
+                    var userAutoSuggestPrompt = userInputForm.Controls["tbAutoSuggestUserInput"].Text;
+
+                    userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
+
+                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
+                    autoSuggestForm.StringSelected += AutoSuggestStringSelected;
+                }
+
+
+            });
+
+            AddSpecial(specialsMenu, "Set Code Highlight Colours (experimental)", async (s, e) =>
+            {
+                CSharpHighlighter.ConfigureColors();
+            });
+
             // based on our conversation so far, give me ten things I might ask you to do next, in a bullet-point list
 
 
@@ -586,7 +614,8 @@ namespace AiTool3
 
             // Apply UI formatting
             foreach (var snippet in snippets.Snippets)
-            {
+            {   // snippet.Type == "html"?
+
                 int startIndex = 0;
 
                 // find the end of the line
@@ -595,15 +624,25 @@ namespace AiTool3
                 // find the length of the first line
                 var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
 
-                {
-                    // var innerCode = snippet.Code.Substring(endOfFirstLine, snippet.Code.Length - endOfFirstLine - 3);
-                    richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-                    richTextBox.SelectionColor = Color.Yellow;
-                    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
+                richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                richTextBox.SelectionColor = Color.Orange;
 
-                    var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
-                    richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
+                if (snippet.Type == ".html" || snippet.Type == ".htm")
+                {
+                    HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
                 }
+                else if (snippet.Type == ".cs")
+                {
+                    CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                }
+
+
+
+                richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
+
+                var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
+                richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
+
             }
 
             richTextBox.DeselectAll();
@@ -612,6 +651,8 @@ namespace AiTool3
             richTextBox.SelectionStart = 0;
             return snippets.Snippets;
         }
+
+
 
         private async void btnGo_Click(object sender, EventArgs e)
         {

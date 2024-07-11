@@ -6,6 +6,7 @@ namespace AiTool3.Snippets
 {
     public class SnippetManager
     {
+
         public SnippetSet FindSnippets(string text)
         {
             string pattern = @"```(.*?)```";
