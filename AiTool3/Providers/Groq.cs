@@ -22,6 +22,7 @@ namespace AiTool3.Providers
 
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
         {
+            useStreaming = true;
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
 
@@ -44,43 +45,90 @@ namespace AiTool3.Providers
                 ["content"] = conversation.SystemPromptWithDateTime()
             });
 
-            var json = JsonConvert.SerializeObject(req);
+            if (useStreaming)
+            {
+                req["stream"] = true;
+            }
 
+            var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
-
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var buffer = new byte[256];
-            var bytesRead = 0;
-
-            StringBuilder sb = new StringBuilder();
-
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            HttpResponseMessage response;
+            if (useStreaming)
             {
-                var chunk = new byte[bytesRead];
-                Array.Copy(buffer, chunk, bytesRead);
-                var chunkTxt = Encoding.UTF8.GetString(chunk);
-
-                sb.Append(chunkTxt);
-                Debug.WriteLine(chunkTxt);
+                response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, apiModel.Url)
+                {
+                    Content = content
+                }, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             }
-            var allTxt = sb.ToString();
+            else
+            {
+                response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
+            }
 
-            // deserialize the response
-            var completion = JsonConvert.DeserializeObject<JObject>(allTxt);
+            response.EnsureSuccessStatusCode();
 
-            // get the number of input and output tokens but don't b0rk if either is missing
+            if (useStreaming)
+            {
+                return await HandleStreamingResponse(response, textbox, cancellationToken);
+            }
+            else
+            {
+                return await HandleNonStreamingResponse(response, cancellationToken);
+            }
+        }
+        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, Control textbox, CancellationToken cancellationToken)
+        {
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var reader = new StreamReader(stream);
+            var sb = new StringBuilder();
+            string line;
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (line.StartsWith("data: "))
+                {
+                    var data = line.Substring(6);
+                    if (data == "[DONE]") break;
+
+                    var jsonData = JsonConvert.DeserializeObject<JObject>(data);
+                    var content = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        sb.Append(content);
+                        if (textbox != null)
+                        {
+                            textbox.Invoke((MethodInvoker)delegate {
+                                textbox.Text = sb.ToString();
+                            });
+                        }
+                    }
+                }
+            }
+
+            return new AiResponse { ResponseText = sb.ToString(), Success = true };
+        }
+
+        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
+
             var inputTokens = completion["usage"]?["prompt_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["completion_tokens"]?.ToString();
-            
-
 
             if (completion["choices"] == null)
             {
                 return null;
             }
-            return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+
+            return new AiResponse
+            {
+                ResponseText = completion["choices"][0]["message"]["content"].ToString(),
+                Success = true,
+                TokenUsage = new TokenUsage(inputTokens, outputTokens)
+            };
         }
     }
 }
