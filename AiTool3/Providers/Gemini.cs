@@ -18,9 +18,9 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
         {
-            string url = $"{apiModel.Url}{apiModel.ModelName}:generateContent?key={apiModel.Key}";
+            string url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
 
             var obj = new JObject
             {
@@ -69,36 +69,100 @@ namespace AiTool3.Providers
 
             var jsonPayload = JsonConvert.SerializeObject(obj);
 
-            string responseContent = "";
             using (HttpClient client = new HttpClient())
             {
                 using (HttpContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
                 {
-                    HttpResponseMessage response = await client.PostAsync(url, content, cancellationToken);
-
-                    if (response.IsSuccessStatusCode)
+                    if (useStreaming)
                     {
-                        responseContent = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine(responseContent);
-
-                        var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
-                        
-                        // get the number of input and output tokens but don't b0rk if either is missing
-                        var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
-                        var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-
-                        return new AiResponse { ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+                        return await StreamResponse(client, url, content, cancellationToken, textbox);
                     }
                     else
                     {
-                        Console.WriteLine($"Error: {response.StatusCode}");
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine(errorContent);
+
+                        return await NonStreamingResponse(client, url, content, cancellationToken);
                     }
                 }
             }
+        }
 
-            return new AiResponse { ResponseText = responseContent, Success = true };
+        private async Task<AiResponse> StreamResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken, Control textbox)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Post, url))
+            {
+                request.Content = content;
+                using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                {
+                    response.EnsureSuccessStatusCode();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var reader = new StreamReader(stream))
+                    using (var jsonReader = new JsonTextReader(reader))
+                    {
+                        jsonReader.SupportMultipleContent = true;
+
+                        StringBuilder fullResponse = new StringBuilder();
+                        var serializer = new JsonSerializer();
+
+                        while (await jsonReader.ReadAsync())
+                        {
+                            if (jsonReader.TokenType == JsonToken.StartObject)
+                            {
+                                JObject streamData = await JObject.LoadAsync(jsonReader);
+
+                                if (streamData["candidates"] != null)
+                                {
+                                    var textChunk = streamData["candidates"][0]["content"]["parts"][0]["text"]?.ToString();
+                                    if (!string.IsNullOrEmpty(textChunk))
+                                    {
+                                        fullResponse.Append(textChunk);
+
+                                        if (textbox != null)
+                                        {
+                                            textbox.Invoke((MethodInvoker)delegate {
+                                                textbox.Text = fullResponse.ToString();
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Note: Token usage information might not be available in streaming responses
+                        return new AiResponse { ResponseText = fullResponse.ToString(), Success = true };
+                    }
+                }
+            }
+        }
+
+
+        private async Task<AiResponse> NonStreamingResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken)
+        {
+            HttpResponseMessage response = await client.PostAsync(url, content, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+
+                var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
+
+                var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
+                var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+
+                return new AiResponse
+                {
+                    ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(),
+                    Success = true,
+                    TokenUsage = new TokenUsage(inputTokens, outputTokens)
+                };
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+                string errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(errorContent);
+                return new AiResponse { ResponseText = errorContent, Success = false };
+            }
         }
     }
 }

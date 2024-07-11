@@ -5,11 +5,14 @@ DONE: Support system prompts
 DONE: Support categories
 DONE: Amend ButtonedRichTextBox with a param, if true, flash when content updated
 DONE: Make passwords configurable
+DONE: pass thru stringselected insatead of using event per layer
 
 Delete templates
+
 Add labels to UI
 
-Token counting across reporting periods
+Ongoing token counting
+
 Streaming?! (is it worth it?)
 
 External links to other apps or handlers?
@@ -36,4 +39,3 @@ do more to not mess up the conversation if user changes nodes while the AI is ru
 
 inline js dependencies and add open-source licenses
 
-pass thru stringselected insatead of using event per layer

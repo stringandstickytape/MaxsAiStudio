@@ -661,7 +661,7 @@ namespace AiTool3
                 var inputText = rtbInput.Text;
                 var systemPrompt = rtbSystemPrompt.Text;
                 // fetch the response from the api
-                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType, _cts.Token);
+                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType, _cts.Token, rtbOutput, false);
 
                 if (response.SuggestedNextPrompt != null)
                 {

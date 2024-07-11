@@ -7,7 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using static System.Windows.Forms.Design.AxImporter;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Providers
 {
@@ -15,9 +15,8 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
         {
-            // if there's no bearer header set yet...
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
 
@@ -38,7 +37,8 @@ namespace AiTool3.Providers
                             }
                         }
                     }
-                }
+                },
+                ["stream"] = useStreaming
             };
 
             foreach (var m in conversation.messages)
@@ -78,34 +78,91 @@ namespace AiTool3.Providers
 
             var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
 
-            var stream = await response.Content.ReadAsStreamAsync();
-            var buffer = new byte[256];
-            var bytesRead = 0;
-
-            StringBuilder sb = new StringBuilder();
-
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            if (useStreaming)
             {
-                var chunk = new byte[bytesRead];
-                Array.Copy(buffer, chunk, bytesRead);
-                var chunkTxt = Encoding.UTF8.GetString(chunk);
-
-                sb.Append(chunkTxt);
-                Debug.WriteLine(chunkTxt);
+                return await HandleStreamingResponse(response, textbox, cancellationToken);
             }
-            var allTxt = sb.ToString();
+            else
+            {
+                return await HandleNonStreamingResponse(response);
+            }
+        }
 
-            // deserialize the response
-            var completion = JsonConvert.DeserializeObject<JObject>(allTxt);
+        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, Control textbox, CancellationToken cancellationToken)
+        {
+            var stream = await response.Content.ReadAsStreamAsync();
+            var reader = new StreamReader(stream);
 
-            // get the number of input and output tokens but don't b0rk if either is missing
-            var inputTokens = completion["usage"]?["prompt_tokens"]?.ToString();
-            var outputTokens = completion["usage"]?["completion_tokens"]?.ToString();
+            StringBuilder fullResponse = new StringBuilder();
+            string line;
+            int inputTokens = 0;
+            int outputTokens = 0;
 
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
-            if (completion["choices"] == null)
-                return null;
-            return new AiResponse { ResponseText = completion["choices"][0]["message"]["content"].ToString(), Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+                if (line.StartsWith("data: "))
+                {
+                    string jsonData = line.Substring("data: ".Length).Trim();
+                    if (jsonData == "[DONE]")
+                        break;
+
+                    try
+                    {
+                        var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
+                        var content2 = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
+                        if (!string.IsNullOrEmpty(content2))
+                        {
+                            fullResponse.Append(content2);
+                            if (textbox != null)
+                            {
+                                textbox.Invoke((MethodInvoker)delegate {
+                                    textbox.Text = fullResponse.ToString();
+                                });
+                            }
+                        }
+
+                        // Update token counts if available
+                        var usage = chunk["usage"];
+                        if (usage != null)
+                        {
+                            inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
+                            outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // Handle JSON parsing errors
+                    }
+                }
+            }
+
+            return new AiResponse
+            {
+                ResponseText = fullResponse.ToString(),
+                Success = true,
+                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+            };
+        }
+
+        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
+
+            var responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
+            var usage = jsonResponse["usage"];
+            var inputTokens = usage?["prompt_tokens"]?.Value<int>() ?? 0;
+            var outputTokens = usage?["completion_tokens"]?.Value<int>() ?? 0;
+
+            return new AiResponse
+            {
+                ResponseText = responseText,
+                Success = true,
+                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+            };
         }
     }
 }

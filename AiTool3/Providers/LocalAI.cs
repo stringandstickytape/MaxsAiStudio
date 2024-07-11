@@ -2,16 +2,13 @@
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using static System.Windows.Forms.Design.AxImporter;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AiTool3.Providers
 {
@@ -19,7 +16,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
         {
             var req = new LocalAIRequest
             {
@@ -32,7 +29,7 @@ namespace AiTool3.Providers
                         Content = conversation.SystemPromptWithDateTime(),
                     }
                 },
-                stream = false
+                stream = useStreaming
             };
 
             req.messages.AddRange(conversation.messages.Select(m => new LocalAIMessage
@@ -41,93 +38,163 @@ namespace AiTool3.Providers
                 Content = m.content
             }));
 
-            // bit thin, this...
             var a = AiTool3.Settings.Settings.Load();
 
             var json = JsonConvert.SerializeObject(req);
-
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (!IsPortOpen(a.OllamaLocalPort))
             {
-                var psi = new ProcessStartInfo("ollama", "run gemma2")
-                {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                var process = Process.Start(psi);
-
-                new Thread(() =>
-                {
-                    Thread.Sleep(1000);
-                    process.Kill();
-                }).Start();
+                StartOllama();
             }
 
-            var url = apiModel.Url;
+            var url = GetAdjustedUrl(apiModel.Url, a.OllamaLocalPort);
 
-            if(url.Contains("11434") && a.OllamaLocalPort != 11434)
+            if (useStreaming)
             {
-                url = url.Replace("11434", a.OllamaLocalPort.ToString());
+                return await HandleStreamingResponse(url, content, cancellationToken, textbox);
             }
-
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
-
-            var stream = await response.Content.ReadAsStreamAsync();
-            var buffer = new byte[256];
-            var bytesRead = 0;
-
-            StringBuilder sb = new StringBuilder();
-
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            else
             {
-                var chunk = new byte[bytesRead];
-                Array.Copy(buffer, chunk, bytesRead);
-                var chunkTxt = Encoding.UTF8.GetString(chunk);
-
-                sb.Append(chunkTxt);
-                Debug.WriteLine(chunkTxt);
+                return await HandleNonStreamingResponse(url, content, cancellationToken);
             }
-            var allTxt = sb.ToString();
-
-            dynamic completion = JsonConvert.DeserializeObject(allTxt);
-            Debug.WriteLine(allTxt);
-
-            dynamic d = JsonConvert.DeserializeObject(allTxt);
-
-            // {"model":"llama3","created_at":"2024-06-27T01:56:15.5661741Z","message":{"role":"assistant","content":"Hi!"},"done_reason":"stop","done":true,"total_duration":123866400,"load_duration":1042500,"prompt_eval_count":36,"prompt_eval_duration":59031000,"eval_count":3,"eval_duration":61634000}
-
-            // get the number of input and output tokens but don't b0rk if either is missing
-            var inputTokens = d.prompt_eval_count.ToString();
-            var outputTokens = d.eval_count.ToString();
-
-
-            string s = d.message.content;
-
-            return new AiResponse { ResponseText = s, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
         }
 
-        bool IsPortOpen(int port)
+        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken, Control textbox)
+        {
+            var response = await client.PostAsync(url, content, cancellationToken);
+            var stream = await response.Content.ReadAsStreamAsync();
+            var reader = new StreamReader(stream);
+
+            StringBuilder fullResponse = new StringBuilder();
+            int promptEvalCount = 0;
+            int evalCount = 0;
+
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrEmpty(line)) continue;
+
+                var chunk = JsonConvert.DeserializeObject<LocalAIStreamResponse>(line);
+
+                if (chunk.Message != null && !string.IsNullOrEmpty(chunk.Message.Content))
+                {
+                    fullResponse.Append(chunk.Message.Content);
+                    Debug.WriteLine(chunk.Message.Content);
+                    if (textbox != null)
+                    {
+                        textbox.Invoke(new Action(() => textbox.Text = fullResponse.ToString()));
+                    }
+                }
+
+                if (chunk.Done)
+                {
+                    promptEvalCount = chunk.PromptEvalCount;
+                    evalCount = chunk.EvalCount;
+                    break;
+                }
+            }
+
+            return new AiResponse
+            {
+                ResponseText = fullResponse.ToString(),
+                Success = true,
+                TokenUsage = new TokenUsage(promptEvalCount.ToString(), evalCount.ToString())
+            };
+        }
+
+        private async Task<AiResponse> HandleNonStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
+        {
+            var response = await client.PostAsync(url, content, cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<LocalAINonStreamingResponse>(responseContent);
+
+            return new AiResponse
+            {
+                ResponseText = result.Message.Content,
+                Success = true,
+                TokenUsage = new TokenUsage(result.PromptEvalCount.ToString(), result.EvalCount.ToString())
+            };
+        }
+
+        private bool IsPortOpen(int port)
         {
             try
             {
-                var client = new TcpClient();
-                if (client.ConnectAsync("127.0.0.1", port).Wait(100))
+                using (var client = new TcpClient())
                 {
-                    return true;
+                    return client.ConnectAsync("127.0.0.1", port).Wait(100);
                 }
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
-            return false;
+        }
+
+        private void StartOllama()
+        {
+            var psi = new ProcessStartInfo("ollama", "run gemma2")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            var process = Process.Start(psi);
+
+            new Thread(() =>
+            {
+                Thread.Sleep(1000);
+                process.Kill();
+            }).Start();
+        }
+
+        private string GetAdjustedUrl(string originalUrl, int localPort)
+        {
+            if (originalUrl.Contains("11434") && localPort != 11434)
+            {
+                return originalUrl.Replace("11434", localPort.ToString());
+            }
+            return originalUrl;
         }
     }
 
-    public class LocalAIRequest
+    public class LocalAINonStreamingResponse
+    {
+        [JsonProperty("model")]
+        public string Model { get; set; }
+
+        [JsonProperty("created_at")]
+        public string CreatedAt { get; set; }
+
+        [JsonProperty("message")]
+        public LocalAIMessage Message { get; set; }
+
+        [JsonProperty("done")]
+        public bool Done { get; set; }
+
+        [JsonProperty("total_duration")]
+        public long TotalDuration { get; set; }
+
+        [JsonProperty("load_duration")]
+        public long LoadDuration { get; set; }
+
+        [JsonProperty("prompt_eval_count")]
+        public int PromptEvalCount { get; set; }
+
+        [JsonProperty("prompt_eval_duration")]
+        public long PromptEvalDuration { get; set; }
+
+        [JsonProperty("eval_count")]
+        public int EvalCount { get; set; }
+
+        [JsonProperty("eval_duration")]
+        public long EvalDuration { get; set; }
+    }
+
+
+        public class LocalAIRequest
     {
         [JsonProperty("model")]
         public string model { get; set; }
@@ -139,15 +206,6 @@ namespace AiTool3.Providers
         public bool stream { get; set; }
     }
 
-    public class LocalAILocalAIMessage
-    {
-        [JsonProperty("role")]
-        public string role { get; set; }
-
-        [JsonProperty("content")]
-        public string content { get; set; }
-    }
-
     public class LocalAIMessage
     {
         [JsonProperty("role")]
@@ -157,18 +215,36 @@ namespace AiTool3.Providers
         public string Content { get; set; }
     }
 
-    public class LocalAIContent
+    public class LocalAIStreamResponse
     {
-        [JsonProperty("type")]
-        public string Type { get; set; }
+        [JsonProperty("model")]
+        public string Model { get; set; }
 
-        [JsonProperty("text")]
-        public string Text { get; set; }
-    }
+        [JsonProperty("created_at")]
+        public string CreatedAt { get; set; }
 
-    public class LocalAIImageUrl
-    {
-        [JsonProperty("url")]
-        public string ImageUrl { get; set; }
+        [JsonProperty("message")]
+        public LocalAIMessage Message { get; set; }
+
+        [JsonProperty("done")]
+        public bool Done { get; set; }
+
+        [JsonProperty("total_duration")]
+        public long TotalDuration { get; set; }
+
+        [JsonProperty("load_duration")]
+        public long LoadDuration { get; set; }
+
+        [JsonProperty("prompt_eval_count")]
+        public int PromptEvalCount { get; set; }
+
+        [JsonProperty("prompt_eval_duration")]
+        public long PromptEvalDuration { get; set; }
+
+        [JsonProperty("eval_count")]
+        public int EvalCount { get; set; }
+
+        [JsonProperty("eval_duration")]
+        public long EvalDuration { get; set; }
     }
 }
