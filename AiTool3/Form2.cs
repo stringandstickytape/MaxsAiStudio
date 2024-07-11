@@ -511,6 +511,11 @@ namespace AiTool3
                 CSharpHighlighter.ConfigureColors();
             });
 
+            AddSpecial(specialsMenu, "Toggle old input box visibility", async (s, e) =>
+            {
+                splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
+            });
+
             // based on our conversation so far, give me ten things I might ask you to do next, in a bullet-point list
 
 

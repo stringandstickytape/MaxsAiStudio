@@ -7,11 +7,17 @@
     <style>
         {magiccsstoken}
 
-        .message {cursor: move;}
+        .message.draggable {
+            cursor: move;
+        }
 
-        .chat-input {border: 2px solid #ccc;}
+        .chat-input {
+            border: 2px solid #ccc;
+        }
 
-            .chat-input.drag-over {border-color: #007bff;}
+            .chat-input.drag-over {
+                border-color: #007bff;
+            }
     </style>
 </head>
 <body>
@@ -28,6 +34,7 @@
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
+        let isCtrlPressed = false;
 
         function AddInitialMessages(messages) {
             messages.forEach(message => {
@@ -67,10 +74,25 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${message.Role === 0 ? "user" : "assistant"}`;
             messageDiv.dataset.Guid = message.Guid;
-            messageDiv.draggable = true;
+
+            messageDiv.addEventListener('mousedown', (e) => {
+                if (isCtrlPressed) {
+                    messageDiv.draggable = true;
+                    messageDiv.classList.add('draggable');
+                }
+            });
+
+            messageDiv.addEventListener('mouseup', () => {
+                messageDiv.draggable = false;
+                messageDiv.classList.remove('draggable');
+            });
 
             messageDiv.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', message.Content);
+                if (isCtrlPressed) {
+                    e.dataTransfer.setData('text/plain', message.Content);
+                } else {
+                    e.preventDefault();
+                }
             });
 
             const RoleDiv = document.createElement('div');
@@ -191,10 +213,29 @@
 
         sendButton.addEventListener('click', sendMessage);
 
+        // Track Ctrl key state
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Control') {
+                isCtrlPressed = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Control') {
+                isCtrlPressed = false;
+                Array.from(chatMessages.querySelectorAll('.message')).forEach(msg => {
+                    msg.draggable = false;
+                    msg.classList.remove('draggable');
+                });
+            }
+        });
+
         // Add drag and drop event listeners
         chatInput.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            chatInput.classList.add('drag-over');
+            if (isCtrlPressed) {
+                e.preventDefault();
+                chatInput.classList.add('drag-over');
+            }
         });
 
         chatInput.addEventListener('dragleave', () => {
@@ -202,10 +243,12 @@
         });
 
         chatInput.addEventListener('drop', (e) => {
-            e.preventDefault();
-            chatInput.classList.remove('drag-over');
-            const droppedText = e.dataTransfer.getData('text/plain');
-            chatInput.value = droppedText;
+            if (isCtrlPressed) {
+                e.preventDefault();
+                chatInput.classList.remove('drag-over');
+                const droppedText = e.dataTransfer.getData('text/plain');
+                chatInput.value = droppedText;
+            }
         });
 
     </script>
