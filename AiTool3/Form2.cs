@@ -52,7 +52,7 @@ namespace AiTool3
             InitializeComponent();
 
             webViewManager = new WebViewManager(ndcWeb);
-
+            chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             //SetPaperclipIcon(buttonAttachImage);
 
             rtbSystemPrompt.SetOverlayText("System Prompt");
@@ -561,28 +561,8 @@ namespace AiTool3
             }
         }
 
-        private void NdcConversation_NodeClicked(object? sender, NodeClickEventArgs e)
-        {
 
-            var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.ClickedNode.Guid);
-            ConversationManager.PreviousCompletion = clickedCompletion;
-
-            rtbInput.Clear();
-            if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
-            {
-                rtbInput.Text = ConversationManager.PreviousCompletion.Content;
-
-                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
-            }
-            if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
-            {
-                rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
-            }
-            else rtbSystemPrompt.Text = "";
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
-        }
-
-        private void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
+        private async void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
         {
             var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
             if (clickedCompletion == null)
@@ -602,6 +582,17 @@ namespace AiTool3
             }
             else rtbSystemPrompt.Text = "";
             FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
+
+            var parents = ConversationManager.GetParentNodeList();
+
+            await chatWebView.AddMessages(parents);
+            
+        }
+
+        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
+        {
+            rtbInput.Text = e.Content;
+            btnGo_Click(null, null);
         }
 
         private SnippetManager snippetManager = new SnippetManager();
@@ -704,6 +695,7 @@ namespace AiTool3
                 // fetch the response from the api
                 response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
 
+                
                 if (response.SuggestedNextPrompt != null)
                 {
                     rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
@@ -758,6 +750,8 @@ namespace AiTool3
                 // add it to the current conversation
                 ConversationManager.CurrentConversation.Messages.Add(completionResponse);
 
+                chatWebView.AddMessage(completionInput);
+                chatWebView.AddMessage(completionResponse);
                 // and display the results in the output box
                 FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
@@ -983,7 +977,6 @@ namespace AiTool3
             DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
 
-            //ndcConversation.FitAll();
         }
 
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
@@ -1290,11 +1283,11 @@ namespace AiTool3
             //        webViewNdc.Dispose();
             //    }
             //}
-            string js = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
-            var css = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
+            string js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
+            var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
 
             
-            string html = GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
+            string html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
             string htmlAndCss = html.Replace("{magiccsstoken}", css);
             string result = htmlAndCss.Replace("<insertscripthere />", js);
 
@@ -1312,21 +1305,6 @@ namespace AiTool3
             return true;
         }
 
-        private static string GetEmbeddedAssembly(string resourceName)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var stream = assembly.GetManifestResourceStream(resourceName);
-
-            string result = "";
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                result = reader.ReadToEnd();
-            }
-
-            return result;
-        }
-
- 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             webViewManager.webView.Dispose();

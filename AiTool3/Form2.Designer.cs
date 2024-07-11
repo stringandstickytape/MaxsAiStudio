@@ -58,6 +58,8 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
+            splitContainer4 = new SplitContainer();
+            chatWebView = new ChatWebView();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -79,6 +81,11 @@ namespace AiTool3
             splitContainer3.SuspendLayout();
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
+            splitContainer4.Panel1.SuspendLayout();
+            splitContainer4.Panel2.SuspendLayout();
+            splitContainer4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)chatWebView).BeginInit();
             SuspendLayout();
             // 
             // cbEngine
@@ -88,7 +95,7 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(623, 3);
+            cbEngine.Location = new Point(382, 3);
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(405, 40);
             cbEngine.TabIndex = 3;
@@ -98,7 +105,7 @@ namespace AiTool3
             btnGo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnGo.BackColor = Color.Black;
             btnGo.ForeColor = Color.White;
-            btnGo.Location = new Point(868, 397);
+            btnGo.Location = new Point(627, 461);
             btnGo.Name = "btnGo";
             btnGo.Size = new Size(160, 85);
             btnGo.TabIndex = 4;
@@ -115,7 +122,7 @@ namespace AiTool3
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(601, 218);
+            rtbSystemPrompt.Size = new Size(360, 246);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -127,7 +134,7 @@ namespace AiTool3
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbOutput.Location = new Point(3, 3);
             rtbOutput.Name = "rtbOutput";
-            rtbOutput.Size = new Size(1025, 268);
+            rtbOutput.Size = new Size(784, 304);
             rtbOutput.TabIndex = 6;
             // 
             // rtbInput
@@ -139,13 +146,13 @@ namespace AiTool3
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
             rtbInput.Location = new Point(3, 3);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(1025, 379);
+            rtbInput.Size = new Size(784, 443);
             rtbInput.TabIndex = 7;
             // 
             // splitContainer1
             // 
             splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            splitContainer1.Location = new Point(12, 42);
+            splitContainer1.Location = new Point(3, 3);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -155,8 +162,8 @@ namespace AiTool3
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
-            splitContainer1.Size = new Size(1669, 992);
-            splitContainer1.SplitterDistance = 628;
+            splitContainer1.Size = new Size(1281, 1120);
+            splitContainer1.SplitterDistance = 481;
             splitContainer1.TabIndex = 9;
             // 
             // splitContainer5
@@ -175,8 +182,8 @@ namespace AiTool3
             // splitContainer5.Panel2
             // 
             splitContainer5.Panel2.Controls.Add(ndcWeb);
-            splitContainer5.Size = new Size(622, 983);
-            splitContainer5.SplitterDistance = 384;
+            splitContainer5.Size = new Size(475, 1111);
+            splitContainer5.SplitterDistance = 434;
             splitContainer5.TabIndex = 1;
             // 
             // btnClearSearch
@@ -199,7 +206,7 @@ namespace AiTool3
             tbSearch.Location = new Point(9, 11);
             tbSearch.Name = "tbSearch";
             tbSearch.PlaceholderText = "Search...";
-            tbSearch.Size = new Size(511, 31);
+            tbSearch.Size = new Size(364, 31);
             tbSearch.TabIndex = 1;
             tbSearch.TextChanged += tbSearch_TextChanged;
             // 
@@ -211,7 +218,7 @@ namespace AiTool3
             dgvConversations.Location = new Point(3, 46);
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
-            dgvConversations.Size = new Size(616, 335);
+            dgvConversations.Size = new Size(469, 385);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
             // 
@@ -244,8 +251,8 @@ namespace AiTool3
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
-            splitContainer2.Size = new Size(1031, 989);
-            splitContainer2.SplitterDistance = 224;
+            splitContainer2.Size = new Size(790, 1117);
+            splitContainer2.SplitterDistance = 252;
             splitContainer2.TabIndex = 8;
             // 
             // groupBox1
@@ -256,7 +263,7 @@ namespace AiTool3
             groupBox1.Controls.Add(cbTemplates);
             groupBox1.Controls.Add(buttonEditTemplate);
             groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(623, 61);
+            groupBox1.Location = new Point(382, 61);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(398, 170);
             groupBox1.TabIndex = 10;
@@ -336,8 +343,8 @@ namespace AiTool3
             splitContainer3.Panel2.Controls.Add(btnClear);
             splitContainer3.Panel2.Controls.Add(rtbInput);
             splitContainer3.Panel2.Controls.Add(btnGo);
-            splitContainer3.Size = new Size(1031, 761);
-            splitContainer3.SplitterDistance = 275;
+            splitContainer3.Size = new Size(790, 861);
+            splitContainer3.SplitterDistance = 311;
             splitContainer3.TabIndex = 0;
             // 
             // btnCancel
@@ -345,7 +352,7 @@ namespace AiTool3
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.BackColor = Color.Black;
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(788, 396);
+            btnCancel.Location = new Point(547, 460);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(74, 85);
             btnCancel.TabIndex = 13;
@@ -359,7 +366,7 @@ namespace AiTool3
             buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(439, 397);
+            buttonAttachImage.Location = new Point(439, 461);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(89, 85);
             buttonAttachImage.TabIndex = 12;
@@ -372,7 +379,7 @@ namespace AiTool3
             buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(289, 397);
+            buttonNewKeepAll.Location = new Point(289, 461);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 85);
             buttonNewKeepAll.TabIndex = 11;
@@ -385,7 +392,7 @@ namespace AiTool3
             buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(534, 397);
+            buttonStartRecording.Location = new Point(534, 461);
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(148, 85);
             buttonStartRecording.TabIndex = 10;
@@ -398,7 +405,7 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(137, 397);
+            btnRestart.Location = new Point(137, 461);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 85);
             btnRestart.TabIndex = 9;
@@ -411,7 +418,7 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(3, 397);
+            btnClear.Location = new Point(3, 461);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(128, 82);
             btnClear.TabIndex = 8;
@@ -426,7 +433,7 @@ namespace AiTool3
             menuBar.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
             menuBar.Location = new Point(0, 0);
             menuBar.Name = "menuBar";
-            menuBar.Size = new Size(1693, 24);
+            menuBar.Size = new Size(1962, 24);
             menuBar.TabIndex = 10;
             menuBar.Text = "menuStrip1";
             // 
@@ -440,9 +447,9 @@ namespace AiTool3
             statusStrip1.BackColor = Color.Black;
             statusStrip1.ImageScalingSize = new Size(24, 24);
             statusStrip1.Items.AddRange(new ToolStripItem[] { tokenUsageLabel });
-            statusStrip1.Location = new Point(0, 1037);
+            statusStrip1.Location = new Point(0, 1160);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1693, 32);
+            statusStrip1.Size = new Size(1962, 32);
             statusStrip1.TabIndex = 11;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -453,15 +460,44 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(112, 25);
             tokenUsageLabel.Text = "Token Usage";
             // 
+            // splitContainer4
+            // 
+            splitContainer4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer4.Location = new Point(15, 31);
+            splitContainer4.Name = "splitContainer4";
+            // 
+            // splitContainer4.Panel1
+            // 
+            splitContainer4.Panel1.Controls.Add(chatWebView);
+            // 
+            // splitContainer4.Panel2
+            // 
+            splitContainer4.Panel2.Controls.Add(splitContainer1);
+            splitContainer4.Size = new Size(1935, 1126);
+            splitContainer4.SplitterDistance = 644;
+            splitContainer4.TabIndex = 12;
+            // 
+            // chatWebView
+            // 
+            chatWebView.AllowExternalDrop = true;
+            chatWebView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            chatWebView.CreationProperties = null;
+            chatWebView.DefaultBackgroundColor = Color.White;
+            chatWebView.Location = new Point(3, 9);
+            chatWebView.Name = "chatWebView";
+            chatWebView.Size = new Size(638, 1114);
+            chatWebView.TabIndex = 0;
+            chatWebView.ZoomFactor = 1D;
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Black;
-            ClientSize = new Size(1693, 1069);
+            ClientSize = new Size(1962, 1192);
             Controls.Add(statusStrip1);
-            Controls.Add(splitContainer1);
             Controls.Add(menuBar);
+            Controls.Add(splitContainer4);
             MainMenuStrip = menuBar;
             Name = "Form2";
             Text = "Form2";
@@ -490,6 +526,11 @@ namespace AiTool3
             menuBar.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            splitContainer4.Panel1.ResumeLayout(false);
+            splitContainer4.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).EndInit();
+            splitContainer4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)chatWebView).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -523,5 +564,7 @@ namespace AiTool3
         private Button btnClearSearch;
         private Button btnCancel;
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
+        private SplitContainer splitContainer4;
+        private ChatWebView chatWebView;
     }
 }

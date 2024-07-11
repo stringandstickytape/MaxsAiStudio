@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Chat</title>
+    <style>
+        {magiccsstoken}
+
+
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">AI Assistant Chat</div>
+        <div class="chat-messages" id="chatMessages"></div>
+    </div>
+    <div class="chat-input-container">
+        <textarea class="chat-input" id="chatInput" placeholder="Type your message..."></textarea>
+        <button class="chat-submit" id="sendButton">Send</button>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function AddInitialMessages(messages) {
+            messages.forEach(message => {
+                AddMessage(message);
+            });
+        }
+
+        function AddMessage(message) {
+            const messageElement = createMessageElement(message);
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+
+        function ClearMessages(animate = false) {
+            if (animate) {
+                const messages = Array.from(chatMessages.querySelectorAll('.message'));
+                let delay = 0;
+                for (let i = messages.length - 1; i >= 0; i--) {
+                    const message = messages[i];
+                    setTimeout(() => {
+                        message.classList.add('fade-out');
+                        message.addEventListener('animationend', () => {
+                            message.remove();
+                            if (i === 0) {
+                                chatMessages.innerHTML = '';
+                            }
+                        }, { once: true });
+                    }, delay);
+                    delay += 100;
+                }
+            } else {
+                chatMessages.innerHTML = '';
+            }
+        }
+
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.Role === 0 ? "user" : "assistant"}`;
+            messageDiv.dataset.Guid = message.Guid;
+
+            const RoleDiv = document.createElement('div');
+            RoleDiv.className = 'role';
+            RoleDiv.textContent = message.Role === 0 ? "user" : "assistant";
+
+            const ContentDiv = document.createElement('div');
+            ContentDiv.className = 'message-content';
+
+            // Split the content by code blocks
+            const snippets = message.Content.split(/```([\s\S]*?)```/);
+            snippets.forEach((snippet, index) => {
+                if (index % 2 === 0) {
+                    // Regular text
+                    const textNode = document.createTextNode(snippet);
+                    ContentDiv.appendChild(textNode);
+                } else {
+                    console.log(snippet);
+                    debugger;
+                    // Code block container
+                    const codeBlockContainer = document.createElement('div');
+                    codeBlockContainer.className = 'code-block-container';
+
+                    // Code block
+                    const codeBlock = document.createElement('div');
+                    codeBlock.className = 'code-block';
+
+                    // Split the snippet into lines
+                    const lines = snippet.trim().split('\n');
+
+                    // The first line is the data type
+                    if (lines.length >0 && snippet[0] != "\n") {
+                        const dataType = lines[0].trim();
+
+                        codeBlock.dataset.type = dataType;
+
+                        // Create type label
+                        const typeLabel = document.createElement('div');
+                        typeLabel.className = 'code-type-label';
+                        typeLabel.textContent = dataType;
+                        codeBlockContainer.appendChild(typeLabel);
+
+                        // Remove the first line from the snippet
+                        lines.shift();
+                    }
+
+                    // Join the remaining lines and set as textContent
+                    codeBlock.textContent = lines.join('\n').trim();
+
+                    codeBlockContainer.appendChild(codeBlock);
+                    ContentDiv.appendChild(codeBlockContainer);
+                }
+            });
+
+            messageDiv.appendChild(RoleDiv);
+            messageDiv.appendChild(ContentDiv);
+
+            return messageDiv;
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                chatInput.value = '';
+                window.chrome.webview.postMessage({
+                    type: 'send',
+                    content: message
+                });
+            }
+        }
+
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+
+    </script>
+</body>
+</html>
