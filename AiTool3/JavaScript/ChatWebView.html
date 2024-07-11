@@ -6,6 +6,12 @@
     <title>AI Assistant Chat</title>
     <style>
         {magiccsstoken}
+
+        .message {cursor: move;}
+
+        .chat-input {border: 2px solid #ccc;}
+
+            .chat-input.drag-over {border-color: #007bff;}
     </style>
 </head>
 <body>
@@ -61,6 +67,11 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${message.Role === 0 ? "user" : "assistant"}`;
             messageDiv.dataset.Guid = message.Guid;
+            messageDiv.draggable = true;
+
+            messageDiv.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', message.Content);
+            });
 
             const RoleDiv = document.createElement('div');
             RoleDiv.className = 'role';
@@ -105,9 +116,7 @@
                     typeLabel.className = 'code-type-label';
                     typeLabel.textContent = dataType;
 
-                        
-
-                    const buttonBar = createButtonBar(message.Guid, lines.join('\n').trim());
+                    const buttonBar = createButtonBar(message.Guid, lines.join('\n').trim(), dataType);
 
                     typeLabelContainer.appendChild(typeLabel);
                     typeLabelContainer.appendChild(buttonBar);
@@ -128,25 +137,29 @@
             return messageDiv;
         }
 
-        function createButtonBar(guid, content) {
+        function createButtonBar(guid, content, dataType) {
+            const newButtons = [
+                { label: 'Copy', dataType: '*' },
+                { label: 'WebView', dataType: 'html' },
+            ];
+
             const buttonBar = document.createElement('div');
             buttonBar.className = 'button-bar';
 
-            const buttons = ['Copy', 'Webview', 'Notepad'];
-            buttons.forEach(buttonText => {
+            const applicableButtons = newButtons.filter(button =>
+                button.dataType === '*' || button.dataType === dataType
+            );
+
+            applicableButtons.forEach(buttonInfo => {
                 const button = document.createElement('button');
-                button.textContent = buttonText;
+                button.textContent = buttonInfo.label;
+
                 button.addEventListener('click', () => {
-                    if (buttonText === 'Copy') {
-                        window.chrome.webview.postMessage({
-                            type: 'copy',
-                            content: content,
-                            guid: guid
-                        });
-                    } else {
-                        // Add functionality for other buttons here
-                        console.log(`${buttonText} button clicked`);
-                    }
+                    window.chrome.webview.postMessage({
+                        type: buttonInfo.label,
+                        content: content,
+                        guid: guid
+                    });
                 });
                 buttonBar.appendChild(button);
             });
@@ -177,6 +190,23 @@
         });
 
         sendButton.addEventListener('click', sendMessage);
+
+        // Add drag and drop event listeners
+        chatInput.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            chatInput.classList.add('drag-over');
+        });
+
+        chatInput.addEventListener('dragleave', () => {
+            chatInput.classList.remove('drag-over');
+        });
+
+        chatInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            chatInput.classList.remove('drag-over');
+            const droppedText = e.dataTransfer.getData('text/plain');
+            chatInput.value = droppedText;
+        });
 
     </script>
 </body>

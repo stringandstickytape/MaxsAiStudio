@@ -2,7 +2,10 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
+using static AiTool3.UI.NetworkDiagramControl;
+using System.Windows.Forms;
 
 namespace AiTool3.UI
 {
@@ -21,7 +24,7 @@ namespace AiTool3.UI
             WebMessageReceived += WebView_WebMessageReceived;
         }
 
-        private void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private async void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
@@ -32,10 +35,21 @@ namespace AiTool3.UI
                     var content = message["content"];
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
                     break;
-                case "copy":
+                case "Copy":
                     var content2 = message["content"];
                     var guid2 = message["guid"];
                     ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content2, Guid = guid2 });
+                    break;
+                case "WebView":
+
+                    // create a new form of 256x256
+                    var form = new Form();
+                    form.Size = new Size(256, 256);
+                    form.StartPosition = FormStartPosition.CenterScreen;
+
+                    // create a WebView2 that fills the window
+                    var wvForm = new WebviewForm(message["content"]);
+                    wvForm.Show();
                     break;
             }
         }

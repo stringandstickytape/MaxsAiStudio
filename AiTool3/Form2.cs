@@ -111,9 +111,14 @@ namespace AiTool3
 
         }
 
+        private void ChatWebView_ChatWebViewLaunchInWebViewEvent(object? sender, ChatWebViewCopyEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e)
         {
-            Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(e.Content));
+            Clipboard.SetText(e.Content);
         }
 
         private void AutoSuggestStringSelected(string selectedString)
