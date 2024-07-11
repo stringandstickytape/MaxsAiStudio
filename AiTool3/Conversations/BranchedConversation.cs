@@ -140,7 +140,7 @@ namespace AiTool3.Conversations
 
                     Debug.WriteLine(nodes);
 
-                    foreach (var node in nodes.Skip(1))
+                    foreach (var node in nodes.Where(x => x.Role != CompletionRole.Root))
                     {
                         var nodeContent = node.Content;
                         // truncate to 500 chars if necc
