@@ -28,6 +28,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - Code review function (for project maintainers)
 - AutoSuggest function
 - Streaming responses from all AI providers
+- CS and HTML (with inline JS) highlighting
 
 ## Detailed Guide
 
@@ -97,10 +98,11 @@ The main window is divided into several sections:
 
 - The application automatically detects code snippets in AI responses.
 - Snippets are highlighted and formatted for better readability.
+- CS and HTML (with inline JS) highlighting has been added for improved code visualization.
 
 ### 10. Cost Tracking
 
-- The application displays the estimated cost of each interaction based on token usage.
+- The application displays the estimated cost of each interaction based on token usage in the bar at the bottom of the window.
 
 ### 11. Search Functionality
 
@@ -125,9 +127,9 @@ The main window is divided into several sections:
 
 ### 15. Automatic Readme Update
 
-- The application now includes a feature to automatically update the readme based on the latest GitHub diff and commit message.
+- The application includes a feature to automatically update the readme based on the latest GitHub diff and commit message.
 - This feature can be accessed through the "Specials" menu.
-- For users with the appropriate setup, the updated README is now written directly to the repository.
+- For users with the appropriate setup, the updated README is written directly to the repository.
 
 ### 16. Text-to-Speech (TTS)
 
@@ -136,7 +138,7 @@ The main window is divided into several sections:
 
 ### 17. View HTML in WebView
 
-- The application now supports viewing HTML content in a WebView.
+- The application supports viewing HTML content in a WebView.
 - This feature allows for better rendering and interaction with HTML responses from the AI.
 
 ### 18. Code Review Function
@@ -146,13 +148,13 @@ The main window is divided into several sections:
 
 ### 19. Disable Nodes (not currently implemented)
 
-- Users can now disable specific nodes in the conversation.
+- Users can disable specific nodes in the conversation.
 - Disabled nodes are omitted from the conversation with AI and not saved as part of the conversation.
 - Right-click on a node in the network diagram and select "Disable" to toggle this feature.
 
 ### 20. Local AI Model
 
-- The application now uses the Gemma model for local AI processing, replacing the previously used Llama model.
+- The application uses the Gemma model for local AI processing, replacing the previously used Llama model.
 - The port defaults to 11434 in the UI, but can nonetheless be overridden in Settings
 
 ### 21. Regenerate All Summaries
@@ -162,8 +164,14 @@ The main window is divided into several sections:
 
 ### 22. AutoSuggest Function
 
-- AAutoSuggest provides suggestions for continuing the conversation.
+- AutoSuggest provides suggestions for continuing the conversation.
 - This feature can be accessed through the "Specials" menu, with options for regular and "fun" suggestions.
 - Suggestions are presented in a separate window, and selecting one will populate the input box.
+- There is also a user-specified AutoSuggest option, allowing users to customize the suggestion prompts.
+
+### 23. Code Highlighting
+
+- CS and HTML (with inline JS) highlighting has been added to improve code readability in AI responses.
+- A new option to set code highlight colors has been added under the "Specials" menu (but it doesn't work yet).
 
 This AI conversation tool provides a comprehensive environment for interacting with AI models, managing conversations, and organizing your AI-assisted work. By utilizing its various features, users can efficiently conduct and manage complex AI conversations across multiple topics and models.
