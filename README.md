@@ -27,6 +27,7 @@ This application is an advanced AI conversation tool that allows users to intera
 - View HTML in WebView
 - Code review function (for project maintainers)
 - AutoSuggest function
+- Streaming responses from all AI providers
 
 ## Detailed Guide
 
@@ -54,7 +55,8 @@ The main window is divided into several sections:
 - The conversation will be visualized in the network diagram.
 - If available, a suggested next prompt will be formatted and displayed in the input area.
 - If enabled, the AI's response will be read aloud using Text-to-Speech.
-- You can now cancel ongoing AI operations using the new "Cancel" button.
+- You can cancel ongoing AI operations using the new "Cancel" button.
+- Streaming responses are available from all AI providers, controlled by a switch in Settings.
 
 ### 4. Managing Conversations
 
@@ -109,7 +111,8 @@ The main window is divided into several sections:
 
 - Access the settings menu to configure API keys, model selection, and other preferences.
 - New toggle options are available for customizing features like Text-to-Speech.
-- A new "Show Developer Tools for WebViews" setting has been added (requires app restart).
+- "Show Developer Tools for WebViews" (requires app restart).
+- There is an option to enable streaming responses from all AI providers.
 
 ### 13. Saving and Exporting
 
@@ -123,7 +126,7 @@ The main window is divided into several sections:
 ### 15. Automatic Readme Update
 
 - The application now includes a feature to automatically update the readme based on the latest GitHub diff and commit message.
-- This feature can be accessed through the new "Specials" menu.
+- This feature can be accessed through the "Specials" menu.
 - For users with the appropriate setup, the updated README is now written directly to the repository.
 
 ### 16. Text-to-Speech (TTS)
@@ -138,10 +141,10 @@ The main window is divided into several sections:
 
 ### 18. Code Review Function
 
-- A new code review function has been added for project maintainers.
+- A code review function has been added for project maintainers.
 - This feature can analyze the project's C# code and provide feedback on potential bugs.
 
-### 19. Disable Nodes
+### 19. Disable Nodes (not currently implemented)
 
 - Users can now disable specific nodes in the conversation.
 - Disabled nodes are omitted from the conversation with AI and not saved as part of the conversation.
@@ -154,12 +157,12 @@ The main window is divided into several sections:
 
 ### 21. Regenerate All Summaries
 
-- A new feature has been added to regenerate summaries for all conversations.
+- You can choose to regenerate summaries for all conversations.
 - This can be accessed through the "Specials" menu.
 
 ### 22. AutoSuggest Function
 
-- A new AutoSuggest feature has been added to provide suggestions for continuing the conversation.
+- AAutoSuggest provides suggestions for continuing the conversation.
 - This feature can be accessed through the "Specials" menu, with options for regular and "fun" suggestions.
 - Suggestions are presented in a separate window, and selecting one will populate the input box.
 

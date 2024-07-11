@@ -429,10 +429,10 @@ namespace AiTool3
             var restartMenuItem = new ToolStripMenuItem("Pull Readme and update from latest diff");
             restartMenuItem.ForeColor = Color.White;
             restartMenuItem.BackColor = Color.Black;
-            restartMenuItem.Click += (s, e) =>
+            restartMenuItem.Click += async (s, e) =>
             {
                 AiResponse response, response2;
-                SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem, out response);
+                response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem);
                 var snippets = FindSnippets(rtbOutput, response.ResponseText, null, null);
                 
                 try
