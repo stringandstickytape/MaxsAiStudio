@@ -11,6 +11,7 @@ namespace AiTool3.UI
     public class ChatWebView : WebView2
     {
         public event EventHandler<ChatWebViewSendMessageEventArgs> ChatWebViewSendMessageEvent;
+        public event EventHandler<ChatWebViewCopyEventArgs> ChatWebViewCopyEvent;
 
         public ChatWebView() : base()
         {
@@ -30,6 +31,11 @@ namespace AiTool3.UI
                 case "send":
                     var content = message["content"];
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
+                    break;
+                case "copy":
+                    var content2 = message["content"];
+                    var guid2 = message["guid"];
+                    ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content2, Guid = guid2 });
                     break;
             }
         }

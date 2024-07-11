@@ -53,6 +53,8 @@ namespace AiTool3
 
             webViewManager = new WebViewManager(ndcWeb);
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
+            chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
+
             //SetPaperclipIcon(buttonAttachImage);
 
             rtbSystemPrompt.SetOverlayText("System Prompt");
@@ -107,6 +109,11 @@ namespace AiTool3
             updateTimer.Interval = 100; // Update every 100 milliseconds
             updateTimer.Tick += UpdateTimer_Tick;
 
+        }
+
+        private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e)
+        {
+            Clipboard.SetText(SnipperHelper.StripFirstAndLastLine(e.Content));
         }
 
         private void AutoSuggestStringSelected(string selectedString)

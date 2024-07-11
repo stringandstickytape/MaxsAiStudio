@@ -6,8 +6,6 @@
     <title>AI Assistant Chat</title>
     <style>
         {magiccsstoken}
-
-
     </style>
 </head>
 <body>
@@ -79,8 +77,6 @@
                     const textNode = document.createTextNode(snippet);
                     ContentDiv.appendChild(textNode);
                 } else {
-                    console.log(snippet);
-                    debugger;
                     // Code block container
                     const codeBlockContainer = document.createElement('div');
                     codeBlockContainer.className = 'code-block-container';
@@ -91,22 +87,32 @@
 
                     // Split the snippet into lines
                     const lines = snippet.trim().split('\n');
-
+                    let dataType = '';
                     // The first line is the data type
-                    if (lines.length >0 && snippet[0] != "\n") {
-                        const dataType = lines[0].trim();
-
-                        codeBlock.dataset.type = dataType;
-
-                        // Create type label
-                        const typeLabel = document.createElement('div');
-                        typeLabel.className = 'code-type-label';
-                        typeLabel.textContent = dataType;
-                        codeBlockContainer.appendChild(typeLabel);
-
-                        // Remove the first line from the snippet
+                    if (lines.length > 0 && snippet[0] != "\n") {
+                        dataType = lines[0].trim();
                         lines.shift();
                     }
+
+                    codeBlock.dataset.type = dataType;
+
+                    // Create type label and button bar
+                    const typeLabelContainer = document.createElement('div');
+                    typeLabelContainer.style.display = 'flex';
+                    typeLabelContainer.style.alignItems = 'center';
+
+                    const typeLabel = document.createElement('div');
+                    typeLabel.className = 'code-type-label';
+                    typeLabel.textContent = dataType;
+
+                        
+
+                    const buttonBar = createButtonBar(message.Guid, lines.join('\n').trim());
+
+                    typeLabelContainer.appendChild(typeLabel);
+                    typeLabelContainer.appendChild(buttonBar);
+
+                    codeBlockContainer.appendChild(typeLabelContainer);
 
                     // Join the remaining lines and set as textContent
                     codeBlock.textContent = lines.join('\n').trim();
@@ -120,6 +126,32 @@
             messageDiv.appendChild(ContentDiv);
 
             return messageDiv;
+        }
+
+        function createButtonBar(guid, content) {
+            const buttonBar = document.createElement('div');
+            buttonBar.className = 'button-bar';
+
+            const buttons = ['Copy', 'Webview', 'Notepad'];
+            buttons.forEach(buttonText => {
+                const button = document.createElement('button');
+                button.textContent = buttonText;
+                button.addEventListener('click', () => {
+                    if (buttonText === 'Copy') {
+                        window.chrome.webview.postMessage({
+                            type: 'copy',
+                            content: content,
+                            guid: guid
+                        });
+                    } else {
+                        // Add functionality for other buttons here
+                        console.log(`${buttonText} button clicked`);
+                    }
+                });
+                buttonBar.appendChild(button);
+            });
+
+            return buttonBar;
         }
 
         function scrollToBottom() {
