@@ -371,7 +371,6 @@ namespace AiTool3
                     selectedMessage.Omit = !selectedMessage.Omit;
                     e.SelectedNode.IsDisabled = selectedMessage.Omit;
 
-                    DrawNetworkDiagram();
                     var a = WebNdcDrawNetworkDiagram().Result;
                 }
                 else if (e.SelectedOption == "Option 3")
@@ -777,7 +776,6 @@ namespace AiTool3
                 Base64ImageType = null;
 
                 // draw the network diagram
-                DrawNetworkDiagram();
                 var a = await WebNdcDrawNetworkDiagram();
             }
             catch (OperationCanceledException)
@@ -850,48 +848,6 @@ namespace AiTool3
         }
 
 
-        private void DrawNetworkDiagram()
-        {
-            //// Clear the diagram
-            //ndcConversation.Clear();
-            //
-            //var root = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Parent == null);
-            //if (root == null)
-            //{
-            //    return;
-            //}
-            //var y = 100;
-            //
-            //var rootNode = new Node(root.Content, new Point(300, y), root.Guid, root.InfoLabel, root.Omit);
-            //
-            //// get the model with the same name as the engine
-            //var model = CurrentSettings.ApiList.SelectMany(c => c.Models).Where(x => x.ModelName == root.Engine).FirstOrDefault();
-            //
-            //rootNode.BackColor = root.GetColorForEngine();
-            //ndcConversation.AddNode(rootNode);
-            //
-            //// recursively draw the children
-            //DrawChildren(root, rootNode, 300 + 100, ref y);
-
-
-        }
-
-        private void DrawChildren(CompletionMessage root, Node rootNode, int v, ref int y)
-        {
-            //y += 130;
-            //foreach (var child in root.Children)
-            //{
-            //    // get from child string
-            //    var childMsg = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == child);
-            //
-            //    var childNode = new Node(childMsg.Content, new Point(v, y), childMsg.Guid, childMsg.InfoLabel, childMsg.Omit);
-            //    childNode.BackColor = childMsg.GetColorForEngine();
-            //    ndcConversation.AddNode(childNode);
-            //    ndcConversation.AddConnection(rootNode, childNode);
-            //    DrawChildren(childMsg, childNode, v + 100, ref y);
-            //}
-        }
-
         private void btnClear_Click(object sender, EventArgs e)
         {
             BeginNewConversation();
@@ -912,7 +868,7 @@ namespace AiTool3
             rtbSystemPrompt.Text = currentSystemPrompt;
         }
 
-        private void buttonNewKeepAll_Click(object sender, EventArgs e)
+        private async void buttonNewKeepAll_Click(object sender, EventArgs e)
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
             var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
@@ -957,8 +913,7 @@ namespace AiTool3
             ConversationManager.CurrentConversation.Messages.AddRange(new[] { assistantMessage, userMessage });
             ConversationManager.PreviousCompletion = assistantMessage;
 
-            DrawNetworkDiagram();
-            var a = WebNdcDrawNetworkDiagram().Result;
+            await WebNdcDrawNetworkDiagram();
         }
 
         private async Task BeginNewConversation()
@@ -967,11 +922,12 @@ namespace AiTool3
             rtbSystemPrompt.Clear();
             rtbOutput.Clear();
 
+            await chatWebView.Clear();
+
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
 
-            DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
         }
 
@@ -981,7 +937,6 @@ namespace AiTool3
 
             ConversationManager.LoadConversation(clickedGuid);
 
-            DrawNetworkDiagram();
             await WebNdcDrawNetworkDiagram();
 
         }
@@ -1019,6 +974,9 @@ namespace AiTool3
         {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
+
+            chatWebView.Clear();
+
             if (template != null)
             {
                 rtbInput.Text = template.InitialPrompt;

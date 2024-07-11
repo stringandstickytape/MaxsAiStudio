@@ -71,5 +71,12 @@ namespace AiTool3.UI
             // run "addMessages" js function
             await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
         }
+
+
+        internal async Task Clear()
+        {
+            // run "addMessages" js function
+            await ExecuteScriptAsync($"ClearMessages()");
+        }
     }
 }
