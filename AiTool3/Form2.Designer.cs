@@ -122,7 +122,7 @@ namespace AiTool3
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(768, 246);
+            rtbSystemPrompt.Size = new Size(768, 228);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -237,6 +237,7 @@ namespace AiTool3
             // splitContainer2
             // 
             splitContainer2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer2.FixedPanel = FixedPanel.Panel1;
             splitContainer2.IsSplitterFixed = true;
             splitContainer2.Location = new Point(3, 3);
             splitContainer2.Name = "splitContainer2";
