@@ -47,7 +47,7 @@ namespace AiTool3.Snippets
                     Text = prop.Name,
                     Location = new Point(10, y),
                     Size = new Size(200, 30),
-                    ForeColor = (Color)prop.GetValue(null),
+                    ForeColor = (Color)prop.GetValue(null)!,
                     //consolas
                     Font = new Font("Consolas", 10F, FontStyle.Regular, GraphicsUnit.Point, 0)
                 };
@@ -58,7 +58,7 @@ namespace AiTool3.Snippets
                     Text = "Choose Color",
                     Location = new Point(220, y - 2),
                     Size = new Size(100, 35),
-                    BackColor = (Color)prop.GetValue(null)
+                    BackColor = (Color)prop.GetValue(null)!
                 };
                 button.Click += (sender, e) =>
                 {
@@ -88,12 +88,7 @@ namespace AiTool3.Snippets
             form.Controls.Add(okButton);
             form.AcceptButton = okButton;
 
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                return colorProperties.ToDictionary(p => p.Name, p => (Color)p.GetValue(null));
-            }
-
-            return null;
+            return colorProperties.ToDictionary(p => p.Name, p => (Color)p.GetValue(null)!);
         }
 
         public static void HighlightCSharp(RichTextBox richTextBox, int startIndex, int length)

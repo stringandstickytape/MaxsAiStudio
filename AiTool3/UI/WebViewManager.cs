@@ -18,19 +18,19 @@ namespace AiTool3.UI
         {
             webView = webViewIn;
             webView.Dock = DockStyle.Fill;
-            webView.WebMessageReceived += WebView_WebMessageReceived;
+            webView.WebMessageReceived += WebView_WebMessageReceived!;
         }
 
         // event to raise when a menu option is selected
-        public event EventHandler<WebNdcContextMenuOptionSelectedEventArgs> WebNdcContextMenuOptionSelected;
-        public event EventHandler<WebNdcNodeClickedEventArgs> WebNdcNodeClicked;
+        public event EventHandler<WebNdcContextMenuOptionSelectedEventArgs>? WebNdcContextMenuOptionSelected;
+        public event EventHandler<WebNdcNodeClickedEventArgs>? WebNdcNodeClicked;
 
         private async void WebView_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-            switch (message["type"])
+            switch (message!["type"])
             {
                 case "nodeClicked":
                     string clickedNodeId = message["nodeId"];
@@ -45,7 +45,7 @@ namespace AiTool3.UI
                     // Send options back to JavaScript to update the menu
                     string optionsJson = System.Text.Json.JsonSerializer.Serialize(options);
                     string script = $"updateContextMenuOptions({optionsJson});";
-                    webView.ExecuteScriptAsync(script);
+                    await webView.ExecuteScriptAsync(script);
                     break;
 
                 case "contextMenuOptionSelected":

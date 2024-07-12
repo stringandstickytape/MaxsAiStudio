@@ -27,18 +27,18 @@ namespace AiTool3
     public partial class Form2 : Form
     {
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
-        public Settings.Settings CurrentSettings { get; set; } = AiTool3.Settings.Settings.Load();
+        public Settings.Settings CurrentSettings { get; set; } = AiTool3.Settings.Settings.Load()!;
 
         public TopicSet TopicSet { get; set; }
 
         private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
 
-        public string Base64Image { get; set; }
-        public string Base64ImageType { get; set; }
+        public string? Base64Image { get; set; }
+        public string? Base64ImageType { get; set; }
 
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource? _cts, _cts2;
 
-        private WebViewManager webViewManager = null;
+        private WebViewManager? webViewManager = null;
 
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
@@ -97,13 +97,24 @@ namespace AiTool3
 
             InitialiseMenus();
 
-            CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
-            BeginNewConversation();
 
             updateTimer.Interval = 100; // Update every 100 milliseconds
-            updateTimer.Tick += UpdateTimer_Tick;
+            updateTimer.Tick += UpdateTimer_Tick!;
 
+            Load += OnHandleCreated!;
+
+        }
+
+        private async void OnHandleCreated(object sender, EventArgs e)
+        {
+            Load -= OnHandleCreated!;
+
+            await chatWebView.EnsureCoreWebView2Async(null);
+
+            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
+
+            await BeginNewConversation();
         }
 
         private void ChatWebView_ChatWebViewLaunchInWebViewEvent(object? sender, ChatWebViewCopyEventArgs e)
@@ -367,7 +378,7 @@ namespace AiTool3
                 else if (e.SelectedOption == "Disable")
                 {
                     var selectedGuid = e.SelectedNode.Guid;
-                    var selectedMessage = ConversationManager.CurrentConversation.FindByGuid(selectedGuid);
+                    var selectedMessage = ConversationManager.CurrentConversation!.FindByGuid(selectedGuid);
                     selectedMessage.Omit = !selectedMessage.Omit;
                     e.SelectedNode.IsDisabled = selectedMessage.Omit;
 
@@ -403,7 +414,7 @@ namespace AiTool3
             clearMenuItem.BackColor = Color.Black;
             clearMenuItem.Click += (s, e) =>
             {
-                btnClear_Click(null, null);
+                btnClear_Click(null!, null!);
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
@@ -437,8 +448,8 @@ namespace AiTool3
             restartMenuItem.BackColor = Color.Black;
             restartMenuItem.Click += async (s, e) =>
             {
-                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem);
-                var snippets = FindSnippets(rtbOutput, response.ResponseText, null, null);
+                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem!);
+                var snippets = FindSnippets(rtbOutput, response.ResponseText, null!, null!);
                 
                 try
                 {
@@ -456,24 +467,23 @@ namespace AiTool3
 
             AddSpecial(specialsMenu, "Review Code", (s, e) =>
                 {
-                    // go up from the working directory until you get to "MaxsAiTool"
-                    SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem, out string userMessage);
+                    SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem!, out string userMessage);
                     rtbInput.Text = userMessage;
                 });
-            AddSpecial(specialsMenu, "Rewrite Summaries", (s, e) =>
+            AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
             {
-                ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                await ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
             });
 
             AddSpecial(specialsMenu, "Autosuggest",async (s, e) =>
             {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
                 autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
             AddSpecial(specialsMenu, "Autosuggest (Fun)", async (s, e) =>
             {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
                 autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
@@ -483,17 +493,17 @@ namespace AiTool3
 
                 var prefix = "you are a bot who makes ";
                 var suffix = " suggestions on how a user might proceed with a conversation.";
-                userInputForm.Controls["label1"].Text = prefix;
-                userInputForm.Controls["label2"].Text = suffix;
+                userInputForm.Controls["label1"]!.Text = prefix;
+                userInputForm.Controls["label2"]!.Text = suffix;
                 var result = userInputForm.ShowDialog();
 
                 if(result == DialogResult.OK)
                 {
-                    var userAutoSuggestPrompt = userInputForm.Controls["tbAutoSuggestUserInput"].Text;
+                    var userAutoSuggestPrompt = userInputForm.Controls["tbAutoSuggestUserInput"]!.Text;
 
                     userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
 
-                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
+                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
                     autoSuggestForm.StringSelected += AutoSuggestStringSelected;
                 }
 
@@ -535,7 +545,7 @@ namespace AiTool3
 
         private void InitialiseApiList()
         {
-            foreach (var model in CurrentSettings.ApiList.SelectMany(x => x.Models))
+            foreach (var model in CurrentSettings.ApiList!.SelectMany(x => x.Models))
             {
                 cbEngine.Items.Add(model);
             }
@@ -544,11 +554,11 @@ namespace AiTool3
             cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
-        private void CheckForCtrlReturn(KeyEventArgs e)
+        private async void CheckForCtrlReturn(KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.Return)
             {
-                FetchAiInputResponse();
+                await FetchAiInputResponse();
                 e.SuppressKeyPress = true;
             }
         }
@@ -556,15 +566,15 @@ namespace AiTool3
         private void SetSplitContainerEvents()
         {
             // for each split container incl in child items
-            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint);
-            splitContainer2.Paint += new PaintEventHandler(SplitContainer_Paint);
-            splitContainer3.Paint += new PaintEventHandler(SplitContainer_Paint);
-            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint);
+            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
+            splitContainer2.Paint += new PaintEventHandler(SplitContainer_Paint!);
+            splitContainer3.Paint += new PaintEventHandler(SplitContainer_Paint!);
+            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
         }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
         {
-            SplitContainer sc = sender as SplitContainer;
+            SplitContainer sc = (sender as SplitContainer)!;
 
             Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
@@ -579,7 +589,7 @@ namespace AiTool3
 
         private async void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
         {
-            var clickedCompletion = ConversationManager.CurrentConversation.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
+            var clickedCompletion = ConversationManager.CurrentConversation!.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
             if (clickedCompletion == null)
                 return;
             ConversationManager.PreviousCompletion = clickedCompletion;
@@ -587,9 +597,9 @@ namespace AiTool3
             rtbInput.Clear();
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
-                rtbInput.Text = ConversationManager.PreviousCompletion.Content;
-                await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content);
-                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+                rtbInput.Text = ConversationManager.PreviousCompletion.Content!;
+                await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content!);
+                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent!);
             }
             else
             {
@@ -600,7 +610,7 @@ namespace AiTool3
                 rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
             }
             else rtbSystemPrompt.Text = "";
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid, ConversationManager.CurrentConversation.Messages);
+            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
 
             var parents = ConversationManager.GetParentNodeList();
 
@@ -611,7 +621,7 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             rtbInput.Text = e.Content;
-            FetchAiInputResponse();
+            await FetchAiInputResponse();
         }
 
         private SnippetManager snippetManager = new SnippetManager();
@@ -662,7 +672,7 @@ namespace AiTool3
 
 
 
-        private async void FetchAiInputResponse()
+        private async Task FetchAiInputResponse()
         {
             // Cancel any ongoing operation
             _cts?.Cancel();
@@ -671,16 +681,16 @@ namespace AiTool3
             stopwatch.Restart();
             updateTimer.Start();
 
-            CompletionMessage completionResponse = null;
+            CompletionMessage? completionResponse = null;
             AiResponse? response = null;
-            Model model = null;
+            Model? model = null;
 
             try
             {
                 //btnGo.Enabled = false;
                 
                 btnCancel.Visible = true; // Enable cancel button
-                model = (Model)cbEngine.SelectedItem;
+                model = (Model)cbEngine.SelectedItem!;
 
                 // get the name of the service for the model
                 var serviceName = model.ServiceName;
@@ -688,7 +698,7 @@ namespace AiTool3
                 // instantiate the service from the appropriate api
                 var aiService = AiServiceResolver.GetAiService(serviceName);
 
-                Conversation conversation = null;
+                Conversation? conversation = null;
 
                 conversation = new Conversation();
                 conversation.systemprompt = rtbSystemPrompt.Text;
@@ -702,7 +712,7 @@ namespace AiTool3
                     if (node.Role == CompletionRole.Root || node.Omit)
                         continue;
 
-                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content });
+                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content! });
                 }
                 conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
 
@@ -710,7 +720,7 @@ namespace AiTool3
                 var inputText = rtbInput.Text;
                 var systemPrompt = rtbSystemPrompt.Text;
                 // fetch the response from the api
-                response = await aiService.FetchResponse(model, conversation, Base64Image, Base64ImageType, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
+                response = await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
 
                 
                 if (response.SuggestedNextPrompt != null)
@@ -739,14 +749,14 @@ namespace AiTool3
                     //btnGo.Enabled = true;
                     return;
                 }
-                var pc = ConversationManager.CurrentConversation.FindByGuid(previousCompletionGuidBeforeAwait);
+                var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);
 
                 if (pc != null)
                 {
-                    pc.Children.Add(completionInput.Guid);
+                    pc.Children!.Add(completionInput.Guid);
                 }
 
-                ConversationManager.CurrentConversation.Messages.Add(completionInput);
+                ConversationManager.CurrentConversation!.Messages.Add(completionInput);
 
                 // Create a new completion object to store the response in
                 completionResponse = new CompletionMessage
@@ -767,8 +777,8 @@ namespace AiTool3
                 // add it to the current conversation
                 ConversationManager.CurrentConversation.Messages.Add(completionResponse);
 
-                chatWebView.AddMessage(completionInput);
-                chatWebView.AddMessage(completionResponse);
+                await chatWebView.AddMessage(completionInput);
+                await chatWebView.AddMessage(completionResponse);
                 // and display the results in the output box
                 FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
@@ -776,7 +786,11 @@ namespace AiTool3
                 {
                     // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
                     var text = rtbOutput.Text;
+
+#pragma warning disable CS4014 // We want this to go off on its own...
                     Task.Run(() => TtsHelper.ReadAloud(text));
+#pragma warning restore CS4014 // 
+
                 }
 
                 completionInput.Children.Add(completionResponse.Guid);
@@ -808,9 +822,9 @@ namespace AiTool3
                 btnCancel.Visible = false; // Disable cancel button
             }
 
-            webViewManager.CentreOnNode(completionResponse.Guid);
+            webViewManager!.CentreOnNode(completionResponse.Guid);
 
-            var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+            var summaryModel = CurrentSettings.ApiList!.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
 
@@ -843,13 +857,13 @@ namespace AiTool3
 
             var a = await webViewManager.Clear();
 
-            var nodes = ConversationManager.CurrentConversation.Messages
+            var nodes = ConversationManager.CurrentConversation!.Messages
                 .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new IdNodeRole { id = m.Guid, label = m.Content, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
+                .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
 
             var links2 = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Parent != null)
-                .Select(x => new Link { source = x.Parent, target = x.Guid }).ToList();
+                .Select(x => new Link { source = x.Parent!, target = x.Guid !}).ToList();
 
 
             await webViewManager.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
@@ -858,10 +872,10 @@ namespace AiTool3
         }
 
 
-        private void btnClear_Click(object sender, EventArgs e)
+        private async void btnClear_Click(object sender, EventArgs e)
         {
-            BeginNewConversation();
-            PopulateUiForTemplate(GetCurrentlySelectedTemplate());
+            await BeginNewConversation();
+            await PopulateUiForTemplate(GetCurrentlySelectedTemplate()!);
         }
 
         private void btnRestart_Click(object sender, EventArgs e)
@@ -881,11 +895,11 @@ namespace AiTool3
         private async void buttonNewKeepAll_Click(object sender, EventArgs e)
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
-            var lastUserMessage = ConversationManager.CurrentConversation.FindByGuid(lastAssistantMessage.Parent);
+            var lastUserMessage = ConversationManager.CurrentConversation!.FindByGuid(lastAssistantMessage!.Parent!);
             if (lastUserMessage == null)
                 return;
             if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
 
             
 
@@ -916,7 +930,7 @@ namespace AiTool3
                 Children = new List<string>(),
                 CreatedAt = DateTime.Now,
             };
-            rootMessage.Children.Add(userMessage.Guid);
+            rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
 
@@ -945,7 +959,7 @@ namespace AiTool3
         {
             var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
 
-            ConversationManager.LoadConversation(clickedGuid);
+            ConversationManager.LoadConversation(clickedGuid!);
 
             await WebNdcDrawNetworkDiagram();
 
@@ -954,7 +968,7 @@ namespace AiTool3
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
         {
             // populate the cbTemplates with the templates for the selected category
-            var selected = cbCategories.SelectedItem.ToString();
+            var selected = cbCategories.SelectedItem!.ToString();
 
             var topics = TopicSet.Topics.Where(t => t.Name == selected).ToList();
 
@@ -965,13 +979,13 @@ namespace AiTool3
             cbTemplates.DroppedDown = true;
         }
 
-        private void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            btnClear_Click(null, null);
-            PopulateUiForTemplate(GetCurrentlySelectedTemplate());
+            btnClear_Click(null!, null!);
+            await PopulateUiForTemplate(GetCurrentlySelectedTemplate()!);
         }
 
-        private ConversationTemplate GetCurrentlySelectedTemplate()
+        private ConversationTemplate? GetCurrentlySelectedTemplate()
         {
             if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
             {
@@ -980,12 +994,12 @@ namespace AiTool3
             return TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
         }
 
-        private void PopulateUiForTemplate(ConversationTemplate template)
+        private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
             rtbInput.Clear();
             rtbSystemPrompt.Clear();
 
-            chatWebView.Clear();
+            await chatWebView.Clear();
 
             if (template != null)
             {
@@ -998,10 +1012,10 @@ namespace AiTool3
         {
             if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return;
 
-            EditAndSaveTemplate(GetCurrentTemplate());
+            EditAndSaveTemplate(GetCurrentTemplate()!);
         }
 
-        private ConversationTemplate GetCurrentTemplate()
+        private ConversationTemplate? GetCurrentTemplate()
         {
             ConversationTemplate template;
             if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
@@ -1081,7 +1095,7 @@ namespace AiTool3
                         }
                         rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
 
-                        CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName));
+                        CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
 
                     }
 
@@ -1097,7 +1111,7 @@ namespace AiTool3
 
 
         }
-        private CancellationTokenSource _cts2;
+        
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
@@ -1119,15 +1133,15 @@ namespace AiTool3
 
                         var guid = row.Cells[0].Value.ToString();
 
-                        var conv = BranchedConversation.LoadConversation(guid);
+                        var conv = BranchedConversation.LoadConversation(guid!);
 
                         var allMessages = conv.Messages.Select(m => m.Content).ToList();
 
                         //bool isVisible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
                         bool isVisible = false;
-                        foreach (string message in allMessages)
+                        foreach (string? message in allMessages)
                         {
-                            if (message.IndexOf(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                            if (message!.IndexOf(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                             {
                                 isVisible = true;
                                 break;
@@ -1266,7 +1280,7 @@ namespace AiTool3
             string htmlAndCss = html.Replace("{magiccsstoken}", css);
             string result = htmlAndCss.Replace("<insertscripthere />", js);
 
-            await webViewManager.OpenWebViewWithJs("", showDevTools);
+            await webViewManager!.OpenWebViewWithJs("", showDevTools);
 
             //Thread.Sleep(2000);
 
@@ -1282,22 +1296,22 @@ namespace AiTool3
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            webViewManager.webView.Dispose();
+            webViewManager!.webView.Dispose();
         }
     }
 
     public class IdNodeRole
     {
-        public string role { get; set; }
+        public string? role { get; set; }
 
-        public string id { get; set; }
-        public string label { get; set; }
+        public string? id { get; set; }
+        public string? label { get; set; }
 
-        public string colour { get; set; }
+        public string? colour { get; set; }
     }
     public class Link
     {
-        public string source { get; set; }
-        public string target { get; set; }
+        public string? source { get; set; }
+        public string? target { get; set; }
     }
 }

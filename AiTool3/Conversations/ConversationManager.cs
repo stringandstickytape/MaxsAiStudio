@@ -15,10 +15,10 @@ namespace AiTool3.Conversations
 {
     public class ConversationManager
     {
-        public BranchedConversation CurrentConversation { get; set; }
-        public CompletionMessage PreviousCompletion { get; set; }
+        public BranchedConversation? CurrentConversation { get; set; }
+        public CompletionMessage? PreviousCompletion { get; set; }
 
-        public event StringSelectedEventHandler StringSelected;
+        public event StringSelectedEventHandler? StringSelected;
 
         public ConversationManager()
         {
@@ -40,7 +40,7 @@ namespace AiTool3.Conversations
 
             while (current != null)
             {
-                var node = CurrentConversation.FindByGuid(current);
+                var node = CurrentConversation!.FindByGuid(current);
                 nodes.Add(node);
                 current = node.Parent;
             }
@@ -51,12 +51,12 @@ namespace AiTool3.Conversations
 
         public void SaveConversation()
         {
-            CurrentConversation.SaveAsJson();
+            CurrentConversation!.SaveAsJson();
         }
 
         public async Task<string> GenerateConversationSummary(Model summaryModel, bool useLocalAi)
         {
-            var retVal = await CurrentConversation.GenerateSummary(summaryModel, useLocalAi);
+            var retVal = await CurrentConversation!.GenerateSummary(summaryModel, useLocalAi);
             SaveConversation();
             return retVal;
         }
@@ -92,9 +92,9 @@ namespace AiTool3.Conversations
             dgv.Refresh();
         }
 
-        public async Task<AutoSuggestForm> Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null)
+        public async Task<AutoSuggestForm> Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
         {
-            return await CurrentConversation.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
+            return await CurrentConversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
         }
     }
 }

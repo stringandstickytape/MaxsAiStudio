@@ -18,18 +18,19 @@ namespace AiTool3.UI
 
         public ChatWebView() : base()
         {
-            // run initializeasync
-            if (!DesignMode) HandleCreated += OnHandleCreated;
-
-            WebMessageReceived += WebView_WebMessageReceived;
+            if (!IsDesignMode())
+            {
+                HandleCreated += OnHandleCreated!;
+                WebMessageReceived += WebView_WebMessageReceived;
+            }
         }
 
-        private async void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-            switch (message["type"])
+            switch (message?["type"])
             {
                 case "send":
                     var content = message["content"];
@@ -56,19 +57,22 @@ namespace AiTool3.UI
 
         private async void OnHandleCreated(object sender, EventArgs e)
         {
-            HandleCreated -= OnHandleCreated;
+            HandleCreated -= OnHandleCreated!;
             await InitializeAsync();
         }
 
 
         public async Task InitializeAsync()
         {
+            if (IsDesignMode())
+                return;
+
             await EnsureCoreWebView2Async(null);
 
             var html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
 
-            html = html.Replace("{magiccsstoken}", css);
+            html = html.Replace(".magiccsstoken {}", css);
 
             NavigateToString(html);
         }
@@ -96,6 +100,11 @@ namespace AiTool3.UI
         internal async Task SetUserPrompt(string content)
         {
             await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");
+        }
+
+        private bool IsDesignMode()
+        {
+            return DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime;
         }
     }
 }

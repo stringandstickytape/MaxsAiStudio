@@ -9,14 +9,14 @@ namespace AiTool3.Audio
 {
     public class AudioRecorder
     {
-        private MemoryStream memoryStream;
-        private WaveFileWriter writer;
+        private MemoryStream? memoryStream;
+        private WaveFileWriter? writer;
 
         public bool soundDetected = false;
         public DateTime lastDateTimeAboveThreshold { get; set; } = DateTime.MinValue;
 
         // Define the event
-        public event EventHandler<string> AudioProcessed;
+        public event EventHandler<string>? AudioProcessed;
 
         public async Task RecordAudioAsync(CancellationToken cancellationToken)
 
@@ -162,7 +162,7 @@ namespace AiTool3.Audio
         public AudioRecorder(string modelNameIn)
         {
             modelName = modelNameIn;
-            DownloadModel();
+            DownloadModel().Wait();
                 
             WhisperFactory = WhisperFactory.FromPath(modelName);
             WhisperProcessor = WhisperFactory.CreateBuilder()

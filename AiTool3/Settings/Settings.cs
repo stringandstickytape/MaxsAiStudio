@@ -7,6 +7,7 @@ using System.Drawing;
 using AiTool3.ApiManagement;
 using AiTool3.Providers;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace AiTool3.Settings
 {
@@ -112,7 +113,7 @@ namespace AiTool3.Settings
 
         }
 
-        public static Settings Load()
+        public static Settings? Load()
         {
             try
             {
@@ -121,6 +122,7 @@ namespace AiTool3.Settings
             }
             catch (FileNotFoundException e)
             {
+                Debug.WriteLine(e.Message);
                 var retVal = new Settings();
                 retVal.Create();
                 Save(retVal);

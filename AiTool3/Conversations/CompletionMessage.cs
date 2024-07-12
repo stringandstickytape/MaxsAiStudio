@@ -7,19 +7,19 @@ namespace AiTool3.Conversations
     {
 
         public CompletionRole Role { get; set; }
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
-        public string SystemPrompt { get; set; }
+        public string? SystemPrompt { get; set; }
 
-        public string Guid { get; set; }
+        public string? Guid { get; set; }
 
-        public List<string> Children { get; set; }
-        public string Parent { get; set; }
+        public List<string>? Children { get; set; }
+        public string? Parent { get; set; }
 
         // don't json this
         [JsonIgnore]
         public bool Omit { get; set; }
-        public string Engine { get; set; }
+        public string? Engine { get; set; }
 
         public DateTime? CreatedAt { get; set; }
 
@@ -67,8 +67,7 @@ namespace AiTool3.Conversations
             {
                 var inputTokens = InputTokens == 0 ? "" : $"{InputTokens} in";
                 var outputTokens = OutputTokens == 0 ? "" : $"{OutputTokens} out";
-                return $"{(CreatedAt != null ? "Created at" : "")} {CreatedAt?.ToShortTimeString()} {CreatedAt?.ToShortDateString()} {(CreatedAt != null && !string.IsNullOrWhiteSpace(Engine)? "by" : "")} {Engine}{Environment.NewLine}{(TimeTaken == null ? "" : String.Format("{0:00}:{1:00}:{2:00}",
-                    TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))}  {inputTokens}{outputTokens}";
+                return $"{(CreatedAt != null ? "Created at" : "")} {CreatedAt?.ToShortTimeString()} {CreatedAt?.ToShortDateString()} {(CreatedAt != null && !string.IsNullOrWhiteSpace(Engine)? "by" : "")} {Engine}{Environment.NewLine}{(String.Format("{0:00}:{1:00}:{2:00}",TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))}  {inputTokens}{outputTokens}";
             }
         }
 

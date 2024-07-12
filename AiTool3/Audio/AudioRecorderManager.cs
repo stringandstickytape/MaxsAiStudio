@@ -7,12 +7,12 @@ namespace AiTool3.Audio
 {
     public class AudioRecorderManager
     {
-        private AudioRecorder recorder;
-        private CancellationTokenSource cts;
+        private AudioRecorder? recorder;
+        private CancellationTokenSource? cts;
 
-        public event EventHandler<string> AudioProcessed;
+        public event EventHandler<string>? AudioProcessed;
 
-        private Task recordingTask;
+        private Task? recordingTask;
         public bool IsRecording { get; private set; }
 
         private GgmlType ggmlType;
@@ -37,7 +37,6 @@ namespace AiTool3.Audio
             cts = new CancellationTokenSource();
             var ggmlType = GgmlType.TinyEn;
             var modelFileName = "ggml-tiny.bin";
-            var wavFileName = "output.wav";
 
             if (!File.Exists(modelFileName))
             {
@@ -69,7 +68,7 @@ namespace AiTool3.Audio
                 cts.Cancel();
 
                 // Wait for the recording task to complete
-                await recordingTask;
+                await recordingTask!;
 
                 IsRecording = false;
 

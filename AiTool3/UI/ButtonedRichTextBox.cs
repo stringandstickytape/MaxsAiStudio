@@ -19,9 +19,8 @@ namespace AiTool3.UI
         private Point mousePosition;
 
         private System.Timers.Timer flashTimer;
-        private int flashCount = 0;
-
-        private Color currentBackColor;
+        
+        
         private int fadeDuration = 2000; // Total fade duration in milliseconds
         private int fadeInterval = 100; // Interval between color updates in milliseconds
         private int fadeProgress = 0;
@@ -33,34 +32,34 @@ namespace AiTool3.UI
         public bool FlashOnUpdate { get; set; }
 
         [Category("Behavior")]
-        public string EmptyLabel { get; set; }
+        public string? EmptyLabel { get; set; }
 
         public class MegaBarItem
         {
-            public string Title { get; set; }
-            public Action Callback { get; set; }
+            public string? Title { get; set; }
+            public Action? Callback { get; set; }
             public bool IsMouseOver { get; set; }
-            public string OriginatingMessage { get; set; }
-            public List<CompletionMessage> OriginatingConversation { get; set; }
+            public string? OriginatingMessage { get; set; }
+            public List<CompletionMessage>? OriginatingConversation { get; set; }
         }
 
         private class MegaBar
         {
             public int StartIndex { get; set; }
-            public MegaBarItem[] Items { get; set; }
+            public MegaBarItem[]? Items { get; set; }
         }
 
         public ButtonedRichTextBox()
         {
-            LinkClicked += new LinkClickedEventHandler(richTextBox1_LinkClicked);
+            LinkClicked += new LinkClickedEventHandler(richTextBox1_LinkClicked!);
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer |
          ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
 
-            this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag;
+            this.QueryContinueDrag += ButtonedRichTextBox_QueryContinueDrag!;
             flashTimer = new System.Timers.Timer(fadeInterval);
-            flashTimer.Elapsed += FadeTimer_Elapsed;
+            flashTimer.Elapsed += FadeTimer_Elapsed!;
             flashTimer.AutoReset = true;
 
             overlayLabel = new TransparentLabel
@@ -86,7 +85,7 @@ namespace AiTool3.UI
         {
             try
             {
-                string url = e.LinkText;
+                string url = e.LinkText!;
                 url = url.Replace("&", "^&");
                 //Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                 OpenUrlUsingDefaultBrowser(url);
@@ -152,18 +151,18 @@ namespace AiTool3.UI
             try
             {
                 // Get the default browser from the registry
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice"))
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice"))
                 {
                     if (key != null)
                     {
-                        string progId = key.GetValue("ProgId") as string;
+                        string progId = (key.GetValue("ProgId") as string)!;
                         if (!string.IsNullOrEmpty(progId))
                         {
-                            using (RegistryKey pathKey = Registry.ClassesRoot.OpenSubKey($@"{progId}\shell\open\command"))
+                            using (RegistryKey? pathKey = Registry.ClassesRoot.OpenSubKey($@"{progId}\shell\open\command"))
                             {
                                 if (pathKey != null)
                                 {
-                                    string command = pathKey.GetValue(null) as string;
+                                    string command = (pathKey.GetValue(null) as string)!;
                                     if (!string.IsNullOrEmpty(command))
                                     {
                                         // Extract the path from the command
@@ -235,8 +234,11 @@ namespace AiTool3.UI
         public override string Text
         {
             get { return base.Text; }
+#pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             set
+#pragma warning restore CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             {
+                
                 if (base.Text != value)
                 {
                     base.Text = value;
@@ -335,9 +337,9 @@ namespace AiTool3.UI
             Brush highlightColour = Brushes.Gray;
             Brush backgroundColour = Brushes.Black;
 
-            foreach (var item in megaBar.Items)
+            foreach (var item in megaBar.Items!)
             {
-                int buttonWidth = GetStringWidth(item.Title, Font) + 20; // Add padding
+                int buttonWidth = GetStringWidth(item.Title!, Font) + 20; // Add padding
                 Rectangle rectangle = new Rectangle(x, y, buttonWidth, 22);
                 int radius = 10;
                 int diameter = radius * 2;
@@ -375,9 +377,9 @@ namespace AiTool3.UI
                     int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
                     int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
 
-                    foreach (var item in megaBar.Items)
+                    foreach (var item in megaBar.Items!)
                     {
-                        int buttonWidth = GetStringWidth(item.Title, Font) + 20;
+                        int buttonWidth = GetStringWidth(item.Title!, Font) + 20;
                         Rectangle buttonRect = new Rectangle(x, y, buttonWidth, 22);
                         if (buttonRect.Contains(e.Location))
                         {
@@ -403,7 +405,7 @@ namespace AiTool3.UI
             isMouseOver = false;
             foreach (var megaBar in megaBars)
             {
-                foreach (var item in megaBar.Items)
+                foreach (var item in megaBar.Items!)
                 {
                     item.IsMouseOver = false;
                 }
@@ -422,9 +424,9 @@ namespace AiTool3.UI
                 int x = GetPositionFromCharIndex(megaBar.StartIndex).X + 5;
                 int y = GetPositionFromCharIndex(megaBar.StartIndex).Y;
 
-                foreach (var item in megaBar.Items)
+                foreach (var item in megaBar.Items!)
                 {
-                    int buttonWidth = GetStringWidth(item.Title, Font) + 20;
+                    int buttonWidth = GetStringWidth(item.Title!, Font) + 20;
                     Rectangle buttonRect = new Rectangle(x, y, buttonWidth, 22);
                     bool isOver = buttonRect.Contains(e.Location);
                     if (isOver != item.IsMouseOver)
