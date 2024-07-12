@@ -119,8 +119,6 @@ namespace AiTool3
 
             }
 
-            
-
             menuBar.Items.Add(templatesMenu);
         }
 
