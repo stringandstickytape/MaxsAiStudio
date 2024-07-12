@@ -467,7 +467,7 @@ namespace AiTool3
 
             AddSpecial(specialsMenu, "Review Code", (s, e) =>
                 {
-                    SpecialsHelper.ReviewCode((Model)cbEngine.SelectedItem!, out string userMessage);
+                    SpecialsHelper.ReviewCode(out string userMessage);
                     rtbInput.Text = userMessage;
                 });
             AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
