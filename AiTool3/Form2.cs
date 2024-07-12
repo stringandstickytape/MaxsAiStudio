@@ -646,7 +646,6 @@ namespace AiTool3
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            // Cancel the previous operation if it's still running
             _cts2?.Cancel();
 
             _cts2 = new CancellationTokenSource();
@@ -657,16 +656,17 @@ namespace AiTool3
                 {
                     _cts2.Token.ThrowIfCancellationRequested();
 
-                    if (row.Cells[0].Value == null) continue;
+                    var guid = row.Cells[0].Value?.ToString();
 
-                    var guid = row.Cells[0].Value.ToString();
-
-                    bool isVisible = IsConversationVisible(guid!, tbSearch.Text, _cts2.Token);
-
-                    this.InvokeIfNeeded(() =>
+                    if (guid != null)
                     {
-                        row.Visible = isVisible;
-                    });
+                        bool isVisible = await IsConversationVisible(guid, tbSearch.Text, _cts2.Token);
+
+                        this.InvokeIfNeeded(() =>
+                        {
+                            row.Visible = isVisible;
+                        });
+                    }
                 }
             }
             catch (Exception ex)
@@ -675,7 +675,7 @@ namespace AiTool3
             }
         }
 
-        private static bool IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
+        private static async Task<bool> IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
         {
             var conv = BranchedConversation.LoadConversation(guid);
             var allMessages = conv.Messages.Select(m => m.Content).ToList();
