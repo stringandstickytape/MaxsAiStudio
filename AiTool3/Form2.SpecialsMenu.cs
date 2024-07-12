@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Helpers;
+using AiTool3.Settings;
 using AiTool3.Snippets;
 using AiTool3.UI;
 using System;
@@ -14,12 +15,55 @@ namespace AiTool3
     {
         private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
         {
-            var reviewCodeMenuItem = new ToolStripMenuItem(l);
-            reviewCodeMenuItem.ForeColor = Color.White;
-            reviewCodeMenuItem.BackColor = Color.Black;
+            var reviewCodeMenuItem = CreateMenuItem(l);
             reviewCodeMenuItem.Click += q;
 
             specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+        }
+
+        private void InitialiseMenus()
+        {
+            var fileMenu = CreateMenu("File");
+
+            var quitMenuItem = CreateMenuItem("Quit");
+
+            quitMenuItem.Click += (s, e) =>
+            {
+                Application.Exit();
+            };
+
+            var editMenu = CreateMenu("Edit");
+
+            var clearMenuItem = CreateMenuItem("Clear");
+
+            clearMenuItem.Click += (s, e) =>
+            {
+                btnClear_Click(null!, null!);
+            };
+
+            // add settings option.  When chosen, invokes SettingsForm modally
+            var settingsMenuItem = CreateMenuItem("Settings");
+
+            settingsMenuItem.Click += (s, e) =>
+            {
+                var settingsForm = new SettingsForm(CurrentSettings);
+                var result = settingsForm.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    CurrentSettings = settingsForm.NewSettings;
+                    AiTool3.Settings.Settings.Save(CurrentSettings);
+                }
+            };
+
+            fileMenu.DropDownItems.Add(quitMenuItem);
+            editMenu.DropDownItems.Add(clearMenuItem);
+            editMenu.DropDownItems.Add(settingsMenuItem);
+            menuBar.Items.Add(fileMenu);
+            menuBar.Items.Add(editMenu);
+
+            // add a specials menu
+            CreateSpecialsMenu();
         }
 
         private void CreateSpecialsMenu()
