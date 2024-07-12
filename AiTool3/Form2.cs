@@ -54,12 +54,11 @@ namespace AiTool3
             rtbOutput.SetOverlayText("AI Response");
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-
-            SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
-            SetButtonIcon(IconChar.CircleXmark, btnCancel);
-            SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
-            SetButtonIcon(IconChar.SquarePlus, btnRestart);
-            SetButtonIcon(IconChar.SquarePlus, btnClear);
+            ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
+            ButtonIconHelper.SetButtonIcon(IconChar.CircleXmark, btnCancel);
+            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
+            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnRestart);
+            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnClear);
 
             // not converted
             //ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
@@ -110,14 +109,6 @@ namespace AiTool3
             {
                 rtbInput.Text = selectedString;
             });
-        }
-
-        private static void SetButtonIcon(IconChar iconChar, Button button)
-        {
-            button.ImageAlign = ContentAlignment.TopCenter;
-            button.TextImageRelation = TextImageRelation.ImageAboveText;
-            button.Image = iconChar.ToBitmap(Color.White, 48);
-            //button.Text = "";
         }
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
@@ -235,15 +226,7 @@ namespace AiTool3
         }
 
 
-        private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
-        {
-            var reviewCodeMenuItem = new ToolStripMenuItem(l);
-            reviewCodeMenuItem.ForeColor = Color.White;
-            reviewCodeMenuItem.BackColor = Color.Black;
-            reviewCodeMenuItem.Click += q;
 
-            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
-        }
 
         private void InitialiseApiList()
         {

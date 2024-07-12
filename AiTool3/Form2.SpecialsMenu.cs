@@ -12,6 +12,16 @@ namespace AiTool3
 {
     public partial class Form2
     {
+        private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
+        {
+            var reviewCodeMenuItem = new ToolStripMenuItem(l);
+            reviewCodeMenuItem.ForeColor = Color.White;
+            reviewCodeMenuItem.BackColor = Color.Black;
+            reviewCodeMenuItem.Click += q;
+
+            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
+        }
+
         private void CreateSpecialsMenu()
         {
             var specialsMenu = new ToolStripMenuItem("Specials");
