@@ -31,7 +31,6 @@ namespace AiTool3
         private void InitializeComponent()
         {
             cbEngine = new ComboBox();
-            btnGo = new Button();
             rtbSystemPrompt = new ButtonedRichTextBox();
             rtbOutput = new ButtonedRichTextBox();
             rtbInput = new ButtonedRichTextBox();
@@ -99,19 +98,6 @@ namespace AiTool3
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(405, 40);
             cbEngine.TabIndex = 3;
-            // 
-            // btnGo
-            // 
-            btnGo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnGo.BackColor = Color.Black;
-            btnGo.ForeColor = Color.White;
-            btnGo.Location = new Point(1035, 12);
-            btnGo.Name = "btnGo";
-            btnGo.Size = new Size(160, 85);
-            btnGo.TabIndex = 4;
-            btnGo.Text = "Go (CTRL-Return)";
-            btnGo.UseVisualStyleBackColor = false;
-            btnGo.Click += btnGo_Click;
             // 
             // rtbSystemPrompt
             // 
@@ -342,7 +328,6 @@ namespace AiTool3
             splitContainer3.Panel2.Controls.Add(buttonStartRecording);
             splitContainer3.Panel2.Controls.Add(btnRestart);
             splitContainer3.Panel2.Controls.Add(btnClear);
-            splitContainer3.Panel2.Controls.Add(btnGo);
             splitContainer3.Size = new Size(1198, 861);
             splitContainer3.SplitterDistance = 760;
             splitContainer3.TabIndex = 0;
@@ -540,7 +525,6 @@ namespace AiTool3
         }
 
         #endregion
-        private Button btnGo;
         private ComboBox cbEngine;
         private ButtonedRichTextBox rtbSystemPrompt;
         private ButtonedRichTextBox rtbOutput;

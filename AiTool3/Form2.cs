@@ -64,7 +64,7 @@ namespace AiTool3
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
-            SetButtonIcon(IconChar.PaperPlane, btnGo);
+            //SetButtonIcon(IconChar.PaperPlane, btnGo);
             SetButtonIcon(IconChar.CircleXmark, btnCancel);
             SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
             SetButtonIcon(IconChar.SquarePlus, btnRestart);
@@ -554,7 +554,7 @@ namespace AiTool3
         {
             if (e.Control && e.KeyCode == Keys.Return)
             {
-                btnGo_Click(null, null);
+                FetchAiInputResponse();
                 e.SuppressKeyPress = true;
             }
         }
@@ -617,7 +617,7 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             rtbInput.Text = e.Content;
-            btnGo_Click(null, null);
+            FetchAiInputResponse();
         }
 
         private SnippetManager snippetManager = new SnippetManager();
@@ -670,7 +670,7 @@ namespace AiTool3
 
 
 
-        private async void btnGo_Click(object sender, EventArgs e)
+        private async void FetchAiInputResponse()
         {
             // Cancel any ongoing operation
             _cts?.Cancel();
@@ -685,7 +685,7 @@ namespace AiTool3
 
             try
             {
-                btnGo.Enabled = false;
+                //btnGo.Enabled = false;
                 
                 btnCancel.Visible = true; // Enable cancel button
                 model = (Model)cbEngine.SelectedItem;
@@ -744,7 +744,7 @@ namespace AiTool3
                 if (response == null)
                 {
                     MessageBox.Show("Response is null");
-                    btnGo.Enabled = true;
+                    //btnGo.Enabled = true;
                     return;
                 }
                 var pc = ConversationManager.CurrentConversation.FindByGuid(previousCompletionGuidBeforeAwait);
@@ -812,7 +812,7 @@ namespace AiTool3
                 stopwatch.Stop();
                 updateTimer.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
-                btnGo.Enabled = true;
+                //btnGo.Enabled = true;
                 btnCancel.Visible = false; // Disable cancel button
             }
 
@@ -838,7 +838,7 @@ namespace AiTool3
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
-            btnGo.Enabled = true;
+            //btnGo.Enabled = true;
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
