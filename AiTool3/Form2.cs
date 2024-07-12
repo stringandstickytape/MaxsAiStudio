@@ -106,19 +106,10 @@ namespace AiTool3
 
         private void AutoSuggestStringSelected(string selectedString)
         {
-            // put selected string into the input box, invoking if necessary
-            if (rtbInput.InvokeRequired)
-            {
-                rtbInput.Invoke(new Action(() =>
-                {
-                    rtbInput.Text = selectedString;
-                }));
-            }
-            else
+            rtbInput.InvokeIfNeeded(() =>
             {
                 rtbInput.Text = selectedString;
-            }
-
+            });
         }
 
         private static void SetButtonIcon(IconChar iconChar, Button button)
@@ -153,17 +144,10 @@ namespace AiTool3
 
         private void AudioRecorderManager_AudioProcessed(object? sender, string e)
         {
-            if (rtbInput.InvokeRequired)
+            rtbInput.InvokeIfNeeded(() =>
             {
-                rtbInput.Invoke(new Action(() =>
-                {
-                    rtbInput.Text += e;
-                }));
-            }
-            else
-            {
-                rtbInput.Text += e;
-            }
+                rtbInput.Text = e;
+            });
         }
 
 

@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Security.Policy;
 using System.Timers;
 using System.Windows.Forms;
+using AiTool3.ExtensionMethods;
 
 namespace AiTool3.UI
 {
@@ -197,14 +198,7 @@ namespace AiTool3.UI
 
         private void FadeTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => UpdateFade()));
-            }
-            else
-            {
-                UpdateFade();
-            }
+            this.InvokeIfNeeded(() => UpdateFade());
         }
 
         private void UpdateFade()

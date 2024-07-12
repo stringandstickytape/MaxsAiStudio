@@ -1,4 +1,5 @@
-﻿using AiTool3.Helpers;
+﻿using AiTool3.ExtensionMethods;
+using AiTool3.Helpers;
 using Microsoft.Web.WebView2.WinForms;
 using System;
 using System.Collections.Generic;
@@ -26,27 +27,12 @@ namespace AiTool3
             // do this with invoke if necc:
             Task.Delay(1000).ContinueWith(t =>
             {
-                if (inlineWebView.InvokeRequired)
-                {
-                    inlineWebView.Invoke(new Action(() => inlineWebView.NavigateToString(SnipperHelper.StripFirstAndLastLine(_code))));
-                }
-                else
+                this.InvokeIfNeeded(() =>
                 {
                     inlineWebView.NavigateToString(SnipperHelper.StripFirstAndLastLine(_code));
-                };
+                });
             }
-            
             );
-
-            
-            
-
-
-        }
-
-        private void buttonEditTemplate_Click(object sender, EventArgs e)
-        {
-            
         }
     }
 }
