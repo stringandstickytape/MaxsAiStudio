@@ -286,7 +286,7 @@ namespace AiTool3
             btnCancel.Visible = true;
         }
 
-        private (Conversation conversation, Model model) PrepareConversationData()
+        private ConversationModelPair PrepareConversationData()
         {
             var model = (Model)cbEngine.SelectedItem!;
             var conversation = new Conversation
@@ -306,7 +306,7 @@ namespace AiTool3
             }
             conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
 
-            return (conversation, model);
+            return new ConversationModelPair(conversation, model);
         }
 
         private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
@@ -727,6 +727,19 @@ namespace AiTool3
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             webViewManager!.webView.Dispose();
+        }
+    }
+
+    internal record struct ConversationModelPair(Conversation conversation, Model model)
+    {
+        public static implicit operator (Conversation conversation, Model model)(ConversationModelPair value)
+        {
+            return (value.conversation, value.model);
+        }
+
+        public static implicit operator ConversationModelPair((Conversation conversation, Model model) value)
+        {
+            return new ConversationModelPair(value.conversation, value.model);
         }
     }
 }
