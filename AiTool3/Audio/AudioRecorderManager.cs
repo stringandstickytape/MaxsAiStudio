@@ -50,7 +50,7 @@ namespace AiTool3.Audio
             IsRecording = true;
 
             // check whether the level is silent
-            var level = await recorder.GetAudioLevelAsync();
+            var level = recorder.GetAudioLevel();
 
 
 

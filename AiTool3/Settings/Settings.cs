@@ -12,7 +12,7 @@ namespace AiTool3.Settings
 {
     public class Settings
     {
-        public List<Api> ApiList { get; set; }
+        public List<Api>? ApiList { get; set; }
 
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
         public bool NarrateResponses { get; set; } = false;

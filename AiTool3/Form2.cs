@@ -36,10 +36,7 @@ namespace AiTool3
         public string Base64Image { get; set; }
         public string Base64ImageType { get; set; }
 
-        private AudioRecorder recorder;
         private CancellationTokenSource _cts;
-        private Task recordingTask;
-        private bool isRecording = false;
 
         private WebViewManager webViewManager = null;
 
@@ -54,8 +51,6 @@ namespace AiTool3
             webViewManager = new WebViewManager(ndcWeb);
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
-
-            //SetPaperclipIcon(buttonAttachImage);
 
             rtbSystemPrompt.SetOverlayText("System Prompt");
             rtbInput.SetOverlayText("User Input");
@@ -442,8 +437,7 @@ namespace AiTool3
             restartMenuItem.BackColor = Color.Black;
             restartMenuItem.Click += async (s, e) =>
             {
-                AiResponse response, response2;
-                response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem);
+                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem);
                 var snippets = FindSnippets(rtbOutput, response.ResponseText, null, null);
                 
                 try
@@ -506,17 +500,17 @@ namespace AiTool3
 
             });
 
-            AddSpecial(specialsMenu, "Set Code Highlight Colours (experimental)", async (s, e) =>
+            AddSpecial(specialsMenu, "Set Code Highlight Colours (experimental)", (s, e) =>
             {
                 CSharpHighlighter.ConfigureColors();
             });
 
-            AddSpecial(specialsMenu, "Toggle old input box visibility", async (s, e) =>
+            AddSpecial(specialsMenu, "Toggle old input box visibility", (s, e) =>
             {
                 splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
             });
 
-            AddSpecial(specialsMenu, "Toggle conversation browsers", async (s, e) =>
+            AddSpecial(specialsMenu, "Toggle conversation browsers", (s, e) =>
             {
                 splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
             });
@@ -631,8 +625,6 @@ namespace AiTool3
             // Apply UI formatting
             foreach (var snippet in snippets.Snippets)
             {   // snippet.Type == "html"?
-
-                int startIndex = 0;
 
                 // find the end of the line
                 var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
@@ -820,7 +812,6 @@ namespace AiTool3
 
             var summaryModel = CurrentSettings.ApiList.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
-            string title;
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
 
             // using the title, update the dgvConversations

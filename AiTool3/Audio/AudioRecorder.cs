@@ -13,7 +13,7 @@ namespace AiTool3.Audio
         private WaveFileWriter writer;
 
         public bool soundDetected = false;
-        public DateTime? lastDateTimeAboveThreshold { get; set; }
+        public DateTime lastDateTimeAboveThreshold { get; set; } = DateTime.MinValue;
 
         // Define the event
         public event EventHandler<string> AudioProcessed;
@@ -65,7 +65,7 @@ namespace AiTool3.Audio
                     // if sound detectes and mroe than 3 seconds of silence, transcribe audio and begin new memory stream
 
 
-                    if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold.Value > TimeSpan.FromMilliseconds(1000))
+                    if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold > TimeSpan.FromMilliseconds(1000))
                     {
 
                         Debug.WriteLine("((");
@@ -154,17 +154,9 @@ namespace AiTool3.Audio
 
         }
 
-        internal async Task<int> GetAudioLevelAsync()
+        internal int GetAudioLevel()
         {
-            if (lastDateTimeAboveThreshold.HasValue)
-            {
-                var timeSinceLastAbove50 = DateTime.Now - lastDateTimeAboveThreshold.Value;
-                return (int)timeSinceLastAbove50.TotalMilliseconds;
-            }
-            else
-            {
-                return -1;
-            }
+            return (int)(DateTime.Now - lastDateTimeAboveThreshold).TotalMilliseconds;
         }
         private string modelName;
         public AudioRecorder(string modelNameIn)

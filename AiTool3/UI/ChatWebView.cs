@@ -13,8 +13,8 @@ namespace AiTool3.UI
     [DesignerCategory("Code")]
     public class ChatWebView : WebView2
     {
-        public event EventHandler<ChatWebViewSendMessageEventArgs> ChatWebViewSendMessageEvent;
-        public event EventHandler<ChatWebViewCopyEventArgs> ChatWebViewCopyEvent;
+        public event EventHandler<ChatWebViewSendMessageEventArgs>? ChatWebViewSendMessageEvent;
+        public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
 
         public ChatWebView() : base()
         {
