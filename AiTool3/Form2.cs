@@ -54,18 +54,12 @@ namespace AiTool3
             rtbOutput.SetOverlayText("AI Response");
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
+
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
             ButtonIconHelper.SetButtonIcon(IconChar.CircleXmark, btnCancel);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnRestart);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnClear);
-
-            // not converted
-            //ndcConversation.SetContextMenuOptions(new[] { "Save this branch as TXT", "Save this branch as HTML", "Disable", "Option 3" });
-            // not converted
-            //ndcConversation.MenuOptionSelected += MenuOptionSelected();
-            // converted
-            //ndcConversation.NodeClicked += NdcConversation_NodeClicked;
 
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
@@ -139,38 +133,6 @@ namespace AiTool3
             {
                 rtbInput.Text = e;
             });
-        }
-
-
-        private EventHandler<MenuOptionSelectedEventArgs> MenuOptionSelected()
-        {
-            return (sender, e) =>
-            {
-                if (e.SelectedOption == "Save this branch as TXT")
-                {
-
-                }
-                if (e.SelectedOption == "Save this branch as HTML")
-                {
-
-                }
-
-
-
-                else if (e.SelectedOption == "Disable")
-                {
-                    var selectedGuid = e.SelectedNode.Guid;
-                    var selectedMessage = ConversationManager.CurrentConversation!.FindByGuid(selectedGuid);
-                    selectedMessage.Omit = !selectedMessage.Omit;
-                    e.SelectedNode.IsDisabled = selectedMessage.Omit;
-
-                    var a = WebNdcDrawNetworkDiagram().Result;
-                }
-                else if (e.SelectedOption == "Option 3")
-                {
-                    // do nothing
-                }
-            };
         }
 
         private void InitialiseMenus()
