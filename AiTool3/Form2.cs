@@ -457,7 +457,7 @@ namespace AiTool3
             rtbSystemPrompt.Text = currentSystemPrompt;
         }
 
-        private async void buttonNewKeepAll_Click(object sender, EventArgs e)
+        private async void buttonNewKeepContext_Click(object sender, EventArgs e)
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
             var lastUserMessage = ConversationManager.CurrentConversation!.FindByGuid(lastAssistantMessage!.Parent!);
@@ -466,11 +466,7 @@ namespace AiTool3
             if (lastAssistantMessage.Role == CompletionRole.User)
                 lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
 
-            
-
             BeginNewConversationPreserveInputAndSystemPrompts();
-
-            // create new messages out of the two
 
             var assistantMessage = new CompletionMessage
             {

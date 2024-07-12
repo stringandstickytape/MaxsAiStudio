@@ -383,7 +383,7 @@ namespace AiTool3
             buttonNewKeepAll.TabIndex = 11;
             buttonNewKeepAll.Text = "New w/ context";
             buttonNewKeepAll.UseVisualStyleBackColor = false;
-            buttonNewKeepAll.Click += buttonNewKeepAll_Click;
+            buttonNewKeepAll.Click += buttonNewKeepContext_Click;
             // 
             // buttonStartRecording
             // 
