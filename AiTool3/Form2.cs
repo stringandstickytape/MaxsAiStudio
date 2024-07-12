@@ -513,14 +513,9 @@ namespace AiTool3
                 // draw the network diagram
                 var a = await WebNdcDrawNetworkDiagram();
             }
-            catch (OperationCanceledException)
-            {
-                MessageBox.Show("Operation was cancelled.");
-                return;
-            }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
                 return;
             }
             finally
@@ -528,8 +523,7 @@ namespace AiTool3
                 stopwatch.Stop();
                 updateTimer.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
-                //btnGo.Enabled = true;
-                btnCancel.Visible = false; // Disable cancel button
+                btnCancel.Visible = false; 
             }
 
             webViewManager!.CentreOnNode(completionResponse.Guid);
@@ -537,8 +531,6 @@ namespace AiTool3
             var summaryModel = CurrentSettings.ApiList!.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
 
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
-
-            // using the title, update the dgvConversations
 
             ConversationManager.SaveConversation();
 
@@ -552,8 +544,6 @@ namespace AiTool3
             var cost = model.GetCost(response.TokenUsage);
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
-
-            //btnGo.Enabled = true;
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
