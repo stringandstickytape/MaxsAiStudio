@@ -81,15 +81,6 @@ namespace AiTool3
 
             SetSplitContainerEvents();
 
-            rtbInput.KeyDown += (s, e) =>
-            {
-                CheckForCtrlReturn(e);
-            };
-            this.KeyDown += (s, e) =>
-            {
-                CheckForCtrlReturn(e);
-            };
-
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
 
             InitialiseMenus();
@@ -285,14 +276,7 @@ namespace AiTool3
             cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
-        private async void CheckForCtrlReturn(KeyEventArgs e)
-        {
-            if (e.Control && e.KeyCode == Keys.Return)
-            {
-                await FetchAiInputResponse();
-                e.SuppressKeyPress = true;
-            }
-        }
+
 
         private void SetSplitContainerEvents()
         {
