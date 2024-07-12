@@ -21,11 +21,14 @@ using System.Linq.Expressions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 using System.Windows.Forms;
 using FontAwesome.Sharp;
+using AiTool3.ExtensionMethods;
 
 namespace AiTool3
 {
     public partial class Form2 : Form
     {
+        public static readonly string ThreeTicks = new string('`', 3);
+
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public Settings.Settings CurrentSettings { get; set; } = AiTool3.Settings.Settings.Load()!;
 
@@ -995,14 +998,14 @@ namespace AiTool3
                         StringBuilder sb = new StringBuilder();
                         foreach (var file in attachTextFilesDialog.FileNames)
                         {
-                            sb.Append("```");
-                            sb.Append(Path.GetFileName(file));
-                            sb.Append(Environment.NewLine);
-                            sb.Append(File.ReadAllText(file));
-                            sb.Append(Environment.NewLine);
-                            sb.Append("```");
-                            sb.Append(Environment.NewLine);
-                            sb.Append(Environment.NewLine);
+                            sb.AppendMany(ThreeTicks,
+                                Path.GetFileName(file),
+                                Environment.NewLine,
+                                File.ReadAllText(file),
+                                Environment.NewLine,
+                                ThreeTicks,
+                                Environment.NewLine,
+                                Environment.NewLine);
                         }
                         rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
 
