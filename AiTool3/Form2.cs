@@ -653,44 +653,44 @@ namespace AiTool3
 
             try
             {
-                await Task.Run(() =>
+                foreach (DataGridViewRow row in dgvConversations.Rows)
                 {
-                    foreach (DataGridViewRow row in dgvConversations.Rows)
+                    _cts2.Token.ThrowIfCancellationRequested();
+
+                    if (row.Cells[0].Value == null) continue;
+
+                    var guid = row.Cells[0].Value.ToString();
+
+                    bool isVisible = IsConversationVisible(guid!, tbSearch.Text, _cts2.Token);
+
+                    this.InvokeIfNeeded(() =>
                     {
-                        _cts2.Token.ThrowIfCancellationRequested();
-
-                        if (row.Cells[0].Value == null) continue;
-
-                        var guid = row.Cells[0].Value.ToString();
-
-                        var conv = BranchedConversation.LoadConversation(guid!);
-
-                        var allMessages = conv.Messages.Select(m => m.Content).ToList();
-
-                        bool isVisible = false;
-                        foreach (string? message in allMessages)
-                        {
-                            if (message!.IndexOf(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                            {
-                                isVisible = true;
-                                break;
-                            }
-                            _cts2.Token.ThrowIfCancellationRequested();
-                        }
-
-                        this.Invoke((System.Windows.Forms.MethodInvoker)delegate {
-                            row.Visible = isVisible;
-                        });
-                        // sleep 1000
-                        _cts2.Token.ThrowIfCancellationRequested();
-                    }
-                }, _cts2.Token);
-
+                        row.Visible = isVisible;
+                    });
+                }
             }
             catch (Exception ex)
             {
-                if(!(ex is OperationCanceledException)) MessageBox.Show($"An error occurred: {ex.Message}");
+                if (!(ex is OperationCanceledException)) MessageBox.Show($"An error occurred: {ex.Message}");
             }
+        }
+
+        private static bool IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
+        {
+            var conv = BranchedConversation.LoadConversation(guid);
+            var allMessages = conv.Messages.Select(m => m.Content).ToList();
+
+            foreach (string? message in allMessages)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (message!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
@@ -711,19 +711,6 @@ namespace AiTool3
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             webViewManager!.webView.Dispose();
-        }
-    }
-
-    internal record struct ConversationModelPair(Conversation conversation, Model model)
-    {
-        public static implicit operator (Conversation conversation, Model model)(ConversationModelPair value)
-        {
-            return (value.conversation, value.model);
-        }
-
-        public static implicit operator ConversationModelPair((Conversation conversation, Model model) value)
-        {
-            return new ConversationModelPair(value.conversation, value.model);
         }
     }
 }
