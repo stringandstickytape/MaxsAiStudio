@@ -33,7 +33,7 @@ namespace AiTool3.Helpers
             return response;
         }
 
-        public static void ReviewCode(Model model, out string userMessage)
+        public static void ReviewCode(out string userMessage)
         {
             var path = Directory.GetCurrentDirectory();
             while (!Directory.Exists(Path.Combine(path!, "MaxsAiTool")))
