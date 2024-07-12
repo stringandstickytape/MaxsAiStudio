@@ -49,7 +49,7 @@ namespace AiTool3
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
 
-            rtbSystemPrompt.SetOverlayText("System Prompt");
+            //rtbSystemPrompt.SetOverlayText("System Prompt");
             rtbInput.SetOverlayText("User Input");
             rtbOutput.SetOverlayText("AI Response");
 
@@ -178,6 +178,8 @@ namespace AiTool3
             ConversationManager.PreviousCompletion = clickedCompletion;
 
             rtbInput.Clear();
+            string systemPrompt = "";
+            systemPrompt = ConversationManager.PreviousCompletion.SystemPrompt!;
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
                 rtbInput.Text = ConversationManager.PreviousCompletion.Content!;
@@ -188,16 +190,7 @@ namespace AiTool3
             {
                 await chatWebView.SetUserPrompt("");
             }
-            if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
-            {
-                rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
-                await chatWebView.UpdateSystemPrompt(ConversationManager.PreviousCompletion.SystemPrompt);
-            }
-            else
-            {
-                rtbSystemPrompt.Text = "";
-                await chatWebView.UpdateSystemPrompt("");
-            }
+            await chatWebView.UpdateSystemPrompt(systemPrompt);
 
             MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
 
@@ -264,7 +257,7 @@ namespace AiTool3
             try
             {
                 PrepareForNewResponse();
-                var (conversation, model) = PrepareConversationData();
+                var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
                 await ProcessAiResponse(response, model);
                 UpdateUi(response);
@@ -292,12 +285,12 @@ namespace AiTool3
             btnCancel.Visible = true;
         }
 
-        private ConversationModelPair PrepareConversationData()
+        private async Task<ConversationModelPair> PrepareConversationData()
         {
             var model = (Model)cbEngine.SelectedItem!;
             var conversation = new Conversation
             {
-                systemprompt = rtbSystemPrompt.Text,
+                systemprompt = await chatWebView.GetSystemPrompt(),
                 messages = new List<ConversationMessage>()
             };
 
@@ -325,13 +318,15 @@ namespace AiTool3
         {
             var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
             var inputText = rtbInput.Text;
+            var systemPrompt = await chatWebView.GetSystemPrompt();
+
 
             var completionInput = new CompletionMessage(CompletionRole.User)
             {
                 Content = inputText,
                 Parent = previousCompletionGuidBeforeAwait,
                 Engine = model.ModelName,
-                SystemPrompt = ConversationManager.CurrentConversation!.Messages.First().SystemPrompt,
+                SystemPrompt = systemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
                 OutputTokens = 0,
             };
@@ -349,7 +344,7 @@ namespace AiTool3
                 Content = response.ResponseText,
                 Parent = completionInput.Guid,
                 Engine = model.ModelName,
-                SystemPrompt = ConversationManager.CurrentConversation.Messages.First().SystemPrompt,
+                SystemPrompt = systemPrompt,
                 InputTokens = 0,
                 OutputTokens = response.TokenUsage.OutputTokens,
                 TimeTaken = stopwatch.Elapsed,
@@ -370,6 +365,8 @@ namespace AiTool3
 
             completionInput.Children.Add(completionResponse.Guid);
             ConversationManager.PreviousCompletion = completionResponse;
+
+            ConversationManager.SaveConversation();
 
             Base64Image = null;
             Base64ImageType = null;
@@ -446,10 +443,10 @@ namespace AiTool3
         private async void BeginNewConversationPreserveInputAndSystemPrompts()
         {
             var currentPrompt = rtbInput.Text;
-            var currentSystemPrompt = rtbSystemPrompt.Text;
+            var currentSystemPrompt = await chatWebView.GetSystemPrompt();
             await BeginNewConversation();
             rtbInput.Text = currentPrompt;
-            rtbSystemPrompt.Text = currentSystemPrompt;
+            await chatWebView.UpdateSystemPrompt(currentSystemPrompt);
         }
 
         private async void buttonNewKeepContext_Click(object sender, EventArgs e)
@@ -491,7 +488,6 @@ namespace AiTool3
         private async Task BeginNewConversation()
         {
             rtbInput.Clear();
-            rtbSystemPrompt.Clear();
             rtbOutput.Clear();
 
             await chatWebView.Clear();
@@ -543,14 +539,14 @@ namespace AiTool3
         private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
             rtbInput.Clear();
-            rtbSystemPrompt.Clear();
 
             await chatWebView.Clear();
 
             if (template != null)
             {
                 //rtbInput.Text = template.InitialPrompt;
-                rtbSystemPrompt.Text = template.SystemPrompt;
+                //rtbSystemPrompt.Text = template.SystemPrompt;
+                await chatWebView.UpdateSystemPrompt(template.SystemPrompt);
                 await chatWebView.SetUserPrompt(template.InitialPrompt);
             }
         }

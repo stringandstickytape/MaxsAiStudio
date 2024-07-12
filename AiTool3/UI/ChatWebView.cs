@@ -97,7 +97,7 @@ namespace AiTool3.UI
 
         internal async Task<string> GetSystemPrompt()
         {
-            return await ExecuteScriptAsync("getSystemPrompt()");
+            return JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
 
         }
 
