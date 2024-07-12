@@ -528,7 +528,6 @@ namespace AiTool3
 
         private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // populate the cbTemplates with the templates for the selected category
             var selected = cbCategories.SelectedItem!.ToString();
 
             var topics = TopicSet.Topics.Where(t => t.Name == selected).ToList();
@@ -733,5 +732,4 @@ namespace AiTool3
             webViewManager!.webView.Dispose();
         }
     }
-
 }
