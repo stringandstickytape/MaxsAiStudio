@@ -403,20 +403,17 @@ namespace AiTool3
 
             try
             {
-                //btnGo.Enabled = false;
-
-                btnCancel.Visible = true; // Enable cancel button
+                btnCancel.Visible = true; 
                 model = (Model)cbEngine.SelectedItem!;
 
-                // get the name of the service for the model
-                var serviceName = model.ServiceName;
+                var aiService = AiServiceResolver.GetAiService(model.ServiceName);
 
-                // instantiate the service from the appropriate api
-                var aiService = AiServiceResolver.GetAiService(serviceName);
+                var conversation = new Conversation
+                {
+                    systemprompt = rtbSystemPrompt.Text,
+                    messages = new List<ConversationMessage>()
+                };
 
-                var conversation = new Conversation();
-                conversation.systemprompt = rtbSystemPrompt.Text;
-                conversation.messages = new List<ConversationMessage>();
                 List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
 
                 Debug.WriteLine(nodes);
