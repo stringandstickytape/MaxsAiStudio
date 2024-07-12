@@ -336,6 +336,7 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             rtbInput.Text = e.Content;
+            //await ConversationManager.FetchAiInputResponse(rtbInput.Text, rtbSystemPrompt.Text, (Model)cbEngine.SelectedItem!, _cts);
             await FetchAiInputResponse();
         }
 
@@ -403,7 +404,7 @@ namespace AiTool3
             try
             {
                 //btnGo.Enabled = false;
-                
+
                 btnCancel.Visible = true; // Enable cancel button
                 model = (Model)cbEngine.SelectedItem!;
 
@@ -437,7 +438,7 @@ namespace AiTool3
                 // fetch the response from the api
                 response = await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
 
-                
+
                 if (response.SuggestedNextPrompt != null)
                 {
                     rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
