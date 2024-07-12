@@ -2,6 +2,7 @@
 using AiTool3.Helpers;
 using AiTool3.Settings;
 using AiTool3.Snippets;
+using AiTool3.Topics;
 using AiTool3.UI;
 using System;
 using System.Collections.Generic;
@@ -81,15 +82,44 @@ namespace AiTool3
                 foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
                 {
                     var templateMenuItem = CreateMenuItem(template.TemplateName);
-                    templateMenuItem.Click += (s, e) =>
+                    templateMenuItem.Click += async (s, e) =>
                     {
-                        SelectTemplate(topic.Name, template.TemplateName);
-                        //cbCategories.SelectedItem = topic.Name;
-                        //cbTemplates.SelectedItem = template.TemplateName;
+                        await SelectTemplate(topic.Name, template.TemplateName);
                     };
                     categoryMenuItem.DropDownItems.Add(templateMenuItem);
                 }
+
+                // at the end of each category, add a separator then an Add... option
+                categoryMenuItem.DropDownItems.Add(new ToolStripSeparator());
+                var addMenuItem = CreateMenuItem("Add...");
+                addMenuItem.Click += (s, e) =>
+                {
+                    // s is a ToolStripMenuItem
+                    var topicName = ((ToolStripMenuItem)s!).OwnerItem!.Text;
+
+                    var template = new ConversationTemplate("System Prompt", "Initial Prompt");
+                    
+                    EditAndSaveTemplate(template, true, topicName);
+
+                    // update the menu topic with the new template
+                    var templateMenuItem = CreateMenuItem(template.TemplateName);
+                    templateMenuItem.Click += async (s, e) =>
+                    {
+                        await SelectTemplate(topicName, template.TemplateName);
+                    };
+
+                    categoryMenuItem.DropDownItems.Insert(categoryMenuItem.DropDownItems.Count - 2, templateMenuItem);
+
+                    // add to TopicSet.Topics
+                    var topic = TopicSet.Topics.First(x => x.Name == topicName);
+                    topic.Templates.Add(template);
+                };
+
+                categoryMenuItem.DropDownItems.Add(addMenuItem);
+
             }
+
+            
 
             menuBar.Items.Add(templatesMenu);
         }
