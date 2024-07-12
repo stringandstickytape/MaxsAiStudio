@@ -21,14 +21,12 @@ namespace AiTool3
             AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
             {
                 AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem!);
-                var snippets = FindSnippets(rtbOutput, response.ResponseText, null!, null!);
-
+                var snippets = snippetManager.FindSnippets(response.ResponseText);
+                
                 try
                 {
-                    var code = snippets.First().Code;
-                    // remove first and last lines
+                    var code = snippets.Snippets.First().Code;
                     code = SnipperHelper.StripFirstAndLastLine(code);
-                    // get first snippet
                     File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
                 }
                 catch (Exception ex)

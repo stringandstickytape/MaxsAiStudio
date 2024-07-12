@@ -521,7 +521,7 @@ namespace AiTool3
                 rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
             }
             else rtbSystemPrompt.Text = "";
-            FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
+            MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
 
             var parents = ConversationManager.GetParentNodeList();
 
@@ -537,7 +537,7 @@ namespace AiTool3
 
         private SnippetManager snippetManager = new SnippetManager();
 
-        public List<Snippet> FindSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
+        public List<Snippet> MarkUpSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
         {
             richTextBox.Clear();
             richTextBox.Text = text;
@@ -691,7 +691,7 @@ namespace AiTool3
                 await chatWebView.AddMessage(completionInput);
                 await chatWebView.AddMessage(completionResponse);
                 // and display the results in the output box
-                FindSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
+                MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
                 if (CurrentSettings.NarrateResponses)
                 {
