@@ -21,13 +21,13 @@ namespace AiTool3.Snippets
                     int startIndex = match.Captures[0].Index;
                     int length = match.Captures[0].Length;
 
-                    string type = null;
-                    string filename = null;
+                    string? type = null;
+                    string? filename = null;
 
                     // get the first line
                     var firstLine = text.Substring(startIndex).Split('\n').FirstOrDefault();
 
-                    type = GetFileExtFromFirstLine(type, firstLine);
+                    type = GetFileExtFromFirstLine(type!, firstLine!);
 
                     var snippetText = text.Substring(startIndex, length);
 
@@ -37,7 +37,7 @@ namespace AiTool3.Snippets
                     snippets.Add(new Snippet
                     {
                         Type = type,
-                        Filename = filename,
+                        Filename = filename!,
                         Code = snippetText.Trim(),
                         StartIndex = startIndex
                     });
@@ -48,7 +48,7 @@ namespace AiTool3.Snippets
             int lastIndex = 0;
             int prevLastIndex = 0;
             bool isOpen = false;
-            string unterminatedSnippet = null;
+            string? unterminatedSnippet = null;
             while ((lastIndex = text.IndexOf("```", lastIndex)) != -1)
             {
                 isOpen = !isOpen;
@@ -66,7 +66,7 @@ namespace AiTool3.Snippets
             return new SnippetSet { Snippets = snippets, UnterminatedSnippet = unterminatedSnippet };
         }
 
-        private static string GetFileExtFromFirstLine(string type, string? firstLine)
+        private static string GetFileExtFromFirstLine(string type, string firstLine)
         {
             string pattern2 = @"```[a-zA-Z]+";
 

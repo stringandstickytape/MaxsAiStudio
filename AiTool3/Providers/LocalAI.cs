@@ -16,7 +16,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control? textbox = null, bool useStreaming = false)
         {
             var req = new LocalAIRequest
             {
@@ -38,17 +38,17 @@ namespace AiTool3.Providers
                 Content = m.content
             }));
 
-            var a = AiTool3.Settings.Settings.Load();
+            var settings = AiTool3.Settings.Settings.Load();
 
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (!IsPortOpen(a.OllamaLocalPort))
+            if (!IsPortOpen(settings!.OllamaLocalPort))
             {
                 StartOllama();
             }
 
-            var url = GetAdjustedUrl(apiModel.Url, a.OllamaLocalPort);
+            var url = GetAdjustedUrl(apiModel.Url, settings.OllamaLocalPort);
 
             if (useStreaming)
             {
@@ -60,7 +60,7 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken, Control textbox)
+        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken, Control? textbox)
         {
             var response = await client.PostAsync(url, content, cancellationToken);
             var stream = await response.Content.ReadAsStreamAsync();
@@ -77,7 +77,7 @@ namespace AiTool3.Providers
 
                 var chunk = JsonConvert.DeserializeObject<LocalAIStreamResponse>(line);
 
-                if (chunk.Message != null && !string.IsNullOrEmpty(chunk.Message.Content))
+                if (chunk!.Message != null && !string.IsNullOrEmpty(chunk.Message.Content))
                 {
                     fullResponse.Append(chunk.Message.Content);
                     Debug.WriteLine(chunk.Message.Content);
@@ -111,7 +111,7 @@ namespace AiTool3.Providers
 
             return new AiResponse
             {
-                ResponseText = result.Message.Content,
+                ResponseText = result!.Message.Content,
                 Success = true,
                 TokenUsage = new TokenUsage(result.PromptEvalCount.ToString(), result.EvalCount.ToString())
             };
@@ -146,7 +146,7 @@ namespace AiTool3.Providers
             new Thread(() =>
             {
                 Thread.Sleep(1000);
-                process.Kill();
+                process!.Kill();
             }).Start();
         }
 
