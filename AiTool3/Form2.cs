@@ -516,6 +516,11 @@ namespace AiTool3
                 splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
             });
 
+            AddSpecial(specialsMenu, "Toggle conversation browsers", async (s, e) =>
+            {
+                splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
+            });
+
             // based on our conversation so far, give me ten things I might ask you to do next, in a bullet-point list
 
 
@@ -589,8 +594,12 @@ namespace AiTool3
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
                 rtbInput.Text = ConversationManager.PreviousCompletion.Content;
-
+                await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content);
                 ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent);
+            }
+            else
+            {
+                await chatWebView.SetUserPrompt("");
             }
             if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
             {

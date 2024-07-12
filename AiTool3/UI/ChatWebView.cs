@@ -92,5 +92,10 @@ namespace AiTool3.UI
             // run "addMessages" js function
             await ExecuteScriptAsync($"ClearMessages()");
         }
+
+        internal async Task SetUserPrompt(string content)
+        {
+            await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");
+        }
     }
 }

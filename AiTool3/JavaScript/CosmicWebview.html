@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaotic Cosmic Chatter</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Creepster&family=Nosifer&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: url('https://media.giphy.com/media/3o7buijTqhjxjbEqjK/giphy.gif') center/cover;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewport="0 0 100 100" style="fill:black;font-size:24px;"><text y="50%">👽</text></svg>') 16 0, auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes rainbow {
+            0% {
+                color: red;
+            }
+
+            14% {
+                color: orange;
+            }
+
+            28% {
+                color: yellow;
+            }
+
+            42% {
+                color: green;
+            }
+
+            57% {
+                color: blue;
+            }
+
+            71% {
+                color: indigo;
+            }
+
+            85% {
+                color: violet;
+            }
+
+            100% {
+                color: red;
+            }
+        }
+
+        .cosmic-container {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .message-vortex {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vw;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: spin 20s linear infinite;
+            overflow: hidden;
+        }
+
+        .cosmic-message {
+            position: absolute;
+            font-size: 1.2em;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            max-width: 200px;
+            transform-origin: center center;
+            animation: rainbow 5s infinite;
+        }
+
+        .user {
+            font-family: 'Creepster', cursive;
+        }
+
+        .ai {
+            font-family: 'Nosifer', cursive;
+        }
+
+        .code-nebula {
+            background: rgba(0,0,0,0.7);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+        }
+
+        .cosmic-input {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            padding: 10px;
+            font-size: 1.2em;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            text-align: center;
+            font-family: 'Bungee Shade', cursive;
+        }
+
+        .cosmic-button {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-5deg);
+            padding: 10px 20px;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            border-radius: 25px;
+            color: #000;
+            cursor: pointer;
+            font-family: 'Bungee Shade', cursive;
+            transition: all 0.3s;
+        }
+
+            .cosmic-button:hover {
+                transform: translateX(-50%) rotate(5deg) scale(1.1);
+            }
+
+        .action-star {
+            position: absolute;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="cosmic-container">
+        <div id="messageVortex" class="message-vortex"></div>
+        <input type="text" id="cosmicInput" class="cosmic-input" placeholder="Transmit your cosmic thoughts...">
+        <button id="cosmicSend" class="cosmic-button">BEAM IT UP!</button>
+    </div>
+
+    <script>
+        const vortex = document.getElementById('messageVortex');
+        const input = document.getElementById('cosmicInput');
+        const sendBtn = document.getElementById('cosmicSend');
+        let ctrlPressed = false;
+
+        function AddInitialMessages(messages) {
+            messages.forEach(AddMessage);
+        }
+
+        function AddMessage(message) {
+            const msgElement = createMessageElement(message);
+            vortex.appendChild(msgElement);
+            positionMessage(msgElement);
+        }
+
+        function ClearMessages(animate = false) {
+            if (animate) {
+                Array.from(vortex.children).forEach((msg, index) => {
+                    setTimeout(() => {
+                        msg.style.transition = 'all 0.5s';
+                        msg.style.transform = 'scale(0) rotate(720deg)';
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 500);
+                    }, index * 100);
+                });
+            } else {
+                vortex.innerHTML = '';
+            }
+        }
+
+        function createMessageElement(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `cosmic-message ${message.Role === 0 ? 'user' : 'ai'}`;
+            msgDiv.dataset.guid = message.Guid;
+
+            message.Content.split(/```([\s\S]*?)```/).forEach((part, index) => {
+                if (index % 2 === 0) {
+                    msgDiv.appendChild(document.createTextNode(part));
+                } else {
+                    const codeNebula = document.createElement('div');
+                    codeNebula.className = 'code-nebula';
+                    const lines = part.trim().split('\n');
+                    const dataType = lines[0] && !part.startsWith('\n') ? lines.shift().trim() : '';
+                    codeNebula.textContent = lines.join('\n').trim();
+                    codeNebula.dataset.type = dataType;
+
+                    ['Copy', 'WebView'].forEach(action => {
+                        if (action !== 'WebView' || dataType === 'html') {
+                            const star = document.createElement('span');
+                            star.className = 'action-star';
+                            star.textContent = '🌟';
+                            star.title = action;
+                            star.style.top = `${Math.random() * 100}%`;
+                            star.style.left = `${Math.random() * 100}%`;
+                            star.onclick = () => window.chrome.webview.postMessage({
+                                type: action,
+                                content: codeNebula.textContent,
+                                guid: message.Guid
+                            });
+                            msgDiv.appendChild(star);
+                        }
+                    });
+
+                    msgDiv.appendChild(codeNebula);
+                }
+            });
+
+            setupDragAndDrop(msgDiv);
+            return msgDiv;
+        }
+
+        function positionMessage(element) {
+            const angle = Math.random() * 360;
+            const distance = Math.random() * 40 + 10; // 10% to 50% from center
+            element.style.transform = `rotate(${angle}deg) translateY(-${distance}%) rotate(-${angle}deg)`;
+        }
+
+        function setupDragAndDrop(element) {
+            element.draggable = true;
+            element.ondragstart = e => {
+                if (ctrlPressed) {
+                    e.dataTransfer.setData('text/plain', e.target.textContent);
+                } else {
+                    e.preventDefault();
+                }
+            };
+        }
+
+        function transmitMessage() {
+            const content = input.value.trim();
+            if (content) {
+                input.value = '';
+                window.chrome.webview.postMessage({ type: 'send', content });
+            }
+        }
+
+        input.onkeydown = e => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                transmitMessage();
+            }
+        };
+
+        sendBtn.onclick = transmitMessage;
+
+        document.onkeydown = e => { if (e.key === 'Control') ctrlPressed = true; };
+        document.onkeyup = e => { if (e.key === 'Control') ctrlPressed = false; };
+
+        input.ondragover = e => {
+            if (ctrlPressed) {
+                e.preventDefault();
+                input.style.boxShadow = '0 0 20px #ff00ff';
+            }
+        };
+
+        input.ondragleave = () => input.style.boxShadow = 'none';
+
+        input.ondrop = e => {
+            if (ctrlPressed) {
+                e.preventDefault();
+                input.style.boxShadow = 'none';
+                input.value = e.dataTransfer.getData('text/plain');
+            }
+        };
+    </script>
+</body>
+</html>
