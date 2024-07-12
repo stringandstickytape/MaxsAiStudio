@@ -41,11 +41,6 @@ namespace AiTool3
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
             splitContainer2 = new SplitContainer();
-            groupBox1 = new GroupBox();
-            buttonAddTemplate = new Button();
-            cbCategories = new ComboBox();
-            cbTemplates = new ComboBox();
-            buttonEditTemplate = new Button();
             splitContainer3 = new SplitContainer();
             chatWebView = new ChatWebView();
             btnCancel = new Button();
@@ -54,6 +49,11 @@ namespace AiTool3
             buttonStartRecording = new Button();
             btnRestart = new Button();
             btnClear = new Button();
+            groupBox1 = new GroupBox();
+            buttonAddTemplate = new Button();
+            cbCategories = new ComboBox();
+            cbTemplates = new ComboBox();
+            buttonEditTemplate = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
@@ -73,12 +73,12 @@ namespace AiTool3
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
-            groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)chatWebView).BeginInit();
+            groupBox1.SuspendLayout();
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
@@ -108,7 +108,7 @@ namespace AiTool3
             rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
             rtbSystemPrompt.Location = new Point(3, 3);
             rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(768, 228);
+            rtbSystemPrompt.Size = new Size(768, 94);
             rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
@@ -118,9 +118,9 @@ namespace AiTool3
             rtbOutput.EmptyLabel = "AI Output";
             rtbOutput.FlashOnUpdate = true;
             rtbOutput.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbOutput.Location = new Point(0, 9);
+            rtbOutput.Location = new Point(46, 46);
             rtbOutput.Name = "rtbOutput";
-            rtbOutput.Size = new Size(633, 492);
+            rtbOutput.Size = new Size(366, 333);
             rtbOutput.TabIndex = 6;
             // 
             // rtbInput
@@ -130,9 +130,9 @@ namespace AiTool3
             rtbInput.EmptyLabel = "User Input";
             rtbInput.FlashOnUpdate = false;
             rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbInput.Location = new Point(0, 507);
+            rtbInput.Location = new Point(46, 385);
             rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(630, 613);
+            rtbInput.Size = new Size(366, 281);
             rtbInput.TabIndex = 7;
             // 
             // splitContainer1
@@ -231,7 +231,6 @@ namespace AiTool3
             // 
             // splitContainer2.Panel1
             // 
-            splitContainer2.Panel1.Controls.Add(groupBox1);
             splitContainer2.Panel1.Controls.Add(cbEngine);
             splitContainer2.Panel1.Controls.Add(rtbSystemPrompt);
             // 
@@ -239,8 +238,123 @@ namespace AiTool3
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
             splitContainer2.Size = new Size(1198, 1117);
-            splitContainer2.SplitterDistance = 252;
+            splitContainer2.SplitterDistance = 100;
             splitContainer2.TabIndex = 8;
+            // 
+            // splitContainer3
+            // 
+            splitContainer3.Dock = DockStyle.Fill;
+            splitContainer3.Location = new Point(0, 0);
+            splitContainer3.Name = "splitContainer3";
+            splitContainer3.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer3.Panel1
+            // 
+            splitContainer3.Panel1.Controls.Add(chatWebView);
+            // 
+            // splitContainer3.Panel2
+            // 
+            splitContainer3.Panel2.Controls.Add(btnCancel);
+            splitContainer3.Panel2.Controls.Add(buttonAttachImage);
+            splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
+            splitContainer3.Panel2.Controls.Add(buttonStartRecording);
+            splitContainer3.Panel2.Controls.Add(btnRestart);
+            splitContainer3.Panel2.Controls.Add(btnClear);
+            splitContainer3.Size = new Size(1198, 1013);
+            splitContainer3.SplitterDistance = 894;
+            splitContainer3.TabIndex = 0;
+            // 
+            // chatWebView
+            // 
+            chatWebView.AllowExternalDrop = true;
+            chatWebView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            chatWebView.BackColor = Color.RosyBrown;
+            chatWebView.CreationProperties = null;
+            chatWebView.DefaultBackgroundColor = Color.White;
+            chatWebView.Location = new Point(3, 3);
+            chatWebView.Name = "chatWebView";
+            chatWebView.Size = new Size(1185, 888);
+            chatWebView.TabIndex = 0;
+            chatWebView.ZoomFactor = 1D;
+            // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnCancel.BackColor = Color.Black;
+            btnCancel.ForeColor = Color.White;
+            btnCancel.Location = new Point(955, 29);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(74, 85);
+            btnCancel.TabIndex = 13;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = false;
+            btnCancel.Visible = false;
+            btnCancel.Click += btnCancel_Click;
+            // 
+            // buttonAttachImage
+            // 
+            buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonAttachImage.BackColor = Color.Black;
+            buttonAttachImage.ForeColor = Color.White;
+            buttonAttachImage.Location = new Point(439, 30);
+            buttonAttachImage.Name = "buttonAttachImage";
+            buttonAttachImage.Size = new Size(89, 85);
+            buttonAttachImage.TabIndex = 12;
+            buttonAttachImage.Text = "Attach";
+            buttonAttachImage.UseVisualStyleBackColor = false;
+            buttonAttachImage.Click += buttonAttachImage_Click;
+            // 
+            // buttonNewKeepAll
+            // 
+            buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonNewKeepAll.BackColor = Color.Black;
+            buttonNewKeepAll.ForeColor = Color.White;
+            buttonNewKeepAll.Location = new Point(289, 30);
+            buttonNewKeepAll.Name = "buttonNewKeepAll";
+            buttonNewKeepAll.Size = new Size(145, 85);
+            buttonNewKeepAll.TabIndex = 11;
+            buttonNewKeepAll.Text = "New w/ context";
+            buttonNewKeepAll.UseVisualStyleBackColor = false;
+            buttonNewKeepAll.Click += buttonNewKeepContext_Click;
+            // 
+            // buttonStartRecording
+            // 
+            buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonStartRecording.BackColor = Color.Black;
+            buttonStartRecording.ForeColor = Color.White;
+            buttonStartRecording.Location = new Point(534, 30);
+            buttonStartRecording.Name = "buttonStartRecording";
+            buttonStartRecording.Size = new Size(148, 85);
+            buttonStartRecording.TabIndex = 10;
+            buttonStartRecording.Text = "Voice Prompt";
+            buttonStartRecording.UseVisualStyleBackColor = false;
+            buttonStartRecording.Click += buttonStartRecording_Click;
+            // 
+            // btnRestart
+            // 
+            btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnRestart.BackColor = Color.Black;
+            btnRestart.ForeColor = Color.White;
+            btnRestart.Location = new Point(137, 30);
+            btnRestart.Name = "btnRestart";
+            btnRestart.Size = new Size(145, 85);
+            btnRestart.TabIndex = 9;
+            btnRestart.Text = "New w/prompt";
+            btnRestart.UseVisualStyleBackColor = false;
+            btnRestart.Click += btnRestart_Click;
+            // 
+            // btnClear
+            // 
+            btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnClear.BackColor = Color.Black;
+            btnClear.ForeColor = Color.White;
+            btnClear.Location = new Point(3, 30);
+            btnClear.Name = "btnClear";
+            btnClear.Size = new Size(128, 82);
+            btnClear.TabIndex = 8;
+            btnClear.Text = "New";
+            btnClear.UseVisualStyleBackColor = false;
+            btnClear.Click += btnClear_Click;
             // 
             // groupBox1
             // 
@@ -250,7 +364,7 @@ namespace AiTool3
             groupBox1.Controls.Add(cbTemplates);
             groupBox1.Controls.Add(buttonEditTemplate);
             groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(790, 61);
+            groupBox1.Location = new Point(55, 707);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(398, 170);
             groupBox1.TabIndex = 10;
@@ -309,121 +423,6 @@ namespace AiTool3
             buttonEditTemplate.UseVisualStyleBackColor = false;
             buttonEditTemplate.Click += buttonEditTemplate_Click;
             // 
-            // splitContainer3
-            // 
-            splitContainer3.Dock = DockStyle.Fill;
-            splitContainer3.Location = new Point(0, 0);
-            splitContainer3.Name = "splitContainer3";
-            splitContainer3.Orientation = Orientation.Horizontal;
-            // 
-            // splitContainer3.Panel1
-            // 
-            splitContainer3.Panel1.Controls.Add(chatWebView);
-            // 
-            // splitContainer3.Panel2
-            // 
-            splitContainer3.Panel2.Controls.Add(btnCancel);
-            splitContainer3.Panel2.Controls.Add(buttonAttachImage);
-            splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
-            splitContainer3.Panel2.Controls.Add(buttonStartRecording);
-            splitContainer3.Panel2.Controls.Add(btnRestart);
-            splitContainer3.Panel2.Controls.Add(btnClear);
-            splitContainer3.Size = new Size(1198, 861);
-            splitContainer3.SplitterDistance = 760;
-            splitContainer3.TabIndex = 0;
-            // 
-            // chatWebView
-            // 
-            chatWebView.AllowExternalDrop = true;
-            chatWebView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            chatWebView.BackColor = Color.RosyBrown;
-            chatWebView.CreationProperties = null;
-            chatWebView.DefaultBackgroundColor = Color.White;
-            chatWebView.Location = new Point(3, 3);
-            chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1185, 754);
-            chatWebView.TabIndex = 0;
-            chatWebView.ZoomFactor = 1D;
-            // 
-            // btnCancel
-            // 
-            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCancel.BackColor = Color.Black;
-            btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(955, 11);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(74, 85);
-            btnCancel.TabIndex = 13;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = false;
-            btnCancel.Visible = false;
-            btnCancel.Click += btnCancel_Click;
-            // 
-            // buttonAttachImage
-            // 
-            buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            buttonAttachImage.BackColor = Color.Black;
-            buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(439, 12);
-            buttonAttachImage.Name = "buttonAttachImage";
-            buttonAttachImage.Size = new Size(89, 85);
-            buttonAttachImage.TabIndex = 12;
-            buttonAttachImage.Text = "Attach";
-            buttonAttachImage.UseVisualStyleBackColor = false;
-            buttonAttachImage.Click += buttonAttachImage_Click;
-            // 
-            // buttonNewKeepAll
-            // 
-            buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            buttonNewKeepAll.BackColor = Color.Black;
-            buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(289, 12);
-            buttonNewKeepAll.Name = "buttonNewKeepAll";
-            buttonNewKeepAll.Size = new Size(145, 85);
-            buttonNewKeepAll.TabIndex = 11;
-            buttonNewKeepAll.Text = "New w/ context";
-            buttonNewKeepAll.UseVisualStyleBackColor = false;
-            buttonNewKeepAll.Click += buttonNewKeepContext_Click;
-            // 
-            // buttonStartRecording
-            // 
-            buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            buttonStartRecording.BackColor = Color.Black;
-            buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(534, 12);
-            buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(148, 85);
-            buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Voice Prompt";
-            buttonStartRecording.UseVisualStyleBackColor = false;
-            buttonStartRecording.Click += buttonStartRecording_Click;
-            // 
-            // btnRestart
-            // 
-            btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnRestart.BackColor = Color.Black;
-            btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(137, 12);
-            btnRestart.Name = "btnRestart";
-            btnRestart.Size = new Size(145, 85);
-            btnRestart.TabIndex = 9;
-            btnRestart.Text = "New w/prompt";
-            btnRestart.UseVisualStyleBackColor = false;
-            btnRestart.Click += btnRestart_Click;
-            // 
-            // btnClear
-            // 
-            btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnClear.BackColor = Color.Black;
-            btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(3, 12);
-            btnClear.Name = "btnClear";
-            btnClear.Size = new Size(128, 82);
-            btnClear.TabIndex = 8;
-            btnClear.Text = "New";
-            btnClear.UseVisualStyleBackColor = false;
-            btnClear.Click += btnClear_Click;
-            // 
             // menuBar
             // 
             menuBar.BackColor = Color.Black;
@@ -467,6 +466,7 @@ namespace AiTool3
             // 
             // splitContainer4.Panel1
             // 
+            splitContainer4.Panel1.Controls.Add(groupBox1);
             splitContainer4.Panel1.Controls.Add(rtbOutput);
             splitContainer4.Panel1.Controls.Add(rtbInput);
             splitContainer4.Panel1Collapsed = true;
@@ -506,12 +506,12 @@ namespace AiTool3
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
-            groupBox1.ResumeLayout(false);
             splitContainer3.Panel1.ResumeLayout(false);
             splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)chatWebView).EndInit();
+            groupBox1.ResumeLayout(false);
             menuBar.ResumeLayout(false);
             menuBar.PerformLayout();
             statusStrip1.ResumeLayout(false);
