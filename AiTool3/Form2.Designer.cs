@@ -31,7 +31,6 @@ namespace AiTool3
         private void InitializeComponent()
         {
             cbEngine = new ComboBox();
-            rtbSystemPrompt = new ButtonedRichTextBox();
             rtbOutput = new ButtonedRichTextBox();
             rtbInput = new ButtonedRichTextBox();
             splitContainer1 = new SplitContainer();
@@ -94,22 +93,10 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(790, 3);
+            cbEngine.Location = new Point(3, 3);
             cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(405, 40);
+            cbEngine.Size = new Size(1192, 40);
             cbEngine.TabIndex = 3;
-            // 
-            // rtbSystemPrompt
-            // 
-            rtbSystemPrompt.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            rtbSystemPrompt.BackColor = Color.Black;
-            rtbSystemPrompt.EmptyLabel = "System Prompt";
-            rtbSystemPrompt.FlashOnUpdate = false;
-            rtbSystemPrompt.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbSystemPrompt.Location = new Point(3, 3);
-            rtbSystemPrompt.Name = "rtbSystemPrompt";
-            rtbSystemPrompt.Size = new Size(768, 94);
-            rtbSystemPrompt.TabIndex = 5;
             // 
             // rtbOutput
             // 
@@ -232,13 +219,12 @@ namespace AiTool3
             // splitContainer2.Panel1
             // 
             splitContainer2.Panel1.Controls.Add(cbEngine);
-            splitContainer2.Panel1.Controls.Add(rtbSystemPrompt);
             // 
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
             splitContainer2.Size = new Size(1198, 1117);
-            splitContainer2.SplitterDistance = 100;
+            splitContainer2.SplitterDistance = 46;
             splitContainer2.TabIndex = 8;
             // 
             // splitContainer3
@@ -260,8 +246,8 @@ namespace AiTool3
             splitContainer3.Panel2.Controls.Add(buttonStartRecording);
             splitContainer3.Panel2.Controls.Add(btnRestart);
             splitContainer3.Panel2.Controls.Add(btnClear);
-            splitContainer3.Size = new Size(1198, 1013);
-            splitContainer3.SplitterDistance = 894;
+            splitContainer3.Size = new Size(1198, 1067);
+            splitContainer3.SplitterDistance = 941;
             splitContainer3.TabIndex = 0;
             // 
             // chatWebView
@@ -273,7 +259,7 @@ namespace AiTool3
             chatWebView.DefaultBackgroundColor = Color.White;
             chatWebView.Location = new Point(3, 3);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1185, 888);
+            chatWebView.Size = new Size(1185, 935);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             // 
@@ -282,7 +268,7 @@ namespace AiTool3
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.BackColor = Color.Black;
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(955, 29);
+            btnCancel.Location = new Point(955, 36);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(74, 85);
             btnCancel.TabIndex = 13;
@@ -296,7 +282,7 @@ namespace AiTool3
             buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(439, 30);
+            buttonAttachImage.Location = new Point(439, 37);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(89, 85);
             buttonAttachImage.TabIndex = 12;
@@ -309,7 +295,7 @@ namespace AiTool3
             buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(289, 30);
+            buttonNewKeepAll.Location = new Point(289, 37);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 85);
             buttonNewKeepAll.TabIndex = 11;
@@ -322,7 +308,7 @@ namespace AiTool3
             buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(534, 30);
+            buttonStartRecording.Location = new Point(534, 37);
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(148, 85);
             buttonStartRecording.TabIndex = 10;
@@ -335,7 +321,7 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(137, 30);
+            btnRestart.Location = new Point(137, 37);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 85);
             btnRestart.TabIndex = 9;
@@ -348,7 +334,7 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(3, 30);
+            btnClear.Location = new Point(3, 37);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(128, 82);
             btnClear.TabIndex = 8;
@@ -526,7 +512,6 @@ namespace AiTool3
 
         #endregion
         private ComboBox cbEngine;
-        private ButtonedRichTextBox rtbSystemPrompt;
         private ButtonedRichTextBox rtbOutput;
         private ButtonedRichTextBox rtbInput;
         private SplitContainer splitContainer1;

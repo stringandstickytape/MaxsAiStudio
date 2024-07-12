@@ -49,7 +49,6 @@ namespace AiTool3
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
 
-            //rtbSystemPrompt.SetOverlayText("System Prompt");
             rtbInput.SetOverlayText("User Input");
             rtbOutput.SetOverlayText("AI Response");
 
@@ -203,7 +202,6 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             rtbInput.Text = e.Content;
-            //await ConversationManager.FetchAiInputResponse(rtbInput.Text, rtbSystemPrompt.Text, (Model)cbEngine.SelectedItem!, _cts);
             await FetchAiInputResponse();
         }
 
@@ -544,8 +542,6 @@ namespace AiTool3
 
             if (template != null)
             {
-                //rtbInput.Text = template.InitialPrompt;
-                //rtbSystemPrompt.Text = template.SystemPrompt;
                 await chatWebView.UpdateSystemPrompt(template.SystemPrompt);
                 await chatWebView.SetUserPrompt(template.InitialPrompt);
             }
