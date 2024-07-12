@@ -218,13 +218,9 @@ namespace AiTool3.Conversations
 
         public string AddNewRoot()
         {
-            var m = new CompletionMessage
+            var m = new CompletionMessage(CompletionRole.Root)
             {
-                Guid = Guid.NewGuid().ToString(),
                 Content = "Conversation Start",
-                Role = CompletionRole.Root,
-                Children = new List<string>(),
-                CreatedAt = DateTime.Now,
             };
             Messages.Add(m);
             return m.Guid;

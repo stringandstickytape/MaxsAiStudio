@@ -6,6 +6,14 @@ namespace AiTool3.Conversations
     public class CompletionMessage
     {
 
+        public CompletionMessage(CompletionRole role)
+        {
+            Role = role;
+            CreatedAt = System.DateTime.Now;
+            Guid = System.Guid.NewGuid().ToString();
+            Children = new List<string>();
+        }
+
         public CompletionRole Role { get; set; }
         public string? Content { get; set; }
 
@@ -13,7 +21,7 @@ namespace AiTool3.Conversations
 
         public string? Guid { get; set; }
 
-        public List<string>? Children { get; set; }
+        public List<string> Children { get; set; }
         public string? Parent { get; set; }
 
         // don't json this

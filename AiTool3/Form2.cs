@@ -320,18 +320,14 @@ namespace AiTool3
             var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
             var inputText = rtbInput.Text;
 
-            var completionInput = new CompletionMessage
+            var completionInput = new CompletionMessage(CompletionRole.User)
             {
-                Role = CompletionRole.User,
                 Content = inputText,
                 Parent = previousCompletionGuidBeforeAwait,
                 Engine = model.ModelName,
-                Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>(),
                 SystemPrompt = ConversationManager.CurrentConversation!.Messages.First().SystemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
                 OutputTokens = 0,
-                CreatedAt = DateTime.Now,
             };
 
             var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);
@@ -342,19 +338,15 @@ namespace AiTool3
 
             ConversationManager.CurrentConversation!.Messages.Add(completionInput);
 
-            var completionResponse = new CompletionMessage
+            var completionResponse = new CompletionMessage(CompletionRole.Assistant)
             {
-                Role = CompletionRole.Assistant,
                 Content = response.ResponseText,
                 Parent = completionInput.Guid,
                 Engine = model.ModelName,
-                Guid = System.Guid.NewGuid().ToString(),
-                Children = new List<string>(),
                 SystemPrompt = ConversationManager.CurrentConversation.Messages.First().SystemPrompt,
                 InputTokens = 0,
                 OutputTokens = response.TokenUsage.OutputTokens,
                 TimeTaken = stopwatch.Elapsed,
-                CreatedAt = DateTime.Now,
             };
 
             ConversationManager.CurrentConversation.Messages.Add(completionResponse);
@@ -465,28 +457,20 @@ namespace AiTool3
 
             BeginNewConversationPreserveInputAndSystemPrompts();
 
-            var assistantMessage = new CompletionMessage
+            var assistantMessage = new CompletionMessage(CompletionRole.Assistant)
             {
                 Parent = null,
-                Role = CompletionRole.Assistant,
                 Content = lastAssistantMessage.Content,
                 Engine = lastAssistantMessage.Engine,
-                Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>(),
-                CreatedAt = DateTime.Now,
             };
 
             var rootMessage = ConversationManager.CurrentConversation.GetRootNode();
 
-            var userMessage = new CompletionMessage
+            var userMessage = new CompletionMessage(CompletionRole.User)
             {
                 Parent = rootMessage.Guid,
-                Role = CompletionRole.User,
                 Content = lastUserMessage.Content,
                 Engine = lastUserMessage.Engine,
-                Guid = Guid.NewGuid().ToString(),
-                Children = new List<string>(),
-                CreatedAt = DateTime.Now,
             };
             rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
