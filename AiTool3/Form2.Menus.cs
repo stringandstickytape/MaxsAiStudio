@@ -81,10 +81,14 @@ namespace AiTool3
 
                 foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
                 {
-                    var templateMenuItem = CreateMenuItem(template.TemplateName);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, true);
                     templateMenuItem.Click += async (s, e) =>
                     {
                         await SelectTemplate(topic.Name, template.TemplateName);
+                    };
+                    templateMenuItem.EditClicked += (s, e) =>
+                    {
+                        EditAndSaveTemplate(template, false, topic.Name);
                     };
                     categoryMenuItem.DropDownItems.Add(templateMenuItem);
                 }
@@ -101,11 +105,14 @@ namespace AiTool3
                     
                     EditAndSaveTemplate(template, true, topicName);
 
-                    // update the menu topic with the new template
-                    var templateMenuItem = CreateMenuItem(template.TemplateName);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, true);
                     templateMenuItem.Click += async (s, e) =>
                     {
                         await SelectTemplate(topicName, template.TemplateName);
+                    };
+                    templateMenuItem.EditClicked += (s, e) =>
+                    {
+                        EditAndSaveTemplate(template, false, topicName);
                     };
 
                     categoryMenuItem.DropDownItems.Insert(categoryMenuItem.DropDownItems.Count - 2, templateMenuItem);
@@ -220,12 +227,9 @@ namespace AiTool3
             quitMenuItem.ForeColor = Color.White;
             quitMenuItem.BackColor = Color.Black;
         */
-        private static ToolStripMenuItem CreateMenuItem(string menuItemText)
+        private static ToolStripMenuItem CreateMenuItem(string text, bool isTemplate = false)
         {
-            var menuItem = new ToolStripMenuItem(menuItemText);
-            menuItem.ForeColor = Color.White;
-            menuItem.BackColor = Color.Black;
-            return menuItem;
+            return isTemplate ? new TemplateMenuItem(text) : new ToolStripMenuItem(text);
         }
     }
 }
