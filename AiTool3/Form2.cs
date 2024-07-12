@@ -134,34 +134,27 @@ namespace AiTool3
 
         private void InitialiseMenus()
         {
-            // add menu bar with file -> quit
-            var fileMenu = new ToolStripMenuItem("File");
-            fileMenu.BackColor = Color.Black;
-            fileMenu.ForeColor = Color.White;
-            var quitMenuItem = new ToolStripMenuItem("Quit");
-            quitMenuItem.ForeColor = Color.White;
-            quitMenuItem.BackColor = Color.Black;
+            var fileMenu = CreateMenu("File");
+
+            var quitMenuItem = CreateMenuItem("Quit");
+
             quitMenuItem.Click += (s, e) =>
             {
                 Application.Exit();
             };
 
-            // add an edit menu
-            var editMenu = new ToolStripMenuItem("Edit");
-            editMenu.BackColor = Color.Black;
-            editMenu.ForeColor = Color.White;
-            var clearMenuItem = new ToolStripMenuItem("Clear");
-            clearMenuItem.ForeColor = Color.White;
-            clearMenuItem.BackColor = Color.Black;
+            var editMenu = CreateMenu("Edit");
+
+            var clearMenuItem = CreateMenuItem("Clear");
+
             clearMenuItem.Click += (s, e) =>
             {
                 btnClear_Click(null!, null!);
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var settingsMenuItem = new ToolStripMenuItem("Settings");
-            settingsMenuItem.ForeColor = Color.White;
-            settingsMenuItem.BackColor = Color.Black;
+            var settingsMenuItem = CreateMenuItem("Settings");
+
             settingsMenuItem.Click += (s, e) =>
             {
                 var settingsForm = new SettingsForm(CurrentSettings);
@@ -183,9 +176,6 @@ namespace AiTool3
             // add a specials menu
             CreateSpecialsMenu();
         }
-
-
-
 
         private void InitialiseApiList()
         {

@@ -24,15 +24,14 @@ namespace AiTool3
 
         private void CreateSpecialsMenu()
         {
-            var specialsMenu = new ToolStripMenuItem("Specials");
-            specialsMenu.BackColor = Color.Black;
-            specialsMenu.ForeColor = Color.White;
+            var menuText = "Specials";
+            ToolStripMenuItem specialsMenu = CreateMenu(menuText);
 
             AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
             {
                 AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem!);
                 var snippets = snippetManager.FindSnippets(response.ResponseText);
-                
+
                 try
                 {
                     var code = snippets.Snippets.First().Code;
@@ -106,6 +105,27 @@ namespace AiTool3
             });
 
             menuBar.Items.Add(specialsMenu);
+        }
+
+        private static ToolStripMenuItem CreateMenu(string menuText)
+        {
+            var menu = new ToolStripMenuItem(menuText);
+            menu.BackColor = Color.Black;
+            menu.ForeColor = Color.White;
+            return menu;
+        }
+
+        /*
+         *             var quitMenuItem = new ToolStripMenuItem("Quit");
+            quitMenuItem.ForeColor = Color.White;
+            quitMenuItem.BackColor = Color.Black;
+        */
+        private static ToolStripMenuItem CreateMenuItem(string menuItemText)
+        {
+            var menuItem = new ToolStripMenuItem(menuItemText);
+            menuItem.ForeColor = Color.White;
+            menuItem.BackColor = Color.Black;
+            return menuItem;
         }
     }
 }
