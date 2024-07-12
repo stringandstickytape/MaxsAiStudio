@@ -6,6 +6,8 @@ using System;
 using System.ComponentModel;
 using static AiTool3.UI.NetworkDiagramControl;
 using System.Windows.Forms;
+using AiTool3.Helpers;
+using AiTool3.Snippets;
 
 namespace AiTool3.UI
 {
@@ -27,19 +29,32 @@ namespace AiTool3.UI
 
         private void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
+            
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
-
+            var content = message["content"];
+            
             switch (message?["type"])
             {
                 case "send":
-                    var content = message["content"];
+                    
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
                     break;
                 case "Copy":
-                    var content2 = message["content"];
                     var guid2 = message["guid"];
-                    ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content2, Guid = guid2 });
+                    ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = guid2 });
+                    break;
+                case "Save As":
+                    var dataType = message["dataType"];
+                    var type = SnippetManager.GetFileExtFromLanguage(dataType);
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+                    saveFileDialog.Filter = $"{dataType} files (*.{type})|*.{type}|All files (*.*)|*.*";
+                    saveFileDialog.RestoreDirectory = true;
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        File.WriteAllText(saveFileDialog.FileName, SnipperHelper.StripFirstAndLastLine(content));
+                    }
                     break;
                 case "WebView":
 
@@ -110,6 +125,11 @@ namespace AiTool3.UI
         internal async Task SetUserPrompt(string content)
         {
             await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");
+        }//changeChatHeaderLabel
+
+        internal async Task ChangeChatHeaderLabel(string content)
+        {
+            await ExecuteScriptAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
         }
 
         private bool IsDesignMode()

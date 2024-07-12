@@ -189,6 +189,7 @@ namespace AiTool3
             {
                 await chatWebView.SetUserPrompt("");
             }
+            //await chatWebView.ChangeChatHeaderLabel(ConversationManager.PreviousCompletion.Engine);
             await chatWebView.UpdateSystemPrompt(systemPrompt);
 
             MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);

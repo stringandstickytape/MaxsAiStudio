@@ -21,13 +21,12 @@ namespace AiTool3.Snippets
                     int startIndex = match.Captures[0].Index;
                     int length = match.Captures[0].Length;
 
-                    string? type = null;
                     string? filename = null;
 
                     // get the first line
                     var firstLine = text.Substring(startIndex).Split('\n').FirstOrDefault();
 
-                    type = GetFileExtFromFirstLine(type!, firstLine!);
+                    var type = GetFileExtFromLanguage(firstLine!);
 
                     var snippetText = text.Substring(startIndex, length);
 
@@ -66,43 +65,47 @@ namespace AiTool3.Snippets
             return new SnippetSet { Snippets = snippets, UnterminatedSnippet = unterminatedSnippet };
         }
 
-        private static string GetFileExtFromFirstLine(string type, string firstLine)
+        internal static string GetFileExtFromFirstLine(string firstLine)
         {
             string pattern2 = @"```[a-zA-Z]+";
+
+            string fileExt = ".txt";
 
             foreach (Match match2 in Regex.Matches(firstLine, pattern2))
             {
                 var language = match2.Value.Substring(3);
 
-                var fileExt = ".txt";
-
-                if (language == "csharp")
-                {
-                    fileExt = ".cs";
-                }
-                else if (language == "html" || language == "htm")
-                {
-                    fileExt = ".html";
-                }
-                else if (language == "txt")
-                {
-                    fileExt = ".txt";
-                }
-                else if (language == "xml")
-                {
-                    fileExt = ".xml";
-                }
-                else if (language == "javascript")
-                {
-                    fileExt = ".js";
-                }
-                else fileExt = $".{language}";
-
-                type = fileExt;
-
+                fileExt = GetFileExtFromLanguage(language);
             }
 
-            return type;
+            return fileExt;
+        }
+
+        internal static string GetFileExtFromLanguage(string language)
+        {
+            string fileExt;
+            if (language == "csharp")
+            {
+                fileExt = ".cs";
+            }
+            else if (language == "html" || language == "htm")
+            {
+                fileExt = ".html";
+            }
+            else if (language == "txt")
+            {
+                fileExt = ".txt";
+            }
+            else if (language == "xml")
+            {
+                fileExt = ".xml";
+            }
+            else if (language == "javascript")
+            {
+                fileExt = ".js";
+            }
+            else fileExt = $".{language}";
+            return fileExt;
         }
 
         public string ApplySnippetFormatting(string text)
