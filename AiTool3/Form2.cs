@@ -56,7 +56,6 @@ namespace AiTool3
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
-            //SetButtonIcon(IconChar.PaperPlane, btnGo);
             SetButtonIcon(IconChar.CircleXmark, btnCancel);
             SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
             SetButtonIcon(IconChar.SquarePlus, btnRestart);
@@ -766,7 +765,7 @@ namespace AiTool3
         private void buttonAttachImage_Click(object sender, EventArgs e)
         {
             // pop a mb asking attach image or text with image and text buttons
-            var r = ShowAttachmentDialog();
+            var r = SimpleDialogsHelper.ShowAttachmentDialog();
 
             switch (r)
             {
@@ -796,22 +795,12 @@ namespace AiTool3
                         rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
 
                         CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
-
                     }
-
-
-
                     break;
                 case DialogResult.Cancel:
                     break;
             }
-
-
-
-
-
         }
-        
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
@@ -826,7 +815,6 @@ namespace AiTool3
                 {
                     foreach (DataGridViewRow row in dgvConversations.Rows)
                     {
-                        // Check if cancellation was requested
                         _cts2.Token.ThrowIfCancellationRequested();
 
                         if (row.Cells[0].Value == null) continue;
@@ -837,7 +825,6 @@ namespace AiTool3
 
                         var allMessages = conv.Messages.Select(m => m.Content).ToList();
 
-                        //bool isVisible = allMessages.Any(m => m.Contains(tbSearch.Text, StringComparison.InvariantCultureIgnoreCase));
                         bool isVisible = false;
                         foreach (string? message in allMessages)
                         {
@@ -849,7 +836,6 @@ namespace AiTool3
                             _cts2.Token.ThrowIfCancellationRequested();
                         }
 
-
                         this.Invoke((System.Windows.Forms.MethodInvoker)delegate {
                             row.Visible = isVisible;
                         });
@@ -859,45 +845,13 @@ namespace AiTool3
                 }, _cts2.Token);
 
             }
-            catch (OperationCanceledException)
-            {
-                Debug.WriteLine("OCE");
-                // Operation was cancelled, do nothing
-            }
             catch (Exception ex)
             {
-                // Handle other exceptions
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                if(!(ex is OperationCanceledException)) MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
 
         private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
-
-        public static DialogResult ShowAttachmentDialog()
-        {
-            Form prompt = new Form()
-            {
-                Width = 400,
-                Height = 150,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                Text = "Attach image or text?",
-                StartPosition = FormStartPosition.CenterScreen
-            };
-
-            Button imageButton = new Button() { Left = 50, Top = 30, AutoSize = true, Text = "Image" };
-            Button textButton = new Button() { Left = 150, Top = 30, AutoSize = true, Text = "Text" };
-            Button cancelButton = new Button() { Left = 260, Top = 30, AutoSize = true, Text = "Cancel" };
-
-            imageButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Yes; };
-            textButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.No; };
-            cancelButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Cancel; };
-
-            prompt.Controls.Add(imageButton);
-            prompt.Controls.Add(textButton);
-            prompt.Controls.Add(cancelButton);
-
-            return prompt.ShowDialog();
-        }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
