@@ -141,7 +141,6 @@ namespace AiTool3
                 cbEngine.Items.Add(model);
             }
 
-            // preselect the first Local api
             cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
@@ -217,33 +216,30 @@ namespace AiTool3
             richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
 
-            // Apply UI formatting
             foreach (var snippet in snippets.Snippets)
-            {   // snippet.Type == "html"?
-
-                // find the end of the line
+            {   
                 var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
 
-                // find the length of the first line
                 var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
 
                 richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
                 richTextBox.SelectionColor = Color.Orange;
 
-                if (snippet.Type == ".html" || snippet.Type == ".htm")
+                switch (snippet.Type)
                 {
-                    HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                    case ".html":
+                    case ".htm":
+                        HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                        break;
+                    case ".cs":
+                        CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+                        break;
                 }
-                else if (snippet.Type == ".cs")
-                {
-                    CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-                }
-
-
 
                 richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
                 var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
+                
                 richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
 
             }
