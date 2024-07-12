@@ -42,7 +42,6 @@ namespace AiTool3
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
             chatWebView = new ChatWebView();
-            btnCancel = new Button();
             buttonAttachImage = new Button();
             buttonNewKeepAll = new Button();
             buttonStartRecording = new Button();
@@ -240,7 +239,6 @@ namespace AiTool3
             // 
             // splitContainer3.Panel2
             // 
-            splitContainer3.Panel2.Controls.Add(btnCancel);
             splitContainer3.Panel2.Controls.Add(buttonAttachImage);
             splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
             splitContainer3.Panel2.Controls.Add(buttonStartRecording);
@@ -262,20 +260,6 @@ namespace AiTool3
             chatWebView.Size = new Size(1185, 935);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
-            // 
-            // btnCancel
-            // 
-            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCancel.BackColor = Color.Black;
-            btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(955, 36);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(74, 85);
-            btnCancel.TabIndex = 13;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = false;
-            btnCancel.Visible = false;
-            btnCancel.Click += btnCancel_Click;
             // 
             // buttonAttachImage
             // 
@@ -535,7 +519,6 @@ namespace AiTool3
         private TextBox tbSearch;
         private GroupBox groupBox1;
         private Button btnClearSearch;
-        private Button btnCancel;
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
         private SplitContainer splitContainer4;
         private ChatWebView chatWebView;

@@ -47,6 +47,7 @@ namespace AiTool3
 
             webViewManager = new WebViewManager(ndcWeb);
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
+            chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
 
             rtbInput.SetOverlayText("User Input");
@@ -55,7 +56,6 @@ namespace AiTool3
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
-            ButtonIconHelper.SetButtonIcon(IconChar.CircleXmark, btnCancel);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnRestart);
             ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnClear);
@@ -81,6 +81,12 @@ namespace AiTool3
 
             Load += OnHandleCreated!;
 
+        }
+
+        private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
+        {
+            _cts?.Cancel();
+            await chatWebView.EnableCancelButton();
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -259,6 +265,7 @@ namespace AiTool3
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
                 await ProcessAiResponse(response, model);
+                await chatWebView.DisableCancelButton();
                 UpdateUi(response);
                 await UpdateConversationSummary();
             }
@@ -270,18 +277,16 @@ namespace AiTool3
             {
                 stopwatch.Stop();
                 updateTimer.Stop();
-                btnCancel.Visible = false;
-
             }
         }
 
-        private void PrepareForNewResponse()
+        private async void PrepareForNewResponse()
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
             stopwatch.Restart();
             updateTimer.Start();
-            btnCancel.Visible = true;
+            await chatWebView.EnableCancelButton();
         }
 
         private async Task<ConversationModelPair> PrepareConversationData()
@@ -694,11 +699,6 @@ namespace AiTool3
 
         private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            _cts?.Cancel();
-            btnCancel.Visible = false;
-        }
         private async Task CreateNewWebNdc(bool showDevTools)
         {
             await webViewManager.CreateNewWebNdc(showDevTools);

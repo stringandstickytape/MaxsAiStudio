@@ -17,6 +17,7 @@ namespace AiTool3.UI
     {
         public event EventHandler<ChatWebViewSendMessageEventArgs>? ChatWebViewSendMessageEvent;
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
+        public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
 
         public ChatWebView() : base()
         {
@@ -39,6 +40,9 @@ namespace AiTool3.UI
                 case "send":
                     
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
+                    break;
+                case "cancel":
+                    ChatWebViewCancelEvent?.Invoke(this, new ChatWebViewCancelEventArgs());
                     break;
                 case "Copy":
                     var guid2 = message["guid"];
@@ -104,6 +108,9 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
         }
 
+        internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");
+        internal async Task EnableCancelButton() => await ExecuteScriptAsync("enableButton('cancelButton')");
+
         internal async Task AddMessage(CompletionMessage message)
         {
             // run "addMessages" js function
@@ -120,6 +127,7 @@ namespace AiTool3.UI
         {
             // run "addMessages" js function
             await ExecuteScriptAsync($"ClearMessages()");
+            await DisableCancelButton();
         }
 
         internal async Task SetUserPrompt(string content)

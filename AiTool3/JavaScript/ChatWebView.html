@@ -19,7 +19,10 @@
     </div>
     <div class="chat-input-container">
         <textarea class="chat-input" id="chatInput" placeholder="Type your message..."></textarea>
-        <button class="chat-submit" id="sendButton">Send</button>
+        <div class="button-container">
+            <button class="chat-button chat-submit" id="sendButton">Send</button>
+            <button class="chat-button chat-cancel" id="cancelButton">Cancel</button>
+        </div>
     </div>
 
     <script>
@@ -27,9 +30,13 @@
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
+        const cancelButton = document.getElementById('cancelButton');
         let isCtrlPressed = false;
         const systemPrompt = document.getElementById('systemPrompt');
         const chatHeaderLabel = document.getElementById('chatHeaderLabel');
+
+        let sendButtonColor = '#4a90e2';
+        let cancelButtonColor = '#e74c3c';
 
         function updateSystemPrompt(prompt) {
             systemPrompt.value = prompt;
@@ -49,6 +56,25 @@
                 content: getSystemPrompt()
             });
         });
+
+        function disableButton(id) {
+            const cancelButton = document.getElementById(id);
+            cancelButton.disabled = true;
+            cancelButton.style.backgroundColor = '#7f8c8d'; // Grey color
+            cancelButton.style.cursor = 'not-allowed';
+            cancelButton.style.opacity = '0.6';
+        }
+
+        function enableButton(id) {
+
+            var color = id === "cancelButton" ? cancelButtonColor : sendButtonColor;
+
+            const cancelButton = document.getElementById(id);
+            cancelButton.disabled = false;
+            cancelButton.style.backgroundColor = color;
+            cancelButton.style.cursor = 'pointer';
+            cancelButton.style.opacity = '1';
+        }
 
 
         function AddInitialMessages(messages) {
@@ -232,6 +258,14 @@
         });
 
         sendButton.addEventListener('click', sendMessage);
+        debugger;
+        cancelButton.addEventListener('click', () => {
+            debugger;
+            window.chrome.webview.postMessage({
+                type: 'cancel',
+                content: ''
+            });
+        });
 
         // Track Ctrl key state
         document.addEventListener('keydown', (e) => {

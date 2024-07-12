@@ -157,8 +157,13 @@ button {
     color: #e0e0e0;
 }
 
-.chat-submit {
-    background-color: #4a90e2;
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-button {
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -166,6 +171,15 @@ button {
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.3s;
+}
+
+.chat-submit {
+    background-color: #4a90e2;
+}
+
+.chat-cancel {
+    background-color: #e74c3c;
+} 
 }
 
     .chat-submit:hover {
