@@ -102,10 +102,7 @@ namespace AiTool3
             await BeginNewConversation();
         }
 
-        private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e)
-        {
-            Clipboard.SetText(e.Content);
-        }
+        private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) =>  Clipboard.SetText(e.Content);
 
         private void AutoSuggestStringSelected(string selectedString)
         {
