@@ -904,28 +904,12 @@ namespace AiTool3
             _cts?.Cancel();
             btnCancel.Visible = false;
         }
-        private async Task<bool> CreateNewWebNdc(bool showDevTools)
+        private async Task CreateNewWebNdc(bool showDevTools)
         {
-            string js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
-            var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
-
-            
-            string html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
-            string htmlAndCss = html.Replace("{magiccsstoken}", css);
-            string result = htmlAndCss.Replace("<insertscripthere />", js);
-
-            await webViewManager!.OpenWebViewWithJs("", showDevTools);
-
-            //Thread.Sleep(2000);
-
-            webViewManager.NavigateToHtml(result);
+            await webViewManager.CreateNewWebNdc(showDevTools);
 
             webViewManager.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
             webViewManager.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
-
-
-
-            return true;
         }
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)

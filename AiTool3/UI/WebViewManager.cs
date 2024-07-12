@@ -120,6 +120,23 @@ namespace AiTool3.UI
             NavigateToHtml(result);
             return;
         }//<insertscripthere/>
+
+        public async Task CreateNewWebNdc(bool showDevTools)
+        {
+            string js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
+            var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
+
+
+            string html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
+            string htmlAndCss = html.Replace("{magiccsstoken}", css);
+            string result = htmlAndCss.Replace("<insertscripthere />", js);
+
+            await OpenWebViewWithJs("", showDevTools);
+
+            NavigateToHtml(result);
+
+
+        }
     }
 
     public class WebNdcContextMenuOptionSelectedEventArgs
