@@ -129,10 +129,7 @@ namespace AiTool3
 
         private void AudioRecorderManager_AudioProcessed(object? sender, string e)
         {
-            rtbInput.InvokeIfNeeded(() =>
-            {
-                rtbInput.Text = e;
-            });
+            rtbInput.InvokeIfNeeded(() => { rtbInput.Text = e; });
         }
 
         private void InitialiseMenus()
