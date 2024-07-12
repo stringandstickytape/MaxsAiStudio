@@ -255,165 +255,162 @@ namespace AiTool3
 
         private async Task FetchAiInputResponse()
         {
-            // Cancel any ongoing operation
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
-
-            stopwatch.Restart();
-            updateTimer.Start();
-
-            CompletionMessage? completionResponse = null;
-            AiResponse? response = null;
-            Model? model = null;
-
             try
             {
-                btnCancel.Visible = true; 
-                model = (Model)cbEngine.SelectedItem!;
-
-                var aiService = AiServiceResolver.GetAiService(model.ServiceName);
-
-                var conversation = new Conversation
-                {
-                    systemprompt = rtbSystemPrompt.Text,
-                    messages = new List<ConversationMessage>()
-                };
-
-                List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
-
-                Debug.WriteLine(nodes);
-
-                foreach (var node in nodes)
-                {
-                    if (node.Role == CompletionRole.Root || node.Omit)
-                        continue;
-
-                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content! });
-                }
-                conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
-
-                var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
-                var inputText = rtbInput.Text;
-                // fetch the response from the api
-                response = await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
-
-
-                if (response.SuggestedNextPrompt != null)
-                {
-                    rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
-                }
-
-                // create a completion message for the user input
-                var completionInput = new CompletionMessage
-                {
-                    Role = CompletionRole.User,
-                    Content = inputText,
-                    Parent = previousCompletionGuidBeforeAwait,
-                    Engine = model.ModelName,
-                    Guid = System.Guid.NewGuid().ToString(),
-                    Children = new List<string>(),
-                    SystemPrompt = conversation.systemprompt,
-                    InputTokens = response.TokenUsage.InputTokens,
-                    OutputTokens = 0,
-                    CreatedAt = DateTime.Now,
-                };
-
-                if (response == null)
-                {
-                    MessageBox.Show("Response is null");
-                    //btnGo.Enabled = true;
-                    return;
-                }
-                var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);
-
-                if (pc != null)
-                {
-                    pc.Children!.Add(completionInput.Guid);
-                }
-
-                ConversationManager.CurrentConversation!.Messages.Add(completionInput);
-
-                // Create a new completion object to store the response in
-                completionResponse = new CompletionMessage
-                {
-                    Role = CompletionRole.Assistant,
-                    Content = response.ResponseText,
-                    Parent = completionInput.Guid,
-                    Engine = model.ModelName,
-                    Guid = System.Guid.NewGuid().ToString(),
-                    Children = new List<string>(),
-                    SystemPrompt = conversation.systemprompt,
-                    InputTokens = 0,
-                    OutputTokens = response.TokenUsage.OutputTokens,
-                    TimeTaken = stopwatch.Elapsed,
-                    CreatedAt = DateTime.Now,
-                };
-
-                // add it to the current conversation
-                ConversationManager.CurrentConversation.Messages.Add(completionResponse);
-
-                await chatWebView.AddMessage(completionInput);
-                await chatWebView.AddMessage(completionResponse);
-                // and display the results in the output box
-                MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
-
-                if (CurrentSettings.NarrateResponses)
-                {
-                    // do this but in a new thread:                 TtsHelper.ReadAloud(rtbOutput.Text);
-                    var text = rtbOutput.Text;
-
-#pragma warning disable CS4014 // We want this to go off on its own...
-                    Task.Run(() => TtsHelper.ReadAloud(text));
-#pragma warning restore CS4014 // 
-
-                }
-
-                completionInput.Children.Add(completionResponse.Guid);
-
-                ConversationManager.PreviousCompletion = completionResponse;
-
-                Base64Image = null;
-                Base64ImageType = null;
-
-                // draw the network diagram
-                var a = await WebNdcDrawNetworkDiagram();
+                PrepareForNewResponse();
+                var (conversation, model) = PrepareConversationData();
+                var response = await FetchResponseFromAi(conversation, model);
+                await ProcessAiResponse(response, model);
+                UpdateUi(response);
+                await UpdateConversationSummary();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
-                return;
             }
             finally
             {
                 stopwatch.Stop();
                 updateTimer.Stop();
-                TimeSpan ts = stopwatch.Elapsed;
-                btnCancel.Visible = false; 
+                btnCancel.Visible = false;
+
+            }
+        }
+
+        private void PrepareForNewResponse()
+        {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            stopwatch.Restart();
+            updateTimer.Start();
+            btnCancel.Visible = true;
+        }
+
+        private (Conversation conversation, Model model) PrepareConversationData()
+        {
+            var model = (Model)cbEngine.SelectedItem!;
+            var conversation = new Conversation
+            {
+                systemprompt = rtbSystemPrompt.Text,
+                messages = new List<ConversationMessage>()
+            };
+
+            List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
+
+            foreach (var node in nodes)
+            {
+                if (node.Role == CompletionRole.Root || node.Omit)
+                    continue;
+
+                conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content! });
+            }
+            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
+
+            return (conversation, model);
+        }
+
+        private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
+        {
+            var aiService = AiServiceResolver.GetAiService(model.ServiceName);
+            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
+        }
+
+        private async Task ProcessAiResponse(AiResponse response, Model model)
+        {
+            var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
+            var inputText = rtbInput.Text;
+
+            var completionInput = new CompletionMessage
+            {
+                Role = CompletionRole.User,
+                Content = inputText,
+                Parent = previousCompletionGuidBeforeAwait,
+                Engine = model.ModelName,
+                Guid = System.Guid.NewGuid().ToString(),
+                Children = new List<string>(),
+                SystemPrompt = ConversationManager.CurrentConversation!.Messages.First().SystemPrompt,
+                InputTokens = response.TokenUsage.InputTokens,
+                OutputTokens = 0,
+                CreatedAt = DateTime.Now,
+            };
+
+            var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);
+            if (pc != null)
+            {
+                pc.Children!.Add(completionInput.Guid);
             }
 
-            webViewManager!.CentreOnNode(completionResponse.Guid);
+            ConversationManager.CurrentConversation!.Messages.Add(completionInput);
 
-            var summaryModel = CurrentSettings.ApiList!.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+            var completionResponse = new CompletionMessage
+            {
+                Role = CompletionRole.Assistant,
+                Content = response.ResponseText,
+                Parent = completionInput.Guid,
+                Engine = model.ModelName,
+                Guid = System.Guid.NewGuid().ToString(),
+                Children = new List<string>(),
+                SystemPrompt = ConversationManager.CurrentConversation.Messages.First().SystemPrompt,
+                InputTokens = 0,
+                OutputTokens = response.TokenUsage.OutputTokens,
+                TimeTaken = stopwatch.Elapsed,
+                CreatedAt = DateTime.Now,
+            };
+
+            ConversationManager.CurrentConversation.Messages.Add(completionResponse);
+
+            await chatWebView.AddMessage(completionInput);
+            await chatWebView.AddMessage(completionResponse);
+
+            MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
+
+            if (CurrentSettings.NarrateResponses)
+            {
+                var text = rtbOutput.Text;
+                Task.Run(() => TtsHelper.ReadAloud(text));
+            }
+
+            completionInput.Children.Add(completionResponse.Guid);
+            ConversationManager.PreviousCompletion = completionResponse;
+
+            Base64Image = null;
+            Base64ImageType = null;
+
+            await WebNdcDrawNetworkDiagram();
+            webViewManager!.CentreOnNode(completionResponse.Guid);
+        }
+
+        private void UpdateUi(AiResponse response)
+        {
+            if (response.SuggestedNextPrompt != null)
+            {
+                rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
+            }
+
+            var model = (Model)cbEngine.SelectedItem!;
+            var cost = model.GetCost(response.TokenUsage);
+
+            tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
-
-            ConversationManager.SaveConversation();
 
             if (row == null)
             {
                 dgvConversations.Rows.Insert(0, ConversationManager.CurrentConversation.ConvGuid, ConversationManager.CurrentConversation.Messages[0].Content, ConversationManager.CurrentConversation.Messages[0].Engine, "");
-
-                row = dgvConversations.Rows[0];
             }
+        }
 
-            var cost = model.GetCost(response.TokenUsage);
-
-            tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
+        private async Task UpdateConversationSummary()
+        {
+            var summaryModel = CurrentSettings.ApiList!.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
                 row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, CurrentSettings.GenerateSummariesUsingLocalAi);
             }
+
+            ConversationManager.SaveConversation();
         }
 
         private async Task<bool> WebNdcDrawNetworkDiagram()
