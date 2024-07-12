@@ -414,9 +414,7 @@ namespace AiTool3
                 // instantiate the service from the appropriate api
                 var aiService = AiServiceResolver.GetAiService(serviceName);
 
-                Conversation? conversation = null;
-
-                conversation = new Conversation();
+                var conversation = new Conversation();
                 conversation.systemprompt = rtbSystemPrompt.Text;
                 conversation.messages = new List<ConversationMessage>();
                 List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
@@ -434,7 +432,6 @@ namespace AiTool3
 
                 var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
                 var inputText = rtbInput.Text;
-                var systemPrompt = rtbSystemPrompt.Text;
                 // fetch the response from the api
                 response = await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
 
@@ -453,7 +450,7 @@ namespace AiTool3
                     Engine = model.ModelName,
                     Guid = System.Guid.NewGuid().ToString(),
                     Children = new List<string>(),
-                    SystemPrompt = systemPrompt,
+                    SystemPrompt = conversation.systemprompt,
                     InputTokens = response.TokenUsage.InputTokens,
                     OutputTokens = 0,
                     CreatedAt = DateTime.Now,
@@ -483,7 +480,7 @@ namespace AiTool3
                     Engine = model.ModelName,
                     Guid = System.Guid.NewGuid().ToString(),
                     Children = new List<string>(),
-                    SystemPrompt = systemPrompt,
+                    SystemPrompt = conversation.systemprompt,
                     InputTokens = 0,
                     OutputTokens = response.TokenUsage.OutputTokens,
                     TimeTaken = stopwatch.Elapsed,
