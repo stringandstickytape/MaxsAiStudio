@@ -54,7 +54,7 @@ namespace AiTool3.Conversations
                 Conversation conversation = null;
 
                 {
-                    conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+                    conversation = new Conversation();
                     conversation.systemprompt = "you are a bot who summarises conversations.  Summarise this conversation in six words or fewer as a json object";
                     conversation.messages = new List<ConversationMessage>();
                     List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
@@ -132,7 +132,7 @@ namespace AiTool3.Conversations
             else systemprompt = userAutoSuggestPrompt;
 
             {
-                    conversation = new Conversation();//tbSystemPrompt.Text, tbInput.Text
+                    conversation = new Conversation();
                     conversation.systemprompt = systemprompt;
                     conversation.messages = new List<ConversationMessage>();
                     conversation.systemprompt += $" {DateTime.Now.Ticks}";

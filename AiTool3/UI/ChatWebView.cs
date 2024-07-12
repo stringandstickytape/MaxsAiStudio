@@ -84,12 +84,22 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
+        internal async Task UpdateSystemPrompt(string systemPrompt)
+        {
+            await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
+        }
+
         internal async Task AddMessage(CompletionMessage message)
         {
             // run "addMessages" js function
             await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
         }
 
+        internal async Task<string> GetSystemPrompt()
+        {
+            return await ExecuteScriptAsync("getSystemPrompt()");
+
+        }
 
         internal async Task Clear()
         {

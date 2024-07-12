@@ -191,8 +191,14 @@ namespace AiTool3
             if (ConversationManager.PreviousCompletion?.SystemPrompt != null)
             {
                 rtbSystemPrompt.Text = ConversationManager.PreviousCompletion.SystemPrompt;
+                await chatWebView.UpdateSystemPrompt(ConversationManager.PreviousCompletion.SystemPrompt);
             }
-            else rtbSystemPrompt.Text = "";
+            else
+            {
+                rtbSystemPrompt.Text = "";
+                await chatWebView.UpdateSystemPrompt("");
+            }
+
             MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
 
             var parents = ConversationManager.GetParentNodeList();
