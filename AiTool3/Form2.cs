@@ -429,7 +429,7 @@ namespace AiTool3
         private async void btnClear_Click(object sender, EventArgs e)
         {
             await BeginNewConversation();
-            await PopulateUiForTemplate(GetCurrentlySelectedTemplate()!);
+            await PopulateUiForTemplate(selectedTemplate!);
         }
 
         private void btnRestart_Click(object sender, EventArgs e)
@@ -523,16 +523,15 @@ namespace AiTool3
         private async void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnClear_Click(null!, null!);
-            await PopulateUiForTemplate(GetCurrentlySelectedTemplate()!);
+            await PopulateUiForTemplate(selectedTemplate!);
         }
 
-        private ConversationTemplate? GetCurrentlySelectedTemplate()
+        ConversationTemplate? selectedTemplate = null;
+
+        private async Task SelectTemplate(string categoryName, string templateName)
         {
-            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
-            {
-                return null;
-            }
-            return TopicSet.Topics.First(t => t.Name == cbCategories.SelectedItem.ToString()).Templates.First(t => t.TemplateName == cbTemplates.SelectedItem.ToString());
+            selectedTemplate = TopicSet.Topics.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
+            await PopulateUiForTemplate(selectedTemplate!);
         }
 
         private async Task PopulateUiForTemplate(ConversationTemplate template)
@@ -544,8 +543,9 @@ namespace AiTool3
 
             if (template != null)
             {
-                rtbInput.Text = template.InitialPrompt;
+                //rtbInput.Text = template.InitialPrompt;
                 rtbSystemPrompt.Text = template.SystemPrompt;
+                await chatWebView.SetUserPrompt(template.InitialPrompt);
             }
         }
 

@@ -62,8 +62,36 @@ namespace AiTool3
             menuBar.Items.Add(fileMenu);
             menuBar.Items.Add(editMenu);
 
+            CreateTemplatesMenu();
+
             // add a specials menu
             CreateSpecialsMenu();
+        }
+
+
+        private void CreateTemplatesMenu()
+        {
+            var templatesMenu = CreateMenu("Templates");
+
+            foreach (var topic in TopicSet.Topics)
+            {
+                var categoryMenuItem = CreateMenuItem(topic.Name);
+                templatesMenu.DropDownItems.Add(categoryMenuItem);
+
+                foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
+                {
+                    var templateMenuItem = CreateMenuItem(template.TemplateName);
+                    templateMenuItem.Click += (s, e) =>
+                    {
+                        SelectTemplate(topic.Name, template.TemplateName);
+                        //cbCategories.SelectedItem = topic.Name;
+                        //cbTemplates.SelectedItem = template.TemplateName;
+                    };
+                    categoryMenuItem.DropDownItems.Add(templateMenuItem);
+                }
+            }
+
+            menuBar.Items.Add(templatesMenu);
         }
 
         private void CreateSpecialsMenu()
