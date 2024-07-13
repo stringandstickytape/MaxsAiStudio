@@ -92,7 +92,10 @@ namespace AiTool3.Conversations
                 {
                     dynamic obj = JsonConvert.DeserializeObject(responseText);
 
-                    Title = obj.summary;
+                    // get the first property name from obj
+                    var propName = ((Newtonsoft.Json.Linq.JProperty)((Newtonsoft.Json.Linq.JContainer)obj).First).Name;
+
+                    Title = obj[propName];
                 }
                 catch
                 {
@@ -198,7 +201,6 @@ namespace AiTool3.Conversations
                 form = new AutoSuggestForm(suggestions);
                 form.StringSelected += Form_StringSelected;
                 form.Show();
-
 
                 }
                 catch(Exception e)

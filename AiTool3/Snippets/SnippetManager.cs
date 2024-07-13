@@ -104,6 +104,10 @@ namespace AiTool3.Snippets
             {
                 fileExt = ".js";
             }
+            else if (language == "json")
+            {
+                fileExt = ".json";
+            }
             else fileExt = $".{language}";
             return fileExt;
         }

@@ -148,7 +148,7 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
             {
-                await ConversationManager.RegenerateAllSummaries((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*");
             });
 
             AddSpecial(specialsMenu, "Autosuggest", async (s, e) =>

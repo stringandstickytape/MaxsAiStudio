@@ -16,6 +16,7 @@ using AiTool3.Helpers;
 using System.Text;
 using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
+using System.Windows.Forms;
 
 namespace AiTool3
 {
@@ -72,6 +73,14 @@ namespace AiTool3
             SetSplitContainerEvents();
 
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
+            // Create ContextMenuStrip
+            ContextMenuStrip contextMenu = new ContextMenuStrip();
+
+            // Add menu items
+            contextMenu.Items.Add("Regenerate Summary", null, Option1_Click);
+            contextMenu.Items.Add("Option 2", null, Option2_Click);
+
+            dgvConversations.ContextMenuStrip = contextMenu;
 
             InitialiseMenus();
 
@@ -79,8 +88,46 @@ namespace AiTool3
             updateTimer.Tick += UpdateTimer_Tick!;
 
             Load += OnHandleCreated!;
+            
+            dgvConversations.MouseDown  += DgvConversations_MouseDown;
 
         }
+
+        private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var hti = dgvConversations.HitTest(e.X, e.Y);
+                if (hti.RowIndex >= 0)
+                {
+                    if (!ModifierKeys.HasFlag(Keys.Control))
+                    {
+                        dgvConversations.ClearSelection();
+                    }
+                    dgvConversations.Rows[hti.RowIndex].Selected = true;
+                    selectedConversationGuid = dgvConversations.Rows[hti.RowIndex].Cells[0].Value.ToString();
+                }
+            }
+        }
+
+        private async void Option1_Click(object sender, EventArgs e)
+        {
+            // work out which row was clicked
+            // get the guid from the first cell in that row
+
+            var guid = selectedConversationGuid;
+
+
+
+            await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, guid);
+        }
+
+        private static void Option2_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Option 2 clicked!");
+        }
+
+        public string selectedConversationGuid = "";
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
@@ -266,6 +313,8 @@ namespace AiTool3
             catch (Exception ex)
             {
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
+                _cts?.Cancel();
+                _cts = new CancellationTokenSource();
             }
             finally
             {

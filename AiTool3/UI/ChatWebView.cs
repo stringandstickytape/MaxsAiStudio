@@ -34,8 +34,8 @@ namespace AiTool3.UI
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
             var content = message["content"];
-            
-            switch (message?["type"])
+            var type = message?["type"];
+            switch (type)
             {
                 case "send":
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
@@ -47,12 +47,29 @@ namespace AiTool3.UI
                     var guid2 = message["guid"];
                     ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = guid2 });
                     break;
+                case "View JSON String Array":
+
+                    // parse content as json string array, don't crash if it isn't tho
+                    List<string> suggestions;
+
+                    try
+                    {
+                        suggestions = JsonConvert.DeserializeObject<List<string>>(content);
+                    }
+                    catch (Exception)
+                    {
+                        suggestions = new List<string> { content };
+                    }
+
+                    new AutoSuggestForm(suggestions.ToArray()).Show();
+
+                    break;
                 case "Save As":
                     var dataType = message["dataType"];
-                    var type = SnippetManager.GetFileExtFromLanguage(dataType);
+                    var filext = SnippetManager.GetFileExtFromLanguage(dataType);
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-                    saveFileDialog.Filter = $"{dataType} files (*.{type})|*.{type}|All files (*.*)|*.*";
+                    saveFileDialog.Filter = $"{dataType} files (*.{filext})|*.{filext}|All files (*.*)|*.*";
                     saveFileDialog.RestoreDirectory = true;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {

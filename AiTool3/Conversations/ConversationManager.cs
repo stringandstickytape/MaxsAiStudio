@@ -68,24 +68,33 @@ namespace AiTool3.Conversations
 
         }
 
-        public async Task RegenerateAllSummaries(Model summaryModel, bool useLocalAi, DataGridView dgv)
+        public async Task RegenerateSummary(Model summaryModel, bool useLocalAi, DataGridView dgv, string guid)
         {
             // Get all conversation files
-            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "v3-conversation-*.json").OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
+            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), $"v3-conversation-{guid}.json").OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
 
             // get the guids from v3-conversation-{guid}.json
-            
+
             foreach (string file in files)
             {
                 // Load each conversation
-                string guid = Path.GetFileNameWithoutExtension(file).Replace("v3-conversation-", "").Replace(".json","");
-                LoadConversation(guid);
-                
+                string guid2 = Path.GetFileNameWithoutExtension(file).Replace("v3-conversation-", "").Replace(".json", "");
+                LoadConversation(guid2);
+
                 // Regenerate summary
                 string newSummary = await GenerateConversationSummary(summaryModel, useLocalAi);
 
                 Debug.WriteLine(newSummary);
 
+                // find the dgv row where column 0 == guid
+                foreach (DataGridViewRow row in dgv.Rows)
+                {
+                    if (row.Cells[0].Value.ToString() == guid2)
+                    {
+                        row.Cells[3].Value = newSummary;
+                        break;  
+                    }
+                }
             }
 
             // Refresh the DataGridView

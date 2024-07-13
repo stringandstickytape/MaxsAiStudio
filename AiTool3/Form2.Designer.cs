@@ -174,6 +174,7 @@ namespace AiTool3
             dgvConversations.BackgroundColor = Color.BlanchedAlmond;
             dgvConversations.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvConversations.Location = new Point(3, 48);
+            dgvConversations.MultiSelect = false;
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
             dgvConversations.Size = new Size(467, 473);

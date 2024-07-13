@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
+using System.Windows.Forms;
 
 namespace AiTool3.Helpers
 {
@@ -57,6 +58,17 @@ namespace AiTool3.Helpers
 
 
             }
+
+
+
+
+            // Handle the CellMouseClick event
+
+
         }
+
+ 
+
+
     }
 }
