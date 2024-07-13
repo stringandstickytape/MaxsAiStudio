@@ -82,7 +82,7 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(1610, 6);
+            cbEngine.Location = new Point(1130, 6);
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(316, 40);
             cbEngine.TabIndex = 3;
@@ -108,7 +108,6 @@ namespace AiTool3
             // splitContainer1.Panel1
             // 
             splitContainer1.Panel1.Controls.Add(splitContainer5);
-            splitContainer1.Panel1Collapsed = true;
             // 
             // splitContainer1.Panel2
             // 
@@ -121,7 +120,7 @@ namespace AiTool3
             splitContainer1.Panel2.Controls.Add(btnClear);
             splitContainer1.Panel2.Controls.Add(btnRestart);
             splitContainer1.Size = new Size(1929, 1120);
-            splitContainer1.SplitterDistance = 721;
+            splitContainer1.SplitterDistance = 476;
             splitContainer1.TabIndex = 9;
             // 
             // splitContainer5
@@ -140,17 +139,18 @@ namespace AiTool3
             // splitContainer5.Panel2
             // 
             splitContainer5.Panel2.Controls.Add(ndcWeb);
-            splitContainer5.Size = new Size(715, 1111);
-            splitContainer5.SplitterDistance = 434;
+            splitContainer5.Size = new Size(470, 1111);
+            splitContainer5.SplitterDistance = 528;
             splitContainer5.TabIndex = 1;
             // 
             // btnClearSearch
             // 
+            btnClearSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnClearSearch.BackColor = Color.Black;
             btnClearSearch.ForeColor = Color.White;
-            btnClearSearch.Location = new Point(526, 10);
+            btnClearSearch.Location = new Point(357, 11);
             btnClearSearch.Name = "btnClearSearch";
-            btnClearSearch.Size = new Size(93, 32);
+            btnClearSearch.Size = new Size(113, 32);
             btnClearSearch.TabIndex = 2;
             btnClearSearch.Text = "Clear";
             btnClearSearch.UseVisualStyleBackColor = false;
@@ -164,19 +164,19 @@ namespace AiTool3
             tbSearch.Location = new Point(9, 11);
             tbSearch.Name = "tbSearch";
             tbSearch.PlaceholderText = "Search...";
-            tbSearch.Size = new Size(604, 31);
+            tbSearch.Size = new Size(342, 31);
             tbSearch.TabIndex = 1;
             tbSearch.TextChanged += tbSearch_TextChanged;
             // 
             // dgvConversations
             // 
             dgvConversations.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvConversations.BackgroundColor = Color.Black;
+            dgvConversations.BackgroundColor = Color.BlanchedAlmond;
             dgvConversations.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvConversations.Location = new Point(3, 46);
+            dgvConversations.Location = new Point(3, 48);
             dgvConversations.Name = "dgvConversations";
             dgvConversations.RowHeadersWidth = 62;
-            dgvConversations.Size = new Size(709, 385);
+            dgvConversations.Size = new Size(467, 473);
             dgvConversations.TabIndex = 0;
             dgvConversations.CellClick += dgvConversations_CellClick;
             // 
@@ -186,9 +186,9 @@ namespace AiTool3
             ndcWeb.BackColor = Color.DarkGray;
             ndcWeb.CreationProperties = null;
             ndcWeb.DefaultBackgroundColor = Color.White;
-            ndcWeb.Location = new Point(90, 140);
+            ndcWeb.Location = new Point(3, -5);
             ndcWeb.Name = "ndcWeb";
-            ndcWeb.Size = new Size(446, 329);
+            ndcWeb.Size = new Size(464, 581);
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
@@ -214,16 +214,15 @@ namespace AiTool3
             chatWebView.DefaultBackgroundColor = Color.White;
             chatWebView.Location = new Point(9, 96);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1917, 1021);
+            chatWebView.Size = new Size(1437, 1021);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             // 
             // buttonStartRecording
             // 
-            buttonStartRecording.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(1456, 5);
+            buttonStartRecording.Location = new Point(146, 3);
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(148, 85);
             buttonStartRecording.TabIndex = 10;
@@ -233,10 +232,9 @@ namespace AiTool3
             // 
             // buttonAttachImage
             // 
-            buttonAttachImage.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(1361, 5);
+            buttonAttachImage.Location = new Point(51, 3);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(89, 85);
             buttonAttachImage.TabIndex = 12;
@@ -249,7 +247,7 @@ namespace AiTool3
             buttonNewKeepAll.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(1210, 2);
+            buttonNewKeepAll.Location = new Point(979, 6);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 85);
             buttonNewKeepAll.TabIndex = 11;
@@ -262,7 +260,7 @@ namespace AiTool3
             btnClear.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(925, 5);
+            btnClear.Location = new Point(694, 9);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(128, 82);
             btnClear.TabIndex = 8;
@@ -275,7 +273,7 @@ namespace AiTool3
             btnRestart.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnRestart.BackColor = Color.Black;
             btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(1059, 4);
+            btnRestart.Location = new Point(828, 8);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(145, 85);
             btnRestart.TabIndex = 9;

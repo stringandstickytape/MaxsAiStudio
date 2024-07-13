@@ -50,6 +50,8 @@ namespace AiTool3
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
 
+            splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
+
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
@@ -267,6 +269,8 @@ namespace AiTool3
             }
             finally
             {
+                await chatWebView.DisableCancelButton();
+                await chatWebView.EnableSendButton();
                 stopwatch.Stop();
                 updateTimer.Stop();
             }
@@ -430,6 +434,7 @@ namespace AiTool3
         private async void btnClear_Click(object sender, EventArgs e)
         {
             await BeginNewConversation();
+            await chatWebView.SetUserPrompt("");
             await PopulateUiForTemplate(selectedTemplate!);
         }
 

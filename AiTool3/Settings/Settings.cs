@@ -31,6 +31,10 @@ namespace AiTool3.Settings
         public bool StreamResponses { get; set; } = false;
 
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
+
+        [MyDisplayNameAttr("Collapse conversation pane at startup")]
+        public bool CollapseConversationPane { get; set; } = false;
+
         public Settings()
         {
             //var existingSettings = ReadFromJson();
