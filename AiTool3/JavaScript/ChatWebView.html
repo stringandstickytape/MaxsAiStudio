@@ -31,10 +31,10 @@
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
         const cancelButton = document.getElementById('cancelButton');
-        let isCtrlPressed = false;
         const systemPrompt = document.getElementById('systemPrompt');
         const chatHeaderLabel = document.getElementById('chatHeaderLabel');
 
+        let isCtrlPressed = false;
         let sendButtonColor = '#4a90e2';
         let cancelButtonColor = '#e74c3c';
         let currentTempMessage = null;
@@ -86,24 +86,21 @@
         });
 
         function disableButton(id) {
-            const cancelButton = document.getElementById(id);
-            cancelButton.disabled = true;
-            cancelButton.style.backgroundColor = '#7f8c8d'; // Grey color
-            cancelButton.style.cursor = 'not-allowed';
-            cancelButton.style.opacity = '0.6';
+            const button = document.getElementById(id);
+            button.disabled = true;
+            button.style.backgroundColor = '#7f8c8d'; // Grey color
+            button.style.cursor = 'not-allowed';
+            button.style.opacity = '0.6';
         }
 
         function enableButton(id) {
-
-            var color = id === "cancelButton" ? cancelButtonColor : sendButtonColor;
-
-            const cancelButton = document.getElementById(id);
-            cancelButton.disabled = false;
-            cancelButton.style.backgroundColor = color;
-            cancelButton.style.cursor = 'pointer';
-            cancelButton.style.opacity = '1';
+            const color = id === "cancelButton" ? cancelButtonColor : sendButtonColor;
+            const button = document.getElementById(id);
+            button.disabled = false;
+            button.style.backgroundColor = color;
+            button.style.cursor = 'pointer';
+            button.style.opacity = '1';
         }
-
 
         function AddInitialMessages(messages) {
             messages.forEach(message => {
@@ -144,25 +141,7 @@
             messageDiv.className = `message ${message.Role === 0 ? "user" : "assistant"}`;
             messageDiv.dataset.Guid = message.Guid;
 
-            messageDiv.addEventListener('mousedown', (e) => {
-                if (isCtrlPressed) {
-                    messageDiv.draggable = true;
-                    messageDiv.classList.add('draggable');
-                }
-            });
-
-            messageDiv.addEventListener('mouseup', () => {
-                messageDiv.draggable = false;
-                messageDiv.classList.remove('draggable');
-            });
-
-            messageDiv.addEventListener('dragstart', (e) => {
-                if (isCtrlPressed) {
-                    e.dataTransfer.setData('text/plain', message.Content);
-                } else {
-                    e.preventDefault();
-                }
-            });
+            addDragAndDropListeners(messageDiv, message);
 
             const RoleDiv = document.createElement('div');
             RoleDiv.className = 'role';
@@ -171,64 +150,89 @@
             const ContentDiv = document.createElement('div');
             ContentDiv.className = 'message-content';
 
-            const backtick = String.fromCharCode(96);
-            const tripleBacktick = backtick.repeat(3);
-            const regex = new RegExp(tripleBacktick + '([\\s\\S]*?)' + tripleBacktick);
-            const snippets = message.Content.split(regex);
-
-            snippets.forEach((snippet, index) => {
-                if (index % 2 === 0) {
-                    // Regular text
-                    const textNode = document.createTextNode(snippet);
-                    ContentDiv.appendChild(textNode);
-                } else {
-                    // Code block container
-                    const codeBlockContainer = document.createElement('div');
-                    codeBlockContainer.className = 'code-block-container';
-
-                    // Code block
-                    const codeBlock = document.createElement('div');
-                    codeBlock.className = 'code-block';
-
-                    // Split the snippet into lines
-                    const lines = snippet.trim().split('\n');
-                    let dataType = '';
-                    // The first line is the data type
-                    if (lines.length > 0 && snippet[0] != "\n") {
-                        dataType = lines[0].trim();
-                        lines.shift();
-                    }
-
-                    codeBlock.dataset.type = dataType;
-
-                    // Create type label and button bar
-                    const typeLabelContainer = document.createElement('div');
-                    typeLabelContainer.style.display = 'flex';
-                    typeLabelContainer.style.alignItems = 'center';
-
-                    const typeLabel = document.createElement('div');
-                    typeLabel.className = 'code-type-label';
-                    typeLabel.textContent = dataType;
-
-                    const buttonBar = createButtonBar(message.Guid, lines.join('\n').trim(), dataType);
-
-                    typeLabelContainer.appendChild(typeLabel);
-                    typeLabelContainer.appendChild(buttonBar);
-
-                    codeBlockContainer.appendChild(typeLabelContainer);
-
-                    // Join the remaining lines and set as textContent
-                    codeBlock.textContent = lines.join('\n').trim();
-
-                    codeBlockContainer.appendChild(codeBlock);
-                    ContentDiv.appendChild(codeBlockContainer);
-                }
-            });
+            parseMessageContent(message.Content, ContentDiv);
 
             messageDiv.appendChild(RoleDiv);
             messageDiv.appendChild(ContentDiv);
 
             return messageDiv;
+        }
+
+        function addDragAndDropListeners(element, message) {
+            element.addEventListener('mousedown', (e) => {
+                if (isCtrlPressed) {
+                    element.draggable = true;
+                    element.classList.add('draggable');
+                }
+            });
+
+            element.addEventListener('mouseup', () => {
+                element.draggable = false;
+                element.classList.remove('draggable');
+            });
+
+            element.addEventListener('dragstart', (e) => {
+                if (isCtrlPressed) {
+                    e.dataTransfer.setData('text/plain', message.Content);
+                } else {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        function parseMessageContent(content, ContentDiv) {
+            const backtick = String.fromCharCode(96);
+            const tripleBacktick = backtick.repeat(3);
+            const regex = new RegExp(tripleBacktick + '([\\s\\S]*?)' + tripleBacktick);
+            const snippets = content.split(regex);
+
+            snippets.forEach((snippet, index) => {
+                if (index % 2 === 0) {
+                    const textNode = document.createTextNode(snippet);
+                    ContentDiv.appendChild(textNode);
+                } else {
+                    const codeBlockContainer = createCodeBlock(snippet);
+                    ContentDiv.appendChild(codeBlockContainer);
+                }
+            });
+        }
+
+        function createCodeBlock(snippet) {
+            const codeBlockContainer = document.createElement('div');
+            codeBlockContainer.className = 'code-block-container';
+
+            const codeBlock = document.createElement('div');
+            codeBlock.className = 'code-block';
+
+            const lines = snippet.trim().split('\n');
+            let dataType = '';
+            if (lines.length > 0 && snippet[0] != "\n") {
+                dataType = lines[0].trim();
+                lines.shift();
+            }
+
+            codeBlock.dataset.type = dataType;
+
+            const typeLabelContainer = document.createElement('div');
+            typeLabelContainer.style.display = 'flex';
+            typeLabelContainer.style.alignItems = 'center';
+
+            const typeLabel = document.createElement('div');
+            typeLabel.className = 'code-type-label';
+            typeLabel.textContent = dataType;
+
+            const buttonBar = createButtonBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
+
+            typeLabelContainer.appendChild(typeLabel);
+            typeLabelContainer.appendChild(buttonBar);
+
+            codeBlockContainer.appendChild(typeLabelContainer);
+
+            codeBlock.textContent = lines.join('\n').trim();
+
+            codeBlockContainer.appendChild(codeBlock);
+
+            return codeBlockContainer;
         }
 
         function createButtonBar(guid, content, dataType) {
@@ -295,16 +299,14 @@
         });
 
         sendButton.addEventListener('click', sendMessage);
-        
+
         cancelButton.addEventListener('click', () => {
-            
             window.chrome.webview.postMessage({
                 type: 'cancel',
                 content: ''
             });
         });
 
-        // Track Ctrl key state
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Control') {
                 isCtrlPressed = true;
@@ -321,7 +323,6 @@
             }
         });
 
-        // Add drag and drop event listeners
         chatInput.addEventListener('dragover', (e) => {
             if (isCtrlPressed) {
                 e.preventDefault();
