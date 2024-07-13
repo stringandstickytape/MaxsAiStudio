@@ -38,7 +38,6 @@ namespace AiTool3.UI
             switch (message?["type"])
             {
                 case "send":
-                    
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
                     break;
                 case "cancel":
@@ -110,7 +109,8 @@ namespace AiTool3.UI
 
         internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");
         internal async Task EnableCancelButton() => await ExecuteScriptAsync("enableButton('cancelButton')");
-
+        internal async Task DisableSendButton() => await ExecuteScriptAsync("disableButton('sendButton')");
+        internal async Task EnableSendButton() => await ExecuteScriptAsync("enableButton('sendButton')");
         internal async Task AddMessage(CompletionMessage message)
         {
             // run "addMessages" js function
@@ -128,6 +128,7 @@ namespace AiTool3.UI
             // run "addMessages" js function
             await ExecuteScriptAsync($"ClearMessages()");
             await DisableCancelButton();
+            await EnableSendButton();
         }
 
         internal async Task SetUserPrompt(string content)

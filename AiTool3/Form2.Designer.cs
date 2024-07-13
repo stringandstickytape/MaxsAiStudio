@@ -39,14 +39,13 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
-            splitContainer2 = new SplitContainer();
-            splitContainer3 = new SplitContainer();
+            button1 = new Button();
             chatWebView = new ChatWebView();
+            buttonStartRecording = new Button();
             buttonAttachImage = new Button();
             buttonNewKeepAll = new Button();
-            buttonStartRecording = new Button();
-            btnRestart = new Button();
             btnClear = new Button();
+            btnRestart = new Button();
             groupBox1 = new GroupBox();
             buttonAddTemplate = new Button();
             cbCategories = new ComboBox();
@@ -67,14 +66,6 @@ namespace AiTool3
             splitContainer5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvConversations).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ndcWeb).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
-            splitContainer2.Panel1.SuspendLayout();
-            splitContainer2.Panel2.SuspendLayout();
-            splitContainer2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
-            splitContainer3.Panel1.SuspendLayout();
-            splitContainer3.Panel2.SuspendLayout();
-            splitContainer3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)chatWebView).BeginInit();
             groupBox1.SuspendLayout();
             menuBar.SuspendLayout();
@@ -92,9 +83,9 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(3, 3);
+            cbEngine.Location = new Point(1610, 6);
             cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(1192, 40);
+            cbEngine.Size = new Size(316, 40);
             cbEngine.TabIndex = 3;
             // 
             // rtbOutput
@@ -130,10 +121,18 @@ namespace AiTool3
             // splitContainer1.Panel1
             // 
             splitContainer1.Panel1.Controls.Add(splitContainer5);
+            splitContainer1.Panel1Collapsed = true;
             // 
             // splitContainer1.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(splitContainer2);
+            splitContainer1.Panel2.Controls.Add(button1);
+            splitContainer1.Panel2.Controls.Add(chatWebView);
+            splitContainer1.Panel2.Controls.Add(cbEngine);
+            splitContainer1.Panel2.Controls.Add(buttonStartRecording);
+            splitContainer1.Panel2.Controls.Add(buttonAttachImage);
+            splitContainer1.Panel2.Controls.Add(buttonNewKeepAll);
+            splitContainer1.Panel2.Controls.Add(btnClear);
+            splitContainer1.Panel2.Controls.Add(btnRestart);
             splitContainer1.Size = new Size(1929, 1120);
             splitContainer1.SplitterDistance = 721;
             splitContainer1.TabIndex = 9;
@@ -206,47 +205,18 @@ namespace AiTool3
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
-            // splitContainer2
+            // button1
             // 
-            splitContainer2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            splitContainer2.FixedPanel = FixedPanel.Panel1;
-            splitContainer2.IsSplitterFixed = true;
-            splitContainer2.Location = new Point(3, 3);
-            splitContainer2.Name = "splitContainer2";
-            splitContainer2.Orientation = Orientation.Horizontal;
-            // 
-            // splitContainer2.Panel1
-            // 
-            splitContainer2.Panel1.Controls.Add(cbEngine);
-            // 
-            // splitContainer2.Panel2
-            // 
-            splitContainer2.Panel2.Controls.Add(splitContainer3);
-            splitContainer2.Size = new Size(1198, 1117);
-            splitContainer2.SplitterDistance = 46;
-            splitContainer2.TabIndex = 8;
-            // 
-            // splitContainer3
-            // 
-            splitContainer3.Dock = DockStyle.Fill;
-            splitContainer3.Location = new Point(0, 0);
-            splitContainer3.Name = "splitContainer3";
-            splitContainer3.Orientation = Orientation.Horizontal;
-            // 
-            // splitContainer3.Panel1
-            // 
-            splitContainer3.Panel1.Controls.Add(chatWebView);
-            // 
-            // splitContainer3.Panel2
-            // 
-            splitContainer3.Panel2.Controls.Add(buttonAttachImage);
-            splitContainer3.Panel2.Controls.Add(buttonNewKeepAll);
-            splitContainer3.Panel2.Controls.Add(buttonStartRecording);
-            splitContainer3.Panel2.Controls.Add(btnRestart);
-            splitContainer3.Panel2.Controls.Add(btnClear);
-            splitContainer3.Size = new Size(1198, 1067);
-            splitContainer3.SplitterDistance = 941;
-            splitContainer3.TabIndex = 0;
+            button1.BackColor = Color.FromArgb(64, 64, 64);
+            button1.FlatStyle = FlatStyle.Popup;
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(9, 5);
+            button1.Name = "button1";
+            button1.Size = new Size(31, 84);
+            button1.TabIndex = 13;
+            button1.Text = ">\r\n>\r\n>";
+            button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
             // 
             // chatWebView
             // 
@@ -255,18 +225,31 @@ namespace AiTool3
             chatWebView.BackColor = Color.RosyBrown;
             chatWebView.CreationProperties = null;
             chatWebView.DefaultBackgroundColor = Color.White;
-            chatWebView.Location = new Point(3, 3);
+            chatWebView.Location = new Point(9, 96);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1185, 935);
+            chatWebView.Size = new Size(1917, 1021);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             // 
+            // buttonStartRecording
+            // 
+            buttonStartRecording.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonStartRecording.BackColor = Color.Black;
+            buttonStartRecording.ForeColor = Color.White;
+            buttonStartRecording.Location = new Point(1456, 5);
+            buttonStartRecording.Name = "buttonStartRecording";
+            buttonStartRecording.Size = new Size(148, 85);
+            buttonStartRecording.TabIndex = 10;
+            buttonStartRecording.Text = "Voice Prompt";
+            buttonStartRecording.UseVisualStyleBackColor = false;
+            buttonStartRecording.Click += buttonStartRecording_Click;
+            // 
             // buttonAttachImage
             // 
-            buttonAttachImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonAttachImage.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(439, 37);
+            buttonAttachImage.Location = new Point(1361, 5);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(89, 85);
             buttonAttachImage.TabIndex = 12;
@@ -276,10 +259,10 @@ namespace AiTool3
             // 
             // buttonNewKeepAll
             // 
-            buttonNewKeepAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonNewKeepAll.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonNewKeepAll.BackColor = Color.Black;
             buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(289, 37);
+            buttonNewKeepAll.Location = new Point(1210, 2);
             buttonNewKeepAll.Name = "buttonNewKeepAll";
             buttonNewKeepAll.Size = new Size(145, 85);
             buttonNewKeepAll.TabIndex = 11;
@@ -287,44 +270,31 @@ namespace AiTool3
             buttonNewKeepAll.UseVisualStyleBackColor = false;
             buttonNewKeepAll.Click += buttonNewKeepContext_Click;
             // 
-            // buttonStartRecording
-            // 
-            buttonStartRecording.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            buttonStartRecording.BackColor = Color.Black;
-            buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(534, 37);
-            buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(148, 85);
-            buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Voice Prompt";
-            buttonStartRecording.UseVisualStyleBackColor = false;
-            buttonStartRecording.Click += buttonStartRecording_Click;
-            // 
-            // btnRestart
-            // 
-            btnRestart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnRestart.BackColor = Color.Black;
-            btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(137, 37);
-            btnRestart.Name = "btnRestart";
-            btnRestart.Size = new Size(145, 85);
-            btnRestart.TabIndex = 9;
-            btnRestart.Text = "New w/prompt";
-            btnRestart.UseVisualStyleBackColor = false;
-            btnRestart.Click += btnRestart_Click;
-            // 
             // btnClear
             // 
-            btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnClear.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnClear.BackColor = Color.Black;
             btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(3, 37);
+            btnClear.Location = new Point(925, 5);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(128, 82);
             btnClear.TabIndex = 8;
             btnClear.Text = "New";
             btnClear.UseVisualStyleBackColor = false;
             btnClear.Click += btnClear_Click;
+            // 
+            // btnRestart
+            // 
+            btnRestart.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnRestart.BackColor = Color.Black;
+            btnRestart.ForeColor = Color.White;
+            btnRestart.Location = new Point(1059, 4);
+            btnRestart.Name = "btnRestart";
+            btnRestart.Size = new Size(145, 85);
+            btnRestart.TabIndex = 9;
+            btnRestart.Text = "New w/prompt";
+            btnRestart.UseVisualStyleBackColor = false;
+            btnRestart.Click += btnRestart_Click;
             // 
             // groupBox1
             // 
@@ -472,14 +442,6 @@ namespace AiTool3
             splitContainer5.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvConversations).EndInit();
             ((System.ComponentModel.ISupportInitialize)ndcWeb).EndInit();
-            splitContainer2.Panel1.ResumeLayout(false);
-            splitContainer2.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
-            splitContainer2.ResumeLayout(false);
-            splitContainer3.Panel1.ResumeLayout(false);
-            splitContainer3.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
-            splitContainer3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)chatWebView).EndInit();
             groupBox1.ResumeLayout(false);
             menuBar.ResumeLayout(false);
@@ -499,8 +461,6 @@ namespace AiTool3
         private ButtonedRichTextBox rtbOutput;
         private ButtonedRichTextBox rtbInput;
         private SplitContainer splitContainer1;
-        private SplitContainer splitContainer2;
-        private SplitContainer splitContainer3;
         private Button btnClear;
         private DataGridView dgvConversations;
         private SplitContainer splitContainer5;
@@ -522,5 +482,6 @@ namespace AiTool3
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
         private SplitContainer splitContainer4;
         private ChatWebView chatWebView;
+        private Button button1;
     }
 }

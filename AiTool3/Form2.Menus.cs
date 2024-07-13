@@ -16,17 +16,15 @@ namespace AiTool3
     {
         private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
         {
-            var reviewCodeMenuItem = CreateMenuItem(l);
+            var reviewCodeMenuItem = CreateMenuItem(l, ref specialsMenu);
             reviewCodeMenuItem.Click += q;
-
-            specialsMenu.DropDownItems.Add(reviewCodeMenuItem);
         }
 
         private void InitialiseMenus()
         {
             var fileMenu = CreateMenu("File");
 
-            var quitMenuItem = CreateMenuItem("Quit");
+            var quitMenuItem = CreateMenuItem("Quit", ref fileMenu);
 
             quitMenuItem.Click += (s, e) =>
             {
@@ -35,7 +33,7 @@ namespace AiTool3
 
             var editMenu = CreateMenu("Edit");
 
-            var clearMenuItem = CreateMenuItem("Clear");
+            var clearMenuItem = CreateMenuItem("Clear", ref editMenu);
 
             clearMenuItem.Click += (s, e) =>
             {
@@ -43,7 +41,7 @@ namespace AiTool3
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var settingsMenuItem = CreateMenuItem("Settings");
+            var settingsMenuItem = CreateMenuItem("Settings", ref editMenu);
 
             settingsMenuItem.Click += (s, e) =>
             {
@@ -57,9 +55,6 @@ namespace AiTool3
                 }
             };
 
-            fileMenu.DropDownItems.Add(quitMenuItem);
-            editMenu.DropDownItems.Add(clearMenuItem);
-            editMenu.DropDownItems.Add(settingsMenuItem);
             menuBar.Items.Add(fileMenu);
             menuBar.Items.Add(editMenu);
 
@@ -76,12 +71,11 @@ namespace AiTool3
 
             foreach (var topic in TopicSet.Topics)
             {
-                var categoryMenuItem = CreateMenuItem(topic.Name);
-                templatesMenu.DropDownItems.Add(categoryMenuItem);
+                var categoryMenuItem = CreateMenuItem(topic.Name, ref templatesMenu);
 
                 foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
                 {
-                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, true);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem,  true);
                     templateMenuItem.Click += async (s, e) =>
                     {
                         await SelectTemplate(topic.Name, template.TemplateName);
@@ -90,12 +84,11 @@ namespace AiTool3
                     {
                         EditAndSaveTemplate(template, false, topic.Name);
                     };
-                    categoryMenuItem.DropDownItems.Add(templateMenuItem);
                 }
 
                 // at the end of each category, add a separator then an Add... option
                 categoryMenuItem.DropDownItems.Add(new ToolStripSeparator());
-                var addMenuItem = CreateMenuItem("Add...");
+                var addMenuItem = CreateMenuItem("Add...", ref categoryMenuItem);
                 addMenuItem.Click += (s, e) =>
                 {
                     // s is a ToolStripMenuItem
@@ -105,7 +98,7 @@ namespace AiTool3
                     
                     EditAndSaveTemplate(template, true, topicName);
 
-                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, true);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateMenuItem.Click += async (s, e) =>
                     {
                         await SelectTemplate(topicName, template.TemplateName);
@@ -115,14 +108,11 @@ namespace AiTool3
                         EditAndSaveTemplate(template, false, topicName);
                     };
 
-                    categoryMenuItem.DropDownItems.Insert(categoryMenuItem.DropDownItems.Count - 2, templateMenuItem);
-
                     // add to TopicSet.Topics
                     var topic = TopicSet.Topics.First(x => x.Name == topicName);
                     topic.Templates.Add(template);
                 };
 
-                categoryMenuItem.DropDownItems.Add(addMenuItem);
 
             }
 
@@ -227,9 +217,14 @@ namespace AiTool3
             quitMenuItem.ForeColor = Color.White;
             quitMenuItem.BackColor = Color.Black;
         */
-        private static ToolStripMenuItem CreateMenuItem(string text, bool isTemplate = false)
+        private static ToolStripMenuItem CreateMenuItem(string text, ref ToolStripMenuItem dropDownItems, bool isTemplate = false)
         {
-            return isTemplate ? new TemplateMenuItem(text) : new ToolStripMenuItem(text);
+            if (isTemplate)
+                return new TemplateMenuItem(text, ref dropDownItems);
+
+            var retVal = new ToolStripMenuItem(text);
+            dropDownItems.DropDownItems.Add(retVal);
+            return retVal;
         }
     }
 }

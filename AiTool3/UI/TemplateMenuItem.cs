@@ -5,12 +5,22 @@
     private const int ButtonWidth = 16;
     private bool _isMouseOverButton;
 
-    public TemplateMenuItem(string text) : base(text)
+    public TemplateMenuItem(string text, ref ToolStripMenuItem dropDownItems) : base(text)
     {
         TextAlign = ContentAlignment.MiddleLeft;
         AutoSize = false;
         Height = 32;
-        Width = 400;
+        
+
+        // get the owner's font settings
+        var parentFont = dropDownItems.Owner.Font;
+
+        // measure "text" using that font
+        var size = TextRenderer.MeasureText(text, parentFont);
+
+        Width = size.Width+48;
+
+        dropDownItems.DropDownItems.Add(this);
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -20,16 +30,16 @@
 
         // Calculate text rectangle
         Rectangle textRect = new Rectangle(48, 0, Width - ButtonWidth - 10, Height);
-
+        
         // Draw the edit button
         Rectangle buttonRect = new Rectangle(0, 0, 32, 32);
-
+        
         using (Bitmap bmp2 = new Bitmap(32, 32))
         using (Graphics g = Graphics.FromImage(bmp2))
         {
             // Change background color to pink when mouse is over the button
             g.Clear(_isMouseOverButton ? Color.GreenYellow : Color.LightGray);
-
+        
             using (StringFormat sf = new StringFormat())
             {
                 sf.Alignment = StringAlignment.Center;

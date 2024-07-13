@@ -86,6 +86,7 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
             _cts?.Cancel();
+            await chatWebView.DisableSendButton();
             await chatWebView.EnableCancelButton();
         }
 
@@ -100,7 +101,7 @@ namespace AiTool3
             await BeginNewConversation();
         }
 
-        private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) =>  Clipboard.SetText(e.Content);
+        private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
 
         private void AutoSuggestStringSelected(string selectedString)
         {
@@ -155,8 +156,6 @@ namespace AiTool3
         {
             // for each split container incl in child items
             splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
-            splitContainer2.Paint += new PaintEventHandler(SplitContainer_Paint!);
-            splitContainer3.Paint += new PaintEventHandler(SplitContainer_Paint!);
             splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
         }
 
@@ -203,7 +202,7 @@ namespace AiTool3
             var parents = ConversationManager.GetParentNodeList();
 
             await chatWebView.AddMessages(parents);
-            
+
         }
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
@@ -221,7 +220,7 @@ namespace AiTool3
             var snippets = snippetManager.FindSnippets(text);
 
             foreach (var snippet in snippets.Snippets)
-            {   
+            {
                 var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
 
                 var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
@@ -243,7 +242,7 @@ namespace AiTool3
                 richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
 
                 var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
-                
+
                 richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
 
             }
@@ -264,8 +263,10 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
+                await chatWebView.SetUserPrompt("");
                 await ProcessAiResponse(response, model);
                 await chatWebView.DisableCancelButton();
+                await chatWebView.EnableSendButton();
                 UpdateUi(response);
                 await UpdateConversationSummary();
             }
@@ -286,6 +287,8 @@ namespace AiTool3
             _cts = new CancellationTokenSource();
             stopwatch.Restart();
             updateTimer.Start();
+
+            await chatWebView.DisableSendButton();
             await chatWebView.EnableCancelButton();
         }
 
@@ -424,7 +427,7 @@ namespace AiTool3
 
             var links2 = ConversationManager.CurrentConversation.Messages
                 .Where(x => x.Parent != null)
-                .Select(x => new Link { source = x.Parent!, target = x.Guid !}).ToList();
+                .Select(x => new Link { source = x.Parent!, target = x.Guid! }).ToList();
 
 
             await webViewManager.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
@@ -710,6 +713,18 @@ namespace AiTool3
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             webViewManager!.webView.Dispose();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
+
+            button1.Text = splitContainer1.Panel1Collapsed ? @">
+>
+>" : @"<
+<
+<";
+
         }
     }
 }

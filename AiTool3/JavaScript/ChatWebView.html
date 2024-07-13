@@ -242,7 +242,6 @@
         function sendMessage() {
             const message = chatInput.value.trim();
             if (message) {
-                chatInput.value = '';
                 window.chrome.webview.postMessage({
                     type: 'send',
                     content: message
