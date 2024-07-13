@@ -98,40 +98,85 @@ namespace AiTool3.Providers
                 {
                     response.EnsureSuccessStatusCode();
                     using (var stream = await response.Content.ReadAsStreamAsync())
-                    using (var reader = new StreamReader(stream))
-                    using (var jsonReader = new JsonTextReader(reader))
                     {
-                        jsonReader.SupportMultipleContent = true;
-
+                        byte[] buffer = new byte[48];
+                        Decoder decoder = new UTF8Encoding(false).GetDecoder();
                         StringBuilder fullResponse = new StringBuilder();
-                        var serializer = new JsonSerializer();
+                        StringBuilder jsonBuffer = new StringBuilder();
+                        char[] charBuffer = new char[1024];
 
-                        while (await jsonReader.ReadAsync())
+                        var indent = 0;
+
+                        while (true)
                         {
-                            if (jsonReader.TokenType == JsonToken.StartObject)
-                            {
-                                JObject streamData = await JObject.LoadAsync(jsonReader);
+                            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                            if (bytesRead == 0) break;
 
-                                if (streamData["candidates"] != null)
+                            int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, charBuffer, 0);
+
+                            for (int i = 0; i < charsDecodedCount; i++)
+                            {
+                                char c = charBuffer[i];
+                                jsonBuffer.Append(c);
+
+                                if(c == '{')
                                 {
-                                    var textChunk = streamData["candidates"][0]["content"]["parts"][0]["text"]?.ToString();
-                                    if (!string.IsNullOrEmpty(textChunk))
+                                    indent++;
+                                }
+
+                                if (c == '}')
+                                {
+                                    indent--;
+                                    if (indent == 0)
                                     {
-                                        fullResponse.Append(textChunk);
+                                        var json = jsonBuffer.ToString().Substring(jsonBuffer.ToString().IndexOf('{'));
+
+                                        await ProcessJsonObject(json, fullResponse);
+                                        jsonBuffer.Clear();
                                     }
                                 }
                             }
                         }
 
+                        if (jsonBuffer.Length > 0)
+                        {
+                            var json = jsonBuffer.ToString().Substring(jsonBuffer.ToString().IndexOf('{'));
+
+                            await ProcessJsonObject(json, fullResponse);
+                        }
+
                         StreamingComplete?.Invoke(this, null);
 
-                        // Note: Token usage information might not be available in streaming responses
                         return new AiResponse { ResponseText = fullResponse.ToString(), Success = true };
                     }
                 }
             }
         }
 
+        private async Task ProcessJsonObject(string jsonString, StringBuilder fullResponse)
+        {
+            if (!string.IsNullOrWhiteSpace(jsonString))
+            {
+                Debug.WriteLine(jsonString);
+                try
+                {
+                    var streamData = JObject.Parse(jsonString);
+                    if (streamData["candidates"] != null)
+                    {
+                        var textChunk = streamData["candidates"][0]["content"]["parts"][0]["text"]?.ToString();
+                        if (!string.IsNullOrEmpty(textChunk))
+                        {Debug.WriteLine(textChunk);
+                            fullResponse.Append(textChunk);
+
+                            StreamingTextReceived?.Invoke(this, textChunk);
+                        }
+                    }
+                }
+                catch (JsonReaderException)
+                {
+                }
+            }
+        }
 
         private async Task<AiResponse> NonStreamingResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken)
         {
