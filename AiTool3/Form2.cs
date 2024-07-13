@@ -21,6 +21,8 @@ namespace AiTool3
 {
     public partial class Form2 : Form
     {
+        private SnippetManager snippetManager = new SnippetManager();
+
         public static readonly string ThreeTicks = new string('`', 3);
 
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
@@ -237,8 +239,6 @@ namespace AiTool3
             //await chatWebView.ChangeChatHeaderLabel(ConversationManager.PreviousCompletion.Engine);
             await chatWebView.UpdateSystemPrompt(systemPrompt);
 
-            MarkUpSnippets(rtbOutput, ConversationManager.PreviousCompletion?.Content ?? "", clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
-
             var parents = ConversationManager.GetParentNodeList();
 
             await chatWebView.AddMessages(parents);
@@ -248,49 +248,6 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             await FetchAiInputResponse();
-        }
-
-        private SnippetManager snippetManager = new SnippetManager();
-
-        public List<Snippet> MarkUpSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
-        {
-            //richTextBox.Clear();
-            //richTextBox.Text = text;
-            var snippets = snippetManager.FindSnippets(text);
-
-            //foreach (var snippet in snippets.Snippets)
-            //{
-            //    var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
-            //
-            //    var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
-            //
-            //    richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-            //    richTextBox.SelectionColor = Color.Orange;
-            //
-            //    switch (snippet.Type)
-            //    {
-            //        case ".html":
-            //        case ".htm":
-            //            HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-            //            break;
-            //        case ".cs":
-            //            CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-            //            break;
-            //    }
-            //
-            //    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
-            //
-            //    var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
-            //
-            //    richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
-            //
-            //}
-            //
-            //richTextBox.DeselectAll();
-            //
-            //// scroll to top
-            //richTextBox.SelectionStart = 0;
-            return snippets.Snippets;
         }
 
 
@@ -414,8 +371,6 @@ namespace AiTool3
 
             await chatWebView.AddMessage(completionInput);
             await chatWebView.AddMessage(completionResponse);
-
-            MarkUpSnippets(rtbOutput, string.Join("\r\n", response.ResponseText), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
             if (CurrentSettings.NarrateResponses)
             {
