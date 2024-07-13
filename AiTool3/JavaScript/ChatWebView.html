@@ -27,150 +27,150 @@
 
     <script>
         const els = {
-            chatMessages: document.getElementById('chatMessages'),
-            chatInput: document.getElementById('chatInput'),
-            sendButton: document.getElementById('sendButton'),
-            cancelButton: document.getElementById('cancelButton'),
-            systemPrompt: document.getElementById('systemPrompt'),
-            chatHeaderLabel: document.getElementById('chatHeaderLabel')
+            msgs: document.getElementById('chatMessages'),
+            input: document.getElementById('chatInput'),
+            sendBtn: document.getElementById('sendButton'),
+            cancelBtn: document.getElementById('cancelButton'),
+            sysPrompt: document.getElementById('systemPrompt'),
+            chatHeader: document.getElementById('chatHeaderLabel')
         };
 
-        let isCtrlPressed = false;
-        let currentTempMessage = null;
-        const buttonColors = {
+        let isCtrl = false;
+        let tempMsg = null;
+        const btnColors = {
             send: '#4a90e2',
             cancel: '#e74c3c',
             disabled: '#7f8c8d'
         };
 
-        function updateTemp(string) {
-            if (!currentTempMessage) {
-                const tempMessage = { Role: 1, Guid: "temp", Content: string };
-                AddMessage(tempMessage);
-                currentTempMessage = els.chatMessages.lastElementChild;
+        function updateTemp(str) {
+            if (!tempMsg) {
+                const temp = { Role: 1, Guid: "temp", Content: str };
+                AddMessage(temp);
+                tempMsg = els.msgs.lastElementChild;
             } else {
-                currentTempMessage.querySelector('.message-content').innerHTML += string;
+                tempMsg.querySelector('.message-content').innerHTML += str;
             }
             scrollToBottom();
         }
 
         function clearTemp() {
-            if (currentTempMessage) {
-                currentTempMessage.remove();
-                currentTempMessage = null;
+            if (tempMsg) {
+                tempMsg.remove();
+                tempMsg = null;
             }
         }
 
-        function updateSystemPrompt(prompt) {
-            els.systemPrompt.value = prompt;
+        function updateSysPrompt(prompt) {
+            els.sysPrompt.value = prompt;
         }
 
-        function getSystemPrompt() {
-            return els.systemPrompt.value;
+        function getSysPrompt() {
+            return els.sysPrompt.value;
         }
 
         function getUserPrompt() {
-            return els.chatInput.value;
+            return els.input.value;
         }
 
-        function changeChatHeaderLabel(label) {
-            els.chatHeaderLabel.textContent = label;
+        function changeChatHeader(label) {
+            els.chatHeader.textContent = label;
         }
 
-        els.systemPrompt.addEventListener('input', () => {
+        els.sysPrompt.addEventListener('input', () => {
             window.chrome.webview.postMessage({
                 type: 'systemPromptUpdate',
-                content: getSystemPrompt()
+                content: getSysPrompt()
             });
         });
 
-        function toggleButton(id, enable) {
-            const button = document.getElementById(id);
-            button.disabled = !enable;
-            button.style.backgroundColor = enable ? buttonColors[id.replace('Button', '')] : buttonColors.disabled;
-            button.style.cursor = enable ? 'pointer' : 'not-allowed';
-            button.style.opacity = enable ? '1' : '0.6';
+        function toggleBtn(id, enable) {
+            const btn = document.getElementById(id);
+            btn.disabled = !enable;
+            btn.style.backgroundColor = enable ? btnColors[id.replace('Button', '')] : btnColors.disabled;
+            btn.style.cursor = enable ? 'pointer' : 'not-allowed';
+            btn.style.opacity = enable ? '1' : '0.6';
         }
 
-        function AddInitialMessages(messages) {
-            messages.forEach(AddMessage);
+        function AddInitialMessages(msgs) {
+            msgs.forEach(AddMessage);
         }
 
-        function AddMessage(message) {
-            els.chatMessages.appendChild(createMessageElement(message));
+        function AddMessage(msg) {
+            els.msgs.appendChild(createMsgElement(msg));
             scrollToBottom();
         }
 
         function ClearMessages(animate = false) {
             if (animate) {
-                const messages = Array.from(els.chatMessages.querySelectorAll('.message'));
-                messages.reverse().forEach((message, index) => {
+                const msgs = Array.from(els.msgs.querySelectorAll('.message'));
+                msgs.reverse().forEach((msg, i) => {
                     setTimeout(() => {
-                        message.classList.add('fade-out');
-                        message.addEventListener('animationend', () => {
-                            message.remove();
-                            if (index === messages.length - 1) {
-                                els.chatMessages.innerHTML = '';
+                        msg.classList.add('fade-out');
+                        msg.addEventListener('animationend', () => {
+                            msg.remove();
+                            if (i === msgs.length - 1) {
+                                els.msgs.innerHTML = '';
                             }
                         }, { once: true });
-                    }, index * 100);
+                    }, i * 100);
                 });
             } else {
-                els.chatMessages.innerHTML = '';
+                els.msgs.innerHTML = '';
             }
         }
 
-        function createMessageElement(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${message.Role === 0 ? "user" : "assistant"}`;
-            messageDiv.dataset.Guid = message.Guid;
+        function createMsgElement(msg) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${msg.Role === 0 ? "user" : "assistant"}`;
+            msgDiv.dataset.Guid = msg.Guid;
 
-            addDragAndDropListeners(messageDiv, message);
+            addDragDropListeners(msgDiv, msg);
 
             const roleDiv = document.createElement('div');
             roleDiv.className = 'role';
-            roleDiv.textContent = message.Role === 0 ? "user" : "assistant";
+            roleDiv.textContent = msg.Role === 0 ? "user" : "assistant";
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
-            parseMessageContent(message.Content, contentDiv);
+            parseContent(msg.Content, contentDiv);
 
-            messageDiv.append(roleDiv, contentDiv);
+            msgDiv.append(roleDiv, contentDiv);
 
-            return messageDiv;
+            return msgDiv;
         }
 
-        function addDragAndDropListeners(element, message) {
-            element.addEventListener('mousedown', (e) => {
-                if (isCtrlPressed) {
-                    element.draggable = true;
-                    element.classList.add('draggable');
+        function addDragDropListeners(el, msg) {
+            el.addEventListener('mousedown', (e) => {
+                if (isCtrl) {
+                    el.draggable = true;
+                    el.classList.add('draggable');
                 }
             });
 
-            element.addEventListener('mouseup', () => {
-                element.draggable = false;
-                element.classList.remove('draggable');
+            el.addEventListener('mouseup', () => {
+                el.draggable = false;
+                el.classList.remove('draggable');
             });
 
-            element.addEventListener('dragstart', (e) => {
-                if (isCtrlPressed) {
-                    e.dataTransfer.setData('text/plain', message.Content);
+            el.addEventListener('dragstart', (e) => {
+                if (isCtrl) {
+                    e.dataTransfer.setData('text/plain', msg.Content);
                 } else {
                     e.preventDefault();
                 }
             });
         }
 
-        function parseMessageContent(content, contentDiv) {
+        function parseContent(content, contentDiv) {
             const backtick = String.fromCharCode(96);
             const tripleBacktick = backtick.repeat(3);
             const regex = new RegExp(tripleBacktick + '([\\s\\S]*?)' + tripleBacktick);
             const snippets = content.split(regex);
 
-            snippets.forEach((snippet, index) => {
-                if (index % 2 === 0) {
+            snippets.forEach((snippet, i) => {
+                if (i % 2 === 0) {
                     contentDiv.appendChild(document.createTextNode(snippet));
                 } else {
                     contentDiv.appendChild(createCodeBlock(snippet));
@@ -198,17 +198,17 @@
             typeLabel.className = 'code-type-label';
             typeLabel.textContent = dataType;
 
-            const buttonBar = createButtonBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
+            const btnBar = createBtnBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
 
-            typeLabelContainer.append(typeLabel, buttonBar);
+            typeLabelContainer.append(typeLabel, btnBar);
             codeBlock.textContent = lines.join('\n').trim();
             container.append(typeLabelContainer, codeBlock);
 
             return container;
         }
 
-        function createButtonBar(guid, content, dataType) {
-            const buttons = [
+        function createBtnBar(guid, content, dataType) {
+            const btns = [
                 { label: 'Copy', dataType: '*' },
                 { label: 'Save As', dataType: '*' },
                 { label: 'WebView', dataType: 'html' },
@@ -218,20 +218,20 @@
                 { label: 'Launch STL', dataType: 'stl' }
             ];
 
-            const buttonBar = document.createElement('div');
-            buttonBar.className = 'button-bar';
+            const btnBar = document.createElement('div');
+            btnBar.className = 'button-bar';
 
-            buttons.filter(button => button.dataType === '*' || button.dataType === dataType)
-                .forEach(buttonInfo => {
-                    const button = document.createElement('button');
-                    button.textContent = buttonInfo.label;
+            btns.filter(btn => btn.dataType === '*' || btn.dataType === dataType)
+                .forEach(btnInfo => {
+                    const btn = document.createElement('button');
+                    btn.textContent = btnInfo.label;
 
-                    button.addEventListener('click', () => {
-                        if (buttonInfo.label === 'Browse JSON Object') {
+                    btn.addEventListener('click', () => {
+                        if (btnInfo.label === 'Browse JSON Object') {
                             createJsonViewer(content);
                         } else {
                             window.chrome.webview.postMessage({
-                                type: buttonInfo.label,
+                                type: btnInfo.label,
                                 content: content,
                                 guid: guid,
                                 dataType: dataType
@@ -239,69 +239,68 @@
                         }
                     });
 
-                    buttonBar.appendChild(button);
+                    btnBar.appendChild(btn);
                 });
 
-            return buttonBar;
+            return btnBar;
         }
 
         function scrollToBottom() {
-            els.chatMessages.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            els.msgs.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
         function sendMessage() {
-            const message = els.chatInput.value.trim();
-            if (message) {
-                window.chrome.webview.postMessage({ type: 'send', content: message });
+            const msg = els.input.value.trim();
+            if (msg) {
+                window.chrome.webview.postMessage({ type: 'send', content: msg });
             }
         }
 
-        els.chatInput.addEventListener('keydown', (e) => {
+        els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        els.sendButton.addEventListener('click', sendMessage);
+        els.sendBtn.addEventListener('click', sendMessage);
 
-        els.cancelButton.addEventListener('click', () => {
+        els.cancelBtn.addEventListener('click', () => {
             window.chrome.webview.postMessage({ type: 'cancel', content: '' });
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Control') isCtrlPressed = true;
+            if (e.key === 'Control') isCtrl = true;
         });
 
         document.addEventListener('keyup', (e) => {
             if (e.key === 'Control') {
-                isCtrlPressed = false;
-                Array.from(els.chatMessages.querySelectorAll('.message')).forEach(msg => {
+                isCtrl = false;
+                Array.from(els.msgs.querySelectorAll('.message')).forEach(msg => {
                     msg.draggable = false;
                     msg.classList.remove('draggable');
                 });
             }
         });
 
-        els.chatInput.addEventListener('dragover', (e) => {
-            if (isCtrlPressed) {
+        els.input.addEventListener('dragover', (e) => {
+            if (isCtrl) {
                 e.preventDefault();
-                els.chatInput.classList.add('drag-over');
+                els.input.classList.add('drag-over');
             }
         });
 
-        els.chatInput.addEventListener('dragleave', () => {
-            els.chatInput.classList.remove('drag-over');
+        els.input.addEventListener('dragleave', () => {
+            els.input.classList.remove('drag-over');
         });
 
-        els.chatInput.addEventListener('drop', (e) => {
-            if (isCtrlPressed) {
+        els.input.addEventListener('drop', (e) => {
+            if (isCtrl) {
                 e.preventDefault();
-                els.chatInput.classList.remove('drag-over');
-                els.chatInput.value = e.dataTransfer.getData('text/plain');
+                els.input.classList.remove('drag-over');
+                els.input.value = e.dataTransfer.getData('text/plain');
             }
         });
-
     </script>
 </body>
 </html>
