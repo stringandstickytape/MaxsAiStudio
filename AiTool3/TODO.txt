@@ -11,6 +11,7 @@ DONE: Add dummy root message to conversations, to join root user messages togeth
 DONE: add clear-search button
 DONE: add multiple files attach button
 DONE: add "continue..." funcitionality that concats messages, prob don't need to keep sensible history of this
+DONE: JSON array viewer might be nice
 
 Critical (could make software unusable):
 Handle if there's no local AI
@@ -18,8 +19,8 @@ It probably sucks when the AI is running and the user changes conversations
 Do more to not mess up the conversation if user changes nodes while the AI is running
 
 Useful next:
-Add labels to UI
 Ongoing token counting
+Streaming token counting
 add time-taken to search results and timestamp to all convo messages
 fix images aren't included in history
 add delete-template and save-as-new-template
@@ -27,7 +28,6 @@ add delete-node-chain with are-you-sure? (is it chain, or just node?)
 enable/disable cs/html highlighting
 
 Less important:
-JSON array viewer might be nice?
 Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 complete edit-highlighting-colours functionality
@@ -37,3 +37,4 @@ complete edit-highlighting-colours functionality
 
 source code browser thing, to let you choose which files to upload from your project?
 
+launch sql? browse xml? launch svg? launch powershell?  azure az command?! 

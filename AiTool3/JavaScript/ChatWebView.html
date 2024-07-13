@@ -239,7 +239,7 @@
                 { label: 'View JSON String Array', dataType: 'json' },
                 { label: 'Browse JSON Object', dataType: 'json' },
                 { label: 'Run Python Script', dataType: 'python' },
-
+                { label: 'Launch STL', dataType: 'stl' }
             ];
 
             const buttonBar = document.createElement('div');
@@ -295,9 +295,9 @@
         });
 
         sendButton.addEventListener('click', sendMessage);
-        debugger;
+        
         cancelButton.addEventListener('click', () => {
-            debugger;
+            
             window.chrome.webview.postMessage({
                 type: 'cancel',
                 content: ''

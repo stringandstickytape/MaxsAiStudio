@@ -49,7 +49,10 @@ namespace AiTool3.UI
                     break;
                 case "Run Python Script":
                     PythonHelper.LaunchPythonScript(content);
-                        
+                    break;
+                case "Launch STL":
+                    StlHelper.LaunchStlFile(content);
+
                     break;
                 case "View JSON String Array":
 
