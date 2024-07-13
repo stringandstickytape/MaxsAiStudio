@@ -15,6 +15,10 @@ namespace AiTool3.Providers
 {
     internal class Groq : IAiService
     {
+        public event EventHandler<string> StreamingTextReceived;
+        public event EventHandler<string> StreamingComplete;
+
+
         HttpClient client = new HttpClient();
         public Groq()
         {
@@ -112,7 +116,7 @@ namespace AiTool3.Providers
             {
                 ProcessLine(lineSb.ToString(), sb);
             }
-
+            StreamingComplete?.Invoke(this, null);
             return new AiResponse { ResponseText = sb.ToString(), Success = true };
         }
 

@@ -15,7 +15,8 @@ namespace AiTool3.Providers
     internal class LocalAI : IAiService
     {
         HttpClient client = new HttpClient();
-
+        public event EventHandler<string> StreamingTextReceived;
+        public event EventHandler<string> StreamingComplete;
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             var req = new LocalAIRequest
@@ -103,7 +104,7 @@ namespace AiTool3.Providers
             {
                 ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
             }
-
+            StreamingComplete?.Invoke(this, null);
             return new AiResponse
             {
                 ResponseText = fullResponse.ToString(),
@@ -124,6 +125,7 @@ namespace AiTool3.Providers
                 {
                     fullResponse.Append(chunkResponse.Message.Content);
                     Debug.WriteLine(chunkResponse.Message.Content);
+                    StreamingTextReceived?.Invoke(this, chunkResponse.Message.Content);
                 }
 
                 if (chunkResponse?.Done == true)

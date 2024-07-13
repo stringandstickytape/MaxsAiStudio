@@ -37,6 +37,30 @@
 
         let sendButtonColor = '#4a90e2';
         let cancelButtonColor = '#e74c3c';
+        let currentTempMessage = null;
+
+        function updateTemp(string) {
+            if (!currentTempMessage) {
+                const tempMessage = {
+                    Role: 1, // Assistant role
+                    Guid: "temp",
+                    Content: string
+                };
+                AddMessage(tempMessage);
+                currentTempMessage = chatMessages.lastElementChild;
+            } else {
+                const contentDiv = currentTempMessage.querySelector('.message-content');
+                contentDiv.innerHTML += string;
+            }
+            scrollToBottom();
+        }
+
+        function clearTemp() {
+            if (currentTempMessage) {
+                currentTempMessage.remove();
+                currentTempMessage = null;
+            }
+        }
 
         function updateSystemPrompt(prompt) {
             systemPrompt.value = prompt;

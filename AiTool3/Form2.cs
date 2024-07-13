@@ -9,7 +9,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using AiTool3.Audio;
 using AiTool3.Snippets;
-using AiTool3.MegaBar.Items;
 using Whisper.net.Ggml;
 using AiTool3.Providers;
 using AiTool3.Helpers;
@@ -255,42 +254,42 @@ namespace AiTool3
 
         public List<Snippet> MarkUpSnippets(ButtonedRichTextBox richTextBox, string text, string messageGuid, List<CompletionMessage> messages)
         {
-            richTextBox.Clear();
-            richTextBox.Text = text;
+            //richTextBox.Clear();
+            //richTextBox.Text = text;
             var snippets = snippetManager.FindSnippets(text);
 
-            foreach (var snippet in snippets.Snippets)
-            {
-                var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
-
-                var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
-
-                richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-                richTextBox.SelectionColor = Color.Orange;
-
-                switch (snippet.Type)
-                {
-                    case ".html":
-                    case ".htm":
-                        HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-                        break;
-                    case ".cs":
-                        CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
-                        break;
-                }
-
-                richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
-
-                var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
-
-                richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
-
-            }
-
-            richTextBox.DeselectAll();
-
-            // scroll to top
-            richTextBox.SelectionStart = 0;
+            //foreach (var snippet in snippets.Snippets)
+            //{
+            //    var endOfFirstLine = text.IndexOf('\n', snippet.StartIndex);
+            //
+            //    var lengthOfFirstLine = endOfFirstLine - snippet.StartIndex;
+            //
+            //    richTextBox.Select(endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+            //    richTextBox.SelectionColor = Color.Orange;
+            //
+            //    switch (snippet.Type)
+            //    {
+            //        case ".html":
+            //        case ".htm":
+            //            HtmlHighlighter.HighlightHtml(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+            //            break;
+            //        case ".cs":
+            //            CSharpHighlighter.HighlightCSharp(richTextBox, endOfFirstLine + 1, snippet.Code.Length - 4 - lengthOfFirstLine);
+            //            break;
+            //    }
+            //
+            //    richTextBox.SelectionFont = new Font("Courier New", richTextBox.SelectionFont?.Size ?? 10);
+            //
+            //    var itemsForThisSnippet = MegaBarItemFactory.CreateItems(snippet.Type, snippet.Code, !string.IsNullOrEmpty(snippets.UnterminatedSnippet), messageGuid, messages);
+            //
+            //    richTextBox.AddMegaBar(endOfFirstLine, itemsForThisSnippet.ToArray());
+            //
+            //}
+            //
+            //richTextBox.DeselectAll();
+            //
+            //// scroll to top
+            //richTextBox.SelectionStart = 0;
             return snippets.Snippets;
         }
 
@@ -313,6 +312,8 @@ namespace AiTool3
             catch (Exception ex)
             {
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
+
+                chatWebView.ClearTemp();
                 _cts?.Cancel();
                 _cts = new CancellationTokenSource();
             }
@@ -362,7 +363,15 @@ namespace AiTool3
         private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
+            aiService.StreamingTextReceived += AiService_StreamingTextReceived;
+            aiService.StreamingComplete += (s, e) => { chatWebView.ClearTemp(); };
+
             return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings.StreamResponses);
+        }
+
+        private void AiService_StreamingTextReceived(object? sender, string e)
+        {
+            chatWebView.UpdateTemp(e);
         }
 
         private async Task ProcessAiResponse(AiResponse response, Model model)

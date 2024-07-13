@@ -16,6 +16,11 @@ namespace AiTool3.Providers
         HttpClient client = new HttpClient();
         bool clientInitialised = false;
 
+
+        // streaming text received callback event
+        public event EventHandler<string> StreamingTextReceived;
+        public event EventHandler<string> StreamingComplete;
+
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             
@@ -114,6 +119,9 @@ namespace AiTool3.Providers
                 ProcessLine(lineBuilder.ToString(), responseBuilder);
             }
 
+            // call streaming complete
+            StreamingComplete?.Invoke(this, null);
+
             return new AiResponse { ResponseText = responseBuilder.ToString(), Success = true };
         }
 
@@ -131,6 +139,8 @@ namespace AiTool3.Providers
                     {
                         var text = eventData["delta"]["text"].ToString();
                         Debug.WriteLine(text);
+                        //call streamingtextreceived
+                        StreamingTextReceived?.Invoke(this, text);
                         responseBuilder.Append(text);
                     }
                 }

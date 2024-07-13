@@ -14,6 +14,9 @@ namespace AiTool3.Providers
     internal class Gemini : IAiService
     {
         HttpClient client = new HttpClient();
+
+        public event EventHandler<string> StreamingTextReceived;
+        public event EventHandler<string> StreamingComplete;
         public Gemini()
         {
         }
@@ -119,6 +122,8 @@ namespace AiTool3.Providers
                                 }
                             }
                         }
+
+                        StreamingComplete?.Invoke(this, null);
 
                         // Note: Token usage information might not be available in streaming responses
                         return new AiResponse { ResponseText = fullResponse.ToString(), Success = true };

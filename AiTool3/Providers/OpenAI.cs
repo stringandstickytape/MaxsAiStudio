@@ -14,6 +14,8 @@ namespace AiTool3.Providers
     internal class OpenAI : IAiService
     {
         HttpClient client = new HttpClient();
+        public event EventHandler<string> StreamingTextReceived;
+        public event EventHandler<string> StreamingComplete;
 
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
@@ -129,7 +131,7 @@ namespace AiTool3.Providers
                 {
                     ProcessLine(lineBuilder.ToString(), fullResponse, ref inputTokens, ref outputTokens);
                 }
-
+                StreamingComplete?.Invoke(this, null);
                 return new AiResponse
                 {
                     ResponseText = fullResponse.ToString(),

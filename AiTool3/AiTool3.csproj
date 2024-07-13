@@ -37,6 +37,11 @@
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Defunct\ButtonedRichTextBox.cs.defunct" />
   </ItemGroup>
 
   <ItemGroup>

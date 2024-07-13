@@ -164,5 +164,9 @@ namespace AiTool3.UI
         {
             return DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime;
         }
+
+        internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
+
+        internal async void ClearTemp() => await ExecuteScriptAsync($"clearTemp()");
     }
 }
