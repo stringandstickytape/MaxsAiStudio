@@ -62,37 +62,46 @@ namespace AiTool3.Providers
 
         private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken, Control? textbox)
         {
-            var response = await client.PostAsync(url, content, cancellationToken);
-            var stream = await response.Content.ReadAsStreamAsync();
-            var reader = new StreamReader(stream);
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = content;
+
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             StringBuilder fullResponse = new StringBuilder();
+            StringBuilder lineBuilder = new StringBuilder();
             int promptEvalCount = 0;
             int evalCount = 0;
 
-            while (!reader.EndOfStream)
+            byte[] buffer = new byte[48];  // Read in larger chunks
+            var decoder = Encoding.UTF8.GetDecoder();
+
+            while (true)
             {
-                var line = await reader.ReadLineAsync();
-                if (string.IsNullOrEmpty(line)) continue;
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                if (bytesRead == 0) break;
 
-                var chunk = JsonConvert.DeserializeObject<LocalAIStreamResponse>(line);
+                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
+                int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, chars, 0);
 
-                if (chunk!.Message != null && !string.IsNullOrEmpty(chunk.Message.Content))
+                for (int i = 0; i < charsDecodedCount; i++)
                 {
-                    fullResponse.Append(chunk.Message.Content);
-                    Debug.WriteLine(chunk.Message.Content);
-                    if (textbox != null)
+                    char c = chars[i];
+                    lineBuilder.Append(c);
+
+                    if (c == '\n')
                     {
-                        textbox.Invoke(new Action(() => textbox.Text = fullResponse.ToString()));
+                        Debug.WriteLine(lineBuilder.ToString().Trim());
+                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse, textbox, ref promptEvalCount, ref evalCount);
+                        lineBuilder.Clear();
                     }
                 }
+            }
 
-                if (chunk.Done)
-                {
-                    promptEvalCount = chunk.PromptEvalCount;
-                    evalCount = chunk.EvalCount;
-                    break;
-                }
+            // Process any remaining content
+            if (lineBuilder.Length > 0)
+            {
+                ProcessLine(lineBuilder.ToString().Trim(), fullResponse, textbox, ref promptEvalCount, ref evalCount);
             }
 
             return new AiResponse
@@ -102,6 +111,37 @@ namespace AiTool3.Providers
                 TokenUsage = new TokenUsage(promptEvalCount.ToString(), evalCount.ToString())
             };
         }
+
+        private void ProcessLine(string line, StringBuilder fullResponse, Control? textbox, ref int promptEvalCount, ref int evalCount)
+        {
+            if (string.IsNullOrEmpty(line)) return;
+
+            try
+            {
+                var chunkResponse = JsonConvert.DeserializeObject<LocalAIStreamResponse>(line);
+
+                if (chunkResponse?.Message != null && !string.IsNullOrEmpty(chunkResponse.Message.Content))
+                {
+                    fullResponse.Append(chunkResponse.Message.Content);
+                    Debug.WriteLine(chunkResponse.Message.Content);
+                    if (textbox != null)
+                    {
+                        textbox.Invoke(new Action(() => textbox.Text = fullResponse.ToString()));
+                    }
+                }
+
+                if (chunkResponse?.Done == true)
+                {
+                    promptEvalCount = chunkResponse.PromptEvalCount;
+                    evalCount = chunkResponse.EvalCount;
+                }
+            }
+            catch (JsonException)
+            {
+                // Handle or log JSON parsing errors
+            }
+        }
+
 
         private async Task<AiResponse> HandleNonStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
         {
