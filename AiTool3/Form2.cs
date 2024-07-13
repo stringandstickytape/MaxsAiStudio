@@ -362,7 +362,7 @@ namespace AiTool3
         private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
-            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, rtbOutput, CurrentSettings.StreamResponses);
+            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings.StreamResponses);
         }
 
         private async Task ProcessAiResponse(AiResponse response, Model model)

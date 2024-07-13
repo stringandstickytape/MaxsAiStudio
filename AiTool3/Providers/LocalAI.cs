@@ -16,7 +16,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control? textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             var req = new LocalAIRequest
             {
@@ -52,7 +52,7 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(url, content, cancellationToken, textbox);
+                return await HandleStreamingResponse(url, content, cancellationToken);
             }
             else
             {
@@ -60,7 +60,7 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken, Control? textbox)
+        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Content = content;
@@ -92,7 +92,7 @@ namespace AiTool3.Providers
                     if (c == '\n')
                     {
                         Debug.WriteLine(lineBuilder.ToString().Trim());
-                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse, textbox, ref promptEvalCount, ref evalCount);
+                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
                         lineBuilder.Clear();
                     }
                 }
@@ -101,7 +101,7 @@ namespace AiTool3.Providers
             // Process any remaining content
             if (lineBuilder.Length > 0)
             {
-                ProcessLine(lineBuilder.ToString().Trim(), fullResponse, textbox, ref promptEvalCount, ref evalCount);
+                ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
             }
 
             return new AiResponse
@@ -112,7 +112,7 @@ namespace AiTool3.Providers
             };
         }
 
-        private void ProcessLine(string line, StringBuilder fullResponse, Control? textbox, ref int promptEvalCount, ref int evalCount)
+        private void ProcessLine(string line, StringBuilder fullResponse, ref int promptEvalCount, ref int evalCount)
         {
             if (string.IsNullOrEmpty(line)) return;
 
@@ -124,10 +124,6 @@ namespace AiTool3.Providers
                 {
                     fullResponse.Append(chunkResponse.Message.Content);
                     Debug.WriteLine(chunkResponse.Message.Content);
-                    if (textbox != null)
-                    {
-                        textbox.Invoke(new Action(() => textbox.Text = fullResponse.ToString()));
-                    }
                 }
 
                 if (chunkResponse?.Done == true)

@@ -20,7 +20,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             useStreaming = true;
             if (client.DefaultRequestHeaders.Authorization == null)
@@ -70,44 +70,75 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(response, textbox, cancellationToken);
+                return await HandleStreamingResponse(response, cancellationToken);
             }
             else
             {
                 return await HandleNonStreamingResponse(response, cancellationToken);
             }
         }
-        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, Control textbox, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var reader = new StreamReader(stream);
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var buffer = new byte[48];
+            var decoder = Encoding.UTF8.GetDecoder();
             var sb = new StringBuilder();
-            string line;
+            var lineSb = new StringBuilder();
+            var charBuffer = new char[1024];
 
-            while ((line = await reader.ReadLineAsync()) != null)
+            while (true)
             {
-                if (line.StartsWith("data: "))
+                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                if (bytesRead == 0) break;
+
+                var charsRead = decoder.GetChars(buffer, 0, bytesRead, charBuffer, 0);
+
+                for (int i = 0; i < charsRead; i++)
                 {
-                    var data = line.Substring(6);
-                    if (data == "[DONE]") break;
-
-                    var jsonData = JsonConvert.DeserializeObject<JObject>(data);
-                    var content = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
-
-                    if (!string.IsNullOrEmpty(content))
+                    char c = charBuffer[i];
+                    lineSb.Append(c);
+                    
+                    if (c == '\n')
                     {
-                        sb.Append(content);
-                        if (textbox != null)
-                        {
-                            textbox.Invoke((MethodInvoker)delegate {
-                                textbox.Text = sb.ToString();
-                            });
-                        }
+                        
+                        ProcessLine(lineSb.ToString(), sb);
+                        lineSb.Clear();
                     }
                 }
             }
 
+            // Process any remaining content
+            if (lineSb.Length > 0)
+            {
+                ProcessLine(lineSb.ToString(), sb);
+            }
+
             return new AiResponse { ResponseText = sb.ToString(), Success = true };
+        }
+
+        private void ProcessLine(string line, StringBuilder sb)
+        {
+            if (line.StartsWith("data: "))
+            {
+                var data = line.Substring(6).Trim();
+                if (data == "[DONE]") return;
+
+                try
+                {
+                    var jsonData = JsonConvert.DeserializeObject<JObject>(data);
+                    var content = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                    if (!string.IsNullOrEmpty(content))
+                    {Debug.WriteLine(content);
+                        sb.Append(content);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle JSON parsing error
+                    Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                }
+            }
         }
 
         private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)

@@ -16,7 +16,7 @@ namespace AiTool3.Providers
         HttpClient client = new HttpClient();
         bool clientInitialised = false;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             
             if (!clientInitialised)
@@ -67,7 +67,7 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(apiModel, content, cancellationToken, textbox);
+                return await HandleStreamingResponse(apiModel, content, cancellationToken);
             }
             else
             {
@@ -75,37 +75,71 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken, Control textbox)
+        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
         {
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var reader = new StreamReader(stream);
+            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var responseBuilder = new StringBuilder();
-            string line;
+            var lineBuilder = new StringBuilder();
+            var buffer = new byte[48];
+            var decoder = Encoding.UTF8.GetDecoder();
 
-            while ((line = await reader.ReadLineAsync()) != null)
+            while (true)
             {
-                if (line.StartsWith("data: "))
-                {
-                    var data = line.Substring(6);
-                    if (data == "[DONE]") break;
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                if (bytesRead == 0) break;
 
-                    var eventData = JsonConvert.DeserializeObject<JObject>(data);
-                    if (eventData["type"].ToString() == "content_block_delta")
+                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
+                decoder.GetChars(buffer, 0, bytesRead, chars, 0);
+
+                foreach (char c in chars)
+                {
+                    if (c == '\n')
                     {
-                        var text = eventData["delta"]["text"].ToString();
-                        responseBuilder.Append(text);
-                        if (textbox != null)
-                        {
-                            textbox.Invoke((MethodInvoker)delegate {
-                                textbox.Text = responseBuilder.ToString();
-                            });
-                        }
+                        ProcessLine(lineBuilder.ToString(), responseBuilder);
+                        lineBuilder.Clear();
+                    }
+                    else
+                    {
+                        lineBuilder.Append(c);
                     }
                 }
             }
 
+            if (lineBuilder.Length > 0)
+            {
+                ProcessLine(lineBuilder.ToString(), responseBuilder);
+            }
+
             return new AiResponse { ResponseText = responseBuilder.ToString(), Success = true };
+        }
+
+        private void ProcessLine(string line, StringBuilder responseBuilder)
+        {
+            if (line.StartsWith("data: "))
+            {
+                var data = line.Substring(6);
+                if (data == "[DONE]") return;
+
+                try
+                {
+                    var eventData = JsonConvert.DeserializeObject<JObject>(data);
+                    if (eventData["type"].ToString() == "content_block_delta")
+                    {
+                        var text = eventData["delta"]["text"].ToString();
+                        Debug.WriteLine(text);
+                        responseBuilder.Append(text);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    // Handle JSON parsing error
+                    Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                }
+            }
         }
 
         private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)

@@ -18,7 +18,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             string url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
 
@@ -75,7 +75,7 @@ namespace AiTool3.Providers
                 {
                     if (useStreaming)
                     {
-                        return await StreamResponse(client, url, content, cancellationToken, textbox);
+                        return await StreamResponse(client, url, content, cancellationToken);
                     }
                     else
                     {
@@ -86,7 +86,7 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> StreamResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken, Control textbox)
+        private async Task<AiResponse> StreamResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Post, url))
             {
@@ -115,13 +115,6 @@ namespace AiTool3.Providers
                                     if (!string.IsNullOrEmpty(textChunk))
                                     {
                                         fullResponse.Append(textChunk);
-
-                                        if (textbox != null)
-                                        {
-                                            textbox.Invoke((MethodInvoker)delegate {
-                                                textbox.Text = fullResponse.ToString();
-                                            });
-                                        }
                                     }
                                 }
                             }

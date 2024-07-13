@@ -15,7 +15,7 @@ namespace AiTool3.Providers
     {
         HttpClient client = new HttpClient();
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Control textbox = null, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, bool useStreaming = false)
         {
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
@@ -80,7 +80,7 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(response, textbox, cancellationToken);
+                return await HandleStreamingResponse(response, cancellationToken);
             }
             else
             {
@@ -88,63 +88,89 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, Control textbox, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var stream = await response.Content.ReadAsStreamAsync();
-            var reader = new StreamReader(stream);
-
-            StringBuilder fullResponse = new StringBuilder();
-            string line;
-            int inputTokens = 0;
-            int outputTokens = 0;
-
-            while ((line = await reader.ReadLineAsync()) != null)
+            using (var stream = await response.Content.ReadAsStreamAsync())
             {
-                if (cancellationToken.IsCancellationRequested)
-                    break;
+                byte[] buffer = new byte[48];
+                var decoder = new UTF8Encoding(false).GetDecoder();
+                StringBuilder fullResponse = new StringBuilder();
+                StringBuilder lineBuilder = new StringBuilder();
+                int inputTokens = 0;
+                int outputTokens = 0;
 
-                if (line.StartsWith("data: "))
+                while (true)
                 {
-                    string jsonData = line.Substring("data: ".Length).Trim();
-                    if (jsonData == "[DONE]")
+                    if (cancellationToken.IsCancellationRequested)
                         break;
 
-                    try
-                    {
-                        var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-                        var content2 = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
-                        if (!string.IsNullOrEmpty(content2))
-                        {
-                            fullResponse.Append(content2);
-                            if (textbox != null)
-                            {
-                                textbox.Invoke((MethodInvoker)delegate {
-                                    textbox.Text = fullResponse.ToString();
-                                });
-                            }
-                        }
+                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                    if (bytesRead == 0) break;
 
-                        // Update token counts if available
-                        var usage = chunk["usage"];
-                        if (usage != null)
-                        {
-                            inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
-                            outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
-                        }
-                    }
-                    catch (JsonException)
+                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
+                    int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, chars, 0);
+
+                    for (int i = 0; i < charsDecodedCount; i++)
                     {
-                        // Handle JSON parsing errors
+                        char c = chars[i];
+                        if (c == '\n')
+                        {
+                            ProcessLine(lineBuilder.ToString(), fullResponse, ref inputTokens, ref outputTokens);
+                            lineBuilder.Clear();
+                        }
+                        else
+                        {
+                            lineBuilder.Append(c);
+                        }
                     }
                 }
-            }
 
-            return new AiResponse
+                if (lineBuilder.Length > 0)
+                {
+                    ProcessLine(lineBuilder.ToString(), fullResponse, ref inputTokens, ref outputTokens);
+                }
+
+                return new AiResponse
+                {
+                    ResponseText = fullResponse.ToString(),
+                    Success = true,
+                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+                };
+            }
+        }
+
+        private void ProcessLine(string line, StringBuilder fullResponse, ref int inputTokens, ref int outputTokens)
+        {
+            if (line.StartsWith("data: "))
             {
-                ResponseText = fullResponse.ToString(),
-                Success = true,
-                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
-            };
+                string jsonData = line.Substring("data: ".Length).Trim();
+                
+                if (jsonData == "[DONE]")
+                    return;
+
+                try
+                {
+                    var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
+                    var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        Debug.Write(content);
+                        fullResponse.Append(content);
+                    }
+
+                    // Update token counts if available
+                    var usage = chunk["usage"];
+                    if (usage != null)
+                    {
+                        inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
+                        outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Handle JSON parsing errors
+                }
+            }
         }
 
         private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response)
