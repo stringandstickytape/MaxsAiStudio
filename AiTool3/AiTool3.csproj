@@ -34,6 +34,7 @@
   <ItemGroup>
     <None Remove="JavaScript\ChatWebView.css" />
     <None Remove="JavaScript\ChatWebView.html" />
+    <None Remove="JavaScript\JsonViewer.js" />
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
@@ -43,6 +44,7 @@
   <ItemGroup>
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
+    <EmbeddedResource Include="JavaScript\JsonViewer.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />

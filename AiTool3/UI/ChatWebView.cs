@@ -110,6 +110,9 @@ namespace AiTool3.UI
             html = html.Replace(".magiccsstoken {}", css);
 
             NavigateToString(html);
+
+            var additionalJs = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js");
+            await ExecuteScriptAsync(additionalJs);
         }
 
         internal async Task AddMessages(List<CompletionMessage> parents)

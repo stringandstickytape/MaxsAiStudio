@@ -237,6 +237,7 @@
                 { label: 'Save As', dataType: '*' },
                 { label: 'WebView', dataType: 'html' },
                 { label: 'View JSON String Array', dataType: 'json' },
+                { label: 'Browse JSON Object', dataType: 'json' },
 
             ];
 
@@ -251,14 +252,20 @@
                 const button = document.createElement('button');
                 button.textContent = buttonInfo.label;
 
-                button.addEventListener('click', () => {
-                    window.chrome.webview.postMessage({
-                        type: buttonInfo.label,
-                        content: content,
-                        guid: guid,
-                        dataType: dataType
+                if (buttonInfo.label == 'Browse JSON Object') {
+                    button.addEventListener('click', () => {
+                        createJsonViewer(content);
                     });
-                });
+                } else {
+                    button.addEventListener('click', () => {
+                        window.chrome.webview.postMessage({
+                            type: buttonInfo.label,
+                            content: content,
+                            guid: guid,
+                            dataType: dataType
+                        });
+                    });
+                }
                 buttonBar.appendChild(button);
             });
 

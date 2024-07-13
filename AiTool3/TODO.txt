@@ -31,3 +31,9 @@ JSON array viewer might be nice?
 Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 complete edit-highlighting-colours functionality
+
+
+
+
+source code browser thing, to let you choose which files to upload from your project?
+
