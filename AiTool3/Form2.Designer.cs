@@ -32,7 +32,6 @@ namespace AiTool3
         {
             cbEngine = new ComboBox();
             rtbOutput = new ButtonedRichTextBox();
-            rtbInput = new ButtonedRichTextBox();
             splitContainer1 = new SplitContainer();
             splitContainer5 = new SplitContainer();
             btnClearSearch = new Button();
@@ -99,18 +98,6 @@ namespace AiTool3
             rtbOutput.Name = "rtbOutput";
             rtbOutput.Size = new Size(366, 333);
             rtbOutput.TabIndex = 6;
-            // 
-            // rtbInput
-            // 
-            rtbInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            rtbInput.BackColor = Color.Black;
-            rtbInput.EmptyLabel = "User Input";
-            rtbInput.FlashOnUpdate = false;
-            rtbInput.ForeColor = Color.FromArgb(224, 224, 224);
-            rtbInput.Location = new Point(46, 385);
-            rtbInput.Name = "rtbInput";
-            rtbInput.Size = new Size(366, 281);
-            rtbInput.TabIndex = 7;
             // 
             // splitContainer1
             // 
@@ -408,7 +395,6 @@ namespace AiTool3
             // 
             splitContainer4.Panel1.Controls.Add(groupBox1);
             splitContainer4.Panel1.Controls.Add(rtbOutput);
-            splitContainer4.Panel1.Controls.Add(rtbInput);
             splitContainer4.Panel1Collapsed = true;
             // 
             // splitContainer4.Panel2
@@ -459,7 +445,6 @@ namespace AiTool3
         #endregion
         private ComboBox cbEngine;
         private ButtonedRichTextBox rtbOutput;
-        private ButtonedRichTextBox rtbInput;
         private SplitContainer splitContainer1;
         private Button btnClear;
         private DataGridView dgvConversations;

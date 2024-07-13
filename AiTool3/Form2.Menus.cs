@@ -141,10 +141,10 @@ namespace AiTool3
                 }
             });
 
-            AddSpecial(specialsMenu, "Review Code", (s, e) =>
+            AddSpecial(specialsMenu, "Review Code", async (s, e) =>
             {
                 SpecialsHelper.ReviewCode(out string userMessage);
-                rtbInput.Text = userMessage;
+                await chatWebView.SetUserPrompt(userMessage);
             });
             AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
             {

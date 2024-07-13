@@ -50,9 +50,6 @@ namespace AiTool3
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
 
-            rtbInput.SetOverlayText("User Input");
-            rtbOutput.SetOverlayText("AI Response");
-
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
@@ -103,12 +100,9 @@ namespace AiTool3
 
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
 
-        private void AutoSuggestStringSelected(string selectedString)
+        private async void AutoSuggestStringSelected(string selectedString)
         {
-            rtbInput.InvokeIfNeeded(() =>
-            {
-                rtbInput.Text = selectedString;
-            });
+            await chatWebView.SetUserPrompt(selectedString);
         }
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
@@ -133,9 +127,9 @@ namespace AiTool3
             }
         }
 
-        private void AudioRecorderManager_AudioProcessed(object? sender, string e)
+        private async void AudioRecorderManager_AudioProcessed(object? sender, string e)
         {
-            rtbInput.InvokeIfNeeded(() => { rtbInput.Text = e; });
+            await chatWebView.SetUserPrompt(e);
         }
 
 
@@ -181,12 +175,10 @@ namespace AiTool3
                 return;
             ConversationManager.PreviousCompletion = clickedCompletion;
 
-            rtbInput.Clear();
             string systemPrompt = "";
             systemPrompt = ConversationManager.PreviousCompletion.SystemPrompt!;
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
-                rtbInput.Text = ConversationManager.PreviousCompletion.Content!;
                 await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content!);
                 ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent!);
             }
@@ -197,7 +189,7 @@ namespace AiTool3
             //await chatWebView.ChangeChatHeaderLabel(ConversationManager.PreviousCompletion.Engine);
             await chatWebView.UpdateSystemPrompt(systemPrompt);
 
-            MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(ConversationManager.PreviousCompletion?.Content ?? ""), clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
+            MarkUpSnippets(rtbOutput, ConversationManager.PreviousCompletion?.Content ?? "", clickedCompletion.Guid!, ConversationManager.CurrentConversation.Messages);
 
             var parents = ConversationManager.GetParentNodeList();
 
@@ -207,7 +199,6 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            rtbInput.Text = e.Content;
             await FetchAiInputResponse();
         }
 
@@ -267,7 +258,7 @@ namespace AiTool3
                 await ProcessAiResponse(response, model);
                 await chatWebView.DisableCancelButton();
                 await chatWebView.EnableSendButton();
-                UpdateUi(response);
+                await UpdateUi(response);
                 await UpdateConversationSummary();
             }
             catch (Exception ex)
@@ -310,7 +301,7 @@ namespace AiTool3
 
                 conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content! });
             }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = rtbInput.Text });
+            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt() });
 
             return new ConversationModelPair(conversation, model);
         }
@@ -324,7 +315,7 @@ namespace AiTool3
         private async Task ProcessAiResponse(AiResponse response, Model model)
         {
             var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
-            var inputText = rtbInput.Text;
+            var inputText = await chatWebView.GetUserPrompt();
             var systemPrompt = await chatWebView.GetSystemPrompt();
 
 
@@ -362,7 +353,7 @@ namespace AiTool3
             await chatWebView.AddMessage(completionInput);
             await chatWebView.AddMessage(completionResponse);
 
-            MarkUpSnippets(rtbOutput, RtbFunctions.GetFormattedContent(string.Join("\r\n", response.ResponseText)), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
+            MarkUpSnippets(rtbOutput, string.Join("\r\n", response.ResponseText), completionResponse.Guid, ConversationManager.CurrentConversation.Messages);
 
             if (CurrentSettings.NarrateResponses)
             {
@@ -382,11 +373,11 @@ namespace AiTool3
             webViewManager!.CentreOnNode(completionResponse.Guid);
         }
 
-        private void UpdateUi(AiResponse response)
+        private async Task UpdateUi(AiResponse response)
         {
             if (response.SuggestedNextPrompt != null)
             {
-                rtbInput.Text = RtbFunctions.GetFormattedContent(response.SuggestedNextPrompt);
+                await chatWebView.SetUserPrompt(response.SuggestedNextPrompt);
             }
 
             var model = (Model)cbEngine.SelectedItem!;
@@ -449,10 +440,9 @@ namespace AiTool3
 
         private async void BeginNewConversationPreserveInputAndSystemPrompts()
         {
-            var currentPrompt = rtbInput.Text;
+            var currentPrompt = await chatWebView.GetUserPrompt();
             var currentSystemPrompt = await chatWebView.GetSystemPrompt();
             await BeginNewConversation();
-            rtbInput.Text = currentPrompt;
             await chatWebView.UpdateSystemPrompt(currentSystemPrompt);
         }
 
@@ -494,7 +484,6 @@ namespace AiTool3
 
         private async Task BeginNewConversation()
         {
-            rtbInput.Clear();
             rtbOutput.Clear();
 
             await chatWebView.Clear();
@@ -545,8 +534,6 @@ namespace AiTool3
 
         private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
-            rtbInput.Clear();
-
             await chatWebView.Clear();
 
             if (template != null)
@@ -611,7 +598,7 @@ namespace AiTool3
 
 
 
-        private void buttonAttachImage_Click(object sender, EventArgs e)
+        private async void buttonAttachImage_Click(object sender, EventArgs e)
         {
             // pop a mb asking attach image or text with image and text buttons
             var r = SimpleDialogsHelper.ShowAttachmentDialog();
@@ -641,7 +628,10 @@ namespace AiTool3
                                 Environment.NewLine,
                                 Environment.NewLine);
                         }
-                        rtbInput.Text = $"{sb.ToString()}{rtbInput.Text}";
+
+                        var existingPrompt = await chatWebView.GetUserPrompt();
+
+                        await chatWebView.SetUserPrompt($"{sb.ToString()}{existingPrompt}");
 
                         CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
                     }

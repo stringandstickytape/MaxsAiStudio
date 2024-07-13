@@ -123,6 +123,8 @@ namespace AiTool3.UI
 
         }
 
+        internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
+
         internal async Task Clear()
         {
             // run "addMessages" js function
