@@ -256,7 +256,9 @@
             }
         }
 
-        els.input.addEventListener('keydown', (e) => {
+        let eia = els.input.addEventListener;
+
+        eia('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
                 sendMessage();
@@ -283,18 +285,18 @@
             }
         });
 
-        els.input.addEventListener('dragover', (e) => {
+        eia('dragover', (e) => {
             if (isCtrl) {
                 e.preventDefault();
                 els.input.classList.add('drag-over');
             }
         });
 
-        els.input.addEventListener('dragleave', () => {
+        eia('dragleave', () => {
             els.input.classList.remove('drag-over');
         });
 
-        els.input.addEventListener('drop', (e) => {
+        eia('drop', (e) => {
             if (isCtrl) {
                 e.preventDefault();
                 els.input.classList.remove('drag-over');
