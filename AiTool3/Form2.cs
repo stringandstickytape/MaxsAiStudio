@@ -256,8 +256,8 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
-                await chatWebView.SetUserPrompt("");
                 await ProcessAiResponse(response, model);
+                await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
                 await chatWebView.EnableSendButton();
                 await UpdateUi(response);
