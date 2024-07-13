@@ -374,8 +374,9 @@ namespace AiTool3
 
             if (CurrentSettings.NarrateResponses)
             {
-                var text = rtbOutput.Text;
-                Task.Run(() => TtsHelper.ReadAloud(text));
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                Task.Run(() => TtsHelper.ReadAloud(response.ResponseText));
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
 
             completionInput.Children.Add(completionResponse.Guid);
@@ -502,8 +503,6 @@ namespace AiTool3
 
         private async Task BeginNewConversation()
         {
-            rtbOutput.Clear();
-
             await chatWebView.Clear();
 
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
