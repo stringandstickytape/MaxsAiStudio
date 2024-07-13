@@ -44,8 +44,7 @@ namespace AiTool3.UI
                     ChatWebViewCancelEvent?.Invoke(this, new ChatWebViewCancelEventArgs());
                     break;
                 case "Copy":
-                    var guid2 = message["guid"];
-                    ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = guid2 });
+                    ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = null });
                     break;
                 case "Run Python Script":
                     PythonHelper.LaunchPythonScript(content);

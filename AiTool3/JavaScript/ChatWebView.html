@@ -26,31 +26,30 @@
     </div>
 
     <script>
-
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const sendButton = document.getElementById('sendButton');
-        const cancelButton = document.getElementById('cancelButton');
-        const systemPrompt = document.getElementById('systemPrompt');
-        const chatHeaderLabel = document.getElementById('chatHeaderLabel');
+        const els = {
+            chatMessages: document.getElementById('chatMessages'),
+            chatInput: document.getElementById('chatInput'),
+            sendButton: document.getElementById('sendButton'),
+            cancelButton: document.getElementById('cancelButton'),
+            systemPrompt: document.getElementById('systemPrompt'),
+            chatHeaderLabel: document.getElementById('chatHeaderLabel')
+        };
 
         let isCtrlPressed = false;
-        let sendButtonColor = '#4a90e2';
-        let cancelButtonColor = '#e74c3c';
         let currentTempMessage = null;
+        const buttonColors = {
+            send: '#4a90e2',
+            cancel: '#e74c3c',
+            disabled: '#7f8c8d'
+        };
 
         function updateTemp(string) {
             if (!currentTempMessage) {
-                const tempMessage = {
-                    Role: 1, // Assistant role
-                    Guid: "temp",
-                    Content: string
-                };
+                const tempMessage = { Role: 1, Guid: "temp", Content: string };
                 AddMessage(tempMessage);
-                currentTempMessage = chatMessages.lastElementChild;
+                currentTempMessage = els.chatMessages.lastElementChild;
             } else {
-                const contentDiv = currentTempMessage.querySelector('.message-content');
-                contentDiv.innerHTML += string;
+                currentTempMessage.querySelector('.message-content').innerHTML += string;
             }
             scrollToBottom();
         }
@@ -63,76 +62,61 @@
         }
 
         function updateSystemPrompt(prompt) {
-            systemPrompt.value = prompt;
+            els.systemPrompt.value = prompt;
         }
 
         function getSystemPrompt() {
-            return systemPrompt.value;
+            return els.systemPrompt.value;
         }
 
         function getUserPrompt() {
-            return chatInput.value;
+            return els.chatInput.value;
         }
 
         function changeChatHeaderLabel(label) {
-            chatHeaderLabel.textContent = label;
+            els.chatHeaderLabel.textContent = label;
         }
 
-        systemPrompt.addEventListener('input', function () {
+        els.systemPrompt.addEventListener('input', () => {
             window.chrome.webview.postMessage({
                 type: 'systemPromptUpdate',
                 content: getSystemPrompt()
             });
         });
 
-        function disableButton(id) {
+        function toggleButton(id, enable) {
             const button = document.getElementById(id);
-            button.disabled = true;
-            button.style.backgroundColor = '#7f8c8d'; // Grey color
-            button.style.cursor = 'not-allowed';
-            button.style.opacity = '0.6';
-        }
-
-        function enableButton(id) {
-            const color = id === "cancelButton" ? cancelButtonColor : sendButtonColor;
-            const button = document.getElementById(id);
-            button.disabled = false;
-            button.style.backgroundColor = color;
-            button.style.cursor = 'pointer';
-            button.style.opacity = '1';
+            button.disabled = !enable;
+            button.style.backgroundColor = enable ? buttonColors[id.replace('Button', '')] : buttonColors.disabled;
+            button.style.cursor = enable ? 'pointer' : 'not-allowed';
+            button.style.opacity = enable ? '1' : '0.6';
         }
 
         function AddInitialMessages(messages) {
-            messages.forEach(message => {
-                AddMessage(message);
-            });
+            messages.forEach(AddMessage);
         }
 
         function AddMessage(message) {
-            const messageElement = createMessageElement(message);
-            chatMessages.appendChild(messageElement);
+            els.chatMessages.appendChild(createMessageElement(message));
             scrollToBottom();
         }
 
         function ClearMessages(animate = false) {
             if (animate) {
-                const messages = Array.from(chatMessages.querySelectorAll('.message'));
-                let delay = 0;
-                for (let i = messages.length - 1; i >= 0; i--) {
-                    const message = messages[i];
+                const messages = Array.from(els.chatMessages.querySelectorAll('.message'));
+                messages.reverse().forEach((message, index) => {
                     setTimeout(() => {
                         message.classList.add('fade-out');
                         message.addEventListener('animationend', () => {
                             message.remove();
-                            if (i === 0) {
-                                chatMessages.innerHTML = '';
+                            if (index === messages.length - 1) {
+                                els.chatMessages.innerHTML = '';
                             }
                         }, { once: true });
-                    }, delay);
-                    delay += 100;
-                }
+                    }, index * 100);
+                });
             } else {
-                chatMessages.innerHTML = '';
+                els.chatMessages.innerHTML = '';
             }
         }
 
@@ -143,17 +127,16 @@
 
             addDragAndDropListeners(messageDiv, message);
 
-            const RoleDiv = document.createElement('div');
-            RoleDiv.className = 'role';
-            RoleDiv.textContent = message.Role === 0 ? "user" : "assistant";
+            const roleDiv = document.createElement('div');
+            roleDiv.className = 'role';
+            roleDiv.textContent = message.Role === 0 ? "user" : "assistant";
 
-            const ContentDiv = document.createElement('div');
-            ContentDiv.className = 'message-content';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
 
-            parseMessageContent(message.Content, ContentDiv);
+            parseMessageContent(message.Content, contentDiv);
 
-            messageDiv.appendChild(RoleDiv);
-            messageDiv.appendChild(ContentDiv);
+            messageDiv.append(roleDiv, contentDiv);
 
             return messageDiv;
         }
@@ -180,7 +163,7 @@
             });
         }
 
-        function parseMessageContent(content, ContentDiv) {
+        function parseMessageContent(content, contentDiv) {
             const backtick = String.fromCharCode(96);
             const tripleBacktick = backtick.repeat(3);
             const regex = new RegExp(tripleBacktick + '([\\s\\S]*?)' + tripleBacktick);
@@ -188,28 +171,22 @@
 
             snippets.forEach((snippet, index) => {
                 if (index % 2 === 0) {
-                    const textNode = document.createTextNode(snippet);
-                    ContentDiv.appendChild(textNode);
+                    contentDiv.appendChild(document.createTextNode(snippet));
                 } else {
-                    const codeBlockContainer = createCodeBlock(snippet);
-                    ContentDiv.appendChild(codeBlockContainer);
+                    contentDiv.appendChild(createCodeBlock(snippet));
                 }
             });
         }
 
         function createCodeBlock(snippet) {
-            const codeBlockContainer = document.createElement('div');
-            codeBlockContainer.className = 'code-block-container';
+            const container = document.createElement('div');
+            container.className = 'code-block-container';
 
             const codeBlock = document.createElement('div');
             codeBlock.className = 'code-block';
 
             const lines = snippet.trim().split('\n');
-            let dataType = '';
-            if (lines.length > 0 && snippet[0] != "\n") {
-                dataType = lines[0].trim();
-                lines.shift();
-            }
+            const dataType = lines[0] && snippet[0] !== "\n" ? lines.shift().trim() : '';
 
             codeBlock.dataset.type = dataType;
 
@@ -223,20 +200,15 @@
 
             const buttonBar = createButtonBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
 
-            typeLabelContainer.appendChild(typeLabel);
-            typeLabelContainer.appendChild(buttonBar);
-
-            codeBlockContainer.appendChild(typeLabelContainer);
-
+            typeLabelContainer.append(typeLabel, buttonBar);
             codeBlock.textContent = lines.join('\n').trim();
+            container.append(typeLabelContainer, codeBlock);
 
-            codeBlockContainer.appendChild(codeBlock);
-
-            return codeBlockContainer;
+            return container;
         }
 
         function createButtonBar(guid, content, dataType) {
-            const newButtons = [
+            const buttons = [
                 { label: 'Copy', dataType: '*' },
                 { label: 'Save As', dataType: '*' },
                 { label: 'WebView', dataType: 'html' },
@@ -249,97 +221,84 @@
             const buttonBar = document.createElement('div');
             buttonBar.className = 'button-bar';
 
-            const applicableButtons = newButtons.filter(button =>
-                button.dataType === '*' || button.dataType === dataType
-            );
+            buttons.filter(button => button.dataType === '*' || button.dataType === dataType)
+                .forEach(buttonInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = buttonInfo.label;
 
-            applicableButtons.forEach(buttonInfo => {
-                const button = document.createElement('button');
-                button.textContent = buttonInfo.label;
+                    button.addEventListener('click', () => {
+                        if (buttonInfo.label === 'Browse JSON Object') {
+                            createJsonViewer(content);
+                        } else {
+                            window.chrome.webview.postMessage({
+                                type: buttonInfo.label,
+                                content: content,
+                                guid: guid,
+                                dataType: dataType
+                            });
+                        }
+                    });
 
-                if (buttonInfo.label == 'Browse JSON Object') {
-                    button.addEventListener('click', () => {
-                        createJsonViewer(content);
-                    });
-                } else {
-                    button.addEventListener('click', () => {
-                        window.chrome.webview.postMessage({
-                            type: buttonInfo.label,
-                            content: content,
-                            guid: guid,
-                            dataType: dataType
-                        });
-                    });
-                }
-                buttonBar.appendChild(button);
-            });
+                    buttonBar.appendChild(button);
+                });
 
             return buttonBar;
         }
 
         function scrollToBottom() {
-            chatMessages.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            els.chatMessages.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
         function sendMessage() {
-            const message = chatInput.value.trim();
+            const message = els.chatInput.value.trim();
             if (message) {
-                window.chrome.webview.postMessage({
-                    type: 'send',
-                    content: message
-                });
+                window.chrome.webview.postMessage({ type: 'send', content: message });
             }
         }
 
-        chatInput.addEventListener('keydown', function (e) {
+        els.chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        sendButton.addEventListener('click', sendMessage);
+        els.sendButton.addEventListener('click', sendMessage);
 
-        cancelButton.addEventListener('click', () => {
-            window.chrome.webview.postMessage({
-                type: 'cancel',
-                content: ''
-            });
+        els.cancelButton.addEventListener('click', () => {
+            window.chrome.webview.postMessage({ type: 'cancel', content: '' });
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Control') {
-                isCtrlPressed = true;
-            }
+            if (e.key === 'Control') isCtrlPressed = true;
         });
 
         document.addEventListener('keyup', (e) => {
             if (e.key === 'Control') {
                 isCtrlPressed = false;
-                Array.from(chatMessages.querySelectorAll('.message')).forEach(msg => {
+                Array.from(els.chatMessages.querySelectorAll('.message')).forEach(msg => {
                     msg.draggable = false;
                     msg.classList.remove('draggable');
                 });
             }
         });
 
-        chatInput.addEventListener('dragover', (e) => {
+        els.chatInput.addEventListener('dragover', (e) => {
             if (isCtrlPressed) {
                 e.preventDefault();
-                chatInput.classList.add('drag-over');
+                els.chatInput.classList.add('drag-over');
             }
         });
 
-        chatInput.addEventListener('dragleave', () => {
-            chatInput.classList.remove('drag-over');
+        els.chatInput.addEventListener('dragleave', () => {
+            els.chatInput.classList.remove('drag-over');
         });
 
-        chatInput.addEventListener('drop', (e) => {
+        els.chatInput.addEventListener('drop', (e) => {
             if (isCtrlPressed) {
                 e.preventDefault();
-                chatInput.classList.remove('drag-over');
-                const droppedText = e.dataTransfer.getData('text/plain');
-                chatInput.value = droppedText;
+                els.chatInput.classList.remove('drag-over');
+                els.chatInput.value = e.dataTransfer.getData('text/plain');
             }
         });
 
