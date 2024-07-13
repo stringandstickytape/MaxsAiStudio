@@ -47,6 +47,10 @@ namespace AiTool3.UI
                     var guid2 = message["guid"];
                     ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = guid2 });
                     break;
+                case "Run Python Script":
+                    PythonHelper.LaunchPythonScript(content);
+                        
+                    break;
                 case "View JSON String Array":
 
                     // parse content as json string array, don't crash if it isn't tho
