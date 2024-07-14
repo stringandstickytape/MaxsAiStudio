@@ -219,7 +219,7 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
             {
-                await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*");
+                await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", CurrentSettings);
             });
 
             AddSpecial(specialsMenu, "Autosuggest", async (s, e) =>

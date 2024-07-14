@@ -54,6 +54,9 @@ namespace AiTool3.Providers
                 req["stream"] = true;
             }
 
+            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            //(obj["contents"] as JArray).Last()["parts"].Last()["text"] = newInput;
+            req["messages"].Last["content"] = newInput;
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 

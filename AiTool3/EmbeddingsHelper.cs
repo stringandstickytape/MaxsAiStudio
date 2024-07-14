@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿using AiTool3.Conversations;
+using AiTool3.Providers;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +11,39 @@ namespace AiTool3
 {
     internal static class EmbeddingsHelper
     {
+        public static async Task<string> AddEmbeddingsToInput(Conversation conversation, Settings.Settings currentSettings, string input)
+        {
+            if (currentSettings.UseEmbeddings)
+            {
+                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, input);
+                var lastMsg = $"{conversation.messages.Last().content}{Environment.NewLine}{Environment.NewLine}Here's some related content:{Environment.NewLine}{string.Join(Environment.NewLine, embeddings.Select(x => $"```{x.Filename} line {x.LineNumber}{Environment.NewLine}{x.Code}{Environment.NewLine}```"))}";
+                conversation.messages.Last().content = lastMsg;
+                return lastMsg;
+            }
+            else return input;
+        }
+
+        public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input)
+        {
+            var inputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { input }, key);
+
+            // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
+            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText("C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiTool3\\OpenAIEmbedFragged2.embeddings.json"));
+
+            var embeddingHelper = new EmbeddingHelper();
+
+            var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
+            List<CodeSnippet> result = new List<CodeSnippet>();
+            foreach (var snippet in s)
+            {
+                var subInputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
+                var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
+                result.AddRange(subs);
+            }
+
+            result = result.GroupBy(x => x.Code).Select(x => x.First()).ToList();
+            return result;
+        }
 
         public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "https://api.openai.com/v1/embeddings")
         {
@@ -26,7 +63,7 @@ namespace AiTool3
                 input = texts
             };
 
-            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
             HttpResponseMessage? response = null;
             try

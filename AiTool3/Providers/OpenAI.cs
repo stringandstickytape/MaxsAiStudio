@@ -59,6 +59,9 @@ namespace AiTool3.Providers
                 });
             }
 
+            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            req["messages"].Last["content"].Last()["text"] = newInput;
+
             if (!string.IsNullOrWhiteSpace(base64image))
             {
                 ((JArray)req["messages"].Last["content"]).Add(new JObject
@@ -70,6 +73,7 @@ namespace AiTool3.Providers
                     }
                 });
             }
+
 
             var json = JsonConvert.SerializeObject(req, new JsonSerializerSettings
             {

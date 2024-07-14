@@ -42,7 +42,7 @@ namespace AiTool3.Conversations
             return Messages.FirstOrDefault(cm => cm.Guid == guid);
         }
 
-        internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi)
+        internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi, Settings.Settings currentSettings)
         {
             string responseText = "";
             Debug.WriteLine(Title);
@@ -75,7 +75,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, false);
+                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), currentSettings, false);
 
                 Debug.WriteLine("Summary : " + response.ResponseText);
 

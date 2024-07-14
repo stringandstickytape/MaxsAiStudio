@@ -39,23 +39,10 @@ namespace AiTool3.Providers
                 )
             };
 
-            ((JArray)obj["contents"]).Insert(0, new JObject
-            {
-                ["role"] = "model",
-                ["parts"] = new JArray(new JObject
-                {
-                    ["text"] = "Understood."
-                })
-            });
+            AddFakeSystemPrompt(conversation, obj);
 
-            ((JArray)obj["contents"]).Insert(0, new JObject
-            {
-                ["role"] = "user",
-                ["parts"] = new JArray(new JObject
-                {
-                    ["text"] = conversation.SystemPromptWithDateTime()
-                })
-            });
+            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            (obj["contents"] as JArray).Last()["parts"].Last()["text"] = newInput;
 
             if (base64image != null)
             {
@@ -87,6 +74,27 @@ namespace AiTool3.Providers
                     }
                 }
             }
+        }
+
+        private static void AddFakeSystemPrompt(Conversation conversation, JObject obj)
+        {
+            ((JArray)obj["contents"]).Insert(0, new JObject
+            {
+                ["role"] = "model",
+                ["parts"] = new JArray(new JObject
+                {
+                    ["text"] = "Understood."
+                })
+            });
+
+            ((JArray)obj["contents"]).Insert(0, new JObject
+            {
+                ["role"] = "user",
+                ["parts"] = new JArray(new JObject
+                {
+                    ["text"] = conversation.SystemPromptWithDateTime()
+                })
+            });
         }
 
         private async Task<AiResponse> StreamResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken)

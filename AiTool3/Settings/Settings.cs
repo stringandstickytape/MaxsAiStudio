@@ -35,6 +35,9 @@ namespace AiTool3.Settings
         public bool RunWebServer { get; set; } = false;
 
 
+        [MyDisplayNameAttr("Use embeddings (experimental)")]
+        public bool UseEmbeddings { get; set; } = false;
+
         [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;
 

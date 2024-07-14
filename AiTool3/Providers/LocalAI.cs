@@ -2,6 +2,7 @@
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
@@ -19,25 +20,22 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingComplete;
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Settings.Settings currentSettings, bool useStreaming = false)
         {
-            var req = new LocalAIRequest
+            var req = new JObject
             {
-                model = apiModel.ModelName,
-                messages = new List<LocalAIMessage>
+                ["model"] = apiModel.ModelName,
+                ["messages"] = new JArray
                 {
-                    new LocalAIMessage
+                    new JObject
                     {
-                        Role = "system",
-                        Content = conversation.SystemPromptWithDateTime(),
+                        ["role"] = "system",
+                        ["content"] = conversation.SystemPromptWithDateTime()
                     }
                 },
-                stream = useStreaming
+                ["stream"] = useStreaming
             };
 
-            req.messages.AddRange(conversation.messages.Select(m => new LocalAIMessage
-            {
-                Role = m.role,
-                Content = m.content
-            }));
+            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            req["messages"].Last["content"] = newInput;
 
             var settings = AiTool3.Settings.Settings.Load();
 
