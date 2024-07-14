@@ -24,8 +24,16 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Ollama Local Port")]
         public int OllamaLocalPort { get; set; } = 11434;
 
+        [MyDisplayNameAttr("Temperature")]
+        public float Temperature { get; set; } = 0.9f;
+
         [MyDisplayNameAttr("Show Developer Tools for WebViews (requires app restart)")]
         public bool ShowDevTools { get; set; } = false;
+
+
+        [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart)")]
+        public bool RunWebServer { get; set; } = false;
+
 
         [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;

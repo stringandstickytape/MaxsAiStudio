@@ -61,6 +61,7 @@ namespace AiTool3.Providers
                 ["model"] = apiModel.ModelName,
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
+                ["temperature"] = currentSettings.Temperature,
                 ["messages"] = new JArray(
                     conversation.messages.Select(m => new JObject
                     {

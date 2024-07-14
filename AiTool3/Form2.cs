@@ -16,6 +16,8 @@ using System.Text;
 using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
 using System.Windows.Forms;
+using System.Net;
+using System.Reflection.Metadata.Ecma335;
 
 namespace AiTool3
 {
@@ -92,6 +94,23 @@ namespace AiTool3
             
             dgvConversations.MouseDown  += DgvConversations_MouseDown;
 
+            
+        }
+
+        private async void OnHandleCreated(object sender, EventArgs e)
+        {
+            Load -= OnHandleCreated!;
+
+            await chatWebView.EnsureCoreWebView2Async(null);
+
+            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
+
+            await BeginNewConversation();
+
+            if (CurrentSettings.RunWebServer)
+            {
+                await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
+            }
         }
 
         private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
@@ -137,16 +156,7 @@ namespace AiTool3
             await chatWebView.EnableCancelButton();
         }
 
-        private async void OnHandleCreated(object sender, EventArgs e)
-        {
-            Load -= OnHandleCreated!;
 
-            await chatWebView.EnsureCoreWebView2Async(null);
-
-            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
-
-            await BeginNewConversation();
-        }
 
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
 
@@ -252,14 +262,16 @@ namespace AiTool3
 
 
 
-        private async Task FetchAiInputResponse()
+        private async Task<string> FetchAiInputResponse()
         {
+            string retVal = "";
             try
             {
                 PrepareForNewResponse();
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
                 await ProcessAiResponse(response, model);
+                retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
                 await chatWebView.EnableSendButton();
@@ -280,7 +292,9 @@ namespace AiTool3
                 await chatWebView.EnableSendButton();
                 stopwatch.Stop();
                 updateTimer.Stop();
+                
             }
+            return retVal;
         }
 
         private async void PrepareForNewResponse()
@@ -321,7 +335,7 @@ namespace AiTool3
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
-            aiService.StreamingComplete += (s, e) => { chatWebView.ClearTemp(); };
+            aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
             return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings, CurrentSettings.StreamResponses);
         }

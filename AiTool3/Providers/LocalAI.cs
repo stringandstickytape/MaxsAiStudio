@@ -149,7 +149,7 @@ namespace AiTool3.Providers
 
             return new AiResponse
             {
-                ResponseText = result!.Message.Content,
+                ResponseText = result!.Message?.Content,
                 Success = true,
                 TokenUsage = new TokenUsage(result.PromptEvalCount.ToString(), result.EvalCount.ToString())
             };

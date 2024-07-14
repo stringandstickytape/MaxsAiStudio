@@ -81,26 +81,29 @@ namespace AiTool3.Conversations
 
                 // if there are ```, remove everything before it
                 responseText = response.ResponseText;
-                if (responseText.Contains("```"))
+                if (responseText != null)
                 {
-                    responseText = responseText.Substring(responseText.IndexOf("```"));
-                }
+                    if (responseText.Contains("```"))
+                    {
+                        responseText = responseText.Substring(responseText.IndexOf("```"));
+                    }
 
-                // remove ```json and ``` from the response
-                responseText = responseText.Replace("```json", "").Replace("```", "");
-                try
-                {
-                    dynamic obj = JsonConvert.DeserializeObject(responseText);
+                    // remove ```json and ``` from the response
+                    responseText = responseText.Replace("```json", "").Replace("```", "");
+                    try
+                    {
+                        dynamic obj = JsonConvert.DeserializeObject(responseText);
 
-                    // get the first property name from obj
-                    var propName = ((Newtonsoft.Json.Linq.JProperty)((Newtonsoft.Json.Linq.JContainer)obj).First).Name;
+                        // get the first property name from obj
+                        var propName = ((Newtonsoft.Json.Linq.JProperty)((Newtonsoft.Json.Linq.JContainer)obj).First).Name;
 
-                    Title = obj[propName];
-                }
-                catch
-                {
-                    Title = "Summary failed";
-                }
+                        Title = obj[propName];
+                    }
+                    catch
+                    {
+                        Title = "Summary failed";
+                    }
+                } else Title = "Summary failed";
             }
             // jsonconvert to dynamic
             else
