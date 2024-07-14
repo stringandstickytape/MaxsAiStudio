@@ -1,4 +1,5 @@
 ﻿using AiTool3.ApiManagement;
+using AiTool3.Conversations;
 using AiTool3.Helpers;
 using AiTool3.Providers.Embeddings;
 using AiTool3.Settings;
@@ -270,6 +271,21 @@ namespace AiTool3
             {
                 splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
             });
+            AddSpecial(specialsMenu, "Test Snippets Code", async (s, e) =>
+            {
+                var x = GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager);
+
+                // create a new form
+                var f = new Form();
+
+                // add a listbox with the snippets
+                var lb = new ListBox();
+                lb.Dock = DockStyle.Fill;
+                f.Controls.Add(lb);
+                lb.Items.AddRange(x.Select(x => x.Code).ToArray());
+                f.Show();
+
+            });
 
             menuBar.Items.Add(specialsMenu);
         }
@@ -295,6 +311,20 @@ namespace AiTool3
             var retVal = new ToolStripMenuItem(text);
             dropDownItems.DropDownItems.Add(retVal);
             return retVal;
+        }
+
+        public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)
+        {
+            List<Snippet> allSnippets = new List<Snippet>();
+            List<CompletionMessage> parentNodes = conversation.GetParentNodeList(currentMessage.Guid);
+
+            foreach (var node in parentNodes)
+            {
+                SnippetSet snippetSet = snippetManager.FindSnippets(node.Content);
+                allSnippets.AddRange(snippetSet.Snippets);
+            }
+
+            return allSnippets;
         }
     }
 

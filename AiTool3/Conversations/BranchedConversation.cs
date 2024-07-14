@@ -231,7 +231,7 @@ namespace AiTool3.Conversations
             return m.Guid;
         }
 
-        private List<CompletionMessage> GetParentNodeList(string guid)
+        public List<CompletionMessage> GetParentNodeList(string guid)
         {
             // starting at PreviousCompletion, walk up the tree to the root node and return a list of nodes
             var nodes = new List<CompletionMessage>();

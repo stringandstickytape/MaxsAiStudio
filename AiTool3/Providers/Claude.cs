@@ -25,7 +25,7 @@ namespace AiTool3.Providers
         {
             var input = new List<string> { conversation.messages.Last().content };
 
-            bool useEmbedding = false;
+            bool useEmbedding = true;
             var all = new List<CodeSnippet>();
 
             if (useEmbedding)
@@ -42,7 +42,7 @@ namespace AiTool3.Providers
                 foreach(var snippet in s)
                 {
                     var subInputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, currentSettings.EmbeddingKey);
-                    var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 3);
+                    var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
                     all.AddRange(subs);
                 }
                 

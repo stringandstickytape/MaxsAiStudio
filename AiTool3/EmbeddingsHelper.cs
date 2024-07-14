@@ -11,8 +11,8 @@ namespace AiTool3
         public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "https://api.openai.com/v1/embeddings")
         {
             // analyse our own root dll
-            var dllPath = Assembly.GetEntryAssembly().Location;
-            var analysis = AnalyzeDll(dllPath);
+           //var dllPath = Assembly.GetEntryAssembly().Location;
+           //var analysis = AnalyzeDll(dllPath);
             
 
 
