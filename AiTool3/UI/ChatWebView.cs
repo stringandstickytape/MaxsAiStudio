@@ -132,26 +132,15 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
-        internal async Task UpdateSystemPrompt(string systemPrompt)
-        {
-            await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
-        }
+        internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
         internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");
         internal async Task EnableCancelButton() => await ExecuteScriptAsync("enableButton('cancelButton')");
         internal async Task DisableSendButton() => await ExecuteScriptAsync("disableButton('sendButton')");
         internal async Task EnableSendButton() => await ExecuteScriptAsync("enableButton('sendButton')");
-        internal async Task AddMessage(CompletionMessage message)
-        {
-            // run "addMessages" js function
-            await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
-        }
+        internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
-        internal async Task<string> GetSystemPrompt()
-        {
-            return JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
-
-        }
+        internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
 
         internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
 
@@ -163,20 +152,11 @@ namespace AiTool3.UI
             await EnableSendButton();
         }
 
-        internal async Task SetUserPrompt(string content)
-        {
-            await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");
-        }//changeChatHeaderLabel
+        internal async Task SetUserPrompt(string content) => await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");//changeChatHeaderLabel
 
-        internal async Task ChangeChatHeaderLabel(string content)
-        {
-            await ExecuteScriptAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
-        }
+        internal async Task ChangeChatHeaderLabel(string content) => await ExecuteScriptAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
 
-        private bool IsDesignMode()
-        {
-            return DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime;
-        }
+        private bool IsDesignMode() => DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime;
 
         internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
 
