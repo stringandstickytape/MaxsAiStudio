@@ -59,6 +59,7 @@ namespace AiTool3.Providers
             };
 
 
+
             if (useEmbedding)
             {
                 all = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, input);

@@ -32,17 +32,14 @@ namespace AiTool3
 
         public TopicSet TopicSet { get; set; }
 
-        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
-
         public string? Base64Image { get; set; }
         public string? Base64ImageType { get; set; }
 
         private CancellationTokenSource? _cts, _cts2;
-
         private WebViewManager? webViewManager = null;
-
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
+        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
 
         public string selectedConversationGuid = "";
         public Form2()
@@ -92,8 +89,6 @@ namespace AiTool3
             Load += OnHandleCreated!;
             
             dgvConversations.MouseDown  += DgvConversations_MouseDown;
-
-            
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -131,14 +126,12 @@ namespace AiTool3
 
         private async void Option1_Click(object sender, EventArgs e)
         {
-            var guid = selectedConversationGuid;
-
-            await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, guid);
+            await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid);
         }
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
-            _cts?.Cancel();
+            _cts = Form2.ResetCancellationtoken(_cts);
             await chatWebView.DisableSendButton();
             await chatWebView.EnableCancelButton();
         }
@@ -149,16 +142,8 @@ namespace AiTool3
 
         private async void AutoSuggestStringSelected(string selectedString) => await chatWebView.SetUserPrompt(selectedString);
 
-        private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
-        {
-            var nodes = ConversationManager.GetParentNodeList();
-            var json = JsonConvert.SerializeObject(nodes);
-
-            var option = e.MenuOption;
-
-            WebNdcRightClickLogic.ProcessWebNdcContextMenuOption(nodes, option);
-        }
-
+        private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e) 
+            => WebNdcRightClickLogic.ProcessWebNdcContextMenuOption(ConversationManager.GetParentNodeList(), e.MenuOption);
 
 
         private void UpdateTimer_Tick(object sender, EventArgs e)
@@ -172,8 +157,6 @@ namespace AiTool3
         }
 
         private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.SetUserPrompt(e);
-
-
 
         private void InitialiseApiList()
         {
@@ -252,8 +235,7 @@ namespace AiTool3
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
 
                 chatWebView.ClearTemp();
-                _cts?.Cancel();
-                _cts = new CancellationTokenSource();
+                _cts = Form2.ResetCancellationtoken(_cts);
             }
             finally
             {
@@ -268,8 +250,7 @@ namespace AiTool3
 
         private async void PrepareForNewResponse()
         {
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
+            _cts = Form2.ResetCancellationtoken(_cts);
             stopwatch.Restart();
             updateTimer.Start();
 
@@ -643,9 +624,7 @@ namespace AiTool3
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            _cts2?.Cancel();
-
-            _cts2 = new CancellationTokenSource();
+            _cts2 = ResetCancellationtoken(_cts2);
 
             try
             {
@@ -670,6 +649,12 @@ namespace AiTool3
             {
                 if (!(ex is OperationCanceledException)) MessageBox.Show($"An error occurred: {ex.Message}");
             }
+        }
+
+        public static CancellationTokenSource ResetCancellationtoken(CancellationTokenSource? cts)
+        {
+            cts?.Cancel();
+            return new CancellationTokenSource();
         }
 
         private static async Task<bool> IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
@@ -713,7 +698,5 @@ namespace AiTool3
 <";
 
         }
-
-
     }
 }

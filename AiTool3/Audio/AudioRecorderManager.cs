@@ -64,8 +64,7 @@ namespace AiTool3.Audio
         {
             if (cts != null)
             {
-                // Stop the recording
-                cts.Cancel();
+                cts = Form2.ResetCancellationtoken(cts);
 
                 // Wait for the recording task to complete
                 await recordingTask!;
