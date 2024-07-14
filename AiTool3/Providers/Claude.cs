@@ -28,26 +28,7 @@ namespace AiTool3.Providers
             bool useEmbedding = false;
             var all = new List<CodeSnippet>();
 
-            if (useEmbedding)
-            {
-                var inputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(input, currentSettings.EmbeddingKey);
-                
-                // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
-                var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText("C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiTool3\\OpenAIEmbedFragged2.embeddings.json"));
-                
-                var embeddingHelper = new EmbeddingHelper();
-                
-                var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
-                
-                foreach(var snippet in s)
-                {
-                    var subInputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, currentSettings.EmbeddingKey);
-                    var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
-                    all.AddRange(subs);
-                }
-                
-                all = all.GroupBy(x => x.Code).Select(x => x.First()).ToList();
-            }
+
             if (!clientInitialised)
             {
                 client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
@@ -77,12 +58,15 @@ namespace AiTool3.Providers
                 ),
             };
 
+
             if (useEmbedding)
             {
+                all = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, input);
                 var lastMsg = $"{conversation.messages.Last().content}{Environment.NewLine}{Environment.NewLine}Here's some related content:{Environment.NewLine}{string.Join(Environment.NewLine, all.Select(x => $"```{x.Filename} line {x.LineNumber}{Environment.NewLine}{x.Code}{Environment.NewLine}```"))}";
                 conversation.messages.Last().content = lastMsg;
                 req["messages"].Last["content"].Last["text"] = lastMsg;
             }
+
             if (!string.IsNullOrWhiteSpace(base64image))
             {
                 var imageContent = new JObject
@@ -110,6 +94,28 @@ namespace AiTool3.Providers
             {
                 return await HandleNonStreamingResponse(apiModel, content, cancellationToken);
             }
+        }
+
+        private static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, List<string> input)
+        {
+            var inputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(input, key);
+
+            // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
+            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText("C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiTool3\\OpenAIEmbedFragged2.embeddings.json"));
+
+            var embeddingHelper = new EmbeddingHelper();
+
+            var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
+            List<CodeSnippet> result = new List<CodeSnippet>();
+            foreach (var snippet in s)
+            {
+                var subInputEmbedding = await EmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
+                var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
+                result.AddRange(subs);
+            }
+
+            result = result.GroupBy(x => x.Code).Select(x => x.First()).ToList();
+            return result;
         }
 
         private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
