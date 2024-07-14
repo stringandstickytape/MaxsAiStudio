@@ -56,6 +56,39 @@ namespace AiTool3.Settings
 
             }
 
+            // for every public string property on settings...
+            foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(string)))
+            {
+                var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
+
+                // create a new textbox control
+                var tb = new TextBox
+                {
+                    Text = (string)prop.GetValue(settings),
+                    Location = new Point(0, ypos),
+                    Width = 600
+                };
+
+                tb.TextChanged += (s, e) =>
+                {
+                    prop.SetValue(NewSettings, tb.Text);
+                };
+
+                // add to panel
+                panelToggles.Controls.Add(tb);
+
+                // add matching label to the right
+                var lbl = new Label
+                {
+                    Text = prop.Name,
+                    AutoSize = true,
+                    Location = new Point(tb.Width + 5, ypos)
+                };
+                panelToggles.Controls.Add(lbl);
+
+                ypos += 30;
+            }
+
             // for every public int property on settings...
             foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(int)))
             {

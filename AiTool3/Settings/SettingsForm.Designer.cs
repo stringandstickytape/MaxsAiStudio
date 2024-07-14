@@ -69,7 +69,7 @@
             // 
             panelToggles.Location = new Point(11, 393);
             panelToggles.Name = "panelToggles";
-            panelToggles.Size = new Size(521, 399);
+            panelToggles.Size = new Size(1129, 375);
             panelToggles.TabIndex = 3;
             // 
             // SettingsForm

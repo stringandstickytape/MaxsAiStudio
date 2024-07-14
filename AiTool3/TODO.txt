@@ -38,3 +38,10 @@ complete edit-highlighting-colours functionality
 source code browser thing, to let you choose which files to upload from your project?
 
 launch sql? browse xml? launch svg? launch powershell?  azure az command?! 
+
+
+
+**** pick specific summarisation model
+
+Local web front-end - genericise existing html somehow?
+

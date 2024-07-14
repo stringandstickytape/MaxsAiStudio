@@ -30,6 +30,9 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;
 
+        [MyDisplayNameAttr("OpenAI API key for embeddings")]
+        public string EmbeddingKey { get; set; } = "";
+
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
 
         [MyDisplayNameAttr("Collapse conversation pane at startup")]

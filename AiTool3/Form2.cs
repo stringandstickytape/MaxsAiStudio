@@ -323,7 +323,7 @@ namespace AiTool3
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.ClearTemp(); };
 
-            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings.StreamResponses);
+            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings, CurrentSettings.StreamResponses);
         }
 
         private void AiService_StreamingTextReceived(object? sender, string e)

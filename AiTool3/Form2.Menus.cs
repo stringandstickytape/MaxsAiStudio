@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Helpers;
+using AiTool3.Providers.Embeddings;
 using AiTool3.Settings;
 using AiTool3.Snippets;
 using AiTool3.Topics;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AiTool3
@@ -124,6 +126,74 @@ namespace AiTool3
             var menuText = "Specials";
             ToolStripMenuItem specialsMenu = CreateMenu(menuText);
 
+
+            AddSpecial(specialsMenu, "Create embedding", async (s, e) =>
+            {
+                // open a file browser and let user pick multiple files of any type
+
+
+
+                // get a directory to open from the user
+                var folderBrowserDialog = new FolderBrowserDialog();
+                folderBrowserDialog.ShowDialog();
+                if (folderBrowserDialog.SelectedPath == "")
+                {
+                    return;
+                }
+
+                // recursively find all cs files within that dir and subdirs
+                var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
+                files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
+
+
+                var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
+                
+                var codeFragmenter = new CodeFragmenter();
+                var htmlFragmenter = new WebCodeFragmenter();
+                List<CodeFragment> fragments = new List<CodeFragment>();
+                foreach (var file in files)
+                {
+                    var fileData = File.ReadAllText(file);
+                    var frags2 = codeFragmenter.FragmentCode(fileData, file);
+                    fragments.AddRange(frags2);
+                }
+                foreach(var file in htmlFiles)
+                {
+                    var fileData = File.ReadAllText(file);
+                    var htmlFrags = htmlFragmenter.FragmentCode(fileData, file);
+                    //fragments.AddRange(htmlFrags);
+                }
+                // get a .embeddings.json save file from the user
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Embeddings JSON file|*.embeddings.json",
+                    Title = "Save Embeddings JSON file"
+                };
+                saveFileDialog.ShowDialog();
+
+                if (saveFileDialog.FileName == "")
+                {
+                    return;
+                }
+                var frags = fragments.Where(x => x.Content.Length > 25).ToList();
+                var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(frags.Select(x=>x.Content).ToList(), CurrentSettings.EmbeddingKey);
+
+                for(var i = 0; i < frags.Count; i++)
+                {
+                    embeddings[i].Code = frags[i].Content;
+                    embeddings[i].Filename = frags[i].FilePath;
+                    embeddings[i].LineNumber = frags[i].LineNumber;
+                }
+
+
+                // write the embeddings to the save file as json
+                var json = JsonSerializer.Serialize(embeddings);
+                File.WriteAllText(saveFileDialog.FileName, json);
+
+                // show mb to say it's done
+                MessageBox.Show("Embeddings created and saved");
+            });
+
             AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
             {
                 AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem!);
@@ -226,5 +296,20 @@ namespace AiTool3
             dropDownItems.DropDownItems.Add(retVal);
             return retVal;
         }
+    }
+
+    public class FileTexts
+    {
+        public string Filename { get; set; }
+        public string Content { get; set; }
+
+    }
+
+    public class Embedding
+    {
+        public string Code { get; set; }
+        public List<float> Value { get; set; }
+        public string Filename { get; set; }
+        public int LineNumber { get; set; }
     }
 }
