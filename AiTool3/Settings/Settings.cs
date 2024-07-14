@@ -38,11 +38,7 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Collapse conversation pane at startup")]
         public bool CollapseConversationPane { get; set; } = false;
 
-        public Settings()
-        {
-            //var existingSettings = ReadFromJson();
-            //if (existingSettings != null) return existingSettings;
-        }
+        public Settings() { }
 
         public void SetDefaultPath(string v)
         {
