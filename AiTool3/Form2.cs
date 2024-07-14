@@ -44,7 +44,7 @@ namespace AiTool3
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
 
-
+        public string selectedConversationGuid = "";
         public Form2()
         {
             InitializeComponent();
@@ -73,21 +73,20 @@ namespace AiTool3
 
             InitialiseApiList();
 
-            SetSplitContainerEvents();
+            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
+            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
 
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
-            // Create ContextMenuStrip
+            
             ContextMenuStrip contextMenu = new ContextMenuStrip();
 
-            // Add menu items
             contextMenu.Items.Add("Regenerate Summary", null, Option1_Click);
-            contextMenu.Items.Add("Option 2", null, Option2_Click);
 
             dgvConversations.ContextMenuStrip = contextMenu;
 
             InitialiseMenus();
 
-            updateTimer.Interval = 100; // Update every 100 milliseconds
+            updateTimer.Interval = 100;
             updateTimer.Tick += UpdateTimer_Tick!;
 
             Load += OnHandleCreated!;
@@ -132,22 +131,10 @@ namespace AiTool3
 
         private async void Option1_Click(object sender, EventArgs e)
         {
-            // work out which row was clicked
-            // get the guid from the first cell in that row
-
             var guid = selectedConversationGuid;
-
-
 
             await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, guid);
         }
-
-        private static void Option2_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Option 2 clicked!");
-        }
-
-        public string selectedConversationGuid = "";
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
@@ -160,10 +147,7 @@ namespace AiTool3
 
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
 
-        private async void AutoSuggestStringSelected(string selectedString)
-        {
-            await chatWebView.SetUserPrompt(selectedString);
-        }
+        private async void AutoSuggestStringSelected(string selectedString) => await chatWebView.SetUserPrompt(selectedString);
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
         {
@@ -187,10 +171,7 @@ namespace AiTool3
             }
         }
 
-        private async void AudioRecorderManager_AudioProcessed(object? sender, string e)
-        {
-            await chatWebView.SetUserPrompt(e);
-        }
+        private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.SetUserPrompt(e);
 
 
 
@@ -204,15 +185,6 @@ namespace AiTool3
             cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
-
-
-        private void SetSplitContainerEvents()
-        {
-            // for each split container incl in child items
-            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
-            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
-        }
-
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
         {
             SplitContainer sc = (sender as SplitContainer)!;
@@ -221,7 +193,7 @@ namespace AiTool3
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
                 : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
 
-            using (SolidBrush brush = new SolidBrush(Color.Gray))
+            using (SolidBrush brush = new SolidBrush(Color.PaleTurquoise))
             {
                 e.Graphics.FillRectangle(brush, splitterRect);
             }
@@ -255,10 +227,7 @@ namespace AiTool3
 
         }
 
-        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
-        {
-            await FetchAiInputResponse();
-        }
+        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e) => await FetchAiInputResponse();
 
 
 
@@ -731,10 +700,7 @@ namespace AiTool3
             webViewManager.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
         }
 
-        private void Form2_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            webViewManager!.webView.Dispose();
-        }
+        private void Form2_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();
 
         private void button1_Click(object sender, EventArgs e)
         {
