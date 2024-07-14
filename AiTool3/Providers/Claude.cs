@@ -25,7 +25,7 @@ namespace AiTool3.Providers
         {
             var input = new List<string> { conversation.messages.Last().content };
 
-            bool useEmbedding = true;
+            bool useEmbedding = false;
             var all = new List<CodeSnippet>();
 
             if (useEmbedding)

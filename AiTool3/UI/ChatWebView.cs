@@ -113,7 +113,11 @@ namespace AiTool3.UI
             var html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
 
-            html = html.Replace(".magiccsstoken {}", css);
+            // find the first style tag
+            var styleTagIndex = html.IndexOf("<style>", StringComparison.Ordinal) + "<style>".Length;
+
+            // insert the css
+            html = html.Insert(styleTagIndex, css);
 
             NavigateToString(html);
 
