@@ -44,10 +44,7 @@ namespace AiTool3.Providers
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (!IsPortOpen(settings!.OllamaLocalPort))
-            {
-                StartOllama();
-            }
+            StartOllama(apiModel.ModelName);
 
             var url = GetAdjustedUrl(apiModel.Url, settings.OllamaLocalPort);
 
@@ -170,9 +167,9 @@ namespace AiTool3.Providers
             }
         }
 
-        private void StartOllama()
+        private void StartOllama(string modelName)
         {
-            var psi = new ProcessStartInfo("ollama", "run gemma2")
+            var psi = new ProcessStartInfo("ollama", $"run {modelName}")
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

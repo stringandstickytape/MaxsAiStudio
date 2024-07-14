@@ -78,6 +78,7 @@ namespace AiTool3.Settings
                 Models = new List<Model>
                 {
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},
                 },
             });
 
@@ -129,7 +130,9 @@ namespace AiTool3.Settings
             try
             {
                 var text = File.ReadAllText("api.json");
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<Settings>(text);
+                var retVal = Newtonsoft.Json.JsonConvert.DeserializeObject<Settings>(text);
+                retVal.AddMissingApis();
+                return retVal;
             }
             catch (FileNotFoundException e)
             {
@@ -141,7 +144,22 @@ namespace AiTool3.Settings
             }
         }
 
+        private void AddMissingApis()
+        {
+            var newSettings = new Settings();
+            newSettings.Create();
+            foreach (var api in newSettings.ApiList)
+            {
+                if (!ApiList.Any(x => x.ApiName == api.ApiName))
+                {
+                    ApiList.Add(api);
+                }
+            }
+            Save(this);
+        }
+
     }
+
 
     [AttributeUsage(AttributeTargets.Property)]
     public class MyDisplayNameAttrAttribute : Attribute
