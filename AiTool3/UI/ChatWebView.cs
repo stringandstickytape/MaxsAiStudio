@@ -8,6 +8,9 @@ using static AiTool3.UI.NetworkDiagramControl;
 using System.Windows.Forms;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
+using System.Reflection;
+using System.Text;
+using System.Resources;
 
 namespace AiTool3.UI
 {
@@ -26,6 +29,7 @@ namespace AiTool3.UI
             {
                 HandleCreated += OnHandleCreated!;
                 WebMessageReceived += WebView_WebMessageReceived;
+                
             }
         }
 
@@ -113,6 +117,7 @@ namespace AiTool3.UI
         {
             HandleCreated -= OnHandleCreated!;
             await InitializeAsync();
+
         }
 
 
@@ -122,6 +127,13 @@ namespace AiTool3.UI
                 return;
 
             await EnsureCoreWebView2Async(null);
+            CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            var resources = GetResourceDetails();
+
+            foreach (var resource in resources)
+            {
+                CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
+            }
 
             var html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
@@ -174,5 +186,95 @@ namespace AiTool3.UI
         internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
 
         internal async void ClearTemp() => await ExecuteScriptAsync($"clearTemp()");
+
+
+
+
+        private void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+        {
+            List<ResourceDetails> resources = GetResourceDetails();
+
+            resources.Where(x => e.Request.Uri == x.Uri).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
+        }
+
+        private static List<ResourceDetails> GetResourceDetails()
+        {
+            return new List<ResourceDetails>
+            {
+                new ResourceDetails
+                {
+                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.js",
+                    MimeType = "application/javascript"
+                },
+
+                new ResourceDetails
+                {
+                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.css",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.css",
+                    MimeType = "text/css"
+                },//
+
+                new ResourceDetails
+                {
+                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor-icons.svg",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor-icons.svg",
+                    MimeType = "image/svg+xml"
+                },
+                new ResourceDetails
+                {
+                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape.min.js",
+                    MimeType = "application/javascript"
+                },
+                new ResourceDetails
+                {
+                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.dagre.min.js",
+                    MimeType = "application/javascript"
+                },
+                new ResourceDetails
+                {
+                    Uri = "https://cdn.jsdelivr.net/npm/cytoscape-cxtmenu@3.4.0/cytoscape-cxtmenu.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape-cxtmenu.min.js",
+                    MimeType = "application/javascript"
+                },
+                new ResourceDetails
+                {
+                    Uri = "https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape-dagre.min.js",
+                    MimeType = "application/javascript"
+                },
+            };
+        }
+
+        private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream != null)
+                {
+                    // Read the embedded resource
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string content = reader.ReadToEnd();
+
+                        // Create a memory stream from the content
+                        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+
+                        // Create a custom response
+                        var response = CoreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {mimeType}");
+
+                        // Set the response
+                        e.Response = response;
+
+                        return;
+                    }
+                }
+                throw new NotImplementedException();
+            }
+        }
     }
 }

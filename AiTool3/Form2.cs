@@ -98,64 +98,7 @@ namespace AiTool3
             dgvConversations.MouseDown += DgvConversations_MouseDown;
         }
 
-        private void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
-        {
-            List<ResourceDetails> resources = GetResourceDetails();
 
-            foreach (var resource in resources)
-            {
-                if (e.Request.Uri == resource.Uri)
-                {
-                    ReturnResourceToWebView(e, resource.ResourceName, resource.MimeType);
-                }
-            }
-        }
-
-        private static List<ResourceDetails> GetResourceDetails()
-        {
-            return new List<ResourceDetails>
-            {
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.js",
-                    MimeType = "application/javascript"
-                },
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.css",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.css",
-                    MimeType = "text/css"
-                }
-            };
-        }
-
-        private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream != null)
-                {
-                    // Read the embedded resource
-                    using (var reader = new StreamReader(stream))
-                    {
-                        string content = reader.ReadToEnd();
-
-                        // Create a memory stream from the content
-                        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-
-                        // Create a custom response
-                        var response = chatWebView.CoreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {mimeType}");
-
-                        // Set the response
-                        e.Response = response;
-                    }
-                }
-            }
-        }
 
         private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
         {
@@ -187,12 +130,8 @@ namespace AiTool3
 
             await chatWebView.EnsureCoreWebView2Async(null);
 
-            var resources = GetResourceDetails();
-            foreach(var resource in resources)
-            {
-                chatWebView.CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
-            }
-            chatWebView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+
+            
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 

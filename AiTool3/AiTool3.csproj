@@ -45,7 +45,13 @@
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
+    <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
+    <None Remove="ThirdPartyJavascript\cytoscape-dagre.min.js" />
+    <None Remove="ThirdPartyJavascript\cytoscape.min.js" />
     <None Remove="ThirdPartyJavascript\d3.v7.min.js" />
+    <None Remove="ThirdPartyJavascript\dagre.min.js" />
+    <None Remove="ThirdPartyJavascript\jsoneditor-icons.svg" />
+    <None Remove="ThirdPartyJavascript\jsoneditor.min.css" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
   </ItemGroup>
@@ -57,7 +63,13 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-dagre.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\d3.v7.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\dagre.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor-icons.svg" />
+    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.css" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />
   </ItemGroup>
   
