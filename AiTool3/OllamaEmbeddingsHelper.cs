@@ -9,17 +9,17 @@ using System.Text.Json;
 
 namespace AiTool3
 {
-    internal static class EmbeddingsHelper
+    internal static class OllamaEmbeddingsHelper
     {
         public static async Task<string> AddEmbeddingsToInput(Conversation conversation, Settings.Settings currentSettings, string input)
         {
             if (currentSettings.UseEmbeddings)
             {
-                var embeddingText = input+" ";
+                var embeddingText = input + " ";
                 // last but one msg
                 var lbom = conversation.messages.Count > 1 ? conversation.messages[conversation.messages.Count - 2].content : "";
 
-                if(string.IsNullOrEmpty(lbom) || lbom != input)
+                if (string.IsNullOrEmpty(lbom) || lbom != input)
                 {
                     embeddingText += lbom + " ";
                 }
@@ -60,50 +60,49 @@ namespace AiTool3
             return result;
         }
 
-        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "https://api.openai.com/v1/embeddings")
+        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "http://localhost:11434/api/embeddings")
         {
             using var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
-            var request = new
-            {
-                model = "text-embedding-3-large", // OpenAI's default embedding model
-                input = texts
-            };
-
-            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage? response = null;
-            try
-            {
-                response = await client.PostAsync(apiUrl, content);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (Exception e)
-            {
-                // Handle or log the exception
-                Console.WriteLine($"An error occurred: {e.Message}");
-                return new List<Embedding>();
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            using JsonDocument doc = JsonDocument.Parse(responseBody);
-            JsonElement root = doc.RootElement;
 
             var embeddings = new List<Embedding>();
-            JsonElement dataArray = root.GetProperty("data");
 
-            foreach (JsonElement dataElement in dataArray.EnumerateArray())
+            foreach (var text in texts)
             {
-                JsonElement embeddingArray = dataElement.GetProperty("embedding");
-                var embedding = new List<float>();
-
-                foreach (JsonElement value in embeddingArray.EnumerateArray())
+                var request = new
                 {
-                    embedding.Add(value.GetSingle());
+                    model = "mxbai-embed-large",
+                    prompt = text
+                };
+
+                var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage? response = null;
+                try
+                {
+                    response = await client.PostAsync(apiUrl, content);
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"An error occurred: {e.Message}");
+                    return new List<Embedding>();
                 }
 
-                embeddings.Add(new Embedding { Value = embedding, Code = "" });
+                var responseBody = await response.Content.ReadAsStringAsync();
+                using JsonDocument doc = JsonDocument.Parse(responseBody);
+                JsonElement root = doc.RootElement;
+
+                if (root.TryGetProperty("embedding", out JsonElement embeddingArray))
+                {
+                    var embedding = new List<float>();
+
+                    foreach (JsonElement value in embeddingArray.EnumerateArray())
+                    {
+                        embedding.Add(value.GetSingle());
+                    }
+
+                    embeddings.Add(new Embedding { Value = embedding, Code = text });
+                }
             }
 
             return embeddings;
@@ -138,8 +137,5 @@ namespace AiTool3
 
             return string.Empty;
         }
-
     }
-
-
 }

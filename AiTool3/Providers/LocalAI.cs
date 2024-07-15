@@ -46,7 +46,7 @@ namespace AiTool3.Providers
                 req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
             }
 
-            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last["content"] = newInput;
 
             var settings = AiTool3.Settings.Settings.Load();

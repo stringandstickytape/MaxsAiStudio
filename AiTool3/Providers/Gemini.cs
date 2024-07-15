@@ -41,7 +41,7 @@ namespace AiTool3.Providers
 
             AddFakeSystemPrompt(conversation, obj);
 
-            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             (obj["contents"] as JArray).Last()["parts"].Last()["text"] = newInput;
 
             if (base64image != null)

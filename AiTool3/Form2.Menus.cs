@@ -297,7 +297,7 @@ namespace AiTool3
 {x.Content}
 ").ToList();
 
-            var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(embeddingInputs, apiKey);
+            var embeddings = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(embeddingInputs, apiKey);
 
             for (var i = 0; i < frags.Count; i++)
             {

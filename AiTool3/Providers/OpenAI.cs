@@ -59,7 +59,7 @@ namespace AiTool3.Providers
                 });
             }
 
-            var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
+            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last["content"].Last()["text"] = newInput;
 
             if (!string.IsNullOrWhiteSpace(base64image))
