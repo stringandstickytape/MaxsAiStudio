@@ -2,6 +2,7 @@
 using AiTool3.Conversations;
 using AiTool3.Helpers;
 using AiTool3.Providers.Embeddings;
+using AiTool3.Providers.Embeddings.Fragmenters;
 using AiTool3.Settings;
 using AiTool3.Snippets;
 using AiTool3.Topics;
@@ -251,15 +252,23 @@ namespace AiTool3
 
 
             var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
-
-            var codeFragmenter = new CodeFragmenter();
-            var htmlFragmenter = new WebCodeFragmenter();
+            var xmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories);
+            var csFragmenter = new CsFragmenter();
+            var webCodeFragmenter = new WebCodeFragmenter();
+            var xmlFragmenter = new XmlCodeFragmenter();
             List<CodeFragment> fragments = new List<CodeFragment>();
+            foreach (var file in xmlFiles)
+            {
+                fragments.AddRange(xmlFragmenter.FragmentCode(File.ReadAllText(file), file));
+            }
+            foreach (var file in htmlFiles)
+            {
+                fragments.AddRange(webCodeFragmenter.FragmentCode(File.ReadAllText(file), file));
+            }
+            // remove all frags under 10 chars in length
             foreach (var file in files)
             {
-                var fileData = File.ReadAllText(file);
-                var frags2 = codeFragmenter.FragmentCode(fileData, file);
-                fragments.AddRange(frags2);
+                fragments.AddRange(csFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
 
             var saveFileDialog = new SaveFileDialog

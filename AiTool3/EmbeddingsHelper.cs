@@ -15,7 +15,15 @@ namespace AiTool3
         {
             if (currentSettings.UseEmbeddings)
             {
-                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, input);
+                var embeddingText = input+" ";
+                // last but one msg
+                var lbom = conversation.messages.Count > 1 ? conversation.messages[conversation.messages.Count - 2].content : "";
+
+                if(string.IsNullOrEmpty(lbom) || lbom != input)
+                {
+                    embeddingText += lbom + " ";
+                }
+                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText);
                 var lastMsg = $"{conversation.messages.Last().content}" +
                     $"{Environment.NewLine}{Environment.NewLine}" +
                     $"Here's some related content:{Environment.NewLine}" +

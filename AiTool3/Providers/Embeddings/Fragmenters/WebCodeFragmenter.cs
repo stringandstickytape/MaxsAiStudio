@@ -5,32 +5,46 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AiTool3.Providers.Embeddings
+namespace AiTool3.Providers.Embeddings.Fragmenters
 {
     public class WebCodeFragmenter
     {
         private const int MaxFragmentSize = 1000;
         private const int MinFragmentSize = 50;
 
+        public class CodeBlock
+        {
+            public string Content { get; set; }
+            public int LineNumber { get; set; }
+        }
+
+        public class SeparatedContent
+        {
+            public List<CodeBlock> Html { get; set; }
+            public List<CodeBlock> Css { get; set; }
+            public List<CodeBlock> Js { get; set; }
+        }
+
         public List<CodeFragment> FragmentCode(string fileContent, string filePath)
         {
             var fragments = new List<CodeFragment>();
-            var (html, css, js) = SeparateContent(fileContent);
+            var separatedContent = SeparateContent(fileContent);
 
-            fragments.AddRange(ProcessHtml(html, filePath));
-            fragments.AddRange(ProcessCss(css, filePath));
-            fragments.AddRange(ProcessJavaScript(js, filePath));
+            fragments.AddRange(ProcessHtml(separatedContent.Html, filePath));
+            fragments.AddRange(ProcessCss(separatedContent.Css, filePath));
+            fragments.AddRange(ProcessJavaScript(separatedContent.Js, filePath));
 
             return fragments;
         }
 
-        private (string html, List<string> css, List<string> js) SeparateContent(string fileContent)
+        private SeparatedContent SeparateContent(string fileContent)
         {
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(fileContent);
 
-            var css = new List<string>();
-            var js = new List<string>();
+            var html = new List<CodeBlock>();
+            var css = new List<CodeBlock>();
+            var js = new List<CodeBlock>();
 
             // Extract CSS
             var styleNodes = htmlDoc.DocumentNode.SelectNodes("//style");
@@ -38,7 +52,7 @@ namespace AiTool3.Providers.Embeddings
             {
                 foreach (var node in styleNodes)
                 {
-                    css.Add(node.InnerHtml);
+                    css.Add(new CodeBlock { Content = node.InnerHtml, LineNumber = node.Line });
                     node.Remove();
                 }
             }
@@ -51,27 +65,53 @@ namespace AiTool3.Providers.Embeddings
                 {
                     if (string.IsNullOrEmpty(node.GetAttributeValue("src", null)))
                     {
-                        js.Add(node.InnerHtml);
+                        js.Add(new CodeBlock { Content = node.InnerHtml, LineNumber = node.Line });
                         node.Remove();
                     }
                 }
             }
 
-            return (htmlDoc.DocumentNode.OuterHtml, css, js);
+            // Process remaining HTML
+            ProcessHtmlNodesForSeparation(htmlDoc.DocumentNode, html);
+
+            return new SeparatedContent { Html = html, Css = css, Js = js };
         }
 
-        private List<CodeFragment> ProcessHtml(string html, string filePath)
+        private void ProcessHtmlNodesForSeparation(HtmlNode node, List<CodeBlock> html)
+        {
+            if (IsSignificantBlock(node))
+            {
+                html.Add(new CodeBlock { Content = node.OuterHtml, LineNumber = node.Line });
+            }
+            else
+            {
+                foreach (var childNode in node.ChildNodes)
+                {
+                    ProcessHtmlNodesForSeparation(childNode, html);
+                }
+            }
+        }
+
+        private List<CodeFragment> ProcessHtml(List<CodeBlock> htmlBlocks, string filePath)
         {
             var fragments = new List<CodeFragment>();
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            htmlDoc.LoadHtml(html);
-
-            ProcessHtmlNodes(htmlDoc.DocumentNode, fragments, filePath);
-
+            foreach (var block in htmlBlocks)
+            {
+                if (block.Content.Length > MaxFragmentSize)
+                {
+                    var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                    htmlDoc.LoadHtml(block.Content);
+                    ProcessHtmlNodes(htmlDoc.DocumentNode, fragments, filePath, block.LineNumber);
+                }
+                else if (block.Content.Length >= MinFragmentSize)
+                {
+                    AddFragment(fragments, block.Content, "HTML", filePath, block.LineNumber);
+                }
+            }
             return fragments;
         }
 
-        private void ProcessHtmlNodes(HtmlNode node, List<CodeFragment> fragments, string filePath)
+        private void ProcessHtmlNodes(HtmlNode node, List<CodeFragment> fragments, string filePath, int baseLineNumber)
         {
             if (IsSignificantBlock(node))
             {
@@ -80,52 +120,56 @@ namespace AiTool3.Providers.Embeddings
                 {
                     foreach (var childNode in node.ChildNodes)
                     {
-                        ProcessHtmlNodes(childNode, fragments, filePath);
+                        ProcessHtmlNodes(childNode, fragments, filePath, baseLineNumber + node.Line - 1);
                     }
                 }
                 else if (content.Length >= MinFragmentSize)
                 {
-                    AddFragment(fragments, content, "HTML", filePath, node.Line);
+                    AddFragment(fragments, content, "HTML", filePath, baseLineNumber + node.Line - 1);
                 }
             }
             else
             {
                 foreach (var childNode in node.ChildNodes)
                 {
-                    ProcessHtmlNodes(childNode, fragments, filePath);
+                    ProcessHtmlNodes(childNode, fragments, filePath, baseLineNumber);
                 }
             }
         }
 
-        private List<CodeFragment> ProcessCss(List<string> cssBlocks, string filePath)
+        private List<CodeFragment> ProcessCss(List<CodeBlock> cssBlocks, string filePath)
         {
             var fragments = new List<CodeFragment>();
-            foreach (var css in cssBlocks)
+            foreach (var block in cssBlocks)
             {
-                var rules = SplitCssRules(css);
+                var rules = SplitCssRules(block.Content);
+                int currentLine = block.LineNumber;
                 foreach (var rule in rules)
                 {
                     if (rule.Length >= MinFragmentSize)
                     {
-                        AddFragment(fragments, rule, "CSS", filePath, 0);
+                        AddFragment(fragments, rule, "CSS", filePath, currentLine);
                     }
+                    currentLine += rule.Split('\n').Length - 1;
                 }
             }
             return fragments;
         }
 
-        private List<CodeFragment> ProcessJavaScript(List<string> jsBlocks, string filePath)
+        private List<CodeFragment> ProcessJavaScript(List<CodeBlock> jsBlocks, string filePath)
         {
             var fragments = new List<CodeFragment>();
-            foreach (var js in jsBlocks)
+            foreach (var block in jsBlocks)
             {
-                var codeFragments = ExtractJavaScriptFragments(js);
+                var codeFragments = ExtractJavaScriptFragments(block.Content);
+                int currentLine = block.LineNumber;
                 foreach (var fragment in codeFragments)
                 {
                     if (fragment.Length >= MinFragmentSize)
                     {
-                        AddFragment(fragments, fragment, "JavaScript", filePath, 0);
+                        AddFragment(fragments, fragment, "JavaScript", filePath, currentLine);
                     }
+                    currentLine += fragment.Split('\n').Length - 1;
                 }
             }
             return fragments;
@@ -204,15 +248,6 @@ namespace AiTool3.Providers.Embeddings
             return Regex.Split(css, @"(?<=\})")
                         .Where(rule => !string.IsNullOrWhiteSpace(rule))
                         .Select(rule => rule.Trim())
-                        .ToList();
-        }
-
-        private List<string> SplitJavaScript(string js)
-        {
-            // This is a simple split. For more accurate splitting, consider using a JS parser.
-            return Regex.Split(js, @"(?<=;|\})")
-                        .Where(statement => !string.IsNullOrWhiteSpace(statement))
-                        .Select(statement => statement.Trim())
                         .ToList();
         }
 
