@@ -24,14 +24,15 @@ namespace AiTool3
                     embeddingText += lbom + " ";
                 }
                 var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText);
-                var lastMsg = $"{conversation.messages.Last().content}" +
-                    $"{Environment.NewLine}{Environment.NewLine}" +
+                var lastMsg = $"{Environment.NewLine}{Environment.NewLine}" +
                     $"Here's some related content:{Environment.NewLine}" +
                     $"{string.Join(Environment.NewLine, embeddings.Select(
                         x => $"{new string('`', 3)}{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
                         $"{x.Code}{Environment.NewLine}" +
                         $"" +
-                        $"{new string('`', 3)}"))}";
+                        $"{new string('`', 3)}"))}" +
+                        $"{Environment.NewLine}{Environment.NewLine}" +
+                        $"{conversation.messages.Last().content}";
                 conversation.messages.Last().content = lastMsg;
                 return lastMsg;
             }

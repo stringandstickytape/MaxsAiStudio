@@ -81,6 +81,7 @@ namespace AiTool3.Settings
                 Models = new List<Model>
                 {
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:27b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},
                 },
             });
@@ -157,7 +158,20 @@ namespace AiTool3.Settings
                 {
                     ApiList.Add(api);
                 }
+
+
+                foreach(var model in api.Models)
+                {
+                    var newModel = ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == model.ModelName);
+                    if (newModel == null)
+                    {
+                        // add to correct in apilist
+                        var correctApi = ApiList.First(x => x.ApiName == api.ApiName);
+                        correctApi.Models.Add(model);
+                    }
+                }
             }
+
             Save(this);
         }
 
