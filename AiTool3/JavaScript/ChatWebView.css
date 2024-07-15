@@ -72,7 +72,7 @@ body {
 }
 
 .message {
-    margin-bottom: 20px;
+    margin-bottom: 70px;
     display: flex;
     animation: fadeIn 0.5s ease-out;
 }
