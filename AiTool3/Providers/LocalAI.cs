@@ -34,7 +34,6 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming
             };
 
-
             var x = conversation.messages.Select(m => new LocalAIMessage
             {
                 Role = m.role,
@@ -46,8 +45,14 @@ namespace AiTool3.Providers
                 req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
             }
 
+            if (base64image != null)
+            {
+                req["messages"].Last["images"] = new JArray { base64image };
+                base64image = null;
+            }
+
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
-            req["messages"].Last["content"] = newInput;
+            req["messages"].Last()["content"] = newInput;
 
             var settings = AiTool3.Settings.Settings.Load();
 

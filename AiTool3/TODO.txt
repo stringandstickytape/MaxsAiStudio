@@ -45,3 +45,7 @@ launch sql? browse xml? launch svg? launch powershell?  azure az command?!
 
 Local web front-end - genericise existing html somehow?
 
+*** llava support
+
+highlight the currently-selected template in the templates menu
+
