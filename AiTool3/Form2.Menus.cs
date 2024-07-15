@@ -54,6 +54,16 @@ namespace AiTool3
                 }
             };
 
+            // add settings option.  When chosen, invokes SettingsForm modally
+            var licensesMenuItem = CreateMenuItem("Licenses", ref editMenu);
+
+            licensesMenuItem.Click += (s, e) =>
+            {
+                var licensesForm = new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt"))
+                    .ShowDialog();
+            };
+
+
             menuBar.Items.Add(fileMenu);
             menuBar.Items.Add(editMenu);
 

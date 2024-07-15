@@ -54,6 +54,7 @@
     <None Remove="ThirdPartyJavascript\jsoneditor.min.css" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
+    <None Remove="UI\Licenses.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -71,6 +72,7 @@
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor-icons.svg" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.css" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />
+    <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>
   
   <ItemGroup>

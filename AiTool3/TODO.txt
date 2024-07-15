@@ -79,5 +79,5 @@ fix summaries are being generated using embeddings (!)
 Cublas and non-Cublas builds
 Instructions for external apps: whisper, ...
 Licenses : 
-Inline JS for appropriate packages : D3 v7, 
+DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
 
