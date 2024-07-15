@@ -28,7 +28,7 @@ namespace AiTool3.UI
             }
         }
 
-        private void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private async void  WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             
             string jsonMessage = e.WebMessageAsJson;
@@ -48,6 +48,9 @@ namespace AiTool3.UI
                     break;
                 case "Run Python Script":
                     PythonHelper.LaunchPythonScript(content);
+                    break;
+                case "Run PowerShell Script":
+                    await LaunchHelpers.LaunchPowerShell(content);
                     break;
                 case "Launch STL":
                     StlHelper.LaunchStlFile(content);

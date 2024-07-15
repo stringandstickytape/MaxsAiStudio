@@ -37,6 +37,17 @@ namespace AiTool3.Providers.Embeddings.Fragmenters
             return fragments;
         }
 
+        // New method that only processes JavaScript
+        public List<CodeFragment> FragmentJavaScriptCode(string fileContent, string filePath)
+        {
+            var fragments = new List<CodeFragment>();
+            var jsBlock = new CodeBlock { Content = fileContent, LineNumber = 1 };
+            var jsBlocks = new List<CodeBlock> { jsBlock };
+
+            fragments.AddRange(ProcessJavaScript(jsBlocks, filePath));
+
+            return fragments;
+        }
         private SeparatedContent SeparateContent(string fileContent)
         {
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();

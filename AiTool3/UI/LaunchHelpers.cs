@@ -6,7 +6,66 @@ namespace AiTool3.UI
 {
     public static class LaunchHelpers
     {
+        public static async Task LaunchPowerShell(string script)
+        {
+            string tempScriptPath = Path.GetTempFileName() + ".ps1";
+            File.WriteAllText(tempScriptPath, script);
 
+            DialogResult result = MessageBox.Show("This can be SUPER-DANGEROUS. Only click Yes if you're absolutely sure this script is safe to run!", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.No) return;
+
+            try
+            {
+                Process process = new Process();
+                process.StartInfo.FileName = "powershell.exe";
+                process.StartInfo.Arguments = $"-ExecutionPolicy Bypass -File \"{tempScriptPath}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.CreateNoWindow = true;
+
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                await process.WaitForExitAsync();
+
+                DisplayOutputForm(output);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing PowerShell script: {ex.Message}");
+                MessageBox.Show($"Error executing PowerShell script: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                File.Delete(tempScriptPath);
+            }
+        }
+
+        private static void DisplayOutputForm(string output)
+        {
+            Form outputForm = new Form
+            {
+                Text = "PowerShell Script Output",
+                Size = new Size(600, 600),
+                StartPosition = FormStartPosition.CenterScreen,
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            TextBox outputTextBox = new TextBox
+            {
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Both,
+                Font = new Font("Consolas", 10),
+                Dock = DockStyle.Fill,
+                Text = output, 
+                WordWrap = false
+            };
+
+            outputForm.Controls.Add(outputTextBox);
+            outputForm.Show();
+        }
         public static async void LaunchCSharp(string code)
         {
             try

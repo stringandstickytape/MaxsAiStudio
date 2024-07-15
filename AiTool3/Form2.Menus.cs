@@ -253,10 +253,18 @@ namespace AiTool3
 
             var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
             var xmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories);
+            var jsFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories);
+            
             var csFragmenter = new CsFragmenter();
             var webCodeFragmenter = new WebCodeFragmenter();
             var xmlFragmenter = new XmlCodeFragmenter();
             List<CodeFragment> fragments = new List<CodeFragment>();
+
+            foreach (var file in jsFiles)
+            {
+                fragments.AddRange(webCodeFragmenter.FragmentJavaScriptCode(File.ReadAllText(file), file));
+            }
+
             foreach (var file in xmlFiles)
             {
                 fragments.AddRange(xmlFragmenter.FragmentCode(File.ReadAllText(file), file));
@@ -283,7 +291,13 @@ namespace AiTool3
                 return;
             }
             var frags = fragments.Where(x => x.Content.Length > 25).ToList();
-            var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(frags.Select(x => x.Content).ToList(), apiKey);
+
+            var embeddingInputs = frags.Select(x => @$"{x.FilePath.Split('/').Last()} line {x.LineNumber} {(string.IsNullOrEmpty(x.Class) ? "" : $", class {x.Namespace}.{x.Class}")}:
+
+{x.Content}
+").ToList();
+
+            var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(embeddingInputs, apiKey);
 
             for (var i = 0; i < frags.Count; i++)
             {

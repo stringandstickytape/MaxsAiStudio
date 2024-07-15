@@ -35,6 +35,8 @@ namespace AiTool3
         public string? Base64Image { get; set; }
         public string? Base64ImageType { get; set; }
 
+
+
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
