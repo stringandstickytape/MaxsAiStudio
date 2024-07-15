@@ -34,6 +34,7 @@ namespace AiTool3.Providers
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
+                ["system"] = conversation.SystemPromptWithDateTime(),
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
