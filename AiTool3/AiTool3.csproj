@@ -44,6 +44,9 @@
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <None Remove="OpenAIEmbedFragged2.embeddings.json" />
+    <None Remove="ThirdPartyJavascript\d3.v7.min.js" />
+    <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
   </ItemGroup>
 
@@ -54,10 +57,11 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\d3.v7.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="CSharpScript" Version="1.0.0" />
     <PackageReference Include="FontAwesome.Sharp" Version="6.3.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" />
@@ -65,7 +69,7 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Speech" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.2" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
 	<PackageReference Include="Whisper.net" Version="1.5.0" />
   </ItemGroup>
 

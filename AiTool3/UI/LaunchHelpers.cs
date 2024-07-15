@@ -66,26 +66,7 @@ namespace AiTool3.UI
             outputForm.Controls.Add(outputTextBox);
             outputForm.Show();
         }
-        public static async void LaunchCSharp(string code)
-        {
-            try
-            {
-                var scriptOptions = ScriptOptions.Default.AddReferences(typeof(Console).Assembly);
-                // evaluate c# in .net core 8
-                var result = await Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.EvaluateAsync(code, scriptOptions);
 
-                MessageBox.Show(result.ToString());
-
-            }
-            catch (CompilationErrorException e)
-            {
-                Console.WriteLine("Compilation error: " + e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Execution error: " + e.Message);
-            }
-        }
 
         public static void LaunchHtml(object? s)
         {

@@ -133,6 +133,10 @@ namespace AiTool3.UI
 
             await OpenWebViewWithJs("", showDevTools);
 
+            string d3js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.ThirdPartyJavascript.d3.v7.min.js");
+
+            // how to replace Script tags
+            await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(d3js);
             NavigateToHtml(result);
 
 

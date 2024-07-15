@@ -28,26 +28,22 @@ toggleButton.style.left = '10px';
 toggleButton.addEventListener('click', toggleLayout);
 document.body.appendChild(toggleButton);
 
-loadScript('https://d3js.org/d3.v7.min.js')
-    .then(() => {
-        svg = d3.select('#svg-container')
-            .append('svg')
-            .attr('width', '100%')
-            .attr('height', '100%');
 
-        // Add this block to create a background rectangle
-        svg.append('rect')
-            .attr('width', '100%')
-            .attr('height', '100%')
-            .attr('fill', '#444444');
+svg = d3.select('#svg-container')
+    .append('svg')
+    .attr('width', '100%')
+    .attr('height', '100%');
+
+// Add this block to create a background rectangle
+svg.append('rect')
+    .attr('width', '100%')
+    .attr('height', '100%')
+    .attr('fill', '#444444');
 
 
-        // Initialize the graph
-        initializeGraph();
-    })
-    .catch(error => {
-        console.error('Error loading scripts:', error);
-    });
+// Initialize the graph
+initializeGraph();
+
 
 function createContextMenu() {
     const menu = d3.select('body')

@@ -76,3 +76,8 @@ It probably sucks when the AI is running and the user changes conversations
 Do more to not mess up the conversation if user changes nodes while the AI is running
 fix images aren't included in history
 fix summaries are being generated using embeddings (!)
+Cublas and non-Cublas builds
+Instructions for external apps: whisper, ...
+Licenses : D3 v7, 
+Inline JS for appropriate packages
+
