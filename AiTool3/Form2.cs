@@ -46,6 +46,9 @@ namespace AiTool3
         {
             InitializeComponent();
 
+            cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
+            cbUseEmbeddings.CheckedChanged += CbUseEmbeddings_CheckedChanged;
+
             webViewManager = new WebViewManager(ndcWeb);
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
@@ -74,7 +77,7 @@ namespace AiTool3
             splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
 
             DataGridViewHelper.InitialiseDataGridView(dgvConversations);
-            
+
             ContextMenuStrip contextMenu = new ContextMenuStrip();
 
             contextMenu.Items.Add("Regenerate Summary", null, Option1_Click);
@@ -87,8 +90,14 @@ namespace AiTool3
             updateTimer.Tick += UpdateTimer_Tick!;
 
             Load += OnHandleCreated!;
-            
-            dgvConversations.MouseDown  += DgvConversations_MouseDown;
+
+            dgvConversations.MouseDown += DgvConversations_MouseDown;
+        }
+
+        private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
+        {
+            CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
+            Settings.Settings.Save(CurrentSettings);
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -142,7 +151,7 @@ namespace AiTool3
 
         private async void AutoSuggestStringSelected(string selectedString) => await chatWebView.SetUserPrompt(selectedString);
 
-        private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e) 
+        private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
             => WebNdcRightClickLogic.ProcessWebNdcContextMenuOption(ConversationManager.GetParentNodeList(), e.MenuOption);
 
 
@@ -243,7 +252,7 @@ namespace AiTool3
                 await chatWebView.EnableSendButton();
                 stopwatch.Stop();
                 updateTimer.Stop();
-                
+
             }
             return retVal;
         }
@@ -697,6 +706,27 @@ namespace AiTool3
 <
 <";
 
+        }
+
+        private async void btnGenerateEmbeddings_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Disable the button while processing
+                btnGenerateEmbeddings.Enabled = false;
+
+                await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Re-enable the button
+                btnGenerateEmbeddings.Enabled = true;
+            }
         }
     }
 }

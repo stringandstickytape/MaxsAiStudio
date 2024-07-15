@@ -54,6 +54,7 @@ namespace AiTool3
                 if (result == DialogResult.OK)
                 {
                     CurrentSettings = settingsForm.NewSettings;
+                    cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
                     AiTool3.Settings.Settings.Save(CurrentSettings);
                 }
             };
@@ -130,69 +131,7 @@ namespace AiTool3
 
             AddSpecial(specialsMenu, "Create embedding", async (s, e) =>
             {
-                // open a file browser and let user pick multiple files of any type
-
-
-
-                // get a directory to open from the user
-                var folderBrowserDialog = new FolderBrowserDialog();
-                folderBrowserDialog.ShowDialog();
-                if (folderBrowserDialog.SelectedPath == "")
-                {
-                    return;
-                }
-
-                // recursively find all cs files within that dir and subdirs
-                var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
-                files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
-
-
-                var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
-                
-                var codeFragmenter = new CodeFragmenter();
-                var htmlFragmenter = new WebCodeFragmenter();
-                List<CodeFragment> fragments = new List<CodeFragment>();
-                foreach (var file in files)
-                {
-                    var fileData = File.ReadAllText(file);
-                    var frags2 = codeFragmenter.FragmentCode(fileData, file);
-                    fragments.AddRange(frags2);
-                }
-                foreach(var file in htmlFiles)
-                {
-                    var fileData = File.ReadAllText(file);
-                    var htmlFrags = htmlFragmenter.FragmentCode(fileData, file);
-                    //fragments.AddRange(htmlFrags);
-                }
-                // get a .embeddings.json save file from the user
-                var saveFileDialog = new SaveFileDialog
-                {
-                    Filter = "Embeddings JSON file|*.embeddings.json",
-                    Title = "Save Embeddings JSON file"
-                };
-                saveFileDialog.ShowDialog();
-
-                if (saveFileDialog.FileName == "")
-                {
-                    return;
-                }
-                var frags = fragments.Where(x => x.Content.Length > 25).ToList();
-                var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(frags.Select(x=>x.Content).ToList(), CurrentSettings.EmbeddingKey);
-
-                for(var i = 0; i < frags.Count; i++)
-                {
-                    embeddings[i].Code = frags[i].Content;
-                    embeddings[i].Filename = frags[i].FilePath;
-                    embeddings[i].LineNumber = frags[i].LineNumber;
-                }
-
-
-                // write the embeddings to the save file as json
-                var json = JsonSerializer.Serialize(embeddings);
-                File.WriteAllText(saveFileDialog.FileName, json);
-
-                // show mb to say it's done
-                MessageBox.Show("Embeddings created and saved");
+                await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
             });
 
             AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
@@ -202,8 +141,8 @@ namespace AiTool3
 
                 try
                 {
-                    var code = snippets.Snippets.First().Code;
-                    code = SnipperHelper.StripFirstAndLastLine(code);
+                    var code = snippets.Snippets.First().Content;
+                    code = SnippetHelper.StripFirstAndLastLine(code);
                     File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
                 }
                 catch (Exception ex)
@@ -273,21 +212,117 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Test Snippets Code", async (s, e) =>
             {
-                var x = GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager);
-
-                // create a new form
-                var f = new Form();
-
-                // add a listbox with the snippets
-                var lb = new ListBox();
-                lb.Dock = DockStyle.Fill;
-                f.Controls.Add(lb);
-                lb.Items.AddRange(x.Select(x => x.Code).ToArray());
-                f.Show();
-
+                //var x = GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager);
+                //
+                //// create a new form
+                //var f = new Form();
+                //
+                //// add a listbox with the snippets
+                //var lb = new ListBox();
+                //lb.Dock = DockStyle.Fill;
+                //f.Controls.Add(lb);
+                //lb.Items.AddRange(x.Select(x => x.Content).ToArray());
+                //f.Show();
+                SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager));
             });
 
+            AddSpecial(specialsMenu, "Open-Source Licenses", (s, e) =>
+            {
+                ShowOpenSourceLicenses();
+            });
+
+
             menuBar.Items.Add(specialsMenu);
+        }
+
+        private static async Task CreateEmbeddingsAsync(string apiKey)
+        {
+            // get a directory to open from the user
+            var folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.ShowDialog();
+            if (folderBrowserDialog.SelectedPath == "")
+            {
+                return;
+            }
+
+            // recursively find all cs files within that dir and subdirs
+            var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
+            files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
+
+
+            var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
+
+            var codeFragmenter = new CodeFragmenter();
+            var htmlFragmenter = new WebCodeFragmenter();
+            List<CodeFragment> fragments = new List<CodeFragment>();
+            foreach (var file in files)
+            {
+                var fileData = File.ReadAllText(file);
+                var frags2 = codeFragmenter.FragmentCode(fileData, file);
+                fragments.AddRange(frags2);
+            }
+
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Embeddings JSON file|*.embeddings.json",
+                Title = "Save Embeddings JSON file"
+            };
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName == "")
+            {
+                return;
+            }
+            var frags = fragments.Where(x => x.Content.Length > 25).ToList();
+            var embeddings = await EmbeddingsHelper.CreateEmbeddingsAsync(frags.Select(x => x.Content).ToList(), apiKey);
+
+            for (var i = 0; i < frags.Count; i++)
+            {
+                embeddings[i].Code = frags[i].Content;
+                embeddings[i].Filename = frags[i].FilePath;
+                embeddings[i].LineNumber = frags[i].LineNumber;
+                embeddings[i].Namespace = frags[i].Namespace;
+                embeddings[i].Class = frags[i].Class;
+            }
+
+
+            // write the embeddings to the save file as json
+            var json = JsonSerializer.Serialize(embeddings);
+            File.WriteAllText(saveFileDialog.FileName, json);
+
+            // show mb to say it's done
+            MessageBox.Show("Embeddings created and saved");
+        }
+
+        private static void ShowOpenSourceLicenses()
+        {
+            var licensesForm = new Form
+            {
+                Text = "Licenses",
+                Size = new Size(400, 300),
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            var textBox = new TextBox
+            {
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                Dock = DockStyle.Fill,
+                Text = "licenses go here lol"
+            };
+
+            var okButton = new Button
+            {
+                Text = "OK",
+                Dock = DockStyle.Bottom
+            };
+
+            okButton.Click += (sender, e) => licensesForm.Close();
+
+            licensesForm.Controls.Add(textBox);
+            licensesForm.Controls.Add(okButton);
+
+            licensesForm.ShowDialog();
         }
 
         private static ToolStripMenuItem CreateMenu(string menuText)
@@ -341,5 +376,7 @@ namespace AiTool3
         public List<float> Value { get; set; }
         public string Filename { get; set; }
         public int LineNumber { get; set; }
+        public string Namespace { get; set; }
+        public string Class { get; set; }
     }
 }

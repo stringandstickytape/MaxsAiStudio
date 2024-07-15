@@ -16,7 +16,14 @@ namespace AiTool3
             if (currentSettings.UseEmbeddings)
             {
                 var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, input);
-                var lastMsg = $"{conversation.messages.Last().content}{Environment.NewLine}{Environment.NewLine}Here's some related content:{Environment.NewLine}{string.Join(Environment.NewLine, embeddings.Select(x => $"```{x.Filename} line {x.LineNumber}{Environment.NewLine}{x.Code}{Environment.NewLine}```"))}";
+                var lastMsg = $"{conversation.messages.Last().content}" +
+                    $"{Environment.NewLine}{Environment.NewLine}" +
+                    $"Here's some related content:{Environment.NewLine}" +
+                    $"{string.Join(Environment.NewLine, embeddings.Select(
+                        x => $"```{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
+                        $"{x.Code}{Environment.NewLine}" +
+                        $"" +
+                        $"```"))}";
                 conversation.messages.Last().content = lastMsg;
                 return lastMsg;
             }
@@ -99,68 +106,6 @@ namespace AiTool3
             }
 
             return embeddings;
-        }
-
-        public static string AnalyzeDll(string dllPath)
-        {
-            var assembly = Assembly.LoadFrom(dllPath);
-            var sb = new StringBuilder();
-
-            sb.AppendLine($"Analysis of {assembly.GetName().Name}");
-            sb.AppendLine(new string('=', 50));
-            sb.AppendLine();
-
-            var namespaces = assembly.GetTypes()
-                .Select(t => t.Namespace)
-                .Distinct()
-                .Where(n => !string.IsNullOrEmpty(n))
-                .OrderBy(n => n);
-
-            foreach (var ns in namespaces)
-            {
-                sb.AppendLine($"Namespace: {ns}");
-                sb.AppendLine(new string('-', 30));
-
-                var types = assembly.GetTypes()
-                    .Where(t => t.Namespace == ns)
-                    .OrderBy(t => t.Name);
-
-                foreach (var type in types)
-                {
-                    sb.AppendLine($"  Class: {type.Name}");
-
-                    // Try to get the source file name
-                    var fileName = GetSourceFileName(type);
-                    if (!string.IsNullOrEmpty(fileName))
-                    {
-                        sb.AppendLine($"    Source File: {fileName}");
-                    }
-
-                    var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
-                        .OrderBy(p => p.Name);
-
-                    foreach (var prop in properties)
-                    {
-                        sb.AppendLine($"    Property: {prop.PropertyType.Name} {prop.Name}");
-                    }
-
-                    var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                        .Where(m => !m.IsSpecialName) // Exclude property accessor methods
-                        .OrderBy(m => m.Name);
-
-                    foreach (var method in methods)
-                    {
-                        var parameters = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
-                        sb.AppendLine($"    Method: {method.ReturnType.Name} {method.Name}({parameters})");
-                    }
-
-                    sb.AppendLine();
-                }
-
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
         }
 
         private static string GetSourceFileName(Type type)

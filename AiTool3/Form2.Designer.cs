@@ -37,6 +37,8 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
+            cbUseEmbeddings = new CheckBox();
+            btnGenerateEmbeddings = new Button();
             button1 = new Button();
             chatWebView = new ChatWebView();
             buttonStartRecording = new Button();
@@ -98,6 +100,8 @@ namespace AiTool3
             // 
             // splitContainer1.Panel2
             // 
+            splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
+            splitContainer1.Panel2.Controls.Add(btnGenerateEmbeddings);
             splitContainer1.Panel2.Controls.Add(button1);
             splitContainer1.Panel2.Controls.Add(chatWebView);
             splitContainer1.Panel2.Controls.Add(cbEngine);
@@ -158,7 +162,7 @@ namespace AiTool3
             // dgvConversations
             // 
             dgvConversations.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvConversations.BackgroundColor = Color.BlanchedAlmond;
+            dgvConversations.BackgroundColor = Color.FromArgb(64, 64, 64);
             dgvConversations.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvConversations.Location = new Point(3, 48);
             dgvConversations.MultiSelect = false;
@@ -179,6 +183,31 @@ namespace AiTool3
             ndcWeb.Size = new Size(464, 581);
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
+            // 
+            // cbUseEmbeddings
+            // 
+            cbUseEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            cbUseEmbeddings.AutoSize = true;
+            cbUseEmbeddings.ForeColor = Color.White;
+            cbUseEmbeddings.Location = new Point(361, 9);
+            cbUseEmbeddings.Name = "cbUseEmbeddings";
+            cbUseEmbeddings.Size = new Size(265, 29);
+            cbUseEmbeddings.TabIndex = 15;
+            cbUseEmbeddings.Text = "Use embeddings in prompts";
+            cbUseEmbeddings.UseVisualStyleBackColor = true;
+            // 
+            // btnGenerateEmbeddings
+            // 
+            btnGenerateEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnGenerateEmbeddings.BackColor = Color.Black;
+            btnGenerateEmbeddings.ForeColor = Color.White;
+            btnGenerateEmbeddings.Location = new Point(369, 52);
+            btnGenerateEmbeddings.Name = "btnGenerateEmbeddings";
+            btnGenerateEmbeddings.Size = new Size(257, 36);
+            btnGenerateEmbeddings.TabIndex = 14;
+            btnGenerateEmbeddings.Text = "Generate Embeddings";
+            btnGenerateEmbeddings.UseVisualStyleBackColor = false;
+            btnGenerateEmbeddings.Click += btnGenerateEmbeddings_Click;
             // 
             // button1
             // 
@@ -404,6 +433,7 @@ namespace AiTool3
             FormClosing += Form2_FormClosing;
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
+            splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             splitContainer5.Panel1.ResumeLayout(false);
@@ -452,5 +482,7 @@ namespace AiTool3
         private SplitContainer splitContainer4;
         private ChatWebView chatWebView;
         private Button button1;
+        private Button btnGenerateEmbeddings;
+        private CheckBox cbUseEmbeddings;
     }
 }

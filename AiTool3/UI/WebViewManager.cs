@@ -12,7 +12,7 @@ namespace AiTool3.UI
 {
     public class WebViewManager
     {
-        public WebView2 webView { get; internal set; }
+        public WebView2 webView { get; set; }
 
         public WebViewManager(WebView2 webViewIn)
         {

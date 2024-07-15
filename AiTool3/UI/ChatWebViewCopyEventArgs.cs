@@ -2,7 +2,7 @@
 {
     public class ChatWebViewCopyEventArgs
     {
-        public string Guid { get; internal set; }
-        public string Content { get; internal set; }
+        public string Guid { get; set; }
+        public string Content { get; set; }
     }
 }

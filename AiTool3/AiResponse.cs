@@ -8,7 +8,7 @@ namespace AiTool3
         public bool Success { get; set; }
 
         public TokenUsage TokenUsage { get; set; }
-        public string? SuggestedNextPrompt { get; internal set; }
+        public string? SuggestedNextPrompt { get; set; }
 
         public AiResponse()
         {

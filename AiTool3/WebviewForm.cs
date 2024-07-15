@@ -29,7 +29,7 @@ namespace AiTool3
             {
                 this.InvokeIfNeeded(() =>
                 {
-                    inlineWebView.NavigateToString(SnipperHelper.StripFirstAndLastLine(_code));
+                    inlineWebView.NavigateToString(SnippetHelper.StripFirstAndLastLine(_code));
                 });
             }
             );

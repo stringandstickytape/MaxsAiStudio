@@ -37,7 +37,7 @@ namespace AiTool3.Snippets
                     {
                         Type = type,
                         Filename = filename!,
-                        Code = snippetText.Trim(),
+                        Content = snippetText.Trim(),
                         StartIndex = startIndex
                     });
                 }

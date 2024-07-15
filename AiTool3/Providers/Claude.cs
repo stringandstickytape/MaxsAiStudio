@@ -182,7 +182,9 @@ namespace AiTool3.Providers
         public string Code { get; set; }
 
         public string Filename { get; set; }
-        public int LineNumber { get; internal set; }
+        public int LineNumber { get; set; }
+        public string Namespace { get; set; }
+        public string Class { get; set; }
     }
 
     public class EmbeddingHelper
@@ -201,7 +203,10 @@ namespace AiTool3.Providers
                     Embedding = codeEmbedding.Value,
                     Code = codeEmbedding.Code,
                     Filename = codeEmbedding.Filename,
-                    LineNumber = codeEmbedding.LineNumber
+                    LineNumber = codeEmbedding.LineNumber,
+                    Namespace = codeEmbedding.Namespace,
+                    Class = codeEmbedding.Class,
+
                 };
 
                 if (similarSnippets.Count < numberOfSnippetsToReturn)
