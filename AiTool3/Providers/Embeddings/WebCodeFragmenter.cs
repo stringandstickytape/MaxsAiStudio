@@ -1,142 +1,222 @@
-﻿
+﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Linq;
 
 namespace AiTool3.Providers.Embeddings
 {
-
-
     public class WebCodeFragmenter
     {
-        public static void ProcessHtml(string htmlContent)
-        {
-            List<string> styleTags = new List<string>();
-            List<string> scriptTags = new List<string>();
-
-            // Regex for style tags
-            string stylePattern = @"<style\b[^>]*>(.*?)</style>";
-            MatchCollection styleMatches = Regex.Matches(htmlContent, stylePattern, RegexOptions.Singleline);
-
-            foreach (Match match in styleMatches)
-            {
-                if (match.Groups.Count > 1)
-                {
-                    styleTags.Add(match.Groups[1].Value);
-                }
-            }
-
-            // Regex for script tags
-            string scriptPattern = @"<script\b[^>]*>(.*?)</script>";
-            MatchCollection scriptMatches = Regex.Matches(htmlContent, scriptPattern, RegexOptions.Singleline);
-
-            foreach (Match match in scriptMatches)
-            {
-                if (match.Groups.Count > 1)
-                {
-                    scriptTags.Add(match.Groups[1].Value);
-                }
-            }
-
-            // Remove style and script tags from the original HTML
-            string remainingHtml = Regex.Replace(htmlContent, stylePattern, "", RegexOptions.Singleline);
-            remainingHtml = Regex.Replace(remainingHtml, scriptPattern, "", RegexOptions.Singleline);
-
-            return;
-        }
+        private const int MaxFragmentSize = 1000;
+        private const int MinFragmentSize = 50;
 
         public List<CodeFragment> FragmentCode(string fileContent, string filePath)
         {
-
-            ProcessHtml(fileContent);
             var fragments = new List<CodeFragment>();
-            var lines = fileContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var (html, css, js) = SeparateContent(fileContent);
 
-            var currentBlock = new List<string>();
-            var inScript = false;
-            var inStyle = false;
-            var inHtmlTag = false;
+            fragments.AddRange(ProcessHtml(html, filePath));
+            fragments.AddRange(ProcessCss(css, filePath));
+            fragments.AddRange(ProcessJavaScript(js, filePath));
 
-            for (int i = 0; i < lines.Length; i++)
+            return fragments;
+        }
+
+        private (string html, List<string> css, List<string> js) SeparateContent(string fileContent)
+        {
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(fileContent);
+
+            var css = new List<string>();
+            var js = new List<string>();
+
+            // Extract CSS
+            var styleNodes = htmlDoc.DocumentNode.SelectNodes("//style");
+            if (styleNodes != null)
             {
-                var line = lines[i].Trim();
-
-                // Skip empty lines and HTML comments
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("<!--"))
-                    continue;
-
-                // Check for script start/end
-                if (line.Contains("<script"))
+                foreach (var node in styleNodes)
                 {
-                    inScript = true;
-                    AddFragment(fragments, string.Join("\n", currentBlock), "HTML", filePath);
-                    currentBlock.Clear();
-                }
-                else if (line.Contains("</script>"))
-                {
-                    inScript = false;
-                    AddFragment(fragments, string.Join("\n", currentBlock), "JavaScript", filePath);
-                    currentBlock.Clear();
-                }
-                // Check for style start/end
-                else if (line.Contains("<style"))
-                {
-                    inStyle = true;
-                    AddFragment(fragments, string.Join("\n", currentBlock), "HTML", filePath);
-                    currentBlock.Clear();
-                }
-                else if (line.Contains("</style>"))
-                {
-                    inStyle = false;
-                    AddFragment(fragments, string.Join("\n", currentBlock), "CSS", filePath);
-                    currentBlock.Clear();
-                }
-                // Check for HTML tag start/end
-                else if (line.StartsWith("<") && !inHtmlTag && !inScript && !inStyle)
-                {
-                    if (currentBlock.Count > 0)
-                    {
-                        AddFragment(fragments, string.Join("\n", currentBlock), "HTML", filePath);
-                        currentBlock.Clear();
-                    }
-                    inHtmlTag = true;
-                }
-                else if (line.EndsWith(">") && inHtmlTag)
-                {
-                    currentBlock.Add(lines[i]); // Use original line to preserve indentation
-                    AddFragment(fragments, string.Join("\n", currentBlock), "HTML", filePath);
-                    currentBlock.Clear();
-                    inHtmlTag = false;
-                    continue;
-                }
-
-                currentBlock.Add(lines[i]); // Use original line to preserve indentation
-
-                // Add JavaScript statement
-                if (inScript && line.EndsWith(";"))
-                {
-                    AddFragment(fragments, string.Join("\n", currentBlock), "JavaScript", filePath);
-                    currentBlock.Clear();
+                    css.Add(node.InnerHtml);
+                    node.Remove();
                 }
             }
 
-            // Add any remaining block
-            if (currentBlock.Count > 0)
+            // Extract JavaScript
+            var scriptNodes = htmlDoc.DocumentNode.SelectNodes("//script");
+            if (scriptNodes != null)
             {
-                var type = inScript ? "JavaScript" : (inStyle ? "CSS" : "HTML");
-                AddFragment(fragments, string.Join("\n", currentBlock), type, filePath);
+                foreach (var node in scriptNodes)
+                {
+                    if (string.IsNullOrEmpty(node.GetAttributeValue("src", null)))
+                    {
+                        js.Add(node.InnerHtml);
+                        node.Remove();
+                    }
+                }
+            }
+
+            return (htmlDoc.DocumentNode.OuterHtml, css, js);
+        }
+
+        private List<CodeFragment> ProcessHtml(string html, string filePath)
+        {
+            var fragments = new List<CodeFragment>();
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(html);
+
+            ProcessHtmlNodes(htmlDoc.DocumentNode, fragments, filePath);
+
+            return fragments;
+        }
+
+        private void ProcessHtmlNodes(HtmlNode node, List<CodeFragment> fragments, string filePath)
+        {
+            if (IsSignificantBlock(node))
+            {
+                var content = node.OuterHtml;
+                if (content.Length > MaxFragmentSize)
+                {
+                    foreach (var childNode in node.ChildNodes)
+                    {
+                        ProcessHtmlNodes(childNode, fragments, filePath);
+                    }
+                }
+                else if (content.Length >= MinFragmentSize)
+                {
+                    AddFragment(fragments, content, "HTML", filePath, node.Line);
+                }
+            }
+            else
+            {
+                foreach (var childNode in node.ChildNodes)
+                {
+                    ProcessHtmlNodes(childNode, fragments, filePath);
+                }
+            }
+        }
+
+        private List<CodeFragment> ProcessCss(List<string> cssBlocks, string filePath)
+        {
+            var fragments = new List<CodeFragment>();
+            foreach (var css in cssBlocks)
+            {
+                var rules = SplitCssRules(css);
+                foreach (var rule in rules)
+                {
+                    if (rule.Length >= MinFragmentSize)
+                    {
+                        AddFragment(fragments, rule, "CSS", filePath, 0);
+                    }
+                }
+            }
+            return fragments;
+        }
+
+        private List<CodeFragment> ProcessJavaScript(List<string> jsBlocks, string filePath)
+        {
+            var fragments = new List<CodeFragment>();
+            foreach (var js in jsBlocks)
+            {
+                var codeFragments = ExtractJavaScriptFragments(js);
+                foreach (var fragment in codeFragments)
+                {
+                    if (fragment.Length >= MinFragmentSize)
+                    {
+                        AddFragment(fragments, fragment, "JavaScript", filePath, 0);
+                    }
+                }
+            }
+            return fragments;
+        }
+
+        private List<string> ExtractJavaScriptFragments(string jsCode)
+        {
+            var fragments = new List<string>();
+            var bracketStack = new Stack<int>();
+            var currentFragment = new StringBuilder();
+            var inString = false;
+            var stringDelimiter = '\0';
+
+            for (int i = 0; i < jsCode.Length; i++)
+            {
+                char c = jsCode[i];
+                currentFragment.Append(c);
+
+                if (inString)
+                {
+                    if (c == stringDelimiter && jsCode[i - 1] != '\\')
+                    {
+                        inString = false;
+                    }
+                }
+                else
+                {
+                    if (c == '"' || c == '\'' || c == '`')
+                    {
+                        inString = true;
+                        stringDelimiter = c;
+                    }
+                    else if (c == '{')
+                    {
+                        bracketStack.Push(i);
+                    }
+                    else if (c == '}')
+                    {
+                        if (bracketStack.Count > 0)
+                        {
+                            int openBracketIndex = bracketStack.Pop();
+                            if (bracketStack.Count == 0)
+                            {
+                                string fragment = currentFragment.ToString().Trim();
+                                if (!string.IsNullOrWhiteSpace(fragment))
+                                {
+                                    fragments.Add(fragment);
+                                }
+                                currentFragment.Clear();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add any remaining code as a fragment
+            string remainingFragment = currentFragment.ToString().Trim();
+            if (!string.IsNullOrWhiteSpace(remainingFragment))
+            {
+                fragments.Add(remainingFragment);
             }
 
             return fragments;
         }
 
-        private void AddFragment(List<CodeFragment> fragments, string content, string type, string filePath)
+        private bool IsSignificantBlock(HtmlNode node)
+        {
+            string[] significantTags = { "div", "section", "article", "header", "footer", "nav", "aside", "main" };
+            return significantTags.Contains(node.Name) ||
+                   node.GetAttributeValue("class", "").Contains("significant") ||
+                   node.GetAttributeValue("id", "").Contains("significant");
+        }
+
+        private List<string> SplitCssRules(string css)
+        {
+            return Regex.Split(css, @"(?<=\})")
+                        .Where(rule => !string.IsNullOrWhiteSpace(rule))
+                        .Select(rule => rule.Trim())
+                        .ToList();
+        }
+
+        private List<string> SplitJavaScript(string js)
+        {
+            // This is a simple split. For more accurate splitting, consider using a JS parser.
+            return Regex.Split(js, @"(?<=;|\})")
+                        .Where(statement => !string.IsNullOrWhiteSpace(statement))
+                        .Select(statement => statement.Trim())
+                        .ToList();
+        }
+
+        private void AddFragment(List<CodeFragment> fragments, string content, string type, string filePath, int lineNumber)
         {
             if (!string.IsNullOrWhiteSpace(content))
             {
@@ -145,7 +225,7 @@ namespace AiTool3.Providers.Embeddings
                     Content = content,
                     Type = type,
                     FilePath = filePath,
-                    LineNumber = 0
+                    LineNumber = lineNumber
                 });
             }
         }
