@@ -34,6 +34,18 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming
             };
 
+
+            var x = conversation.messages.Select(m => new LocalAIMessage
+            {
+                Role = m.role,
+                Content = m.content
+            });
+
+            foreach (var m in x)
+            {
+                req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
+            }
+
             var newInput = await EmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last["content"] = newInput;
 

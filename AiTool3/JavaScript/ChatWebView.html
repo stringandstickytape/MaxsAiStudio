@@ -60,11 +60,11 @@
             }
         }
 
-        function updateSysPrompt(prompt) {
+        function updateSystemPrompt(prompt) {
             els.sysPrompt.value = prompt;
         }
 
-        function getSysPrompt() {
+        function getSystemPrompt() {
             return els.sysPrompt.value;
         }
 
@@ -72,7 +72,7 @@
             return els.input.value;
         }
 
-        function changeChatHeader(label) {
+        function changeChatHeaderLabel(label) {
             els.chatHeader.textContent = label;
         }
 
@@ -83,7 +83,7 @@
             });
         });
 
-        function toggleBtn(id, enable) {
+        function toggleButton(id, enable) {
             const btn = document.getElementById(id);
             btn.disabled = !enable;
             btn.style.backgroundColor = enable ? btnColors[id.replace('Button', '')] : btnColors.disabled;
