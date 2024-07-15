@@ -62,9 +62,6 @@ namespace AiTool3
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
-            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, buttonNewKeepAll);
-            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnRestart);
-            ButtonIconHelper.SetButtonIcon(IconChar.SquarePlus, btnClear);
 
             // if topics.json exists, load it
             TopicSet = TopicSet.Load();
@@ -439,10 +436,7 @@ namespace AiTool3
         }
 
 
-        private async void btnClear_Click(object sender, EventArgs e)
-        {
-            await Clear();
-        }
+
 
         private async Task Clear()
         {
@@ -451,10 +445,6 @@ namespace AiTool3
             await PopulateUiForTemplate(selectedTemplate!);
         }
 
-        private async void btnRestart_Click(object sender, EventArgs e)
-        {
-            await BeginNewConversationPreserveInputAndSystemPrompts();
-        }
 
         private async Task  BeginNewConversationPreserveInputAndSystemPrompts()
         {
@@ -463,11 +453,6 @@ namespace AiTool3
             await BeginNewConversation();
             await chatWebView.UpdateSystemPrompt(currentSystemPrompt);
             await chatWebView.SetUserPrompt(currentPrompt);
-        }
-
-        private async void buttonNewKeepContext_Click(object sender, EventArgs e)
-        {
-            await NewKeepContext();
         }
 
         private async Task NewKeepContext()
@@ -542,7 +527,7 @@ namespace AiTool3
 
         private async void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            btnClear_Click(null!, null!);
+            Clear();
             if (cbTemplates.SelectedItem != null)
             {
                 string templateName = cbTemplates.SelectedItem.ToString()!;

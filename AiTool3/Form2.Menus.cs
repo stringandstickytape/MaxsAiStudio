@@ -37,12 +37,6 @@ namespace AiTool3
 
             var editMenu = CreateMenu("Edit");
 
-            var clearMenuItem = CreateMenuItem("Clear", ref editMenu);
-
-            clearMenuItem.Click += (s, e) =>
-            {
-                btnClear_Click(null!, null!);
-            };
 
             // add settings option.  When chosen, invokes SettingsForm modally
             var settingsMenuItem = CreateMenuItem("Settings", ref editMenu);

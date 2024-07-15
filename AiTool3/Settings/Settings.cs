@@ -31,7 +31,7 @@ namespace AiTool3.Settings
         public bool ShowDevTools { get; set; } = false;
 
 
-        [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart)")]
+        [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart, app must run as administrator)")]
         public bool RunWebServer { get; set; } = false;
 
 

@@ -43,9 +43,6 @@ namespace AiTool3
             chatWebView = new ChatWebView();
             buttonStartRecording = new Button();
             buttonAttachImage = new Button();
-            buttonNewKeepAll = new Button();
-            btnClear = new Button();
-            btnRestart = new Button();
             groupBox1 = new GroupBox();
             buttonAddTemplate = new Button();
             cbCategories = new ComboBox();
@@ -83,9 +80,9 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(1130, 6);
+            cbEngine.Location = new Point(947, 6);
             cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(316, 40);
+            cbEngine.Size = new Size(499, 40);
             cbEngine.TabIndex = 3;
             // 
             // splitContainer1
@@ -107,9 +104,6 @@ namespace AiTool3
             splitContainer1.Panel2.Controls.Add(cbEngine);
             splitContainer1.Panel2.Controls.Add(buttonStartRecording);
             splitContainer1.Panel2.Controls.Add(buttonAttachImage);
-            splitContainer1.Panel2.Controls.Add(buttonNewKeepAll);
-            splitContainer1.Panel2.Controls.Add(btnClear);
-            splitContainer1.Panel2.Controls.Add(btnRestart);
             splitContainer1.Size = new Size(1929, 1120);
             splitContainer1.SplitterDistance = 476;
             splitContainer1.TabIndex = 9;
@@ -189,7 +183,7 @@ namespace AiTool3
             cbUseEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             cbUseEmbeddings.AutoSize = true;
             cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(361, 9);
+            cbUseEmbeddings.Location = new Point(676, 9);
             cbUseEmbeddings.Name = "cbUseEmbeddings";
             cbUseEmbeddings.Size = new Size(265, 29);
             cbUseEmbeddings.TabIndex = 15;
@@ -201,7 +195,7 @@ namespace AiTool3
             btnGenerateEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnGenerateEmbeddings.BackColor = Color.Black;
             btnGenerateEmbeddings.ForeColor = Color.White;
-            btnGenerateEmbeddings.Location = new Point(369, 52);
+            btnGenerateEmbeddings.Location = new Point(684, 52);
             btnGenerateEmbeddings.Name = "btnGenerateEmbeddings";
             btnGenerateEmbeddings.Size = new Size(257, 36);
             btnGenerateEmbeddings.TabIndex = 14;
@@ -258,45 +252,6 @@ namespace AiTool3
             buttonAttachImage.Text = "Attach";
             buttonAttachImage.UseVisualStyleBackColor = false;
             buttonAttachImage.Click += buttonAttachImage_Click;
-            // 
-            // buttonNewKeepAll
-            // 
-            buttonNewKeepAll.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonNewKeepAll.BackColor = Color.Black;
-            buttonNewKeepAll.ForeColor = Color.White;
-            buttonNewKeepAll.Location = new Point(979, 6);
-            buttonNewKeepAll.Name = "buttonNewKeepAll";
-            buttonNewKeepAll.Size = new Size(145, 85);
-            buttonNewKeepAll.TabIndex = 11;
-            buttonNewKeepAll.Text = "New w/ context";
-            buttonNewKeepAll.UseVisualStyleBackColor = false;
-            buttonNewKeepAll.Click += buttonNewKeepContext_Click;
-            // 
-            // btnClear
-            // 
-            btnClear.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnClear.BackColor = Color.Black;
-            btnClear.ForeColor = Color.White;
-            btnClear.Location = new Point(694, 9);
-            btnClear.Name = "btnClear";
-            btnClear.Size = new Size(128, 82);
-            btnClear.TabIndex = 8;
-            btnClear.Text = "New";
-            btnClear.UseVisualStyleBackColor = false;
-            btnClear.Click += btnClear_Click;
-            // 
-            // btnRestart
-            // 
-            btnRestart.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnRestart.BackColor = Color.Black;
-            btnRestart.ForeColor = Color.White;
-            btnRestart.Location = new Point(828, 8);
-            btnRestart.Name = "btnRestart";
-            btnRestart.Size = new Size(145, 85);
-            btnRestart.TabIndex = 9;
-            btnRestart.Text = "New w/prompt";
-            btnRestart.UseVisualStyleBackColor = false;
-            btnRestart.Click += btnRestart_Click;
             // 
             // groupBox1
             // 
@@ -460,7 +415,6 @@ namespace AiTool3
         #endregion
         private ComboBox cbEngine;
         private SplitContainer splitContainer1;
-        private Button btnClear;
         private DataGridView dgvConversations;
         private SplitContainer splitContainer5;
         private MenuStrip menuBar;
@@ -469,11 +423,9 @@ namespace AiTool3
         private ComboBox cbCategories;
         private Button buttonEditTemplate;
         private Button buttonAddTemplate;
-        private Button btnRestart;
         private Button buttonStartRecording;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tokenUsageLabel;
-        private Button buttonNewKeepAll;
         private Button buttonAttachImage;
         private TextBox tbSearch;
         private GroupBox groupBox1;
