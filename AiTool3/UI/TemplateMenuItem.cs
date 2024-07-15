@@ -4,6 +4,7 @@
 
     private const int ButtonWidth = 16;
     private bool _isMouseOverButton;
+    public bool IsSelected { get; set; }
 
     public TemplateMenuItem(string text, ref ToolStripMenuItem dropDownItems) : base(text)
     {
@@ -26,18 +27,50 @@
     protected override void OnPaint(PaintEventArgs e)
     {
         // Draw the background
-        base.OnPaint(e);
+        
 
         // Calculate text rectangle
-        Rectangle textRect = new Rectangle(48, 0, Width - ButtonWidth - 10, Height);
-        
+        Rectangle textRect = new Rectangle(48, 0, Width-48, Height);
+
+        // check if any child objects are IsSelecetd
+        var highlightAsParent = false;
+        foreach (var item in DropDownItems)
+        {
+            if (item is TemplateMenuItem tmi && tmi.IsSelected)
+            {
+                highlightAsParent = true;
+                break;
+            }
+        }
+
+        // paint the textRect blue
+        if (IsSelected || highlightAsParent)
+        {
+            e.Graphics.FillRectangle(Brushes.LightBlue, textRect);
+
+            // draw red dashed border round the outside of textRect
+            using (Pen pen = new Pen(Color.Red, 2))
+            {
+                // shrink textRect by 1 pixel to avoid clipping the border, and two on the right
+
+                textRect.Inflate(-1, -1);
+
+                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                e.Graphics.DrawRectangle(pen, textRect);
+            }
+
+        }
+
+        base.OnPaint(e);
+
+
         // Draw the edit button
         Rectangle buttonRect = new Rectangle(0, 0, 32, 32);
         
         using (Bitmap bmp2 = new Bitmap(32, 32))
         using (Graphics g = Graphics.FromImage(bmp2))
         {
-            // Change background color to pink when mouse is over the button
+            // Change background color to gryel when mouse is over the button
             g.Clear(_isMouseOverButton ? Color.GreenYellow : Color.LightGray);
         
             using (StringFormat sf = new StringFormat())

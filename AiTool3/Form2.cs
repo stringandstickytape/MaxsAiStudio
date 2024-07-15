@@ -55,6 +55,7 @@ namespace AiTool3
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
+            chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -94,6 +95,24 @@ namespace AiTool3
             Load += OnHandleCreated!;
 
             dgvConversations.MouseDown += DgvConversations_MouseDown;
+        }
+
+        private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
+        {
+            switch(e.Type)
+            {
+                case ChatWebViewNewType.New:
+                    await Clear();
+                    break;
+                case ChatWebViewNewType.NewWithPrompt:
+                    await BeginNewConversationPreserveInputAndSystemPrompts();
+                    break;
+                case ChatWebViewNewType.NewWithContext:
+                    await NewKeepContext();
+                    break;
+
+
+            }
         }
 
         private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
@@ -422,25 +441,36 @@ namespace AiTool3
 
         private async void btnClear_Click(object sender, EventArgs e)
         {
+            await Clear();
+        }
+
+        private async Task Clear()
+        {
             await BeginNewConversation();
             await chatWebView.SetUserPrompt("");
             await PopulateUiForTemplate(selectedTemplate!);
         }
 
-        private void btnRestart_Click(object sender, EventArgs e)
+        private async void btnRestart_Click(object sender, EventArgs e)
         {
-            BeginNewConversationPreserveInputAndSystemPrompts();
+            await BeginNewConversationPreserveInputAndSystemPrompts();
         }
 
-        private async void BeginNewConversationPreserveInputAndSystemPrompts()
+        private async Task  BeginNewConversationPreserveInputAndSystemPrompts()
         {
             var currentPrompt = await chatWebView.GetUserPrompt();
             var currentSystemPrompt = await chatWebView.GetSystemPrompt();
             await BeginNewConversation();
             await chatWebView.UpdateSystemPrompt(currentSystemPrompt);
+            await chatWebView.SetUserPrompt(currentPrompt);
         }
 
         private async void buttonNewKeepContext_Click(object sender, EventArgs e)
+        {
+            await NewKeepContext();
+        }
+
+        private async Task NewKeepContext()
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
             var lastUserMessage = ConversationManager.CurrentConversation!.FindByGuid(lastAssistantMessage!.Parent!);
@@ -513,7 +543,12 @@ namespace AiTool3
         private async void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnClear_Click(null!, null!);
-            await PopulateUiForTemplate(selectedTemplate!);
+            if (cbTemplates.SelectedItem != null)
+            {
+                string templateName = cbTemplates.SelectedItem.ToString()!;
+                string categoryName = cbCategories.SelectedItem!.ToString()!;
+                await SelectTemplate(categoryName, templateName);
+            }
         }
 
         ConversationTemplate? selectedTemplate = null;
@@ -522,6 +557,17 @@ namespace AiTool3
         {
             selectedTemplate = TopicSet.Topics.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
             await PopulateUiForTemplate(selectedTemplate!);
+
+            // Update menu items
+            foreach (var item in templateMenuItems.Values)
+            {
+                item.IsSelected = false;
+            }
+            if (templateMenuItems.TryGetValue(templateName, out var menuItem))
+            {
+                menuItem.IsSelected = true;
+            }
+            menuBar.Refresh(); // Force redraw of the menu
         }
 
         private async Task PopulateUiForTemplate(ConversationTemplate template)

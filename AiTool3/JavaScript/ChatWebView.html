@@ -6,6 +6,63 @@
     <title>AI Assistant Chat</title>
     <!-- note that styles and js are inserted at runtime -->
     <style>
+
+        .split-button {
+            display: inline-flex;
+            position: relative;
+            align-self: end;
+        }
+
+            .split-button button {
+                background-color: #2ecc71;
+                color: white;
+                border: none;
+                padding: 10px;
+                cursor: pointer;
+            }
+
+                .split-button button:first-child {
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                    border-top-right-radius: 0px;
+                    border-bottom-right-radius: 0px;
+                }
+
+                .split-button button:last-of-type {
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                    border-top-left-radius: 0px;
+                    border-bottom-left-radius: 0px;
+                    border-left: 1px solid #27ae60;
+                    padding: 10px 5px;
+                }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            z-index: 1;
+            bottom: 100%; /* Position the bottom of the dropdown at the top of the parent */
+            right: 0; /* Align the right edge of the dropdown with the right edge of the parent */
+        }
+
+            .dropdown-content a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+            }
+
+                .dropdown-content a:hover {
+                    background-color: #f1f1f1
+                }
+
+        .show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -21,15 +78,32 @@
         <div class="button-container">
             <button class="chat-button chat-submit" id="sendButton">Send</button>
             <button class="chat-button chat-cancel" id="cancelButton">Cancel</button>
+            <div id="newButtonContainer" class="split-button">
+                <button id="newButton">New</button>
+                <button id="newDropdownButton">▼</button>
+                <div id="newDropdown" class="dropdown-content">
+                    <a href="#" id="newWithPrompt">New with Prompt</a>
+                    <a href="#" id="newWithContext">New with Context</a>
+                </div>
+            </div>
         </div>
+
     </div>
 
+
     <script>
+
+
         const els = {
             msgs: document.getElementById('chatMessages'),
             input: document.getElementById('chatInput'),
             sendBtn: document.getElementById('sendButton'),
             cancelBtn: document.getElementById('cancelButton'),
+            newBtn: document.getElementById('newButton'),
+            newDropdownBtn: document.getElementById('newDropdownButton'),
+            newDropdown: document.getElementById('newDropdown'),
+            newWithPrompt: document.getElementById('newWithPrompt'),
+            newWithContext: document.getElementById('newWithContext'),
             sysPrompt: document.getElementById('systemPrompt'),
             chatHeader: document.getElementById('chatHeaderLabel')
         };
@@ -39,6 +113,7 @@
         const btnColors = {
             send: '#4a90e2',
             cancel: '#e74c3c',
+            new: '#2ecc71',
             disabled: '#7f8c8d'
         };
 
@@ -79,7 +154,7 @@
         els.sysPrompt.addEventListener('input', () => {
             window.chrome.webview.postMessage({
                 type: 'systemPromptUpdate',
-                content: getSysPrompt()
+                content: getSystemPrompt()
             });
         });
 
@@ -89,6 +164,22 @@
             btn.style.backgroundColor = enable ? btnColors[id.replace('Button', '')] : btnColors.disabled;
             btn.style.cursor = enable ? 'pointer' : 'not-allowed';
             btn.style.opacity = enable ? '1' : '0.6';
+        }
+
+        function enableButton(id) {
+            const btn = document.getElementById(id);
+            btn.disabled = false;
+            btn.style.backgroundColor = btnColors[id.replace('Button', '')];
+            btn.style.cursor = 'pointer';
+            btn.style.opacity = '1';
+        }
+
+        function disableButton(id) {
+            const btn = document.getElementById(id);
+            btn.disabled = true;
+            btn.style.backgroundColor = btnColors.disabled;
+            btn.style.cursor = 'not-allowed';
+            btn.style.opacity = '0.6';
         }
 
         function AddInitialMessages(msgs) {
@@ -215,7 +306,7 @@
                 { label: 'Browse JSON Object', dataType: 'json' },
                 { label: 'Run Python Script', dataType: 'python' },
                 { label: 'Launch STL', dataType: 'stl' },
-                { label: 'Run PowerShell Script', dataType: 'powershell' } 
+                { label: 'Run PowerShell Script', dataType: 'powershell' }
             ];
 
             const btnBar = document.createElement('div');
@@ -304,7 +395,34 @@
             }
         });
 
- 
+        // New button functionality
+        function toggleDropdown() {
+            els.newDropdown.classList.toggle("show");
+        }
+
+        window.onclick = function (event) {
+            if (!event.target.matches('#newDropdownButton')) {
+                if (els.newDropdown.classList.contains('show')) {
+                    els.newDropdown.classList.remove('show');
+                }
+            }
+        }
+
+        els.newBtn.addEventListener('click', () => {
+            window.chrome.webview.postMessage({ type: 'new', content: '' });
+        });
+
+        els.newDropdownBtn.addEventListener('click', toggleDropdown);
+
+        els.newWithPrompt.addEventListener('click', () => {
+            window.chrome.webview.postMessage({ type: 'newWithPrompt', content: '' });
+            toggleDropdown();
+        });
+
+        els.newWithContext.addEventListener('click', () => {
+            window.chrome.webview.postMessage({ type: 'newWithContext', content: '' });
+            toggleDropdown();
+        });
     </script>
 </body>
 </html>

@@ -18,6 +18,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSendMessageEventArgs>? ChatWebViewSendMessageEvent;
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
         public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
+        public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
 
         public ChatWebView() : base()
         {
@@ -37,6 +38,15 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "new":
+                    ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.New));
+                    break;
+                case "newWithContext":
+                    ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithContext));
+                    break;
+                case "newWithPrompt":
+                    ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithPrompt));
+                    break;
                 case "send":
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
                     break;

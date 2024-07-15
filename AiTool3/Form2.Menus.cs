@@ -69,7 +69,7 @@ namespace AiTool3
             CreateSpecialsMenu();
         }
 
-
+        private Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
         private void CreateTemplatesMenu()
         {
             var templatesMenu = CreateMenu("Templates");
@@ -80,7 +80,9 @@ namespace AiTool3
 
                 foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
                 {
-                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem,  true);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
+                    templateMenuItems[template.TemplateName] = templateMenuItem;
+
                     templateMenuItem.Click += async (s, e) =>
                     {
                         await SelectTemplate(topic.Name, template.TemplateName);

@@ -39,13 +39,18 @@ source code browser thing, to let you choose which files to upload from your pro
 
 launch sql? browse xml? launch svg? launch powershell?  azure az command?! 
 
-
+json mode
 
 **** pick specific summarisation model
+ => is the AI model dropdown moving to the web ui, or not?!
 
 Local web front-end - genericise existing html somehow?
 
 *** llava support
 
 highlight the currently-selected template in the templates menu
+
+Add template category
+
+Delete template
 
