@@ -63,12 +63,13 @@ Allow choice of embedding engines (?)
 
 Necessary for release:
 
-Make default engine sticky
 allow setting of proper URLs for local AI
 Github version update code
-better error-trapping
 
 
+better error-trapping - where are the crashes? :/
+
+add big yellow use-embeddings button?
 example templates set
 
 add template category
@@ -85,9 +86,12 @@ Instructions for external apps: whisper, ...
 Check whisper works
 Make demo videos or screenshots
 2/5: fix images aren't included in history
+Embeddings - make sure they're not being used for summaries
+Embeddings - provide drop-down to choose embedding from a specific directory
+
 DONE: Licenses 
 DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
 DONE: discard edit-highlighting-colours functionality
-Embeddings - make sure they're not being used for summaries
-Embeddings - provide drop-down to choose embedding from a specific directory
+DONE: Make default engine sticky
+
 

@@ -172,8 +172,11 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
             _cts = Form2.ResetCancellationtoken(_cts);
-            await chatWebView.DisableSendButton();
-            await chatWebView.EnableCancelButton();
+            await chatWebView.EnableSendButton();
+            await chatWebView.DisableCancelButton();
+
+            dgvConversations.Enabled = true;
+            webViewManager.Enable();
         }
 
 
@@ -269,6 +272,10 @@ namespace AiTool3
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
+
+                dgvConversations.Enabled = true;
+                webViewManager.Enable();
+
                 await chatWebView.EnableSendButton();
                 await UpdateUi(response);
                 await UpdateConversationSummary();
@@ -283,6 +290,10 @@ namespace AiTool3
             finally
             {
                 await chatWebView.DisableCancelButton();
+
+                dgvConversations.Enabled = true;
+                webViewManager.Enable();
+
                 await chatWebView.EnableSendButton();
                 stopwatch.Stop();
                 updateTimer.Stop();
@@ -299,6 +310,9 @@ namespace AiTool3
 
             await chatWebView.DisableSendButton();
             await chatWebView.EnableCancelButton();
+
+            dgvConversations.Enabled = false;
+            webViewManager.Disable();
         }
 
         private async Task<ConversationModelPair> PrepareConversationData()
@@ -520,6 +534,9 @@ namespace AiTool3
         {
             await chatWebView.Clear();
 
+            dgvConversations.Enabled = true;
+            webViewManager.Enable();
+
             ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             ConversationManager.CurrentConversation.AddNewRoot();
             ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
@@ -583,6 +600,9 @@ namespace AiTool3
         private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
             await chatWebView.Clear();
+
+            dgvConversations.Enabled = true;
+            webViewManager.Enable();
 
             if (template != null)
             {

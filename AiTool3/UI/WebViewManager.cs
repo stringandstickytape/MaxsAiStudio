@@ -141,6 +141,16 @@ namespace AiTool3.UI
 
 
         }
+
+        internal void Disable()
+        {
+            webView.Enabled = false;
+        }
+
+        internal void Enable()
+        {
+            webView.Enabled = true;
+        }
     }
 
     public class WebNdcContextMenuOptionSelectedEventArgs
