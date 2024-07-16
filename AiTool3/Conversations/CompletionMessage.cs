@@ -17,6 +17,8 @@ namespace AiTool3.Conversations
         public CompletionRole Role { get; set; }
         public string? Content { get; set; }
 
+        public string? Base64Image { get; set; }
+
         public string? SystemPrompt { get; set; }
 
         public string? Guid { get; set; }
@@ -80,6 +82,7 @@ namespace AiTool3.Conversations
         }
 
         public TimeSpan TimeTaken { get; set; }
+        public string? Base64Type { get; set; }
     }
 
     public enum CompletionRole

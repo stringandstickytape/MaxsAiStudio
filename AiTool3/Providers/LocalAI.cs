@@ -37,19 +37,22 @@ namespace AiTool3.Providers
             var x = conversation.messages.Select(m => new LocalAIMessage
             {
                 Role = m.role,
-                Content = m.content
+                Content = m.content,
+                Base64Image = m.base64image,
+                Base64Type = m.base64type
             });
 
+
+            // copy the messages in, with base 64 images
             foreach (var m in x)
             {
                 req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
+                if(m.Base64Image != null)
+                {
+                    req["messages"].Last["images"] = new JArray { m.Base64Image };
+                }
             }
 
-            if (base64image != null)
-            {
-                req["messages"].Last["images"] = new JArray { base64image };
-                base64image = null;
-            }
 
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last()["content"] = newInput;
@@ -263,6 +266,8 @@ namespace AiTool3.Providers
 
         [JsonProperty("content")]
         public string Content { get; set; }
+        public string? Base64Image { get; internal set; }
+        public string? Base64Type { get; internal set; }
     }
 
     public class LocalAIStreamResponse

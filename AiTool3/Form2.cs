@@ -258,7 +258,7 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
-                await ProcessAiResponse(response, model);
+                await ProcessAiResponse(response, model, conversation);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -310,9 +310,11 @@ namespace AiTool3
                 if (node.Role == CompletionRole.Root || node.Omit)
                     continue;
 
-                conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content! });
+                conversation.messages.Add(
+                    new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content!,
+                    base64image = node.Base64Image, base64type = node.Base64Type });
             }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt() });
+            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = Base64Image, base64type = Base64ImageType});
 
             return new ConversationModelPair(conversation, model);
         }
@@ -331,7 +333,7 @@ namespace AiTool3
             chatWebView.UpdateTemp(e);
         }
 
-        private async Task ProcessAiResponse(AiResponse response, Model model)
+        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
         {
             var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
             var inputText = await chatWebView.GetUserPrompt();
@@ -346,6 +348,8 @@ namespace AiTool3
                 SystemPrompt = systemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
                 OutputTokens = 0,
+                Base64Image = conversation.messages.Last().base64image,
+                Base64Type = conversation.messages.Last().base64type
             };
 
             var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);

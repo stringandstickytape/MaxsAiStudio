@@ -38,40 +38,72 @@ namespace AiTool3.Providers
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
-                ["messages"] = new JArray(
-                    conversation.messages.Select(m => new JObject
-                    {
-                        ["role"] = m.role,
-                        ["content"] = new JArray(
-                            new JObject
-                            {
-                                ["type"] = "text",
-                                ["text"] = m.content
-                            }
-                        )
-                    })
-                ),
             };
+
+            var messagesArray = new JArray();
+
+            for (int i = 0; i < conversation.messages.Count; i++)
+            {
+                var message = conversation.messages[i];
+
+
+
+                var contentArray = new JArray();
+
+
+                if(message.base64image != null)
+                {
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "image",
+                        ["source"] = new JObject
+                        {
+                            ["type"] = "base64",
+                            ["media_type"] = message.base64type,
+                            ["data"] = message.base64image
+                        }
+                    });
+                }
+
+                contentArray.Add(new JObject
+                {
+                    ["type"] = "text",
+                    ["text"] = message.content
+                });
+
+                var messageObject = new JObject
+                {
+                    ["role"] = message.role,
+                    ["content"] = contentArray
+                };
+
+                messagesArray.Add(messageObject);
+
+
+            }
+
+            req["messages"] = messagesArray;
 
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last["content"].Last["text"] = newInput;
 
-            if (!string.IsNullOrWhiteSpace(base64image))
-            {
-                var imageContent = new JObject
-                {
-                    ["type"] = "image",
-                    ["source"] = new JObject
-                    {
-                        ["type"] = "base64",
-                        ["media_type"] = base64ImageType,
-                        ["data"] = base64image
-                    }
-                };
 
-                req["messages"].Last["content"].Last.AddAfterSelf(imageContent);
-            }
-
+            //if (!string.IsNullOrWhiteSpace(base64image))
+            //{
+            //    var imageContent = new JObject
+            //    {
+            //        ["type"] = "image",
+            //        ["source"] = new JObject
+            //        {
+            //            ["type"] = "base64",
+            //            ["media_type"] = base64ImageType,
+            //            ["data"] = base64image
+            //        }
+            //    };
+            //
+            //    req["messages"].Last["content"].Last.AddAfterSelf(imageContent);
+            //}
+            //
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
