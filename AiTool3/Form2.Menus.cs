@@ -203,11 +203,6 @@ namespace AiTool3
 
             });
 
-            AddSpecial(specialsMenu, "Set Code Highlight Colours (experimental)", (s, e) =>
-            {
-                CSharpHighlighter.ConfigureColors();
-            });
-
             AddSpecial(specialsMenu, "Toggle old input box visibility", (s, e) =>
             {
                 splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
