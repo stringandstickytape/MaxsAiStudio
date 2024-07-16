@@ -125,7 +125,8 @@ namespace AiTool3
         private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
         {
             CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
-            SettingsSet.Save(CurrentSettings);
+            SettingsSet.Save(CurrentSettings); 
+            UpdateEmbeddingsSendButtonColour();
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -145,7 +146,12 @@ namespace AiTool3
             {
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
             }
+
+            UpdateEmbeddingsSendButtonColour();
+
         }
+
+        private void UpdateEmbeddingsSendButtonColour() => chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
         private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -211,7 +217,8 @@ namespace AiTool3
             if (CurrentSettings.SelectedModel != "")
             {
                 cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedModel);
-            } else cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
+            }
+            else cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
@@ -812,5 +819,7 @@ namespace AiTool3
             CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
             SettingsSet.Save(CurrentSettings);
         }
+
+
     }
 }

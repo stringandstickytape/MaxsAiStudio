@@ -175,6 +175,7 @@
             els.chatHeader.textContent = label;
         }
 
+        // WebViewCallAndCallbackSystem
         els.sysPrompt.addEventListener('input', () => {
             window.chrome.webview.postMessage({
                 type: 'systemPromptUpdate',
@@ -190,6 +191,7 @@
             btn.style.opacity = enable ? '1' : '0.6';
         }
 
+        // WebViewCallAndCallbackSystem
         function enableButton(id) {
             const btn = document.getElementById(id);
             btn.disabled = false;
@@ -198,6 +200,7 @@
             btn.style.opacity = '1';
         }
 
+        // WebViewCallAndCallbackSystem
         function disableButton(id) {
             const btn = document.getElementById(id);
             btn.disabled = true;
@@ -206,10 +209,29 @@
             btn.style.opacity = '0.6';
         }
 
+        // WebViewCallAndCallbackSystem
+        function updateSendButtonColor(embeddingsEnabled) {
+            const sendButton = document.getElementById('sendButton');
+            if (sendButton) {
+                if (embeddingsEnabled) {
+                    sendButton.style.backgroundColor = 'gold';
+                    sendButton.style.color = 'black';
+                    // set text to "Send with Embeddings"
+                    sendButton.textContent = "Send with Embeddings";
+                } else {
+                    sendButton.style.backgroundColor = btnColors.send;
+                    sendButton.style.color = 'white';
+                    sendButton.textContent = "Send";
+                }
+            }
+        }
+
+        // WebViewCallAndCallbackSystem
         function AddInitialMessages(msgs) {
             msgs.forEach(AddMessage);
         }
 
+        // WebViewCallAndCallbackSystem
         function AddMessage(msg) {
             els.msgs.appendChild(createMsgElement(msg));
             scrollToBottom();
@@ -312,7 +334,7 @@
             typeLabel.className = 'code-type-label';
             typeLabel.textContent = dataType;
 
-            const btnBar = createBtnBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
+            const btnBar = createButtonBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
 
             typeLabelContainer.append(typeLabel, btnBar);
             codeBlock.textContent = lines.join('\n').trim();
@@ -321,7 +343,8 @@
             return container;
         }
 
-        function createBtnBar(guid, content, dataType) {
+        // WebViewCallAndCallbackSystem
+        function createButtonBar(guid, content, dataType) {
             const btns = [
                 { label: 'Copy', dataType: '*' },
                 { label: 'Save As', dataType: '*' },
@@ -367,6 +390,7 @@
             els.msgs.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
+        // WebViewCallAndCallbackSystem
         function sendMessage() {
             const msg = els.input.value.trim();
             if (msg) {
@@ -385,6 +409,7 @@
 
         els.sendBtn.addEventListener('click', sendMessage);
 
+        // WebViewCallAndCallbackSystem
         els.cancelBtn.addEventListener('click', () => {
             window.chrome.webview.postMessage({ type: 'cancel', content: '' });
         });
@@ -435,6 +460,7 @@
             }
         }
 
+        // WebViewCallAndCallbackSystem
         els.newBtn.addEventListener('click', () => {
             window.chrome.webview.postMessage({ type: 'new', content: '' });
         });

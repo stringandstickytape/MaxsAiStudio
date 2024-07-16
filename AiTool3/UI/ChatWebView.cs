@@ -158,6 +158,9 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
+        // WebViewCallAndCallbackSystem
+        internal async Task UpdateSendButtonColor(bool embeddingsEnabled) => await ExecuteScriptAsync($"updateSendButtonColor({embeddingsEnabled.ToString().ToLower()})");
+        
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
         internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");

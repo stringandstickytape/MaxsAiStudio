@@ -51,6 +51,7 @@ namespace AiTool3
                     CurrentSettings = settingsForm.NewSettings;
                     cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
                     AiTool3.SettingsSet.Save(CurrentSettings);
+                    UpdateEmbeddingsSendButtonColour();
                 }
             };
 
