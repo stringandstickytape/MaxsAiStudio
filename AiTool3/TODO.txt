@@ -12,29 +12,31 @@ DONE: add clear-search button
 DONE: add multiple files attach button
 DONE: add "continue..." funcitionality that concats messages, prob don't need to keep sensible history of this
 DONE: JSON array viewer might be nice
+DONE: It probably sucks when the AI is running and the user changes conversations
+DONE: Do more to not mess up the conversation if user changes nodes while the AI is running
+DONE: Licenses 
+DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
+DONE: discard edit-highlighting-colours functionality
+DONE: Make default engine sticky
+
+
+
 
 Critical (could make software unusable):
 Handle if there's no local AI
-It probably sucks when the AI is running and the user changes conversations
-Do more to not mess up the conversation if user changes nodes while the AI is running
 
 Useful next:
 Ongoing token counting
 Streaming token counting
 add time-taken to search results and timestamp to all convo messages
-fix images aren't included in history
 add delete-template and save-as-new-template
 add delete-node-chain with are-you-sure? (is it chain, or just node?)
-
+alter to proper attachments model w multiple images, files saved in original form, etc?
 
 Less important:
 Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 enable/disable cs/html highlighting
-
-
-
-
 
 source code browser thing, to let you choose which files to upload from your project?
 
@@ -56,8 +58,9 @@ Add template category
 Delete template
 
 
-Allow choice of embedding engines (?)
 
+
+tools
 
 
 
@@ -65,33 +68,21 @@ Necessary for release:
 
 allow setting of proper URLs for local AI
 Github version update code
-
-
-better error-trapping - where are the crashes? :/
-
+better error-trapping - where are the crashes tho?
 add big yellow use-embeddings button?
 example templates set
-
 add template category
 delete template
 Handle if there's no local AI
-It probably sucks when the AI is running and the user changes conversations
-Do more to not mess up the conversation if user changes nodes while the AI is running
-
-	- this could all be fixed if the AI response was joined back to its original conversation sensibly... :/
-
 fix summaries are being generated using embeddings (!)
-Cublas and non-Cublas builds
+Cublas and non-Cublas builds - need dlls from another source - whisperX?
 Instructions for external apps: whisper, ...
 Check whisper works
 Make demo videos or screenshots
-2/5: fix images aren't included in history
+2/5: fix images aren't included in history (not implemented at all for groq)
 Embeddings - make sure they're not being used for summaries
 Embeddings - provide drop-down to choose embedding from a specific directory
-
-DONE: Licenses 
-DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
-DONE: discard edit-highlighting-colours functionality
-DONE: Make default engine sticky
+Allow choice of summary engine and embedding engine
+Refresh templates menu after add/edit/delete/...
 
 

@@ -66,11 +66,11 @@ namespace AiTool3
 
             menuBar.Items.Add(fileMenu);
             menuBar.Items.Add(editMenu);
-
+            CreateSpecialsMenu();
             CreateTemplatesMenu();
 
             // add a specials menu
-            CreateSpecialsMenu();
+            
         }
 
         private Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
@@ -78,11 +78,11 @@ namespace AiTool3
         {
             var templatesMenu = CreateMenu("Templates");
 
-            foreach (var topic in TopicSet.Topics)
+            foreach (var topic in TopicSet.Topics.OrderBy(x => x.Name))
             {
                 var categoryMenuItem = CreateMenuItem(topic.Name, ref templatesMenu);
 
-                foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null))
+                foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
                     var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateMenuItems[template.TemplateName] = templateMenuItem;
@@ -95,6 +95,7 @@ namespace AiTool3
                     {
                         EditAndSaveTemplate(template, false, topic.Name);
                     };
+
                 }
 
                 // at the end of each category, add a separator then an Add... option
@@ -123,10 +124,85 @@ namespace AiTool3
                     var topic = TopicSet.Topics.First(x => x.Name == topicName);
                     topic.Templates.Add(template);
                 };
-
-
             }
 
+
+            templatesMenu.DropDownItems.Add(new ToolStripSeparator());
+            var addMenuItem2 = CreateMenuItem("Add...", ref templatesMenu);
+            addMenuItem2.Click += (s, e) =>
+            {
+                // request a single string from the user for category name, w ok and cancel buttons
+                var form = new Form();
+                var tb = new TextBox();
+                var okButton = new Button();
+                var cancelButton = new Button();
+
+                form.Text = "Add Category";
+                form.Size = new System.Drawing.Size(400, 150);
+                form.StartPosition = FormStartPosition.CenterScreen;
+
+                tb.Location = new System.Drawing.Point(50, 10);
+                tb.Size = new System.Drawing.Size(300, 20);
+                tb.TabIndex = 0;
+                form.Controls.Add(tb);
+
+                okButton.Text = "OK";
+                okButton.Location = new System.Drawing.Point(50, 50);
+                okButton.Size = new System.Drawing.Size(75, 23);
+                okButton.DialogResult = DialogResult.OK;
+                form.Controls.Add(okButton);
+
+                cancelButton.Text = "Cancel";
+                cancelButton.Location = new System.Drawing.Point(150, 50);
+                    
+                cancelButton.Size = new System.Drawing.Size(75, 23);
+                cancelButton.DialogResult = DialogResult.Cancel;
+
+                form.Controls.Add(cancelButton);
+
+                form.AcceptButton = okButton;
+
+                form.CancelButton = cancelButton;
+
+                var result = form.ShowDialog();
+
+                if(result == DialogResult.OK)
+                {
+                    var newCategoryName = tb.Text;
+                    TopicSet.Topics.Add(new Topic(Guid.NewGuid().ToString(),newCategoryName));
+                    TopicSet.Save();
+
+                    // delete and recreate the templates menu
+                    // remove any menu called Templates
+                    
+
+                    // find all the existing Templates named menus
+                    var templatesMenus = menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList();
+                    foreach (var menu in templatesMenus)
+                    {
+                        menuBar.Items.Remove(menu);
+                    }
+
+                    templateMenuItems.Clear();
+                    CreateTemplatesMenu();
+                    // move it one before the end
+
+                    
+
+
+
+                }    
+                
+
+
+
+
+
+
+
+
+            };
+            
             menuBar.Items.Add(templatesMenu);
         }
 

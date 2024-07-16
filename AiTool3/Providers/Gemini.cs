@@ -146,11 +146,19 @@ namespace AiTool3.Providers
                             }
                         }
 
-                        if (jsonBuffer.Length > 0)
+                        if (jsonBuffer.Length > 0 && jsonBuffer.ToString().Contains("{"))
                         {
                             var json = jsonBuffer.ToString().Substring(jsonBuffer.ToString().IndexOf('{'));
 
-                            await ProcessJsonObject(json, fullResponse);
+
+                            try
+                            {
+                                await ProcessJsonObject(json, fullResponse);
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
                         }
 
                         StreamingComplete?.Invoke(this, null);
