@@ -54,7 +54,7 @@ namespace AiTool3.Conversations
             CurrentConversation!.SaveAsJson();
         }
 
-        public async Task<string> GenerateConversationSummary(Model summaryModel, bool useLocalAi, Settings.Settings currentSettings)
+        public async Task<string> GenerateConversationSummary(Model summaryModel, bool useLocalAi, SettingsSet currentSettings)
         {
             var retVal = await CurrentConversation!.GenerateSummary(summaryModel, useLocalAi, currentSettings);
             SaveConversation();
@@ -68,7 +68,7 @@ namespace AiTool3.Conversations
 
         }
 
-        public async Task RegenerateSummary(Model summaryModel, bool useLocalAi, DataGridView dgv, string guid, Settings.Settings currentSettings)
+        public async Task RegenerateSummary(Model summaryModel, bool useLocalAi, DataGridView dgv, string guid, SettingsSet currentSettings)
         {
             // Get all conversation files
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), $"v3-conversation-{guid}.json").OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();

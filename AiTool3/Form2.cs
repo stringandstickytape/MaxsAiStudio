@@ -30,7 +30,7 @@ namespace AiTool3
         public static readonly string ThreeTicks = new string('`', 3);
 
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
-        public Settings.Settings CurrentSettings { get; set; } = AiTool3.Settings.Settings.Load()!;
+        public SettingsSet CurrentSettings { get; set; } = AiTool3.SettingsSet.Load()!;
 
         public TopicSet TopicSet { get; set; }
 
@@ -49,6 +49,8 @@ namespace AiTool3
         public Form2()
         {
             InitializeComponent();
+
+
 
             cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
             cbUseEmbeddings.CheckedChanged += CbUseEmbeddings_CheckedChanged;
@@ -96,13 +98,15 @@ namespace AiTool3
             Load += OnHandleCreated!;
 
             dgvConversations.MouseDown += DgvConversations_MouseDown;
+
+
         }
 
 
 
         private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
         {
-            switch(e.Type)
+            switch (e.Type)
             {
                 case ChatWebViewNewType.New:
                     await Clear();
@@ -121,7 +125,7 @@ namespace AiTool3
         private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
         {
             CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
-            Settings.Settings.Save(CurrentSettings);
+            SettingsSet.Save(CurrentSettings);
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -131,7 +135,7 @@ namespace AiTool3
             await chatWebView.EnsureCoreWebView2Async(null);
 
 
-            
+
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
@@ -196,12 +200,15 @@ namespace AiTool3
 
         private void InitialiseApiList()
         {
+
             foreach (var model in CurrentSettings.ApiList!.SelectMany(x => x.Models))
             {
                 cbEngine.Items.Add(model);
             }
-
-            cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
+            if (CurrentSettings.SelectedModel != "")
+            {
+                cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedModel);
+            } else cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
@@ -311,10 +318,15 @@ namespace AiTool3
                     continue;
 
                 conversation.messages.Add(
-                    new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = node.Content!,
-                    base64image = node.Base64Image, base64type = node.Base64Type });
+                    new ConversationMessage
+                    {
+                        role = node.Role == CompletionRole.User ? "user" : "assistant",
+                        content = node.Content!,
+                        base64image = node.Base64Image,
+                        base64type = node.Base64Type
+                    });
             }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = Base64Image, base64type = Base64ImageType});
+            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = Base64Image, base64type = Base64ImageType });
 
             return new ConversationModelPair(conversation, model);
         }
@@ -459,7 +471,7 @@ namespace AiTool3
         }
 
 
-        private async Task  BeginNewConversationPreserveInputAndSystemPrompts()
+        private async Task BeginNewConversationPreserveInputAndSystemPrompts()
         {
             var currentPrompt = await chatWebView.GetUserPrompt();
             var currentSystemPrompt = await chatWebView.GetSystemPrompt();
@@ -773,6 +785,12 @@ namespace AiTool3
                 // Re-enable the button
                 btnGenerateEmbeddings.Enabled = true;
             }
+        }
+
+        private void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
+            SettingsSet.Save(CurrentSettings);
         }
     }
 }

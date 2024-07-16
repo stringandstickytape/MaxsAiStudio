@@ -84,6 +84,7 @@ namespace AiTool3
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(499, 40);
             cbEngine.TabIndex = 3;
+            cbEngine.SelectedIndexChanged += cbEngine_SelectedIndexChanged;
             // 
             // splitContainer1
             // 

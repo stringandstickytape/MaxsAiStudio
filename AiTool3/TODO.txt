@@ -67,7 +67,7 @@ Make default engine sticky
 allow setting of proper URLs for local AI
 Github version update code
 better error-trapping
-discard edit-highlighting-colours functionality
+
 
 example templates set
 
@@ -87,7 +87,7 @@ Make demo videos or screenshots
 2/5: fix images aren't included in history
 DONE: Licenses 
 DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
-
+DONE: discard edit-highlighting-colours functionality
 Embeddings - make sure they're not being used for summaries
 Embeddings - provide drop-down to choose embedding from a specific directory
 

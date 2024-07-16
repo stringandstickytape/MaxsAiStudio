@@ -18,7 +18,7 @@ namespace AiTool3.Providers
         HttpClient client = new HttpClient();
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Settings.Settings currentSettings, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool useStreaming = false)
         {
             var req = new JObject
             {
@@ -57,7 +57,7 @@ namespace AiTool3.Providers
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content);
             req["messages"].Last()["content"] = newInput;
 
-            var settings = AiTool3.Settings.Settings.Load();
+            var settings = AiTool3.SettingsSet.Load();
 
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");

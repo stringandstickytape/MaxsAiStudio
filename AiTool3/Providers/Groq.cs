@@ -24,7 +24,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, Settings.Settings currentSettings, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool useStreaming = false)
         {
             useStreaming = true;
             if (client.DefaultRequestHeaders.Authorization == null)

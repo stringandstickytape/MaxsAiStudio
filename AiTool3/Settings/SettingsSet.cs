@@ -9,9 +9,9 @@ using AiTool3.Providers;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace AiTool3.Settings
+namespace AiTool3
 {
-    public class Settings
+    public class SettingsSet
     {
         public List<Api>? ApiList { get; set; }
 
@@ -30,7 +30,6 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("Show Developer Tools for WebViews (requires app restart)")]
         public bool ShowDevTools { get; set; } = false;
 
-
         [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart, app must run as administrator)")]
         public bool RunWebServer { get; set; } = false;
 
@@ -44,17 +43,21 @@ namespace AiTool3.Settings
         [MyDisplayNameAttr("OpenAI API key for embeddings")]
         public string EmbeddingKey { get; set; } = "";
 
+        [MyDisplayNameAttr("Default Path")]
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
 
         [MyDisplayNameAttr("Collapse conversation pane at startup")]
         public bool CollapseConversationPane { get; set; } = false;
 
-        public Settings() { }
+
+        public string SelectedModel { get; set; } = "";
+
+        public SettingsSet() { }
 
         public void SetDefaultPath(string v)
         {
             DefaultPath = v;
-            Settings.Save(this);
+            SettingsSet.Save(this);
         }
 
         private void Create()
@@ -123,7 +126,7 @@ namespace AiTool3.Settings
             });
         }
 
-        public static void Save(Settings mgr)
+        public static void Save(SettingsSet mgr)
         {
             // write this object to json
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(mgr, Newtonsoft.Json.Formatting.Indented);
@@ -131,19 +134,19 @@ namespace AiTool3.Settings
 
         }
 
-        public static Settings? Load()
+        public static SettingsSet? Load()
         {
             try
             {
                 var text = File.ReadAllText("api.json");
-                var retVal = Newtonsoft.Json.JsonConvert.DeserializeObject<Settings>(text);
+                var retVal = Newtonsoft.Json.JsonConvert.DeserializeObject<SettingsSet>(text);
                 retVal.AddMissingApis();
                 return retVal;
             }
             catch (FileNotFoundException e)
             {
                 Debug.WriteLine(e.Message);
-                var retVal = new Settings();
+                var retVal = new SettingsSet();
                 retVal.Create();
                 Save(retVal);
                 return retVal;
@@ -152,7 +155,7 @@ namespace AiTool3.Settings
 
         private void AddMissingApis()
         {
-            var newSettings = new Settings();
+            var newSettings = new SettingsSet();
             newSettings.Create();
             foreach (var api in newSettings.ApiList)
             {

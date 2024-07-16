@@ -42,7 +42,7 @@ namespace AiTool3.Conversations
             return Messages.FirstOrDefault(cm => cm.Guid == guid);
         }
 
-        internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi, Settings.Settings currentSettings)
+        internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi, SettingsSet currentSettings)
         {
             string responseText = "";
             Debug.WriteLine(Title);

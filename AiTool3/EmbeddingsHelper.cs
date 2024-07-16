@@ -11,7 +11,7 @@ namespace AiTool3
 {
     internal static class EmbeddingsHelper
     {
-        public static async Task<string> AddEmbeddingsToInput(Conversation conversation, Settings.Settings currentSettings, string input)
+        public static async Task<string> AddEmbeddingsToInput(Conversation conversation, SettingsSet currentSettings, string input)
         {
             if (currentSettings.UseEmbeddings)
             {

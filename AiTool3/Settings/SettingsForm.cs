@@ -14,8 +14,8 @@ namespace AiTool3.Settings
 {
     public partial class SettingsForm : Form
     {
-        public Settings NewSettings;
-        public SettingsForm(Settings settings)
+        public SettingsSet NewSettings;
+        public SettingsForm(SettingsSet settings)
         {
             InitializeComponent();
 
@@ -31,7 +31,7 @@ namespace AiTool3.Settings
             foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(bool)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
-
+                if (displayNameAttr == null) continue;
                 // ... create a new checkbox control
                 var cb = new CheckBox
                 {
@@ -60,7 +60,7 @@ namespace AiTool3.Settings
             foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(string)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
-
+                if (displayNameAttr == null) continue;
                 // create a new textbox control
                 var tb = new TextBox
                 {
@@ -93,7 +93,7 @@ namespace AiTool3.Settings
             foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(int)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
-
+                if (displayNameAttr == null) continue;
 
 
                 // create a new numeric up down control
@@ -134,7 +134,7 @@ namespace AiTool3.Settings
             foreach(var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
-
+                if (displayNameAttr == null) continue;
                 // create a new textbox control
                 var tb = new TextBox
                 {
@@ -166,10 +166,10 @@ namespace AiTool3.Settings
 
         }
 
-        private Settings CloneSettings(Settings settings)
+        private SettingsSet CloneSettings(SettingsSet settings)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(settings);
-            return System.Text.Json.JsonSerializer.Deserialize<Settings>(json);
+            return System.Text.Json.JsonSerializer.Deserialize<SettingsSet>(json);
         }
 
         private void InitializeDgvModels()
@@ -203,7 +203,7 @@ namespace AiTool3.Settings
             }
         }
 
-        private void CreateDgvRows(Settings settings)
+        private void CreateDgvRows(SettingsSet settings)
         {
             dgvModels.Rows.Clear();
             // for each model in the settings, add a row to the dgv
