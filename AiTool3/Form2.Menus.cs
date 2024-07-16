@@ -268,6 +268,7 @@ namespace AiTool3
 
             foreach (var file in jsFiles)
             {
+                if (file.Contains("\\bin\\") || file.Contains("ThirdPartyJavascript") || file.Contains("JsonViewer")) continue;
                 fragments.AddRange(webCodeFragmenter.FragmentJavaScriptCode(File.ReadAllText(file), file));
             }
 
@@ -305,7 +306,7 @@ namespace AiTool3
 
             var embeddings = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(embeddingInputs, apiKey);
 
-            for (var i = 0; i < frags.Count; i++)
+             for (var i = 0; i < frags.Count; i++)
             {
                 embeddings[i].Code = frags[i].Content;
                 embeddings[i].Filename = frags[i].FilePath;
@@ -318,6 +319,20 @@ namespace AiTool3
             // write the embeddings to the save file as json
             var json = JsonSerializer.Serialize(embeddings);
             File.WriteAllText(saveFileDialog.FileName, json);
+
+            // write ziped to file as well
+            //var zipPath = saveFileDialog.FileName.Replace(".embeddings.json", ".embeddings.zip");
+            //using (var archive = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+            //{
+            //    var entry = archive.CreateEntry("embeddings.json");
+            //    using (var stream = entry.Open())
+            //    using (var writer = new StreamWriter(stream))
+            //    {
+            //        writer.Write(json);
+            //    }
+            //}
+
+
 
             // show mb to say it's done
             MessageBox.Show("Embeddings created and saved");

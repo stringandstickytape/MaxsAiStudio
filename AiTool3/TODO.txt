@@ -75,13 +75,13 @@ Handle if there's no local AI
 It probably sucks when the AI is running and the user changes conversations
 Do more to not mess up the conversation if user changes nodes while the AI is running
 
-- this could all be fixed if the AI response was joined back to its original conversation sensibly... :/
+	- this could all be fixed if the AI response was joined back to its original conversation sensibly... :/
 
 fix summaries are being generated using embeddings (!)
 Cublas and non-Cublas builds
 Instructions for external apps: whisper, ...
 
-DONE: fix images aren't included in history
+2/5: fix images aren't included in history
 DONE: Licenses 
 DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
 
