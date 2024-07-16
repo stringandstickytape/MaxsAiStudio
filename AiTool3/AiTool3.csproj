@@ -41,6 +41,7 @@
     <None Remove="JavaScript\ChatWebView.css" />
     <None Remove="JavaScript\ChatWebView.html" />
     <None Remove="JavaScript\JsonViewer.js" />
+    <None Remove="JavaScript\MermaidViewer.js" />
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
@@ -60,6 +61,7 @@
   <ItemGroup>
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
+    <EmbeddedResource Include="JavaScript\MermaidViewer.js" />
     <EmbeddedResource Include="JavaScript\JsonViewer.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
@@ -76,11 +78,13 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
     <PackageReference Include="FontAwesome.Sharp" Version="6.3.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2592.51" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Lame" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Speech" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />

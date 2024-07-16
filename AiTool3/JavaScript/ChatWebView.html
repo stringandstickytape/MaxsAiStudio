@@ -63,6 +63,30 @@
         .show {
             display: block;
         }
+        .mermaid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgb(220,220,220);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -304,6 +328,7 @@
                 { label: 'WebView', dataType: 'html' },
                 { label: 'View JSON String Array', dataType: 'json' },
                 { label: 'Browse JSON Object', dataType: 'json' },
+                { label: 'View Mermaid Diagram', dataType: 'mermaid' },
                 { label: 'Run Python Script', dataType: 'python' },
                 { label: 'Launch STL', dataType: 'stl' },
                 { label: 'Run PowerShell Script', dataType: 'powershell' }
@@ -320,6 +345,8 @@
                     btn.addEventListener('click', () => {
                         if (btnInfo.label === 'Browse JSON Object') {
                             createJsonViewer(content);
+                        } else if (btnInfo.label === 'View Mermaid Diagram') {
+                            createMermaidViewer(content);
                         } else {
                             window.chrome.webview.postMessage({
                                 type: btnInfo.label,

@@ -18,7 +18,7 @@ DONE: Licenses
 DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
 DONE: discard edit-highlighting-colours functionality
 DONE: Make default engine sticky
-
+DONE: add template category
 
 
 
@@ -66,23 +66,51 @@ tools
 
 Necessary for release:
 
-allow setting of proper URLs for local AI
-Github version update code
-better error-trapping - where are the crashes tho?
-add big yellow use-embeddings button?
+Bugs - fix the horrific double-press-of-Send bug
+
+Templates:
+"NONE" option at the top of the templates menu
 example templates set
-add template category
 delete template
-Handle if there's no local AI
-fix summaries are being generated using embeddings (!)
+
+Build:
 Cublas and non-Cublas builds - need dlls from another source - whisperX?
-Instructions for external apps: whisper, ...
-Check whisper works
-Make demo videos or screenshots
+
+UI:
+add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
+allow setting of proper URLs for local AI
+Allow choice of summary engine and embedding engine
+
+Core:
+better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
+Handle if there's no local AI at all
+Github version update code
 2/5: fix images aren't included in history (not implemented at all for groq)
+
+Embeddings:
 Embeddings - make sure they're not being used for summaries
 Embeddings - provide drop-down to choose embedding from a specific directory
-Allow choice of summary engine and embedding engine
-Refresh templates menu after add/edit/delete/...
+Include embedding model name in filename
 
+Docs:
+Instructions for external apps: whisper, ...
+Make demo videos or screenshots
 
+Testing:
+Check whisper works
+
+It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
+It'd be nice if you could outright edit responses in the conversation
+
+AI ideas:
+• Ability to export conversations in various formats (PDF, DOCX, etc.)
+• Ability to import conversations in various formats (PDF, DOCX, etc.)
+• Collaborative real-time editing for shared conversations lol
+• Sentiment analysis for conversation messages lol
+*  syntax highlighting in messages
+
+Concatenate messages :(
+
+Tip of the day
+
+add mermaid to licenses and remove CDNs, possiby also other pkg references

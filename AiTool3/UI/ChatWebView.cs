@@ -146,8 +146,9 @@ namespace AiTool3.UI
 
             NavigateToString(html);
 
-            var additionalJs = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js");
-            await ExecuteScriptAsync(additionalJs);
+            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js"));
+
+            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.MermaidViewer.js"));
         }
 
         internal async Task AddMessages(List<CompletionMessage> parents)
