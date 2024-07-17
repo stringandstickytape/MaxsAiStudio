@@ -2,6 +2,9 @@
 using Whisper.net.Ggml;
 using Whisper.net;
 using Whisper.net.Wave;
+using System.Text;
+using NAudio.Wave;
+using NAudio.MediaFoundation;
 
 namespace AiTool3.Audio
 {
@@ -22,26 +25,25 @@ namespace AiTool3.Audio
         public AudioRecorderManager(GgmlType ggmlType)
         {
             this.ggmlType = ggmlType;
-            modelName = $"{ggmlType.ToString().ToLower()}.bin";
+            modelName = $"ggml-smallen.bin";
         }
 
 
         public async Task StartRecording()
         {
-            recorder = new AudioRecorder(modelName);
+            recorder = new AudioRecorder("ggml-smallen.bin");
+            cts = new CancellationTokenSource();
+            
+
+
+            
+
             recorder.AudioProcessed += (sender, result) =>
             {
                 AudioProcessed?.Invoke(this, result);
             };
 
-            cts = new CancellationTokenSource();
-            var ggmlType = GgmlType.TinyEn;
-            var modelFileName = "ggml-tiny.bin";
 
-            if (!File.Exists(modelFileName))
-            {
-                await DownloadModel(modelFileName, ggmlType);
-            }
 
             // Start recording in a separate task
             recordingTask = recorder.RecordAudioAsync(cts.Token);
@@ -54,6 +56,10 @@ namespace AiTool3.Audio
 
 
         }
+
+
+
+
         static async Task DownloadModel(string fileName, GgmlType ggmlType)
         {
             using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(ggmlType);

@@ -19,6 +19,12 @@ DONE: Inline JS for appropriate packages : D3 v7, cytoscape, jsoneditor
 DONE: discard edit-highlighting-colours functionality
 DONE: Make default engine sticky
 DONE: add template category
+DONE: Transcribe MP4, WAV, ...
+DONE: fix the double-press-of-Send bug
+DONE: Allow choice of summary engine
+
+
+
 
 
 
@@ -66,7 +72,7 @@ tools
 
 Necessary for release:
 
-Bugs - fix the horrific double-press-of-Send bug
+
 
 Templates:
 "NONE" option at the top of the templates menu
@@ -79,7 +85,7 @@ Cublas and non-Cublas builds - need dlls from another source - whisperX?
 UI:
 add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
 allow setting of proper URLs for local AI
-Allow choice of summary engine and embedding engine
+Allow choice of embedding engine
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
@@ -88,7 +94,7 @@ Github version update code
 2/5: fix images aren't included in history (not implemented at all for groq)
 
 Embeddings:
-Embeddings - make sure they're not being used for summaries
+DONE: Embeddings - make sure they're not being used for summaries
 Embeddings - provide drop-down to choose embedding from a specific directory
 Include embedding model name in filename
 
@@ -97,7 +103,7 @@ Instructions for external apps: whisper, ...
 Make demo videos or screenshots
 
 Testing:
-Check whisper works
+Check whisper works through microphone
 
 It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
 It'd be nice if you could outright edit responses in the conversation
@@ -114,3 +120,13 @@ Concatenate messages :(
 Tip of the day
 
 add mermaid to licenses and remove CDNs, possiby also other pkg references
+
+
+
+add tokens-per-second to the status bar?
+
+Different Whisper models
+
+
+
+

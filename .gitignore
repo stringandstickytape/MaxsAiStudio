@@ -384,3 +384,4 @@ Sentinel/Configs/database.config
 /AiTool3/OpenAIEmbedFragged2.embeddings.json
 /AiTool3/OpenAIEmbedFragged2.embeddings.json.bin
 /AiTool3/OpenAIEmbedFragged2.embeddings.zip
+/AiTool3/OllamaEmbeddings.embeddings.json

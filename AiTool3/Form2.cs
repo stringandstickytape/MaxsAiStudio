@@ -43,7 +43,7 @@ namespace AiTool3
         private WebViewManager? webViewManager = null;
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
-        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.TinyEn);
+        private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn);
 
         public string selectedConversationGuid = "";
         public Form2()
@@ -125,7 +125,7 @@ namespace AiTool3
         private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
         {
             CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
-            SettingsSet.Save(CurrentSettings); 
+            SettingsSet.Save(CurrentSettings);
             UpdateEmbeddingsSendButtonColour();
         }
 
@@ -172,7 +172,7 @@ namespace AiTool3
 
         private async void Option1_Click(object sender, EventArgs e)
         {
-            await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
+            await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
         }
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
@@ -213,12 +213,18 @@ namespace AiTool3
             foreach (var model in CurrentSettings.ApiList!.SelectMany(x => x.Models))
             {
                 cbEngine.Items.Add(model);
+                cbSummaryEngine.Items.Add(model);
             }
             if (CurrentSettings.SelectedModel != "")
             {
                 cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedModel);
             }
             else cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
+            if (CurrentSettings.SelectedSummaryModel != "")
+            {
+                cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedSummaryModel);
+            }
+            else cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
         }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
@@ -358,7 +364,7 @@ namespace AiTool3
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
-            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings, CurrentSettings.StreamResponses);
+            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
         }
 
         private void AiService_StreamingTextReceived(object? sender, string e)
@@ -680,6 +686,19 @@ namespace AiTool3
 
             switch (r)
             {
+                case DialogResult.Retry:
+                    var openFileDialog2 = new OpenFileDialog();
+                    openFileDialog2.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
+                    openFileDialog2.ShowDialog();
+
+                    if (openFileDialog2.FileName == "")
+                    {
+                        return;
+                    }
+                    await TranscribeMP4(openFileDialog2.FileName);
+
+                    break;
+
                 case DialogResult.Yes:
                     OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(CurrentSettings.DefaultPath);
 
@@ -820,6 +839,18 @@ namespace AiTool3
             SettingsSet.Save(CurrentSettings);
         }
 
+        private void chatWebView_DragDrop(object sender, DragEventArgs e)
+        {
+            // get the name of the dropped file
 
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+        }
+
+        private void cbSummaryEngine_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CurrentSettings.SelectedSummaryModel = cbSummaryEngine.SelectedItem!.ToString();
+            SettingsSet.Save(CurrentSettings);
+        }
     }
 }

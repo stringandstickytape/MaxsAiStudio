@@ -23,7 +23,7 @@ namespace AiTool3
                 {
                     embeddingText += lbom + " ";
                 }
-                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText);
+                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename);
                 var lastMsg = $"{conversation.messages.Last().content}" +
                     $"{Environment.NewLine}{Environment.NewLine}" +
                     $"Here's some related content:{Environment.NewLine}" +
@@ -38,13 +38,12 @@ namespace AiTool3
             else return input;
         }
 
-        public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input)
+        public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename)
         {
             var inputEmbedding = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { input }, key);
 
             // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
-            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText("C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiTool3\\OpenAIEmbedFragged2.embeddings.json"));
-
+            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
             var embeddingHelper = new EmbeddingHelper();
 
             var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);

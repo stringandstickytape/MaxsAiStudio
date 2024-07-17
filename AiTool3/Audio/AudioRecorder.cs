@@ -209,7 +209,7 @@ namespace AiTool3.Audio
         {
             if (!File.Exists(modelName))
             {
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.MediumEn);
+                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.SmallEn);
                 using var fileWriter = File.OpenWrite(modelName);
                 await modelStream.CopyToAsync(fileWriter);
             }

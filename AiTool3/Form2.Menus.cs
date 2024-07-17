@@ -7,8 +7,10 @@ using AiTool3.Settings;
 using AiTool3.Snippets;
 using AiTool3.Topics;
 using AiTool3.UI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -53,6 +55,26 @@ namespace AiTool3
                     AiTool3.SettingsSet.Save(CurrentSettings);
                     UpdateEmbeddingsSendButtonColour();
                 }
+            };
+
+            var setEmbeddingsFile = CreateMenuItem("Set Embeddings File", ref editMenu);
+
+            setEmbeddingsFile.Click += (s, e) =>
+            {
+                var openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Embeddings JSON files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*";
+                openFileDialog.Title = "Select Embeddings File";
+                openFileDialog.InitialDirectory = CurrentSettings.DefaultPath;
+                openFileDialog.ShowDialog();
+
+                if (openFileDialog.FileName == "")
+                {
+                    return;
+                }
+
+                CurrentSettings.EmbeddingsFilename = openFileDialog.FileName;
+                AiTool3.SettingsSet.Save(CurrentSettings);
+
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
@@ -220,7 +242,7 @@ namespace AiTool3
 
             AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
             {
-                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbEngine.SelectedItem!);
+                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbSummaryEngine.SelectedItem!);
                 var snippets = snippetManager.FindSnippets(response.ResponseText);
 
                 try
@@ -242,18 +264,38 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
             {
-                await ConversationManager.RegenerateSummary((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", CurrentSettings);
+                await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", CurrentSettings);
+            });
+
+            AddSpecial(specialsMenu, "Transcribe MP4", async (s, e) =>
+            {
+                //var transcription = await audioRecorderManager.TranscribeMP4Async("H:\\aacall.mp4");
+
+                // browse for MP4 file
+                var openFileDialog = new OpenFileDialog();
+                //mp4 or all
+                openFileDialog.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
+                
+                openFileDialog.ShowDialog();
+
+                if (openFileDialog.FileName == "")
+                {
+                    return;
+                }
+
+                await TranscribeMP4(openFileDialog.FileName);
+
             });
 
             AddSpecial(specialsMenu, "Autosuggest", async (s, e) =>
             {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
                 autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
             AddSpecial(specialsMenu, "Autosuggest (Fun)", async (s, e) =>
             {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
                 autoSuggestForm.StringSelected += AutoSuggestStringSelected;
             });
 
@@ -273,7 +315,7 @@ namespace AiTool3
 
                     userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
 
-                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
+                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
                     autoSuggestForm.StringSelected += AutoSuggestStringSelected;
                 }
 
@@ -312,6 +354,77 @@ namespace AiTool3
 
 
             menuBar.Items.Add(specialsMenu);
+        }
+
+        private async Task TranscribeMP4(string openFileDialog)
+        {
+            var filename = openFileDialog;
+
+            // Path to the Miniconda installation
+            string condaPath = @"C:\ProgramData\miniconda3\Scripts\activate.bat";
+
+            // Command to activate the WhisperX environment and run Whisper
+            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\" --output_format json";
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.OutputDataReceived += (sender, e) => Debug.WriteLine(e.Data);
+                process.ErrorDataReceived += (sender, e) => Debug.WriteLine(e.Data);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    // stip filename from path
+                    var filenameOnly = filename.Split('\\').Last();
+
+                    if (filenameOnly.Contains("."))
+                    {
+                        filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".json";
+                    }
+                    else
+                    {
+                        filenameOnly += ".json";
+                    }
+                    // add path back in
+
+                    var json = File.ReadAllText(filenameOnly);
+
+
+                    // deserz to dynamic, and get the object's segments array
+
+                    List<string> result = new List<string>();
+
+                    dynamic jsonObj = JObject.Parse(json);
+
+                    foreach (var segment in jsonObj.segments)
+                    {
+                        double start = segment.start;
+                        double end = segment.end;
+                        string text = segment.text;
+                        string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
+                        result.Add(formattedText);
+                    }
+
+                    var output = $"{ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{ThreeTicks}{Environment.NewLine}";
+
+                    await chatWebView.SetUserPrompt(output);
+                }
+            }
         }
 
         private static async Task CreateEmbeddingsAsync(string apiKey)

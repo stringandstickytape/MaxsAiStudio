@@ -390,10 +390,15 @@
             els.msgs.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
+        let lastSend = 0;
+
         // WebViewCallAndCallbackSystem
         function sendMessage() {
             const msg = els.input.value.trim();
-            if (msg) {
+            var thisSend = (new Date).getTime();
+            if (msg && lastSend < thisSend - 1000) {
+
+                lastSend = thisSend;
                 window.chrome.webview.postMessage({ type: 'send', content: msg });
             }
         }

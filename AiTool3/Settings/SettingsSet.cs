@@ -43,6 +43,9 @@ namespace AiTool3
         [MyDisplayNameAttr("OpenAI API key for embeddings")]
         public string EmbeddingKey { get; set; } = "";
 
+        [MyDisplayNameAttr("Embeddings Filename/path")]
+        public string EmbeddingsFilename { get; set; } = "OpenAIEmbedFragged2.embeddings.json";
+
         [MyDisplayNameAttr("Default Path")]
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
 
@@ -51,6 +54,7 @@ namespace AiTool3
 
 
         public string SelectedModel { get; set; } = "";
+        public string SelectedSummaryModel { get; set; } = "";
 
         public SettingsSet() { }
 
@@ -85,6 +89,8 @@ namespace AiTool3
                 {
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:7b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:13b", Color = Color.FromArgb(255, 255, 186)},
+
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "codestral", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:27b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},

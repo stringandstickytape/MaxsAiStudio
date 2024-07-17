@@ -28,7 +28,7 @@ namespace AiTool3.Helpers
             var userMessage = $"Random number: {DateTime.Now.Ticks}\nHere's a commit message, diff, and readme.  Update the readme content to reflect new and changed features, as described by the diff and commit message.  Don't change formatting or whitespace. Note that something as minor as \"Fade effect when output text box content changes\" is too trivial to be worth mentioning.  If you see anything that unimportant to the user, you must remove it. You absolutely must give me back the complete updated version, surrounded by ``` . {Environment.NewLine}```commitmessage{Environment.NewLine}{commitMessage}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```diff{Environment.NewLine}{diff}{Environment.NewLine}```{Environment.NewLine}{Environment.NewLine}```readme.md{Environment.NewLine}{readme}{Environment.NewLine}";
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             var conversation = new Conversation { systemprompt = "Update the readme and give me the complete file.  DO NOT list your changes.", messages = new List<ConversationMessage> { new ConversationMessage { role = "user", content = userMessage } } };
-            var response = await aiService!.FetchResponse(model, conversation, null!, null!, new CancellationToken(false), null, false);
+            var response = await aiService!.FetchResponse(model, conversation, null!, null!, new CancellationToken(false), null, mustNotUseEmbedding: true, false);
 
             return response;
         }
