@@ -37,6 +37,8 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
+            label2 = new Label();
+            label1 = new Label();
             cbSummaryEngine = new ComboBox();
             cbUseEmbeddings = new CheckBox();
             btnGenerateEmbeddings = new Button();
@@ -54,8 +56,6 @@ namespace AiTool3
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
             splitContainer4 = new SplitContainer();
-            label1 = new Label();
-            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -185,6 +185,28 @@ namespace AiTool3
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label2.AutoSize = true;
+            label2.ForeColor = Color.White;
+            label2.Location = new Point(701, 57);
+            label2.Name = "label2";
+            label2.Size = new Size(240, 25);
+            label2.TabIndex = 18;
+            label2.Text = "Summary/Suggest AI Engine";
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.ForeColor = Color.White;
+            label1.Location = new Point(810, 13);
+            label1.Name = "label1";
+            label1.Size = new Size(131, 25);
+            label1.TabIndex = 17;
+            label1.Text = "Main AI Engine";
+            // 
             // cbSummaryEngine
             // 
             cbSummaryEngine.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -200,7 +222,6 @@ namespace AiTool3
             // 
             // cbUseEmbeddings
             // 
-            cbUseEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             cbUseEmbeddings.AutoSize = true;
             cbUseEmbeddings.ForeColor = Color.White;
             cbUseEmbeddings.Location = new Point(331, 5);
@@ -212,7 +233,6 @@ namespace AiTool3
             // 
             // btnGenerateEmbeddings
             // 
-            btnGenerateEmbeddings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnGenerateEmbeddings.BackColor = Color.Black;
             btnGenerateEmbeddings.ForeColor = Color.White;
             btnGenerateEmbeddings.Location = new Point(339, 48);
@@ -393,26 +413,6 @@ namespace AiTool3
             splitContainer4.Size = new Size(1935, 1126);
             splitContainer4.SplitterDistance = 644;
             splitContainer4.TabIndex = 12;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(810, 13);
-            label1.Name = "label1";
-            label1.Size = new Size(131, 25);
-            label1.TabIndex = 17;
-            label1.Text = "Main AI Engine";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.ForeColor = Color.White;
-            label2.Location = new Point(701, 57);
-            label2.Name = "label2";
-            label2.Size = new Size(240, 25);
-            label2.TabIndex = 18;
-            label2.Text = "Summary/Suggest AI Engine";
             // 
             // Form2
             // 

@@ -99,7 +99,7 @@ namespace AiTool3
 
             dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-
+            
         }
 
 
@@ -142,16 +142,18 @@ namespace AiTool3
 
             await BeginNewConversation();
 
+            await UpdateEmbeddingsSendButtonColour();
+
             if (CurrentSettings.RunWebServer)
             {
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
             }
 
-            UpdateEmbeddingsSendButtonColour();
+            
 
         }
 
-        private void UpdateEmbeddingsSendButtonColour() => chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
+        private async Task UpdateEmbeddingsSendButtonColour() => await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
         private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
         {
