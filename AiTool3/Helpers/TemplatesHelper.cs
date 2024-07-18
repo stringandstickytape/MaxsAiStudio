@@ -25,43 +25,7 @@ namespace AiTool3.Helpers
             panel.Controls.Add(textBox, 1, row);
         }
 
-        private static void RefreshCategoryAndTemplateComboBoxes(ComboBox cbCategories, ComboBox cbTemplates, TopicSet topicSet)
-        {
-            // Remember the currently selected items
-            string selectedCategory = cbCategories.SelectedItem?.ToString();
-            string selectedTemplate = cbTemplates.SelectedItem?.ToString();
-
-            // Clear and repopulate the category combo box
-            cbCategories.Items.Clear();
-            foreach (var topic in topicSet.Categories)
-            {
-                cbCategories.Items.Add(topic.Name);
-            }
-
-            // Restore the selected category if it still exists
-            if (!string.IsNullOrEmpty(selectedCategory) && cbCategories.Items.Contains(selectedCategory))
-            {
-                cbCategories.SelectedItem = selectedCategory;
-            }
-
-            // Repopulate the template combo box based on the selected category
-            if (cbCategories.SelectedItem != null)
-            {
-                string category = cbCategories.SelectedItem.ToString();
-                var templates = topicSet.Categories.First(t => t.Name == category).Templates.Where(x => x.SystemPrompt != null).ToList();
-
-                cbTemplates.Items.Clear();
-                cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
-
-                // Restore the selected template if it still exists
-                if (!string.IsNullOrEmpty(selectedTemplate) && cbTemplates.Items.Contains(selectedTemplate))
-                {
-                    cbTemplates.SelectedItem = selectedTemplate;
-                }
-            }
-        }
-
-        public static void UpdateTemplates(ConversationTemplate template, bool add, string? category, Form form, TopicSet topicSet, ComboBox categoriesComboBox, ComboBox templatesComboBox)
+        public static void UpdateTemplates(ConversationTemplate template, bool add, string? category, Form form, TopicSet topicSet)
         {
             TableLayoutPanel tableLayoutPanel = CreateTemplatesForm(template, form);
             form.ShowDialog();
@@ -87,9 +51,6 @@ namespace AiTool3.Helpers
                 }
 
                 topicSet.Save();
-
-                // Refresh category and template combo boxes
-                RefreshCategoryAndTemplateComboBoxes(categoriesComboBox, templatesComboBox, topicSet);
             }
         }
 

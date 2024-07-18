@@ -46,11 +46,6 @@ namespace AiTool3
             chatWebView = new ChatWebView();
             buttonStartRecording = new Button();
             buttonAttachImage = new Button();
-            groupBox1 = new GroupBox();
-            buttonAddTemplate = new Button();
-            cbCategories = new ComboBox();
-            cbTemplates = new ComboBox();
-            buttonEditTemplate = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
@@ -67,7 +62,6 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)dgvConversations).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ndcWeb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)chatWebView).BeginInit();
-            groupBox1.SuspendLayout();
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
@@ -294,73 +288,6 @@ namespace AiTool3
             buttonAttachImage.UseVisualStyleBackColor = false;
             buttonAttachImage.Click += buttonAttachImage_Click;
             // 
-            // groupBox1
-            // 
-            groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            groupBox1.Controls.Add(buttonAddTemplate);
-            groupBox1.Controls.Add(cbCategories);
-            groupBox1.Controls.Add(cbTemplates);
-            groupBox1.Controls.Add(buttonEditTemplate);
-            groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(55, 707);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(398, 170);
-            groupBox1.TabIndex = 10;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Templates";
-            // 
-            // buttonAddTemplate
-            // 
-            buttonAddTemplate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonAddTemplate.BackColor = Color.Black;
-            buttonAddTemplate.ForeColor = Color.White;
-            buttonAddTemplate.Location = new Point(317, 130);
-            buttonAddTemplate.Name = "buttonAddTemplate";
-            buttonAddTemplate.Size = new Size(75, 34);
-            buttonAddTemplate.TabIndex = 9;
-            buttonAddTemplate.Text = "Add";
-            buttonAddTemplate.UseVisualStyleBackColor = false;
-            buttonAddTemplate.Click += buttonAdd_Click;
-            // 
-            // cbCategories
-            // 
-            cbCategories.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cbCategories.BackColor = Color.Black;
-            cbCategories.Font = new Font("Segoe UI", 12F);
-            cbCategories.ForeColor = Color.White;
-            cbCategories.FormattingEnabled = true;
-            cbCategories.Location = new Point(12, 38);
-            cbCategories.Name = "cbCategories";
-            cbCategories.Size = new Size(380, 40);
-            cbCategories.TabIndex = 6;
-            cbCategories.SelectedIndexChanged += cbCategories_SelectedIndexChanged;
-            // 
-            // cbTemplates
-            // 
-            cbTemplates.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cbTemplates.BackColor = Color.Black;
-            cbTemplates.Font = new Font("Segoe UI", 12F);
-            cbTemplates.ForeColor = Color.White;
-            cbTemplates.FormattingEnabled = true;
-            cbTemplates.Location = new Point(12, 84);
-            cbTemplates.Name = "cbTemplates";
-            cbTemplates.Size = new Size(380, 40);
-            cbTemplates.TabIndex = 7;
-            cbTemplates.SelectedIndexChanged += cbTemplates_SelectedIndexChanged;
-            // 
-            // buttonEditTemplate
-            // 
-            buttonEditTemplate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonEditTemplate.BackColor = Color.Black;
-            buttonEditTemplate.ForeColor = Color.White;
-            buttonEditTemplate.Location = new Point(242, 130);
-            buttonEditTemplate.Name = "buttonEditTemplate";
-            buttonEditTemplate.Size = new Size(69, 34);
-            buttonEditTemplate.TabIndex = 8;
-            buttonEditTemplate.Text = "Edit";
-            buttonEditTemplate.UseVisualStyleBackColor = false;
-            buttonEditTemplate.Click += buttonEditTemplate_Click;
-            // 
             // menuBar
             // 
             menuBar.BackColor = Color.Black;
@@ -404,7 +331,6 @@ namespace AiTool3
             // 
             // splitContainer4.Panel1
             // 
-            splitContainer4.Panel1.Controls.Add(groupBox1);
             splitContainer4.Panel1Collapsed = true;
             // 
             // splitContainer4.Panel2
@@ -440,7 +366,6 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)dgvConversations).EndInit();
             ((System.ComponentModel.ISupportInitialize)ndcWeb).EndInit();
             ((System.ComponentModel.ISupportInitialize)chatWebView).EndInit();
-            groupBox1.ResumeLayout(false);
             menuBar.ResumeLayout(false);
             menuBar.PerformLayout();
             statusStrip1.ResumeLayout(false);
@@ -460,16 +385,11 @@ namespace AiTool3
         private SplitContainer splitContainer5;
         private MenuStrip menuBar;
         private ToolStripMenuItem toolStripMenuItem1;
-        private ComboBox cbTemplates;
-        private ComboBox cbCategories;
-        private Button buttonEditTemplate;
-        private Button buttonAddTemplate;
         private Button buttonStartRecording;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tokenUsageLabel;
         private Button buttonAttachImage;
         private TextBox tbSearch;
-        private GroupBox groupBox1;
         private Button btnClearSearch;
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
         private SplitContainer splitContainer4;

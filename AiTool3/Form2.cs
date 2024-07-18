@@ -70,8 +70,6 @@ namespace AiTool3
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
 
-            templateManager.TemplateSet.Categories.ForEach(x => { cbCategories.Items.Add(x.Name); });
-
             InitialiseApiList();
 
             splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
@@ -564,30 +562,6 @@ namespace AiTool3
 
         }
 
-        private void cbCategories_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var selected = cbCategories.SelectedItem!.ToString();
-
-            var topics = templateManager.TemplateSet.Categories.Where(t => t.Name == selected).ToList();
-
-            var templates = topics.SelectMany(t => t.Templates).Where(x => x.SystemPrompt != null).ToList();
-
-            cbTemplates.Items.Clear();
-            cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
-            cbTemplates.DroppedDown = true;
-        }
-
-        private async void cbTemplates_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            Clear();
-            if (cbTemplates.SelectedItem != null)
-            {
-                string templateName = cbTemplates.SelectedItem.ToString()!;
-                string categoryName = cbCategories.SelectedItem!.ToString()!;
-                await SelectTemplate(categoryName, templateName);
-            }
-        }
-
         ConversationTemplate? selectedTemplate = null;
 
         private async Task SelectTemplate(string categoryName, string templateName)
@@ -622,41 +596,9 @@ namespace AiTool3
             }
         }
 
-        private void buttonEditTemplate_Click(object sender, EventArgs e)
+         private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
         {
-            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null) return;
-
-            EditAndSaveTemplate(GetCurrentTemplate()!);
-        }
-
-        private ConversationTemplate? GetCurrentTemplate()
-        {
-            ConversationTemplate template;
-            if (cbCategories.SelectedItem == null || cbTemplates.SelectedItem == null)
-            {
-                return null;
-            }
-            var category = cbCategories.SelectedItem.ToString();
-            var templateName = cbTemplates.SelectedItem.ToString();
-            if (string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(templateName))
-                return null;
-
-            template = templateManager.TemplateSet.Categories.First(t => t.Name == category).Templates.First(t => t.TemplateName == templateName);
-            return template;
-        }
-
-        private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
-        {
-            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), templateManager.TemplateSet, cbCategories, cbTemplates);
-        }
-
-        private void buttonAdd_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(cbCategories.Text)) return;
-
-            var template = new ConversationTemplate("System Prompt", "Initial Prompt");
-
-            EditAndSaveTemplate(template, true, cbCategories.Text);
+            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), templateManager.TemplateSet);
         }
 
         private async void buttonStartRecording_Click(object sender, EventArgs e)
