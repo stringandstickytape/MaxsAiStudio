@@ -96,5 +96,11 @@ namespace AiTool3
             // Implement MP4 transcription logic here
             throw new NotImplementedException("MP4 transcription not implemented yet.");
         }
+
+        public void ClearBase64()
+        {
+            Base64Image = null;
+            Base64ImageType = null;
+        }
     }
 }

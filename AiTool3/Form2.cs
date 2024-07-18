@@ -38,8 +38,6 @@ namespace AiTool3
 
         
 
-        public string? Base64Image { get; set; }
-        public string? Base64ImageType { get; set; }
 
 
 
@@ -352,7 +350,7 @@ namespace AiTool3
                         base64type = node.Base64Type
                     });
             }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = Base64Image, base64type = Base64ImageType });
+            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = _fileAttachmentManager.Base64Image, base64type = _fileAttachmentManager.Base64ImageType });
 
             return new ConversationModelPair(conversation, model);
         }
@@ -363,7 +361,7 @@ namespace AiTool3
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
-            return await aiService!.FetchResponse(model, conversation, Base64Image!, Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
+            return await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
         }
 
         private void AiService_StreamingTextReceived(object? sender, string e)
@@ -426,8 +424,7 @@ namespace AiTool3
 
             ConversationManager.SaveConversation();
 
-            Base64Image = null;
-            Base64ImageType = null;
+            _fileAttachmentManager.ClearBase64();
 
             await WebNdcDrawNetworkDiagram();
             webViewManager!.CentreOnNode(completionResponse.Guid);
@@ -612,8 +609,6 @@ namespace AiTool3
         private async void buttonAttachImage_Click(object sender, EventArgs e)
         {
             await _fileAttachmentManager.HandleAttachment();
-            Base64Image = _fileAttachmentManager.Base64Image;
-            Base64ImageType = _fileAttachmentManager.Base64ImageType;
         }
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
