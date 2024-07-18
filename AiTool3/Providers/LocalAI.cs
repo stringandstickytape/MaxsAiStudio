@@ -185,7 +185,7 @@ namespace AiTool3.Providers
             }
         }
 
-        private void StartOllama(string modelName)
+        public static void StartOllama(string modelName)
         {
             var psi = new ProcessStartInfo("ollama", $"run {modelName}")
             {

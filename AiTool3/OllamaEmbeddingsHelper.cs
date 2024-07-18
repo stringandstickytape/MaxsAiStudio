@@ -69,6 +69,7 @@ namespace AiTool3
 
             foreach (var text in texts)
             {
+                LocalAI.StartOllama("mxbai-embed-large");
                 var request = new
                 {
                     model = "mxbai-embed-large",
