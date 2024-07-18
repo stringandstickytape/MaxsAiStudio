@@ -69,6 +69,7 @@ DONE: "NONE" option at the top of the templates menu
 DONE: add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
 DONE: delete template
 DONE: if there's no local AI at all, deal with it
+DONE: It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
 
 Necessary for release:
 
@@ -104,7 +105,7 @@ Make demo videos or screenshots
 Testing:
 Check whisper works through microphone
 
-It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
+
 It'd be nice if you could outright edit responses in the conversation
 
 AI ideas:
