@@ -17,7 +17,7 @@ namespace AiTool3.ApiManagement
 
         public override string ToString()
         {
-            return $"{ServiceName}: {ModelName}";
+            return $"{ServiceName} - {ModelName}";
         }
 
         public string GetCost(TokenUsage tokenUsage)

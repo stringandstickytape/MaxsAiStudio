@@ -461,6 +461,15 @@ namespace AiTool3
 
             var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
 
+            var modelUsageManager = new ModelUsageManager(model);
+
+            modelUsageManager.AddTokensAndSave(response.TokenUsage);
+            
+
+
+
+
+
             await ProcessAiResponse(response, model, conversation);
 
             return response;
@@ -599,7 +608,7 @@ namespace AiTool3
             rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
-
+            await BeginNewConversation();
             ConversationManager.Conversation.Messages.AddRange(new[] { assistantMessage, userMessage });
             ConversationManager.PreviousCompletion = assistantMessage;
 

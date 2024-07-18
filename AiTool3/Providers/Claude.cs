@@ -113,6 +113,9 @@ namespace AiTool3.Providers
             var buffer = new byte[48];
             var decoder = Encoding.UTF8.GetDecoder();
 
+            int? inputTokens = null;
+            int? outputTokens = null;
+
             while (true)
             {
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
@@ -125,7 +128,7 @@ namespace AiTool3.Providers
                 {
                     if (c == '\n')
                     {
-                        ProcessLine(lineBuilder.ToString(), responseBuilder);
+                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens);
                         lineBuilder.Clear();
                     }
                     else
@@ -137,16 +140,21 @@ namespace AiTool3.Providers
 
             if (lineBuilder.Length > 0)
             {
-                ProcessLine(lineBuilder.ToString(), responseBuilder);
+                ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens);
             }
 
             // call streaming complete
             StreamingComplete?.Invoke(this, null);
 
-            return new AiResponse { ResponseText = responseBuilder.ToString(), Success = true };
+            return new AiResponse
+            {
+                ResponseText = responseBuilder.ToString(),
+                Success = true,
+                TokenUsage = new TokenUsage(inputTokens?.ToString(), outputTokens?.ToString())
+            };
         }
 
-        private void ProcessLine(string line, StringBuilder responseBuilder)
+        private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens)
         {
             if (line.StartsWith("data: "))
             {
@@ -163,6 +171,14 @@ namespace AiTool3.Providers
                         //call streamingtextreceived
                         StreamingTextReceived?.Invoke(this, text);
                         responseBuilder.Append(text);
+                    }
+                    else if (eventData["type"].ToString() == "message_start")
+                    {
+                        inputTokens = eventData["message"]["usage"]["input_tokens"].Value<int>();
+                    }
+                    else if (eventData["type"].ToString() == "message_delta")
+                    {
+                        outputTokens = eventData["usage"]["output_tokens"].Value<int>();
                     }
                 }
                 catch (JsonException ex)

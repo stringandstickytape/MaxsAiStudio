@@ -65,7 +65,6 @@ namespace AiTool3
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
-            splitContainer4.Panel1.SuspendLayout();
             splitContainer4.Panel2.SuspendLayout();
             splitContainer4.SuspendLayout();
             SuspendLayout();
@@ -328,9 +327,6 @@ namespace AiTool3
             splitContainer4.IsSplitterFixed = true;
             splitContainer4.Location = new Point(15, 31);
             splitContainer4.Name = "splitContainer4";
-            // 
-            // splitContainer4.Panel1
-            // 
             splitContainer4.Panel1Collapsed = true;
             // 
             // splitContainer4.Panel2
@@ -370,7 +366,6 @@ namespace AiTool3
             menuBar.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            splitContainer4.Panel1.ResumeLayout(false);
             splitContainer4.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer4).EndInit();
             splitContainer4.ResumeLayout(false);

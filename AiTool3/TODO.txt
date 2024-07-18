@@ -39,6 +39,9 @@ DONE: if there's no local AI at all, deal with it
 DONE: It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
 DONE: Rename to MaxsAiStudio
 DONE: tiny bug: fullscreen user prompt button is a Bit Crap
+DONE: Ongoing token counting
+
+
 
 
 tiny bug: chat window types urls and other text content dropped directly :/
@@ -47,8 +50,9 @@ bug: new-with-context doesn't work properly
 
 
 Useful next:
-Ongoing, resettable token counting
-Streaming token counting
+
+Make use of token counting
+PART DONE: Streaming token counting is done for Claude
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
 add delete-node-chain with are-you-sure? (is it chain, or just node?)

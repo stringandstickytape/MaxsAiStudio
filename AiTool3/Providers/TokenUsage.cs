@@ -2,8 +2,8 @@
 {
     public class TokenUsage
     {
-        private int inputTokens = -1;
-        private int outputTokens = -1;
+        private int inputTokens = 0;
+        private int outputTokens = 0;
 
         public int InputTokens { get => inputTokens; set => inputTokens = value; }
         public int OutputTokens { get => outputTokens; set => outputTokens = value; }
@@ -19,6 +19,11 @@
             {
                 OutputTokens = outputTokens;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{InputTokens} {OutputTokens}";
         }
     }
 }
