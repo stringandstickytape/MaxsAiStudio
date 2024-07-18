@@ -98,7 +98,11 @@
         <div class="chat-messages" id="chatMessages"></div>
     </div>
     <div class="chat-input-container">
-        <textarea class="chat-input" id="chatInput" placeholder="Type your message..."></textarea>
+
+        <div class="textarea-wrapper">
+            <textarea class="chat-input" id="chatInput" placeholder="Type your message..."></textarea>
+            <button id="fullscreenToggle" class="fullscreen-toggle" title="Toggle fullscreen">⤢</button>
+        </div>
         <div class="button-container">
             <button class="chat-button chat-submit" id="sendButton">Send</button>
             <button class="chat-button chat-cancel" id="cancelButton">Cancel</button>
@@ -141,6 +145,10 @@
             new: '#2ecc71',
             disabled: '#7f8c8d'
         };
+
+
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        fullscreenToggle.addEventListener('click', toggleInputFullscreen);
 
         function updateTemp(str) {
             if (!tempMsg) {
@@ -354,7 +362,7 @@
                 inputContainer.classList.remove('full-window');
                 chatContainer.style.display = 'flex';
                 inputContainer.style.padding = '15px';
-                els.input.style.height = '10vh';
+                els.input.style.height = '20vh';
                 els.input.style.width = '';
                 els.input.style.margin = '';
                 buttonContainer.style.display = 'flex';
@@ -362,8 +370,8 @@
                 inputContainer.classList.add('full-window');
                 chatContainer.style.display = 'none';
                 inputContainer.style.padding = '0';
-                els.input.style.height = '100vh';
-                els.input.style.width = 'calc(100% - 60px)';  // Adjust for left and right padding
+                els.input.style.height = 'calc(100% - 30px)';
+                els.input.style.width = 'calc(100% - 30px)';  // Adjust for left and right padding
                 els.input.style.margin = '15px';  // Add margin to create space around the textarea
                 buttonContainer.style.display = 'none';
             }

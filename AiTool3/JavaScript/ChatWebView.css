@@ -38,6 +38,75 @@ body {
     min-height: 100vh;
 }
 
+
+.chat-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #2a2a2a;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: flex-start;
+    z-index: 10000;
+}
+
+.textarea-wrapper {
+    position: relative;
+    flex: 1;
+    width:100%;
+    margin-right: 10px; /* To maintain space between textarea and buttons */
+}
+
+
+
+
+.chat-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #4a4a4a;
+    border-radius: 4px;
+    resize: vertical;
+    height: 20vh;
+    overflow-y: auto;
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    box-sizing: border-box; /* This ensures padding is included in the width */
+}
+
+.fullscreen-toggle {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10002;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+
+
+
+
 .chat-input-container.full-window {
     position: fixed;
     top: 0;
@@ -166,25 +235,8 @@ button {
 z-index:10000;
 }
 
-.chat-input {
-    flex: 1;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #4a4a4a;
-    border-radius: 4px;
-    margin-right: 10px;
-    resize: vertical;
-    height: 10vh;
-    overflow-y: auto;
-    background-color: #3a3a3a;
-    color: #e0e0e0;
-}
 
-.button-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+
 
 .chat-button {
     color: #fff;
@@ -255,9 +307,6 @@ z-index:10000;
     cursor: move;
 }
 
-.chat-input {
-    border: 2px solid #ccc;
-}
 
     .chat-input.drag-over {
         border-color: #007bff;

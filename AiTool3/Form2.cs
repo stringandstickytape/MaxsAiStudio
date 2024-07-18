@@ -177,20 +177,12 @@ namespace AiTool3
                     default:
                         await _fileAttachmentManager.AttachTextFiles(new string[] { filename });
                         break;
-
-
-
                 }
-                //await _fileAttachmentManager.TranscribeMP4(filename, chatWebView);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            // Handle the dropped file here
-            MessageBox.Show($"File dropped: {filename}");
-            // You can call your file handling methods here
         }
 
         private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
