@@ -319,45 +319,17 @@ namespace AiTool3
 
         private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.UpdateTemp(e);
 
-        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
+        private  async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
         {
-            var previousCompletionGuidBeforeAwait = ConversationManager.PreviousCompletion?.Guid;
+
             var inputText = await chatWebView.GetUserPrompt();
             var systemPrompt = await chatWebView.GetSystemPrompt();
+            var elapsed = stopwatch.Elapsed;
 
+            CompletionMessage completionInput, completionResponse;
+            ConversationManager.AddInputAndResponseToConversation(response, model, conversation, inputText, systemPrompt, elapsed, out completionInput, out completionResponse);
 
-            var completionInput = new CompletionMessage(CompletionRole.User)
-            {
-                Content = inputText,
-                Parent = ConversationManager.PreviousCompletion?.Guid,
-                Engine = model.ModelName,
-                SystemPrompt = systemPrompt,
-                InputTokens = response.TokenUsage.InputTokens,
-                OutputTokens = 0,
-                Base64Image = conversation.messages.Last().base64image,
-                Base64Type = conversation.messages.Last().base64type
-            };
-
-            if (ConversationManager.PreviousCompletion != null)
-            {
-                ConversationManager.PreviousCompletion.Children!.Add(completionInput.Guid);
-            }
-
-            ConversationManager.CurrentConversation!.Messages.Add(completionInput);
-
-            var completionResponse = new CompletionMessage(CompletionRole.Assistant)
-            {
-                Content = response.ResponseText,
-                Parent = completionInput.Guid,
-                Engine = model.ModelName,
-                SystemPrompt = systemPrompt,
-                InputTokens = 0,
-                OutputTokens = response.TokenUsage.OutputTokens,
-                TimeTaken = stopwatch.Elapsed,
-            };
-
-            ConversationManager.CurrentConversation.Messages.Add(completionResponse);
-
+            _fileAttachmentManager.ClearBase64();
 
 
             if (CurrentSettings.NarrateResponses)
@@ -367,19 +339,13 @@ namespace AiTool3
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
 
-            completionInput.Children.Add(completionResponse.Guid);
-            ConversationManager.PreviousCompletion = completionResponse;
-
-            ConversationManager.SaveConversation();
-
-            _fileAttachmentManager.ClearBase64();
-
             await chatWebView.AddMessage(completionInput);
             await chatWebView.AddMessage(completionResponse);
             await WebNdcDrawNetworkDiagram();
             webViewManager!.CentreOnNode(completionResponse.Guid);
         }
 
+ 
         private async Task UpdateUi(AiResponse response)
         {
             if (response.SuggestedNextPrompt != null)

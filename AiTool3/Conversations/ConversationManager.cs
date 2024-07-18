@@ -134,5 +134,55 @@ namespace AiTool3.Conversations
 
             return conversation;
         }
+
+        internal void CreateNewMessages()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)
+        {
+                var previousCompletionGuidBeforeAwait = PreviousCompletion?.Guid;
+
+                completionInput = new CompletionMessage(CompletionRole.User)
+                {
+                    Content = inputText,
+                    Parent = PreviousCompletion?.Guid,
+                    Engine = model.ModelName,
+                    SystemPrompt = systemPrompt,
+                    InputTokens = response.TokenUsage.InputTokens,
+                    OutputTokens = 0,
+                    Base64Image = conversation.messages.Last().base64image,
+                    Base64Type = conversation.messages.Last().base64type
+                };
+                if (PreviousCompletion != null)
+                {
+                    PreviousCompletion.Children!.Add(completionInput.Guid);
+                }
+
+                CurrentConversation!.Messages.Add(completionInput);
+
+                completionResponse = new CompletionMessage(CompletionRole.Assistant)
+                {
+                    Content = response.ResponseText,
+                    Parent = completionInput.Guid,
+                    Engine = model.ModelName,
+                    SystemPrompt = systemPrompt,
+                    InputTokens = 0,
+                    OutputTokens = response.TokenUsage.OutputTokens,
+                    TimeTaken = elapsed,
+                };
+                CurrentConversation.Messages.Add(completionResponse);
+
+
+
+
+
+                completionInput.Children.Add(completionResponse.Guid);
+                PreviousCompletion = completionResponse;
+
+                SaveConversation();
+
+        }
     }
 }
