@@ -90,7 +90,8 @@ Github version update code
 add mermaid to licenses and remove CDNs, possiby also other pkg references
 
 Embeddings:
-Include embedding model name in default filename
+Include embedding model name in default filename ext
+Add spinner while embeddings are generated
 
 Docs:
 Instructions for external apps: whisper, ...

@@ -45,34 +45,39 @@ namespace AiTool3.Providers
 
             foreach (var m in conversation.messages)
             {
+                var messageContent = new JArray
+                {
+
+                };
+
+                if (!string.IsNullOrWhiteSpace(m.base64image))
+                {
+                    messageContent.Add(new JObject
+                    {
+                        ["type"] = "image_url",
+                        ["image_url"] = new JObject
+                        {
+                            ["url"] = $"data:{m.base64type};base64,{m.base64image}"
+                        }
+                    });
+                }
+
+
+                messageContent.Add(new JObject
+                {
+                    ["type"] = "text",
+                    ["text"] = m.content
+                });
+
                 req["messages"].Last.AddAfterSelf(new JObject
                 {
                     ["role"] = m.role,
-                    ["content"] = new JArray
-                    {
-                        new JObject
-                        {
-                            ["type"] = "text",
-                            ["text"] = m.content
-                        }
-                    }
+                    ["content"] = messageContent
                 });
             }
 
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
             req["messages"].Last["content"].Last()["text"] = newInput;
-
-            if (!string.IsNullOrWhiteSpace(base64image))
-            {
-                ((JArray)req["messages"].Last["content"]).Add(new JObject
-                {
-                    ["type"] = "image_url",
-                    ["image_url"] = new JObject
-                    {
-                        ["url"] = $"data:{base64ImageType};base64,{base64image}"
-                    }
-                });
-            }
 
 
             var json = JsonConvert.SerializeObject(req, new JsonSerializerSettings
