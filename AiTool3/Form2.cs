@@ -278,7 +278,6 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var (conversation, model) = await PrepareConversationData();
                 var response = await FetchResponseFromAi(conversation, model);
-                await ProcessAiResponse(response, model, conversation);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -361,7 +360,11 @@ namespace AiTool3
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
-            return await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
+
+            await ProcessAiResponse(response, model, conversation);
+
+            return response;
         }
 
         private void AiService_StreamingTextReceived(object? sender, string e)
