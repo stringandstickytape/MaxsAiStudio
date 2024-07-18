@@ -27,6 +27,8 @@ namespace AiTool3
     {
         private SnippetManager snippetManager = new SnippetManager();
 
+        private SearchManager _searchManager;
+
         public static readonly string ThreeTicks = new string('`', 3);
 
         public TemplateManager templateManager = new TemplateManager();
@@ -92,7 +94,7 @@ namespace AiTool3
 
             dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-            
+            _searchManager = new SearchManager(dgvConversations);
         }
 
 
@@ -663,31 +665,7 @@ namespace AiTool3
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {
-            _cts2 = ResetCancellationtoken(_cts2);
-
-            try
-            {
-                foreach (DataGridViewRow row in dgvConversations.Rows)
-                {
-                    _cts2.Token.ThrowIfCancellationRequested();
-
-                    var guid = row.Cells[0].Value?.ToString();
-
-                    if (guid != null)
-                    {
-                        bool isVisible = await IsConversationVisible(guid, tbSearch.Text, _cts2.Token);
-
-                        this.InvokeIfNeeded(() =>
-                        {
-                            row.Visible = isVisible;
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!(ex is OperationCanceledException)) MessageBox.Show($"An error occurred: {ex.Message}");
-            }
+            await _searchManager.PerformSearch(tbSearch.Text);
         }
 
         public static CancellationTokenSource ResetCancellationtoken(CancellationTokenSource? cts)
@@ -714,7 +692,11 @@ namespace AiTool3
             return false;
         }
 
-        private void btnClearSearch_Click(object sender, EventArgs e) => tbSearch.Clear();
+        private void btnClearSearch_Click(object sender, EventArgs e) 
+        {
+            tbSearch.Clear();
+            _searchManager.ClearSearch();
+        }
 
         private async Task CreateNewWebNdc(bool showDevTools)
         {
