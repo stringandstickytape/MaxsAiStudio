@@ -99,8 +99,7 @@ namespace AiTool3
         private async Task SelectNoneTemplate()
         {
             selectedTemplate = null;
-            await chatWebView.Clear(CurrentSettings
-                );
+            await chatWebView.Clear(CurrentSettings);
             await chatWebView.UpdateSystemPrompt("");
             await chatWebView.SetUserPrompt("");
 
@@ -127,7 +126,7 @@ namespace AiTool3
             // Add separator after "None"
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
 
-            foreach (var topic in TopicSet.Topics.OrderBy(x => x.Name))
+            foreach (var topic in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
                 var categoryMenuItem = CreateMenuItem(topic.Name, ref templatesMenu);
 
@@ -153,25 +152,25 @@ namespace AiTool3
                 addMenuItem.Click += (s, e) =>
                 {
                     // s is a ToolStripMenuItem
-                    var topicName = ((ToolStripMenuItem)s!).OwnerItem!.Text;
+                    var templateName = ((ToolStripMenuItem)s!).OwnerItem!.Text;
 
                     var template = new ConversationTemplate("System Prompt", "Initial Prompt");
                     
-                    EditAndSaveTemplate(template, true, topicName);
+                    EditAndSaveTemplate(template, true, templateName);
 
                     var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateMenuItem.Click += async (s, e) =>
                     {
-                        await SelectTemplate(topicName, template.TemplateName);
+                        await SelectTemplate(templateName, template.TemplateName);
                     };
                     templateMenuItem.EditClicked += (s, e) =>
                     {
-                        EditAndSaveTemplate(template, false, topicName);
+                        EditAndSaveTemplate(template, false, templateName);
                     };
 
                     // add to TopicSet.Topics
-                    var topic = TopicSet.Topics.First(x => x.Name == topicName);
-                    topic.Templates.Add(template);
+                    var category = templateManager.TemplateSet.Categories.First(x => x.Name == templateName);
+                    category.Templates.Add(template);
                 };
             }
 
@@ -218,8 +217,8 @@ namespace AiTool3
                 if(result == DialogResult.OK)
                 {
                     var newCategoryName = tb.Text;
-                    TopicSet.Topics.Add(new Topic(Guid.NewGuid().ToString(),newCategoryName));
-                    TopicSet.Save();
+                    templateManager.TemplateSet.Categories.Add(new Topic(Guid.NewGuid().ToString(),newCategoryName));
+                    templateManager.TemplateSet.Save();
 
                     // delete and recreate the templates menu
                     // remove any menu called Templates

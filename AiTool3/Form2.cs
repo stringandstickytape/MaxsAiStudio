@@ -29,10 +29,11 @@ namespace AiTool3
 
         public static readonly string ThreeTicks = new string('`', 3);
 
+        public TemplateManager templateManager = new TemplateManager();
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public SettingsSet CurrentSettings { get; set; } = AiTool3.SettingsSet.Load()!;
 
-        public TopicSet TopicSet { get; set; }
+        
 
         public string? Base64Image { get; set; }
         public string? Base64ImageType { get; set; }
@@ -70,9 +71,9 @@ namespace AiTool3
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
 
             // if topics.json exists, load it
-            TopicSet = TopicSet.Load();
+            
 
-            foreach (var topic in TopicSet.Topics)
+            foreach (var topic in templateManager.TemplateSet.Categories)
             {
                 cbCategories.Items.Add(topic.Name);
             }
@@ -573,7 +574,7 @@ namespace AiTool3
         {
             var selected = cbCategories.SelectedItem!.ToString();
 
-            var topics = TopicSet.Topics.Where(t => t.Name == selected).ToList();
+            var topics = templateManager.TemplateSet.Categories.Where(t => t.Name == selected).ToList();
 
             var templates = topics.SelectMany(t => t.Templates).Where(x => x.SystemPrompt != null).ToList();
 
@@ -597,7 +598,7 @@ namespace AiTool3
 
         private async Task SelectTemplate(string categoryName, string templateName)
         {
-            selectedTemplate = TopicSet.Topics.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
+            selectedTemplate = templateManager.TemplateSet.Categories.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
             await PopulateUiForTemplate(selectedTemplate!);
 
             // Update menu items
@@ -646,13 +647,13 @@ namespace AiTool3
             if (string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(templateName))
                 return null;
 
-            template = TopicSet.Topics.First(t => t.Name == category).Templates.First(t => t.TemplateName == templateName);
+            template = templateManager.TemplateSet.Categories.First(t => t.Name == category).Templates.First(t => t.TemplateName == templateName);
             return template;
         }
 
         private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
         {
-            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), TopicSet, cbCategories, cbTemplates);
+            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), templateManager.TemplateSet, cbCategories, cbTemplates);
         }
 
         private void buttonAdd_Click(object sender, EventArgs e)

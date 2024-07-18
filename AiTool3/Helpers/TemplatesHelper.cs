@@ -33,7 +33,7 @@ namespace AiTool3.Helpers
 
             // Clear and repopulate the category combo box
             cbCategories.Items.Clear();
-            foreach (var topic in topicSet.Topics)
+            foreach (var topic in topicSet.Categories)
             {
                 cbCategories.Items.Add(topic.Name);
             }
@@ -48,7 +48,7 @@ namespace AiTool3.Helpers
             if (cbCategories.SelectedItem != null)
             {
                 string category = cbCategories.SelectedItem.ToString();
-                var templates = topicSet.Topics.First(t => t.Name == category).Templates.Where(x => x.SystemPrompt != null).ToList();
+                var templates = topicSet.Categories.First(t => t.Name == category).Templates.Where(x => x.SystemPrompt != null).ToList();
 
                 cbTemplates.Items.Clear();
                 cbTemplates.Items.AddRange(templates.Select(t => t.TemplateName).ToArray());
@@ -75,12 +75,12 @@ namespace AiTool3.Helpers
 
                 if (add)
                 {
-                    var categoryTopic = topicSet.Topics.FirstOrDefault(t => t.Name == category);
+                    var categoryTopic = topicSet.Categories.FirstOrDefault(t => t.Name == category);
 
                     if (categoryTopic == null)
                     {
                         categoryTopic = new Topic(Guid.NewGuid().ToString(), category);
-                        topicSet.Topics.Add(categoryTopic);
+                        topicSet.Categories.Add(categoryTopic);
                     }
 
                     categoryTopic.Templates.Add(template);

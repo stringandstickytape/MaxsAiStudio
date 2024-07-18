@@ -10,16 +10,16 @@ namespace AiTool3.Topics
     public class TopicSet
     {
         [JsonPropertyName(name: "topics")]
-        public List<Topic> Topics { get; set; }
+        public List<Topic> Categories { get; set; }
 
 
         public TopicSet()
         {
-            Topics = new List<Topic>();
+            Categories = new List<Topic>();
         }
         public Topic GetDefaultTopic()
         {
-            return Topics.Single(x => x.Guid == "00000000-0000-0000-0000-000000000000");
+            return Categories.Single(x => x.Guid == "00000000-0000-0000-0000-000000000000");
         }
         internal void Save()
         {
@@ -53,7 +53,7 @@ namespace AiTool3.Topics
             else
             {
                 t = new TopicSet();
-                t.Topics.Add(new Topic("00000000-0000-0000-0000-000000000000", "<uncategorised>") { Templates = new List<ConversationTemplate>() });
+                t.Categories.Add(new Topic("00000000-0000-0000-0000-000000000000", "<uncategorised>") { Templates = new List<ConversationTemplate>() });
             }
 
             return t;
