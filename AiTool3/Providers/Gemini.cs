@@ -31,32 +31,64 @@ namespace AiTool3.Providers
                     conversation.messages.Select(m => new JObject
                     {
                         ["role"] = m.role == "assistant" ? "model" : m.role,
-                        ["parts"] = new JArray(new JObject
-                        {
-                            ["text"] = m.content
-                        })
+                        ["parts"] = new JArray()
                     })
                 )
             };
 
+            // Add message content and images from conversation history
+            for (int i = 0; i < conversation.messages.Count; i++)
+            {
+                var message = conversation.messages[i];
+                var contentArray = (JArray)((JArray)obj["contents"])[i]["parts"];
+
+                                // Add image if present in message history
+
+
+                // Add text content
+                contentArray.Add(new JObject
+                {
+                    ["text"] = message.content
+                });
+
+                if (!string.IsNullOrEmpty(message.base64image))
+                {
+                    contentArray.Add(new JObject
+                    {
+                        ["inline_data"] = new JObject
+                        {
+                            ["mime_type"] = message.base64type,
+                            ["data"] = message.base64image
+                        }
+                    });
+                }
+
+            }
+
             AddFakeSystemPrompt(conversation, obj);
 
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-            (obj["contents"] as JArray).Last()["parts"].Last()["text"] = newInput;
 
-            if (base64image != null)
+            // does the last content array thing have a text prop?
+            var lastContent = ((JArray)obj["contents"]).Last;
+            if(lastContent["parts"].Last["text"] != null)
             {
-                var lastContent = ((JArray)obj["contents"]).Last;
-                ((JArray)lastContent["parts"]).Add(new JObject
-                {
-                    ["inline_data"] = new JObject
-                    {
-                        ["mime_type"] = "image/jpeg",
-                        ["data"] = base64image
-                    }
-                });
+                lastContent["parts"].Last["text"] = newInput;
             }
+            else
+            {
+                // set the text prop on the last-but-one content instead
+                var lastButOneContent = ((JArray)obj["contents"]).Reverse().Skip(1).First();
+                lastButOneContent["parts"].Last["text"] = newInput;
+            }
+            
 
+
+
+
+            
+
+            
             var jsonPayload = JsonConvert.SerializeObject(obj);
 
             using (HttpClient client = new HttpClient())
@@ -69,7 +101,6 @@ namespace AiTool3.Providers
                     }
                     else
                     {
-
                         return await NonStreamingResponse(client, url, content, cancellationToken);
                     }
                 }
