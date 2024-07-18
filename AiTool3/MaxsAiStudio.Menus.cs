@@ -20,28 +20,22 @@ namespace AiTool3
 {
     public partial class MaxsAiStudio
     {
-        private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
-        {
-            var reviewCodeMenuItem = CreateMenuItem(l, ref specialsMenu);
-            reviewCodeMenuItem.Click += q;
-        }
-
         private void InitialiseMenus()
         {
-            var fileMenu = CreateMenu("File");
+            var fileMenu = MenuItemHelper.CreateMenu("File");
 
-            var quitMenuItem = CreateMenuItem("Quit", ref fileMenu);
+            var quitMenuItem = MenuItemHelper.CreateMenuItem("Quit", ref fileMenu);
 
             quitMenuItem.Click += (s, e) =>
             {
                 Application.Exit();
             };
 
-            var editMenu = CreateMenu("Edit");
+            var editMenu = MenuItemHelper.CreateMenu("Edit");
 
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var settingsMenuItem = CreateMenuItem("Settings", ref editMenu);
+            var settingsMenuItem = MenuItemHelper.CreateMenuItem("Settings", ref editMenu);
 
             settingsMenuItem.Click += async (s, e) =>
             {
@@ -57,7 +51,7 @@ namespace AiTool3
                 }
             };
 
-            var setEmbeddingsFile = CreateMenuItem("Set Embeddings File", ref editMenu);
+            var setEmbeddingsFile = MenuItemHelper.CreateMenuItem("Set Embeddings File", ref editMenu);
 
             setEmbeddingsFile.Click += (s, e) =>
             {
@@ -78,7 +72,7 @@ namespace AiTool3
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var licensesMenuItem = CreateMenuItem("Licenses", ref editMenu);
+            var licensesMenuItem = MenuItemHelper.CreateMenuItem("Licenses", ref editMenu);
 
             licensesMenuItem.Click += (s, e) =>
             {
@@ -114,10 +108,12 @@ namespace AiTool3
         
         private void CreateTemplatesMenu()
         {
-            var templatesMenu = CreateMenu("Templates");
+            templateManager.templateMenuItems.Clear();
+
+            var templatesMenu = MenuItemHelper.CreateMenu("Templates");
 
             // Add "None" option at the top
-            var noneMenuItem = CreateMenuItem("None", ref templatesMenu);
+            var noneMenuItem = MenuItemHelper.CreateMenuItem("None", ref templatesMenu);
             noneMenuItem.Click += async (s, e) =>
             {
                 await SelectNoneTemplate();
@@ -128,11 +124,11 @@ namespace AiTool3
 
             foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
-                var categoryMenuItem = CreateMenuItem(category.Name, ref templatesMenu);
+                var categoryMenuItem = MenuItemHelper.CreateMenuItem(category.Name, ref templatesMenu);
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
-                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
+                    var templateMenuItem = (TemplateMenuItem)MenuItemHelper.CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateManager.templateMenuItems[template.TemplateName] = templateMenuItem;
 
                     templateMenuItem.Click += async (s, e) =>
@@ -159,7 +155,7 @@ namespace AiTool3
 
                 // at the end of each category, add a separator then an Add... option
                 categoryMenuItem.DropDownItems.Add(new ToolStripSeparator());
-                var addMenuItem = CreateMenuItem("Add...", ref categoryMenuItem);
+                var addMenuItem = MenuItemHelper.CreateMenuItem("Add...", ref categoryMenuItem);
                 addMenuItem.Click += (s, e) =>
                 {
                     // s is a ToolStripMenuItem
@@ -176,7 +172,7 @@ namespace AiTool3
 
 
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
-            var addMenuItem2 = CreateMenuItem("Add...", ref templatesMenu);
+            var addMenuItem2 = MenuItemHelper.CreateMenuItem("Add...", ref templatesMenu);
             addMenuItem2.Click += (s, e) =>
             {
                 // request a single string from the user for category name, w ok and cancel buttons
@@ -241,120 +237,117 @@ namespace AiTool3
 
         private void RecreateTemplatesMenu()
         {
-            var templatesMenus = menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList();
-            foreach (var menu in templatesMenus)
-            {
-                menuBar.Items.Remove(menu);
-            }
+            menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList().ForEach(x => menuBar.Items.Remove(x));
 
-            templateManager.templateMenuItems.Clear();
+            
+
             CreateTemplatesMenu();
         }
 
         private void CreateSpecialsMenu()
         {
             var menuText = "Specials";
-            ToolStripMenuItem specialsMenu = CreateMenu(menuText);
+            ToolStripMenuItem specialsMenu = MenuItemHelper.CreateMenu(menuText);
 
-
-            AddSpecial(specialsMenu, "Create embedding", async (s, e) =>
-            {
-                await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
-            });
-
-            AddSpecial(specialsMenu, "Pull Readme and update from latest diff", async (s, e) =>
-            {
-                AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbSummaryEngine.SelectedItem!);
-                var snippets = snippetManager.FindSnippets(response.ResponseText);
-
-                try
+            MenuItemHelper.AddSpecials(specialsMenu,
+                new List<LabelAndEventHander>
                 {
-                    var code = snippets.Snippets.First().Content;
-                    code = SnippetHelper.StripFirstAndLastLine(code);
-                    File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
+                    new LabelAndEventHander("Create embedding", async (s, e) =>
+                    {
+                        await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
+                    }),
+
+                    new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
+                    {
+                        AiResponse response = await SpecialsHelper.GetReadmeResponses((Model)cbSummaryEngine.SelectedItem!);
+                        var snippets = snippetManager.FindSnippets(response.ResponseText);
+
+                        try
+                        {
+                            var code = snippets.Snippets.First().Content;
+                            code = SnippetHelper.StripFirstAndLastLine(code);
+                            File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error writing to file: {ex.Message}");
+                        }
+                    }),
+
+                    new LabelAndEventHander("Review Code", async (s, e) =>
+                    {
+                        SpecialsHelper.ReviewCode(out string userMessage);
+                        await chatWebView.SetUserPrompt(userMessage);
+                    }),
+
+                    new LabelAndEventHander("Rewrite Summaries", async (s, e) =>
+                    {
+                        await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", CurrentSettings);
+                    }),
+
+                    new LabelAndEventHander("Transcribe MP4", async (s, e) =>
+                    {
+                        var openFileDialog = new OpenFileDialog();
+                        openFileDialog.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
+
+                        openFileDialog.ShowDialog();
+
+                        if (openFileDialog.FileName == "")
+                        {
+                            return;
+                        }
+                        await _fileAttachmentManager.TranscribeMP4(openFileDialog.FileName, chatWebView);
+                    }),
+
+                    new LabelAndEventHander("Autosuggest", async (s, e) =>
+                    {
+                        var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                        autoSuggestForm.StringSelected += AutoSuggestStringSelected;
+                    }),
+
+                    new LabelAndEventHander("Autosuggest (Fun)", async (s, e) =>
+                    {
+                        var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                        autoSuggestForm.StringSelected += AutoSuggestStringSelected;
+                    }),
+
+                    new LabelAndEventHander("Autosuggest (User-Specified)", async (s, e) =>
+                    {
+                        var userInputForm = new AutoSuggestUserInput();
+
+                        var prefix = "you are a bot who makes ";
+                        var suffix = " suggestions on how a user might proceed with a conversation.";
+                        userInputForm.Controls["label1"]!.Text = prefix;
+                        userInputForm.Controls["label2"]!.Text = suffix;
+                        var result = userInputForm.ShowDialog();
+
+                        if (result == DialogResult.OK)
+                        {
+                            var userAutoSuggestPrompt = userInputForm.Controls["tbAutoSuggestUserInput"]!.Text;
+
+                            userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
+
+                            var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
+                            autoSuggestForm.StringSelected += AutoSuggestStringSelected;
+                        }
+                    }),
+
+                    new LabelAndEventHander("Toggle old input box visibility", (s, e) =>
+                    {
+                        splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
+                    }),
+
+                    new LabelAndEventHander("Toggle conversation browsers", (s, e) =>
+                    {
+                        splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
+                    }),
+
+                    new LabelAndEventHander("Test Snippets Code", async (s, e) =>
+                    {
+                        SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.Conversation, snippetManager));
+                    })
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error writing to file: {ex.Message}");
-                }
-            });
-
-            AddSpecial(specialsMenu, "Review Code", async (s, e) =>
-            {
-                SpecialsHelper.ReviewCode(out string userMessage);
-                await chatWebView.SetUserPrompt(userMessage);
-            });
-            AddSpecial(specialsMenu, "Rewrite Summaries", async (s, e) =>
-            {
-                await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", CurrentSettings);
-            });
-
-            AddSpecial(specialsMenu, "Transcribe MP4", async (s, e) =>
-            {
-                //var transcription = await audioRecorderManager.TranscribeMP4Async("H:\\aacall.mp4");
-
-                // browse for MP4 file
-                var openFileDialog = new OpenFileDialog();
-                //mp4 or all
-                openFileDialog.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
-                
-                openFileDialog.ShowDialog();
-
-                if (openFileDialog.FileName == "")
-                {
-                    return;
-                }
-                await _fileAttachmentManager.TranscribeMP4(openFileDialog.FileName, chatWebView);
-            });
-
-            AddSpecial(specialsMenu, "Autosuggest", async (s, e) =>
-            {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
-                autoSuggestForm.StringSelected += AutoSuggestStringSelected;
-            });
-
-            AddSpecial(specialsMenu, "Autosuggest (Fun)", async (s, e) =>
-            {
-                var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
-                autoSuggestForm.StringSelected += AutoSuggestStringSelected;
-            });
-
-            AddSpecial(specialsMenu, "Autosuggest (User-Specified)", async (s, e) =>
-            {
-                var userInputForm = new AutoSuggestUserInput();
-
-                var prefix = "you are a bot who makes ";
-                var suffix = " suggestions on how a user might proceed with a conversation.";
-                userInputForm.Controls["label1"]!.Text = prefix;
-                userInputForm.Controls["label2"]!.Text = suffix;
-                var result = userInputForm.ShowDialog();
-
-                if (result == DialogResult.OK)
-                {
-                    var userAutoSuggestPrompt = userInputForm.Controls["tbAutoSuggestUserInput"]!.Text;
-
-                    userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
-
-                    var autoSuggestForm = await ConversationManager.Autosuggest((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
-                    autoSuggestForm.StringSelected += AutoSuggestStringSelected;
-                }
-
-
-            });
-
-            AddSpecial(specialsMenu, "Toggle old input box visibility", (s, e) =>
-            {
-                splitContainer4.Panel1Collapsed = !splitContainer4.Panel1Collapsed;
-            });
-
-            AddSpecial(specialsMenu, "Toggle conversation browsers", (s, e) =>
-            {
-                splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
-            });
-            AddSpecial(specialsMenu, "Test Snippets Code", async (s, e) =>
-            {
-                SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.Conversation, snippetManager));
-            });
+            );
 
             menuBar.Items.Add(specialsMenu);
         }
@@ -443,24 +436,6 @@ namespace AiTool3
 
             // show mb to say it's done
             MessageBox.Show("Embeddings created and saved");
-        }
-
-        private static ToolStripMenuItem CreateMenu(string menuText)
-        {
-            var menu = new ToolStripMenuItem(menuText);
-            menu.BackColor = Color.Black;
-            menu.ForeColor = Color.White;
-            return menu;
-        }
-
-        private static ToolStripMenuItem CreateMenuItem(string text, ref ToolStripMenuItem dropDownItems, bool isTemplate = false)
-        {
-            if (isTemplate)
-                return new TemplateMenuItem(text, ref dropDownItems);
-
-            var retVal = new ToolStripMenuItem(text);
-            dropDownItems.DropDownItems.Add(retVal);
-            return retVal;
         }
 
         public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)

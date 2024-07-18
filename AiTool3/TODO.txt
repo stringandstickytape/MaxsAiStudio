@@ -46,9 +46,6 @@ bug: new-with-context doesn't work properly
 
 
 
-Critical (could make software unusable):
-
-
 Useful next:
 Ongoing, resettable token counting
 Streaming token counting
