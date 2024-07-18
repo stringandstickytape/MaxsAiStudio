@@ -38,11 +38,12 @@ DONE: delete template
 DONE: if there's no local AI at all, deal with it
 DONE: It'd be lovely if you could highlight a conversation with one of four nice pastel colours, to mark one for later reference
 DONE: Rename to MaxsAiStudio
+DONE: tiny bug: fullscreen user prompt button is a Bit Crap
 
 
 tiny bug: chat window types urls and other text content dropped directly :/
 bug: new-with-context doesn't work properly
-tiny bug: fullscreen user prompt button is a Bit Crap
+
 
 
 Critical (could make software unusable):

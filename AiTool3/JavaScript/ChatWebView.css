@@ -78,11 +78,11 @@ body {
 
 .fullscreen-toggle {
     position: absolute;
-    top: 0px;
-    right: 15px;
-    width: 30px;
-    height: 30px;
-    background-color: white;
+    top: -15px;
+    right: 0px;
+    width: 16px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.5);
     color: black;
     border: none;
     border-radius: 3px;
@@ -94,6 +94,11 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 10002;
+}
+
+.full-window .textarea-wrapper button {
+    top: 0px;
+    right: 15px;
 }
 
 .button-container {
