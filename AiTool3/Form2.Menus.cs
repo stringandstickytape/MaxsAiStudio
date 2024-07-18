@@ -142,6 +142,7 @@ namespace AiTool3
                     templateMenuItem.EditClicked += (s, e) =>
                     {
                         templateManager.EditAndSaveTemplate(template, false, topic.Name);
+                        RecreateTemplatesMenu();
                     };
 
                 }
@@ -158,19 +159,8 @@ namespace AiTool3
 
                     templateManager.EditAndSaveTemplate(template, true, templateName);
 
-                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
-                    templateMenuItem.Click += async (s, e) =>
-                    {
-                        await SelectTemplate(templateName, template.TemplateName);
-                    };
-                    templateMenuItem.EditClicked += (s, e) =>
-                    {
-                        templateManager.EditAndSaveTemplate(template, false, templateName);
-                    };
+                    RecreateTemplatesMenu();
 
-                    // add to TopicSet.Topics
-                    var category = templateManager.TemplateSet.Categories.First(x => x.Name == templateName);
-                    category.Templates.Add(template);
                 };
             }
 
@@ -217,30 +207,15 @@ namespace AiTool3
                 if(result == DialogResult.OK)
                 {
                     var newCategoryName = tb.Text;
-                    templateManager.TemplateSet.Categories.Add(new Topic(Guid.NewGuid().ToString(),newCategoryName));
+                    templateManager.TemplateSet.Categories.Add(new Topic(Guid.NewGuid().ToString(), newCategoryName));
                     templateManager.TemplateSet.Save();
 
-                    // delete and recreate the templates menu
-                    // remove any menu called Templates
-                    
-
                     // find all the existing Templates named menus
-                    var templatesMenus = menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList();
-                    foreach (var menu in templatesMenus)
-                    {
-                        menuBar.Items.Remove(menu);
-                    }
-
-                    templateManager.templateMenuItems.Clear();
-                    CreateTemplatesMenu();
-                    // move it one before the end
-
+                    RecreateTemplatesMenu();
                     
 
+                }
 
-
-                }    
-                
 
 
 
@@ -252,6 +227,18 @@ namespace AiTool3
             };
             
             menuBar.Items.Add(templatesMenu);
+        }
+
+        private void RecreateTemplatesMenu()
+        {
+            var templatesMenus = menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList();
+            foreach (var menu in templatesMenus)
+            {
+                menuBar.Items.Remove(menu);
+            }
+
+            templateManager.templateMenuItems.Clear();
+            CreateTemplatesMenu();
         }
 
         private void CreateSpecialsMenu()
