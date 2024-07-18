@@ -22,20 +22,20 @@ namespace AiTool3
     {
         private void InitialiseMenus()
         {
-            var fileMenu = MenuItemHelper.CreateMenu("File");
+            var fileMenu = MenuHelper.CreateMenu("File");
 
-            var quitMenuItem = MenuItemHelper.CreateMenuItem("Quit", ref fileMenu);
+            var quitMenuItem = MenuHelper.CreateMenuItem("Quit", ref fileMenu);
 
             quitMenuItem.Click += (s, e) =>
             {
                 Application.Exit();
             };
 
-            var editMenu = MenuItemHelper.CreateMenu("Edit");
+            var editMenu = MenuHelper.CreateMenu("Edit");
 
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var settingsMenuItem = MenuItemHelper.CreateMenuItem("Settings", ref editMenu);
+            var settingsMenuItem = MenuHelper.CreateMenuItem("Settings", ref editMenu);
 
             settingsMenuItem.Click += async (s, e) =>
             {
@@ -51,7 +51,7 @@ namespace AiTool3
                 }
             };
 
-            var setEmbeddingsFile = MenuItemHelper.CreateMenuItem("Set Embeddings File", ref editMenu);
+            var setEmbeddingsFile = MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu);
 
             setEmbeddingsFile.Click += (s, e) =>
             {
@@ -72,7 +72,7 @@ namespace AiTool3
             };
 
             // add settings option.  When chosen, invokes SettingsForm modally
-            var licensesMenuItem = MenuItemHelper.CreateMenuItem("Licenses", ref editMenu);
+            var licensesMenuItem = MenuHelper.CreateMenuItem("Licenses", ref editMenu);
 
             licensesMenuItem.Click += (s, e) =>
             {
@@ -110,10 +110,10 @@ namespace AiTool3
         {
             templateManager.templateMenuItems.Clear();
 
-            var templatesMenu = MenuItemHelper.CreateMenu("Templates");
+            var templatesMenu = MenuHelper.CreateMenu("Templates");
 
             // Add "None" option at the top
-            var noneMenuItem = MenuItemHelper.CreateMenuItem("None", ref templatesMenu);
+            var noneMenuItem = MenuHelper.CreateMenuItem("None", ref templatesMenu);
             noneMenuItem.Click += async (s, e) =>
             {
                 await SelectNoneTemplate();
@@ -124,11 +124,11 @@ namespace AiTool3
 
             foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
-                var categoryMenuItem = MenuItemHelper.CreateMenuItem(category.Name, ref templatesMenu);
+                var categoryMenuItem = MenuHelper.CreateMenuItem(category.Name, ref templatesMenu);
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
-                    var templateMenuItem = (TemplateMenuItem)MenuItemHelper.CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
+                    var templateMenuItem = (TemplateMenuItem)MenuHelper.CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateManager.templateMenuItems[template.TemplateName] = templateMenuItem;
 
                     templateMenuItem.Click += async (s, e) =>
@@ -155,7 +155,7 @@ namespace AiTool3
 
                 // at the end of each category, add a separator then an Add... option
                 categoryMenuItem.DropDownItems.Add(new ToolStripSeparator());
-                var addMenuItem = MenuItemHelper.CreateMenuItem("Add...", ref categoryMenuItem);
+                var addMenuItem = MenuHelper.CreateMenuItem("Add...", ref categoryMenuItem);
                 addMenuItem.Click += (s, e) =>
                 {
                     // s is a ToolStripMenuItem
@@ -172,7 +172,7 @@ namespace AiTool3
 
 
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
-            var addMenuItem2 = MenuItemHelper.CreateMenuItem("Add...", ref templatesMenu);
+            var addMenuItem2 = MenuHelper.CreateMenuItem("Add...", ref templatesMenu);
             addMenuItem2.Click += (s, e) =>
             {
                 // request a single string from the user for category name, w ok and cancel buttons
@@ -218,18 +218,7 @@ namespace AiTool3
 
                     // find all the existing Templates named menus
                     RecreateTemplatesMenu();
-                    
-
                 }
-
-
-
-
-
-
-
-
-
             };
             
             menuBar.Items.Add(templatesMenu);
@@ -237,9 +226,7 @@ namespace AiTool3
 
         private void RecreateTemplatesMenu()
         {
-            menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList().ForEach(x => menuBar.Items.Remove(x));
-
-            
+            MenuHelper.RemoveOldTemplateMenus(menuBar);
 
             CreateTemplatesMenu();
         }
@@ -247,9 +234,9 @@ namespace AiTool3
         private void CreateSpecialsMenu()
         {
             var menuText = "Specials";
-            ToolStripMenuItem specialsMenu = MenuItemHelper.CreateMenu(menuText);
+            ToolStripMenuItem specialsMenu = MenuHelper.CreateMenu(menuText);
 
-            MenuItemHelper.AddSpecials(specialsMenu,
+            MenuHelper.AddSpecials(specialsMenu,
                 new List<LabelAndEventHander>
                 {
                     new LabelAndEventHander("Create embedding", async (s, e) =>

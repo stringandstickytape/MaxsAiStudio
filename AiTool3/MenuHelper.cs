@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AiTool3
 {
-    public static class MenuItemHelper
+    public static class MenuHelper
     {
         public static ToolStripMenuItem CreateMenu(string menuText)
         {
@@ -38,6 +38,11 @@ namespace AiTool3
             {
                 AddSpecial(specialsMenu, special.Label, special.Handler);
             }
+        }
+
+        public static void RemoveOldTemplateMenus(MenuStrip menuBar)
+        {
+            menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList().ForEach(x => menuBar.Items.Remove(x));
         }
     }
 
