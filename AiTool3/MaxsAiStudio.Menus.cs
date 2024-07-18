@@ -23,21 +23,13 @@ namespace AiTool3
         private void InitialiseMenus()
         {
             var fileMenu = MenuHelper.CreateMenu("File");
-
-            var quitMenuItem = MenuHelper.CreateMenuItem("Quit", ref fileMenu);
-
-            quitMenuItem.Click += (s, e) =>
-            {
-                Application.Exit();
-            };
-
             var editMenu = MenuHelper.CreateMenu("Edit");
 
+            new List<ToolStripMenuItem> { fileMenu, editMenu }.ForEach(menu => menuBar.Items.Add(menu));
 
-            // add settings option.  When chosen, invokes SettingsForm modally
-            var settingsMenuItem = MenuHelper.CreateMenuItem("Settings", ref editMenu);
-
-            settingsMenuItem.Click += async (s, e) =>
+            MenuHelper.CreateMenuItem("Quit", ref fileMenu).Click += (s, e) => Application.Exit();
+                        
+            MenuHelper.CreateMenuItem("Settings", ref editMenu).Click += async (s, e) =>
             {
                 var settingsForm = new SettingsForm(CurrentSettings);
                 var result = settingsForm.ShowDialog();
@@ -45,49 +37,18 @@ namespace AiTool3
                 if (result == DialogResult.OK)
                 {
                     CurrentSettings = settingsForm.NewSettings;
+                    SettingsSet.Save(CurrentSettings);
                     cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
-                    AiTool3.SettingsSet.Save(CurrentSettings);
                     await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
                 }
             };
 
-            var setEmbeddingsFile = MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu);
+            MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
 
-            setEmbeddingsFile.Click += (s, e) =>
-            {
-                var openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "Embeddings JSON files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*";
-                openFileDialog.Title = "Select Embeddings File";
-                openFileDialog.InitialDirectory = CurrentSettings.DefaultPath;
-                openFileDialog.ShowDialog();
+            MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
 
-                if (openFileDialog.FileName == "")
-                {
-                    return;
-                }
-
-                CurrentSettings.EmbeddingsFilename = openFileDialog.FileName;
-                AiTool3.SettingsSet.Save(CurrentSettings);
-
-            };
-
-            // add settings option.  When chosen, invokes SettingsForm modally
-            var licensesMenuItem = MenuHelper.CreateMenuItem("Licenses", ref editMenu);
-
-            licensesMenuItem.Click += (s, e) =>
-            {
-                var licensesForm = new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt"))
-                    .ShowDialog();
-            };
-
-
-            menuBar.Items.Add(fileMenu);
-            menuBar.Items.Add(editMenu);
             CreateSpecialsMenu();
             CreateTemplatesMenu();
-
-            // add a specials menu
-            
         }
 
         private async Task SelectNoneTemplate()

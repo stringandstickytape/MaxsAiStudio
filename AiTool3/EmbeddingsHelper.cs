@@ -11,6 +11,25 @@ namespace AiTool3
 {
     internal static class EmbeddingsHelper
     {
+        public static void HandleSetEmbeddingsFileClick(SettingsSet currentSettings)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Embeddings JSON files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*",
+                Title = "Select Embeddings File",
+                InitialDirectory = currentSettings.DefaultPath
+            };
+
+            openFileDialog.ShowDialog();
+
+            if (string.IsNullOrEmpty(openFileDialog.FileName))
+            {
+                return;
+            }
+
+            currentSettings.EmbeddingsFilename = openFileDialog.FileName;
+            AiTool3.SettingsSet.Save(currentSettings);
+        }
         public static async Task<string> AddEmbeddingsToInput(Conversation conversation, SettingsSet currentSettings, string input)
         {
             if (currentSettings.UseEmbeddings)
