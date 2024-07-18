@@ -43,9 +43,11 @@ namespace AiTool3
         [MyDisplayNameAttr("OpenAI API key for embeddings")]
         public string EmbeddingKey { get; set; } = "";
 
+        [IsFileAttribute(".embeddings.json")]
         [MyDisplayNameAttr("Embeddings Filename/path")]
         public string EmbeddingsFilename { get; set; } = "OpenAIEmbedFragged2.embeddings.json";
 
+        [IsPathAttribute]
         [MyDisplayNameAttr("Default Path")]
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
 
@@ -206,4 +208,23 @@ namespace AiTool3
             DisplayName = displayName;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class IsPathAttribute : Attribute
+    {
+    }
+
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class IsFileAttribute : Attribute
+    {
+        public string Extension { get; set; }
+
+        public IsFileAttribute(string extension)
+        {
+            Extension = extension;
+        }
+    }
+
+    
 }

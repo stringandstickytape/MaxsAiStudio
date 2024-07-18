@@ -60,6 +60,11 @@ namespace AiTool3.Settings
             foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(string)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
+
+                var isPathAttr = prop.GetCustomAttribute<IsPathAttribute>();
+                var isFileAttr = prop.GetCustomAttribute<IsFileAttribute>();
+                var takesBrowserDialog = isPathAttr != null || isFileAttr != null;
+
                 if (displayNameAttr == null) continue;
                 // create a new textbox control
                 var tb = new TextBox
@@ -82,9 +87,52 @@ namespace AiTool3.Settings
                 {
                     Text = prop.Name,
                     AutoSize = true,
-                    Location = new Point(tb.Width + 5, ypos)
+                    Location = new Point(tb.Width + 5 + (takesBrowserDialog != null ? 60 : 0), ypos)
                 };
                 panelToggles.Controls.Add(lbl);
+
+                // does the prop have an IsPathAttribute?
+                
+                if (takesBrowserDialog != null)
+                {
+                    var btn = new Button
+                    {
+                        Text = "...",
+                        Location = new Point(tb.Width +10, ypos),
+                        Width = 50,
+                        Height = 30
+                    };
+
+                    btn.Click += (s, e) =>
+                    {
+                        if(isPathAttr != null)
+                        {
+                            var dialog = new FolderBrowserDialog();
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                tb.Text = dialog.SelectedPath;
+                            }
+                        }
+                        else if(isFileAttr != null)
+                        {
+                            var ext = isFileAttr.Extension;
+
+                            var dialog = new OpenFileDialog();
+                            dialog.Filter = $"{ext} files (*{ext})|*{ext}|All files (*.*)|*.*";
+                            if (tb.Text != "")
+                            {
+                                dialog.InitialDirectory = tb.Text;
+                            }
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                tb.Text = dialog.FileName;
+                            }
+                        }
+                    };
+
+                    panelToggles.Controls.Add(btn);
+                }
+
 
                 ypos += 30;
             }

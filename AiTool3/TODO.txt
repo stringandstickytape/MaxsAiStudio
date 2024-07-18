@@ -55,16 +55,12 @@ Make use of token counting
 PART DONE: Streaming token counting is done for Claude
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
-add delete-node-chain with are-you-sure? (is it chain, or just node?)
 alter to proper attachments model w multiple images, files saved in original form, etc?
 
 Less important:
 Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 enable/disable cs/html highlighting
-
-
-
 
 
 

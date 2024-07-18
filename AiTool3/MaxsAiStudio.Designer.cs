@@ -51,6 +51,7 @@ namespace AiTool3
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
             splitContainer4 = new SplitContainer();
+            btnProjectHelper = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -94,6 +95,7 @@ namespace AiTool3
             // 
             // splitContainer1.Panel2
             // 
+            splitContainer1.Panel2.Controls.Add(btnProjectHelper);
             splitContainer1.Panel2.Controls.Add(label2);
             splitContainer1.Panel2.Controls.Add(label1);
             splitContainer1.Panel2.Controls.Add(cbSummaryEngine);
@@ -217,7 +219,7 @@ namespace AiTool3
             // 
             cbUseEmbeddings.AutoSize = true;
             cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(331, 5);
+            cbUseEmbeddings.Location = new Point(420, 12);
             cbUseEmbeddings.Name = "cbUseEmbeddings";
             cbUseEmbeddings.Size = new Size(265, 29);
             cbUseEmbeddings.TabIndex = 15;
@@ -228,7 +230,7 @@ namespace AiTool3
             // 
             btnGenerateEmbeddings.BackColor = Color.Black;
             btnGenerateEmbeddings.ForeColor = Color.White;
-            btnGenerateEmbeddings.Location = new Point(339, 48);
+            btnGenerateEmbeddings.Location = new Point(420, 51);
             btnGenerateEmbeddings.Name = "btnGenerateEmbeddings";
             btnGenerateEmbeddings.Size = new Size(257, 36);
             btnGenerateEmbeddings.TabIndex = 14;
@@ -336,6 +338,18 @@ namespace AiTool3
             splitContainer4.SplitterDistance = 644;
             splitContainer4.TabIndex = 12;
             // 
+            // btnProjectHelper
+            // 
+            btnProjectHelper.BackColor = Color.Black;
+            btnProjectHelper.ForeColor = Color.White;
+            btnProjectHelper.Location = new Point(300, 3);
+            btnProjectHelper.Name = "btnProjectHelper";
+            btnProjectHelper.Size = new Size(89, 85);
+            btnProjectHelper.TabIndex = 19;
+            btnProjectHelper.Text = "Project\r\nHelper";
+            btnProjectHelper.UseVisualStyleBackColor = false;
+            btnProjectHelper.Click += btnProjectHelper_Click;
+            // 
             // MaxsAiStudio
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -395,5 +409,6 @@ namespace AiTool3
         private ComboBox cbSummaryEngine;
         private Label label1;
         private Label label2;
+        private Button btnProjectHelper;
     }
 }

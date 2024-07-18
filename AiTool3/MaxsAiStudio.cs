@@ -14,6 +14,7 @@ using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
 using System.Windows.Forms;
 using AiTool3.Settings;
+using System.Diagnostics;
 
 namespace AiTool3
 {
@@ -47,7 +48,7 @@ namespace AiTool3
 
             cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
             cbUseEmbeddings.CheckedChanged += CbUseEmbeddings_CheckedChanged;
-            
+
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
@@ -79,7 +80,7 @@ namespace AiTool3
             //foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, C })
             foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
             {
-                var item = new ToolStripMenuItem(colour.ToString().Replace("Color [","Highlight in ").Replace("]", ""));
+                var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "Highlight in ").Replace("]", ""));
 
                 // add a colour swatch to the item (!)
                 var bmp = new System.Drawing.Bitmap(16, 16);
@@ -89,14 +90,14 @@ namespace AiTool3
 
                     // add 1px solid black border
                     g.DrawRectangle(System.Drawing.Pens.Black, 0, 0, bmp.Width - 1, bmp.Height - 1);
-                    
+
                 }
 
                 item.Image = bmp;
 
 
 
-                item.Click += (s, e) => 
+                item.Click += (s, e) =>
                 {
                     var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
                     conv.HighlightColour = colour;
@@ -196,7 +197,7 @@ namespace AiTool3
                 // prepend to existing cwv user input
                 var currentPrompt = await chatWebView.GetUserPrompt();
                 await chatWebView.SetUserPrompt($"{quotedFile}{Environment.NewLine}{currentPrompt}");
-                
+
 
 
                 return;
@@ -211,7 +212,7 @@ namespace AiTool3
 
                 var classification = FileTypeClassifier.GetFileClassification(Path.GetExtension(filename));
 
-                switch(classification)
+                switch (classification)
                 {
                     case FileTypeClassifier.FileClassification.Video:
                     case FileTypeClassifier.FileClassification.Audio:
@@ -276,7 +277,7 @@ namespace AiTool3
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
             }
 
-            
+
 
         }
 
@@ -464,7 +465,7 @@ namespace AiTool3
             var modelUsageManager = new ModelUsageManager(model);
 
             modelUsageManager.AddTokensAndSave(response.TokenUsage);
-            
+
 
 
 
@@ -477,7 +478,7 @@ namespace AiTool3
 
         private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.UpdateTemp(e);
 
-        private  async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
+        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
         {
 
             var inputText = await chatWebView.GetUserPrompt();
@@ -503,7 +504,7 @@ namespace AiTool3
             webViewManager!.CentreOnNode(completionResponse.Guid);
         }
 
- 
+
         private async Task UpdateUi(AiResponse response)
         {
             if (response.SuggestedNextPrompt != null)
@@ -526,12 +527,12 @@ namespace AiTool3
 
         private async Task UpdateConversationSummary()
         {
-           
+
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                 await ConversationManager.GenerateConversationSummary(CurrentSettings);
+                await ConversationManager.GenerateConversationSummary(CurrentSettings);
                 row.Cells[3].Value = ConversationManager.Conversation.ToString();
 
             }
@@ -646,7 +647,7 @@ namespace AiTool3
 
             dgvConversations.Enabled = true;
             webViewManager.Enable();
-            
+
             await chatWebView.UpdateSystemPrompt(template?.SystemPrompt ?? "");
             await chatWebView.SetUserPrompt(template?.InitialPrompt ?? "");
         }
@@ -686,7 +687,7 @@ namespace AiTool3
         }
 
 
-        private void btnClearSearch_Click(object sender, EventArgs e) 
+        private void btnClearSearch_Click(object sender, EventArgs e)
         {
             tbSearch.Clear();
             _searchManager.ClearSearch();
@@ -751,6 +752,19 @@ namespace AiTool3
         {
             CurrentSettings.SelectedSummaryModel = cbSummaryEngine.SelectedItem!.ToString();
             SettingsSet.Save(CurrentSettings);
+        }
+
+        private void btnProjectHelper_Click(object sender, EventArgs e)
+        {
+            string fileTypes = ".cs, *.html, *.css, *.js";
+            var form = new FileSearchForm(CurrentSettings.DefaultPath, fileTypes);
+            form.ShowDialog();
+
+            List<string> checkedFiles = form.GetCheckedFiles();
+            foreach (string file in checkedFiles)
+            {
+                Debug.WriteLine(file);
+            }
         }
     }
 }
