@@ -36,7 +36,7 @@ namespace AiTool3
                     await AttachAndTranscribeMP4(chatWebView);
                     break;
                 case DialogResult.Yes:
-                    AttachImage();
+                    DialogAndAttachImage();
                     break;
                 case DialogResult.No:
                     await AttachTextFiles();
@@ -57,16 +57,21 @@ namespace AiTool3
             }
         }
 
-        private void AttachImage()
+        private void DialogAndAttachImage()
         {
             OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(_settings.DefaultPath);
 
             if (openFileDialog.FileName != "")
             {
-                Base64Image = ImageHelpers.ImageToBase64(openFileDialog.FileName);
-                Base64ImageType = ImageHelpers.GetImageType(openFileDialog.FileName);
-                _settings.SetDefaultPath(Path.GetDirectoryName(openFileDialog.FileName)!);
+                AttachImage(openFileDialog.FileName);
             }
+        }
+
+        public async Task AttachImage(string filename)
+        {
+            Base64Image = ImageHelpers.ImageToBase64(filename);
+            Base64ImageType = ImageHelpers.GetImageType(filename);
+            _settings.SetDefaultPath(Path.GetDirectoryName(filename)!);
         }
 
         private async Task AttachTextFiles()
@@ -75,24 +80,30 @@ namespace AiTool3
 
             if (attachTextFilesDialog.FileNames.Length > 0)
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (var file in attachTextFilesDialog.FileNames)
-                {
-                    sb.AppendMany(MaxsAiStudio.ThreeTicks,
-                        Path.GetFileName(file),
-                        Environment.NewLine,
-                        File.ReadAllText(file),
-                        Environment.NewLine,
-                        MaxsAiStudio.ThreeTicks,
-                        Environment.NewLine,
-                        Environment.NewLine);
-                }
-
-                var existingPrompt = await _chatWebView.GetUserPrompt();
-                await _chatWebView.SetUserPrompt($"{sb}{existingPrompt}");
+                var filenames = attachTextFilesDialog.FileNames;
+                await AttachTextFiles(filenames);
 
                 _settings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
             }
+        }
+
+        public  async Task AttachTextFiles(string[] filenames)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var file in filenames)
+            {
+                sb.AppendMany(MaxsAiStudio.ThreeTicks,
+                    Path.GetFileName(file),
+                    Environment.NewLine,
+                    File.ReadAllText(file),
+                    Environment.NewLine,
+                    MaxsAiStudio.ThreeTicks,
+                    Environment.NewLine,
+                    Environment.NewLine);
+            }
+
+            var existingPrompt = await _chatWebView.GetUserPrompt();
+            await _chatWebView.SetUserPrompt($"{sb}{existingPrompt}");
         }
 
         public async Task TranscribeMP4(string filename, ChatWebView chatWebView)
@@ -161,6 +172,8 @@ namespace AiTool3
 
                     await chatWebView.SetUserPrompt(output);
                 }
+                else 
+                    throw new Exception("Couldn't transcribe video/audio file");
             }
         }
 

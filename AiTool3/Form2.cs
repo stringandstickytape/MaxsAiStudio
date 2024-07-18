@@ -51,6 +51,7 @@ namespace AiTool3
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
             chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
+            chatWebView.FileDropped += ChatWebView_FileDropped;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -153,7 +154,44 @@ namespace AiTool3
             _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
         }
 
+        private async void ChatWebView_FileDropped(object sender, string filename)
+        {
+            // convert file:/// uri to filepath and name
+            var uri = new Uri(filename);
+            filename = uri.LocalPath;
 
+            try
+            {
+
+                var classification = FileTypeClassifier.GetFileClassification(Path.GetExtension(filename));
+
+                switch(classification)
+                {
+                    case FileTypeClassifier.FileClassification.Video:
+                    case FileTypeClassifier.FileClassification.Audio:
+                        await _fileAttachmentManager.TranscribeMP4(filename, chatWebView);
+                        break;
+                    case FileTypeClassifier.FileClassification.Image:
+                        await _fileAttachmentManager.AttachImage(filename);
+                        break;
+                    default:
+                        await _fileAttachmentManager.AttachTextFiles(new string[] { filename });
+                        break;
+
+
+
+                }
+                //await _fileAttachmentManager.TranscribeMP4(filename, chatWebView);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            // Handle the dropped file here
+            MessageBox.Show($"File dropped: {filename}");
+            // You can call your file handling methods here
+        }
 
         private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
         {

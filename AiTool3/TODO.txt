@@ -27,6 +27,7 @@ DONE(ish): Embeddings - provide drop-down to choose embedding from a specific di
 DONE: llava support
 DONE: Add template category
 DONE: send embeddings wrong colour after clicking node in ndc
+DONE: File drag-and-drop
 
 bug: new-wit-context doesn't work properly
 

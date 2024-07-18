@@ -90,7 +90,7 @@
     </style>
 </head>
 <body>
-    <div class="chat-container">
+    <div class="chat-container" id="chatContainer">
         <div class="chat-header">
             <span id="chatHeaderLabel">AI Assistant Chat</span>
             <textarea id="systemPrompt" class="system-prompt" placeholder="Enter system prompt..."></textarea>
@@ -129,7 +129,8 @@
             newWithPrompt: document.getElementById('newWithPrompt'),
             newWithContext: document.getElementById('newWithContext'),
             sysPrompt: document.getElementById('systemPrompt'),
-            chatHeader: document.getElementById('chatHeaderLabel')
+            chatHeader: document.getElementById('chatHeaderLabel'),
+            root: document.getElementById('chatContainer')
         };
 
         let isCtrl = false;
@@ -433,24 +434,9 @@
             }
         });
 
-        eia('dragover', (e) => {
-            if (isCtrl) {
-                e.preventDefault();
-                els.input.classList.add('drag-over');
-            }
-        });
 
-        eia('dragleave', () => {
-            els.input.classList.remove('drag-over');
-        });
 
-        eia('drop', (e) => {
-            if (isCtrl) {
-                e.preventDefault();
-                els.input.classList.remove('drag-over');
-                els.input.value = e.dataTransfer.getData('text/plain');
-            }
-        });
+
 
         // New button functionality
         function toggleDropdown() {

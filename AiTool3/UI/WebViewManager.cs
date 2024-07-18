@@ -67,7 +67,7 @@ namespace AiTool3.UI
             }
         }
 
-
+        
         public async Task InitializeAsync()
         {
             await webView.EnsureCoreWebView2Async(null);

@@ -11,6 +11,7 @@ using AiTool3.Snippets;
 using System.Reflection;
 using System.Text;
 using System.Resources;
+using System.Runtime.InteropServices;
 
 namespace AiTool3.UI
 {
@@ -22,6 +23,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
         public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
         public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
+        public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
         {
@@ -31,6 +33,15 @@ namespace AiTool3.UI
                 WebMessageReceived += WebView_WebMessageReceived;
                 
             }
+            AllowExternalDrop = false;
+            
+        }
+
+   
+
+        protected virtual void OnFileDropped(string filename)
+        {
+            FileDropped?.Invoke(this, filename);
         }
 
         private async void  WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -42,6 +53,9 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "fileDropped":
+                    OnFileDropped(content);
+                    break;
                 case "new":
                     ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.New));
                     break;
@@ -149,6 +163,12 @@ namespace AiTool3.UI
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js"));
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.MermaidViewer.js"));
+
+            CoreWebView2.NewWindowRequested += (sender2, e2) => {
+                String _fileurl = e2.Uri.ToString();
+                e2.Handled = true;
+                FileDropped?.Invoke(this, _fileurl);
+            };
         }
 
         internal async Task AddMessages(List<CompletionMessage> parents)
