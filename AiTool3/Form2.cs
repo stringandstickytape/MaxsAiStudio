@@ -1,25 +1,17 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
-using AiTool3.Settings;
 using AiTool3.Topics;
 using AiTool3.UI;
 using Newtonsoft.Json;
 using System.Data;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using AiTool3.Audio;
 using AiTool3.Snippets;
 using Whisper.net.Ggml;
 using AiTool3.Providers;
 using AiTool3.Helpers;
-using System.Text;
 using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
-using System.Windows.Forms;
-using System.Net;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.Web.WebView2.Core;
-using System.Reflection;
 
 namespace AiTool3
 {
@@ -36,11 +28,6 @@ namespace AiTool3
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public SettingsSet CurrentSettings { get; set; } = AiTool3.SettingsSet.Load()!;
 
-        
-
-
-
-
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
@@ -52,18 +39,15 @@ namespace AiTool3
         {
             InitializeComponent();
 
-
+            webViewManager = new WebViewManager(ndcWeb);
 
             cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
             cbUseEmbeddings.CheckedChanged += CbUseEmbeddings_CheckedChanged;
-
-            webViewManager = new WebViewManager(ndcWeb);
+            
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
             chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
-
-
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -80,7 +64,7 @@ namespace AiTool3
 
             ContextMenuStrip contextMenu = new ContextMenuStrip();
 
-            contextMenu.Items.Add("Regenerate Summary", null, Option1_Click);
+            contextMenu.Items.Add("Regenerate Summary", null, RegenerateSummary);
 
             dgvConversations.ContextMenuStrip = contextMenu;
 
@@ -165,10 +149,7 @@ namespace AiTool3
             }
         }
 
-        private async void Option1_Click(object sender, EventArgs e)
-        {
-            await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
-        }
+        private async void RegenerateSummary(object sender, EventArgs e) => await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
@@ -179,8 +160,6 @@ namespace AiTool3
             dgvConversations.Enabled = true;
             webViewManager.Enable();
         }
-
-
 
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
 
@@ -276,7 +255,7 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var model = (Model)cbEngine.SelectedItem!;
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchResponseFromAi(conversation, model);
+                var response = await FetchAndProcessAiResponse(conversation, model);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -325,7 +304,7 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
@@ -338,10 +317,7 @@ namespace AiTool3
             return response;
         }
 
-        private void AiService_StreamingTextReceived(object? sender, string e)
-        {
-            chatWebView.UpdateTemp(e);
-        }
+        private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.UpdateTemp(e);
 
         private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
         {
@@ -353,7 +329,7 @@ namespace AiTool3
             var completionInput = new CompletionMessage(CompletionRole.User)
             {
                 Content = inputText,
-                Parent = previousCompletionGuidBeforeAwait,
+                Parent = ConversationManager.PreviousCompletion?.Guid,
                 Engine = model.ModelName,
                 SystemPrompt = systemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
@@ -362,10 +338,9 @@ namespace AiTool3
                 Base64Type = conversation.messages.Last().base64type
             };
 
-            var pc = ConversationManager.CurrentConversation!.FindByGuid(previousCompletionGuidBeforeAwait!);
-            if (pc != null)
+            if (ConversationManager.PreviousCompletion != null)
             {
-                pc.Children!.Add(completionInput.Guid);
+                ConversationManager.PreviousCompletion.Children!.Add(completionInput.Guid);
             }
 
             ConversationManager.CurrentConversation!.Messages.Add(completionInput);
@@ -383,8 +358,7 @@ namespace AiTool3
 
             ConversationManager.CurrentConversation.Messages.Add(completionResponse);
 
-            await chatWebView.AddMessage(completionInput);
-            await chatWebView.AddMessage(completionResponse);
+
 
             if (CurrentSettings.NarrateResponses)
             {
@@ -400,6 +374,8 @@ namespace AiTool3
 
             _fileAttachmentManager.ClearBase64();
 
+            await chatWebView.AddMessage(completionInput);
+            await chatWebView.AddMessage(completionResponse);
             await WebNdcDrawNetworkDiagram();
             webViewManager!.CentreOnNode(completionResponse.Guid);
         }

@@ -89,6 +89,7 @@ better error-trapping - where are the crashes tho? . what happens if there's no 
 Handle if there's no local AI at all
 Github version update code
 2/5: fix images aren't included in history (not implemented at all for groq)
+add mermaid to licenses and remove CDNs, possiby also other pkg references
 
 Embeddings:
 Include embedding model name in default filename
@@ -114,13 +115,15 @@ Concatenate messages :(
 
 Tip of the day
 
-add mermaid to licenses and remove CDNs, possiby also other pkg references
+
 
 
 
 add tokens-per-second to the status bar?
 
 Different Whisper models
+
+Pick-a-frame-from-a-video
 
 
 
