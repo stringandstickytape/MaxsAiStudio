@@ -287,7 +287,7 @@ namespace AiTool3
 
         private async void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
         {
-            var clickedCompletion = ConversationManager.CurrentConversation!.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
+            var clickedCompletion = ConversationManager.Conversation!.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
             if (clickedCompletion == null)
                 return;
             ConversationManager.PreviousCompletion = clickedCompletion;
@@ -297,7 +297,7 @@ namespace AiTool3
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
             {
                 await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content!);
-                ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion.Parent!);
+                ConversationManager.PreviousCompletion = ConversationManager.Conversation.FindByGuid(ConversationManager.PreviousCompletion.Parent!);
             }
             else
             {
@@ -428,18 +428,18 @@ namespace AiTool3
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
-            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
+            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
 
             if (row == null)
             {
-                dgvConversations.Rows.Insert(0, ConversationManager.CurrentConversation.ConvGuid, ConversationManager.CurrentConversation.Messages[0].Content, ConversationManager.CurrentConversation.Messages[0].Engine, "");
+                dgvConversations.Rows.Insert(0, ConversationManager.Conversation.ConvGuid, ConversationManager.Conversation.Messages[0].Content, ConversationManager.Conversation.Messages[0].Engine, "");
             }
         }
 
         private async Task UpdateConversationSummary()
         {
            
-            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
+            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
@@ -455,11 +455,11 @@ namespace AiTool3
 
             var a = await webViewManager.Clear();
 
-            var nodes = ConversationManager.CurrentConversation!.Messages
+            var nodes = ConversationManager.Conversation!.Messages
                 .Where(x => x.Role != CompletionRole.Root)
                 .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
 
-            var links2 = ConversationManager.CurrentConversation.Messages
+            var links2 = ConversationManager.Conversation.Messages
                 .Where(x => x.Parent != null)
                 .Select(x => new Link { source = x.Parent!, target = x.Guid! }).ToList();
 
@@ -492,11 +492,11 @@ namespace AiTool3
         private async Task NewKeepContext()
         {
             var lastAssistantMessage = ConversationManager.PreviousCompletion;
-            var lastUserMessage = ConversationManager.CurrentConversation!.FindByGuid(lastAssistantMessage!.Parent!);
+            var lastUserMessage = ConversationManager.Conversation!.FindByGuid(lastAssistantMessage!.Parent!);
             if (lastUserMessage == null)
                 return;
             if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = ConversationManager.CurrentConversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
+                lastAssistantMessage = ConversationManager.Conversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
 
             BeginNewConversationPreserveInputAndSystemPrompts();
 
@@ -507,7 +507,7 @@ namespace AiTool3
                 Engine = lastAssistantMessage.Engine,
             };
 
-            var rootMessage = ConversationManager.CurrentConversation.GetRootNode();
+            var rootMessage = ConversationManager.Conversation.GetRootNode();
 
             var userMessage = new CompletionMessage(CompletionRole.User)
             {
@@ -519,7 +519,7 @@ namespace AiTool3
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
 
-            ConversationManager.CurrentConversation.Messages.AddRange(new[] { assistantMessage, userMessage });
+            ConversationManager.Conversation.Messages.AddRange(new[] { assistantMessage, userMessage });
             ConversationManager.PreviousCompletion = assistantMessage;
 
             await WebNdcDrawNetworkDiagram();
@@ -532,9 +532,9 @@ namespace AiTool3
             dgvConversations.Enabled = true;
             webViewManager.Enable();
 
-            ConversationManager.CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            ConversationManager.CurrentConversation.AddNewRoot();
-            ConversationManager.PreviousCompletion = ConversationManager.CurrentConversation.Messages.First();
+            ConversationManager.Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            ConversationManager.Conversation.AddNewRoot();
+            ConversationManager.PreviousCompletion = ConversationManager.Conversation.Messages.First();
 
             await WebNdcDrawNetworkDiagram();
         }

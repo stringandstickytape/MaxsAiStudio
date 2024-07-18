@@ -15,7 +15,7 @@ namespace AiTool3.Conversations
 {
     public class ConversationManager
     {
-        public BranchedConversation? CurrentConversation { get; set; }
+        public BranchedConversation? Conversation { get; set; }
         public CompletionMessage? PreviousCompletion { get; set; }
 
         public event StringSelectedEventHandler? StringSelected;
@@ -23,11 +23,11 @@ namespace AiTool3.Conversations
         public ConversationManager()
         {
             
-            CurrentConversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            CurrentConversation.StringSelected += CurrentConversation_StringSelected;
+            Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            Conversation.StringSelected += Conversation_StringSelected;
         }
 
-        private void CurrentConversation_StringSelected(string selectedString)
+        private void Conversation_StringSelected(string selectedString)
         {
             // pass thru
             StringSelected?.Invoke(selectedString);
@@ -40,7 +40,7 @@ namespace AiTool3.Conversations
 
             while (current != null)
             {
-                var node = CurrentConversation!.FindByGuid(current);
+                var node = Conversation!.FindByGuid(current);
                 nodes.Add(node);
                 current = node.Parent;
             }
@@ -51,20 +51,20 @@ namespace AiTool3.Conversations
 
         public void SaveConversation()
         {
-            CurrentConversation!.SaveConversation();
+            Conversation!.SaveConversation();
         }
 
         public async Task<string> GenerateConversationSummary(SettingsSet currentSettings)
         {
-            var retVal = await CurrentConversation!.GenerateSummary(currentSettings);
+            var retVal = await Conversation!.GenerateSummary(currentSettings);
             SaveConversation();
             return retVal;
         }
 
         public void LoadConversation(string guid)
         {
-            CurrentConversation = BranchedConversation.LoadConversation(guid);
-            CurrentConversation.StringSelected += CurrentConversation_StringSelected;
+            Conversation = BranchedConversation.LoadConversation(guid);
+            Conversation.StringSelected += Conversation_StringSelected;
 
         }
 
@@ -103,7 +103,7 @@ namespace AiTool3.Conversations
 
         public async Task<AutoSuggestForm> Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
         {
-            return await CurrentConversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
+            return await Conversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
         }
 
         public  async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
@@ -160,7 +160,7 @@ namespace AiTool3.Conversations
                     PreviousCompletion.Children!.Add(completionInput.Guid);
                 }
 
-                CurrentConversation!.Messages.Add(completionInput);
+                Conversation!.Messages.Add(completionInput);
 
                 completionResponse = new CompletionMessage(CompletionRole.Assistant)
                 {
@@ -172,7 +172,7 @@ namespace AiTool3.Conversations
                     OutputTokens = response.TokenUsage.OutputTokens,
                     TimeTaken = elapsed,
                 };
-                CurrentConversation.Messages.Add(completionResponse);
+                Conversation.Messages.Add(completionResponse);
 
 
 

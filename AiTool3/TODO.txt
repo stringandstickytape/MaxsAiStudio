@@ -26,7 +26,7 @@ DONE: Embeddings - make sure they're not being used for summaries
 DONE(ish): Embeddings - provide drop-down to choose embedding from a specific directory
 DONE: llava support
 DONE: Add template category
-
+DONE: send embeddings wrong colour after clicking node in ndc
 
 bug: new-wit-context doesn't work properly
 
@@ -71,7 +71,7 @@ DONE: delete template
 DONE: if there's no local AI at all, deal with it
 
 Necessary for release:
-send embeddings wrong colour after clicking node in ndc
+
 Rename Form2!
 
 Templates:

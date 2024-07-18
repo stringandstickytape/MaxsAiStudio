@@ -353,7 +353,7 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Test Snippets Code", async (s, e) =>
             {
-                SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager));
+                SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.Conversation, snippetManager));
             });
 
             menuBar.Items.Add(specialsMenu);
