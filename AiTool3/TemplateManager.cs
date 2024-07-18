@@ -11,28 +11,32 @@ namespace AiTool3
         {
             TemplateSet = TopicSet.Load();
         }
+        public ConversationTemplate? CurrentTemplate { get; set; }
 
         public void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
         {
             TemplatesHelper.UpdateTemplates(template, add, category, new Form(), TemplateSet);
         }
 
-        public ConversationTemplate? GetTemplateByCategoryAndName(string categoryName, string templateName)
+        public void SelectTemplateByCategoryAndName(string categoryName, string templateName)
         {
-            return TemplateSet.Categories.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
+            CurrentTemplate = TemplateSet.Categories.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
+            UpdateMenuItems();
         }
 
-        public void UpdateMenuItems(string selectedTemplateName)
+        public void UpdateMenuItems()
         {
             foreach (var item in templateMenuItems.Values)
             {
                 item.IsSelected = false;
             }
-            if (templateMenuItems.TryGetValue(selectedTemplateName, out var menuItem))
+            if (templateMenuItems.TryGetValue(CurrentTemplate.TemplateName, out var menuItem))
             {
                 menuItem.IsSelected = true;
             }
         }
+
+        public void ClearTemplate() => CurrentTemplate = null;
 
         public Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
     }

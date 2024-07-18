@@ -43,7 +43,7 @@ namespace AiTool3
             // add settings option.  When chosen, invokes SettingsForm modally
             var settingsMenuItem = CreateMenuItem("Settings", ref editMenu);
 
-            settingsMenuItem.Click += (s, e) =>
+            settingsMenuItem.Click += async (s, e) =>
             {
                 var settingsForm = new SettingsForm(CurrentSettings);
                 var result = settingsForm.ShowDialog();
@@ -53,7 +53,7 @@ namespace AiTool3
                     CurrentSettings = settingsForm.NewSettings;
                     cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
                     AiTool3.SettingsSet.Save(CurrentSettings);
-                    UpdateEmbeddingsSendButtonColour();
+                    await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
                 }
             };
 
@@ -98,7 +98,7 @@ namespace AiTool3
 
         private async Task SelectNoneTemplate()
         {
-            selectedTemplate = null;
+            templateManager.ClearTemplate();
             await chatWebView.Clear(CurrentSettings);
             await chatWebView.UpdateSystemPrompt("");
             await chatWebView.SetUserPrompt("");
@@ -372,12 +372,6 @@ namespace AiTool3
                 SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager));
             });
 
-            AddSpecial(specialsMenu, "Open-Source Licenses", (s, e) =>
-            {
-                ShowOpenSourceLicenses();
-            });
-
-
             menuBar.Items.Add(specialsMenu);
         }
 
@@ -548,36 +542,7 @@ namespace AiTool3
             MessageBox.Show("Embeddings created and saved");
         }
 
-        private static void ShowOpenSourceLicenses()
-        {
-            var licensesForm = new Form
-            {
-                Text = "Licenses",
-                Size = new Size(400, 300),
-                StartPosition = FormStartPosition.CenterParent
-            };
 
-            var textBox = new TextBox
-            {
-                Multiline = true,
-                ScrollBars = ScrollBars.Vertical,
-                Dock = DockStyle.Fill,
-                Text = "licenses go here lol"
-            };
-
-            var okButton = new Button
-            {
-                Text = "OK",
-                Dock = DockStyle.Bottom
-            };
-
-            okButton.Click += (sender, e) => licensesForm.Close();
-
-            licensesForm.Controls.Add(textBox);
-            licensesForm.Controls.Add(okButton);
-
-            licensesForm.ShowDialog();
-        }
 
         private static ToolStripMenuItem CreateMenu(string menuText)
         {
@@ -587,11 +552,6 @@ namespace AiTool3
             return menu;
         }
 
-        /*
-         *             var quitMenuItem = new ToolStripMenuItem("Quit");
-            quitMenuItem.ForeColor = Color.White;
-            quitMenuItem.BackColor = Color.Black;
-        */
         private static ToolStripMenuItem CreateMenuItem(string text, ref ToolStripMenuItem dropDownItems, bool isTemplate = false)
         {
             if (isTemplate)

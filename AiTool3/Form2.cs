@@ -121,7 +121,7 @@ namespace AiTool3
         {
             CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
             SettingsSet.Save(CurrentSettings);
-            await UpdateEmbeddingsSendButtonColour();
+            await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -137,7 +137,7 @@ namespace AiTool3
 
             await BeginNewConversation();
 
-            await UpdateEmbeddingsSendButtonColour();
+            await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
             if (CurrentSettings.RunWebServer)
             {
@@ -147,8 +147,6 @@ namespace AiTool3
             
 
         }
-
-        private async Task UpdateEmbeddingsSendButtonColour() => await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
         private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -466,7 +464,7 @@ namespace AiTool3
         {
             await BeginNewConversation();
             await chatWebView.SetUserPrompt("");
-            await PopulateUiForTemplate(selectedTemplate!);
+            await PopulateUiForTemplate(templateManager.CurrentTemplate!);
         }
 
 
@@ -539,15 +537,12 @@ namespace AiTool3
 
         }
 
-        ConversationTemplate? selectedTemplate = null;
 
         private async Task SelectTemplate(string categoryName, string templateName)
         {
-            selectedTemplate = templateManager.GetTemplateByCategoryAndName(categoryName, templateName);
+            templateManager.SelectTemplateByCategoryAndName(categoryName, templateName);
 
-            await PopulateUiForTemplate(selectedTemplate!);
-
-            templateManager.UpdateMenuItems(templateName);
+            await PopulateUiForTemplate(templateManager.CurrentTemplate!);
 
             menuBar.Refresh();
         }
@@ -555,7 +550,7 @@ namespace AiTool3
         private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
             await chatWebView.Clear(CurrentSettings);
-            await UpdateEmbeddingsSendButtonColour();
+            await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
             dgvConversations.Enabled = true;
             webViewManager.Enable();
