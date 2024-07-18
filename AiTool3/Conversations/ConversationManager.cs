@@ -54,9 +54,9 @@ namespace AiTool3.Conversations
             CurrentConversation!.SaveAsJson();
         }
 
-        public async Task<string> GenerateConversationSummary(Model summaryModel, bool useLocalAi, SettingsSet currentSettings)
+        public async Task<string> GenerateConversationSummary(SettingsSet currentSettings)
         {
-            var retVal = await CurrentConversation!.GenerateSummary(summaryModel, useLocalAi, currentSettings);
+            var retVal = await CurrentConversation!.GenerateSummary(currentSettings);
             SaveConversation();
             return retVal;
         }
@@ -82,7 +82,7 @@ namespace AiTool3.Conversations
                 LoadConversation(guid2);
 
                 // Regenerate summary
-                string newSummary = await GenerateConversationSummary(summaryModel, useLocalAi, currentSettings);
+                string newSummary = await GenerateConversationSummary(currentSettings);
 
                 Debug.WriteLine(newSummary);
 

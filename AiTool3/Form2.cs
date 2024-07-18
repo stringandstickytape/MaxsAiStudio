@@ -368,12 +368,12 @@ namespace AiTool3
 
         private async Task UpdateConversationSummary()
         {
-            var summaryModel = CurrentSettings.ApiList!.First(x => x.ApiName.StartsWith("Ollama")).Models.First();
+           
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.CurrentConversation.ConvGuid);
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(summaryModel, CurrentSettings.GenerateSummariesUsingLocalAi, CurrentSettings);
+                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(CurrentSettings);
             }
 
             ConversationManager.SaveConversation();

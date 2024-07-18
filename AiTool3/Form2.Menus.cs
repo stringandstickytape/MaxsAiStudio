@@ -455,10 +455,9 @@ namespace AiTool3
 
         public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)
         {
-            List<Snippet> allSnippets = new List<Snippet>();
-            List<CompletionMessage> parentNodes = conversation.GetParentNodeList(currentMessage.Guid);
-
-            foreach (var node in parentNodes)
+            var allSnippets = new List<Snippet>();
+            
+            foreach (var node in conversation.GetParentNodeList(currentMessage.Guid))
             {
                 SnippetSet snippetSet = snippetManager.FindSnippets(node.Content);
                 allSnippets.AddRange(snippetSet.Snippets);

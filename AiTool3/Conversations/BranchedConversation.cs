@@ -42,11 +42,14 @@ namespace AiTool3.Conversations
             return Messages.FirstOrDefault(cm => cm.Guid == guid);
         }
 
-        internal async Task<string> GenerateSummary(Model apiModel, bool useLocalAi, SettingsSet currentSettings)
+        internal async Task<string> GenerateSummary(SettingsSet currentSettings)
         {
+
+            var apiModel = currentSettings.GetSummaryModel();
+
             string responseText = "";
             Debug.WriteLine(Title);
-            if (useLocalAi)
+            if (currentSettings.GenerateSummariesUsingLocalAi)
             {
                 // instantiate the service from name
                 var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);

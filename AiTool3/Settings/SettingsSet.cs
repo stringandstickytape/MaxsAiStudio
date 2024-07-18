@@ -159,6 +159,13 @@ namespace AiTool3
             }
         }
 
+        public Model GetModelByName(string modelName) => ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == modelName);
+
+
+        public Model GetModelByFullStringReference(string modelName) => ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ToString() == modelName);
+
+        public Model GetSummaryModel() => GetModelByFullStringReference(SelectedSummaryModel);
+
         private void AddMissingApis()
         {
             var newSettings = new SettingsSet();
@@ -173,7 +180,7 @@ namespace AiTool3
 
                 foreach(var model in api.Models)
                 {
-                    var newModel = ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == model.ModelName);
+                    var newModel = GetModelByName(model.ModelName);
                     if (newModel == null)
                     {
                         // add to correct in apilist
