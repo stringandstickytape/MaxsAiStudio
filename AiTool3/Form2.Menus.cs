@@ -96,10 +96,36 @@ namespace AiTool3
             
         }
 
+        private async Task SelectNoneTemplate()
+        {
+            selectedTemplate = null;
+            await chatWebView.Clear(CurrentSettings
+                );
+            await chatWebView.UpdateSystemPrompt("");
+            await chatWebView.SetUserPrompt("");
+
+            // Update menu items
+            foreach (var item in templateMenuItems.Values)
+            {
+                item.IsSelected = false;
+            }
+            menuBar.Refresh(); // Force redraw of the menu
+        }
+
         private Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
         private void CreateTemplatesMenu()
         {
             var templatesMenu = CreateMenu("Templates");
+
+            // Add "None" option at the top
+            var noneMenuItem = CreateMenuItem("None", ref templatesMenu);
+            noneMenuItem.Click += async (s, e) =>
+            {
+                await SelectNoneTemplate();
+            };
+
+            // Add separator after "None"
+            templatesMenu.DropDownItems.Add(new ToolStripSeparator());
 
             foreach (var topic in TopicSet.Topics.OrderBy(x => x.Name))
             {

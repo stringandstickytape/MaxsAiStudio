@@ -173,12 +173,13 @@ namespace AiTool3.UI
 
         internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
 
-        internal async Task Clear()
+        internal async Task Clear(SettingsSet currentSettings)
         {
             // run "addMessages" js function
             await ExecuteScriptAsync($"ClearMessages()");
             await DisableCancelButton();
             await EnableSendButton();
+            await UpdateSendButtonColor(currentSettings.UseEmbeddings);
         }
 
         internal async Task SetUserPrompt(string content) => await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");//changeChatHeaderLabel

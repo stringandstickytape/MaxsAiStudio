@@ -28,7 +28,7 @@ DONE: llava support
 DONE: Add template category
 
 
-bug: send button colour isn't set correctly at startup
+bug: new-wit-context doesn't work properly
 
 Would be nice to pop either the user input or the ai responses into an editable window for copy-and-paste editing ont he fly.  Does it let you change the
 original messages, or only make an editable copy?
@@ -65,13 +65,15 @@ tools support? pull from api? what public apis could we test with?
 
 launch JS directly would be nice
 
+DONE: "NONE" option at the top of the templates menu
+DONE: add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
+
+
 
 Necessary for release:
 
-
-
 Templates:
-"NONE" option at the top of the templates menu
+collate code?
 example templates set
 delete template
 
@@ -79,7 +81,6 @@ Build:
 Cublas and non-Cublas builds - need dlls from another source - whisperX?
 
 UI:
-add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
 allow setting of proper URLs for local AI
 Allow choice of embedding engine
 
@@ -90,7 +91,6 @@ Github version update code
 2/5: fix images aren't included in history (not implemented at all for groq)
 
 Embeddings:
-
 Include embedding model name in default filename
 
 Docs:

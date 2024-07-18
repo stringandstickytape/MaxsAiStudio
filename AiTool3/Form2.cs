@@ -122,11 +122,11 @@ namespace AiTool3
             }
         }
 
-        private void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
+        private async void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
         {
             CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
             SettingsSet.Save(CurrentSettings);
-            UpdateEmbeddingsSendButtonColour();
+            await UpdateEmbeddingsSendButtonColour();
         }
 
         private async void OnHandleCreated(object sender, EventArgs e)
@@ -547,7 +547,7 @@ namespace AiTool3
 
         private async Task BeginNewConversation()
         {
-            await chatWebView.Clear();
+            await chatWebView.Clear(CurrentSettings);
 
             dgvConversations.Enabled = true;
             webViewManager.Enable();
@@ -614,11 +614,12 @@ namespace AiTool3
 
         private async Task PopulateUiForTemplate(ConversationTemplate template)
         {
-            await chatWebView.Clear();
+            await chatWebView.Clear(CurrentSettings);
+            await UpdateEmbeddingsSendButtonColour();
 
             dgvConversations.Enabled = true;
             webViewManager.Enable();
-
+            
             if (template != null)
             {
                 await chatWebView.UpdateSystemPrompt(template.SystemPrompt);
