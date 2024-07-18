@@ -16,7 +16,7 @@ using System.Windows.Forms;
 
 namespace AiTool3
 {
-    public partial class Form2 : Form
+    public partial class MaxsAiStudio : Form
     {
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;
@@ -36,7 +36,7 @@ namespace AiTool3
         private AudioRecorderManager audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn);
 
         public string selectedConversationGuid = "";
-        public Form2()
+        public MaxsAiStudio()
         {
             InitializeComponent();
 
@@ -225,7 +225,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
-            _cts = Form2.ResetCancellationtoken(_cts);
+            _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             await chatWebView.EnableSendButton();
             await chatWebView.DisableCancelButton();
 
@@ -345,7 +345,7 @@ namespace AiTool3
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
 
                 chatWebView.ClearTemp();
-                _cts = Form2.ResetCancellationtoken(_cts);
+                _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             }
             finally
             {
@@ -364,7 +364,7 @@ namespace AiTool3
 
         private async void PrepareForNewResponse()
         {
-            _cts = Form2.ResetCancellationtoken(_cts);
+            _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             stopwatch.Restart();
             updateTimer.Start();
 
@@ -625,7 +625,7 @@ namespace AiTool3
             webViewManager.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
         }
 
-        private void Form2_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();
+        private void MaxsAiStudio_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();
 
         private void button1_Click(object sender, EventArgs e)
         {

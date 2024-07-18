@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace AiTool3
 {
-    public partial class Form2
+    public partial class MaxsAiStudio
     {
         private static void AddSpecial(ToolStripMenuItem specialsMenu, string l, EventHandler q)
         {

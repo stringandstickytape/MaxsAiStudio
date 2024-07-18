@@ -12,7 +12,7 @@ namespace AiTool3
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
-            Application.Run(new Form2());
+            Application.Run(new MaxsAiStudio());
 
         }
     }

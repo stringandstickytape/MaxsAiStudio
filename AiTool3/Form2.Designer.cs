@@ -2,7 +2,7 @@
 
 namespace AiTool3
 {
-    partial class Form2
+    partial class MaxsAiStudio
     {
         /// <summary>
         /// Required designer variable.
@@ -340,7 +340,7 @@ namespace AiTool3
             splitContainer4.SplitterDistance = 644;
             splitContainer4.TabIndex = 12;
             // 
-            // Form2
+            // MaxsAiStudio
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -350,9 +350,9 @@ namespace AiTool3
             Controls.Add(menuBar);
             Controls.Add(splitContainer4);
             MainMenuStrip = menuBar;
-            Name = "Form2";
-            Text = "Form2";
-            FormClosing += Form2_FormClosing;
+            Name = "MaxsAiStudio";
+            Text = "MaxsAiStudio";
+            FormClosing += MaxsAiStudio_FormClosing;
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             splitContainer1.Panel2.PerformLayout();

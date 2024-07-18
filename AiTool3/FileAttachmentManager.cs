@@ -78,12 +78,12 @@ namespace AiTool3
                 StringBuilder sb = new StringBuilder();
                 foreach (var file in attachTextFilesDialog.FileNames)
                 {
-                    sb.AppendMany(Form2.ThreeTicks,
+                    sb.AppendMany(MaxsAiStudio.ThreeTicks,
                         Path.GetFileName(file),
                         Environment.NewLine,
                         File.ReadAllText(file),
                         Environment.NewLine,
-                        Form2.ThreeTicks,
+                        MaxsAiStudio.ThreeTicks,
                         Environment.NewLine,
                         Environment.NewLine);
                 }
@@ -157,7 +157,7 @@ namespace AiTool3
                         result.Add(formattedText);
                     }
 
-                    var output = $"{Form2.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{Form2.ThreeTicks}{Environment.NewLine}";
+                    var output = $"{MaxsAiStudio.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{MaxsAiStudio.ThreeTicks}{Environment.NewLine}";
 
                     await chatWebView.SetUserPrompt(output);
                 }

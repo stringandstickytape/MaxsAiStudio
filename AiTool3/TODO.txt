@@ -73,7 +73,7 @@ DONE: It'd be lovely if you could highlight a conversation with one of four nice
 
 Necessary for release:
 
-Rename Form2!
+Rename MaxsAiStudio!
 
 Templates:
 example templates set

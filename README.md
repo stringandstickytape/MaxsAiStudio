@@ -1,4 +1,7 @@
-# MaxsAiTool
+# MaxsAiStudio
+
+[Updated README coming soon]
+
 A Windows tool to query various LLM AIs.  Supports branched conversations, history and summaries among others.
 
 The following instructions were written by AI based on the source code of the main form, and then reviewed by the author.

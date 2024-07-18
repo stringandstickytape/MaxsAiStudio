@@ -70,7 +70,7 @@ namespace AiTool3.Audio
         {
             if (cts != null)
             {
-                cts = Form2.ResetCancellationtoken(cts);
+                cts = MaxsAiStudio.ResetCancellationtoken(cts);
 
                 // Wait for the recording task to complete
                 await recordingTask!;
