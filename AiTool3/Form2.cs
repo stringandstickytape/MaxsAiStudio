@@ -276,7 +276,8 @@ namespace AiTool3
             try
             {
                 PrepareForNewResponse();
-                var (conversation, model) = await PrepareConversationData();
+                var model = (Model)cbEngine.SelectedItem!;
+                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
                 var response = await FetchResponseFromAi(conversation, model);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
@@ -324,35 +325,7 @@ namespace AiTool3
             webViewManager.Disable();
         }
 
-        private async Task<ConversationModelPair> PrepareConversationData()
-        {
-            var model = (Model)cbEngine.SelectedItem!;
-            var conversation = new Conversation
-            {
-                systemprompt = await chatWebView.GetSystemPrompt(),
-                messages = new List<ConversationMessage>()
-            };
 
-            List<CompletionMessage> nodes = ConversationManager.GetParentNodeList();
-
-            foreach (var node in nodes)
-            {
-                if (node.Role == CompletionRole.Root || node.Omit)
-                    continue;
-
-                conversation.messages.Add(
-                    new ConversationMessage
-                    {
-                        role = node.Role == CompletionRole.User ? "user" : "assistant",
-                        content = node.Content!,
-                        base64image = node.Base64Image,
-                        base64type = node.Base64Type
-                    });
-            }
-            conversation.messages.Add(new ConversationMessage { role = "user", content = await chatWebView.GetUserPrompt(), base64image = _fileAttachmentManager.Base64Image, base64type = _fileAttachmentManager.Base64ImageType });
-
-            return new ConversationModelPair(conversation, model);
-        }
 
         private async Task<AiResponse> FetchResponseFromAi(Conversation conversation, Model model)
         {

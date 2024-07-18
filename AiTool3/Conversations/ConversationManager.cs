@@ -105,5 +105,34 @@ namespace AiTool3.Conversations
         {
             return await CurrentConversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
         }
+
+        public  async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
+        {
+            var conversation = new Conversation
+            {
+                systemprompt = systemPrompt,
+                messages = new List<ConversationMessage>()
+            };
+
+            List<CompletionMessage> nodes = GetParentNodeList();
+
+            foreach (var node in nodes)
+            {
+                if (node.Role == CompletionRole.Root || node.Omit)
+                    continue;
+
+                conversation.messages.Add(
+                    new ConversationMessage
+                    {
+                        role = node.Role == CompletionRole.User ? "user" : "assistant",
+                        content = node.Content!,
+                        base64image = node.Base64Image,
+                        base64type = node.Base64Type
+                    });
+            }
+            conversation.messages.Add(new ConversationMessage { role = "user", content = userPrompt, base64image = fileAttachmentManager.Base64Image, base64type = fileAttachmentManager.Base64ImageType });
+
+            return conversation;
+        }
     }
 }
