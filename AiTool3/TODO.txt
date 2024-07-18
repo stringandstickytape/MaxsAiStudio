@@ -87,6 +87,7 @@ Allow choice of embedding engine
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
 add date/time of conversdation start to DGV
+Make convo browser visible sticky
 
 Github version update code
 4/5: fix images aren't included in Groq history

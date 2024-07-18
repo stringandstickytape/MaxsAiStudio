@@ -266,8 +266,8 @@ namespace AiTool3.Providers
 
         [JsonProperty("content")]
         public string Content { get; set; }
-        public string? Base64Image { get; internal set; }
-        public string? Base64Type { get; internal set; }
+        public string? Base64Image { get; set; }
+        public string? Base64Type { get; set; }
     }
 
     public class LocalAIStreamResponse

@@ -49,12 +49,13 @@ namespace AiTool3.Helpers
 
             var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x))).ToList();
 
+            // populate dgv
             foreach (var conv in convs.OrderByDescending(x => x.Messages[0].CreatedAt))
             {
                 if (!conv.Messages.Any())
                     continue;
 
-                int rowIndex = dgv.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.Title);
+                int rowIndex = dgv.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.ToString());
 
                 if (conv.HighlightColour.HasValue)
                 {

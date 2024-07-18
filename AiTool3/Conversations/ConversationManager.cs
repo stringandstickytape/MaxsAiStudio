@@ -56,9 +56,7 @@ namespace AiTool3.Conversations
 
         public async Task<string> GenerateConversationSummary(SettingsSet currentSettings)
         {
-            var retVal = await Conversation!.GenerateSummary(currentSettings);
-            SaveConversation();
-            return retVal;
+            return await Conversation!.GenerateSummary(currentSettings);
         }
 
         public void LoadConversation(string guid)
@@ -91,7 +89,7 @@ namespace AiTool3.Conversations
                 {
                     if (row.Cells[0].Value.ToString() == guid2)
                     {
-                        row.Cells[3].Value = newSummary;
+                        row.Cells[3].Value = Conversation.ToString();
                         break;  
                     }
                 }
@@ -173,10 +171,6 @@ namespace AiTool3.Conversations
                     TimeTaken = elapsed,
                 };
                 Conversation.Messages.Add(completionResponse);
-
-
-
-
 
                 completionInput.Children.Add(completionResponse.Guid);
                 PreviousCompletion = completionResponse;

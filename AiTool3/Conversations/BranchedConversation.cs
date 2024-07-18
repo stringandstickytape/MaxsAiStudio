@@ -13,8 +13,16 @@ namespace AiTool3.Conversations
     {
         public List<CompletionMessage> Messages = new List<CompletionMessage>();
         public string ConvGuid { get; set; }
-        public string Title { get; set; }
+        public string Summary { get; set; }
         public Color? HighlightColour { get; set; } = null;
+
+        public override string ToString()
+        {
+            return $"{Summary}";
+        }
+
+
+        public DateTime CreationDateTime { get; set; } = DateTime.Now;
 
         public void SaveConversation()
         {
@@ -49,7 +57,7 @@ namespace AiTool3.Conversations
             var apiModel = currentSettings.GetSummaryModel();
 
             string responseText = "";
-            Debug.WriteLine(Title);
+            Debug.WriteLine(Summary);
             if (currentSettings.GenerateSummariesUsingLocalAi)
             {
                 // instantiate the service from name
@@ -101,25 +109,25 @@ namespace AiTool3.Conversations
                         // get the first property name from obj
                         var propName = ((Newtonsoft.Json.Linq.JProperty)((Newtonsoft.Json.Linq.JContainer)obj).First).Name;
 
-                        Title = obj[propName];
+                        Summary = obj[propName];
                     }
                     catch
                     {
-                        Title = "Summary failed";
+                        Summary = "Summary failed";
                     }
-                } else Title = "Summary failed";
+                } else Summary = "Summary failed";
             }
             // jsonconvert to dynamic
             else
             {
                 var msg = Messages.First(x => x.Role != CompletionRole.Root).Content;
 
-                Title = msg.Length > 100 ? msg.Substring(0, 100) : msg;
+                Summary = msg.Length > 100 ? msg.Substring(0, 100) : msg;
             }
 
             SaveConversation();
 
-            return Title;
+            return Summary;
         }
 
         public event StringSelectedEventHandler StringSelected;
@@ -128,7 +136,7 @@ namespace AiTool3.Conversations
         {
             AutoSuggestForm form = null;
             string responseText = "";
-            Debug.WriteLine(Title);
+            Debug.WriteLine(Summary);
                 // instantiate the service from name
                 var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
 

@@ -12,6 +12,7 @@ using AiTool3.Providers;
 using AiTool3.Helpers;
 using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
+using System.Windows.Forms;
 
 namespace AiTool3
 {
@@ -38,6 +39,8 @@ namespace AiTool3
         public Form2()
         {
             InitializeComponent();
+
+            splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
             webViewManager = new WebViewManager(ndcWeb);
 
@@ -443,7 +446,9 @@ namespace AiTool3
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                row.Cells[3].Value = await ConversationManager.GenerateConversationSummary(CurrentSettings);
+                 await ConversationManager.GenerateConversationSummary(CurrentSettings);
+                row.Cells[3].Value = ConversationManager.Conversation.ToString();
+
             }
 
             ConversationManager.SaveConversation();
@@ -626,6 +631,8 @@ namespace AiTool3
         {
             splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
 
+            CurrentSettings.CollapseConversationPane = splitContainer1.Panel1Collapsed;
+            SettingsSet.Save(CurrentSettings);
             button1.Text = splitContainer1.Panel1Collapsed ? @">
 >
 >" : @"<
