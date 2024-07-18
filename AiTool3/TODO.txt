@@ -28,6 +28,9 @@ DONE: llava support
 DONE: Add template category
 DONE: send embeddings wrong colour after clicking node in ndc
 DONE: File drag-and-drop
+DONE: Handle if there's no local AI (is this an issue at all? if port is closed, it just doesn't work)
+
+
 
 bug: new-wit-context doesn't work properly
 
@@ -35,7 +38,7 @@ Would be nice to pop either the user input or the ai responses into an editable 
 original messages, or only make an editable copy?
 
 Critical (could make software unusable):
-Handle if there's no local AI (is this an issue at all? if port is closed, it just doesn't work)
+
 
 Useful next:
 Ongoing, resettable token counting

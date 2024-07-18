@@ -342,6 +342,37 @@
             container.append(typeLabelContainer, codeBlock);
 
             return container;
+
+        }
+
+        function toggleInputFullscreen() {
+            const inputContainer = document.querySelector('.chat-input-container');
+            const chatContainer = document.querySelector('.chat-container');
+            const buttonContainer = document.querySelector('.button-container');
+
+            if (inputContainer.classList.contains('full-window')) {
+                inputContainer.classList.remove('full-window');
+                chatContainer.style.display = 'flex';
+                inputContainer.style.padding = '15px';
+                els.input.style.height = '10vh';
+                els.input.style.width = '';
+                els.input.style.margin = '';
+                buttonContainer.style.display = 'flex';
+            } else {
+                inputContainer.classList.add('full-window');
+                chatContainer.style.display = 'none';
+                inputContainer.style.padding = '0';
+                els.input.style.height = '100vh';
+                els.input.style.width = 'calc(100% - 60px)';  // Adjust for left and right padding
+                els.input.style.margin = '15px';  // Add margin to create space around the textarea
+                buttonContainer.style.display = 'none';
+            }
+
+            els.input.style.display = 'none';
+            els.input.offsetHeight;
+            els.input.style.display = 'block';
+
+            els.input.focus();
         }
 
         // WebViewCallAndCallbackSystem
