@@ -71,6 +71,8 @@ DONE: delete template
 DONE: if there's no local AI at all, deal with it
 
 Necessary for release:
+send embeddings wrong colour after clicking node in ndc
+Rename Form2!
 
 Templates:
 example templates set
@@ -84,9 +86,10 @@ Allow choice of embedding engine
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
+add date/time of conversdation start to DGV
 
 Github version update code
-2/5: fix images aren't included in history (not implemented at all for groq)
+4/5: fix images aren't included in Groq history
 add mermaid to licenses and remove CDNs, possiby also other pkg references
 
 Embeddings:

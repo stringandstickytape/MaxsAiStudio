@@ -310,6 +310,7 @@ namespace AiTool3
 
             await chatWebView.AddMessages(parents);
 
+            await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
         }
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e) => await FetchAiInputResponse();

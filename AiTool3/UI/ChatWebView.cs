@@ -167,6 +167,7 @@ namespace AiTool3.UI
         internal async Task EnableCancelButton() => await ExecuteScriptAsync("enableButton('cancelButton')");
         internal async Task DisableSendButton() => await ExecuteScriptAsync("disableButton('sendButton')");
         internal async Task EnableSendButton() => await ExecuteScriptAsync("enableButton('sendButton')");
+
         internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
         internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
