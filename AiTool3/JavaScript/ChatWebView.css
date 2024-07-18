@@ -79,7 +79,7 @@ body {
 .fullscreen-toggle {
     position: absolute;
     top: 0px;
-    right: 0px;
+    right: 15px;
     width: 30px;
     height: 30px;
     background-color: white;

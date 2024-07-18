@@ -167,14 +167,18 @@ namespace AiTool3
                         string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
                         result.Add(formattedText);
                     }
-
-                    var output = $"{MaxsAiStudio.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{MaxsAiStudio.ThreeTicks}{Environment.NewLine}";
+                    string output = NewMethod(filename, result);
 
                     await chatWebView.SetUserPrompt(output);
                 }
                 else 
                     throw new Exception("Couldn't transcribe video/audio file");
             }
+        }
+
+        private static string NewMethod(string filename, List<string> result)
+        {
+            return $"{MaxsAiStudio.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{MaxsAiStudio.ThreeTicks}{Environment.NewLine}";
         }
 
         public void ClearBase64()

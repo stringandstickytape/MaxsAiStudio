@@ -157,6 +157,24 @@ namespace AiTool3
         private async void ChatWebView_FileDropped(object sender, string filename)
         {
             // convert file:/// uri to filepath and name
+
+            // if it's an HTTP filename...
+            if (filename.StartsWith("http"))
+            {
+                var textFromUrl = await HtmlTextExtractor.ExtractTextFromUrlAsync(filename);
+
+                var quotedFile = HtmlTextExtractor.QuoteFile(filename, textFromUrl);
+
+                // prepend to existing cwv user input
+                var currentPrompt = await chatWebView.GetUserPrompt();
+                await chatWebView.SetUserPrompt($"{quotedFile}{Environment.NewLine}{currentPrompt}");
+                
+
+
+                return;
+            }
+
+
             var uri = new Uri(filename);
             filename = uri.LocalPath;
 
