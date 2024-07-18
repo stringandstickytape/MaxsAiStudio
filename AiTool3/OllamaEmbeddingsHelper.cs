@@ -46,14 +46,14 @@ namespace AiTool3
             // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
             var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
 
-            var embeddingHelper = new EmbeddingHelper();
+            var embeddingManager = new EmbeddingManager();
 
-            var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
+            var s = embeddingManager.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
             List<CodeSnippet> result = new List<CodeSnippet>();
             foreach (var snippet in s)
             {
                 var subInputEmbedding = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
-                var subs = embeddingHelper.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
+                var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
                 result.AddRange(subs);
             }
 

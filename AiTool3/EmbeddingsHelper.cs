@@ -64,7 +64,7 @@ namespace AiTool3
 
             // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
             var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
-            var embeddingHelper = new EmbeddingHelper();
+            var embeddingHelper = new EmbeddingManager();
 
             var s = embeddingHelper.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
             List<CodeSnippet> result = new List<CodeSnippet>();
