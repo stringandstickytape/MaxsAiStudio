@@ -159,7 +159,7 @@ namespace AiTool3
             }
         }
 
-        public Model GetModelByName(string modelName) => ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == modelName);
+        public Model GetModelByName(string modelName) =>  ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == modelName);
 
 
         public Model GetModelByFullStringReference(string modelName) => ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ToString() == modelName);
