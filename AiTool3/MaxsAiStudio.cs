@@ -13,6 +13,7 @@ using AiTool3.Helpers;
 using FontAwesome.Sharp;
 using AiTool3.ExtensionMethods;
 using System.Windows.Forms;
+using AiTool3.Settings;
 
 namespace AiTool3
 {
@@ -153,7 +154,34 @@ namespace AiTool3
             _searchManager = new SearchManager(dgvConversations);
             _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
         }
+        private void InitialiseMenus()
+        {
+            var fileMenu = MenuHelper.CreateMenu("File");
+            var editMenu = MenuHelper.CreateMenu("Edit");
 
+            new List<ToolStripMenuItem> { fileMenu, editMenu }.ForEach(menu => menuBar.Items.Add(menu));
+
+            MenuHelper.CreateMenuItem("Quit", ref fileMenu).Click += (s, e) => Application.Exit();
+
+            MenuHelper.CreateMenuItem("Settings", ref editMenu).Click += async (s, e) =>
+            {
+                var settingsForm = new SettingsForm(CurrentSettings);
+                var result = settingsForm.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    CurrentSettings = settingsForm.NewSettings;
+                    SettingsSet.Save(CurrentSettings);
+                    cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
+                    await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
+                }
+            };
+
+            MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
+            MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
+            MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, (Model)cbSummaryEngine.SelectedItem!, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
+        }
         private async void ChatWebView_FileDropped(object sender, string filename)
         {
             // convert file:/// uri to filepath and name
