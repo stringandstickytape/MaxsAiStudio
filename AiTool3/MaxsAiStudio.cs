@@ -602,17 +602,7 @@ namespace AiTool3
 
         }
 
-
-        private async Task SelectTemplate(string categoryName, string templateName)
-        {
-            templateManager.SelectTemplateByCategoryAndName(categoryName, templateName);
-
-            await PopulateUiForTemplate(templateManager.CurrentTemplate!);
-
-            menuBar.Refresh();
-        }
-
-        private async Task PopulateUiForTemplate(ConversationTemplate template)
+        public async Task PopulateUiForTemplate(ConversationTemplate template)
         {
             await chatWebView.Clear(CurrentSettings);
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
