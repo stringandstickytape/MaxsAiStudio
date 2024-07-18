@@ -579,7 +579,7 @@ namespace AiTool3
 
         private async void buttonAttachImage_Click(object sender, EventArgs e)
         {
-            await _fileAttachmentManager.HandleAttachment();
+            await _fileAttachmentManager.HandleAttachment(chatWebView);
         }
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)

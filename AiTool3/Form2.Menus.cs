@@ -294,9 +294,7 @@ namespace AiTool3
                 {
                     return;
                 }
-
-                await TranscribeMP4(openFileDialog.FileName);
-
+                await _fileAttachmentManager.TranscribeMP4(openFileDialog.FileName, chatWebView);
             });
 
             AddSpecial(specialsMenu, "Autosuggest", async (s, e) =>
@@ -345,92 +343,15 @@ namespace AiTool3
             });
             AddSpecial(specialsMenu, "Test Snippets Code", async (s, e) =>
             {
-                //var x = GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager);
-                //
-                //// create a new form
-                //var f = new Form();
-                //
-                //// add a listbox with the snippets
-                //var lb = new ListBox();
-                //lb.Dock = DockStyle.Fill;
-                //f.Controls.Add(lb);
-                //lb.Items.AddRange(x.Select(x => x.Content).ToArray());
-                //f.Show();
                 SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.CurrentConversation, snippetManager));
             });
 
             menuBar.Items.Add(specialsMenu);
         }
 
-        private async Task TranscribeMP4(string openFileDialog)
+        private static async Task TranscribeMP4(string openFileDialog, ChatWebView chatWebView)
         {
-            var filename = openFileDialog;
 
-            // Path to the Miniconda installation
-            string condaPath = @"C:\ProgramData\miniconda3\Scripts\activate.bat";
-
-            // Command to activate the WhisperX environment and run Whisper
-            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\" --output_format json";
-
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (Process process = new Process())
-            {
-                process.StartInfo = startInfo;
-                process.OutputDataReceived += (sender, e) => Debug.WriteLine(e.Data);
-                process.ErrorDataReceived += (sender, e) => Debug.WriteLine(e.Data);
-
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-
-                if (process.ExitCode == 0)
-                {
-                    // stip filename from path
-                    var filenameOnly = filename.Split('\\').Last();
-
-                    if (filenameOnly.Contains("."))
-                    {
-                        filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".json";
-                    }
-                    else
-                    {
-                        filenameOnly += ".json";
-                    }
-                    // add path back in
-
-                    var json = File.ReadAllText(filenameOnly);
-
-
-                    // deserz to dynamic, and get the object's segments array
-
-                    List<string> result = new List<string>();
-
-                    dynamic jsonObj = JObject.Parse(json);
-
-                    foreach (var segment in jsonObj.segments)
-                    {
-                        double start = segment.start;
-                        double end = segment.end;
-                        string text = segment.text;
-                        string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
-                        result.Add(formattedText);
-                    }
-
-                    var output = $"{ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, result)}{Environment.NewLine}{ThreeTicks}{Environment.NewLine}";
-
-                    await chatWebView.SetUserPrompt(output);
-                }
-            }
         }
 
         private static async Task CreateEmbeddingsAsync(string apiKey)
@@ -506,30 +427,13 @@ namespace AiTool3
                 embeddings[i].Class = frags[i].Class;
             }
 
-
             // write the embeddings to the save file as json
             var json = JsonSerializer.Serialize(embeddings);
             File.WriteAllText(saveFileDialog.FileName, json);
 
-            // write ziped to file as well
-            //var zipPath = saveFileDialog.FileName.Replace(".embeddings.json", ".embeddings.zip");
-            //using (var archive = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
-            //{
-            //    var entry = archive.CreateEntry("embeddings.json");
-            //    using (var stream = entry.Open())
-            //    using (var writer = new StreamWriter(stream))
-            //    {
-            //        writer.Write(json);
-            //    }
-            //}
-
-
-
             // show mb to say it's done
             MessageBox.Show("Embeddings created and saved");
         }
-
-
 
         private static ToolStripMenuItem CreateMenu(string menuText)
         {
@@ -564,20 +468,4 @@ namespace AiTool3
         }
     }
 
-    public class FileTexts
-    {
-        public string Filename { get; set; }
-        public string Content { get; set; }
-
-    }
-
-    public class Embedding
-    {
-        public string Code { get; set; }
-        public List<float> Value { get; set; }
-        public string Filename { get; set; }
-        public int LineNumber { get; set; }
-        public string Namespace { get; set; }
-        public string Class { get; set; }
-    }
 }
