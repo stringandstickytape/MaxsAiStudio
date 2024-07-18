@@ -126,22 +126,32 @@ namespace AiTool3
             // Add separator after "None"
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
 
-            foreach (var topic in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
+            foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
-                var categoryMenuItem = CreateMenuItem(topic.Name, ref templatesMenu);
+                var categoryMenuItem = CreateMenuItem(category.Name, ref templatesMenu);
 
-                foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
+                foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
                     var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateManager.templateMenuItems[template.TemplateName] = templateMenuItem;
 
                     templateMenuItem.Click += async (s, e) =>
                     {
-                        await SelectTemplate(topic.Name, template.TemplateName);
+                        // if shift is held:
+                        if (ModifierKeys == Keys.Shift)
+                        {
+                            if(MessageBox.Show("Are you sure you want to delete this template?", "Delete Template", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                            {
+                                category.Templates.Remove(template);
+                                templateManager.TemplateSet.Save();
+                                RecreateTemplatesMenu();
+                            }
+                        }
+                        else await SelectTemplate(category.Name, template.TemplateName);
                     };
                     templateMenuItem.EditClicked += (s, e) =>
                     {
-                        templateManager.EditAndSaveTemplate(template, false, topic.Name);
+                        templateManager.EditAndSaveTemplate(template, false, category.Name);
                         RecreateTemplatesMenu();
                     };
 

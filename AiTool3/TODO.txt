@@ -73,7 +73,6 @@ DONE: add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send b
 Necessary for release:
 
 Templates:
-collate code?
 example templates set
 delete template
 
