@@ -685,10 +685,7 @@ namespace AiTool3
 
         private async Task CreateNewWebNdc(bool showDevTools)
         {
-            await webViewManager.CreateNewWebNdc(showDevTools);
-
-            webViewManager.WebNdcContextMenuOptionSelected += WebViewNdc_WebNdcContextMenuOptionSelected;
-            webViewManager.WebNdcNodeClicked += WebViewNdc_WebNdcNodeClicked;
+            await webViewManager.CreateNewWebNdc(showDevTools, WebViewNdc_WebNdcContextMenuOptionSelected, WebViewNdc_WebNdcNodeClicked);
         }
 
         private void MaxsAiStudio_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();

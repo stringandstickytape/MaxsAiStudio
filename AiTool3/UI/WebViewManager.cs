@@ -121,7 +121,7 @@ namespace AiTool3.UI
             return;
         }//<insertscripthere/>
 
-        public async Task CreateNewWebNdc(bool showDevTools)
+        public async Task CreateNewWebNdc(bool showDevTools, EventHandler<WebNdcContextMenuOptionSelectedEventArgs> webViewNdc_WebNdcContextMenuOptionSelected, EventHandler<WebNdcNodeClickedEventArgs> webViewNdc_WebNdcNodeClicked)
         {
             string js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
@@ -139,6 +139,8 @@ namespace AiTool3.UI
             await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(d3js);
             NavigateToHtml(result);
 
+            WebNdcContextMenuOptionSelected += webViewNdc_WebNdcContextMenuOptionSelected;
+            WebNdcNodeClicked += webViewNdc_WebNdcNodeClicked;
 
         }
 
