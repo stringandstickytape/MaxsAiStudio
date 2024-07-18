@@ -566,19 +566,13 @@ namespace AiTool3
 
         private async Task SelectTemplate(string categoryName, string templateName)
         {
-            selectedTemplate = templateManager.TemplateSet.Categories.First(t => t.Name == categoryName).Templates.First(t => t.TemplateName == templateName);
+            selectedTemplate = templateManager.GetTemplateByCategoryAndName(categoryName, templateName);
+
             await PopulateUiForTemplate(selectedTemplate!);
 
-            // Update menu items
-            foreach (var item in templateMenuItems.Values)
-            {
-                item.IsSelected = false;
-            }
-            if (templateMenuItems.TryGetValue(templateName, out var menuItem))
-            {
-                menuItem.IsSelected = true;
-            }
-            menuBar.Refresh(); // Force redraw of the menu
+            templateManager.UpdateMenuItems(templateName);
+
+            menuBar.Refresh();
         }
 
         private async Task PopulateUiForTemplate(ConversationTemplate template)
@@ -589,16 +583,8 @@ namespace AiTool3
             dgvConversations.Enabled = true;
             webViewManager.Enable();
             
-            if (template != null)
-            {
-                await chatWebView.UpdateSystemPrompt(template.SystemPrompt);
-                await chatWebView.SetUserPrompt(template.InitialPrompt);
-            }
-        }
-
-         private void EditAndSaveTemplate(ConversationTemplate template, bool add = false, string? category = null)
-        {
-            TemplatesHelper.UpdateTemplates(template, add, category, new Form(), templateManager.TemplateSet);
+            await chatWebView.UpdateSystemPrompt(template?.SystemPrompt ?? "");
+            await chatWebView.SetUserPrompt(template?.InitialPrompt ?? "");
         }
 
         private async void buttonStartRecording_Click(object sender, EventArgs e)

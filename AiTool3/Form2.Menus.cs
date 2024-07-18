@@ -104,14 +104,14 @@ namespace AiTool3
             await chatWebView.SetUserPrompt("");
 
             // Update menu items
-            foreach (var item in templateMenuItems.Values)
+            foreach (var item in templateManager.templateMenuItems.Values)
             {
                 item.IsSelected = false;
             }
             menuBar.Refresh(); // Force redraw of the menu
         }
 
-        private Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
+        
         private void CreateTemplatesMenu()
         {
             var templatesMenu = CreateMenu("Templates");
@@ -133,7 +133,7 @@ namespace AiTool3
                 foreach (var template in topic.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
                     var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
-                    templateMenuItems[template.TemplateName] = templateMenuItem;
+                    templateManager.templateMenuItems[template.TemplateName] = templateMenuItem;
 
                     templateMenuItem.Click += async (s, e) =>
                     {
@@ -141,7 +141,7 @@ namespace AiTool3
                     };
                     templateMenuItem.EditClicked += (s, e) =>
                     {
-                        EditAndSaveTemplate(template, false, topic.Name);
+                        templateManager.EditAndSaveTemplate(template, false, topic.Name);
                     };
 
                 }
@@ -155,8 +155,8 @@ namespace AiTool3
                     var templateName = ((ToolStripMenuItem)s!).OwnerItem!.Text;
 
                     var template = new ConversationTemplate("System Prompt", "Initial Prompt");
-                    
-                    EditAndSaveTemplate(template, true, templateName);
+
+                    templateManager.EditAndSaveTemplate(template, true, templateName);
 
                     var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateMenuItem.Click += async (s, e) =>
@@ -165,7 +165,7 @@ namespace AiTool3
                     };
                     templateMenuItem.EditClicked += (s, e) =>
                     {
-                        EditAndSaveTemplate(template, false, templateName);
+                        templateManager.EditAndSaveTemplate(template, false, templateName);
                     };
 
                     // add to TopicSet.Topics
@@ -231,7 +231,7 @@ namespace AiTool3
                         menuBar.Items.Remove(menu);
                     }
 
-                    templateMenuItems.Clear();
+                    templateManager.templateMenuItems.Clear();
                     CreateTemplatesMenu();
                     // move it one before the end
 
