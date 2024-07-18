@@ -202,7 +202,7 @@ namespace AiTool3
                 {
                     new LabelAndEventHander("Create embedding", async (s, e) =>
                     {
-                        await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
+                        await EmbeddingsHelper.CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
                     }),
 
                     new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
@@ -300,91 +300,7 @@ namespace AiTool3
             menuBar.Items.Add(specialsMenu);
         }
 
-        private static async Task TranscribeMP4(string openFileDialog, ChatWebView chatWebView)
-        {
-
-        }
-
-        private static async Task CreateEmbeddingsAsync(string apiKey)
-        {
-            // get a directory to open from the user
-            var folderBrowserDialog = new FolderBrowserDialog();
-            folderBrowserDialog.ShowDialog();
-            if (folderBrowserDialog.SelectedPath == "")
-            {
-                return;
-            }
-
-            // recursively find all cs files within that dir and subdirs
-            var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
-            files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
-
-
-            var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
-            var xmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories);
-            var jsFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories);
-            
-            var csFragmenter = new CsFragmenter();
-            var webCodeFragmenter = new WebCodeFragmenter();
-            var xmlFragmenter = new XmlCodeFragmenter();
-            List<CodeFragment> fragments = new List<CodeFragment>();
-
-            foreach (var file in jsFiles)
-            {
-                if (file.Contains("\\bin\\") || file.Contains("ThirdPartyJavascript") || file.Contains("JsonViewer")) continue;
-                fragments.AddRange(webCodeFragmenter.FragmentJavaScriptCode(File.ReadAllText(file), file));
-            }
-
-            foreach (var file in xmlFiles)
-            {
-                fragments.AddRange(xmlFragmenter.FragmentCode(File.ReadAllText(file), file));
-            }
-            foreach (var file in htmlFiles)
-            {
-                fragments.AddRange(webCodeFragmenter.FragmentCode(File.ReadAllText(file), file));
-            }
-            // remove all frags under 10 chars in length
-            foreach (var file in files)
-            {
-                fragments.AddRange(csFragmenter.FragmentCode(File.ReadAllText(file), file));
-            }
-
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Embeddings JSON file|*.embeddings.json",
-                Title = "Save Embeddings JSON file"
-            };
-            saveFileDialog.ShowDialog();
-
-            if (saveFileDialog.FileName == "")
-            {
-                return;
-            }
-            var frags = fragments.Where(x => x.Content.Length > 25).ToList();
-
-            var embeddingInputs = frags.Select(x => @$"{x.FilePath.Split('/').Last()} line {x.LineNumber} {(string.IsNullOrEmpty(x.Class) ? "" : $", class {x.Namespace}.{x.Class}")}:
-
-{x.Content}
-").ToList();
-
-            var embeddings = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(embeddingInputs, apiKey);
-
-             for (var i = 0; i < frags.Count; i++)
-            {
-                embeddings[i].Code = frags[i].Content;
-                embeddings[i].Filename = frags[i].FilePath;
-                embeddings[i].LineNumber = frags[i].LineNumber;
-                embeddings[i].Namespace = frags[i].Namespace;
-                embeddings[i].Class = frags[i].Class;
-            }
-
-            // write the embeddings to the save file as json
-            var json = JsonSerializer.Serialize(embeddings);
-            File.WriteAllText(saveFileDialog.FileName, json);
-
-            // show mb to say it's done
-            MessageBox.Show("Embeddings created and saved");
-        }
+ 
 
         public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)
         {

@@ -695,7 +695,7 @@ namespace AiTool3
                 // Disable the button while processing
                 btnGenerateEmbeddings.Enabled = false;
 
-                await CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
+                await EmbeddingsHelper.CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
 
             }
             catch (Exception ex)
