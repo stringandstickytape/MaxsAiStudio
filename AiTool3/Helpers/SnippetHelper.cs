@@ -1,10 +1,23 @@
-﻿using AiTool3.Snippets;
+﻿using AiTool3.Conversations;
+using AiTool3.Snippets;
 using AiTool3.UI;
 
 namespace AiTool3.Helpers
 {
     public static class SnippetHelper
     {
+        public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)
+        {
+            var allSnippets = new List<Snippet>();
+
+            foreach (var node in conversation.GetParentNodeList(currentMessage.Guid))
+            {
+                SnippetSet snippetSet = snippetManager.FindSnippets(node.Content);
+                allSnippets.AddRange(snippetSet.Snippets);
+            }
+
+            return allSnippets;
+        }
         public static string StripFirstLine(string code)
         {
             return code.Substring(code.IndexOf('\n') + 1);

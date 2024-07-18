@@ -290,9 +290,9 @@ namespace AiTool3
                         splitContainer1.Panel1Collapsed = !splitContainer1.Panel1Collapsed;
                     }),
 
-                    new LabelAndEventHander("Test Snippets Code", async (s, e) =>
+                    new LabelAndEventHander("Test Snippets Code", (s, e) =>
                     {
-                        SnippetHelper.ShowSnippets(GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.Conversation, snippetManager));
+                        SnippetHelper.ShowSnippets(SnippetHelper.GetAllSnippets(ConversationManager.PreviousCompletion, ConversationManager.Conversation, snippetManager));
                     })
                 }
             );
@@ -302,18 +302,7 @@ namespace AiTool3
 
  
 
-        public static List<Snippet> GetAllSnippets(CompletionMessage currentMessage, BranchedConversation conversation, SnippetManager snippetManager)
-        {
-            var allSnippets = new List<Snippet>();
-            
-            foreach (var node in conversation.GetParentNodeList(currentMessage.Guid))
-            {
-                SnippetSet snippetSet = snippetManager.FindSnippets(node.Content);
-                allSnippets.AddRange(snippetSet.Snippets);
-            }
 
-            return allSnippets;
-        }
     }
 
 }
