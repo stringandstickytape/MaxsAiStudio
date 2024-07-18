@@ -67,14 +67,13 @@ launch JS directly would be nice
 
 DONE: "NONE" option at the top of the templates menu
 DONE: add big yellow use-embeddings button? Add text "WITH EMBEDDINGS" to send button and make it yellow?
-
-
+DONE: delete template
+DONE: if there's no local AI at all, deal with it
 
 Necessary for release:
 
 Templates:
 example templates set
-delete template
 
 Build:
 Cublas and non-Cublas builds - need dlls from another source - whisperX?
@@ -85,7 +84,7 @@ Allow choice of embedding engine
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
-Handle if there's no local AI at all
+
 Github version update code
 2/5: fix images aren't included in history (not implemented at all for groq)
 add mermaid to licenses and remove CDNs, possiby also other pkg references

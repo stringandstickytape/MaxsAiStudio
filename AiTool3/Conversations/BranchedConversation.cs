@@ -14,8 +14,9 @@ namespace AiTool3.Conversations
         public List<CompletionMessage> Messages = new List<CompletionMessage>();
         public string ConvGuid { get; set; }
         public string Title { get; set; }
+        public Color? HighlightColour { get; set; } = null;
 
-        public void SaveAsJson()
+        public void SaveConversation()
         {
             // write the object out as JSON
             string json = JsonConvert.SerializeObject(this);
@@ -116,7 +117,7 @@ namespace AiTool3.Conversations
                 Title = msg.Length > 100 ? msg.Substring(0, 100) : msg;
             }
 
-            SaveAsJson();
+            SaveConversation();
 
             return Title;
         }

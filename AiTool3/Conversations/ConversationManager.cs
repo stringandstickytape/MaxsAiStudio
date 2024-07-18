@@ -51,7 +51,7 @@ namespace AiTool3.Conversations
 
         public void SaveConversation()
         {
-            CurrentConversation!.SaveAsJson();
+            CurrentConversation!.SaveConversation();
         }
 
         public async Task<string> GenerateConversationSummary(SettingsSet currentSettings)

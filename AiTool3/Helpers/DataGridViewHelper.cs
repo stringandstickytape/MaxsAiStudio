@@ -54,9 +54,14 @@ namespace AiTool3.Helpers
                 if (!conv.Messages.Any())
                     continue;
 
-                dgv.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.Title);
+                int rowIndex = dgv.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.Title);
 
+                if (conv.HighlightColour.HasValue)
+                {
+                    dgv.Rows[rowIndex].DefaultCellStyle.BackColor = conv.HighlightColour.Value;
 
+                    dgv.Rows[rowIndex].DefaultCellStyle.ForeColor = Color.Black;
+                }
             }
 
 
