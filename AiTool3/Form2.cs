@@ -26,6 +26,7 @@ namespace AiTool3
     public partial class Form2 : Form
     {
         private SnippetManager snippetManager = new SnippetManager();
+        private FileAttachmentManager _fileAttachmentManager;
 
         private SearchManager _searchManager;
 
@@ -95,6 +96,7 @@ namespace AiTool3
             dgvConversations.MouseDown += DgvConversations_MouseDown;
 
             _searchManager = new SearchManager(dgvConversations);
+            _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
         }
 
 
@@ -609,58 +611,9 @@ namespace AiTool3
 
         private async void buttonAttachImage_Click(object sender, EventArgs e)
         {
-            // pop a mb asking attach image or text with image and text buttons
-            var r = SimpleDialogsHelper.ShowAttachmentDialog();
-
-            switch (r)
-            {
-                case DialogResult.Retry:
-                    var openFileDialog2 = new OpenFileDialog();
-                    openFileDialog2.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
-                    openFileDialog2.ShowDialog();
-
-                    if (openFileDialog2.FileName == "")
-                    {
-                        return;
-                    }
-                    await TranscribeMP4(openFileDialog2.FileName);
-
-                    break;
-
-                case DialogResult.Yes:
-                    OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(CurrentSettings.DefaultPath);
-
-                    Base64Image = openFileDialog.FileName != "" ? ImageHelpers.ImageToBase64(openFileDialog.FileName) : "";
-                    Base64ImageType = openFileDialog.FileName != "" ? ImageHelpers.GetImageType(openFileDialog.FileName) : "";
-                    break;
-                case DialogResult.No:
-                    OpenFileDialog attachTextFilesDialog = ImageHelpers.ShowAttachTextFilesDialog(CurrentSettings.DefaultPath);
-
-                    if (attachTextFilesDialog.FileNames.Length > 0)
-                    {
-                        StringBuilder sb = new StringBuilder();
-                        foreach (var file in attachTextFilesDialog.FileNames)
-                        {
-                            sb.AppendMany(ThreeTicks,
-                                Path.GetFileName(file),
-                                Environment.NewLine,
-                                File.ReadAllText(file),
-                                Environment.NewLine,
-                                ThreeTicks,
-                                Environment.NewLine,
-                                Environment.NewLine);
-                        }
-
-                        var existingPrompt = await chatWebView.GetUserPrompt();
-
-                        await chatWebView.SetUserPrompt($"{sb.ToString()}{existingPrompt}");
-
-                        CurrentSettings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
-                    }
-                    break;
-                case DialogResult.Cancel:
-                    break;
-            }
+            await _fileAttachmentManager.HandleAttachment();
+            Base64Image = _fileAttachmentManager.Base64Image;
+            Base64ImageType = _fileAttachmentManager.Base64ImageType;
         }
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
@@ -674,23 +627,6 @@ namespace AiTool3
             return new CancellationTokenSource();
         }
 
-        private static async Task<bool> IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
-        {
-            var conv = BranchedConversation.LoadConversation(guid);
-            var allMessages = conv.Messages.Select(m => m.Content).ToList();
-
-            foreach (string? message in allMessages)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (message!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         private void btnClearSearch_Click(object sender, EventArgs e) 
         {
@@ -717,7 +653,6 @@ namespace AiTool3
 >" : @"<
 <
 <";
-
         }
 
         private async void btnGenerateEmbeddings_Click(object sender, EventArgs e)
