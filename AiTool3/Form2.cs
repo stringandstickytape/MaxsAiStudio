@@ -70,13 +70,7 @@ namespace AiTool3
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
 
-            // if topics.json exists, load it
-            
-
-            foreach (var topic in templateManager.TemplateSet.Categories)
-            {
-                cbCategories.Items.Add(topic.Name);
-            }
+            templateManager.TemplateSet.Categories.ForEach(x => { cbCategories.Items.Add(x.Name); });
 
             InitialiseApiList();
 
