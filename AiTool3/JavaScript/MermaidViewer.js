@@ -108,10 +108,10 @@ function createMermaidViewer(mermaidString) {
                 controlIconsEnabled: true,
                 fit: true,
                 center: true,
-                minZoom: 0.1,
+                maxZoom: 1000,
                 zoomScaleSensitivity: 0.3,
                 mouseWheelZoomEnabled: true,
-                mouseWheelZoomSpeed: 0.5
+                mouseWheelZoomSpeed: 2
             });
 
             window.addEventListener('resize', resizeHandler);

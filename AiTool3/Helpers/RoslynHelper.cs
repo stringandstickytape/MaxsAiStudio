@@ -12,6 +12,9 @@ internal static class RoslynHelper
         public int StartLineNumber { get; set; }
         public string ClassName { get; set; }
         public string Namespace { get; set; }
+
+
+
     }
 
     public static List<MethodDetail> ExtractMethodsUsingRoslyn(string sourceCode, string sourceFileName)

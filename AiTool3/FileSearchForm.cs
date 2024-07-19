@@ -12,6 +12,8 @@ namespace AiTool3
     public class FileSearchForm : Form
     {
         private TreeView treeView;
+        private Panel buttonPanel;
+        private Button testButton;
         private string rootPath;
         private string[] fileExtensions;
 
@@ -27,19 +29,68 @@ namespace AiTool3
         private void InitializeComponent()
         {
             this.treeView = new TreeView();
+            this.buttonPanel = new Panel();
+            this.testButton = new Button();
             this.SuspendLayout();
 
             // TreeView
             this.treeView.Dock = DockStyle.Fill;
             this.treeView.CheckBoxes = true;
             this.treeView.AfterCheck += new TreeViewEventHandler(treeView_AfterCheck);
+            this.treeView.ItemDrag += new ItemDragEventHandler(treeView_ItemDrag);
+            this.treeView.AllowDrop = true;
+
+            // Button Panel
+            this.buttonPanel.Dock = DockStyle.Bottom;
+            this.buttonPanel.Height = 40;
+
+            // Test Button
+            this.testButton.Text = "Test";
+            this.testButton.Location = new Point(10, 5);
+            this.testButton.Size = new Size(75, 30);
+            this.testButton.Click += new EventHandler(testButton_Click);
+
+            // Add Test Button to Button Panel
+            this.buttonPanel.Controls.Add(this.testButton);
 
             // Form
             this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Controls.Add(this.buttonPanel);
             this.Controls.Add(this.treeView);
             this.Name = "FileExplorerForm";
             this.Text = "File Explorer";
             this.ResumeLayout(false);
+        }
+
+        private void testButton_Click(object sender, EventArgs e)
+        {
+            var files = GetCheckedFiles();
+
+            var cSharpAnalyzer = new CSharpAnalyzer();
+            var methodInfos = cSharpAnalyzer.AnalyzeFiles(files);
+            // remove all System methods
+            methodInfos.RemoveAll(m => m.Namespace.StartsWith("System"));
+            foreach(var m in methodInfos)
+                m.RelatedMethodsFullName = m.RelatedMethodsFullName.Where(m => !m.StartsWith("System")).ToList();
+
+            var mermaidDiagram = cSharpAnalyzer.GenerateMermaidDiagram(methodInfos);
+            
+            var interestingMethods = methodInfos.OrderByDescending(m => m.RelatedMethodsFullName.Count).ToList();
+
+            MessageBox.Show($"Files checked: {string.Join(", ", files)}");
+        }
+
+        private void treeView_ItemDrag(object sender, ItemDragEventArgs e)
+        {
+            if (e.Item is TreeNode node)
+            {
+                string fullPath = GetFullPath(node);
+                if (File.Exists(fullPath))
+                {
+                    DataObject data = new DataObject(DataFormats.Text, fullPath);
+                    DoDragDrop(data, DragDropEffects.Copy);
+                }
+            }
         }
 
         private void PopulateTreeView()
@@ -155,5 +206,17 @@ namespace AiTool3
             pathParts.Reverse();
             return Path.Combine(pathParts.ToArray());
         }
+
+        /* private string GetFullPath(TreeNode node)
+   {
+       List<string> pathParts = new List<string>();
+       while (node != null)
+       {
+           pathParts.Add(node.Text);
+           node = node.Parent;
+       }
+       pathParts.Reverse();
+       return Path.Combine(rootPath, Path.Combine(pathParts.ToArray()));
+   } */
     }
 }

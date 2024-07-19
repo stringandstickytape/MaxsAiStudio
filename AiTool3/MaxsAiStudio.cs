@@ -758,13 +758,7 @@ namespace AiTool3
         {
             string fileTypes = ".cs, *.html, *.css, *.js";
             var form = new FileSearchForm(CurrentSettings.DefaultPath, fileTypes);
-            form.ShowDialog();
-
-            List<string> checkedFiles = form.GetCheckedFiles();
-            foreach (string file in checkedFiles)
-            {
-                Debug.WriteLine(file);
-            }
+            form.Show();
         }
     }
 }

@@ -132,6 +132,18 @@ namespace AiTool3
                     new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-haiku-20240307", Color = Color.FromArgb(216, 186, 255)},
                 },
             });
+
+            // mock service
+            ApiList.Add(new Api
+            {
+                ApiName = "Mock AI Service",
+                ApiUrl = "Not Applicable",
+                Models = new List<Model>
+                {
+                    new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, ModelName = "lorem-ipsum-1", Color = Color.FromArgb(255, 186, 186)},
+                },
+
+            });
         }
 
         public static void Save(SettingsSet mgr)
