@@ -282,7 +282,7 @@ namespace AiTool3.Settings
             // get the new value
             var newValue = row.Cells[e.ColumnIndex].Value;
 
-            if (e.ColumnIndex > 2)
+            if (e.ColumnIndex > 1)
             {
                 // get the model from settings
                 var models = NewSettings.ApiList.SelectMany(a => a.Models);

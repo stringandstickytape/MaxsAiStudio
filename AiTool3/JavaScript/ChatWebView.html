@@ -392,6 +392,8 @@
                 { label: 'View JSON String Array', dataType: 'json' },
                 { label: 'Browse JSON Object', dataType: 'json' },
                 { label: 'View Mermaid Diagram', dataType: 'mermaid' },
+                { label: 'View PlantUML Diagram', dataType: 'plantuml' },
+                { label: 'View DOT Diagram', dataType: 'dot' },
                 { label: 'Run Python Script', dataType: 'python' },
                 { label: 'Launch STL', dataType: 'stl' },
                 { label: 'Run PowerShell Script', dataType: 'powershell' }
@@ -410,6 +412,8 @@
                             createJsonViewer(content);
                         } else if (btnInfo.label === 'View Mermaid Diagram') {
                             createMermaidViewer(content);
+                        } else if (btnInfo.label == 'View DOT Diagram') {
+                            renderDotString(content);
                         } else {
                             window.chrome.webview.postMessage({
                                 type: btnInfo.label,

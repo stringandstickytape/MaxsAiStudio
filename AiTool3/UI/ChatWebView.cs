@@ -101,6 +101,12 @@ namespace AiTool3.UI
                     new AutoSuggestForm(suggestions.ToArray()).Show();
 
                     break;
+                case "View PlantUML Diagram":
+                    PlantUMLViewer.View(content);
+                    break;
+                case "View DOT Diagram":
+                    DotViewer.View(content);
+                    break;
                 case "Save As":
                     var dataType = message["dataType"];
                     var filext = SnippetManager.GetFileExtFromLanguage(dataType);
@@ -163,11 +169,13 @@ namespace AiTool3.UI
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.MermaidViewer.js"));
 
-            CoreWebView2.NewWindowRequested += (sender2, e2) => {
-                String _fileurl = e2.Uri.ToString();
-                e2.Handled = true;
-                FileDropped?.Invoke(this, _fileurl);
-            };
+            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.DotViewer.js"));
+
+            //CoreWebView2.NewWindowRequested += (sender2, e2) => {
+            //    String _fileurl = e2.Uri.ToString();
+            //    e2.Handled = true;
+            //    FileDropped?.Invoke(this, _fileurl);
+            //};
         }
 
         internal async Task AddMessages(List<CompletionMessage> parents)
@@ -221,7 +229,7 @@ namespace AiTool3.UI
         }
 
         private static List<ResourceDetails> GetResourceDetails()
-        {
+        {// https://cdn.jsdelivr.net/npm/@sakirtemel/plantuml.js@1.0.1/+esm
             return new List<ResourceDetails>
             {
                 new ResourceDetails

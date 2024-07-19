@@ -48,6 +48,14 @@ tiny bug: chat window types urls and other text content dropped directly :/
 
 bug: api key setting doesn't seem to stick
 
+bug: chat input is too big in full-screen
+
+support markdown? :/
+regex viewer? :/
+PlantUML viewer!
+GraphViz ??
+SVG? we already have svg-pan-zoom
+css viewer?
 
 
 
@@ -98,7 +106,7 @@ add date/time of conversdation start to DGV
 
 Github version update code
 4/5: fix images aren't included in Groq history
-add mermaid and svg-pan-zoom to licenses
+add mermaid and svg-pan-zoom and https://unpkg.com/viz.js@2.1.2/viz.js to licenses
 
 Embeddings:
 Include embedding model name in default filename ext
