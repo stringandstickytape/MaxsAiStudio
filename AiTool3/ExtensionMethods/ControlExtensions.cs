@@ -52,18 +52,24 @@ namespace AiTool3.ExtensionMethods
                 };
 
                 control.Controls.Add(overlay);
+
+                overlay.Tag = control.BackColor;
+            
                 overlay.BringToFront();
                 control.Enabled = false;
             }
 
             public static void HideWorking(this Control control)
             {
-                var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault(c => c.Tag as string == OverlayTag);
+                var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault();
                 if (overlay != null)
                 {
+
+                    
                     control.Controls.Remove(overlay);
                     overlay.Dispose();
                 }
+                 
                 control.Enabled = true;
             }
 

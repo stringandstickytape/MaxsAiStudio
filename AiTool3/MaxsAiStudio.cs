@@ -267,14 +267,14 @@ namespace AiTool3
             await chatWebView.EnsureCoreWebView2Async(null);
 
 
-            dgvConversations.ShowWorking();
+           // chatWebView.ShowWorking();
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             await BeginNewConversation();
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
-            Task.Delay(5000).ContinueWith(t => dgvConversations.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
+           // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
             if (CurrentSettings.RunWebServer)
             {
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
