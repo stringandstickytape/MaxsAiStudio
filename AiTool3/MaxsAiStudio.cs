@@ -115,6 +115,8 @@ namespace AiTool3
                     }
                 };
                 contextMenu.Items.Add(item);
+
+
             }
 
             // add a split and no-highlight option which sets conv.highlightcolour to null and updates the row
@@ -141,6 +143,9 @@ namespace AiTool3
 
             contextMenu.Items.Add(noHighlightItem);
 
+            contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
+
             dgvConversations.ContextMenuStrip = contextMenu;
 
             InitialiseMenus();
@@ -158,6 +163,34 @@ namespace AiTool3
 
 
         }
+
+        private async void DeleteConversation(object? sender, EventArgs e)
+        {
+            var result = MessageBox.Show("Are you sure you want to delete this conversation?", "Delete Conversation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                // are we deleting the current conversation? if so, start a new one.
+                if (selectedConversationGuid == ConversationManager.Conversation.ConvGuid)
+                {
+                    await BeginNewConversation();
+                }
+
+                // Delete the conversation
+                BranchedConversation.DeleteConversation(selectedConversationGuid);
+
+                foreach (DataGridViewRow row in dgvConversations.Rows)
+                {
+                    if (row.Cells[0].Value.ToString() == selectedConversationGuid)
+                    {
+                        dgvConversations.Rows.Remove(row);
+                        break;
+                    }
+                }
+            }
+
+        }
+
         private void InitialiseMenus()
         {
             var fileMenu = MenuHelper.CreateMenu("File");

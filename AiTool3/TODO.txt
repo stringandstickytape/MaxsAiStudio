@@ -41,15 +41,21 @@ DONE: Rename to MaxsAiStudio
 DONE: tiny bug: fullscreen user prompt button is a Bit Crap
 DONE: Ongoing token counting
 DONE: Make convo browser visible sticky
-
-
+DONE: bug: new-with-context doesn't work properly
+DONE: Delete-conversation (for failed conversations innit)
 
 tiny bug: chat window types urls and other text content dropped directly :/
-bug: new-with-context doesn't work properly
+
+bug: api key setting doesn't seem to stick
 
 
+
+
+move conversations to subdirectory, templates to another, settings to a third?
 
 Useful next:
+
+
 
 Make use of token counting
 PART DONE: Streaming token counting is done for Claude
@@ -123,6 +129,7 @@ Different Whisper models
 
 
 Longer-term:
+
 
 enable/disable cs/html highlighting
 Pick-a-frame-from-a-video

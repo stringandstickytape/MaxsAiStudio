@@ -2,6 +2,7 @@
 using AiTool3.Interfaces;
 using AiTool3.Providers;
 using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -77,7 +78,7 @@ namespace AiTool3.Conversations
                     {
                         var nodeContent = node.Content;
                         // truncate to 500 chars if necc
-                        if (nodeContent.Length > 300)
+                        if (nodeContent != null && nodeContent.Length > 300)
                         {
                             nodeContent = nodeContent.Substring(0, 300);
                         }
@@ -269,6 +270,11 @@ namespace AiTool3.Conversations
         public CompletionMessage GetRootNode()
         {
             return Messages.First(x => x.Role == CompletionRole.Root);
+        }
+
+        internal static void DeleteConversation(object selectedNodeGuid)
+        {
+            File.Delete($"v3-conversation-{selectedNodeGuid}.json");
         }
     }
 }

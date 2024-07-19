@@ -65,7 +65,7 @@ namespace AiTool3
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (message!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                if (message != null && message!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0)
                 {
                     return true;
                 }
