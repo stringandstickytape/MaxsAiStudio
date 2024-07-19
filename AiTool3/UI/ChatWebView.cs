@@ -142,9 +142,8 @@ namespace AiTool3.UI
 
             await EnsureCoreWebView2Async(null);
             CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
-            var resources = GetResourceDetails();
 
-            foreach (var resource in resources)
+            foreach (var resource in GetResourceDetails())
             {
                 CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
             }
@@ -218,15 +217,27 @@ namespace AiTool3.UI
 
         private void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
-            List<ResourceDetails> resources = GetResourceDetails();
-
-            resources.Where(x => e.Request.Uri == x.Uri).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
+            GetResourceDetails().Where(x => e.Request.Uri == x.Uri).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
         }
 
         private static List<ResourceDetails> GetResourceDetails()
         {
             return new List<ResourceDetails>
             {
+                new ResourceDetails
+                {
+                    Uri = "https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.mermaid.min.js",
+                    MimeType = "application/javascript"
+                },
+
+                new ResourceDetails
+                {
+                    Uri = "https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.svg-pan-zoom.min.js",
+                    MimeType = "application/javascript"
+                },
+
                 new ResourceDetails
                 {
                     Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js",

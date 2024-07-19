@@ -589,7 +589,7 @@ namespace AiTool3
             if (lastAssistantMessage.Role == CompletionRole.User)
                 lastAssistantMessage = ConversationManager.Conversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
 
-            BeginNewConversationPreserveInputAndSystemPrompts();
+            await BeginNewConversationPreserveInputAndSystemPrompts();
 
             var assistantMessage = new CompletionMessage(CompletionRole.Assistant)
             {
@@ -609,9 +609,13 @@ namespace AiTool3
             rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
-            await BeginNewConversation();
-            ConversationManager.Conversation.Messages.AddRange(new[] { assistantMessage, userMessage });
+            //await BeginNewConversation();
+            ConversationManager.Conversation.Messages.AddRange(new[] { userMessage, assistantMessage });
             ConversationManager.PreviousCompletion = assistantMessage;
+
+            // update ui
+            await chatWebView.AddMessage(userMessage);
+            await chatWebView.AddMessage(assistantMessage);
 
             await WebNdcDrawNetworkDiagram();
         }
@@ -754,10 +758,16 @@ namespace AiTool3
             SettingsSet.Save(CurrentSettings);
         }
 
-        private void btnProjectHelper_Click(object sender, EventArgs e)
+        private async void btnProjectHelper_Click(object sender, EventArgs e)
         {
             string fileTypes = ".cs, *.html, *.css, *.js";
             var form = new FileSearchForm(CurrentSettings.DefaultPath, fileTypes);
+            form.AddFilesToInput += async (s, e) =>
+            {
+                // attach files as txt
+                await _fileAttachmentManager.AttachTextFiles(e.ToArray());
+
+            };
             form.Show();
         }
     }
