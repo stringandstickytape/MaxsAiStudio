@@ -154,6 +154,9 @@ namespace AiTool3
 
             _searchManager = new SearchManager(dgvConversations);
             _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
+
+
+
         }
         private void InitialiseMenus()
         {
@@ -264,20 +267,23 @@ namespace AiTool3
             await chatWebView.EnsureCoreWebView2Async(null);
 
 
-
+            //dgvConversations.ShowWorking();
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             await BeginNewConversation();
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
-
+            //Task.Delay(5000).ContinueWith(t => dgvConversations.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
             if (CurrentSettings.RunWebServer)
             {
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
             }
 
 
+
+            // in 5 sec, HideWorking
+            
 
         }
 

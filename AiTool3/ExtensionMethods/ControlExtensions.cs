@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AiTool3.UI;
 
 namespace AiTool3.ExtensionMethods
 {
@@ -35,5 +36,41 @@ namespace AiTool3.ExtensionMethods
                 return func();
             }
         }
+
+            private const string OverlayTag = "WorkingOverlay";
+
+            public static void ShowWorking(this Control control)
+            {
+                if (control.Controls.OfType<WorkingOverlay>().Any())
+                    return;
+
+                var overlay = new WorkingOverlay
+                {
+                    Dock = DockStyle.Fill,
+                    Tag = OverlayTag,
+                    IsWorking = true
+                };
+
+                control.Controls.Add(overlay);
+                overlay.BringToFront();
+                control.Enabled = false;
+            }
+
+            public static void HideWorking(this Control control)
+            {
+                var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault(c => c.Tag as string == OverlayTag);
+                if (overlay != null)
+                {
+                    control.Controls.Remove(overlay);
+                    overlay.Dispose();
+                }
+                control.Enabled = true;
+            }
+
+            public static bool IsWorking(this Control control)
+            {
+                return control.Controls.OfType<WorkingOverlay>().Any(c => c.Tag as string == OverlayTag);
+            }
+
     }
 }

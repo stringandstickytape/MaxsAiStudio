@@ -40,7 +40,7 @@ DONE: It'd be lovely if you could highlight a conversation with one of four nice
 DONE: Rename to MaxsAiStudio
 DONE: tiny bug: fullscreen user prompt button is a Bit Crap
 DONE: Ongoing token counting
-
+DONE: Make convo browser visible sticky
 
 
 
@@ -89,7 +89,6 @@ Allow choice of embedding engine
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
 add date/time of conversdation start to DGV
-Make convo browser visible sticky
 
 Github version update code
 4/5: fix images aren't included in Groq history
@@ -106,15 +105,8 @@ Make demo videos or screenshots
 Testing:
 Check whisper still works through microphone
 
+It'd be nice if you could outright edit responses in the conversation - should really be able to do this
 
-It'd be nice if you could outright edit responses in the conversation
-
-AI ideas:
-• Ability to export conversations in various formats (PDF, DOCX, etc.)
-• Ability to import conversations in various formats (PDF, DOCX, etc.)
-• Collaborative real-time editing for shared conversations lol
-• Sentiment analysis for conversation messages lol
-*  syntax highlighting in messages
 
 Concatenate messages :(
 
@@ -134,3 +126,10 @@ Longer-term:
 
 enable/disable cs/html highlighting
 Pick-a-frame-from-a-video
+
+AI ideas:
+• Ability to export conversations in various formats (PDF, DOCX, etc.)
+• Ability to import conversations in various formats (PDF, DOCX, etc.)
+• Collaborative real-time editing for shared conversations lol
+• Sentiment analysis for conversation messages lol
+*  syntax highlighting in messages
