@@ -56,6 +56,8 @@ DONE: PlantUML viewer
 
 move conversations to subdirectory, templates to another, settings to a third?
 
+fix scroll to bottom when adding streaming fragment
+
 Useful next:
 
 Make use of token counting

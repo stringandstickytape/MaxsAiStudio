@@ -194,11 +194,13 @@ namespace AiTool3.Providers
 
                         StreamingComplete?.Invoke(this, null);
 
-                        return new AiResponse { ResponseText = fullResponse.ToString(), Success = true };
+                        return new AiResponse { ResponseText = fullResponse.ToString(), Success = true, TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount) };
                     }
                 }
             }
         }
+        private string inputTokenCount = "";
+        private string outputTokenCount = "";
 
         private async Task ProcessJsonObject(string jsonString, StringBuilder fullResponse)
         {
@@ -217,6 +219,16 @@ namespace AiTool3.Providers
 
                             StreamingTextReceived?.Invoke(this, textChunk);
                         }
+                    }
+                    /*   "usageMetadata": {
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 74
+  } */
+                    if (streamData["usageMetadata"] != null)
+                    {
+                        inputTokenCount =  streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
+                        outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                     }
                 }
                 catch (JsonReaderException)
