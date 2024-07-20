@@ -35,18 +35,27 @@ namespace AiTool3.Conversations
 
         public List<CompletionMessage> GetParentNodeList()
         {
-            var nodes = new List<CompletionMessage>();
-            var current = PreviousCompletion?.Guid;
-
-            while (current != null)
+            try
             {
-                var node = Conversation!.FindByGuid(current);
-                nodes.Add(node);
-                current = node.Parent;
-            }
+                var nodes = new List<CompletionMessage>();
+                var current = PreviousCompletion?.Guid;
 
-            nodes.Reverse();
-            return nodes;
+                while (current != null)
+                {
+                    var node = Conversation!.FindByGuid(current);
+                    nodes.Add(node);
+                    current = node.Parent;
+                }
+
+                nodes.Reverse();
+                return nodes;
+
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show("Weird bug I haven't nailed yet, has fired.  Please start a new conversation :/");
+                return null;
+            }
         }
 
         public void SaveConversation()
@@ -78,7 +87,7 @@ namespace AiTool3.Conversations
                 var patternFilename = BranchedConversation.GetFilename("ABC");
                 var filenamePattern = patternFilename.Substring(0, patternFilename.IndexOf("ABC"));
 
-                string guid2 = Path.GetFileNameWithoutExtension(file).Replace(filenamePattern, "").Replace(".json", "");
+                string guid2 = Path.GetFileNameWithoutExtension(file).Replace(Path.GetFileNameWithoutExtension(filenamePattern), "").Replace(".json", "");
                 LoadConversation(guid2);
 
                 // Regenerate summary

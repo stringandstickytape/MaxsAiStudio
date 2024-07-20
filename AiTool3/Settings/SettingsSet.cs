@@ -176,6 +176,15 @@ namespace AiTool3
                 Save(retVal);
                 return retVal;
             }
+            catch(DirectoryNotFoundException e)
+            {
+                Debug.WriteLine(e.Message);
+                Directory.CreateDirectory("Settings");
+                var retVal = new SettingsSet();
+                retVal.Create();
+                Save(retVal);
+                return retVal;
+            }
         }
 
         public Model GetModelByName(string modelName) =>  ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == modelName);
