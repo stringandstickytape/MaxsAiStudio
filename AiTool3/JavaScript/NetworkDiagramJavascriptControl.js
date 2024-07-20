@@ -21,7 +21,9 @@ document.body.appendChild(svgContainer);
 
 // Create toggle button
 const toggleButton = document.createElement('button');
-toggleButton.textContent = 'Toggle Layout';
+toggleButton.textContent = '⯐';
+toggleButton.style.color = 'white';
+toggleButton.style.backgroundColor = '#444444';
 toggleButton.style.position = 'absolute';
 toggleButton.style.top = '10px';
 toggleButton.style.left = '10px';

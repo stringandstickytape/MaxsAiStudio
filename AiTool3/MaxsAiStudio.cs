@@ -61,8 +61,6 @@ namespace AiTool3
 
             ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
 
-            InitialiseApiList();
-
             splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
             splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
 
@@ -299,12 +297,14 @@ namespace AiTool3
 
             await chatWebView.EnsureCoreWebView2Async(null);
 
+            InitialiseApiList();
+            // chatWebView.ShowWorking();
 
-           // chatWebView.ShowWorking();
-
-            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
+            
 
             await BeginNewConversation();
+
+            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
            // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
@@ -397,7 +397,7 @@ namespace AiTool3
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
                 : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
 
-            using (SolidBrush brush = new SolidBrush(Color.PaleTurquoise))
+            using (SolidBrush brush = new SolidBrush(Color.FromArgb(200,200,200)))
             {
                 e.Graphics.FillRectangle(brush, splitterRect);
             }
@@ -777,9 +777,10 @@ namespace AiTool3
             }
         }
 
-        private void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
         {
             CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
+            await chatWebView.ChangeChatHeaderLabel(cbEngine.SelectedItem!.ToString());
             SettingsSet.Save(CurrentSettings);
         }
 
