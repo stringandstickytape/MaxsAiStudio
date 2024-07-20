@@ -14,6 +14,8 @@ namespace AiTool3.Settings
 {
     public partial class SettingsForm : Form
     {
+        public int yInc = 32;
+
         public SettingsSet NewSettings;
         public SettingsForm(SettingsSet settings)
         {
@@ -52,7 +54,7 @@ namespace AiTool3.Settings
 
 
                 // increment ypos
-                ypos += 30;
+                ypos += yInc;
 
             }
 
@@ -85,7 +87,7 @@ namespace AiTool3.Settings
                 // add matching label to the right
                 var lbl = new Label
                 {
-                    Text = prop.Name,
+                    Text = displayNameAttr.DisplayName,
                     AutoSize = true,
                     Location = new Point(tb.Width + 5 + (takesBrowserDialog != null ? 60 : 0), ypos)
                 };
@@ -134,7 +136,7 @@ namespace AiTool3.Settings
                 }
 
 
-                ypos += 30;
+                ypos += yInc;
             }
 
             // for every public int property on settings...
@@ -173,7 +175,7 @@ namespace AiTool3.Settings
                 panelToggles.Controls.Add(lbl);
 
 
-                ypos += 30;
+                ypos += yInc;
             }
 
 
@@ -208,7 +210,7 @@ namespace AiTool3.Settings
                 };
                 panelToggles.Controls.Add(lbl);
 
-                ypos += 30;
+                ypos += yInc;
             }
 
 

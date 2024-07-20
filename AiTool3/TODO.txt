@@ -47,38 +47,35 @@ DONE: bug: api key setting doesn't seem to stick
 DONE: bug: chat input is too big in full-screen
 DONE: 4/5: fix images aren't included in Groq history
 DONE: PlantUML viewer
+DONE (as it can be): Streaming token counting is done for Claude
+DONE: Make use of token counting
+DONE: fix scroll to bottom when adding streaming fragment
+
+
+
+
+Known Limitations:
+No Base64 image support for Groq
+No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
+No token counting for Groq
 
 
 
 
 
 
-
-move conversations to subdirectory, templates to another, settings to a third?
-
-fix scroll to bottom when adding streaming fragment
 
 Useful next:
 
-Make use of token counting
-!!!! PART DONE: Streaming token counting is done for Claude
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
+move conversations to subdirectory, templates to another, settings to a third?
 
 Less important:
 Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 
-
-
-
-source code browser thing, to let you choose which files to upload from your project?
-launch sql? browse xml? launch svg? azure az command?! 
-json mode / tools ?
-Local web front-end - genericise existing html somehow?
-tools support? pull from api? what public apis could we test with?
-launch JS directly would be nice
 
 
 
@@ -130,7 +127,14 @@ Check whisper still works through microphone
 
 
 
-Longer-term:
+Possibly post-release:
+
+source code browser thing, to let you choose which files to upload from your project?
+launch sql? browse xml? launch svg? azure az command?! 
+json mode / tools ?
+Local web front-end - genericise existing html somehow?
+tools support? pull from api? what public apis could we test with?
+launch JS directly would be nice
 
 Copy response as raw text (no backtick issues!)
 

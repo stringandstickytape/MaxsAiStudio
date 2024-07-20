@@ -12,6 +12,7 @@ using System.Diagnostics;
 namespace AiTool3
 {
     public class SettingsSet
+
     {
         public List<Api>? ApiList { get; set; }
 
@@ -50,6 +51,9 @@ namespace AiTool3
         [IsPathAttribute]
         [MyDisplayNameAttr("Default Path")]
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
+
+        [MyDisplayNameAttr("File extensions to display in the Project Helper")]
+        public string ProjectHelperFileExtensions { get; set; } = "*.cs, *.html, *.css, *.js";
 
         [MyDisplayNameAttr("Collapse conversation pane at startup")]
         public bool CollapseConversationPane { get; set; } = false;

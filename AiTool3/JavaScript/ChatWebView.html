@@ -434,6 +434,11 @@
             scrollToBottom();
         }
 
+
+        function scrollToBottom() {
+            els.msgs.scrollTop = els.msgs.scrollHeight;
+        }
+
         function clearTemp() {
             if (tempMsg) {
                 tempMsg.remove();

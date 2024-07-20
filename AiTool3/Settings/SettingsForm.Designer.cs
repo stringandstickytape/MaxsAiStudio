@@ -47,6 +47,7 @@
             // 
             // btnSettingsOK
             // 
+            btnSettingsOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSettingsOK.Location = new Point(910, 774);
             btnSettingsOK.Name = "btnSettingsOK";
             btnSettingsOK.Size = new Size(112, 34);
@@ -57,6 +58,7 @@
             // 
             // btnSettingsCancel
             // 
+            btnSettingsCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSettingsCancel.Location = new Point(1028, 774);
             btnSettingsCancel.Name = "btnSettingsCancel";
             btnSettingsCancel.Size = new Size(112, 34);
@@ -67,10 +69,13 @@
             // 
             // panelToggles
             // 
+            panelToggles.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panelToggles.AutoScroll = true;
             panelToggles.Location = new Point(11, 393);
             panelToggles.Name = "panelToggles";
-            panelToggles.Size = new Size(1129, 375);
+            panelToggles.Size = new Size(1129, 362);
             panelToggles.TabIndex = 3;
+            panelToggles.BorderStyle = BorderStyle.FixedSingle;
             // 
             // SettingsForm
             // 

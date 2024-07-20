@@ -799,8 +799,7 @@ namespace AiTool3
 
         private async void btnProjectHelper_Click(object sender, EventArgs e)
         {
-            string fileTypes = ".cs, *.html, *.css, *.js";
-            var form = new FileSearchForm(CurrentSettings.DefaultPath, fileTypes);
+            var form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
             form.AddFilesToInput += async (s, e) =>
             {
                 // attach files as txt
