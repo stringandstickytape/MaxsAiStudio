@@ -94,7 +94,7 @@ Templates:
 example templates set
 
 Build:
-Cublas and non-Cublas builds - need dlls from another source - whisperX?
+Cublas and non-Cublas builds for whisperx - need dlls from another source - whisperX?
 
 UI:
 allow setting of proper URLs for local AI
