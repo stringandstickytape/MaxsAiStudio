@@ -45,25 +45,18 @@ DONE: bug: new-with-context doesn't work properly
 DONE: Delete-conversation (for failed conversations innit)
 DONE: bug: api key setting doesn't seem to stick
 DONE: bug: chat input is too big in full-screen
+DONE: 4/5: fix images aren't included in Groq history
+DONE: PlantUML viewer
 
-tiny bug: chat window types urls and other text content dropped directly :/
 
 
 
-support markdown? :/
-regex viewer? :/
-PlantUML viewer!
-GraphViz ??
-SVG? we already have svg-pan-zoom
-css viewer?
 
 
 
 move conversations to subdirectory, templates to another, settings to a third?
 
 Useful next:
-
-
 
 Make use of token counting
 PART DONE: Streaming token counting is done for Claude
@@ -86,9 +79,12 @@ tools support? pull from api? what public apis could we test with?
 launch JS directly would be nice
 
 
+
+
+
 Necessary for release:
 
-
+Hide project browser behind experimental setting? At least needs tidying up
 
 Templates:
 example templates set
@@ -105,8 +101,7 @@ better error-trapping - where are the crashes tho? . what happens if there's no 
 add date/time of conversdation start to DGV
 
 Github version update code
-4/5: fix images aren't included in Groq history
-add mermaid and svg-pan-zoom and https://unpkg.com/viz.js@2.1.2/viz.js to licenses
+inline https://unpkg.com/viz.js@2.1.2/viz.js
 
 Embeddings:
 Include embedding model name in default filename ext
@@ -114,6 +109,7 @@ Add spinner while embeddings are generated
 
 Docs:
 Instructions for external apps: whisper, ...
+Instructions for usage
 Make demo videos or screenshots
 
 Testing:
@@ -124,12 +120,6 @@ Check whisper still works through microphone
 
 
 
-
-It'd be nice if you could outright edit responses in the conversation - should really be able to do this
-Concatenate messages :(
-Tip of the day
-add tokens-per-second to the status bar?
-Different Whisper models
 
 
 
@@ -151,3 +141,16 @@ AI ideas:
 • Collaborative real-time editing for shared conversations lol
 • Sentiment analysis for conversation messages lol
 *  syntax highlighting in messages
+
+support markdown? :/
+regex viewer? :/
+GraphViz ??
+SVG? we already have svg-pan-zoom
+css viewer?
+
+It'd be nice if you could outright edit responses in the conversation - should really be able to do this
+Concatenate messages :(
+Tip of the day
+add tokens-per-second to the status bar?
+Different Whisper models
+

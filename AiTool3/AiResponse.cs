@@ -14,7 +14,5 @@ namespace AiTool3
         {
             TokenUsage = new TokenUsage("","");
         }
-
-
     }
 }

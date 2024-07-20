@@ -292,7 +292,15 @@ namespace AiTool3
                     new LabelAndEventHander("Test Snippets Code", (s, e) =>
                     {
                         SnippetHelper.ShowSnippets(SnippetHelper.GetAllSnippets(conversationManager.PreviousCompletion, conversationManager.Conversation, snippetManager));
-                    })
+                    }),
+
+                    //ModelUsageManager.ShowUsageStatistics(CurrentSettings.Models);
+                    new LabelAndEventHander("Show Model Usage/Cost Statistics", (s, e) =>
+                    {
+                        ModelUsageManager.ShowUsageStatistics(currentSettings.ApiList.SelectMany(x => x.Models).ToList());
+                    }),
+
+
                 }
             );
 
