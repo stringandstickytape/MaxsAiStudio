@@ -59,7 +59,7 @@ move conversations to subdirectory, templates to another, settings to a third?
 Useful next:
 
 Make use of token counting
-PART DONE: Streaming token counting is done for Claude
+!!!! PART DONE: Streaming token counting is done for Claude
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
