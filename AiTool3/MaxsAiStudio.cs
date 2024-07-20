@@ -780,7 +780,8 @@ namespace AiTool3
         private async void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
         {
             CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
-            await chatWebView.ChangeChatHeaderLabel(cbEngine.SelectedItem!.ToString());
+            await chatWebView.ChangeChatHeaderLabel(cbEngine.SelectedItem!.ToString().Replace(" - ", @"
+"));
             SettingsSet.Save(CurrentSettings);
         }
 

@@ -5,18 +5,17 @@ using System.Linq;
 
 namespace AiTool3.Providers.Embeddings.Fragmenters
 {
-    public class XmlCodeFragmenter
-    {
-        private const int MaxLinesPerFragment = 100;
+    public class LineFragmenter
 
-        public List<CodeFragment> FragmentCode(string fileContent, string filePath)
+    {
+        public List<CodeFragment> FragmentCode(string fileContent, string filePath, int maxFragmentSize = 100)
         {
             var fragments = new List<CodeFragment>();
             var lines = fileContent.Split('\n');
 
-            for (int i = 0; i < lines.Length; i += MaxLinesPerFragment)
+            for (int i = 0; i < lines.Length; i += maxFragmentSize)
             {
-                var chunkLines = lines.Skip(i).Take(MaxLinesPerFragment);
+                var chunkLines = lines.Skip(i).Take(maxFragmentSize);
                 var content = string.Join("\n", chunkLines);
 
                 fragments.Add(new CodeFragment

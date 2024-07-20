@@ -50,7 +50,7 @@ DONE: PlantUML viewer
 DONE (as it can be): Streaming token counting is done for Claude
 DONE: Make use of token counting
 DONE: fix scroll to bottom when adding streaming fragment
-
+DONE: Hide project browser behind experimental setting? At least needs tidying up
 
 
 
@@ -77,13 +77,18 @@ Custom handlers? External links to other apps or handlers?
 inline js dependencies and add open-source licenses
 
 
+are there any prompt libraries we can pull from?
 
+Create embeddings from previous messages/conversations?
 
+popup that lets you pick embedding results?
+
+Expand the embeddings workflow
 
 
 Necessary for release:
 
-Hide project browser behind experimental setting? At least needs tidying up
+Remove unnecessary experiments
 
 Templates:
 example templates set
@@ -97,9 +102,8 @@ Allow choice of embedding engine
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
-add date/time of conversdation start to DGV
 
-Github version update code
+Github version check
 inline https://unpkg.com/viz.js@2.1.2/viz.js
 
 Embeddings:
@@ -112,6 +116,7 @@ Instructions for usage
 Make demo videos or screenshots
 
 Testing:
+
 Check whisper still works through microphone
 
 

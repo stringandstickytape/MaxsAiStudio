@@ -96,11 +96,13 @@ namespace AiTool3
 
             var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
             var xmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories);
+            var jsonFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories);
             var jsFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories);
 
             var csFragmenter = new CsFragmenter();
             var webCodeFragmenter = new WebCodeFragmenter();
-            var xmlFragmenter = new XmlCodeFragmenter();
+            var lineFragmenter = new LineFragmenter();
+
             List<CodeFragment> fragments = new List<CodeFragment>();
 
             foreach (var file in jsFiles)
@@ -111,17 +113,24 @@ namespace AiTool3
 
             foreach (var file in xmlFiles)
             {
-                fragments.AddRange(xmlFragmenter.FragmentCode(File.ReadAllText(file), file));
+                fragments.AddRange(lineFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
             foreach (var file in htmlFiles)
             {
                 fragments.AddRange(webCodeFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
             // remove all frags under 10 chars in length
-            foreach (var file in files)
+            foreach (var file in jsonFiles)
             {
-                fragments.AddRange(csFragmenter.FragmentCode(File.ReadAllText(file), file));
+                // if the file is > 5k, skip it
+                if (new FileInfo(file).Length > 5000 || file.Contains(".embeddings")) continue;
+
+                fragments.AddRange(lineFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
+
+
+            // just pass json through, if it's less than 1K, else break it into chunks
+
 
             var saveFileDialog = new SaveFileDialog
             {

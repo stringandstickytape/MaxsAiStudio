@@ -79,9 +79,9 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(947, 6);
+            cbEngine.Location = new Point(1032, 6);
             cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(499, 40);
+            cbEngine.Size = new Size(414, 40);
             cbEngine.TabIndex = 3;
             cbEngine.SelectedIndexChanged += cbEngine_SelectedIndexChanged;
             // 
@@ -187,7 +187,7 @@ namespace AiTool3
             groupBox1.Controls.Add(cbUseEmbeddings);
             groupBox1.Controls.Add(btnGenerateEmbeddings);
             groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(395, 6);
+            groupBox1.Location = new Point(325, 10);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(200, 78);
             groupBox1.TabIndex = 20;
@@ -221,9 +221,9 @@ namespace AiTool3
             // 
             btnProjectHelper.BackColor = Color.Black;
             btnProjectHelper.ForeColor = Color.White;
-            btnProjectHelper.Location = new Point(300, 3);
+            btnProjectHelper.Location = new Point(224, 3);
             btnProjectHelper.Name = "btnProjectHelper";
-            btnProjectHelper.Size = new Size(89, 85);
+            btnProjectHelper.Size = new Size(80, 85);
             btnProjectHelper.TabIndex = 19;
             btnProjectHelper.Text = "Project\r\nHelper";
             btnProjectHelper.UseVisualStyleBackColor = false;
@@ -234,7 +234,7 @@ namespace AiTool3
             label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label2.AutoSize = true;
             label2.ForeColor = Color.White;
-            label2.Location = new Point(781, 59);
+            label2.Location = new Point(861, 59);
             label2.Name = "label2";
             label2.Size = new Size(160, 25);
             label2.TabIndex = 18;
@@ -245,7 +245,7 @@ namespace AiTool3
             label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label1.AutoSize = true;
             label1.ForeColor = Color.White;
-            label1.Location = new Point(810, 13);
+            label1.Location = new Point(890, 13);
             label1.Name = "label1";
             label1.Size = new Size(131, 25);
             label1.TabIndex = 17;
@@ -258,9 +258,9 @@ namespace AiTool3
             cbSummaryEngine.Font = new Font("Segoe UI", 12F);
             cbSummaryEngine.ForeColor = Color.White;
             cbSummaryEngine.FormattingEnabled = true;
-            cbSummaryEngine.Location = new Point(947, 50);
+            cbSummaryEngine.Location = new Point(1032, 50);
             cbSummaryEngine.Name = "cbSummaryEngine";
-            cbSummaryEngine.Size = new Size(499, 40);
+            cbSummaryEngine.Size = new Size(414, 40);
             cbSummaryEngine.TabIndex = 16;
             cbSummaryEngine.SelectedIndexChanged += cbSummaryEngine_SelectedIndexChanged;
             // 
@@ -295,11 +295,11 @@ namespace AiTool3
             // 
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(146, 3);
+            buttonStartRecording.Location = new Point(132, 3);
             buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(148, 85);
+            buttonStartRecording.Size = new Size(86, 85);
             buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Voice Prompt";
+            buttonStartRecording.Text = "Voice\r\nPrompt";
             buttonStartRecording.UseVisualStyleBackColor = false;
             buttonStartRecording.Click += buttonStartRecording_Click;
             // 
@@ -309,7 +309,7 @@ namespace AiTool3
             buttonAttachImage.ForeColor = Color.White;
             buttonAttachImage.Location = new Point(51, 3);
             buttonAttachImage.Name = "buttonAttachImage";
-            buttonAttachImage.Size = new Size(89, 85);
+            buttonAttachImage.Size = new Size(75, 85);
             buttonAttachImage.TabIndex = 12;
             buttonAttachImage.Text = "Attach";
             buttonAttachImage.UseVisualStyleBackColor = false;
