@@ -35,30 +35,30 @@ namespace AiTool3.Conversations
 
         public string GetColorHexForEngine()
         {
-            var c = GetColorForEngine();
+            var c = GetColorForEngine(Engine);
             return $"#{c.R:X2}{c.G:X2}{c.B:X2}";
         }
 
-        public Color GetColorForEngine()
+        public static Color GetColorForEngine(string? engine)
         {
-            if (Engine == null) return Color.White;
-            if (Engine.StartsWith("gpt"))
+            if (engine == null) return Color.White;
+            if (engine.StartsWith("gpt"))
             {
                 return Color.LavenderBlush;
             }
-            else if (Engine.StartsWith("gemma"))
+            else if (engine.StartsWith("gemma"))
             {
                 return Color.MistyRose;
             }
-            else if (Engine.StartsWith("ollama"))
+            else if (engine.StartsWith("ollama"))
             {
                 return Color.PeachPuff;
             }
-            else if (Engine.StartsWith("local"))
+            else if (engine.StartsWith("local"))
             {
                 return Color.LightPink;
             }
-            else if (Engine.StartsWith("gemini"))
+            else if (engine.StartsWith("gemini"))
             {
                 return Color.LemonChiffon;
             }

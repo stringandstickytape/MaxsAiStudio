@@ -297,7 +297,7 @@ namespace AiTool3
                     //ModelUsageManager.ShowUsageStatistics(CurrentSettings.Models);
                     new LabelAndEventHander("Show Model Usage/Cost Statistics", (s, e) =>
                     {
-                        ModelUsageManager.ShowUsageStatistics(currentSettings.ApiList.SelectMany(x => x.Models).ToList());
+                        ModelUsageManager.ShowUsageStatistics(currentSettings);
                     }),
 
 
