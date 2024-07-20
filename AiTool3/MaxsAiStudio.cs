@@ -42,6 +42,8 @@ namespace AiTool3
         {
             InitializeComponent();
 
+            DirectoryHelper.CreateSubdirectories();
+
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
             webViewManager = new WebViewManager(ndcWeb);
@@ -635,6 +637,8 @@ namespace AiTool3
                 Parent = null,
                 Content = lastAssistantMessage.Content,
                 Engine = lastAssistantMessage.Engine,
+
+                CreatedAt = DateTime.Now,
             };
 
             var rootMessage = ConversationManager.Conversation.GetRootNode();
@@ -644,6 +648,8 @@ namespace AiTool3
                 Parent = rootMessage.Guid,
                 Content = lastUserMessage.Content,
                 Engine = lastUserMessage.Engine,
+
+                CreatedAt = DateTime.Now,
             };
             rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;

@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Drawing;
 using Newtonsoft.Json;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using AiTool3.ApiManagement;
 using AiTool3.Providers;
 using AiTool3;
@@ -14,13 +9,16 @@ internal partial class ModelUsageManager
     private Model model;
     public TokenUsage TokensUsed { get; set; }
 
+    public string Filename => $"TokenUsage\\TokenUsage-{model.ToString()}.json";
+
+    public static string GetTokenUsageFilenameFromModel(Model model) => $"TokenUsage\\TokenUsage-{model.ToString()}.json";
     public ModelUsageManager(Model model)
     {
         this.model = model;
 
-        if (File.Exists($"TokenUsage-{model.ToString()}.json"))
+        if (File.Exists(Filename))
         {
-            var json = File.ReadAllText($"TokenUsage-{model.ToString()}.json");
+            var json = File.ReadAllText(Filename);
             TokensUsed = JsonConvert.DeserializeObject<TokenUsage>(json);
         }
         else
@@ -35,7 +33,7 @@ internal partial class ModelUsageManager
         TokensUsed.OutputTokens += tokenUsage.OutputTokens;
 
         var json = JsonConvert.SerializeObject(TokensUsed);
-        File.WriteAllText($"TokenUsage-{model.ToString()}.json", json);
+        File.WriteAllText(Filename, json);
     }
 
     public static void ShowUsageStatistics(SettingsSet settings)

@@ -68,15 +68,17 @@ namespace AiTool3.Conversations
 
         public async Task RegenerateSummary(Model summaryModel, bool useLocalAi, DataGridView dgv, string guid, SettingsSet currentSettings)
         {
-            // Get all conversation files
-            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), $"v3-conversation-{guid}.json").OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
+            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename(guid)).OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
 
             // get the guids from v3-conversation-{guid}.json
 
             foreach (string file in files)
             {
                 // Load each conversation
-                string guid2 = Path.GetFileNameWithoutExtension(file).Replace("v3-conversation-", "").Replace(".json", "");
+                var patternFilename = BranchedConversation.GetFilename("ABC");
+                var filenamePattern = patternFilename.Substring(0, patternFilename.IndexOf("ABC"));
+
+                string guid2 = Path.GetFileNameWithoutExtension(file).Replace(filenamePattern, "").Replace(".json", "");
                 LoadConversation(guid2);
 
                 // Regenerate summary
@@ -151,7 +153,8 @@ namespace AiTool3.Conversations
                     InputTokens = response.TokenUsage.InputTokens,
                     OutputTokens = 0,
                     Base64Image = conversation.messages.Last().base64image,
-                    Base64Type = conversation.messages.Last().base64type
+                    Base64Type = conversation.messages.Last().base64type,
+                    CreatedAt = DateTime.Now,
                 };
                 if (PreviousCompletion != null)
                 {
@@ -169,6 +172,7 @@ namespace AiTool3.Conversations
                     InputTokens = 0,
                     OutputTokens = response.TokenUsage.OutputTokens,
                     TimeTaken = elapsed,
+                    CreatedAt = DateTime.Now,
                 };
                 Conversation.Messages.Add(completionResponse);
 

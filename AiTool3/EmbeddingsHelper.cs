@@ -18,7 +18,7 @@ namespace AiTool3
             {
                 Filter = "Embeddings JSON files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*",
                 Title = "Select Embeddings File",
-                InitialDirectory = currentSettings.DefaultPath
+                InitialDirectory = Path.Combine(Environment.CurrentDirectory, "Embeddings")
             };
 
             openFileDialog.ShowDialog();
@@ -122,8 +122,8 @@ namespace AiTool3
             // remove all frags under 10 chars in length
             foreach (var file in jsonFiles)
             {
-                // if the file is > 5k, skip it
-                if (new FileInfo(file).Length > 5000 || file.Contains(".embeddings")) continue;
+                // if the file is > 5k, skip it.  Also ignore our own embeddings files :)
+                if (new FileInfo(file).Length > 5000 || file.Contains(".embeddings.json")) continue;
 
                 fragments.AddRange(lineFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
@@ -135,7 +135,8 @@ namespace AiTool3
             var saveFileDialog = new SaveFileDialog
             {
                 Filter = "Embeddings JSON file|*.embeddings.json",
-                Title = "Save Embeddings JSON file"
+                Title = "Save Embeddings JSON file",
+                InitialDirectory = Path.Combine(Environment.CurrentDirectory, "Embeddings")
             };
             saveFileDialog.ShowDialog();
 

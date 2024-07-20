@@ -45,12 +45,22 @@ namespace AiTool3.Helpers
 
 
             // populate dgv with the conversation files in the current directory, ordered by date desc
-            var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "v3-conversation-*.json").OrderByDescending(f => new FileInfo(f).LastWriteTime);
+            var files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename("*")).OrderByDescending(f => new FileInfo(f).LastWriteTime);
 
-            var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x))).ToList();
+
+            //foreach (var file in files)
+            //{
+            //    var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(file));
+            //    if (conv.Messages.Any())
+            //    {
+            //        File.SetLastWriteTime(file, conv.Messages[0].CreatedAt ?? DateTime.Now.AddDays(-60));
+            //    }
+            //}
+
+            var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x)));
 
             // populate dgv
-            foreach (var conv in convs.OrderByDescending(x => x.Messages[0].CreatedAt))
+            foreach (var conv in convs)
             {
                 if (!conv.Messages.Any())
                     continue;
@@ -59,9 +69,9 @@ namespace AiTool3.Helpers
 
                 if (conv.HighlightColour.HasValue)
                 {
-                    dgv.Rows[rowIndex].DefaultCellStyle.BackColor = conv.HighlightColour.Value;
-
-                    dgv.Rows[rowIndex].DefaultCellStyle.ForeColor = Color.Black;
+                    var dCS = dgv.Rows[rowIndex].DefaultCellStyle;
+                    dCS.BackColor = conv.HighlightColour.Value;
+                    dCS.ForeColor = Color.Black;
                 }
             }
 

@@ -46,7 +46,7 @@ namespace AiTool3
 
         [IsFileAttribute(".embeddings.json")]
         [MyDisplayNameAttr("Embeddings Filename/path")]
-        public string EmbeddingsFilename { get; set; } = "OpenAIEmbedFragged2.embeddings.json";
+        public string EmbeddingsFilename { get; set; }
 
         [IsPathAttribute]
         [MyDisplayNameAttr("Default Path")]
@@ -155,7 +155,7 @@ namespace AiTool3
         {
             // write this object to json
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(mgr, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText("api.json", json);
+            File.WriteAllText("Settings\\settings.json", json);
 
         }
 
@@ -163,7 +163,7 @@ namespace AiTool3
         {
             try
             {
-                var text = File.ReadAllText("api.json");
+                var text = File.ReadAllText("Settings\\settings.json");
                 var retVal = Newtonsoft.Json.JsonConvert.DeserializeObject<SettingsSet>(text);
                 retVal.AddMissingApis();
                 return retVal;

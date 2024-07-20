@@ -83,10 +83,20 @@ Create embeddings from previous messages/conversations?
 
 popup that lets you pick embedding results?
 
-Expand the embeddings workflow
+Expand and clarify the embeddings workflow
 
 
 Necessary for release:
+
+First-run wizard
+ - ask for API/local AI details
+  - default the engine dropdowns as such
+
+On first run, create subdirs: Conversations, Settings, Templates, Embeddings
+
+Make Regen All Summaries more friendly
+
+
 
 Remove unnecessary experiments
 

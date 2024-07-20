@@ -33,8 +33,8 @@ internal partial class ModelUsageManager
                 Manager = new ModelUsageManager(model),
                 TotalCost = ((new ModelUsageManager(model).TokensUsed.InputTokens * model.input1MTokenPrice) +
                              (new ModelUsageManager(model).TokensUsed.OutputTokens * model.output1MTokenPrice)) / 1000000,
-                StartDate = File.Exists($"TokenUsage-{model.ToString()}.json")
-                    ? new FileInfo($"TokenUsage-{model.ToString()}.json").CreationTime
+                StartDate = File.Exists(GetTokenUsageFilenameFromModel(model))
+                    ? new FileInfo(GetTokenUsageFilenameFromModel(model)).CreationTime
                     : DateTime.MinValue
             })
             .OrderByDescending(x => x.TotalCost)
@@ -122,7 +122,7 @@ internal partial class ModelUsageManager
 
             if (result == DialogResult.Yes)
             {
-                string filePath = $"TokenUsage-{model.ToString()}.json";
+                string filePath = GetTokenUsageFilenameFromModel(model);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);

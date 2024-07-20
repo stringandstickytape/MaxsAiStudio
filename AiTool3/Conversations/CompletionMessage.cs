@@ -9,7 +9,6 @@ namespace AiTool3.Conversations
         public CompletionMessage(CompletionRole role)
         {
             Role = role;
-            CreatedAt = System.DateTime.Now;
             Guid = System.Guid.NewGuid().ToString();
             Children = new List<string>();
         }

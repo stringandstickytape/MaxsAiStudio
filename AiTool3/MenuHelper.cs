@@ -142,7 +142,7 @@ namespace AiTool3
 
 
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
-            var addMenuItem2 = MenuHelper.CreateMenuItem("Add...", ref templatesMenu);
+            var addMenuItem2 = MenuHelper.CreateMenuItem("Add... (SHIFT-Click to delete)", ref templatesMenu);
             addMenuItem2.Click += (s, e) =>
             {
                 // request a single string from the user for category name, w ok and cancel buttons

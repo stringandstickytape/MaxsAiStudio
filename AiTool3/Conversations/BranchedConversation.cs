@@ -17,6 +17,9 @@ namespace AiTool3.Conversations
         public string Summary { get; set; }
         public Color? HighlightColour { get; set; } = null;
 
+
+        public static string GetFilename(string guid) => $"Conversations\\v3-conversation-{guid}.json";
+
         public override string ToString()
         {
             return $"{Summary}";
@@ -29,14 +32,13 @@ namespace AiTool3.Conversations
         {
             // write the object out as JSON
             string json = JsonConvert.SerializeObject(this);
-            var filename = $"v3-conversation-{ConvGuid}.json";
 
             // wait until the file isnt' locked
             while (true)
             {
                 try
                 {
-                    File.WriteAllText(filename, json);
+                    File.WriteAllText(GetFilename(ConvGuid), json);
                     break;
                 }
                 catch (IOException)
@@ -239,6 +241,7 @@ namespace AiTool3.Conversations
             var m = new CompletionMessage(CompletionRole.Root)
             {
                 Content = "Conversation Start",
+                CreatedAt = DateTime.Now,
             };
             Messages.Add(m);
             return m.Guid;
@@ -264,7 +267,9 @@ namespace AiTool3.Conversations
 
         public static BranchedConversation LoadConversation(string guid)
         {
-            return JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText($"v3-conversation-{guid}.json"));
+
+            
+            return JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(GetFilename(guid)));
         }
 
         public CompletionMessage GetRootNode()
@@ -272,9 +277,9 @@ namespace AiTool3.Conversations
             return Messages.First(x => x.Role == CompletionRole.Root);
         }
 
-        internal static void DeleteConversation(object selectedNodeGuid)
+        internal static void DeleteConversation(string guid)
         {
-            File.Delete($"v3-conversation-{selectedNodeGuid}.json");
+            File.Delete(GetFilename(guid));
         }
     }
 }

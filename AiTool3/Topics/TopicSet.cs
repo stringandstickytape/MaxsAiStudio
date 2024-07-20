@@ -40,10 +40,10 @@ namespace AiTool3.Topics
         internal static TopicSet Load()
         {
             TopicSet t;
-            if (File.Exists(Path.Combine(Environment.CurrentDirectory, "topics.json")))
+            if (File.Exists(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json")))
             {
 
-                string jsonString = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "topics.json"));
+                string jsonString = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json"));
                 t = JsonSerializer.Deserialize<TopicSet>(jsonString, new JsonSerializerOptions
                 {
                     WriteIndented = true,
