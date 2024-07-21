@@ -89,7 +89,7 @@ namespace AiTool3.UI
         private void InjectHtmlAndJs(string msg, bool softwareToysMode)
         {
             msg = msg.ToUpper();
-            var myRes = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.WorkingOverlay2.html");
+            var myRes = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.WorkingOverlay.html");
             myRes = myRes.Replace("ABCDEFGHIJKLMNOPQRSTUVWXYZ", msg);
             if (softwareToysMode)
             {

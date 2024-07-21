@@ -108,7 +108,15 @@ namespace AiTool3
                                 RecreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm);
                             }
                         }
+                        else // if ctrl is held:
+                        if (MaxsAiStudio.ModifierKeys == Keys.Control)
+                        {
+                            templateManager.SelectTemplateByCategoryAndName(category.Name, template.TemplateName);
+
+                            await chatWebView.UpdateSystemPrompt(template?.SystemPrompt ?? "");
+                        }
                         else
+
                         {
                             templateManager.SelectTemplateByCategoryAndName(category.Name, template.TemplateName);
 
