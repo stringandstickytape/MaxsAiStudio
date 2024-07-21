@@ -47,6 +47,8 @@
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <None Remove="JavaScript\WorkingOverlay.html" />
+    <None Remove="JavaScript\WorkingOverlay2.html" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
     <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
     <None Remove="ThirdPartyJavascript\cytoscape-dagre.min.js" />
@@ -71,6 +73,8 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
+    <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-dagre.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape.min.js" />

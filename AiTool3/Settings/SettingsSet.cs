@@ -34,6 +34,8 @@ namespace AiTool3
         [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart, app must run as administrator)")]
         public bool RunWebServer { get; set; } = false;
 
+        [MyDisplayNameAttr("Entertain me with dumb software toys while I wait for non-chat tasks")]
+        public bool SoftwareToyMode { get; set; } = false;
 
         [MyDisplayNameAttr("Use embeddings (experimental)")]
         public bool UseEmbeddings { get; set; } = false;

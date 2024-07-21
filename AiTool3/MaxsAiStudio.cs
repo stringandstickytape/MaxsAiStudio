@@ -217,6 +217,7 @@ namespace AiTool3
             MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
             MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, (Model)cbSummaryEngine.SelectedItem!, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+            MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, (Model)cbSummaryEngine.SelectedItem!, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
         }
         private async void ChatWebView_FileDropped(object sender, string filename)
@@ -302,14 +303,14 @@ namespace AiTool3
             InitialiseApiList();
             // chatWebView.ShowWorking();
 
-            
+
 
             await BeginNewConversation();
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
-           // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
+            // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
             if (CurrentSettings.RunWebServer)
             {
                 await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
@@ -318,7 +319,7 @@ namespace AiTool3
 
 
             // in 5 sec, HideWorking
-            
+
 
         }
 
@@ -399,7 +400,7 @@ namespace AiTool3
                 ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
                 : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
 
-            using (SolidBrush brush = new SolidBrush(Color.FromArgb(200,200,200)))
+            using (SolidBrush brush = new SolidBrush(Color.FromArgb(200, 200, 200)))
             {
                 e.Graphics.FillRectangle(brush, splitterRect);
             }
@@ -762,27 +763,6 @@ namespace AiTool3
 <";
         }
 
-        private async void btnGenerateEmbeddings_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Disable the button while processing
-                btnGenerateEmbeddings.Enabled = false;
-
-                await EmbeddingsHelper.CreateEmbeddingsAsync(CurrentSettings.EmbeddingKey);
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                // Re-enable the button
-                btnGenerateEmbeddings.Enabled = true;
-            }
-        }
-
         private async void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
         {
             CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
@@ -815,6 +795,15 @@ namespace AiTool3
 
             };
             form.Show();
+        }
+
+        private async void button2_Click(object sender, EventArgs e)
+        {
+            this.ShowWorking("button clicked", CurrentSettings.SoftwareToyMode);
+            dgvConversations.ShowWorking("button clicked", CurrentSettings.SoftwareToyMode);
+            await Task.Delay(10000); // 10000 milliseconds = 10 seconds
+            this.HideWorking();
+            dgvConversations.HideWorking();
         }
     }
 }

@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: transparent;
+        }
+
+        #animationContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="animationContainer"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const word = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let scene, camera, renderer, letters = [];
+        let mouseX = 0, mouseY = 0;
+        let wordCount = 1;
+        const maxAdditionalWords = 5;
+        let lastWordAddTime = Date.now();
+        let startTime;
+        let clickX = null, clickY = null, clickTime = null;
+        const targetFPS = 60;
+        const updateInterval = 1000 / targetFPS;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('animationContainer').appendChild(renderer.domElement);
+
+            createWord();
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            document.addEventListener('click', onDocumentClick, false);
+
+            startTime = Date.now();
+            setInterval(update, updateInterval);
+            render();
+        }
+
+        function createLetter(char, x, y, z) {
+            const geometry = new THREE.BoxGeometry(3, 4, 0.4);
+            const material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.velocity = new THREE.Vector3();
+            mesh.angularVelocity = new THREE.Vector3();
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 256;
+            context.fillStyle = /* nice blue */ '#70a0df';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.font = 'Bold 200px "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+            context.fillStyle = 'black';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(char, 128, 128);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const letterMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                depthWrite: false
+            });
+
+            const letterPlane = new THREE.PlaneGeometry(3, 4);
+            const letterMesh = new THREE.Mesh(letterPlane, letterMaterial);
+            letterMesh.position.z = 0.21;
+
+            mesh.add(letterMesh);
+            scene.add(mesh);
+            letters.push(mesh);
+            return mesh;
+        }
+
+        function createWord() {
+            const wordLength = word.length;
+            const spacing = 4;
+            const totalWidth = (wordLength - 1) * spacing;
+            const startX = -totalWidth / 2;
+
+            for (let i = 0; i < wordLength; i++) {
+                createLetter(word[i], startX + i * spacing, 0, 0);
+            }
+
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(0, 0, 30);
+            scene.add(light);
+
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onDocumentClick(event) {
+            clickX = (event.clientX / window.innerWidth) * 2 - 1;
+            clickY = -(event.clientY / window.innerHeight) * 2 + 1;
+            clickTime = Date.now();
+        }
+
+        function update() {
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - startTime;
+
+            letters.forEach((letter, index) => {
+                if (elapsedTime > 1000) {
+                    // Mouse attraction and extreme repulsion
+                    const targetX = mouseX * 25;
+                    const targetY = mouseY * 15;
+                    const dx = letter.position.x - targetX;
+                    const dy = letter.position.y - targetY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 5) {
+                        // Extreme repulsion
+                        const repulsionStrength = 4 / (distance + 0.1);
+                        letter.velocity.x += (dx / distance) * repulsionStrength * 0.4;
+                        letter.velocity.y += (dy / distance) * repulsionStrength * 0.4;
+                    } else {
+                        // Normal attraction
+                        letter.velocity.x += (targetX - letter.position.x) * 0.003;
+                        letter.velocity.y += (targetY - letter.position.y) * 0.003;
+                    }
+
+                    // Click repulsion
+                    if (clickX !== null && clickY !== null) {
+                        const dx = letter.position.x - clickX * 25;
+                        const dy = letter.position.y - clickY * 15;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const timeSinceClick = currentTime - clickTime;
+                        const repulsionStrength = Math.max(0, (5000 - timeSinceClick) / 500) * 1 / (distance + 1);
+                        letter.velocity.x += (dx / distance) * repulsionStrength * 0.4;
+                        letter.velocity.y += (dy / distance) * repulsionStrength * 0.4;
+
+                        if (timeSinceClick > 5000) {
+                            clickX = null;
+                            clickY = null;
+                        }
+                    }
+
+                    // Letter repulsion
+                    letters.forEach((otherLetter) => {
+                        if (otherLetter !== letter) {
+                            const dx = letter.position.x - otherLetter.position.x;
+                            const dy = letter.position.y - otherLetter.position.y;
+                            const dz = letter.position.z - otherLetter.position.z;
+                            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                            if (distance < 8) {
+                                const repulsionStrength = 0.1 / (distance + 1);
+                                letter.velocity.x += (dx / distance) * repulsionStrength * 0.4;
+                                letter.velocity.y += (dy / distance) * repulsionStrength * 0.4;
+                                letter.velocity.z += (dz / distance) * repulsionStrength * 0.4;
+                            }
+                        }
+                    });
+
+                    // Centering force
+                    letter.velocity.x -= letter.position.x * 0.002;
+                    letter.velocity.y -= letter.position.y * 0.002;
+                    letter.velocity.z -= letter.position.z * 0.002;
+
+                    // Apply velocity
+                    letter.position.add(letter.velocity);
+
+                    // Apply friction
+                    letter.velocity.multiplyScalar(0.9);
+
+                    // 3D spin after 2 seconds
+                    if (elapsedTime > 2000) {
+                        if (letter.angularVelocity.lengthSq() === 0) {
+                            letter.angularVelocity.set(
+                                (Math.random() - 0.5) * 0.1,
+                                (Math.random() - 0.5) * 0.1,
+                                (Math.random() - 0.5) * 0.05
+                            );
+                        }
+                        letter.rotation.x += letter.angularVelocity.x;
+                        letter.rotation.y += letter.angularVelocity.y;
+                        letter.rotation.z += letter.angularVelocity.z;
+
+                        // Apply angular friction
+                        letter.angularVelocity.multiplyScalar(0.98);
+                    }
+                } else {
+                    letter.position.z = Math.sin(currentTime * 0.003 + index * 0.5) * 0.5;
+                }
+
+                letter.children[0].quaternion.copy(camera.quaternion);
+            });
+
+            if (currentTime - lastWordAddTime > 2000 && wordCount < 1 + maxAdditionalWords) {
+                createAdditionalWord();
+                lastWordAddTime = currentTime;
+                wordCount++;
+            }
+        }
+
+        function render() {
+            requestAnimationFrame(render);
+            renderer.render(scene, camera);
+        }
+
+        function createAdditionalWord() {
+            const yOffset = (Math.random() - 0.5) * 30;
+            const zOffset = Math.random() * 20 - 10;
+            const wordLength = word.length;
+            const spacing = 4;
+            const totalWidth = (wordLength - 1) * spacing;
+            const startX = -totalWidth / 2;
+
+            for (let i = 0; i < wordLength; i++) {
+                createLetter(word[i], startX + i * spacing, yOffset, zOffset);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

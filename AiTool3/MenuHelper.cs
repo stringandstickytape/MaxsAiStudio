@@ -1,9 +1,11 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
+using AiTool3.ExtensionMethods;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Topics;
 using AiTool3.UI;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +41,7 @@ namespace AiTool3
             var specialMenuItem = CreateMenuItem(label, ref specialsMenu);
             specialMenuItem.Click += clickHandler;
         }
-        
+
         public static void AddSpecials(ToolStripMenuItem specialsMenu, List<LabelAndEventHander> specials)
         {
             foreach (var special in specials)
@@ -209,10 +211,7 @@ namespace AiTool3
             MenuHelper.AddSpecials(specialsMenu,
                 new List<LabelAndEventHander>
                 {
-                    new LabelAndEventHander("Create embedding", async (s, e) =>
-                    {
-                        await EmbeddingsHelper.CreateEmbeddingsAsync(currentSettings.EmbeddingKey);
-                    }),
+
 
                     new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
                     {
@@ -307,6 +306,44 @@ namespace AiTool3
             menuBar.Items.Add(specialsMenu);
         }
 
+        internal static void CreateEmbeddingsMenu(MaxsAiStudio maxsAiStudio, MenuStrip menuBar, SettingsSet currentSettings, Model model, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager fileAttachmentManager)
+        {
+            var menuText = "Embeddings";
+            ToolStripMenuItem embeddingsMenu = MenuHelper.CreateMenu(menuText);
+
+            MenuHelper.AddSpecials(embeddingsMenu,
+                new List<LabelAndEventHander>
+                {
+                    new LabelAndEventHander("Create Embedding...", async (s, e) =>
+                    {
+                        
+                        await EmbeddingsHelper.CreateEmbeddingsAsync(currentSettings.EmbeddingKey, maxsAiStudio);
+                        
+                    }),
+
+                    new LabelAndEventHander("Select embedding...", async (s, e) =>
+                    {
+                        var openFileDialog = new OpenFileDialog();
+                        openFileDialog.Filter = "Embeddings files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*";
+                        openFileDialog.InitialDirectory = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Embeddings");
+                        openFileDialog.Multiselect = false;
+                        openFileDialog.ShowDialog();
+
+                        if(openFileDialog.FileName == "")
+                        {
+                            return;
+                        }
+
+                        currentSettings.EmbeddingsFilename = openFileDialog.FileName;
+                        SettingsSet.Save(currentSettings);
+
+                    })
+                }
+            );
+
+            menuBar.Items.Add(embeddingsMenu);
+
+        }
     }
 
     public class LabelAndEventHander

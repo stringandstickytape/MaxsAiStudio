@@ -39,27 +39,26 @@ namespace AiTool3.ExtensionMethods
 
             private const string OverlayTag = "WorkingOverlay";
 
-            public static void ShowWorking(this Control control)
+        public static void ShowWorking(this Control control, string message, bool softwareToysMode)
+        {
+            if (control.Controls.OfType<WorkingOverlay>().Any())
+                return;
+
+            var overlay = new WorkingOverlay(message, softwareToysMode)
             {
-                if (control.Controls.OfType<WorkingOverlay>().Any())
-                    return;
+                Dock = DockStyle.Fill,
+                Tag = OverlayTag,
+                IsWorking = true,
+                IsOnForm = false,  // Set this to false for controls
+            };
+            overlay.BackColor = Color.FromArgb(0, control.BackColor);  // Semi-transparent background
+            control.Controls.Add(overlay);
 
-                var overlay = new WorkingOverlay
-                {
-                    Dock = DockStyle.Fill,
-                    Tag = OverlayTag,
-                    IsWorking = true
-                };
+            overlay.BringToFront();
+            control.Enabled = false;
+        }
 
-                control.Controls.Add(overlay);
-
-                overlay.Tag = control.BackColor;
-            
-                overlay.BringToFront();
-                control.Enabled = false;
-            }
-
-            public static void HideWorking(this Control control)
+        public static void HideWorking(this Control control)
             {
                 var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault();
                 if (overlay != null)

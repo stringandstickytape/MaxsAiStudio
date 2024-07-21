@@ -62,6 +62,7 @@ No token counting for Groq
 
 
 
+restructure namespaces
 
 
 
@@ -88,13 +89,22 @@ Expand and clarify the embeddings workflow
 
 Necessary for release:
 
-First-run wizard
+First-run "wizard"
  - ask for API/local AI details
-  - default the engine dropdowns as such
+ - default the engine dropdowns as such
 
 On first run, create subdirs: Conversations, Settings, Templates, Embeddings
 
 Make Regen All Summaries more friendly
+Add "working" to:
+* create embeddings
+* regen all summaries
+* transcribe
+
+
+
+
+
 
 
 
@@ -144,6 +154,8 @@ Check whisper still works through microphone
 
 Possibly post-release:
 
+
+popup that lets you interfere with the embeddings selected...!
 source code browser thing, to let you choose which files to upload from your project?
 launch sql? browse xml? launch svg? azure az command?! 
 json mode / tools ?

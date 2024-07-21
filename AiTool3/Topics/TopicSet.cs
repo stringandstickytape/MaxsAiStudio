@@ -30,7 +30,7 @@ namespace AiTool3.Topics
             });
 
             // Write the JSON to a file
-            string fileName = $"topics.json";
+            string fileName = $"Templates\\templates.json";
             string filePath = Path.Combine(Environment.CurrentDirectory, fileName);
             File.WriteAllText(filePath, jsonString);
 

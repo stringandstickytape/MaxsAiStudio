@@ -37,11 +37,9 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
+            cbUseEmbeddings = new CheckBox();
             panel1 = new Panel();
             chatWebView = new ChatWebView();
-            groupBox1 = new GroupBox();
-            cbUseEmbeddings = new CheckBox();
-            btnGenerateEmbeddings = new Button();
             btnProjectHelper = new Button();
             label2 = new Label();
             label1 = new Label();
@@ -53,6 +51,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
+            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -65,7 +64,6 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)ndcWeb).BeginInit();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)chatWebView).BeginInit();
-            groupBox1.SuspendLayout();
             menuBar.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
@@ -77,7 +75,7 @@ namespace AiTool3
             cbEngine.Font = new Font("Segoe UI", 12F);
             cbEngine.ForeColor = Color.White;
             cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(731, 0);
+            cbEngine.Location = new Point(732, 4);
             cbEngine.Margin = new Padding(2);
             cbEngine.Name = "cbEngine";
             cbEngine.Size = new Size(291, 29);
@@ -97,8 +95,9 @@ namespace AiTool3
             // 
             // splitContainer1.Panel2
             // 
+            splitContainer1.Panel2.Controls.Add(button2);
+            splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
             splitContainer1.Panel2.Controls.Add(panel1);
-            splitContainer1.Panel2.Controls.Add(groupBox1);
             splitContainer1.Panel2.Controls.Add(btnProjectHelper);
             splitContainer1.Panel2.Controls.Add(label2);
             splitContainer1.Panel2.Controls.Add(label1);
@@ -189,6 +188,18 @@ namespace AiTool3
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
+            // cbUseEmbeddings
+            // 
+            cbUseEmbeddings.BackColor = Color.Transparent;
+            cbUseEmbeddings.ForeColor = Color.White;
+            cbUseEmbeddings.Location = new Point(229, 20);
+            cbUseEmbeddings.Margin = new Padding(2);
+            cbUseEmbeddings.Name = "cbUseEmbeddings";
+            cbUseEmbeddings.Size = new Size(45, 19);
+            cbUseEmbeddings.TabIndex = 15;
+            cbUseEmbeddings.Text = "Use";
+            cbUseEmbeddings.UseVisualStyleBackColor = false;
+            // 
             // panel1
             // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -214,45 +225,6 @@ namespace AiTool3
             chatWebView.ZoomFactor = 1D;
             chatWebView.DragDrop += chatWebView_DragDrop;
             // 
-            // groupBox1
-            // 
-            groupBox1.Controls.Add(cbUseEmbeddings);
-            groupBox1.Controls.Add(btnGenerateEmbeddings);
-            groupBox1.ForeColor = Color.White;
-            groupBox1.Location = new Point(228, 6);
-            groupBox1.Margin = new Padding(2);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(2);
-            groupBox1.Size = new Size(140, 47);
-            groupBox1.TabIndex = 20;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Embeddings";
-            // 
-            // cbUseEmbeddings
-            // 
-            cbUseEmbeddings.BackColor = Color.Transparent;
-            cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(86, 18);
-            cbUseEmbeddings.Margin = new Padding(2);
-            cbUseEmbeddings.Name = "cbUseEmbeddings";
-            cbUseEmbeddings.Size = new Size(45, 19);
-            cbUseEmbeddings.TabIndex = 15;
-            cbUseEmbeddings.Text = "Use";
-            cbUseEmbeddings.UseVisualStyleBackColor = false;
-            // 
-            // btnGenerateEmbeddings
-            // 
-            btnGenerateEmbeddings.BackColor = Color.Black;
-            btnGenerateEmbeddings.ForeColor = Color.White;
-            btnGenerateEmbeddings.Location = new Point(6, 18);
-            btnGenerateEmbeddings.Margin = new Padding(2);
-            btnGenerateEmbeddings.Name = "btnGenerateEmbeddings";
-            btnGenerateEmbeddings.Size = new Size(76, 22);
-            btnGenerateEmbeddings.TabIndex = 14;
-            btnGenerateEmbeddings.Text = "Generate";
-            btnGenerateEmbeddings.UseVisualStyleBackColor = false;
-            btnGenerateEmbeddings.Click += btnGenerateEmbeddings_Click;
-            // 
             // btnProjectHelper
             // 
             btnProjectHelper.BackColor = Color.Black;
@@ -271,7 +243,7 @@ namespace AiTool3
             label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label2.AutoSize = true;
             label2.ForeColor = Color.White;
-            label2.Location = new Point(620, 33);
+            label2.Location = new Point(621, 37);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(105, 15);
@@ -283,7 +255,7 @@ namespace AiTool3
             label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label1.AutoSize = true;
             label1.ForeColor = Color.White;
-            label1.Location = new Point(640, 6);
+            label1.Location = new Point(641, 10);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(87, 15);
@@ -297,7 +269,7 @@ namespace AiTool3
             cbSummaryEngine.Font = new Font("Segoe UI", 12F);
             cbSummaryEngine.ForeColor = Color.White;
             cbSummaryEngine.FormattingEnabled = true;
-            cbSummaryEngine.Location = new Point(731, 27);
+            cbSummaryEngine.Location = new Point(732, 31);
             cbSummaryEngine.Margin = new Padding(2);
             cbSummaryEngine.Name = "cbSummaryEngine";
             cbSummaryEngine.Size = new Size(291, 29);
@@ -380,6 +352,16 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(73, 17);
             tokenUsageLabel.Text = "Token Usage";
             // 
+            // button2
+            // 
+            button2.Location = new Point(312, 5);
+            button2.Name = "button2";
+            button2.Size = new Size(52, 29);
+            button2.TabIndex = 22;
+            button2.Text = "button2";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // MaxsAiStudio
             // 
             AutoScaleDimensions = new SizeF(96F, 96F);
@@ -408,7 +390,6 @@ namespace AiTool3
             ((System.ComponentModel.ISupportInitialize)ndcWeb).EndInit();
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)chatWebView).EndInit();
-            groupBox1.ResumeLayout(false);
             menuBar.ResumeLayout(false);
             menuBar.PerformLayout();
             statusStrip1.ResumeLayout(false);
@@ -433,13 +414,12 @@ namespace AiTool3
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
         private ChatWebView chatWebView;
         private Button button1;
-        private Button btnGenerateEmbeddings;
         private CheckBox cbUseEmbeddings;
         private ComboBox cbSummaryEngine;
         private Label label1;
         private Label label2;
         private Button btnProjectHelper;
-        private GroupBox groupBox1;
         private Panel panel1;
+        private Button button2;
     }
 }

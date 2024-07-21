@@ -8,27 +8,46 @@ namespace AiTool3.UI
 {
     public class WorkingOverlay : Control
     {
-        private static WebView2 _sharedWebView;
-        private static int _instanceCount = 0;
         private bool _isWorking = false;
+        private WebView2 _webView;
 
-        public WorkingOverlay()
+        public WorkingOverlay(string message, bool softwareToysMode)
         {
+            Message = message;
+            SoftwareToysMode = softwareToysMode;
             DoubleBuffered = true;
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            BackColor = Color.FromArgb(128, Color.White);
-            _instanceCount++;
+            BackColor = System.Drawing.Color.Transparent;
+
+            _webView = new WebView2();
+            _webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            Controls.Add(_webView);
         }
 
-        ~WorkingOverlay()
+        protected override CreateParams CreateParams
         {
-            _instanceCount--;
-            if (_instanceCount == 0 && _sharedWebView != null)
+            get
             {
-                _sharedWebView.Dispose();
-                _sharedWebView = null;
+                CreateParams cp = base.CreateParams;
+                if (IsOnForm)
+                {
+                    cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
+                }
+                return cp;
             }
         }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            // Do nothing to prevent painting the background if not on a form
+            if (IsOnForm)
+            {
+                base.OnPaintBackground(e);
+            }
+        }
+        public bool IsOnForm { get; set; }
+        public string Message { get; set; }
+        public bool SoftwareToysMode { get; set; }
 
         public bool IsWorking
         {
@@ -38,168 +57,46 @@ namespace AiTool3.UI
                 if (_isWorking != value)
                 {
                     _isWorking = value;
-                    UpdateWebView();
-                    Invalidate();
+                    UpdateWebView(Message, SoftwareToysMode);
+                    UpdateOverlay();
                 }
             }
         }
 
-        private async void UpdateWebView()
+        private async void UpdateWebView(string msg, bool softwareToysMode)
         {
             if (_isWorking)
             {
-                if (_sharedWebView == null)
-                {
-                    _sharedWebView = new WebView2();
-                    await _sharedWebView.EnsureCoreWebView2Async();
-                }
-                if (!Controls.Contains(_sharedWebView))
-                {
-                    Controls.Add(_sharedWebView);
-                }
+                await _webView.EnsureCoreWebView2Async();
                 ResizeWebView();
-                InjectHtmlAndJs();
+                InjectHtmlAndJs(msg, softwareToysMode);
+                _webView.Visible = true;
             }
             else
             {
-                if (Controls.Contains(_sharedWebView))
-                {
-                    Controls.Remove(_sharedWebView);
-                }
+                _webView.Visible = false;
             }
         }
 
         private void ResizeWebView()
         {
-            if (_sharedWebView != null)
-            {
-                _sharedWebView.Width = Width;
-                _sharedWebView.Height = Height;
-                _sharedWebView.Left = 0;
-                _sharedWebView.Top = 0;
-            }
+            _webView.Width = Width;
+            _webView.Height = Height;
+            _webView.Left = 0;
+            _webView.Top = 0;
         }
 
-        private void InjectHtmlAndJs()
+        private void InjectHtmlAndJs(string msg, bool softwareToysMode)
         {
-            string html = @"<html>
-<head>
-    <style>
-        body { 
-            margin: 0; 
-            overflow: hidden;
-            background-color: transparent;
-        }
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-</head>
-<body>
-    <canvas id=""animationCanvas""></canvas>
-    <script>
-        const canvas = document.getElementById('animationCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let width, height;
-        const particles = [];
-        const particleCount = 100;
-        const connectionDistance = 100;
-        const colors = ['#ff0000', '#00ff00', '#0000ff'];
-
-        function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 1;
-                this.vy = (Math.random() - 0.5) * 1;
-                this.radius = Math.random() * 2 + 1;
-                this.color = colors[Math.floor(Math.random() * colors.length)];
+            msg = msg.ToUpper();
+            var myRes = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.WorkingOverlay2.html");
+            myRes = myRes.Replace("ABCDEFGHIJKLMNOPQRSTUVWXYZ", msg);
+            if (softwareToysMode)
+            {
+                myRes = myRes.Replace("let dullMode = true;", "let dullMode = false;");
             }
 
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-
-                if (this.x < 0 || this.x > width) this.vx *= -1;
-                if (this.y < 0 || this.y > height) this.vy *= -1;
-            }
-        }
-
-        function init() {
-            resizeCanvas();
-            particles.length = 0;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function drawParticles() {
-            ctx.clearRect(0, 0, width, height);
-
-            particles.forEach(particle => {
-                particle.update();
-
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-                ctx.fillStyle = particle.color;
-                ctx.fill();
-            });
-        }
-
-        function drawConnections() {
-            ctx.lineWidth = 1.5;
-            ctx.globalAlpha = 0.6;
-
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < connectionDistance) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = particles[i].color;
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            ctx.globalAlpha = 1;
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            drawParticles();
-            drawConnections();
-            requestAnimationFrame(animate);
-        }
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            init();
-        });
-
-        init();
-        animate();
-    </script>
-</body>
-</html>";
-
-            _sharedWebView.NavigateToString(html);
+            _webView.NavigateToString(myRes);
         }
 
         protected override void OnResize(EventArgs e)
@@ -208,20 +105,41 @@ namespace AiTool3.UI
             ResizeWebView();
         }
 
+
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-            if (_isWorking)
+            if (!_isWorking) return;
+
+            if (IsOnForm)
             {
-                using (var brush = new SolidBrush(ForeColor))
-                {
-                    var stringFormat = new StringFormat
-                    {
-                        Alignment = StringAlignment.Center,
-                        LineAlignment = StringAlignment.Center
-                    };
-                    e.Graphics.DrawString("Working...", Font, brush, ClientRectangle, stringFormat);
-                }
+                // For forms, use the existing painting logic
+                base.OnPaint(e);
+
+            }
+            else
+            {
+                // For controls, paint on the parent's graphics
+
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _webView?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        public void UpdateOverlay()
+        {
+            if (IsOnForm)
+            {
+                Invalidate();
+            }
+            else
+            {
+                Parent?.Invalidate(new Rectangle(Left, Top, Width, Height), true);
             }
         }
     }

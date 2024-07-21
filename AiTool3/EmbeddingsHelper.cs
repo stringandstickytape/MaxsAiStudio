@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using AiTool3.Providers.Embeddings.Fragmenters;
+using AiTool3.ExtensionMethods;
 
 namespace AiTool3
 {
@@ -79,7 +80,7 @@ namespace AiTool3
             return result;
         }
 
-        public static async Task CreateEmbeddingsAsync(string apiKey)
+        public static async Task CreateEmbeddingsAsync(string apiKey, MaxsAiStudio maxsAiStudio)
         {
             // get a directory to open from the user
             var folderBrowserDialog = new FolderBrowserDialog();
@@ -89,6 +90,20 @@ namespace AiTool3
                 return;
             }
 
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Embeddings JSON file|*.embeddings.json",
+                Title = "Save Embeddings JSON file",
+                InitialDirectory = Path.Combine(Environment.CurrentDirectory, "Embeddings")
+            };
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName == "")
+            {
+                return;
+            }
+
+            maxsAiStudio.ShowWorking("Generating Embeddings", maxsAiStudio.CurrentSettings.SoftwareToyMode);
             // recursively find all cs files within that dir and subdirs
             var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
             files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
@@ -132,18 +147,7 @@ namespace AiTool3
             // just pass json through, if it's less than 1K, else break it into chunks
 
 
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Embeddings JSON file|*.embeddings.json",
-                Title = "Save Embeddings JSON file",
-                InitialDirectory = Path.Combine(Environment.CurrentDirectory, "Embeddings")
-            };
-            saveFileDialog.ShowDialog();
 
-            if (saveFileDialog.FileName == "")
-            {
-                return;
-            }
             var frags = fragments.Where(x => x.Content.Length > 25).ToList();
 
             var embeddingInputs = frags.Select(x => @$"{x.FilePath.Split('/').Last()} line {x.LineNumber} {(string.IsNullOrEmpty(x.Class) ? "" : $", class {x.Namespace}.{x.Class}")}:
@@ -166,8 +170,7 @@ namespace AiTool3
             var json = System.Text.Json.JsonSerializer.Serialize(embeddings);
             File.WriteAllText(saveFileDialog.FileName, json);
 
-            // show mb to say it's done
-            MessageBox.Show("Embeddings created and saved");
+            maxsAiStudio.HideWorking();
         }
 
         public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "https://api.openai.com/v1/embeddings")
