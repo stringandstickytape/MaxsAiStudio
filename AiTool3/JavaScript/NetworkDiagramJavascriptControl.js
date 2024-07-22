@@ -72,7 +72,7 @@ function createContextMenu() {
     menu.append('div')
         .text('Save this branch as HTML')
         .attr('class', 'context-menu-item')
-        .on('click', (a,b) => {
+        .on('click', (a, b) => {
             window.chrome.webview.postMessage({
                 type: 'saveHtml',
                 nodeId: selectedNode
@@ -163,7 +163,7 @@ function fitAll() {
 }
 
 function addNodes(nodes) {
-    
+
     console.log("Adding nodes: ", nodes);
     nodes.forEach(node => {
         root.children.push({
@@ -175,7 +175,7 @@ function addNodes(nodes) {
         });
     });
     updateGraph();
-    
+
 }
 function addLinks(links) {
     console.log("Adding links: ", links);
@@ -207,26 +207,52 @@ function updateGraph() {
     const nodeWidth = 300;
     const nodeHeight = 80;
     const spacing = 40;
-    
+
     // Recursive function to position nodes
     function positionNode(node, x, y, level) {
         node.x = x;
         node.y = y;
 
         if (node.children && node.children.length > 0) {
-            const childrenSize = (node.children.length - 1) * (isVertical ? (nodeWidth + spacing) : (nodeHeight + spacing));
-            let childPos = isVertical ? x - childrenSize / 2 : y - childrenSize / 2;
+            let totalWidth = 0;
+            node.children.forEach(child => {
+                const childSize = getSubtreeSize(child);
+                totalWidth += childSize.width;
+            });
+            totalWidth += (node.children.length - 1) * spacing;
+
+            let childPos = isVertical ? x - totalWidth / 2 : y;
 
             node.children.forEach(child => {
+                const childSize = getSubtreeSize(child);
                 if (isVertical) {
-                    positionNode(child, childPos, y + nodeHeight + spacing, level + 1);
-                    childPos += nodeWidth + spacing;
+                    positionNode(child, childPos + childSize.width / 2, y + nodeHeight + spacing, level + 1);
+                    childPos += childSize.width + spacing;
                 } else {
                     positionNode(child, x + nodeWidth + spacing, childPos, level + 1);
                     childPos += nodeHeight + spacing;
                 }
             });
         }
+    }
+
+    // Function to calculate the size of a subtree
+    function getSubtreeSize(node) {
+        if (!node.children || node.children.length === 0) {
+            return { width: nodeWidth, height: nodeHeight };
+        }
+
+        let totalWidth = 0;
+        let maxHeight = 0;
+
+        node.children.forEach(child => {
+            const childSize = getSubtreeSize(child);
+            totalWidth += childSize.width;
+            maxHeight = Math.max(maxHeight, childSize.height);
+        });
+
+        totalWidth += (node.children.length - 1) * spacing;
+        return { width: Math.max(nodeWidth, totalWidth), height: nodeHeight + spacing + maxHeight };
     }
 
     // Position all nodes starting from root
@@ -272,11 +298,11 @@ function updateGraph() {
 
     nodeEnter.on('click', function (event, d) {
         selectedNode = d.id;
-            
-            window.chrome.webview.postMessage({
-                type: 'nodeClicked',
-                nodeId: selectedNode 
-            });
+
+        window.chrome.webview.postMessage({
+            type: 'nodeClicked',
+            nodeId: selectedNode
+        });
     });
 
     nodeEnter.on('contextmenu', function (event, d) {
@@ -321,7 +347,7 @@ function updateGraph() {
         .style('font-family', 'Calibri, Arial, sans-serif')
         .style('text-align', 'center') // Add this line
         .text(d => d.label);
-    
+
     nodes.merge(nodeEnter)
         .transition()
         .duration(500) // Set duration (adjust as needed)
@@ -332,7 +358,7 @@ function updateGraph() {
 
     setTimeout(fitAll, 550); // Slightly longer than the transition duration
 
-    
+
 }
 
 function getNodes(node) {
@@ -386,4 +412,15 @@ function toggleLayout() {
     isVertical = !isVertical;
     updateGraph();
     fitAll();
+}
+
+// Function to get all nodes as a flat array
+function getAllNodes(node) {
+    let nodes = [node];
+    if (node.children) {
+        node.children.forEach(child => {
+            nodes = nodes.concat(getAllNodes(child));
+        });
+    }
+    return nodes;
 }
