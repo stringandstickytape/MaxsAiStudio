@@ -83,7 +83,8 @@ namespace AiTool3.UI
                         DataType = message["dataType"],
                         Guid = message["guid"],
                         Type = message["type"],
-                        FindAndReplacesJson = message["findAndReplaces"]
+                        FindAndReplacesJson = message["findAndReplaces"],
+                        SelectedMessageGuid = message["selectedMessageGuid"]
                     });
                     break;
                 case "cancel":

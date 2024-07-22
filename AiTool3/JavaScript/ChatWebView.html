@@ -738,10 +738,20 @@
             });
         }
 
+        let selectedMessageGuid = null;
+
+        function fixNewlinesInStrings(jsonString) {
+            return jsonString.replace(
+                /"(find|replace)":\s*"((?:\\.|[^"\\])*?)"/g,
+                (match, key, value) => {
+                    const fixedValue = value.replace(/\n/g, '\\n');
+                    return `"${key}": "${fixedValue}"`;
+                }
+            );
+        }
+
         // WebViewCallAndCallbackSystem
         function createButtonBar(guid, content, dataType) {
-
-
             const btns = [
                 { btnId: 1, label: 'Copy', dataType: '*' },
                 { btnId: 2, label: 'Save As', dataType: '*' },
@@ -780,9 +790,13 @@
                             createMermaidViewer(content);
                         } else if (btnInfo.label === 'Select Find-And-Replace Script') {
                             console.log('fnr');
-                            findAndReplaces = JSON.parse(content);
+
+                            // replace \n in content with \\n
+                            debugger;
+                            findAndReplaces = JSON.parse(fixNewlinesInStrings(content));
+                            selectedMessageGuid = guid;
                             console.log(btnInfo.btnId);
- 
+
                             setApplyButtonVisibility();
                         } else if (btnInfo.label === 'Apply Find-And-Replace Script') {
 
@@ -805,12 +819,14 @@
                                 guid: guid,
                                 dataType: dataType,
                                 codeBlockIndex: index.toString(),
-                                findAndReplaces: JSON.stringify(findAndReplaces)
+                                findAndReplaces: JSON.stringify(findAndReplaces),
+                                selectedMessageGuid: selectedMessageGuid
                             });
 
                             setApplyButtonVisibility(true);
 
                             findAndReplaces = null;
+                            selectedMessageGuid = null;
 
                         } else if (btnInfo.label == 'View DOT Diagram') {
                             renderDotString(content);

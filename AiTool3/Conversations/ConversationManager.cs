@@ -196,7 +196,7 @@ namespace AiTool3.Conversations
 
         public static readonly string ThreeTicks = new string('`', 3);
 
-        public void AddBranch(ChatWebViewAddBranchEventArgs e)
+        public string AddBranch(ChatWebViewAddBranchEventArgs e)
         {
             var nodeToDuplicate = Conversation!.FindByGuid(e.Guid);
 
@@ -239,56 +239,46 @@ namespace AiTool3.Conversations
 
             var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs);
 
-            // Now you have the start index of the specified code block
-            // You can proceed with further operations, such as replacing content within this code block
-
             // now take the original content, and replace the code block with the processed content
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
-            var newCompletion = new CompletionMessage(nodeToDuplicate.Role)
+
+            // now add a new message which we'll append to NodeToDuplicate, ostensibly from the user, sayign "incorporate those changes"
+            var newMessage = new CompletionMessage(CompletionRole.User)
             {
-                Content = newContent,
-                Parent = nodeToDuplicate.Parent,
+                Content = "Incorporate those changes",
+                Parent = e.SelectedMessageGuid,
                 Engine = nodeToDuplicate.Engine,
                 SystemPrompt = nodeToDuplicate.SystemPrompt,
-                InputTokens = nodeToDuplicate.InputTokens,
-                OutputTokens = nodeToDuplicate.OutputTokens,
+                InputTokens = 0,
+                OutputTokens = 0,
                 Base64Image = nodeToDuplicate.Base64Image,
                 Base64Type = nodeToDuplicate.Base64Type,
                 CreatedAt = DateTime.Now,
             };
 
+            Conversation!.Messages.Add(newMessage);
+            nodeToDuplicate.Children!.Add(newMessage.Guid);
 
-
-            if (nodeToDuplicate.Parent != null)
+            // and from that message, add another, ostensibly from the assistant, quoting the new content
+            var newMessage2 = new CompletionMessage(CompletionRole.Assistant)
             {
-                var parent = Conversation.FindByGuid(nodeToDuplicate.Parent);
-                parent.Children!.Add(newCompletion.Guid);
-            }
+                Content = newContent,
+                Parent = newMessage.Guid,
+                Engine = nodeToDuplicate.Engine,
+                SystemPrompt = nodeToDuplicate.SystemPrompt,
+                InputTokens = 0,
+                OutputTokens = 0,
+                Base64Image = nodeToDuplicate.Base64Image,
+                Base64Type = nodeToDuplicate.Base64Type,
+                CreatedAt = DateTime.Now,
+            };
 
-            Conversation.Messages.Add(newCompletion);
-
-            // if nodeToDuplicate was a user node, add a fake assistant child node that says "changes applied"
-            if (nodeToDuplicate.Role == CompletionRole.User)
-            {
-                var assistantCompletion = new CompletionMessage(CompletionRole.Assistant)
-                {
-                    Content = "Changes applied",
-                    Parent = newCompletion.Guid,
-                    Engine = nodeToDuplicate.Engine,
-                    SystemPrompt = nodeToDuplicate.SystemPrompt,
-                    InputTokens = 0,
-                    OutputTokens = 0,
-                    CreatedAt = DateTime.Now,
-                };
-
-                newCompletion.Children.Add(assistantCompletion.Guid);
-                Conversation.Messages.Add(assistantCompletion);
-            }
+            Conversation.Messages.Add(newMessage2);
+            newMessage.Children.Add(newMessage2.Guid);
 
             SaveConversation();
 
-            // update the dgv
-            StringSelected?.Invoke(newCompletion.Guid);
+            return newMessage2.Guid;
         }
 
         internal void MergeWithPrevious(string guidValue)

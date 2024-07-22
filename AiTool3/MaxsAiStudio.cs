@@ -178,13 +178,13 @@ namespace AiTool3
 
         private void ChatWebView_ChatWebViewAddBranchEvent(object? sender, ChatWebViewAddBranchEventArgs e)
         {
-            ConversationManager.AddBranch(e);
+            var newNodeGuid = ConversationManager.AddBranch(e);
 
             // update the webndc
             WebNdcDrawNetworkDiagram();
 
             // select the new node
-            webViewManager.CentreOnNode(e.Guid);
+            webViewManager.CentreOnNode(newNodeGuid);
         }
 
         private async void DeleteConversation(object? sender, EventArgs e)

@@ -14,5 +14,6 @@
         public string DataType { get; set; }
         public int CodeBlockIndex { get; set; }
         public string FindAndReplacesJson { get; set; }
+        public string SelectedMessageGuid { get; internal set; }
     }
 }
