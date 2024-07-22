@@ -18,10 +18,13 @@
         }
 
         .tools-dropbtn {
-            background-color: #3a3a3a;
+            background-color: #bb3030;
             color: white;
             border: none;
             cursor: pointer;
+            padding: 4px 4px;
+            border-radius: 4px;
+            width: 55px;
         }
 
         .tools-dropdown-content {
@@ -31,20 +34,22 @@
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
+            border: 1px solid black;
         }
 
             .tools-dropdown-content label {
-                color: black;
-                padding: 12px 16px;
+                color: white;
+                background-color: #333333;
+                padding: 2px 2px;
                 text-decoration: none;
                 display: block;
             }
 
                 .tools-dropdown-content label:hover {
-                    background-color: #f1f1f1
+                    background-color: #666666
                 }
 
-        .tools-dropdown:hover .tools-dropdown-content {
+        .tools-dropdown.active .tools-dropdown-content {
             display: block;
         }
 
@@ -86,7 +91,7 @@
             background-color: #3a3a3a;
             color: #fff;
             padding: 20px;
-            font-size: 20px;
+            font-size: 12px;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
@@ -464,10 +469,10 @@
             <div class="header-left">
                 <span id="chatHeaderLabel">AI Assistant Chat</span>
                 <div class="tools-dropdown">
-                    <button class="tools-dropbtn">Tools</button>
+                    <button class="tools-dropbtn" id="toolsDropBtn">Tools</button>
                     <div class="tools-dropdown-content">
-                        <label><input type="checkbox" id="tool1"> Find-And-Replace</label>
-                        <label><input type="checkbox" id="tool2"> Tool2</label>
+                        <label><input type="checkbox" id="findAndReplaceTool">Find-And-Replace (Claude only)</label>
+                        <!--<label><input type="checkbox" id="tool2"> Tool2</label>-->
                     </div>
                 </div>
             </div>
@@ -624,6 +629,20 @@
         function AddInitialMessages(msgs) {
             msgs.forEach(AddMessage);
         }
+
+        // Toggle tools dropdown
+        document.getElementById('toolsDropBtn').addEventListener('click', function (event) {
+            event.stopPropagation();
+            this.parentElement.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.querySelector('.tools-dropdown');
+            if (!dropdown.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
 
 
         function ClearMessages(animate = false) {
