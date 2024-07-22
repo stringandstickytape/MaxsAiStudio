@@ -55,8 +55,8 @@ namespace AiTool3
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
             chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
-
             chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
+            chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
 
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
@@ -164,6 +164,15 @@ namespace AiTool3
             _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
 
 
+
+        }
+
+        private void ChatWebView_ChatWebViewJoinWithPreviousEvent(object? sender, ChatWebViewJoinWithPreviousEventArgs e)
+        {
+            ConversationManager.MergeWithPrevious(e.GuidValue);
+
+            // update the webndc
+            WebNdcDrawNetworkDiagram();
 
         }
 

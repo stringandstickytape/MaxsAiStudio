@@ -19,11 +19,14 @@ namespace AiTool3.UI
     [DesignerCategory("Code")]
     public class ChatWebView : WebView2
     {
+        public string GuidValue { get; private set; }
+
         public event EventHandler<ChatWebViewSendMessageEventArgs>? ChatWebViewSendMessageEvent;
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
         public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
         public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
         public event EventHandler<ChatWebViewAddBranchEventArgs>? ChatWebViewAddBranchEvent;
+        public event EventHandler<ChatWebViewJoinWithPreviousEventArgs>? ChatWebViewJoinWithPreviousEvent;
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -50,10 +53,14 @@ namespace AiTool3.UI
             
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
-            var content = message["content"];
+            var content = message.ContainsKey("content") ? message["content"] : null;
             var type = message?["type"];
             switch (type)
             {
+                case "joinWithPrevious":
+                    ChatWebViewJoinWithPreviousEvent?.Invoke(this, new ChatWebViewJoinWithPreviousEventArgs(GuidValue = message["guid"]));
+                    break;
+
                 case "fileDropped":
                     OnFileDropped(content);
                     break;

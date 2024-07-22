@@ -290,6 +290,78 @@ namespace AiTool3.Conversations
             // update the dgv
             StringSelected?.Invoke(newCompletion.Guid);
         }
+
+        internal void MergeWithPrevious(string guidValue)
+        {
+            // get the message with the given guid value
+            var message = Conversation!.FindByGuid(guidValue);
+            // get the preceding message of the same role
+            var previousMessage = Conversation.Messages.LastOrDefault(m => m.Role == message.Role && m.Guid != message.Guid);
+
+            var msgContent = message.Content;
+
+            // remove everything before the first three ticks
+            var firstThreeTicksIndex = msgContent.IndexOf(ThreeTicks);
+            msgContent = msgContent.Substring(firstThreeTicksIndex);
+
+            // remove the next line
+            var nextLineIndex = msgContent.IndexOf('\n')+1;
+            msgContent = msgContent.Substring(nextLineIndex);
+
+            // get the last line of previousMessage
+            var lastLineIndex = previousMessage.Content.LastIndexOf('\n')+1;
+            var lastLine = previousMessage.Content.Substring(lastLineIndex);
+
+            // get the first line of msgContent
+            var firstLine = msgContent.Substring(0, msgContent.IndexOf('\n'));
+
+            // ignoring whitespace, is the last line of prev the same as the first line of the message?
+            if (firstLine.Trim().StartsWith(lastLine.Trim()))
+            {
+                // remove the last line of prev
+                var newContent = previousMessage.Content.Substring(0, lastLineIndex);
+                // append the message content to the end of prev
+                newContent += msgContent;
+                // remove the message
+                //Conversation.Messages.Remove(message);
+                //SaveConversation();
+
+                // find the parent message of message
+                var parentOfCurrent = Conversation.FindByGuid(message.Parent);
+                var parentOfPrevious = Conversation.FindByGuid(previousMessage.Parent);
+
+                // remove previousMessage from the parent's children
+                parentOfPrevious.Children!.Remove(previousMessage.Guid);
+
+                // remove all three from the conversation
+                Conversation.Messages.Remove(message);
+                Conversation.Messages.Remove(parentOfCurrent);
+                Conversation.Messages.Remove(previousMessage);
+
+                // create a new message out of newContent, Assistant role
+                var newMessage = new CompletionMessage(CompletionRole.Assistant)
+                {
+                    Content = newContent,
+                    Parent = parentOfPrevious.Guid,
+                    Engine = previousMessage.Engine,
+                    SystemPrompt = previousMessage.SystemPrompt,
+                    InputTokens = previousMessage.InputTokens,
+                    OutputTokens = previousMessage.OutputTokens,
+                    Base64Image = previousMessage.Base64Image,
+                    Base64Type = previousMessage.Base64Type,
+                    CreatedAt = DateTime.Now,
+                };
+
+                // add the new message to the conversation
+                Conversation.Messages.Add(newMessage);
+
+                // add the new message to the parent's children
+                parentOfPrevious.Children!.Add(newMessage.Guid);
+
+                // save the conversation
+                SaveConversation();
+            }
+        }
     }
 
 

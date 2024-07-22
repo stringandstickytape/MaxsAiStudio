@@ -23,7 +23,7 @@
 
 
         .chat-input-container {
-            padding:15px;
+            padding: 15px;
         }
 
 
@@ -82,7 +82,7 @@
             position: relative;
             flex: 1;
             margin-right: 10px;
-            width:100%;
+            width: 100%;
         }
 
         .chat-input {
@@ -93,7 +93,7 @@
             border-radius: 4px;
             resize: vertical;
             min-height: 60px;
-            height:20vh;
+            height: 20vh;
             max-height: 200px;
             background-color: #3a3a3a;
             color: #e0e0e0;
@@ -137,12 +137,12 @@
 
         .chat-submit {
             background-color: #4a90e2;
-            min-width:90px;
+            min-width: 90px;
         }
 
         .chat-cancel {
             background-color: #7f8c8d;
-            min-width:90px;
+            min-width: 90px;
         }
 
         .chat-submit:hover {
@@ -152,12 +152,45 @@
         .message {
             margin-bottom: 20px;
             display: flex;
+            flex-direction: column;
             animation: fadeIn 0.5s ease-out;
         }
 
-            .message.fade-out {
-                animation: fadeOut 0.5s ease-in forwards;
+        .message-content {
+            margin-top: 10px;
+        }
+
+        .assistant-button-bar {
+            display: inline-flex;
+        }
+
+        .role {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .role span {
+                margin-right: 10px;
             }
+
+        .assistant-button-bar button {
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+            .assistant-button-bar button:hover {
+                background-color: #5a5a5a;
+            }
+
+        .message.fade-out {
+            animation: fadeOut 0.5s ease-in forwards;
+        }
 
         .message-content {
             max-width: 80%;
@@ -226,6 +259,8 @@
 
         .role {
             margin-right: 10px;
+            display: flex;
+            align-items: center;
         }
 
         .message.draggable {
@@ -240,7 +275,7 @@
             display: inline-flex;
             position: relative;
             align-self: end;
-            min-width:90px;
+            min-width: 90px;
         }
 
             .split-button button {
@@ -567,7 +602,24 @@
 
             const roleDiv = document.createElement('div');
             roleDiv.className = 'role';
-            roleDiv.textContent = msg.Role === 0 ? "user" : "assistant";
+            const roleSpan = document.createElement('span');
+            roleSpan.textContent = msg.Role === 0 ? "user" : "assistant";
+            roleDiv.appendChild(roleSpan);
+
+            if (msg.Role === 1) {
+                const buttonBar = document.createElement('div');
+                buttonBar.className = 'assistant-button-bar';
+                const joinButton = document.createElement('button');
+                joinButton.textContent = 'Join with previous response';
+                joinButton.addEventListener('click', () => {
+                    window.chrome.webview.postMessage({
+                        type: 'joinWithPrevious',
+                        guid: msg.Guid
+                    });
+                });
+                buttonBar.appendChild(joinButton);
+                roleDiv.appendChild(buttonBar);
+            }
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
@@ -698,7 +750,7 @@
 
             const btnBar = document.createElement('div');
             btnBar.className = 'button-bar';
-            
+
             btns.filter(btn => btn.dataType === '*' || dataType.endsWith(btn.dataType))
                 .forEach(btnInfo => {
                     const btn = document.createElement('button');
@@ -719,7 +771,7 @@
 
                             const container = e.target.closest('.code-block-container');
                             debugger;
-                                
+
                             const allContainers = Array.from(btn.closest('.message-content').querySelectorAll('.code-block-container'));
 
                             const index = allContainers.indexOf(container);
