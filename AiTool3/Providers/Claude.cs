@@ -13,6 +13,8 @@ namespace AiTool3.Providers
 {
     internal class Claude : IAiService
     {
+        public bool UseTool { get; set; } = true;
+
         HttpClient client = new HttpClient();
         bool clientInitialised = false;
 
@@ -30,7 +32,6 @@ namespace AiTool3.Providers
                 clientInitialised = true;
             }
 
-
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
@@ -39,6 +40,53 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
             };
+
+            var findAndReplacesTool = new JObject
+            {
+                ["name"] = "Find-and-replaces",
+                ["description"] = "Supply a list of find-and-replaces",
+                ["input_schema"] = new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject
+                    {
+                        ["replacements"] = new JObject
+                        {
+                            ["type"] = "array",
+                            ["items"] = new JObject
+                            {
+                                ["type"] = "object",
+                                ["properties"] = new JObject
+                                {
+                                    ["find"] = new JObject
+                                    {
+                                        ["type"] = "string",
+                                        ["description"] = "The string to find"
+                                    },
+                                    ["replace"] = new JObject
+                                    {
+                                        ["type"] = "string",
+                                        ["description"] = "The string to replace with"
+                                    }
+                                },
+                                ["required"] = new JArray { "find", "replace" }
+                            },
+                            ["description"] = "A list of find-and-replace pairs"
+                        }
+                    },
+                    ["required"] = new JArray { "replacements" }
+                }
+            };
+
+            if (UseTool)
+            {
+                req["tools"] = new JArray { findAndReplacesTool };
+                req["tool_choice"] = new JObject
+                {
+                    ["type"] = "tool",
+                    ["name"] = "Find-and-replaces"
+                };
+            }
 
             var messagesArray = new JArray();
 
@@ -51,7 +99,7 @@ namespace AiTool3.Providers
                 var contentArray = new JArray();
 
 
-                if(message.base64image != null)
+                if (message.base64image != null)
                 {
                     contentArray.Add(new JObject
                     {
@@ -202,7 +250,32 @@ namespace AiTool3.Providers
 
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
-            var responseText = completion["content"][0]["text"].ToString();
+            var responseText = "";
+            if (completion["content"] != null)
+            {
+
+
+                // is the content type tooL?
+                if (completion["content"][0]["type"].ToString() == "tool_use")
+                {
+                    var toolText = completion["content"][0]["input"]["replacements"].ToString();
+
+                    // deser to findandreplace
+                    var findAndReplace = JsonConvert.DeserializeObject<List<FindAndReplace>>(toolText);
+
+
+                    responseText = $"{MaxsAiStudio.ThreeTicks}findandreplace.json\n{toolText}\n{MaxsAiStudio.ThreeTicks}";
+                }
+                //else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
+                //{
+                //    responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
+                //}
+                else responseText = completion["content"][0]["text"].ToString();
+            }
+            else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
+            {
+                responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
+            }
 
             return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
         }
@@ -219,4 +292,7 @@ namespace AiTool3.Providers
         public string Namespace { get; set; }
         public string Class { get; set; }
     }
+
+
+
 }
