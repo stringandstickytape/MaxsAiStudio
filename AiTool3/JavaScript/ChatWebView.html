@@ -730,22 +730,32 @@
             els.input.focus();
         }
 
+        function setApplyButtonVisibility(hide = false) {
+            document.querySelectorAll('button').forEach(button => {
+                if (button.btnId === 13) {
+                    button.style.display = hide ? 'none' : 'inline-block';
+                }
+            });
+        }
+
         // WebViewCallAndCallbackSystem
         function createButtonBar(guid, content, dataType) {
+
+
             const btns = [
-                { label: 'Copy', dataType: '*' },
-                { label: 'Save As', dataType: '*' },
-                { label: 'WebView', dataType: 'html' },
-                { label: 'View JSON String Array', dataType: 'json' },
-                { label: 'Browse JSON Object', dataType: 'json' },
-                { label: 'View Mermaid Diagram', dataType: 'mermaid' },
-                { label: 'View PlantUML Diagram', dataType: 'plantuml' },
-                { label: 'View DOT Diagram', dataType: 'dot' },
-                { label: 'Run Python Script', dataType: 'python' },
-                { label: 'Launch STL', dataType: 'stl' },
-                { label: 'Run PowerShell Script', dataType: 'powershell' },
-                { label: 'Select Find-And-Replace Script', dataType: 'findandreplace.json' },
-                { label: 'Apply Find-And-Replace Script', dataType: '*' },
+                { btnId: 1, label: 'Copy', dataType: '*' },
+                { btnId: 2, label: 'Save As', dataType: '*' },
+                { btnId: 3, label: 'WebView', dataType: 'html' },
+                { btnId: 4, label: 'View JSON String Array', dataType: 'json' },
+                { btnId: 5, label: 'Browse JSON Object', dataType: 'json' },
+                { btnId: 6, label: 'View Mermaid Diagram', dataType: 'mermaid' },
+                { btnId: 7, label: 'View PlantUML Diagram', dataType: 'plantuml' },
+                { btnId: 8, label: 'View DOT Diagram', dataType: 'dot' },
+                { btnId: 9, label: 'Run Python Script', dataType: 'python' },
+                { btnId: 10, label: 'Launch STL', dataType: 'stl' },
+                { btnId: 11, label: 'Run PowerShell Script', dataType: 'powershell' },
+                { btnId: 12, label: 'Select Find-And-Replace Script', dataType: 'findandreplace.json' },
+                { btnId: 13, label: 'Apply Find-And-Replace Script', dataType: '*', condition: () => findAndReplaces !== null },
             ];
 
             const btnBar = document.createElement('div');
@@ -755,7 +765,13 @@
                 .forEach(btnInfo => {
                     const btn = document.createElement('button');
                     btn.textContent = btnInfo.label;
+                    btn.btnId = btnInfo.btnId;
 
+                    // by default, btnId 13 is hidden
+                    if (btnInfo.btnId === 13) {
+                        btn.style.display = 'none';
+                    }
+                    console.log('Button clicked, btnId:', btnInfo.btnId);  // Add this line
                     btn.addEventListener('click', (e) => {
                         console.log('click');
                         if (btnInfo.label === 'Browse JSON Object') {
@@ -765,6 +781,9 @@
                         } else if (btnInfo.label === 'Select Find-And-Replace Script') {
                             console.log('fnr');
                             findAndReplaces = JSON.parse(content);
+                            console.log(btnInfo.btnId);
+ 
+                            setApplyButtonVisibility();
                         } else if (btnInfo.label === 'Apply Find-And-Replace Script') {
 
                             //let output = applyFindAndReplace(content, findAndReplaces);
@@ -788,6 +807,10 @@
                                 codeBlockIndex: index.toString(),
                                 findAndReplaces: JSON.stringify(findAndReplaces)
                             });
+
+                            setApplyButtonVisibility(true);
+
+                            findAndReplaces = null;
 
                         } else if (btnInfo.label == 'View DOT Diagram') {
                             renderDotString(content);

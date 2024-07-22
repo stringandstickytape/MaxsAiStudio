@@ -156,7 +156,7 @@ Check whisper still works through microphone
 
 Possibly post-release:
 
-
+project helper: # to include files?
 popup that lets you interfere with the embeddings selected...!
 source code browser thing, to let you choose which files to upload from your project?
 launch sql? browse xml? launch svg? azure az command?! 
