@@ -334,10 +334,10 @@ namespace AiTool3
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
             // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
-            if (CurrentSettings.RunWebServer)
-            {
-                await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
-            }
+            //if (CurrentSettings.RunWebServer)
+            //{
+            //    await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
+            //}
 
 
 
@@ -458,11 +458,11 @@ namespace AiTool3
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
         }
 
-        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e) => await FetchAiInputResponse();
+        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e) => await FetchAiInputResponse(e.SelectedTools);
 
 
 
-        private async Task<string> FetchAiInputResponse()
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null)
         {
             string retVal = "";
             try
@@ -470,7 +470,7 @@ namespace AiTool3
                 PrepareForNewResponse();
                 var model = (Model)cbEngine.SelectedItem!;
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model);
+                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -519,13 +519,13 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, CurrentSettings.StreamResponses);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolIDs: toolIDs, useStreaming: CurrentSettings.StreamResponses);
 
             var modelUsageManager = new ModelUsageManager(model);
 

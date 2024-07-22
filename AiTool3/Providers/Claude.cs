@@ -23,7 +23,7 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false)
         {
             if (!clientInitialised)
             {
@@ -41,45 +41,47 @@ namespace AiTool3.Providers
                 ["temperature"] = currentSettings.Temperature,
             };
 
-            var findAndReplacesTool = new JObject
-            {
-                ["name"] = "Find-and-replaces",
-                ["description"] = "Supply a list of find-and-replaces",
-                ["input_schema"] = new JObject
-                {
-                    ["type"] = "object",
-                    ["properties"] = new JObject
-                    {
-                        ["replacements"] = new JObject
-                        {
-                            ["type"] = "array",
-                            ["items"] = new JObject
-                            {
-                                ["type"] = "object",
-                                ["properties"] = new JObject
-                                {
-                                    ["find"] = new JObject
-                                    {
-                                        ["type"] = "string",
-                                        ["description"] = "The string to find"
-                                    },
-                                    ["replace"] = new JObject
-                                    {
-                                        ["type"] = "string",
-                                        ["description"] = "The string to replace with"
-                                    }
-                                },
-                                ["required"] = new JArray { "find", "replace" }
-                            },
-                            ["description"] = "A list of find-and-replace pairs"
-                        }
-                    },
-                    ["required"] = new JArray { "replacements" }
-                }
-            };
 
-            if (UseTool)
+
+            if (toolIDs.Contains("tool1"))
             {
+                var findAndReplacesTool = new JObject
+                {
+                    ["name"] = "Find-and-replaces",
+                    ["description"] = "Supply a list of find-and-replaces",
+                    ["input_schema"] = new JObject
+                    {
+                        ["type"] = "object",
+                        ["properties"] = new JObject
+                        {
+                            ["replacements"] = new JObject
+                            {
+                                ["type"] = "array",
+                                ["items"] = new JObject
+                                {
+                                    ["type"] = "object",
+                                    ["properties"] = new JObject
+                                    {
+                                        ["find"] = new JObject
+                                        {
+                                            ["type"] = "string",
+                                            ["description"] = "The string to find"
+                                        },
+                                        ["replace"] = new JObject
+                                        {
+                                            ["type"] = "string",
+                                            ["description"] = "The string to replace with"
+                                        }
+                                    },
+                                    ["required"] = new JArray { "find", "replace" }
+                                },
+                                ["description"] = "A list of find-and-replace pairs"
+                            }
+                        },
+                        ["required"] = new JArray { "replacements" }
+                    }
+                };
+
                 req["tools"] = new JArray { findAndReplacesTool };
                 req["tool_choice"] = new JObject
                 {

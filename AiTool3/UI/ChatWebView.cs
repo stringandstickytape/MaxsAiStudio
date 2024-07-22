@@ -74,7 +74,8 @@ namespace AiTool3.UI
                     ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithPrompt));
                     break;
                 case "send":
-                    ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
+                    var selectedTools = message?["selectedTools"];
+                    ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools.Split(',').ToList() });
                     break;
                 case "applyFindAndReplace":
                     ChatWebViewAddBranchEvent?.Invoke(this, new ChatWebViewAddBranchEventArgs {

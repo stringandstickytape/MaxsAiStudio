@@ -90,7 +90,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), currentSettings, mustNotUseEmbedding: true, false);
+                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), currentSettings, mustNotUseEmbedding: true, toolIDs: null, useStreaming: false);
 
                 Debug.WriteLine("Summary : " + response.ResponseText);
 
@@ -175,7 +175,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, false);
+                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolIDs: null, useStreaming: false);
 
             var cost = apiModel.GetCost(response.TokenUsage);
 
