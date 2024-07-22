@@ -24,7 +24,7 @@ namespace AiTool3
         public FileSearchForm(string path, string csvFileTypes)
         {
             rootPath = path;
-            fileExtensions = csvFileTypes.Split(',').Select(ext => ext.Trim().ToLower()).ToArray();
+            fileExtensions = csvFileTypes.Replace("*", "").Split(',').Select(ext => ext.Trim().ToLower()).ToArray();
 
             InitializeComponent();
             PopulateTreeView(@"");

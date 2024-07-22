@@ -174,7 +174,14 @@ namespace AiTool3.UI
                 CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
             }
 
-            var html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
+            // ask the user whetehr to open cwv or cwv2
+            var mb = MessageBox.Show("Use CWV2?", "CWV2", MessageBoxButtons.YesNo);
+            string html;
+            if(mb == DialogResult.Yes)
+                html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html");
+            else
+                html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
+
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
 
             // find the first style tag
@@ -247,13 +254,46 @@ namespace AiTool3.UI
 
         private void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
-            GetResourceDetails().Where(x => e.Request.Uri == x.Uri).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
+            var rd = GetResourceDetails();
+            var matching = rd.Where(x => e.Request.Uri == x.Uri).ToList();
+
+
+            GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
         }
 
         private static List<ResourceDetails> GetResourceDetails()
-        {// https://cdn.jsdelivr.net/npm/@sakirtemel/plantuml.js@1.0.1/+esm
-            return new List<ResourceDetails>
+        {
+
+            // create a new resourcedetail for each resource in namespace AiTool3.JavaScript.Components
+            var resources = new List<ResourceDetails>();
+            foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
+                if (resourceName.StartsWith("AiTool3.JavaScript.Components"))
+                {
+                    // find the index of the penultimate dot in resource name
+                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
+                    // get the filename using that
+                    var filename = resourceName.Substring(penultimateDotIndex + 1);
+
+                    resources.Add(new ResourceDetails
+                    {
+                        Uri = $"http://localhost/{filename}",
+                        ResourceName = resourceName,
+                        MimeType = "text/babel"
+                    });
+                }
+            }
+
+            resources.AddRange(new List<ResourceDetails>
+            {
+                new ResourceDetails
+                {
+                    Uri = "https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.mermaid.min.js",
+                    MimeType = "application/javascript"
+                },
+
+
                 new ResourceDetails
                 {
                     Uri = "https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js",
@@ -312,7 +352,9 @@ namespace AiTool3.UI
                     ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape-dagre.min.js",
                     MimeType = "application/javascript"
                 },
-            };
+            });
+
+            return resources;
         }
 
         private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
@@ -337,10 +379,14 @@ namespace AiTool3.UI
                         // Set the response
                         e.Response = response;
 
+                        // need to add a Access-Control-Allow-Origin header to the response
+                        e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
+
+
                         return;
                     }
                 }
-                throw new NotImplementedException();
+                throw new Exception("Probably forgot to embed the resource :(");
             }
         }
     }

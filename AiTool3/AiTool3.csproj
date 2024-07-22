@@ -39,15 +39,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="JavaScript\AiStudioButton.js" />
     <None Remove="JavaScript\ChatWebView.css" />
     <None Remove="JavaScript\ChatWebView.html" />
+    <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\DotViewer.js" />
     <None Remove="JavaScript\FindAndReplacer.js" />
+    <None Remove="JavaScript\HeaderBar.js" />
+    <None Remove="JavaScript\InputBox.js" />
     <None Remove="JavaScript\JsonViewer.js" />
     <None Remove="JavaScript\MermaidViewer.js" />
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <None Remove="JavaScript\Components\MessagesPane.js" />
     <None Remove="JavaScript\WorkingOverlay.html" />
     <None Remove="JavaScript\WorkingOverlay2.html" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
@@ -66,15 +71,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="JavaScript\Components\AiStudioButton.js" />
+    <EmbeddedResource Include="JavaScript\ChatWebView2.html" />
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
     <EmbeddedResource Include="JavaScript\DotViewer.js" />
     <EmbeddedResource Include="JavaScript\FindAndReplacer.js" />
+    <EmbeddedResource Include="JavaScript\Components\HeaderBar.js" />
+    <EmbeddedResource Include="JavaScript\Components\InputBox.js" />
     <EmbeddedResource Include="JavaScript\MermaidViewer.js" />
     <EmbeddedResource Include="JavaScript\JsonViewer.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
+    <EmbeddedResource Include="JavaScript\Components\MessagesPane.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />

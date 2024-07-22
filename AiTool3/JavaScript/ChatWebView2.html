@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Demo</title>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+
+
+
+        function waitForWebView2() {
+            return new Promise((resolve) => {
+                if (window.chrome && window.chrome.webview) {
+                    setTimeout(resolve, 100); // 2-second delay after WebView2 is detected
+                } else {
+                    window.addEventListener('WebComponentsReady', () => {
+                        setTimeout(resolve, 2000); // 2-second delay after WebComponentsReady event
+                    }, { once: true });
+                }
+            });
+        }
+
+        function loadAndExecuteScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    setTimeout(resolve, 100); // Small delay after each script load
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        waitForWebView2()
+            .then(() => loadAndExecuteScript('https://unpkg.com/react@17/umd/react.development.js'))
+            .then(() => loadAndExecuteScript('https://unpkg.com/react-dom@17/umd/react-dom.development.js'))
+            .then(() => loadAndExecuteScript('https://unpkg.com/@babel/standalone/babel.min.js'))
+            .then(() => {
+                console.log('Components loaded');
+                const script = document.createElement('script');
+                script.type = 'text/babel';
+                script.src = 'http://localhost/AiStudioButton.js';
+                document.body.appendChild(script);
+
+                const headerBarScript = document.createElement('script');
+                headerBarScript.type = 'text/babel';
+                headerBarScript.src = 'http://localhost/HeaderBar.js';
+                document.body.appendChild(headerBarScript);
+
+                const inputBoxScript = document.createElement('script');
+                inputBoxScript.type = 'text/babel';
+                inputBoxScript.src = 'http://localhost/InputBox.js';
+                document.body.appendChild(inputBoxScript);
+
+                const messagesPaneScript = document.createElement('script');
+                messagesPaneScript.type = 'text/babel';
+                messagesPaneScript.src = 'http://localhost/MessagesPane.js';
+                document.body.appendChild(messagesPaneScript);
+
+                const appScript = document.createElement('script');
+                appScript.type = 'text/babel';
+                appScript.innerHTML = `
+            function App() {
+                const handleChangeLogo = () => {
+                    changeLogo("New Logo Text");
+                };
+
+                return (
+                    <div>
+                        <HeaderBar />
+                        <button onClick={handleChangeLogo}>Change Logo</button>
+                        <MessagesPane />
+                        <InputBox />
+                    </div>
+                );
+            }
+
+            ReactDOM.render(
+                React.createElement(App),
+                document.getElementById('root')
+            );
+        `;
+                document.body.appendChild(appScript);
+
+                Babel.transformScriptTags();
+            })
+            .catch(error => console.error('Error loading scripts:', error));
+    </script>
+</body>
+</html>

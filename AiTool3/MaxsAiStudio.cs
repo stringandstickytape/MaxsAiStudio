@@ -184,7 +184,9 @@ namespace AiTool3
             WebNdcDrawNetworkDiagram();
 
             // select the new node
-            webViewManager.CentreOnNode(newNodeGuid);
+            //webViewManager.CentreOnNode(newNodeGuid);
+
+            WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(newNodeGuid));
         }
 
         private async void DeleteConversation(object? sender, EventArgs e)
