@@ -55,6 +55,9 @@ namespace AiTool3
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
             chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
             chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
+
+            chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
+
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
@@ -162,6 +165,17 @@ namespace AiTool3
 
 
 
+        }
+
+        private void ChatWebView_ChatWebViewAddBranchEvent(object? sender, ChatWebViewAddBranchEventArgs e)
+        {
+            ConversationManager.AddBranch(e);
+
+            // update the webndc
+            WebNdcDrawNetworkDiagram();
+
+            // select the new node
+            webViewManager.CentreOnNode(e.Guid);
         }
 
         private async void DeleteConversation(object? sender, EventArgs e)

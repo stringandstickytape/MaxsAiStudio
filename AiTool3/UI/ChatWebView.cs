@@ -23,6 +23,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
         public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
         public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
+        public event EventHandler<ChatWebViewAddBranchEventArgs>? ChatWebViewAddBranchEvent;
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -67,6 +68,16 @@ namespace AiTool3.UI
                     break;
                 case "send":
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content });
+                    break;
+                case "applyFindAndReplace":
+                    ChatWebViewAddBranchEvent?.Invoke(this, new ChatWebViewAddBranchEventArgs {
+                        CodeBlockIndex = int.Parse(message["codeBlockIndex"]),
+                        Content = content,
+                        DataType = message["dataType"],
+                        Guid = message["guid"],
+                        Type = message["type"],
+                        FindAndReplacesJson = message["findAndReplaces"]
+                    });
                     break;
                 case "cancel":
                     ChatWebViewCancelEvent?.Invoke(this, new ChatWebViewCancelEventArgs());
@@ -170,6 +181,8 @@ namespace AiTool3.UI
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.MermaidViewer.js"));
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.DotViewer.js"));
+
+            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.FindAndReplacer.js"));
 
             //CoreWebView2.NewWindowRequested += (sender2, e2) => {
             //    String _fileurl = e2.Uri.ToString();

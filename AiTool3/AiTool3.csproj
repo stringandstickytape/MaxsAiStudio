@@ -42,6 +42,7 @@
     <None Remove="JavaScript\ChatWebView.css" />
     <None Remove="JavaScript\ChatWebView.html" />
     <None Remove="JavaScript\DotViewer.js" />
+    <None Remove="JavaScript\FindAndReplacer.js" />
     <None Remove="JavaScript\JsonViewer.js" />
     <None Remove="JavaScript\MermaidViewer.js" />
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
@@ -68,6 +69,7 @@
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
     <EmbeddedResource Include="JavaScript\DotViewer.js" />
+    <EmbeddedResource Include="JavaScript\FindAndReplacer.js" />
     <EmbeddedResource Include="JavaScript\MermaidViewer.js" />
     <EmbeddedResource Include="JavaScript\JsonViewer.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />

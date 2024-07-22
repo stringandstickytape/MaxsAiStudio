@@ -423,6 +423,8 @@
             root: document.getElementById('chatContainer')
         };
 
+        let findAndReplaces = null;
+
         let isCtrl = false;
         let tempMsg = null;
         const btnColors = {
@@ -570,7 +572,7 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
-            parseContent(msg.Content, contentDiv);
+            parseContent(msg.Content, contentDiv, msg.Guid);
 
             msgDiv.append(roleDiv, contentDiv);
 
@@ -599,7 +601,7 @@
             });
         }
 
-        function parseContent(content, contentDiv) {
+        function parseContent(content, contentDiv, guid) {
             const backtick = String.fromCharCode(96);
             const tripleBacktick = backtick.repeat(3);
             const regex = new RegExp(tripleBacktick + '([\\s\\S]*?)' + tripleBacktick);
@@ -609,12 +611,12 @@
                 if (i % 2 === 0) {
                     contentDiv.appendChild(document.createTextNode(snippet));
                 } else {
-                    contentDiv.appendChild(createCodeBlock(snippet));
+                    contentDiv.appendChild(createCodeBlock(snippet, guid));
                 }
             });
         }
 
-        function createCodeBlock(snippet) {
+        function createCodeBlock(snippet, guid) {
             const container = document.createElement('div');
             container.className = 'code-block-container';
 
@@ -634,7 +636,7 @@
             typeLabel.className = 'code-type-label';
             typeLabel.textContent = dataType;
 
-            const btnBar = createButtonBar(codeBlock.dataset.Guid, lines.join('\n').trim(), dataType);
+            const btnBar = createButtonBar(guid, lines.join('\n').trim(), dataType);
 
             typeLabelContainer.append(typeLabel, btnBar);
             codeBlock.textContent = lines.join('\n').trim();
@@ -689,22 +691,52 @@
                 { label: 'View DOT Diagram', dataType: 'dot' },
                 { label: 'Run Python Script', dataType: 'python' },
                 { label: 'Launch STL', dataType: 'stl' },
-                { label: 'Run PowerShell Script', dataType: 'powershell' }
+                { label: 'Run PowerShell Script', dataType: 'powershell' },
+                { label: 'Select Find-And-Replace Script', dataType: 'findandreplace.json' },
+                { label: 'Apply Find-And-Replace Script', dataType: '*' },
             ];
 
             const btnBar = document.createElement('div');
             btnBar.className = 'button-bar';
-
-            btns.filter(btn => btn.dataType === '*' || btn.dataType === dataType)
+            
+            btns.filter(btn => btn.dataType === '*' || dataType.endsWith(btn.dataType))
                 .forEach(btnInfo => {
                     const btn = document.createElement('button');
                     btn.textContent = btnInfo.label;
 
-                    btn.addEventListener('click', () => {
+                    btn.addEventListener('click', (e) => {
+                        console.log('click');
                         if (btnInfo.label === 'Browse JSON Object') {
                             createJsonViewer(content);
                         } else if (btnInfo.label === 'View Mermaid Diagram') {
                             createMermaidViewer(content);
+                        } else if (btnInfo.label === 'Select Find-And-Replace Script') {
+                            console.log('fnr');
+                            findAndReplaces = JSON.parse(content);
+                        } else if (btnInfo.label === 'Apply Find-And-Replace Script') {
+
+                            //let output = applyFindAndReplace(content, findAndReplaces);
+
+                            const container = e.target.closest('.code-block-container');
+                            debugger;
+                                
+                            const allContainers = Array.from(btn.closest('.message-content').querySelectorAll('.code-block-container'));
+
+                            const index = allContainers.indexOf(container);
+
+                            console.log('Clicked container index:', index);
+
+                            // guid
+                            debugger;
+                            window.chrome.webview.postMessage({
+                                type: 'applyFindAndReplace',
+                                content: content,
+                                guid: guid,
+                                dataType: dataType,
+                                codeBlockIndex: index.toString(),
+                                findAndReplaces: JSON.stringify(findAndReplaces)
+                            });
+
                         } else if (btnInfo.label == 'View DOT Diagram') {
                             renderDotString(content);
                         } else {

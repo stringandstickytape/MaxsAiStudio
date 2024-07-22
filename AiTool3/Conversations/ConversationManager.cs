@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
 using AiTool3.Settings;
+using AiTool3.UI;
 using Newtonsoft.Json;
 using static AiTool3.AutoSuggestForm;
 
@@ -22,7 +24,7 @@ namespace AiTool3.Conversations
 
         public ConversationManager()
         {
-            
+
             Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             Conversation.StringSelected += Conversation_StringSelected;
         }
@@ -51,7 +53,7 @@ namespace AiTool3.Conversations
                 return nodes;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show("Weird bug I haven't nailed yet, has fired.  Please start a new conversation :/");
                 return null;
@@ -101,7 +103,7 @@ namespace AiTool3.Conversations
                     if (row.Cells[0].Value.ToString() == guid2)
                     {
                         row.Cells[3].Value = Conversation.ToString();
-                        break;  
+                        break;
                     }
                 }
             }
@@ -115,7 +117,7 @@ namespace AiTool3.Conversations
             return await Conversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
         }
 
-        public  async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
+        public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
         {
             var conversation = new Conversation
             {
@@ -151,45 +153,155 @@ namespace AiTool3.Conversations
 
         public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)
         {
-                var previousCompletionGuidBeforeAwait = PreviousCompletion?.Guid;
+            var previousCompletionGuidBeforeAwait = PreviousCompletion?.Guid;
 
-                completionInput = new CompletionMessage(CompletionRole.User)
-                {
-                    Content = inputText,
-                    Parent = PreviousCompletion?.Guid,
-                    Engine = model.ModelName,
-                    SystemPrompt = systemPrompt,
-                    InputTokens = response.TokenUsage.InputTokens,
-                    OutputTokens = 0,
-                    Base64Image = conversation.messages.Last().base64image,
-                    Base64Type = conversation.messages.Last().base64type,
-                    CreatedAt = DateTime.Now,
-                };
-                if (PreviousCompletion != null)
-                {
-                    PreviousCompletion.Children!.Add(completionInput.Guid);
-                }
+            completionInput = new CompletionMessage(CompletionRole.User)
+            {
+                Content = inputText,
+                Parent = PreviousCompletion?.Guid,
+                Engine = model.ModelName,
+                SystemPrompt = systemPrompt,
+                InputTokens = response.TokenUsage.InputTokens,
+                OutputTokens = 0,
+                Base64Image = conversation.messages.Last().base64image,
+                Base64Type = conversation.messages.Last().base64type,
+                CreatedAt = DateTime.Now,
+            };
+            if (PreviousCompletion != null)
+            {
+                PreviousCompletion.Children!.Add(completionInput.Guid);
+            }
 
-                Conversation!.Messages.Add(completionInput);
+            Conversation!.Messages.Add(completionInput);
 
-                completionResponse = new CompletionMessage(CompletionRole.Assistant)
-                {
-                    Content = response.ResponseText,
-                    Parent = completionInput.Guid,
-                    Engine = model.ModelName,
-                    SystemPrompt = systemPrompt,
-                    InputTokens = 0,
-                    OutputTokens = response.TokenUsage.OutputTokens,
-                    TimeTaken = elapsed,
-                    CreatedAt = DateTime.Now,
-                };
-                Conversation.Messages.Add(completionResponse);
+            completionResponse = new CompletionMessage(CompletionRole.Assistant)
+            {
+                Content = response.ResponseText,
+                Parent = completionInput.Guid,
+                Engine = model.ModelName,
+                SystemPrompt = systemPrompt,
+                InputTokens = 0,
+                OutputTokens = response.TokenUsage.OutputTokens,
+                TimeTaken = elapsed,
+                CreatedAt = DateTime.Now,
+            };
+            Conversation.Messages.Add(completionResponse);
 
-                completionInput.Children.Add(completionResponse.Guid);
-                PreviousCompletion = completionResponse;
+            completionInput.Children.Add(completionResponse.Guid);
+            PreviousCompletion = completionResponse;
 
-                SaveConversation();
+            SaveConversation();
 
         }
+
+        public static readonly string ThreeTicks = new string('`', 3);
+
+        public void AddBranch(ChatWebViewAddBranchEventArgs e)
+        {
+            var nodeToDuplicate = Conversation!.FindByGuid(e.Guid);
+
+            var originalContent = e.Content;
+            var findAndReplacesJson = e.FindAndReplacesJson;
+            var codeBlockIndex = e.CodeBlockIndex;
+
+            // code blocks in nodeToDuplicaet are demarcated by ThreeTicks either side. Find the start character index in nodeToDuplicate.Content
+            // for code block e.CodeBlockIndex, using a regex
+
+
+            var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
+            var matches = Regex.Matches(nodeToDuplicate.Content, codeBlockPattern, RegexOptions.Multiline);
+
+            if (codeBlockIndex < 0 || codeBlockIndex >= matches.Count)
+            {
+                // Handle invalid codeBlockIndex
+                throw new ArgumentOutOfRangeException(nameof(e.CodeBlockIndex), "Invalid code block index");
+            }
+
+            var targetCodeBlock = matches[codeBlockIndex];
+            var codeBlockStartIndex = targetCodeBlock.Index;
+            var codeBlockEndIndex = codeBlockStartIndex + targetCodeBlock.Length;
+            // advance codeBlockStartIndex to the begining of the next line
+            while (codeBlockStartIndex < nodeToDuplicate.Content.Length && nodeToDuplicate.Content[codeBlockStartIndex] != '\n')
+            {
+                codeBlockStartIndex++;
+            }
+
+            // reverse CodeBlockEndIndex to the beginning of the current line
+            while (codeBlockEndIndex > 0 && nodeToDuplicate.Content[codeBlockEndIndex - 1] != '\n')
+            {
+                codeBlockEndIndex--;
+            }
+
+            // calculate codeBlockLength
+            var codeBlockLength = codeBlockEndIndex - codeBlockStartIndex;
+
+            var fnrs = JsonConvert.DeserializeObject<List<FindAndReplace>>(findAndReplacesJson).ToList();
+
+            var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs);
+
+            // Now you have the start index of the specified code block
+            // You can proceed with further operations, such as replacing content within this code block
+
+            // now take the original content, and replace the code block with the processed content
+            var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
+            var newCompletion = new CompletionMessage(nodeToDuplicate.Role)
+            {
+                Content = newContent,
+                Parent = nodeToDuplicate.Parent,
+                Engine = nodeToDuplicate.Engine,
+                SystemPrompt = nodeToDuplicate.SystemPrompt,
+                InputTokens = nodeToDuplicate.InputTokens,
+                OutputTokens = nodeToDuplicate.OutputTokens,
+                Base64Image = nodeToDuplicate.Base64Image,
+                Base64Type = nodeToDuplicate.Base64Type,
+                CreatedAt = DateTime.Now,
+            };
+
+
+
+            if (nodeToDuplicate.Parent != null)
+            {
+                var parent = Conversation.FindByGuid(nodeToDuplicate.Parent);
+                parent.Children!.Add(newCompletion.Guid);
+            }
+
+            Conversation.Messages.Add(newCompletion);
+
+            // if nodeToDuplicate was a user node, add a fake assistant child node that says "changes applied"
+            if (nodeToDuplicate.Role == CompletionRole.User)
+            {
+                var assistantCompletion = new CompletionMessage(CompletionRole.Assistant)
+                {
+                    Content = "Changes applied",
+                    Parent = newCompletion.Guid,
+                    Engine = nodeToDuplicate.Engine,
+                    SystemPrompt = nodeToDuplicate.SystemPrompt,
+                    InputTokens = 0,
+                    OutputTokens = 0,
+                    CreatedAt = DateTime.Now,
+                };
+
+                newCompletion.Children.Add(assistantCompletion.Guid);
+                Conversation.Messages.Add(assistantCompletion);
+            }
+
+            SaveConversation();
+
+            // update the dgv
+            StringSelected?.Invoke(newCompletion.Guid);
+        }
     }
+
+
+    public class FindAndReplaceSet
+    {
+        public FindAndReplace[] Items { get; set; }
+    }
+
+    public class FindAndReplace
+    {
+        public string find { get; set; }
+        public string replace { get; set; }
+    }
+
 }
