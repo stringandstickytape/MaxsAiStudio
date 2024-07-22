@@ -306,8 +306,8 @@ namespace AiTool3.Conversations
             var firstLine = msgContent.Substring(0, msgContent.IndexOf('\n'));
 
             // ignoring whitespace, is the last line of prev the same as the first line of the message?
-            if (firstLine.Trim().StartsWith(lastLine.Trim()))
-            {
+            //if (firstLine.Trim().StartsWith(lastLine.Trim()))
+            //{
                 // remove the last line of prev
                 var newContent = previousMessage.Content.Substring(0, lastLineIndex);
                 // append the message content to the end of prev
@@ -350,7 +350,7 @@ namespace AiTool3.Conversations
 
                 // save the conversation
                 SaveConversation();
-            }
+            //}
         }
     }
 

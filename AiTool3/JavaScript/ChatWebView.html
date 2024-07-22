@@ -568,11 +568,6 @@
             msgs.forEach(AddMessage);
         }
 
-        // WebViewCallAndCallbackSystem
-        function AddMessage(msg) {
-            els.msgs.appendChild(createMsgElement(msg));
-            scrollToLastMessage();
-        }
 
         function ClearMessages(animate = false) {
             if (animate) {
@@ -606,21 +601,6 @@
             roleSpan.textContent = msg.Role === 0 ? "user" : "assistant";
             roleDiv.appendChild(roleSpan);
 
-            if (msg.Role === 1) {
-                const buttonBar = document.createElement('div');
-                buttonBar.className = 'assistant-button-bar';
-                const joinButton = document.createElement('button');
-                joinButton.textContent = 'Join with previous response';
-                joinButton.addEventListener('click', () => {
-                    window.chrome.webview.postMessage({
-                        type: 'joinWithPrevious',
-                        guid: msg.Guid
-                    });
-                });
-                buttonBar.appendChild(joinButton);
-                roleDiv.appendChild(buttonBar);
-            }
-
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
@@ -629,6 +609,41 @@
             msgDiv.append(roleDiv, contentDiv);
 
             return msgDiv;
+        }
+
+        function addJoinButtonIfNeeded(msgDiv) {
+            if (msgDiv.classList.contains('assistant')) {
+                const prevMessage = msgDiv.previousElementSibling?.previousElementSibling;
+                if (prevMessage && prevMessage.classList.contains('assistant')) {
+                    const prevContent = prevMessage.querySelector('.message-content').textContent;
+                    const tripleBacktick = String.fromCharCode(96).repeat(3);
+                    const occurrences = (prevContent.match(new RegExp(tripleBacktick, 'g')) || []).length;
+
+                    if (occurrences % 2 !== 0) {
+                        const buttonBar = document.createElement('div');
+                        buttonBar.className = 'assistant-button-bar';
+                        const joinButton = document.createElement('button');
+                        joinButton.textContent = 'Join with previous response';
+                        joinButton.addEventListener('click', () => {
+                            window.chrome.webview.postMessage({
+                                type: 'joinWithPrevious',
+                                guid: msgDiv.dataset.Guid
+                            });
+                        });
+                        buttonBar.appendChild(joinButton);
+                        msgDiv.querySelector('.role').appendChild(buttonBar);
+                    }
+                }
+            }
+        }
+
+        // WebViewCallAndCallbackSystem
+        function AddMessage(msg) {
+            const msgElement = createMsgElement(msg);
+            els.msgs.appendChild(msgElement);
+            debugger;
+            addJoinButtonIfNeeded(msgElement);
+            scrollToLastMessage();
         }
 
         function addDragDropListeners(el, msg) {
