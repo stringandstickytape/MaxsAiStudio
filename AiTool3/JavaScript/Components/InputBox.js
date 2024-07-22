@@ -28,7 +28,6 @@ const InputBox = () => {
                     .input-box {
                         width: 100%;
                         min-height: 100px;
-                        padding: 10px;
                         font-size: 16px;
                         border: 1px solid #ccc;
                         border-radius: 4px;

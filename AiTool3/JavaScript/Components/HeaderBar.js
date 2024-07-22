@@ -30,11 +30,6 @@ const HeaderBar = () => {
                         display: flex;
                         gap: 20px;
                     }
-                    .search-bar {
-                        padding: 5px 10px;
-                        border-radius: 5px;
-                        border: none;
-                    }
                 `}
             </style>
 
@@ -45,7 +40,6 @@ const HeaderBar = () => {
                     <AiStudioButton label="Send" color="#008CBA" />
                     <AiStudioButton label="Cancel" color="#f44336" />
                     <AiStudioButton label="New" color="#555555" dropdownItems={["New with context", "New with prompt"]} />
-                    <input type="text" className="search-bar" placeholder="Search..." />
                 </div>
             </div>
         </>

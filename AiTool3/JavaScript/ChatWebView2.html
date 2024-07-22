@@ -42,50 +42,24 @@
             .then(() => loadAndExecuteScript('https://unpkg.com/@babel/standalone/babel.min.js'))
             .then(() => {
                 console.log('Components loaded');
-                const script = document.createElement('script');
-                script.type = 'text/babel';
-                script.src = 'http://localhost/AiStudioButton.js';
-                document.body.appendChild(script);
 
-                const headerBarScript = document.createElement('script');
-                headerBarScript.type = 'text/babel';
-                headerBarScript.src = 'http://localhost/HeaderBar.js';
-                document.body.appendChild(headerBarScript);
+                var scriptsToLoad = [
+                    'http://localhost/AiStudioButton.js',
+                    'http://localhost/HeaderBar.js',
+                    'http://localhost/InputBox.js',
+                    'http://localhost/Message.js',
+                    'http://localhost/MessagesPane.js',
+                    'http://localhost/UserInputBar.js',
+                    'http://localhost/App.js'
+                ];
 
-                const inputBoxScript = document.createElement('script');
-                inputBoxScript.type = 'text/babel';
-                inputBoxScript.src = 'http://localhost/InputBox.js';
-                document.body.appendChild(inputBoxScript);
-
-                const messagesPaneScript = document.createElement('script');
-                messagesPaneScript.type = 'text/babel';
-                messagesPaneScript.src = 'http://localhost/MessagesPane.js';
-                document.body.appendChild(messagesPaneScript);
-
-                const appScript = document.createElement('script');
-                appScript.type = 'text/babel';
-                appScript.innerHTML = `
-            function App() {
-                const handleChangeLogo = () => {
-                    changeLogo("New Logo Text");
-                };
-
-                return (
-                    <div>
-                        <HeaderBar />
-                        <button onClick={handleChangeLogo}>Change Logo</button>
-                        <MessagesPane />
-                        <InputBox />
-                    </div>
-                );
-            }
-
-            ReactDOM.render(
-                React.createElement(App),
-                document.getElementById('root')
-            );
-        `;
-                document.body.appendChild(appScript);
+                // for each script, do the thing
+                for(let i = 0; i < scriptsToLoad.length; i++) {
+                    var script = document.createElement('script');
+                    script.type = 'text/babel';
+                    script.src = scriptsToLoad[i];
+                    document.body.appendChild(script);
+                }
 
                 Babel.transformScriptTags();
             })

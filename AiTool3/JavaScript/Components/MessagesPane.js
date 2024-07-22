@@ -3,8 +3,8 @@
 const MessagesPane = () => {
     const [messages, setMessages] = useState([]);
 
-    const addMessage = (message) => {
-        setMessages(prevMessages => [...prevMessages, message]);
+    const addMessage = (role, content, guid) => {
+        setMessages(prevMessages => [...prevMessages, { role, content, guid }]);
     };
 
     const clearMessages = () => {
@@ -29,18 +29,24 @@ const MessagesPane = () => {
                 {`
                     .messages-pane {
                         width: 100%;
-                        height: 300px;
                         border: 1px solid #ccc;
                         border-radius: 4px;
                         overflow-y: auto;
-                        padding: 10px;
+                        overflow-x: hidden;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
                         background-color: #f9f9f9;
+                        padding: 10px;
                     }
                     .message {
                         margin-bottom: 10px;
-                        padding: 8px;
                         border-radius: 4px;
+                        padding: 10px;
                         max-width: 80%;
+                    }
+                    .message-role {
+                        font-weight: bold;
+                        margin-bottom: 5px;
                     }
                     .user-message {
                         background-color: #e1f5fe;
@@ -51,14 +57,22 @@ const MessagesPane = () => {
                         background-color: #f0f4c3;
                         align-self: flex-start;
                     }
+                    .root-message {
+                        background-color: #e8eaf6;
+                        align-self: center;
+                        margin: 0 auto;
+                    }
                 `}
             </style>
 
             <div id="messages-container" className="messages-pane">
-                {messages.map((msg, index) => (
-                    <div key={index} className={`message ${msg.type === 'user' ? 'user-message' : 'ai-message'}`}>
-                        {msg.content}
-                    </div>
+                {messages.map(message => (
+                    <Message
+                        key={message.guid}
+                        role={message.role}
+                        content={message.content}
+                        guid={message.guid}
+                    />
                 ))}
             </div>
         </>
