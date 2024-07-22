@@ -304,12 +304,13 @@ namespace AiTool3.Conversations
 
             // get the first line of msgContent
             var firstLine = msgContent.Substring(0, msgContent.IndexOf('\n'));
-
+            var newContent = previousMessage.Content;
             // ignoring whitespace, is the last line of prev the same as the first line of the message?
-            //if (firstLine.Trim().StartsWith(lastLine.Trim()))
-            //{
+            if (firstLine.Trim().StartsWith(lastLine.Trim()))
+            {
                 // remove the last line of prev
-                var newContent = previousMessage.Content.Substring(0, lastLineIndex);
+                newContent = previousMessage.Content.Substring(0, lastLineIndex);
+            }
                 // append the message content to the end of prev
                 newContent += msgContent;
                 // remove the message

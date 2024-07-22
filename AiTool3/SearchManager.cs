@@ -24,29 +24,41 @@ namespace AiTool3
 
             try
             {
-                foreach (DataGridViewRow row in _dgvConversations.Rows)
+                const int batchSize = 10;
+                var rows = _dgvConversations.Rows.Cast<DataGridViewRow>().ToList();
+                for (int i = 0; i < rows.Count; i += batchSize)
                 {
-                    _cts.Token.ThrowIfCancellationRequested();
-
-                    var guid = row.Cells[0].Value?.ToString();
-
-                    if (guid != null)
+                    var batch = rows.Skip(i).Take(batchSize);
+                    var tasks = batch.Select(async row =>
                     {
-                        bool isVisible = await IsConversationVisible(guid, searchText, _cts.Token);
-
-                        _dgvConversations.InvokeIfNeeded(() =>
+                        var guid = row.Cells[0].Value?.ToString();
+                        if (guid != null)
                         {
-                            row.Visible = isVisible;
-                        });
+                            bool isVisible = await IsConversationVisible(guid, searchText, _cts.Token);
+                            return (row, isVisible);
+                        }
+                        return (row, true);
+                    }).ToList();
+
+                    while (tasks.Any())
+                    {
+                        var completedTask = await Task.WhenAny(tasks);
+                        tasks.Remove(completedTask);
+
+                        var (row, isVisible) = await completedTask;
+                        _dgvConversations.InvokeIfNeeded(() => row.Visible = isVisible);
+
+                        _cts.Token.ThrowIfCancellationRequested();
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Search was cancelled, do nothing
+            }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
-                {
-                    MessageBox.Show($"An error occurred during search: {ex.Message}");
-                }
+                MessageBox.Show($"An error occurred during search: {ex.Message}");
             }
         }
 
@@ -56,22 +68,15 @@ namespace AiTool3
             return new CancellationTokenSource();
         }
 
-        private static async Task<bool> IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
+        private static Task<bool> IsConversationVisible(string guid, string searchText, CancellationToken cancellationToken)
         {
-            var conv = BranchedConversation.LoadConversation(guid);
-            var allMessages = conv.Messages.Select(m => m.Content).ToList();
-
-            foreach (string? message in allMessages)
+            return Task.Run(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (message != null && message!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+                var conv = BranchedConversation.LoadConversation(guid);
+                return conv.Messages
+                    .Where(m => m.Content != null)
+                    .Any(m => m.Content!.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            }, cancellationToken);
         }
 
         public void ClearSearch()
