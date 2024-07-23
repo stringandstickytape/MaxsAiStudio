@@ -11,7 +11,6 @@ const MessagesPane = () => {
         return messages.find(message => message.guid === guid);
     };
 
-    // Corrected function to add initial messages with capitalized property names
     const addInitialMessages = (messageList) => {
         setMessages(messageList.map(msg => ({
             role: msg.Role,
@@ -35,10 +34,18 @@ const MessagesPane = () => {
     window.AddMessage = addMessage;
 
     useEffect(() => {
-        // Scroll to bottom when messages change
-        const messagesContainer = document.getElementById('messages-container');
-        if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (messages.length > 0) {
+            setTimeout(() => {
+                const mainContent = document.getElementsByClassName('main-content')[0];
+                const messagesContainer = document.getElementById('messages-container');
+            
+                if (mainContent && messagesContainer) {
+                    const lastMessage = messagesContainer.lastElementChild;
+                    if (lastMessage) {
+                        mainContent.scrollTop = lastMessage.offsetTop - mainContent.offsetTop;
+                    }
+                }
+            }, 10); // 100ms delay
         }
     }, [messages]);
 
@@ -55,6 +62,7 @@ const MessagesPane = () => {
                 word-wrap: break-word;
                 background-color: #f9f9f9;
                 padding: 10px;
+                scroll-behavior: smooth;  
                     }
                 .message {
                     margin-bottom: 10px;

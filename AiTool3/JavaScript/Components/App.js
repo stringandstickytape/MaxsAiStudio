@@ -1,23 +1,26 @@
 ﻿function App() {
-    return (
+    return ( 
         <>
             <style>
                 {`
                     html, body, #root {
+                        scroll-behavior: smooth;
                         height: 100%;
                         margin: 0;
                         padding: 0;
                     }
                     .app-container {
+                        scroll-behavior: smooth;
                         display: flex;
                         flex-direction: column;
                         height: 100vh;
                     }
                     .main-content {
                         flex-grow: 1;
-                        overflow-y: auto;
+                        overflow-y: scroll;
                         padding: 20px;
                         overflow-x: hidden;
+                        scroll-behavior: smooth;
                     }
                 `}
             </style>
