@@ -18,6 +18,11 @@
         
     };
 
+    const setUserPrompt = (string) => {
+        window.setInputContent(string);
+    };
+    window.setUserPrompt = setUserPrompt;
+
     const getUserPrompt = () => {
         return window.getInputContent();
     };
