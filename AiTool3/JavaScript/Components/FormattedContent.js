@@ -18,6 +18,8 @@
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
+        const webViewTypes = "html, js".split(',').map(type => type.trim().toLowerCase());
+        const viewJsonStringArrayTypes = "json, jsonx".split(',').map(type => type.trim().toLowerCase());
 
         const parts = [];
         let lastIndex = 0;
@@ -54,10 +56,18 @@
                                     content: code.trim()
                                 });
                             })}
-                            {fileType.trim().toLowerCase() === 'html' &&
+                            {webViewTypes.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'WebView',
+                                        content: code.trim()
+                                    });
+                                })
+                            }
+                            {viewJsonStringArrayTypes.includes(fileType.trim().toLowerCase()) &&
+                                addMessageButton("View JSON String Array", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'View JSON String Array',
                                         content: code.trim()
                                     });
                                 })
