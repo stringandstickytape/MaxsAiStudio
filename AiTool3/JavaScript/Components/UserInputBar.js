@@ -68,9 +68,9 @@
                     .user-input-bar {
                         display: flex;
                         align-items: stretch;
-                        background-color: #333;
+                        background-color: #1a1a1a;
                         color: white;
-                        border-top: 1px solid #ccc;
+                        border-top: 1px solid #444;
                     }
                     .input-box-wrapper {
                         flex-grow: 1;
@@ -95,16 +95,16 @@
                         opacity: 0.5;
                         cursor: not-allowed;
                     }
-                    .send-button { background-color: #4CAF50; }
-                    .cancel-button { background-color: #f44336; }
-                    .new-button { background-color: #008CBA; }
+                    .send-button { background-color: #4a7c4c; }
+                    .cancel-button { background-color: #7c4a4a; }
+                    .new-button { background-color: #4a617c; }
 
                     .split-button-container {
                         display: flex;
                         margin-bottom: 5px;
                     }
                     .split-button-main, .split-button-arrow {
-                        background-color: #008CBA;
+                        background-color: #4a617c;
                         color: white;
                         border: none;
                         padding: 8px;
@@ -126,13 +126,13 @@
                         position: absolute;
                         bottom: 20px;
                         right: 16px;
-                        background-color: #f9f9f9;
+                        background-color: #2a2a2a;
                         min-width: 160px;
-                        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
                         z-index: 1;
                     }
                     .split-button-dropdown-item {
-                        color: black;
+                        color: white;
                         padding: 12px 16px;
                         text-decoration: none;
                         display: block;
@@ -143,7 +143,7 @@
                         cursor: pointer;
                     }
                     .split-button-dropdown-item:hover {
-                        background-color: #f1f1f1;
+                        background-color: #3a3a3a;
                     }
                 `}
             </style>
