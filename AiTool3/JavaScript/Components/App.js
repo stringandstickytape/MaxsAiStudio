@@ -22,6 +22,8 @@
                         padding: 20px;
                         overflow-x: hidden;
                         scroll-behavior: smooth;
+                            background-color: black;
+                            color:white;
                     }
                 `}
             </style>

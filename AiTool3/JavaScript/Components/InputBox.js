@@ -50,6 +50,8 @@ const InputBox = ({ onSend, value, onChange, className }) => {
                         resize: vertical;
                         overflow-wrap: break-word;
                         word-wrap: break-word;
+                        background-color: #333;
+                        color: white;
                     }
                     .fullscreen-icon {
                         position: absolute;
@@ -65,7 +67,6 @@ const InputBox = ({ onSend, value, onChange, className }) => {
                         cursor: pointer;
                         font-size: 12px;
                         border-radius: 2px;
-                        transform: rotate(45deg);
                     }
                     .fullscreen {
                         position: fixed;

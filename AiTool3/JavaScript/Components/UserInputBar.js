@@ -2,10 +2,11 @@
     const [sendDisabled, setSendDisabled] = React.useState(false);
     const [cancelDisabled, setCancelDisabled] = React.useState(false);
     const [newDisabled, setNewDisabled] = React.useState(false);
+    const [inputContent, setInputContent] = React.useState('');
 
     const handleNew = () => {
         window.chrome.webview.postMessage({ type: 'new' });
-        window.setInputContent("");
+        setInputContent("");
     };
 
     const handleNewWithContext = () => {
@@ -14,21 +15,23 @@
 
     const handleNewWithPrompt = () => {
         window.chrome.webview.postMessage({ type: 'newWithPrompt' });
-        
     };
 
     const handleSend = () => {
-        const content = window.getInputContent();
-        window.chrome.webview.postMessage({ type: 'send', content: content, selectedTools: "" });
+        window.chrome.webview.postMessage({ type: 'send', content: inputContent, selectedTools: "" });
+    };
+
+    const handleInputChange = (newContent) => {
+        setInputContent(newContent);
     };
 
     const setUserPrompt = (string) => {
-        window.setInputContent(string);
+        setInputContent(string);
     };
     window.setUserPrompt = setUserPrompt;
 
     const getUserPrompt = () => {
-        return window.getInputContent();
+        return inputContent;
     };
     window.getUserPrompt = getUserPrompt;
 
@@ -65,7 +68,8 @@
                     .user-input-bar {
                         display: flex;
                         align-items: stretch;
-                        background-color: #f0f0f0;
+                        background-color: #333;
+                        color: white;
                         border-top: 1px solid #ccc;
                     }
                     .input-box-wrapper {
@@ -145,7 +149,13 @@
             </style>
             <div className="user-input-bar">
                 <div className="input-box-wrapper">
-                    <InputBox onSend={handleSend} disabled={sendDisabled} />
+                    <InputBox
+                        onSend={handleSend}
+                        value={inputContent}
+                        onChange={handleInputChange}
+                        placeholder="Enter text here..."
+                        disabled={sendDisabled}
+                    />
                 </div>
                 <div className="buttons-wrapper">
                     <button className="input-button send-button" onClick={handleSend} disabled={sendDisabled}>

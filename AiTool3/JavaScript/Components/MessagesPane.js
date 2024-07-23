@@ -60,7 +60,7 @@ const MessagesPane = () => {
                 overflow-x: hidden;
                 white-space: pre-wrap;
                 word-wrap: break-word;
-                background-color: #f9f9f9;
+                background-color: #333;
                 padding: 10px;
                 scroll-behavior: smooth;  
                     }
