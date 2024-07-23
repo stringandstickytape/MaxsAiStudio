@@ -44,6 +44,7 @@
     <None Remove="JavaScript\ChatWebView.html" />
     <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\Components\App.js" />
+    <None Remove="JavaScript\Components\FormattedContent.js" />
     <None Remove="JavaScript\Components\Message.js" />
     <None Remove="JavaScript\Components\SplitButton.js" />
     <None Remove="JavaScript\Components\UserInputBar.js" />
@@ -80,6 +81,7 @@
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
     <EmbeddedResource Include="JavaScript\Components\App.js" />
+    <EmbeddedResource Include="JavaScript\Components\FormattedContent.js" />
     <EmbeddedResource Include="JavaScript\Components\Message.js" />
     <EmbeddedResource Include="JavaScript\Components\SplitButton.js" />
     <EmbeddedResource Include="JavaScript\Components\UserInputBar.js" />

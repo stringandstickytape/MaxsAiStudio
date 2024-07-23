@@ -32,7 +32,9 @@ const Message = ({ role, content, guid }) => {
                 <div className="message-role">{getMessageLabel()}</div>
                 <div className="message-actions"></div>
             </div>
-            <div className="message-content">{content}</div>
+            <div className="message-content">
+                <FormattedContent content={content} />
+            </div>
         </div>
     );
 }
