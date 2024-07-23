@@ -54,13 +54,13 @@ const MessagesPane = () => {
             <style>
                 {`.messages-pane {
                     width: 100%;
-                border: 1px solid #ccc;
+                border: 1px solid #444;
                 border-radius: 4px;
                 overflow-y: auto;
                 overflow-x: hidden;
                 white-space: pre-wrap;
                 word-wrap: break-word;
-                background-color: #333;
+                background-color: #1a1a1a;
                 padding: 10px;
                 scroll-behavior: smooth;  
                     }
@@ -69,7 +69,7 @@ const MessagesPane = () => {
                 border-radius: 4px;
                 padding: 10px;
                 max-width: 80%;
-                    border:1px solid black;
+                    border:1px solid #555;
                     margin-bottom:10px;
                     }
                 .message-role {
@@ -77,18 +77,17 @@ const MessagesPane = () => {
                     margin-bottom: 5px;
                     }
                 .user-message {
-                    background-color: #e1f5fe;
+                    background-color: #1e3a5f;
                 align-self: flex-end;
                 margin-left: auto;
                     }
                 .ai-message {
-                    background-color: #f0f4c3;
+                    background-color: #2a2a0a;
                 align-self: flex-start;
                     }
                 .root-message {
-                    background-color: #e8eaf6;
+                    background-color: #1a1a2e;
                 align-self: center;
-                margin: 0 auto;
                     }
                     .message-header {
     display: flex;
@@ -104,7 +103,7 @@ const MessagesPane = () => {
 .message-actions {
     flex-grow: 1;
     height: 17px;
-    background-color: black;
+    background-color: #333;
 }`}
             </style>
 
