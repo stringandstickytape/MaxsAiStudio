@@ -30,9 +30,10 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
     let codeBlockCounter = 0;
 
     const handleRofls = () => {
-        // Implement the rofls action here
-        console.log('ROFL action triggered');
-        // You can add more functionality as needed
+        window.chrome.webview.postMessage({
+            type: 'joinWithPrevious',
+            guid: guid
+        });
     };
 
     const isUnterminatedCodeBlock = () => {
@@ -46,14 +47,9 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
             <div className="message-header">
                 <div className="message-role">{getMessageLabel()}</div>
                 <div className="message-actions">
-                    {role === 1 && (
-                        <button onClick={handleRofls} className="rofls-button">
-                            ROFLs
-                        </button>
-                    )}
                     {role === 1 && previousAssistantUnbalanced && (
                         <button onClick={handleRofls} className="rofls-button">
-                            ROFL2s
+                            Join with previous message
                         </button>
                     )}
                 </div>
