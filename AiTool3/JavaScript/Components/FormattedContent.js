@@ -23,25 +23,47 @@
                         borderTopRightRadius: '5px',
                     }}>
                         <span>{fileType.trim()}</span>
-                        <button
-                            onClick={() => {
-
-                                window.chrome.webview.postMessage({
-                                    type: 'Copy',
-                                    content: code.trim()
-                                });
-                            }}
-                            style={{
-                                backgroundColor: '#666',
-                                color: 'white',
-                                border: 'none',
-                                padding: '3px 8px',
-                                borderRadius: '3px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            Copy
-                        </button>
+                        <div>
+                            <button
+                                onClick={() => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'Copy',
+                                        content: code.trim()
+                                    });
+                                }}
+                                style={{
+                                    backgroundColor: '#666',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '3px 8px',
+                                    borderRadius: '3px',
+                                    cursor: 'pointer',
+                                    marginRight: '5px',
+                                }}
+                            >
+                                Copy
+                            </button>
+                            {fileType.trim().toLowerCase() === 'html' && (
+                                <button
+                                    onClick={() => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'WebView',
+                                            content: code.trim()
+                                        });
+                                    }}
+                                    style={{
+                                        backgroundColor: '#666',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '3px 8px',
+                                        borderRadius: '3px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    WebView
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <div style={{
                         fontFamily: 'monospace',
