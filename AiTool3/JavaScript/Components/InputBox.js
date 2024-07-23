@@ -1,6 +1,6 @@
 ﻿const { useState, useCallback } = React;
 
-const InputBox = ({ onSend }) => {
+const InputBox = ({ onSend, value, onChange, className }) => {
     const [content, setContent] = useState('');
     const [placeholder, setPlaceholder] = useState('Enter text here...');
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -80,9 +80,9 @@ const InputBox = ({ onSend }) => {
 
             <div className={`input-box-container ${isFullScreen ? 'fullscreen' : ''}`}>
                 <textarea
-                    className="input-box"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    className={`input-box ${className}`}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
                     style={isFullScreen ? { width: '100%', height: '100%' } : {}}

@@ -2,20 +2,20 @@
 
 const HeaderBar = () => {
     const [logoText, setLogoText] = useState("AI Studio");
-    const [systemPrompt, updateSystemPrompt] = useState("");
+    const [systemPrompt, setSystemPrompt] = useState("");
 
     const changeLogo = (newText) => {
         setLogoText(newText);
     };
 
-    const handleSystemPromptChange = (e) => {
-        setSystemPrompt(e.target.value);
+    const handleSystemPromptChange = (newPrompt) => {
+        setSystemPrompt(newPrompt);
     };
 
     // export changeLogo and getSystemPrompt
     window.changeLogo = changeLogo;
     window.getSystemPrompt = () => systemPrompt;
-    window.updateSystemPrompt = updateSystemPrompt;
+    window.updateSystemPrompt = setSystemPrompt;
 
     return (
         <>
@@ -33,15 +33,15 @@ const HeaderBar = () => {
                         font-size: 24px;
                         font-weight: bold;
                     }
-                    .system-prompt-input {
+                    .system-prompt-container {
                         flex-grow: 1;
                         margin-left: 20px;
-                        padding: 8px;
-                        font-size: 14px;
-                        border: none;
-                        border-radius: 4px;
+                    }
+                    .system-prompt-input {
                         background-color: #555;
                         color: white;
+                        border: none;
+                        border-radius: 4px;
                     }
                     .system-prompt-input::placeholder {
                         color: #aaa;
@@ -51,13 +51,15 @@ const HeaderBar = () => {
 
             <div className="header-bar">
                 <div className="logo">{logoText}</div>
-                <input
-                    type="text"
-                    className="system-prompt-input"
-                    placeholder="Enter system prompt..."
-                    value={systemPrompt}
-                    onChange={handleSystemPromptChange}
-                />
+                <div className="system-prompt-container">
+                    <InputBox
+                        onSend={() => { }}
+                        value={systemPrompt}
+                        onChange={handleSystemPromptChange}
+                        placeholder="Enter system prompt..."
+                        className="system-prompt-input"
+                    />
+                </div>
             </div>
         </>
     );
