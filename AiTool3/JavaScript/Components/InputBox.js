@@ -1,8 +1,15 @@
-﻿const { useState } = React;
+﻿const { useState, useCallback } = React;
 
-const InputBox = () => {
+const InputBox = ({ onSend }) => {
     const [content, setContent] = useState('');
     const [placeholder, setPlaceholder] = useState('Enter text here...');
+
+    const handleKeyDown = useCallback((event) => {
+        if (event.ctrlKey && event.key === 'Enter') {
+            event.preventDefault();
+            onSend();
+        }
+    }, [onSend]);
 
     const setInputContent = (newContent) => {
         setContent(newContent);
@@ -42,6 +49,7 @@ const InputBox = () => {
                 className="input-box"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder={placeholder}
             />
         </>

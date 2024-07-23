@@ -1,12 +1,13 @@
-﻿// note no imports or exports needed because of calling context
-const { useState, useRef, useEffect } = React;
+﻿const { useRef } = React;
 
-const AiStudioButton = ({ label, color, dropdownItems }) => {
+const AiStudioButton = ({ label, color, dropdownItems, disabled }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const toggleDropdown = () => {
-        setIsOpen(!isOpen);
+        if (!disabled) {
+            setIsOpen(!isOpen);
+        }
     };
 
     useEffect(() => {
@@ -36,6 +37,11 @@ const AiStudioButton = ({ label, color, dropdownItems }) => {
                         padding: 10px 15px;
                         border: none;
                         cursor: pointer;
+                        transition: opacity 0.3s ease;
+                    }
+                    .ai-studio-button:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
                     }
                     .ai-studio-dropdown {
                         position: absolute;
@@ -60,12 +66,17 @@ const AiStudioButton = ({ label, color, dropdownItems }) => {
                     .ai-studio-dropdown-item:hover {
                         background-color: #f1f1f1;
                     }
+                    .ai-studio-dropdown-item:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
                 `}
             </style>
             <div className="ai-studio-button-container" ref={dropdownRef}>
                 <button
                     className="ai-studio-button"
                     onClick={toggleDropdown}
+                    disabled={disabled}
                 >
                     {label}
                 </button>
@@ -75,9 +86,15 @@ const AiStudioButton = ({ label, color, dropdownItems }) => {
                             <button
                                 key={index}
                                 className="ai-studio-dropdown-item"
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    if (!disabled) {
+                                        setIsOpen(false);
+                                        item.onClick && item.onClick();
+                                    }
+                                }}
+                                disabled={disabled}
                             >
-                                {item}
+                                {item.label}
                             </button>
                         ))}
                     </div>

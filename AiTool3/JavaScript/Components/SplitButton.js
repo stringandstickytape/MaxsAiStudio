@@ -1,4 +1,4 @@
-﻿const SplitButton = ({ label, onClick, dropdownItems }) => {
+﻿const SplitButton = ({ label, onClick, dropdownItems, disabled }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -16,11 +16,11 @@
     }, []);
 
     return (
-        <div className="split-button-container" ref={dropdownRef}>
-            <button className="split-button-main" onClick={onClick}>
+        <div className="split-button-container">
+            <button className="split-button-main" onClick={onClick} disabled={disabled}>
                 {label}
             </button>
-            <button className="split-button-arrow" onClick={() => setIsOpen(!isOpen)}>
+            <button className="split-button-arrow" onClick={() => setIsOpen(!isOpen)} disabled={disabled}>
                 ▼
             </button>
             {isOpen && (

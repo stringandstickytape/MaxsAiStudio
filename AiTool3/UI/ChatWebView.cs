@@ -221,27 +221,20 @@ namespace AiTool3.UI
 
         #region implemented in chatwebview2.html
 
-        // implemented in chatwebview2.html
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
-
-        // implemented in chatwebview2.html
         internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
-        // implemented in chatwebview2.html
         internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
 
-        // implemented in chatwebview2.html
         internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
 
-        // implemented in chatwebview2.html
         internal async Task SetUserPrompt(string content)
         {
             await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");//changeChatHeaderLabel
             await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");//changeChatHeaderLabel
         }
 
-        // implemented in chatwebview2.html
         internal async Task Clear(SettingsSet currentSettings)
         {
             // run "addMessages" js function
@@ -251,15 +244,31 @@ namespace AiTool3.UI
             await UpdateSendButtonColor(currentSettings.UseEmbeddings);
         }
 
+        internal async Task DisableCancelButton()
+        {
+
+            await ExecuteScriptAsync("disableButton('cancelButton')");
+            await ExecuteScriptAsync("disableCancelButton()");
+        }
+        internal async Task EnableCancelButton()
+        {
+            await ExecuteScriptAsync("enableButton('cancelButton')");
+            await ExecuteScriptAsync("enableCancelButton()");
+        }
+        internal async Task DisableSendButton()
+        {
+            await ExecuteScriptAsync("disableButton('sendButton')");
+            await ExecuteScriptAsync("disableSendButton()");
+        }
+        internal async Task EnableSendButton()
+        {
+            await ExecuteScriptAsync("enableButton('sendButton')");
+            await ExecuteScriptAsync("enableSendButton()");
+        }
+
         #endregion implemented in chatwebview2.html
 
         internal async Task UpdateSendButtonColor(bool embeddingsEnabled) => await ExecuteScriptAsync($"updateSendButtonColor({embeddingsEnabled.ToString().ToLower()})");
-        internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");
-        internal async Task EnableCancelButton() => await ExecuteScriptAsync("enableButton('cancelButton')");
-        internal async Task DisableSendButton() => await ExecuteScriptAsync("disableButton('sendButton')");
-        internal async Task EnableSendButton() => await ExecuteScriptAsync("enableButton('sendButton')");
-
-
 
         internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
 

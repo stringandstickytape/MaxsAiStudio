@@ -1,7 +1,6 @@
 ﻿// Message.js
 const Message = ({ role, content, guid }) => {
     const getMessageClass = () => {
-
         switch (role) {
             case 0:
                 return 'user-message';
@@ -27,11 +26,12 @@ const Message = ({ role, content, guid }) => {
         }
     };
 
-
-
     return (
         <div className={`message ${getMessageClass()}`} key={guid}>
-            <div className="message-role">{getMessageLabel()}</div>
+            <div className="message-header">
+                <div className="message-role">{getMessageLabel()}</div>
+                <div className="message-actions"></div>
+            </div>
             <div className="message-content">{content}</div>
         </div>
     );

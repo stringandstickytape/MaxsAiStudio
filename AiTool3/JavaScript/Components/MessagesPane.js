@@ -89,7 +89,23 @@ const MessagesPane = () => {
                     background-color: #e8eaf6;
                 align-self: center;
                 margin: 0 auto;
-                    }`}
+                    }
+                    .message-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.message-role {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.message-actions {
+    flex-grow: 1;
+    height: 17px;
+    background-color: black;
+}`}
             </style>
 
             <div id="messages-container" className="messages-pane">
