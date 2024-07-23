@@ -1,5 +1,5 @@
 ﻿// Message.js
-const Message = ({ role, content, guid }) => {
+const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
     const getMessageClass = () => {
         switch (role) {
             case 0:
@@ -51,12 +51,11 @@ const Message = ({ role, content, guid }) => {
                             ROFLs
                         </button>
                     )}
-                    {role === 1 && isUnterminatedCodeBlock() && (
+                    {role === 1 && previousAssistantUnbalanced && (
                         <button onClick={handleRofls} className="rofls-button">
                             ROFL2s
                         </button>
                     )}
-                    <div>!!{isUnterminatedCodeBlock() ? "true" : "false"}</div>
                 </div>
             </div>
             <div className="message-content">

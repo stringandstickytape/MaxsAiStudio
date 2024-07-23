@@ -50,6 +50,22 @@ const MessagesPane = () => {
         }
     }, [messages]);
 
+    const isPreviousAssistantMessageUnbalanced = (index) => {
+        if (index === 0) return false;
+        for (let i = index - 1; i >= 0; i--) {
+            if (messages[i].role === 1) { // 1 represents AI/assistant role
+                return isUnterminatedCodeBlock(messages[i].content);
+            }
+        }
+        return false;
+    };
+
+    const isUnterminatedCodeBlock = (content) => {
+        const threeBackticks = String.fromCharCode(96, 96, 96);
+        const occurrences = (content.match(new RegExp(threeBackticks, 'g')) || []).length;
+        return occurrences % 2 !== 0;
+    };
+
     return (
         <>
             <style>
@@ -107,12 +123,13 @@ const MessagesPane = () => {
             </style>
 
             <div id="messages-container" className="messages-pane">
-                {messages.map((message) => (
+                {messages.map((message, index) => (
                     <Message
                         key={message.guid}
                         role={message.role}
                         content={message.content}
                         guid={message.guid}
+                        previousAssistantUnbalanced={isPreviousAssistantMessageUnbalanced(index)}
                     />
                 ))}
             </div>
