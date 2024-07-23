@@ -1,4 +1,5 @@
-﻿const { useState, useEffect } = React;
+﻿// MessagesPane.js
+const { useState, useEffect } = React;
 
 const MessagesPane = () => {
     const [messages, setMessages] = useState([]);
@@ -38,14 +39,14 @@ const MessagesPane = () => {
             setTimeout(() => {
                 const mainContent = document.getElementsByClassName('main-content')[0];
                 const messagesContainer = document.getElementById('messages-container');
-            
+
                 if (mainContent && messagesContainer) {
                     const lastMessage = messagesContainer.lastElementChild;
                     if (lastMessage) {
                         mainContent.scrollTop = lastMessage.offsetTop - mainContent.offsetTop;
                     }
                 }
-            }, 10); // 100ms delay
+            }, 10); // 10ms delay
         }
     }, [messages]);
 
@@ -54,61 +55,59 @@ const MessagesPane = () => {
             <style>
                 {`.messages-pane {
                     width: 100%;
-                border: 1px solid #444;
-                border-radius: 4px;
-                overflow-y: auto;
-                overflow-x: hidden;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-                background-color: #1a1a1a;
-                padding: 10px;
-                scroll-behavior: smooth;  
-                    }
+                    border: 1px solid #444;
+                    border-radius: 4px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    background-color: #1a1a1a;
+                    padding: 10px;
+                    scroll-behavior: smooth;  
+                }
                 .message {
                     margin-bottom: 10px;
-                border-radius: 4px;
-                padding: 10px;
-                max-width: 80%;
+                    border-radius: 4px;
+                    padding: 10px;
+                    max-width: 80%;
                     border:1px solid #555;
                     margin-bottom:10px;
-                    }
+                }
                 .message-role {
                     font-weight: bold;
                     margin-bottom: 5px;
-                    }
+                }
                 .user-message {
                     background-color: #1e3a5f;
-                align-self: flex-end;
-                margin-left: auto;
-                    }
+                    align-self: flex-end;
+                    margin-left: auto;
+                }
                 .ai-message {
                     background-color: #2a2a0a;
-                align-self: flex-start;
-                    }
+                    align-self: flex-start;
+                }
                 .root-message {
                     background-color: #1a1a2e;
-                align-self: center;
-                    }
-                    .message-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.message-role {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.message-actions {
-    flex-grow: 1;
-    height: 17px;
-    background-color: #333;
-}`}
+                    align-self: center;
+                }
+                .message-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 5px;
+                }
+                .message-role {
+                    font-weight: bold;
+                    margin-right: 10px;
+                }
+                .message-actions {
+                    flex-grow: 1;
+                    height: 17px;
+                    background-color: #333;
+                }`}
             </style>
 
             <div id="messages-container" className="messages-pane">
-                {messages.map(message => (
+                {messages.map((message) => (
                     <Message
                         key={message.guid}
                         role={message.role}
