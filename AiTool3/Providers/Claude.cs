@@ -43,7 +43,7 @@ namespace AiTool3.Providers
 
 
 
-            if (toolIDs.Contains("findAndReplaceTool"))
+            if (toolIDs != null && toolIDs.Contains("findAndReplaceTool"))
             {
                 var findAndReplacesTool = new JObject
                 {

@@ -21,6 +21,10 @@
         window.chrome.webview.postMessage({ type: 'send', content: inputContent, selectedTools: "" });
     };
 
+    const handleCancel = () => {
+        window.chrome.webview.postMessage({ type: 'cancel'});
+    };
+
     const handleInputChange = (newContent) => {
         setInputContent(newContent);
     };
@@ -161,7 +165,7 @@
                     <button className="input-button send-button" onClick={handleSend} disabled={sendDisabled}>
                         Send
                     </button>
-                    <button className="input-button cancel-button" onClick={() => console.log("Cancel clicked")} disabled={cancelDisabled}>
+                    <button className="input-button cancel-button" onClick={handleCancel} disabled={cancelDisabled}>
                         Cancel
                     </button>
                     <SplitButton

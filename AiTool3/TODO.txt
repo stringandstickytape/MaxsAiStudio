@@ -141,6 +141,12 @@ Testing:
 
 Check whisper still works through microphone
 
+Thid-party utils:
+
+* Ollama: install, ollama pull <model>
+
+
+
 
 
 

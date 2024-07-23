@@ -40,6 +40,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     );
 
     const formatContent = (text) => {
+        debugger;
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
 
         const parts = [];
@@ -156,8 +157,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     }
                                 })
                             }
-                            {addMessageButton("Apply Find-And-Replace Script", () => {
-                                if (window.currentlySelectedFindAndReplaceSet && window.selectedMessageGuid) {
+                            {window.currentlySelectedFindAndReplaceSet && window.selectedMessageGuid &&
+                                addMessageButton("Apply Find-And-Replace Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'applyFindAndReplace',
                                         content: code.trim(),
@@ -167,10 +168,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         findAndReplaces: JSON.stringify(window.currentlySelectedFindAndReplaceSet),
                                         selectedMessageGuid: window.selectedMessageGuid
                                     });
-                                } else {
-                                    alert('Please select a Find-And-Replace script first.');
-                                }
-                            })}
+                                })
+                            }
                         </div>
                     </div>
                     <div style={{
