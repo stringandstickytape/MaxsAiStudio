@@ -1,5 +1,28 @@
-﻿const FormattedContent = ({ content }) => {
-    const addMessageButton = (label, action) => (
+﻿function fixNewlinesInStrings(jsonString) {
+    return jsonString.replace(
+        /"(find|replace)":\s*"((?:\\.|[^"\\])*?)"/g,
+        (match, key, value) => {
+            const fixedValue = value.replace(/\n/g, '\\n');
+            return `"${key}": "${fixedValue}"`;
+        }
+    );
+}
+
+const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered }) => {
+    const fileTypes = {
+        webView: ["html", "js"],
+        viewJsonStringArray: ["json"],
+        browseJsonObject: ["json"],
+        viewMermaidDiagram: ["mermaid"],
+        viewPlantUMLDiagram: ["plantuml"],
+        viewDOTDiagram: ["dot"],
+        runPythonScript: ["python"],
+        launchSTL: ["stl"],
+        runPowerShellScript: ["powershell"],
+        selectFindAndReplaceScript: ["findandreplace.json"],
+    };
+
+    const addMessageButton = (label, action, dataType) => (
         <button
             onClick={action}
             style={{
@@ -18,8 +41,6 @@
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
-        const webViewTypes = "html, js".split(',').map(type => type.trim().toLowerCase());
-        const viewJsonStringArrayTypes = "json, jsonx".split(',').map(type => type.trim().toLowerCase());
 
         const parts = [];
         let lastIndex = 0;
@@ -28,6 +49,9 @@
             if (offset > lastIndex) {
                 parts.push(text.slice(lastIndex, offset));
             }
+
+            const trimmedFileType = fileType.trim().toLowerCase();
+
             parts.push(
                 <div key={offset}>
                     <div style={{
@@ -49,14 +73,14 @@
                                     content: code.trim()
                                 });
                             })}
-                            {addMessageButton("Save As", () => {
+                            {addMessageButton("Save As", () => { 
                                 window.chrome.webview.postMessage({
                                     type: 'Save As',
-                                    dataType: fileType.trim().toLowerCase(),
+                                    dataType: trimmedFileType,
                                     content: code.trim()
                                 });
                             })}
-                            {webViewTypes.includes(fileType.trim().toLowerCase()) &&
+                            {fileTypes.webView.includes(trimmedFileType) && 
                                 addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'WebView',
@@ -64,7 +88,7 @@
                                     });
                                 })
                             }
-                            {viewJsonStringArrayTypes.includes(fileType.trim().toLowerCase()) &&
+                            {fileTypes.viewJsonStringArray.includes(trimmedFileType) && 
                                 addMessageButton("View JSON String Array", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View JSON String Array',
@@ -72,6 +96,81 @@
                                     });
                                 })
                             }
+                            {fileTypes.browseJsonObject.includes(trimmedFileType) &&
+                                addMessageButton("Browse JSON Object", () => {
+                                    createJsonViewer(code.trim());
+                                })
+                            }
+                            {fileTypes.viewMermaidDiagram.includes(trimmedFileType) &&
+                                addMessageButton("View Mermaid Diagram", () => {
+                                    createMermaidViewer(code.trim());
+                                })
+                            }
+                            {fileTypes.viewPlantUMLDiagram.includes(trimmedFileType) && 
+                                addMessageButton("View PlantUML Diagram", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'View PlantUML Diagram',
+                                        content: code.trim()
+                                    });
+                                })
+                            } 
+                            {fileTypes.viewDOTDiagram.includes(trimmedFileType) && 
+                                addMessageButton("View DOT Diagram", () => {
+                                    renderDotString(code.trim());
+                                })
+                            }
+                            {fileTypes.runPythonScript.includes(trimmedFileType) && 
+                                addMessageButton("Run Python Script", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'Run Python Script',
+                                        content: code.trim()
+                                    });
+                                })
+                            }
+                            {fileTypes.launchSTL.includes(trimmedFileType) && 
+                                addMessageButton("Launch STL", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'Launch STL',
+                                        content: code.trim()
+                                    });
+                                })
+                            }
+                            {fileTypes.runPowerShellScript.includes(trimmedFileType) && 
+                                addMessageButton("Run PowerShell Script", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'Run PowerShell Script',
+                                        content: code.trim()
+                                    });
+                                })
+                            }
+                            
+                            {fileTypes.selectFindAndReplaceScript.includes(trimmedFileType) &&
+                                addMessageButton("Select Find-And-Replace Script", () => {
+                                    try {
+                                        const fixedJsonString = fixNewlinesInStrings(code.trim());
+                                        const parsedJson = JSON.parse(fixedJsonString);
+                                        window.currentlySelectedFindAndReplaceSet = parsedJson;
+                                        window.selectedMessageGuid = guid;  // Capture the guid
+                                    } catch (error) {
+                                        alert('Error parsing Find-And-Replace script: ' + error);
+                                    }
+                                })
+                            }
+                            {addMessageButton("Apply Find-And-Replace Script", () => {
+                                if (window.currentlySelectedFindAndReplaceSet && window.selectedMessageGuid) {
+                                    window.chrome.webview.postMessage({
+                                        type: 'applyFindAndReplace',
+                                        content: code.trim(),
+                                        guid: guid,
+                                        dataType: trimmedFileType,
+                                        codeBlockIndex: codeBlockCounter.toString(),
+                                        findAndReplaces: JSON.stringify(window.currentlySelectedFindAndReplaceSet),
+                                        selectedMessageGuid: window.selectedMessageGuid
+                                    });
+                                } else {
+                                    alert('Please select a Find-And-Replace script first.');
+                                }
+                            })}
                         </div>
                     </div>
                     <div style={{
@@ -86,9 +185,10 @@
                     }}>
                         {code.trim()}
                     </div>
-                </div>
+               </div>
             );
             lastIndex = offset + match.length;
+            onCodeBlockRendered(); // Increment the counter after rendering a code block
         });
 
         if (lastIndex < text.length) {

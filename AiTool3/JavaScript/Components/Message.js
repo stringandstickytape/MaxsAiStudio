@@ -26,6 +26,9 @@ const Message = ({ role, content, guid }) => {
         }
     };
 
+    // Initialize a counter for code blocks
+    let codeBlockCounter = 0;
+
     return (
         <div className={`message ${getMessageClass()}`} key={guid}>
             <div className="message-header">
@@ -33,7 +36,12 @@ const Message = ({ role, content, guid }) => {
                 <div className="message-actions"></div>
             </div>
             <div className="message-content">
-                <FormattedContent content={content} />
+                <FormattedContent
+                    content={content}
+                    guid={guid}
+                    codeBlockCounter={codeBlockCounter}
+                    onCodeBlockRendered={() => codeBlockCounter++}
+                />
             </div>
         </div>
     );
