@@ -2,8 +2,26 @@
     const handleSend = () => {
         const content = window.getInputContent();
         window.chrome.webview.postMessage({ type: 'send', content: content, selectedTools: "" });
-        window.setInputContent(''); // Clear the input after sending
     };
+
+    const handleNew = () => {
+        window.chrome.webview.postMessage({ type: 'new' });
+        window.setInputContent("");
+    };
+
+    const handleNewWithContext = () => {
+        window.chrome.webview.postMessage({ type: 'newWithContext' });
+    };
+
+    const handleNewWithPrompt = () => {
+        window.chrome.webview.postMessage({ type: 'newWithPrompt' });
+        
+    };
+
+    const getUserPrompt = () => {
+        return window.getInputContent();
+    };
+    window.getUserPrompt = getUserPrompt;
 
     return (
         <>
@@ -36,6 +54,51 @@
                     .send-button { background-color: #4CAF50; }
                     .cancel-button { background-color: #f44336; }
                     .new-button { background-color: #008CBA; }
+
+                    .split-button-container {
+                        display: flex;
+                        margin-bottom: 5px;
+                    }
+                    .split-button-main {
+                        flex-grow: 1;
+                        background-color: #008CBA;
+                        color: white;
+                        border: none;
+                        padding: 8px;
+                        cursor: pointer;
+                        border-radius: 4px 0 0 4px;
+                    }
+                    .split-button-arrow {
+                        background-color: #008CBA;
+                        color: white;
+                        border: none;
+                        padding: 8px;
+                        cursor: pointer;
+                        border-radius: 0 4px 4px 0;
+                    }
+                    .split-button-dropdown {
+                        position: absolute;
+                        bottom: 20px;
+                        right: 16px;
+                        background-color: #f9f9f9;
+                        min-width: 160px;
+                        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                        z-index: 1;
+                    }
+                    .split-button-dropdown-item {
+                        color: black;
+                        padding: 12px 16px;
+                        text-decoration: none;
+                        display: block;
+                        border: none;
+                        width: 100%;
+                        text-align: left;
+                        background-color: transparent;
+                        cursor: pointer;
+                    }
+                    .split-button-dropdown-item:hover {
+                        background-color: #f1f1f1;
+                    }
                 `}
             </style>
             <div className="user-input-bar">
@@ -49,9 +112,14 @@
                     <button className="input-button cancel-button" onClick={() => console.log("Cancel clicked")}>
                         Cancel
                     </button>
-                    <button className="input-button new-button" onClick={() => console.log("New clicked")}>
-                        New
-                    </button>
+                    <SplitButton
+                        label="New"
+                        onClick={handleNew}
+                        dropdownItems={[
+                            { label: "New with context", onClick: handleNewWithContext },
+                            { label: "New with prompt", onClick: handleNewWithPrompt }
+                        ]}
+                    />
                 </div>
             </div>
         </>

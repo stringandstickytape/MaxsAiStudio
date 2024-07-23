@@ -207,6 +207,7 @@ namespace AiTool3.UI
             //};
         }
 
+        // implemented in chatwebview2.html
         internal async Task AddMessages(List<CompletionMessage> parents)
         {
             // run "addMessages" js function
@@ -216,7 +217,8 @@ namespace AiTool3.UI
 
         // WebViewCallAndCallbackSystem
         internal async Task UpdateSendButtonColor(bool embeddingsEnabled) => await ExecuteScriptAsync($"updateSendButtonColor({embeddingsEnabled.ToString().ToLower()})");
-        
+
+        // implemented in chatwebview2.html
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
         internal async Task DisableCancelButton() => await ExecuteScriptAsync("disableButton('cancelButton')");
@@ -224,10 +226,13 @@ namespace AiTool3.UI
         internal async Task DisableSendButton() => await ExecuteScriptAsync("disableButton('sendButton')");
         internal async Task EnableSendButton() => await ExecuteScriptAsync("enableButton('sendButton')");
 
+        // implemented in chatwebview2.html
         internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
+        // implemented in chatwebview2.html
         internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
 
+        // implemented in chatwebview2.html
         internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
 
         internal async Task Clear(SettingsSet currentSettings)
