@@ -1,4 +1,21 @@
 ﻿const FormattedContent = ({ content }) => {
+    const addMessageButton = (label, action) => (
+        <button
+            onClick={action}
+            style={{
+                backgroundColor: '#666',
+                color: 'white',
+                border: 'none',
+                padding: '3px 8px',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                marginRight: '5px',
+            }}
+        >
+            {label}
+        </button>
+    );
+
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
 
@@ -24,45 +41,27 @@
                     }}>
                         <span>{fileType.trim()}</span>
                         <div>
-                            <button
-                                onClick={() => {
+                            {addMessageButton("Copy", () => {
+                                window.chrome.webview.postMessage({
+                                    type: 'Copy',
+                                    content: code.trim()
+                                });
+                            })}
+                            {addMessageButton("Save As", () => {
+                                window.chrome.webview.postMessage({
+                                    type: 'Save As',
+                                    dataType: fileType.trim().toLowerCase(),
+                                    content: code.trim()
+                                });
+                            })}
+                            {fileType.trim().toLowerCase() === 'html' &&
+                                addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
-                                        type: 'Copy',
+                                        type: 'WebView',
                                         content: code.trim()
                                     });
-                                }}
-                                style={{
-                                    backgroundColor: '#666',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '3px 8px',
-                                    borderRadius: '3px',
-                                    cursor: 'pointer',
-                                    marginRight: '5px',
-                                }}
-                            >
-                                Copy
-                            </button>
-                            {fileType.trim().toLowerCase() === 'html' && (
-                                <button
-                                    onClick={() => {
-                                        window.chrome.webview.postMessage({
-                                            type: 'WebView',
-                                            content: code.trim()
-                                        });
-                                    }}
-                                    style={{
-                                        backgroundColor: '#666',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '3px 8px',
-                                        borderRadius: '3px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    WebView
-                                </button>
-                            )}
+                                })
+                            }
                         </div>
                     </div>
                     <div style={{
