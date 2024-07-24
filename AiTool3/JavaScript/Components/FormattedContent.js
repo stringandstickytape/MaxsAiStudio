@@ -9,6 +9,19 @@
 }
 
 const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered }) => {
+    const [currentlySelectedFindAndReplaceSet, setCurrentlySelectedFindAndReplaceSet] = useState(window.currentlySelectedFindAndReplaceSet);
+    const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
+
+    useEffect(() => {
+        const handleFindAndReplaceUpdate = () => {
+            setCurrentlySelectedFindAndReplaceSet(window.currentlySelectedFindAndReplaceSet);
+            setSelectedMessageGuid(window.selectedMessageGuid);
+        };
+
+        window.addEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
+        return () => window.removeEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
+    }, []);
+
     const fileTypes = {
         webView: ["html", "js"],
         viewJsonStringArray: ["json"],
@@ -151,13 +164,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         const fixedJsonString = fixNewlinesInStrings(code.trim());
                                         const parsedJson = JSON.parse(fixedJsonString);
                                         window.currentlySelectedFindAndReplaceSet = parsedJson;
-                                        window.selectedMessageGuid = guid;  // Capture the guid
+                                        window.selectedMessageGuid = guid;
+                                        window.dispatchEvent(new Event('findAndReplaceUpdate'));
                                     } catch (error) {
                                         alert('Error parsing Find-And-Replace script: ' + error);
                                     }
                                 })
                             }
-                            {window.currentlySelectedFindAndReplaceSet && window.selectedMessageGuid &&
+                            {currentlySelectedFindAndReplaceSet && selectedMessageGuid &&
                                 addMessageButton("Apply Find-And-Replace Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'applyFindAndReplace',
@@ -165,8 +179,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         guid: guid,
                                         dataType: trimmedFileType,
                                         codeBlockIndex: codeBlockCounter.toString(),
-                                        findAndReplaces: JSON.stringify(window.currentlySelectedFindAndReplaceSet),
-                                        selectedMessageGuid: window.selectedMessageGuid
+                                        findAndReplaces: JSON.stringify(currentlySelectedFindAndReplaceSet),
+                                        selectedMessageGuid: selectedMessageGuid
                                     });
                                 })
                             }

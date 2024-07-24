@@ -235,9 +235,9 @@ namespace AiTool3.Conversations
             // calculate codeBlockLength
             var codeBlockLength = codeBlockEndIndex - codeBlockStartIndex;
 
-            var fnrs = JsonConvert.DeserializeObject<List<FindAndReplace>>(findAndReplacesJson).ToList();
+            var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(findAndReplacesJson);
 
-            var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs);
+            var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
 
             // now take the original content, and replace the code block with the processed content
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
@@ -358,7 +358,7 @@ namespace AiTool3.Conversations
 
     public class FindAndReplaceSet
     {
-        public FindAndReplace[] Items { get; set; }
+        public FindAndReplace[] replacements { get; set; }
     }
 
     public class FindAndReplace
