@@ -1,11 +1,11 @@
 ﻿const { useState, useCallback } = React;
 
-const InputBox = ({ onSend, value, onChange, className }) => {
+const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
     const [content, setContent] = useState('');
-    const [placeholder, setPlaceholder] = useState('Enter text here...');
+    const [placeholder, setPlaceholder] = useState(placeholderText);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [rotation, setRotation] = useState(0);
-
+    
     const handleKeyDown = useCallback((event) => {
         if (event.ctrlKey && event.key === 'Enter') {
             event.preventDefault();

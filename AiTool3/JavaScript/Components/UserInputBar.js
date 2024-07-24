@@ -163,7 +163,7 @@
                         onSend={handleSend}
                         value={inputContent}
                         onChange={handleInputChange}
-                        placeholder="Enter text here..."
+                        placeholderText="Enter prompt..."
                         disabled={sendDisabled}
                     />
                 </div>
@@ -189,7 +189,6 @@
                         ]}
                         disabled={newDisabled}
                     />
-
                 </div>
             </div>
         </>

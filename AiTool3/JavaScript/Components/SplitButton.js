@@ -83,8 +83,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                 style={mainButtonStyle}
                 onClick={onClick}
                 disabled={disabled}
-                onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
-                onMouseLeave={(e) => e.target.style.backgroundColor = color}
+                //onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
+                //onMouseLeave={(e) => e.target.style.backgroundColor = color}
             >
                 {svgString && (
                     <div
@@ -100,8 +100,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                         style={arrowButtonStyle}
                         onClick={() => setIsOpen(!isOpen)}
                         disabled={disabled}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = color}
+                        //onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
+                        //onMouseLeave={(e) => e.target.style.backgroundColor = color}
                     >
                         ▼
                     </button>
@@ -115,8 +115,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                                         item.onClick();
                                         setIsOpen(false);
                                     }}
-                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                    //onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                                    //onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
                                 >
                                     {item.label}
                                 </button>

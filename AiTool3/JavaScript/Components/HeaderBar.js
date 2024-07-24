@@ -154,7 +154,7 @@ const HeaderBar = () => {
                             onSend={() => { }}
                             value={systemPrompt}
                             onChange={handleSystemPromptChange}
-                            placeholder="Enter system prompt..."
+                            placeholderText="Enter system prompt..."
                             className="system-prompt-input"
                         />
                     </div>
@@ -169,7 +169,7 @@ const HeaderBar = () => {
                     />
                     <DropDown
                         id="summaryAI"
-                        label="Summaries/Suggestions AI"
+                        label="Summaries and Suggestions AI"
                         options={summaryAIOptions}
                         value={summaryAIValue}
                         onChange={setSummaryAIValue}

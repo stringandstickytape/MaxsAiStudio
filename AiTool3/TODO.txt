@@ -201,8 +201,4 @@ Tip of the day
 add tokens-per-second to the status bar?
 Different Whisper models
 
-
-
-
-
 Image from clipboard
