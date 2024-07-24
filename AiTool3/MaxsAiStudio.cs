@@ -219,7 +219,7 @@ namespace AiTool3
 
         }
 
-        private void InitialiseMenus()
+        private async Task InitialiseMenus()
         {
             var fileMenu = MenuHelper.CreateMenu("File");
             var editMenu = MenuHelper.CreateMenu("Edit");
@@ -244,8 +244,10 @@ namespace AiTool3
 
             MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
-            MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, (Model)cbSummaryEngine.SelectedItem!, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
-            MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, (Model)cbSummaryEngine.SelectedItem!, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+
+            await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+            await MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
         }
         private async void ChatWebView_FileDropped(object sender, string filename)
@@ -352,7 +354,6 @@ namespace AiTool3
             if (CurrentSettings.SelectedSummaryModel != "")
             {
                 await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
-                cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedSummaryModel);
             }
             else await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
 
@@ -375,7 +376,8 @@ namespace AiTool3
             }
         }
 
-        private async void RegenerateSummary(object sender, EventArgs e) => await ConversationManager.RegenerateSummary((Model)cbSummaryEngine.SelectedItem!, CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
+        private async void RegenerateSummary(object sender, EventArgs e) => 
+            await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {
@@ -463,7 +465,7 @@ namespace AiTool3
             {
                 PrepareForNewResponse();
 
-                var model = await GetDropdownModel("mainAI");
+                var model = await chatWebView.GetDropdownModel("mainAI",  CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
                 var response = await FetchAndProcessAiResponse(conversation, model, toolIDs);
@@ -500,12 +502,7 @@ namespace AiTool3
             return retVal;
         }
 
-        private async Task<Model> GetDropdownModel(string str)
-        {
-            var modelString = JsonConvert.DeserializeObject<string>(await chatWebView.GetDropdownValue(str));
-            var model = CurrentSettings.GetAllModels().FirstOrDefault(m => m.ToString() == modelString);
-            return model;
-        }
+
 
         private async void PrepareForNewResponse()
         {
@@ -586,7 +583,7 @@ namespace AiTool3
                 await chatWebView.SetUserPrompt(response.SuggestedNextPrompt);
             }
 
-            var model = await GetDropdownModel("mainAI");
+            var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
             var cost = model.GetCost(response.TokenUsage);
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
@@ -802,6 +799,11 @@ namespace AiTool3
                 CurrentSettings.SelectedModel = e.ModelString;
                 SettingsSet.Save(CurrentSettings);
             }
+            else if (e.Dropdown == "summaryAI")
+            {
+                CurrentSettings.SelectedSummaryModel = e.ModelString;
+                SettingsSet.Save(CurrentSettings);
+            }
         }
 
         private void chatWebView_DragDrop(object sender, DragEventArgs e)
@@ -810,12 +812,6 @@ namespace AiTool3
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
-        }
-
-        private void cbSummaryEngine_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            CurrentSettings.SelectedSummaryModel = cbSummaryEngine.SelectedItem!.ToString();
-            SettingsSet.Save(CurrentSettings);
         }
 
         private async void btnProjectHelper_Click(object sender, EventArgs e)

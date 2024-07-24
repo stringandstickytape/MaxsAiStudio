@@ -211,8 +211,10 @@ namespace AiTool3
             CreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, form);
         }
 
-        public static void CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, Model model, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager)
+        public static async Task CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager)
         {
+            
+
             var menuText = "Specials";
             ToolStripMenuItem specialsMenu = MenuHelper.CreateMenu(menuText);
 
@@ -222,7 +224,8 @@ namespace AiTool3
 
 
                     new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
-                    {
+                        {
+                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         AiResponse response = await SpecialsHelper.GetReadmeResponses(model);
                         var snippets = snippetManager.FindSnippets(response.ResponseText);
 
@@ -246,6 +249,7 @@ namespace AiTool3
 
                     new LabelAndEventHander("Rewrite Summaries", async (s, e) =>
                     {
+                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         await conversationManager.RegenerateSummary(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", currentSettings);
                     }),
 
@@ -265,12 +269,14 @@ namespace AiTool3
 
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
+                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
 
                     new LabelAndEventHander("Autosuggest (Fun)", async (s, e) =>
                     {
+                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
@@ -291,6 +297,7 @@ namespace AiTool3
 
                             userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
 
+                            var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                             var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
                             autoSuggestForm.StringSelected += autoSuggestStringSelected;
                         }
@@ -314,8 +321,11 @@ namespace AiTool3
             menuBar.Items.Add(specialsMenu);
         }
 
-        internal static void CreateEmbeddingsMenu(MaxsAiStudio maxsAiStudio, MenuStrip menuBar, SettingsSet currentSettings, Model model, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager fileAttachmentManager)
+        internal static async Task CreateEmbeddingsMenu(MaxsAiStudio maxsAiStudio, MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager fileAttachmentManager)
         {
+
+            
+
             var menuText = "Embeddings";
             ToolStripMenuItem embeddingsMenu = MenuHelper.CreateMenu(menuText);
 

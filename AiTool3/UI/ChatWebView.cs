@@ -218,7 +218,12 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
-
+        public async Task<Model> GetDropdownModel(string str, SettingsSet settings)
+        {
+            var modelString = JsonConvert.DeserializeObject<string>(await GetDropdownValue(str));
+            var model = settings.GetAllModels().FirstOrDefault(m => m.ToString() == modelString);
+            return model;
+        }
 
         // WebViewCallAndCallbackSystem
 

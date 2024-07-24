@@ -36,13 +36,11 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
+            button2 = new Button();
             cbUseEmbeddings = new CheckBox();
             panel1 = new Panel();
             chatWebView = new ChatWebView();
             btnProjectHelper = new Button();
-            label2 = new Label();
-            label1 = new Label();
-            cbSummaryEngine = new ComboBox();
             button1 = new Button();
             buttonStartRecording = new Button();
             buttonAttachImage = new Button();
@@ -50,7 +48,6 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
-            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -84,9 +81,6 @@ namespace AiTool3
             splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
             splitContainer1.Panel2.Controls.Add(panel1);
             splitContainer1.Panel2.Controls.Add(btnProjectHelper);
-            splitContainer1.Panel2.Controls.Add(label2);
-            splitContainer1.Panel2.Controls.Add(label1);
-            splitContainer1.Panel2.Controls.Add(cbSummaryEngine);
             splitContainer1.Panel2.Controls.Add(button1);
             splitContainer1.Panel2.Controls.Add(buttonStartRecording);
             splitContainer1.Panel2.Controls.Add(buttonAttachImage);
@@ -172,11 +166,21 @@ namespace AiTool3
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
+            // button2
+            // 
+            button2.Location = new Point(2, 222);
+            button2.Name = "button2";
+            button2.Size = new Size(52, 29);
+            button2.TabIndex = 22;
+            button2.Text = "button2";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // cbUseEmbeddings
             // 
             cbUseEmbeddings.BackColor = Color.Transparent;
             cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(229, 20);
+            cbUseEmbeddings.Location = new Point(2, 256);
             cbUseEmbeddings.Margin = new Padding(2);
             cbUseEmbeddings.Name = "cbUseEmbeddings";
             cbUseEmbeddings.Size = new Size(45, 19);
@@ -189,9 +193,9 @@ namespace AiTool3
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Black;
             panel1.Controls.Add(chatWebView);
-            panel1.Location = new Point(2, 63);
+            panel1.Location = new Point(67, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1021, 609);
+            panel1.Size = new Size(946, 662);
             panel1.TabIndex = 21;
             // 
             // chatWebView
@@ -204,7 +208,7 @@ namespace AiTool3
             chatWebView.Location = new Point(0, 0);
             chatWebView.Margin = new Padding(0);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1021, 609);
+            chatWebView.Size = new Size(946, 662);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             chatWebView.DragDrop += chatWebView_DragDrop;
@@ -213,7 +217,7 @@ namespace AiTool3
             // 
             btnProjectHelper.BackColor = Color.Black;
             btnProjectHelper.ForeColor = Color.White;
-            btnProjectHelper.Location = new Point(157, 2);
+            btnProjectHelper.Location = new Point(2, 166);
             btnProjectHelper.Margin = new Padding(2);
             btnProjectHelper.Name = "btnProjectHelper";
             btnProjectHelper.Size = new Size(56, 51);
@@ -222,50 +226,12 @@ namespace AiTool3
             btnProjectHelper.UseVisualStyleBackColor = false;
             btnProjectHelper.Click += btnProjectHelper_Click;
             // 
-            // label2
-            // 
-            label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label2.AutoSize = true;
-            label2.ForeColor = Color.White;
-            label2.Location = new Point(621, 37);
-            label2.Margin = new Padding(2, 0, 2, 0);
-            label2.Name = "label2";
-            label2.Size = new Size(105, 15);
-            label2.TabIndex = 18;
-            label2.Text = "Summary/Suggest";
-            // 
-            // label1
-            // 
-            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label1.AutoSize = true;
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(641, 10);
-            label1.Margin = new Padding(2, 0, 2, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(87, 15);
-            label1.TabIndex = 17;
-            label1.Text = "Main AI Engine";
-            // 
-            // cbSummaryEngine
-            // 
-            cbSummaryEngine.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cbSummaryEngine.BackColor = Color.Black;
-            cbSummaryEngine.Font = new Font("Segoe UI", 12F);
-            cbSummaryEngine.ForeColor = Color.White;
-            cbSummaryEngine.FormattingEnabled = true;
-            cbSummaryEngine.Location = new Point(732, 31);
-            cbSummaryEngine.Margin = new Padding(2);
-            cbSummaryEngine.Name = "cbSummaryEngine";
-            cbSummaryEngine.Size = new Size(291, 29);
-            cbSummaryEngine.TabIndex = 16;
-            cbSummaryEngine.SelectedIndexChanged += cbSummaryEngine_SelectedIndexChanged;
-            // 
             // button1
             // 
             button1.BackColor = Color.FromArgb(64, 64, 64);
             button1.FlatStyle = FlatStyle.Popup;
             button1.ForeColor = Color.White;
-            button1.Location = new Point(6, 3);
+            button1.Location = new Point(2, 2);
             button1.Margin = new Padding(2);
             button1.Name = "button1";
             button1.Size = new Size(22, 50);
@@ -278,7 +244,7 @@ namespace AiTool3
             // 
             buttonStartRecording.BackColor = Color.Black;
             buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(92, 2);
+            buttonStartRecording.Location = new Point(2, 111);
             buttonStartRecording.Margin = new Padding(2);
             buttonStartRecording.Name = "buttonStartRecording";
             buttonStartRecording.Size = new Size(60, 51);
@@ -291,7 +257,7 @@ namespace AiTool3
             // 
             buttonAttachImage.BackColor = Color.Black;
             buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(36, 2);
+            buttonAttachImage.Location = new Point(2, 56);
             buttonAttachImage.Margin = new Padding(2);
             buttonAttachImage.Name = "buttonAttachImage";
             buttonAttachImage.Size = new Size(52, 51);
@@ -336,16 +302,6 @@ namespace AiTool3
             tokenUsageLabel.Size = new Size(73, 17);
             tokenUsageLabel.Text = "Token Usage";
             // 
-            // button2
-            // 
-            button2.Location = new Point(312, 5);
-            button2.Name = "button2";
-            button2.Size = new Size(52, 29);
-            button2.TabIndex = 22;
-            button2.Text = "button2";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
-            // 
             // MaxsAiStudio
             // 
             AutoScaleDimensions = new SizeF(96F, 96F);
@@ -362,7 +318,6 @@ namespace AiTool3
             FormClosing += MaxsAiStudio_FormClosing;
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
-            splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             splitContainer5.Panel1.ResumeLayout(false);
@@ -399,8 +354,6 @@ namespace AiTool3
         private Button button1;
         private CheckBox cbUseEmbeddings;
         private ComboBox cbSummaryEngine;
-        private Label label1;
-        private Label label2;
         private Button btnProjectHelper;
         private Panel panel1;
         private Button button2;
