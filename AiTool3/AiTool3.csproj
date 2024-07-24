@@ -43,6 +43,7 @@
     <None Remove="JavaScript\ChatWebView.css" />
     <None Remove="JavaScript\ChatWebView.html" />
     <None Remove="JavaScript\ChatWebView2.html" />
+    <None Remove="JavaScript\Components\AiStudioButton.js" />
     <None Remove="JavaScript\Components\App.js" />
     <None Remove="JavaScript\Components\DropDown.js" />
     <None Remove="JavaScript\Components\FormattedContent.js" />
@@ -78,7 +79,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="JavaScript\Components\AiStudioButton.js" />
     <EmbeddedResource Include="JavaScript\ChatWebView2.html" />
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />

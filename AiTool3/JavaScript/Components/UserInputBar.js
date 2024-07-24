@@ -167,12 +167,18 @@
                     />
                 </div>
                 <div className="buttons-wrapper">
-                    <button className="input-button send-button" onClick={handleSend} disabled={sendDisabled}>
-                        Send
-                    </button>
-                    <button className="input-button cancel-button" onClick={handleCancel} disabled={cancelDisabled}>
-                        Cancel
-                    </button>
+                    <SplitButton
+                        label="Send"
+                        onClick={handleSend}
+                        disabled={sendDisabled}
+                        color="#4a7c4c"
+                    />
+                    <SplitButton
+                        label="Cancel"
+                        onClick={handleCancel}
+                        disabled={cancelDisabled}
+                        color="#7c4a4a"
+                    />
                     <SplitButton
                         label="New"
                         onClick={handleNew}
