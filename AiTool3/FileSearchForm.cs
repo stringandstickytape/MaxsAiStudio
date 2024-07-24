@@ -30,7 +30,7 @@ namespace AiTool3
             InitializeComponent();
 
             List<string> checkedFiles = new List<string>();
-            // deserialize from Settings\ProjectHelperSelection.json
+            
             if (File.Exists("Settings\\ProjectHelperSelection.json"))
             {
                 var json = File.ReadAllText("Settings\\ProjectHelperSelection.json");
@@ -39,7 +39,50 @@ namespace AiTool3
 
             PopulateTreeView(@"", checkedFiles);
 
+            Load += (sender, e) =>
+            {
+                FindLastNode(treeView.Nodes)?.EnsureVisible();
+                FindFirstCheckedNode(treeView.Nodes)?.EnsureVisible();
+            };
+        }
 
+        private TreeNode FindLastNode(TreeNodeCollection nodes)
+        {
+            TreeNode lastNode = null;
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Nodes.Count > 0)
+                {
+                    var childNode = FindLastNode(node.Nodes);
+                    if (childNode != null)
+                    {
+                        lastNode = childNode;
+                    }
+                }
+                else
+                {
+                    lastNode = node;
+                }
+            }
+            return lastNode;
+            
+        }
+
+        private TreeNode FindFirstCheckedNode(TreeNodeCollection nodes)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Checked)
+                {
+                    return node;
+                }
+                var childNode = FindFirstCheckedNode(node.Nodes);
+                if (childNode != null)
+                {
+                    return childNode;
+                }
+            }
+            return null;
         }
 
         private void InitializeComponent()
