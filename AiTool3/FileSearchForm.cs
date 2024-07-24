@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,7 +28,18 @@ namespace AiTool3
             fileExtensions = csvFileTypes.Replace("*", "").Split(',').Select(ext => ext.Trim().ToLower()).ToArray();
 
             InitializeComponent();
-            PopulateTreeView(@"");
+
+            List<string> checkedFiles = new List<string>();
+            // deserialize from Settings\ProjectHelperSelection.json
+            if (File.Exists("Settings\\ProjectHelperSelection.json"))
+            {
+                var json = File.ReadAllText("Settings\\ProjectHelperSelection.json");
+                checkedFiles = JsonConvert.DeserializeObject<List<string>>(json);
+            }
+
+            PopulateTreeView(@"", checkedFiles);
+
+
         }
 
         private void InitializeComponent()
@@ -70,12 +82,14 @@ namespace AiTool3
             
 
             // Form
-            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.ClientSize = new System.Drawing.Size(500, 800);
             this.Controls.Add(this.buttonPanel);
             this.Controls.Add(this.treeView);
             this.Name = "FileExplorerForm";
             this.Text = "File Explorer (set start location in Edit -> Settings -> Default Path)";
             this.ResumeLayout(false);
+            
+            
         }
 
         private void testButton_Click(object sender, EventArgs e)
@@ -109,19 +123,19 @@ namespace AiTool3
             }
         }
 
-        private void PopulateTreeView(string gitignoreContent = null)
+        private void PopulateTreeView(string gitignoreContent = null, List<string>? checkedFiles = null)
         {
             treeView.Nodes.Clear();
             TreeNode rootNode = new TreeNode(rootPath);
             var ignoreList = ParseGitignore(gitignoreContent);
-            if (PopulateTreeNode(rootNode, rootPath, ignoreList))
+            if (PopulateTreeNode(rootNode, rootPath, ignoreList, checkedFiles))
             {
                 treeView.Nodes.Add(rootNode);
             }
             treeView.ExpandAll();
         }
 
-        private bool PopulateTreeNode(TreeNode node, string path, List<string> ignoreList)
+        private bool PopulateTreeNode(TreeNode node, string path, List<string> ignoreList, List<string>? checkedFiles)
         {
             bool hasValidChildren = false;
 
@@ -132,8 +146,13 @@ namespace AiTool3
                 if (!ShouldIgnore(relativePath, ignoreList))
                 {
                     TreeNode subNode = new TreeNode(Path.GetFileName(subdirectory));
-                    if (PopulateTreeNode(subNode, subdirectory, ignoreList))
+                    if (PopulateTreeNode(subNode, subdirectory, ignoreList, checkedFiles))
                     {
+                        if (checkedFiles != null && checkedFiles.Contains(subdirectory))
+                        {
+                            subNode.Checked = true;
+                        }
+
                         node.Nodes.Add(subNode);
                         hasValidChildren = true;
                     }
@@ -151,6 +170,10 @@ namespace AiTool3
                     if (fileExtensions.Contains(extension))
                     {
                         TreeNode fileNode = new TreeNode(Path.GetFileName(file));
+                        if(checkedFiles != null && checkedFiles.Contains(file))
+                        {
+                            fileNode.Checked = true;
+                        }
                         node.Nodes.Add(fileNode);
                         hasValidChildren = true;
                     }
@@ -197,6 +220,13 @@ namespace AiTool3
             CheckAllChildNodes(e.Node, e.Node.Checked);
             CheckParentNodes(e.Node, e.Node.Checked);
             treeView.AfterCheck += treeView_AfterCheck;
+
+            var checkedFiles = GetCheckedFiles(true);
+            
+            // serialize to Settings\ProjectHelperSelection.json
+            var json = JsonConvert.SerializeObject(checkedFiles);
+            File.WriteAllText("Settings\\ProjectHelperSelection.json", json);
+            
         }
 
         private void CheckAllChildNodes(TreeNode treeNode, bool nodeChecked)
@@ -233,22 +263,22 @@ namespace AiTool3
             return node.Parent.Nodes.Cast<TreeNode>().All(n => n.Checked);
         }
 
-        public List<string> GetCheckedFiles()
+        public List<string> GetCheckedFiles(bool includeDirectories = false)
         {
             List<string> checkedFiles = new List<string>();
-            GetCheckedNodes(treeView.Nodes, checkedFiles);
+            GetCheckedFiles(treeView.Nodes, checkedFiles, includeDirectories);
             return checkedFiles;
         }
 
-        private void GetCheckedNodes(TreeNodeCollection nodes, List<string> checkedFiles)
+        private void GetCheckedFiles(TreeNodeCollection nodes, List<string> checkedFiles, bool includeDirectories = false)
         {
             foreach (TreeNode node in nodes)
             {
-                if (node.Checked && node.Nodes.Count == 0) // Only add leaf nodes (files)
+                if (node.Checked && (includeDirectories || node.Nodes.Count == 0)) // Only add leaf nodes (files)
                 {
                     checkedFiles.Add(Path.Combine(GetFullPath(node)));
                 }
-                GetCheckedNodes(node.Nodes, checkedFiles);
+                GetCheckedFiles(node.Nodes, checkedFiles, includeDirectories);
             }
         }
 

@@ -70,7 +70,7 @@ const MessagesPane = () => {
         <>
             <style>
                 {`.messages-pane {
-                    width: 100%;
+                    width: calc(100% - 20px);
                     border: 1px solid #444;
                     border-radius: 4px;
                     overflow-y: auto;

@@ -529,6 +529,12 @@ namespace AiTool3
 
             var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolIDs: toolIDs, useStreaming: CurrentSettings.StreamResponses);
 
+            if (toolIDs != null && toolIDs.Contains("tool-1"))
+            {
+                response.ResponseText = $"{ThreeTicks}findandreplace.json\n{response.ResponseText}\n{ThreeTicks}\n";
+            }
+
+
             var modelUsageManager = new ModelUsageManager(model);
 
             modelUsageManager.AddTokensAndSave(response.TokenUsage);

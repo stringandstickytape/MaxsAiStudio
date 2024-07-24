@@ -18,7 +18,12 @@
     };
 
     const handleSend = () => {
-        window.chrome.webview.postMessage({ type: 'send', content: inputContent, selectedTools: "" });
+        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
+        window.chrome.webview.postMessage({
+            type: 'send',
+            content: inputContent,
+            selectedTools: selectedTools
+        });
     };
 
     const handleCancel = () => {

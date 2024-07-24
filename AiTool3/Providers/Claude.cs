@@ -43,7 +43,7 @@ namespace AiTool3.Providers
 
 
 
-            if (toolIDs != null && toolIDs.Contains("findAndReplaceTool"))
+            if (toolIDs != null && toolIDs.Contains("tool-1"))
             {
                 var findAndReplacesTool = new JObject
                 {
@@ -216,7 +216,12 @@ namespace AiTool3.Providers
                     var eventData = JsonConvert.DeserializeObject<JObject>(data);
                     if (eventData["type"].ToString() == "content_block_delta")
                     {
-                        var text = eventData["delta"]["text"].ToString();
+                        var text = eventData["delta"]["text"]?.ToString();
+                        if (text == null)
+                        {
+                            text = eventData["delta"]["partial_json"]?.ToString();
+                        }
+
                         Debug.WriteLine(text);
                         //call streamingtextreceived
                         StreamingTextReceived?.Invoke(this, text);

@@ -24,14 +24,18 @@ const HeaderBar = () => {
                     .header-bar {
                         display: flex;
                         justify-content: space-between;
-                        align-items: center;
                         background-color: #333;
                         color: white;
                         padding: 10px 20px;
                     }
+                    .left-section {
+                        display: flex;
+                        flex-direction: column;
+                    }
                     .logo {
                         font-size: 24px;
                         font-weight: bold;
+                        margin-bottom: 10px;
                     }
                     .system-prompt-container {
                         flex-grow: 1;
@@ -42,6 +46,7 @@ const HeaderBar = () => {
                         color: white;
                         border: none;
                         border-radius: 4px;
+                        width: 100%;
                     }
                     .system-prompt-input::placeholder {
                         color: #aaa;
@@ -50,7 +55,10 @@ const HeaderBar = () => {
             </style>
 
             <div className="header-bar">
-                <div className="logo">{logoText}</div>
+                <div className="left-section">
+                    <div className="logo">{logoText}</div>
+                    <ToolsDropdown />
+                </div>
                 <div className="system-prompt-container">
                     <InputBox
                         onSend={() => { }}
