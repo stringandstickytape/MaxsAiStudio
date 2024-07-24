@@ -6,7 +6,7 @@ namespace AiTool3.Helpers
 {
     public static class TemplatesHelper
     {
-        private static void AddLabelAndTextBox(TableLayoutPanel panel, string labelText, string textBoxContent, int row)
+        private static void AddLabelAndTextBox(TableLayoutPanel panel, string labelText, string textBoxContent, int row, bool Multiline = true)
         {
             var label = new Label
             {
@@ -20,7 +20,10 @@ namespace AiTool3.Helpers
             {
                 Text = textBoxContent,
                 Dock = DockStyle.Fill,
-                Margin = new Padding(0, 5, 0, 5)
+                Margin = new Padding(0, 5, 0, 5),
+                Multiline = Multiline,
+                Height = Multiline ? 200 : 30,
+                Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top
             };
             panel.Controls.Add(textBox, 1, row);
         }
@@ -68,7 +71,7 @@ namespace AiTool3.Helpers
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80F));
 
             // Template Name
-            AddLabelAndTextBox(tableLayoutPanel, "Template Name:", template.TemplateName, 0);
+            AddLabelAndTextBox(tableLayoutPanel, "Template Name:", template.TemplateName, 0, Multiline: false);
 
             // System Prompt
             AddLabelAndTextBox(tableLayoutPanel, "System Prompt:", template.SystemPrompt, 1);

@@ -198,6 +198,9 @@ Different Whisper models w/ UI
 
 Image from clipboard
 Streaming
+cr's in template names cause menu nastiness
+templates edit window is super-crappy
+
 
 
 

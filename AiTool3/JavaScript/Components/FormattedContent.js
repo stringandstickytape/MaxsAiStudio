@@ -25,6 +25,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     const fileTypes = {
         webView: ["html", "js"],
         viewJsonStringArray: ["json"],
+        viewSvg: ["svg","xml","html"],
         browseJsonObject: ["json"],
         viewMermaidDiagram: ["mermaid"],
         viewPlantUMLDiagram: ["plantuml"],
@@ -99,6 +100,11 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         type: 'WebView',
                                         content: code.trim()
                                     });
+                                })
+                            }
+                            {fileTypes.viewSvg.includes(trimmedFileType) &&
+                                addMessageButton("View SVG", () => {
+                                    createSvgViewer(code.trim());
                                 })
                             }
                             {fileTypes.viewJsonStringArray.includes(trimmedFileType) &&
