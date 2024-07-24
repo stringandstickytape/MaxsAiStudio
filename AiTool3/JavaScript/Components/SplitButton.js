@@ -1,6 +1,6 @@
 ﻿const { useState, useEffect, useRef } = React;
 
-const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff' }) => {
+const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const hasSplit = dropdownItems.length > 0;
@@ -26,14 +26,16 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         padding: '8px 8px',
         cursor: 'pointer',
         transition: 'background-color 0.3s',
-
-
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
     };
 
     const mainButtonStyle = {
         ...buttonStyle,
         flexGrow: 1,
-        textAlign: 'center', 
+        textAlign: 'center',
         borderRadius: hasSplit ? '4px 0 0 4px' : '4px',
     };
 
@@ -65,6 +67,17 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         cursor: 'pointer',
     };
 
+    const svgStyle = {
+        width: '24px',
+        height: '24px',
+        marginBottom: '4px',
+        backgroundColor: 'transparent',
+    };
+
+    const labelStyle = {
+        fontSize: svgString ? '0.8em' : '1em',
+    };
+
     return (
         <div style={{ display: 'inline-flex', position: 'relative', padding: '4px' }} id={uniqueId}>
             <button
@@ -74,7 +87,13 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                 onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
                 onMouseLeave={(e) => e.target.style.backgroundColor = color}
             >
-                {label}
+                {svgString && (
+                    <div
+                        style={svgStyle}
+                        dangerouslySetInnerHTML={{ __html: svgString }}
+                    />
+                )}
+                <span style={labelStyle}>{label}</span>
             </button>
             {hasSplit && (
                 <>

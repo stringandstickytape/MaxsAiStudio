@@ -205,5 +205,4 @@ Different Whisper models
 
 
 
-set default model when model dropdown changes
-
+Image from clipboard
