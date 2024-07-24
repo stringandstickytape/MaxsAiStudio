@@ -58,14 +58,12 @@ namespace AiTool3
             chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
             chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
             chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
-
+            chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
             audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-
-            ButtonIconHelper.SetButtonIcon(IconChar.Paperclip, buttonAttachImage);
 
             splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
             splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
@@ -168,7 +166,38 @@ namespace AiTool3
 
         }
 
+        private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
+        {   switch(e.EventType)
+            {
+                case "attach":
+                    await _fileAttachmentManager.HandleAttachment(chatWebView);
+                    break;
+                case "voice":
+                    if (!audioRecorderManager.IsRecording)
+                    {
+                        await audioRecorderManager.StartRecording();
+                        //buttonStartRecording.BackColor = Color.Red;
+                        //buttonStartRecording.Text = "Stop\r\nRecord";
+                    }
+                    else
+                    {
+                        await audioRecorderManager.StopRecording();
+                        //buttonStartRecording.BackColor = Color.Black;
+                        //buttonStartRecording.Text = "Start\r\nRecord";
+                    }
+                    break;
+                case "project":
+                    var form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
+                    form.AddFilesToInput += async (s, e) =>
+                    {
+                        // attach files as txt
+                        await _fileAttachmentManager.AttachTextFiles(e.ToArray());
 
+                    };
+                    form.Show();
+                    break;
+            }
+        }
 
         private void ChatWebView_ChatWebViewJoinWithPreviousEvent(object? sender, ChatWebViewJoinWithPreviousEventArgs e)
         {
@@ -731,28 +760,6 @@ namespace AiTool3
             await chatWebView.SetUserPrompt(template?.InitialPrompt ?? "");
         }
 
-        private async void buttonStartRecording_Click(object sender, EventArgs e)
-        {
-            if (!audioRecorderManager.IsRecording)
-            {
-                await audioRecorderManager.StartRecording();
-                buttonStartRecording.BackColor = Color.Red;
-                buttonStartRecording.Text = "Stop\r\nRecord";
-            }
-            else
-            {
-                await audioRecorderManager.StopRecording();
-                buttonStartRecording.BackColor = Color.Black;
-                buttonStartRecording.Text = "Start\r\nRecord";
-            }
-        }
-
-
-
-        private async void buttonAttachImage_Click(object sender, EventArgs e)
-        {
-            await _fileAttachmentManager.HandleAttachment(chatWebView);
-        }
 
         private async void tbSearch_TextChanged(object sender, EventArgs e)
         {

@@ -40,10 +40,7 @@ namespace AiTool3
             cbUseEmbeddings = new CheckBox();
             panel1 = new Panel();
             chatWebView = new ChatWebView();
-            btnProjectHelper = new Button();
             button1 = new Button();
-            buttonStartRecording = new Button();
-            buttonAttachImage = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
@@ -80,10 +77,7 @@ namespace AiTool3
             splitContainer1.Panel2.Controls.Add(button2);
             splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
             splitContainer1.Panel2.Controls.Add(panel1);
-            splitContainer1.Panel2.Controls.Add(btnProjectHelper);
             splitContainer1.Panel2.Controls.Add(button1);
-            splitContainer1.Panel2.Controls.Add(buttonStartRecording);
-            splitContainer1.Panel2.Controls.Add(buttonAttachImage);
             splitContainer1.Panel2MinSize = 1000;
             splitContainer1.Size = new Size(1363, 672);
             splitContainer1.SplitterDistance = 336;
@@ -168,11 +162,11 @@ namespace AiTool3
             // 
             // button2
             // 
-            button2.Location = new Point(2, 222);
+            button2.Location = new Point(3, 66);
             button2.Name = "button2";
-            button2.Size = new Size(52, 29);
+            button2.Size = new Size(13, 22);
             button2.TabIndex = 22;
-            button2.Text = "button2";
+            button2.Text = "!";
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
@@ -180,12 +174,11 @@ namespace AiTool3
             // 
             cbUseEmbeddings.BackColor = Color.Transparent;
             cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(2, 256);
+            cbUseEmbeddings.Location = new Point(2, 93);
             cbUseEmbeddings.Margin = new Padding(2);
             cbUseEmbeddings.Name = "cbUseEmbeddings";
-            cbUseEmbeddings.Size = new Size(45, 19);
+            cbUseEmbeddings.Size = new Size(14, 23);
             cbUseEmbeddings.TabIndex = 15;
-            cbUseEmbeddings.Text = "Use";
             cbUseEmbeddings.UseVisualStyleBackColor = false;
             // 
             // panel1
@@ -193,9 +186,10 @@ namespace AiTool3
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Black;
             panel1.Controls.Add(chatWebView);
-            panel1.Location = new Point(67, 4);
+            panel1.Location = new Point(21, 4);
+            panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(946, 662);
+            panel1.Size = new Size(995, 662);
             panel1.TabIndex = 21;
             // 
             // chatWebView
@@ -208,23 +202,10 @@ namespace AiTool3
             chatWebView.Location = new Point(0, 0);
             chatWebView.Margin = new Padding(0);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(946, 662);
+            chatWebView.Size = new Size(995, 662);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             chatWebView.DragDrop += chatWebView_DragDrop;
-            // 
-            // btnProjectHelper
-            // 
-            btnProjectHelper.BackColor = Color.Black;
-            btnProjectHelper.ForeColor = Color.White;
-            btnProjectHelper.Location = new Point(2, 166);
-            btnProjectHelper.Margin = new Padding(2);
-            btnProjectHelper.Name = "btnProjectHelper";
-            btnProjectHelper.Size = new Size(56, 51);
-            btnProjectHelper.TabIndex = 19;
-            btnProjectHelper.Text = "Project\r\nHelper";
-            btnProjectHelper.UseVisualStyleBackColor = false;
-            btnProjectHelper.Click += btnProjectHelper_Click;
             // 
             // button1
             // 
@@ -234,37 +215,11 @@ namespace AiTool3
             button1.Location = new Point(2, 2);
             button1.Margin = new Padding(2);
             button1.Name = "button1";
-            button1.Size = new Size(22, 50);
+            button1.Size = new Size(19, 59);
             button1.TabIndex = 13;
             button1.Text = ">\r\n>\r\n>";
             button1.UseVisualStyleBackColor = false;
             button1.Click += button1_Click;
-            // 
-            // buttonStartRecording
-            // 
-            buttonStartRecording.BackColor = Color.Black;
-            buttonStartRecording.ForeColor = Color.White;
-            buttonStartRecording.Location = new Point(2, 111);
-            buttonStartRecording.Margin = new Padding(2);
-            buttonStartRecording.Name = "buttonStartRecording";
-            buttonStartRecording.Size = new Size(60, 51);
-            buttonStartRecording.TabIndex = 10;
-            buttonStartRecording.Text = "Voice\r\nPrompt";
-            buttonStartRecording.UseVisualStyleBackColor = false;
-            buttonStartRecording.Click += buttonStartRecording_Click;
-            // 
-            // buttonAttachImage
-            // 
-            buttonAttachImage.BackColor = Color.Black;
-            buttonAttachImage.ForeColor = Color.White;
-            buttonAttachImage.Location = new Point(2, 56);
-            buttonAttachImage.Margin = new Padding(2);
-            buttonAttachImage.Name = "buttonAttachImage";
-            buttonAttachImage.Size = new Size(52, 51);
-            buttonAttachImage.TabIndex = 12;
-            buttonAttachImage.Text = "Attach";
-            buttonAttachImage.UseVisualStyleBackColor = false;
-            buttonAttachImage.Click += buttonAttachImage_Click;
             // 
             // menuBar
             // 
@@ -343,10 +298,8 @@ namespace AiTool3
         private SplitContainer splitContainer5;
         private MenuStrip menuBar;
         private ToolStripMenuItem toolStripMenuItem1;
-        private Button buttonStartRecording;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tokenUsageLabel;
-        private Button buttonAttachImage;
         private TextBox tbSearch;
         private Button btnClearSearch;
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
@@ -354,7 +307,6 @@ namespace AiTool3
         private Button button1;
         private CheckBox cbUseEmbeddings;
         private ComboBox cbSummaryEngine;
-        private Button btnProjectHelper;
         private Panel panel1;
         private Button button2;
     }

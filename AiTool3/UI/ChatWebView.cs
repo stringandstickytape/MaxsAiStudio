@@ -28,6 +28,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewAddBranchEventArgs>? ChatWebViewAddBranchEvent;
         public event EventHandler<ChatWebViewJoinWithPreviousEventArgs>? ChatWebViewJoinWithPreviousEvent;
         public event EventHandler<ChatWebDropdownChangedEventArgs>? ChatWebDropdownChangedEvent;
+        public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -76,6 +77,11 @@ namespace AiTool3.UI
                     break;
                 case "newWithPrompt":
                     ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithPrompt));
+                    break;
+                case "attach":
+                case "project":
+                case "voice":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type));
                     break;
                 case "send":
                     var selectedTools = message?["selectedTools"];
@@ -179,12 +185,12 @@ namespace AiTool3.UI
             }
 
             // ask the user whetehr to open cwv or cwv2
-            var mb = MessageBox.Show("Use CWV2?", "CWV2", MessageBoxButtons.YesNo);
+            //var mb = MessageBox.Show("Use CWV2?", "CWV2", MessageBoxButtons.YesNo);
             string html;
-            if(mb == DialogResult.Yes)
+            //if(mb == DialogResult.Yes)
                 html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html");
-            else
-                html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
+            //else
+            //    html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
 
             var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
 
