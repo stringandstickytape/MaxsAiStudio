@@ -146,7 +146,7 @@ Thid-party utils:
 * Ollama: install, ollama pull <model>.  Need to pull mxbai-embed-large for embeddings.
 
 
-
+crashes if a find and replace won't apply 
 
 
 
