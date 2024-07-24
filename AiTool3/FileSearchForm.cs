@@ -41,8 +41,11 @@ namespace AiTool3
 
             Load += (sender, e) =>
             {
-                FindLastNode(treeView.Nodes)?.EnsureVisible();
-                FindFirstCheckedNode(treeView.Nodes)?.EnsureVisible();
+                if (GetCheckedFiles().Any())
+                {
+                    FindLastNode(treeView.Nodes)?.EnsureVisible();
+                    FindFirstCheckedNode(treeView.Nodes)?.EnsureVisible();
+                }
             };
         }
 

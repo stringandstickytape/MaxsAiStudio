@@ -23,9 +23,13 @@ const HeaderBar = () => {
                 {`
                     .header-bar {
                         display: flex;
-                        justify-content: space-between;
+                        flex-direction: column;
                         background-color: #333;
                         color: white;
+                    }
+                    .main-header {
+                        display: flex;
+                        justify-content: space-between;
                         padding: 10px 20px;
                     }
                     .left-section {
@@ -51,22 +55,42 @@ const HeaderBar = () => {
                     .system-prompt-input::placeholder {
                         color: #aaa;
                     }
+                    .options-bar {
+                        display: flex;
+                        justify-content: space-around;
+                        background-color: #444;
+                        padding: 5px 0;
+                    }
+                    .option {
+                        cursor: pointer;
+                        padding: 5px 10px;
+                    }
+                    .option:hover {
+                        background-color: #555;
+                    }
                 `}
             </style>
 
             <div className="header-bar">
-                <div className="left-section">
-                    <div className="logo">{logoText}</div>
-                    <ToolsDropdown />
+                <div className="main-header">
+                    <div className="left-section">
+                        <div className="logo">{logoText}</div>
+                        <ToolsDropdown />
+                    </div>
+                    <div className="system-prompt-container">
+                        <InputBox
+                            onSend={() => { }}
+                            value={systemPrompt}
+                            onChange={handleSystemPromptChange}
+                            placeholder="Enter system prompt..."
+                            className="system-prompt-input"
+                        />
+                    </div>
                 </div>
-                <div className="system-prompt-container">
-                    <InputBox
-                        onSend={() => { }}
-                        value={systemPrompt}
-                        onChange={handleSystemPromptChange}
-                        placeholder="Enter system prompt..."
-                        className="system-prompt-input"
-                    />
+                <div className="options-bar">
+                    <div className="option">Wash</div>
+                    <div className="option">Rinse</div>
+                    <div className="option">Spin</div>
                 </div>
             </div>
         </>
