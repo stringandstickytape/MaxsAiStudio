@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Resources;
 using System.Runtime.InteropServices;
+using AiTool3.ApiManagement;
 
 namespace AiTool3.UI
 {
@@ -20,13 +21,13 @@ namespace AiTool3.UI
     public class ChatWebView : WebView2
     {
         public string GuidValue { get; private set; }
-
         public event EventHandler<ChatWebViewSendMessageEventArgs>? ChatWebViewSendMessageEvent;
         public event EventHandler<ChatWebViewCopyEventArgs>? ChatWebViewCopyEvent;
         public event EventHandler<ChatWebViewCancelEventArgs>? ChatWebViewCancelEvent;
         public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
         public event EventHandler<ChatWebViewAddBranchEventArgs>? ChatWebViewAddBranchEvent;
         public event EventHandler<ChatWebViewJoinWithPreviousEventArgs>? ChatWebViewJoinWithPreviousEvent;
+        public event EventHandler<ChatWebDropdownChangedEventArgs>? ChatWebDropdownChangedEvent;
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -57,6 +58,9 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "dropdownChanged":
+                    ChatWebDropdownChangedEvent?.Invoke(this, new ChatWebDropdownChangedEventArgs() { Dropdown = message["id"], ModelString = content });
+                    break;
                 case "joinWithPrevious":
                     ChatWebViewJoinWithPreviousEvent?.Invoke(this, new ChatWebViewJoinWithPreviousEventArgs(GuidValue = message["guid"]));
                     break;
@@ -200,11 +204,8 @@ namespace AiTool3.UI
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.FindAndReplacer.js"));
 
-            //CoreWebView2.NewWindowRequested += (sender2, e2) => {
-            //    String _fileurl = e2.Uri.ToString();
-            //    e2.Handled = true;
-            //    FileDropped?.Invoke(this, _fileurl);
-            //};
+            
+            
         }
 
         // begin webview interface methods
@@ -217,9 +218,34 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
+
+
         // WebViewCallAndCallbackSystem
 
         #region implemented in chatwebview2.html
+
+
+        internal async Task SetDropdownValue(string v1, string v2)
+        {
+            ExecuteScriptAsync($"setDropdownValue('{v1}', '{v2}')");
+        }
+        internal async Task<string> GetDropdownValue(string v)
+        {
+            return await ExecuteScriptAsync($"getDropdownValue('{v}')");
+        }
+
+
+        internal async Task SetModels(List<Model> models)
+        {
+            var modelStrings = models.Select(x => x.ToString());
+
+            // window.setDropdownOptions('mainAI',
+
+            foreach(var dropdown in new[] { "mainAI", "summaryAI" })
+            {
+                ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)})");
+            }
+        }
 
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
@@ -418,5 +444,6 @@ namespace AiTool3.UI
                 throw new Exception("Probably forgot to embed the resource :(");
             }
         }
+
     }
 }

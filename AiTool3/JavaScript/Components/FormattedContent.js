@@ -53,7 +53,6 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     );
 
     const formatContent = (text) => {
-        debugger;
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
 
         const parts = [];

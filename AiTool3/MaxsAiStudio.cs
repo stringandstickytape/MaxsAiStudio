@@ -57,6 +57,7 @@ namespace AiTool3
             chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
             chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
             chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
+            chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
 
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
@@ -166,6 +167,8 @@ namespace AiTool3
 
 
         }
+
+
 
         private void ChatWebView_ChatWebViewJoinWithPreviousEvent(object? sender, ChatWebViewJoinWithPreviousEventArgs e)
         {
@@ -325,26 +328,33 @@ namespace AiTool3
 
             await chatWebView.EnsureCoreWebView2Async(null);
 
-            InitialiseApiList();
-            // chatWebView.ShowWorking();
-
-
-
             await BeginNewConversation();
 
             await CreateNewWebNdc(CurrentSettings.ShowDevTools);
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
-            // Task.Delay(5000).ContinueWith(t => chatWebView.HideWorking(), TaskScheduler.FromCurrentSynchronizationContext());
-            //if (CurrentSettings.RunWebServer)
-            //{
-            //    await WebServerHelper.CreateWebServerAsync(chatWebView, FetchAiInputResponse);
-            //}
 
+            await InitialiseApiList_New();
+        }
 
+        private async Task InitialiseApiList_New()
+        {
+            await Task.Delay(1500);
 
-            // in 5 sec, HideWorking
+            await chatWebView.SetModels(CurrentSettings.ApiList!.SelectMany(x => x.Models).ToList());
 
+            if (CurrentSettings.SelectedModel != "")
+            {
+                await chatWebView.SetDropdownValue("mainAI", CurrentSettings.SelectedModel.ToString());
+            }
+            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString()); 
+            
+            if (CurrentSettings.SelectedSummaryModel != "")
+            {
+                await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
+                cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedSummaryModel);
+            }
+            else await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
 
         }
 
@@ -397,25 +407,7 @@ namespace AiTool3
 
         private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.SetUserPrompt(e);
 
-        private void InitialiseApiList()
-        {
 
-            foreach (var model in CurrentSettings.ApiList!.SelectMany(x => x.Models))
-            {
-                cbEngine.Items.Add(model);
-                cbSummaryEngine.Items.Add(model);
-            }
-            if (CurrentSettings.SelectedModel != "")
-            {
-                cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedModel);
-            }
-            else cbEngine.SelectedItem = cbEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
-            if (CurrentSettings.SelectedSummaryModel != "")
-            {
-                cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ToString() == CurrentSettings.SelectedSummaryModel);
-            }
-            else cbSummaryEngine.SelectedItem = cbSummaryEngine.Items.Cast<Model>().FirstOrDefault(m => m.ServiceName.StartsWith("Local"));
-        }
 
         private void SplitContainer_Paint(object sender, PaintEventArgs e)
         {
@@ -470,7 +462,9 @@ namespace AiTool3
             try
             {
                 PrepareForNewResponse();
-                var model = (Model)cbEngine.SelectedItem!;
+
+                var model = await GetDropdownModel("mainAI");
+
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
                 var response = await FetchAndProcessAiResponse(conversation, model, toolIDs);
                 retVal = response.ResponseText;
@@ -504,6 +498,13 @@ namespace AiTool3
 
             }
             return retVal;
+        }
+
+        private async Task<Model> GetDropdownModel(string str)
+        {
+            var modelString = JsonConvert.DeserializeObject<string>(await chatWebView.GetDropdownValue(str));
+            var model = CurrentSettings.GetAllModels().FirstOrDefault(m => m.ToString() == modelString);
+            return model;
         }
 
         private async void PrepareForNewResponse()
@@ -585,7 +586,7 @@ namespace AiTool3
                 await chatWebView.SetUserPrompt(response.SuggestedNextPrompt);
             }
 
-            var model = (Model)cbEngine.SelectedItem!;
+            var model = await GetDropdownModel("mainAI");
             var cost = model.GetCost(response.TokenUsage);
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
@@ -794,12 +795,13 @@ namespace AiTool3
 <";
         }
 
-        private async void cbEngine_SelectedIndexChanged(object sender, EventArgs e)
+        private void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e)
         {
-            CurrentSettings.SelectedModel = cbEngine.SelectedItem!.ToString();
-            await chatWebView.ChangeChatHeaderLabel(cbEngine.SelectedItem!.ToString().Replace(" - ", @"
-"));
-            SettingsSet.Save(CurrentSettings);
+            if (e.Dropdown == "mainAI")
+            {
+                CurrentSettings.SelectedModel = e.ModelString;
+                SettingsSet.Save(CurrentSettings);
+            }
         }
 
         private void chatWebView_DragDrop(object sender, DragEventArgs e)

@@ -3,6 +3,35 @@
 const HeaderBar = () => {
     const [logoText, setLogoText] = useState("AI Studio");
     const [systemPrompt, setSystemPrompt] = useState("");
+    const [mainAIOptions, setMainAIOptions] = useState([]);
+    const [summaryAIOptions, setSummaryAIOptions] = useState([]);
+    const [mainAIValue, setMainAIValue] = useState(mainAIOptions[0]);
+    const [summaryAIValue, setSummaryAIValue] = useState(summaryAIOptions[0]);
+
+    // Export methods
+    window.setDropdownOptions = (dropdownName, options) => {
+        if (dropdownName === 'mainAI') {
+            setMainAIOptions(options);
+        } else if (dropdownName === 'summaryAI') {
+            setSummaryAIOptions(options);
+        }
+    };
+
+    window.getDropdownValue = (dropdownName) => {
+        if (dropdownName === 'mainAI') {
+            return mainAIValue;
+        } else if (dropdownName === 'summaryAI') {
+            return summaryAIValue;
+        }
+    };
+
+    window.setDropdownValue = (dropdownName, value) => {
+        if (dropdownName === 'mainAI') {
+            setMainAIValue(value);
+        } else if (dropdownName === 'summaryAI') {
+            setSummaryAIValue(value);
+        }
+    };
 
     const changeLogo = (newText) => {
         setLogoText(newText);
@@ -68,6 +97,22 @@ const HeaderBar = () => {
                     .option:hover {
                         background-color: #555;
                     }
+                                        .dropdown-container {
+                        display: flex;
+                        align-items: center;
+                        margin-right: 20px;
+                    }
+                    .dropdown-container label {
+                        margin-right: 10px;
+                        color: white;
+                    }
+                    .dropdown-container select {
+                        background-color: #555;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 5px;
+                    }
                 `}
             </style>
 
@@ -88,9 +133,20 @@ const HeaderBar = () => {
                     </div>
                 </div>
                 <div className="options-bar">
-                    <div className="option">Wash</div>
-                    <div className="option">Rinse</div>
-                    <div className="option">Spin</div>
+                    <DropDown
+                        id="mainAI"
+                        label="Main AI"
+                        options={mainAIOptions}
+                        value={mainAIValue}
+                        onChange={setMainAIValue}
+                    />
+                    <DropDown
+                        id="summaryAI"
+                        label="Summaries/Suggestions AI"
+                        options={summaryAIOptions}
+                        value={summaryAIValue}
+                        onChange={setSummaryAIValue}
+                    />
                 </div>
             </div>
         </>

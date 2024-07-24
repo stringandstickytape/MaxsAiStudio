@@ -63,6 +63,7 @@ namespace AiTool3
 
         public string SelectedModel { get; set; } = "";
         public string SelectedSummaryModel { get; set; } = "";
+        
 
         public SettingsSet() { }
 
@@ -224,6 +225,10 @@ namespace AiTool3
             Save(this);
         }
 
+        internal IEnumerable<Model> GetAllModels()
+        {
+            return ApiList!.SelectMany(x => x.Models).ToList();
+        }
     }
 
 

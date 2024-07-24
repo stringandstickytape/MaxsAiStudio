@@ -30,7 +30,6 @@ namespace AiTool3
         /// </summary>
         private void InitializeComponent()
         {
-            cbEngine = new ComboBox();
             splitContainer1 = new SplitContainer();
             splitContainer5 = new SplitContainer();
             btnClearSearch = new Button();
@@ -68,20 +67,6 @@ namespace AiTool3
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
-            // cbEngine
-            // 
-            cbEngine.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cbEngine.BackColor = Color.Black;
-            cbEngine.Font = new Font("Segoe UI", 12F);
-            cbEngine.ForeColor = Color.White;
-            cbEngine.FormattingEnabled = true;
-            cbEngine.Location = new Point(732, 4);
-            cbEngine.Margin = new Padding(2);
-            cbEngine.Name = "cbEngine";
-            cbEngine.Size = new Size(291, 29);
-            cbEngine.TabIndex = 3;
-            cbEngine.SelectedIndexChanged += cbEngine_SelectedIndexChanged;
-            // 
             // splitContainer1
             // 
             splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -103,7 +88,6 @@ namespace AiTool3
             splitContainer1.Panel2.Controls.Add(label1);
             splitContainer1.Panel2.Controls.Add(cbSummaryEngine);
             splitContainer1.Panel2.Controls.Add(button1);
-            splitContainer1.Panel2.Controls.Add(cbEngine);
             splitContainer1.Panel2.Controls.Add(buttonStartRecording);
             splitContainer1.Panel2.Controls.Add(buttonAttachImage);
             splitContainer1.Panel2MinSize = 1000;
@@ -399,7 +383,6 @@ namespace AiTool3
         }
 
         #endregion
-        private ComboBox cbEngine;
         private SplitContainer splitContainer1;
         private DataGridView dgvConversations;
         private SplitContainer splitContainer5;
