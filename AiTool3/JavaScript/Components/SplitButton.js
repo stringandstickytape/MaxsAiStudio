@@ -33,7 +33,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     const mainButtonStyle = {
         ...buttonStyle,
         flexGrow: 1,
-        textAlign: 'left', 
+        textAlign: 'center', 
         borderRadius: hasSplit ? '4px 0 0 4px' : '4px',
     };
 
@@ -46,8 +46,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
 
     const dropdownStyle = {
         position: 'absolute',
-        top: '100%',
-        right: '0',
+        left: '-44px',
+        bottom: '15px',
         backgroundColor: 'white',
         border: '1px solid #ccc',
         borderRadius: '4px',
