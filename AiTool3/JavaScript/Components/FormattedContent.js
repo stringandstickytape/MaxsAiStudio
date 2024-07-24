@@ -87,14 +87,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     content: code.trim()
                                 });
                             })}
-                            {addMessageButton("Save As", () => { 
+                            {addMessageButton("Save As", () => {
                                 window.chrome.webview.postMessage({
                                     type: 'Save As',
                                     dataType: trimmedFileType,
                                     content: code.trim()
                                 });
                             })}
-                            {fileTypes.webView.includes(trimmedFileType) && 
+                            {fileTypes.webView.includes(trimmedFileType) &&
                                 addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'WebView',
@@ -102,7 +102,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.viewJsonStringArray.includes(trimmedFileType) && 
+                            {fileTypes.viewJsonStringArray.includes(trimmedFileType) &&
                                 addMessageButton("View JSON String Array", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View JSON String Array',
@@ -120,20 +120,20 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     createMermaidViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewPlantUMLDiagram.includes(trimmedFileType) && 
+                            {fileTypes.viewPlantUMLDiagram.includes(trimmedFileType) &&
                                 addMessageButton("View PlantUML Diagram", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View PlantUML Diagram',
                                         content: code.trim()
                                     });
                                 })
-                            } 
-                            {fileTypes.viewDOTDiagram.includes(trimmedFileType) && 
+                            }
+                            {fileTypes.viewDOTDiagram.includes(trimmedFileType) &&
                                 addMessageButton("View DOT Diagram", () => {
                                     renderDotString(code.trim());
                                 })
                             }
-                            {fileTypes.runPythonScript.includes(trimmedFileType) && 
+                            {fileTypes.runPythonScript.includes(trimmedFileType) &&
                                 addMessageButton("Run Python Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run Python Script',
@@ -141,7 +141,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.launchSTL.includes(trimmedFileType) && 
+                            {fileTypes.launchSTL.includes(trimmedFileType) &&
                                 addMessageButton("Launch STL", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Launch STL',
@@ -149,7 +149,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.runPowerShellScript.includes(trimmedFileType) && 
+                            {fileTypes.runPowerShellScript.includes(trimmedFileType) &&
                                 addMessageButton("Run PowerShell Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run PowerShell Script',
@@ -157,7 +157,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            
+
                             {fileTypes.selectFindAndReplaceScript.includes(trimmedFileType) &&
                                 addMessageButton("Select Find-And-Replace Script", () => {
                                     try {
@@ -182,6 +182,10 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         findAndReplaces: JSON.stringify(currentlySelectedFindAndReplaceSet),
                                         selectedMessageGuid: selectedMessageGuid
                                     });
+                                    // Reset currentlySelectedFindAndReplaceSet and hide 'Apply...' buttons
+                                    window.currentlySelectedFindAndReplaceSet = null;
+                                    window.selectedMessageGuid = null;
+                                    window.dispatchEvent(new Event('findAndReplaceUpdate'));
                                 })
                             }
                         </div>
@@ -198,7 +202,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                     }}>
                         {code.trim()}
                     </div>
-               </div>
+                </div>
             );
             lastIndex = offset + match.length;
             onCodeBlockRendered(); // Increment the counter after rendering a code block
