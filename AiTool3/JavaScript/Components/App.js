@@ -34,6 +34,7 @@
                 </div>
                 <UserInputBar />
             </div>
+            <LiveStream />
         </>
     );
 }

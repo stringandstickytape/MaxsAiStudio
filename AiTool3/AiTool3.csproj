@@ -47,6 +47,7 @@
     <None Remove="JavaScript\Components\App.js" />
     <None Remove="JavaScript\Components\DropDown.js" />
     <None Remove="JavaScript\Components\FormattedContent.js" />
+    <None Remove="JavaScript\Components\LiveStream.js" />
     <None Remove="JavaScript\Components\Message.js" />
     <None Remove="JavaScript\Components\SplitButton.js" />
     <None Remove="JavaScript\Components\ToolsDropdown.js" />
@@ -86,6 +87,7 @@
     <EmbeddedResource Include="JavaScript\Components\App.js" />
     <EmbeddedResource Include="JavaScript\Components\DropDown.js" />
     <EmbeddedResource Include="JavaScript\Components\FormattedContent.js" />
+    <EmbeddedResource Include="JavaScript\Components\LiveStream.js" />
     <EmbeddedResource Include="JavaScript\Components\Message.js" />
     <EmbeddedResource Include="JavaScript\Components\SplitButton.js" />
     <EmbeddedResource Include="JavaScript\Components\ToolsDropdown.js" />
