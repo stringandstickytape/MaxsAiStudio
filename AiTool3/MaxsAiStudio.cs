@@ -179,7 +179,7 @@ namespace AiTool3
         private void ChatWebView_ChatWebViewAddBranchEvent(object? sender, ChatWebViewAddBranchEventArgs e)
         {
             var newNodeGuid = ConversationManager.AddBranch(e);
-
+            if(newNodeGuid == null) return;
             // update the webndc
             WebNdcDrawNetworkDiagram();
 

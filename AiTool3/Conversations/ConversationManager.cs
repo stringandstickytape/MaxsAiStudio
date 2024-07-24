@@ -238,7 +238,10 @@ namespace AiTool3.Conversations
             var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(findAndReplacesJson);
 
             var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
-
+            if(processed == null)
+            {
+                return null;
+            }
             // now take the original content, and replace the code block with the processed content
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
 

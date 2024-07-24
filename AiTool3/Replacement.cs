@@ -32,7 +32,8 @@ namespace AiTool3
                 {
                     Console.WriteLine($"Find string not found: \"{replacement.find}\"");
                     Console.WriteLine($"Pattern used: {pattern}");
-                    throw new Exception($"Find string not found: \"{replacement.find}\"");
+                    MessageBox.Show($"Couldn't find the string \"{replacement.find}\" in the file. The file will not be modified.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
                 }
 
                 // Apply the replacement
