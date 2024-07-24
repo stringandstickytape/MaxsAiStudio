@@ -134,6 +134,66 @@ function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
 }
 
+const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, color = '#007bff', svgString }) => {
+    const hasSplit = dropdownItems.length > 0;
+    const [mainState, setMainState] = useState(false);
+    const [itemStates, setItemStates] = useState(dropdownItems.map(() => false));
+    const statesRef = useRef({ main: mainState, items: itemStates });
+
+    useEffect(() => {
+        statesRef.current = { main: mainState, items: itemStates };
+    }, [mainState, itemStates]);
+
+    const handleMainToggle = () => {
+        setMainState(prevState => !prevState);
+        // Use setTimeout to ensure we're getting the updated state
+        setTimeout(() => {
+            const newState = statesRef.current.main;
+            console.log('New main state:', newState);
+            onToggle(-1, newState);
+        }, 0);
+    };
+
+    const handleItemToggle = (index) => {
+        setItemStates(prevStates => {
+            const newStates = [...prevStates];
+            newStates[index] = !newStates[index];
+            return newStates;
+        });
+        // Use setTimeout to ensure we're getting the updated state
+        setTimeout(() => {
+            const newState = statesRef.current.items[index];
+            console.log(`New state for item ${index}:`, newState);
+            onToggle(index, newState);
+        }, 0);
+    };
+
+    const modifiedDropdownItems = hasSplit
+        ? dropdownItems.map((item, index) => ({
+            ...item,
+            label: `${itemStates[index] ? '☑' : '☐'} ${item.label}`,
+            onClick: () => {
+                handleItemToggle(index);
+                item.onClick && item.onClick();
+            }
+        }))
+        : [];
+
+    const mainLabel = hasSplit
+        ? label
+        : `${mainState ? '☑' : '☐'} ${label}`;
+
+    return (
+        <SplitButton
+            label={mainLabel}
+            onClick={hasSplit ? undefined : handleMainToggle}
+            dropdownItems={modifiedDropdownItems}
+            disabled={disabled}
+            color={color}
+            svgString={svgString}
+        />
+    );
+};
                                 /* voice svg
                                      <svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
             <rect x="15" y="42" width="10" height="16" rx="5" fill="black" />

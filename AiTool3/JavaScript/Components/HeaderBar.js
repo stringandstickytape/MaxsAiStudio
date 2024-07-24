@@ -147,6 +147,20 @@ const HeaderBar = () => {
                                 //disabled={newDisabled}
                                 svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="80" height="80" fill="transparent" stroke="white" stroke-width="2"></rect><circle cx="25" cy="25" r="5" fill="white"></circle><rect x="35" y="20" width="40" height="10" fill="white"></rect><circle cx="25" cy="50" r="5" fill="white"></circle><rect x="35" y="45" width="40" height="10" fill="white"></rect><circle cx="25" cy="75" r="5" fill="white"></circle><rect x="35" y="70" width="40" height="10" fill="white"></rect></svg>'
                             />
+                            <ToggleSplitButton
+                                label="Toggle Me"
+                                onToggle={(index, state) => {
+                                    // The state here should now be correct
+                                    console.log('Toggled menu item index:', index, 'New toggle state:', state);
+                                    // Call your postMessage function here
+                                }}
+                                dropdownItems={[
+                                    { label: 'Option 1', onClick: () => console.log('Option 1 clicked') },
+                                    { label: 'Option 2', onClick: () => console.log('Option 2 clicked') },
+                                ]}
+                                svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="80" height="80" fill="transparent" stroke="white" stroke-width="2"></rect><circle cx="25" cy="25" r="5" fill="white"></circle><rect x="35" y="20" width="40" height="10" fill="white"></rect><circle cx="25" cy="50" r="5" fill="white"></circle><rect x="35" y="45" width="40" height="10" fill="white"></rect><circle cx="25" cy="75" r="5" fill="white"></circle><rect x="35" y="70" width="40" height="10" fill="white"></rect></svg>'
+                                color="#4CAF50"
+                            />
                         </div>
                     </div>
                     <div className="system-prompt-container">

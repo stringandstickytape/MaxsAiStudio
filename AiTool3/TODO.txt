@@ -194,9 +194,12 @@ It'd be nice if you could outright edit responses in the conversation - should r
 Concatenate messages :(
 Tip of the day
 add tokens-per-second to the status bar?
-Different Whisper models
+Different Whisper models w/ UI
 
 Image from clipboard
+Streaming
+
+
 
 
 pie-in-the-sky:
