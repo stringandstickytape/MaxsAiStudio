@@ -16,6 +16,14 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
         }
     }, [onSend]);
 
+    const handlePaste = (event) => {
+        event.preventDefault();
+        const pastedText = event.clipboardData.getData('text');
+        const cleanedText = pastedText.replace(/\r/g, '');
+        const newContent = value.slice(0, event.target.selectionStart) + cleanedText + value.slice(event.target.selectionEnd);
+        onChange(newContent);
+    };
+
     const setInputContent = (newContent) => {
         setContent(newContent);
     };
@@ -98,6 +106,7 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
                     placeholder={placeholder}
                     style={isFullScreen ? { width: '100%', height: '100%' } : {}}
                 />

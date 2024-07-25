@@ -1,9 +1,9 @@
 ﻿function fixNewlinesInStrings(jsonString) {
     return jsonString.replace(
-        /"(find|replace)":\s*"((?:\\.|[^"\\])*?)"/g,
+        /("find"|"replace")\s*:\s*"((?:\\.|[^"\\])*?)"/g,
         (match, key, value) => {
             const fixedValue = value.replace(/\n/g, '\\n');
-            return `"${key}": "${fixedValue}"`;
+            return `${key}: "${fixedValue}"`;
         }
     );
 }
@@ -56,7 +56,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
-
+        console.log(text);
+        debugger;
         const parts = [];
         let lastIndex = 0;
 
