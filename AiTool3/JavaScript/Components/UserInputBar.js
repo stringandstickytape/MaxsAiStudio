@@ -12,7 +12,33 @@
     const [cancelAlternateColor, setCancelAlternateColor] = React.useState('');
     const [newAlternateLabel, setNewAlternateLabel] = React.useState('');
     const [newAlternateColor, setNewAlternateColor] = React.useState('');
+    const [sendButtonLabel, setSendButtonLabel] = React.useState('Send');
 
+    React.useEffect(() => {
+        const updateSendButtonLabel = () => {
+            const tools = window.getTools ? window.getTools() : [];
+            const anyToolOn = tools.some(tool => tool.checked);
+            setSendButtonLabel(anyToolOn ? 'Send with Tools' : 'Send');
+        };
+
+        // Initial update
+        updateSendButtonLabel();
+
+        // Set up an interval to check and update the button label
+        const intervalId = setInterval(updateSendButtonLabel, 1000);
+
+        // Clean up the interval on component unmount
+        return () => clearInterval(intervalId);
+    }, []);
+
+    const handleSend = () => {
+        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
+        window.chrome.webview.postMessage({
+            type: 'send',
+            content: inputContent,
+            selectedTools: selectedTools
+        });
+    };
     const handleNew = () => {
         window.chrome.webview.postMessage({ type: 'new' });
         setInputContent("");
@@ -26,14 +52,6 @@
         window.chrome.webview.postMessage({ type: 'newWithPrompt' });
     };
 
-    const handleSend = () => {
-        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
-        window.chrome.webview.postMessage({
-            type: 'send',
-            content: inputContent,
-            selectedTools: selectedTools
-        });
-    };
     const setSendButtonAlternate = (label, color) => {
         setSendAlternateLabel(label);
         setSendAlternateColor(color);
@@ -196,7 +214,7 @@
                 </div>
                 <div className="buttons-wrapper">
                     <SplitButton
-                        label="Send"
+                        label={sendButtonLabel}
                         onClick={handleSend}
                         disabled={sendDisabled}
                         color={colorScheme.buttonBackgroundColor}
