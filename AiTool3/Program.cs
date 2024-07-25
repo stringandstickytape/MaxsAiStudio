@@ -31,7 +31,7 @@ namespace AiTool3
                 File.AppendAllLines(tempFile, new[] { "----------------------", "HelpLink", "----------------------", ex.HelpLink });
                 File.AppendAllLines(tempFile, new[] { "----------------------", "HResult", "----------------------", ex.HResult.ToString() });
 
-                MessageBox.Show(ex.Message, $"Error has been written to {tempFile}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show( $"Error has been written to {tempFile}", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 
