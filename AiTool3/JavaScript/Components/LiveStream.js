@@ -8,12 +8,21 @@ const LiveStream = () => {
     const timeoutRef = useRef(null);
     const containerRef = useRef(null);
 
+    window.ScrollToTemp = () => {
+        const mainContent = document.getElementsByClassName('main-content')[0];
+        mainContent.setAttribute("style", "scroll-behavior: auto");
+        mainContent.scrollTop = mainContent.scrollHeight;
+        mainContent.setAttribute("style", "scroll-behavior: smooth");
+        debugger;
+    };
+
     useEffect(() => {
         window.updateTemp = (string) => {
             setLiveStreamData(prevData => prevData + string);
             setIsVisible(true);
             setOpacity(1);
             clearTimeout(timeoutRef.current);
+            ScrollToTemp();
         };
 
         window.clearTemp = () => {
@@ -43,21 +52,18 @@ const LiveStream = () => {
         <div
             ref={containerRef}
             style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
                 width: '100%',
-                height: '100%',
+                maxHeight: '200px', // Adjust this value as needed
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 color: 'white',
-                zIndex: 9999,
                 overflow: 'auto',
-                padding: '20px',
+                padding: '10px',
                 boxSizing: 'border-box',
                 whiteSpace: 'pre-wrap',
                 fontFamily: 'monospace',
                 opacity: opacity,
-                transition: 'opacity 0.75s ease-in-out',
+                borderRadius: '5px',
+                margin: '10px 0',
             }}
         >
             {liveStreamData}

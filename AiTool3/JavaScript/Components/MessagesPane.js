@@ -34,19 +34,18 @@ const MessagesPane = () => {
     window.AddInitialMessages = addInitialMessages;
     window.AddMessage = addMessage;
 
+
     useEffect(() => {
         if (messages.length > 0) {
-            setTimeout(() => {
-                const mainContent = document.getElementsByClassName('main-content')[0];
-                const messagesContainer = document.getElementById('messages-container');
+            const mainContent = document.getElementsByClassName('main-content')[0];
+            const messagesContainer = document.getElementById('messages-container');
 
-                if (mainContent && messagesContainer) {
-                    const lastMessage = messagesContainer.lastElementChild;
-                    if (lastMessage) {
-                        mainContent.scrollTop = lastMessage.offsetTop - mainContent.offsetTop;
-                    }
+            if (mainContent && messagesContainer) {
+                const lastMessage = messagesContainer.lastElementChild;
+                if (lastMessage) {
+                    mainContent.scrollTop = lastMessage.offsetTop - mainContent.offsetTop;
                 }
-            }, 10); // 10ms delay
+            }
         }
     }, [messages]);
 
@@ -132,6 +131,7 @@ const MessagesPane = () => {
                         previousAssistantUnbalanced={isPreviousAssistantMessageUnbalanced(index)}
                     />
                 ))}
+
             </div>
         </>
     );

@@ -53,6 +53,11 @@ DONE (as it can be): Streaming token counting is done for Claude
 DONE: Make use of token counting
 DONE: fix scroll to bottom when adding streaming fragment
 DONE: Hide project browser behind experimental setting? At least needs tidying up
+DONE: Image from clipboard
+DONE: cr's in template names cause menu nastiness
+DONE: On first run, create subdirs: Conversations, Settings, Templates, Embeddings
+
+
 
 
 
@@ -61,13 +66,6 @@ No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
 
-
-
-
-restructure namespaces
-
-
-
 Useful next:
 
 add time-taken to search results and timestamp to all convo messages
@@ -75,16 +73,11 @@ add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
 move conversations to subdirectory, templates to another, settings to a third?
 
-Less important:
-Custom handlers? External links to other apps or handlers?
-inline js dependencies and add open-source licenses
-
-
 are there any prompt libraries we can pull from?
 
 Create embeddings from previous messages/conversations?
 
-popup that lets you pick embedding results?
+popup that lets you pick embedding results to submit?
 
 Expand and clarify the embeddings workflow
 
@@ -92,25 +85,16 @@ Expand and clarify the embeddings workflow
 Necessary for release:
 
 First-run "wizard"
- - ask for API/local AI details
+ - ask for API/local AI details?
  - default the engine dropdowns as such
 
-On first run, create subdirs: Conversations, Settings, Templates, Embeddings
+
 
 Make Regen All Summaries more friendly
 Add "working" to:
 * create embeddings
 * regen all summaries
 * transcribe
-
-
-
-
-
-
-
-
-
 
 Remove unnecessary experiments
 
@@ -147,21 +131,7 @@ Thid-party utils:
 
 * Ollama: install, ollama pull <model>.  Need to pull mxbai-embed-large for embeddings.
 
-
-
-
-
 fix // bit thin, this...
-
-
-
-
-
-
-
-
-
-
 
 
 Possibly post-release:
@@ -196,16 +166,14 @@ Tip of the day
 add tokens-per-second to the status bar?
 Different Whisper models w/ UI
 
-Image from clipboard
-Streaming
-cr's in template names cause menu nastiness
-templates edit window is super-crappy
+templates edit window is pretty crappy
 
 
 
 
 
 pie-in-the-sky:
+Custom handlers? External links to other apps or handlers?
 AI ideas:
 • Ability to export conversations in various formats (PDF, DOCX, etc.)
 • Ability to import conversations in various formats (PDF, DOCX, etc.)

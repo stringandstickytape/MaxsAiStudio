@@ -41,6 +41,12 @@ namespace AiTool3
                 case DialogResult.No:
                     await AttachTextFiles();
                     break;
+                case DialogResult.Continue:
+
+                    // get image from clipboard
+
+                    await AttachClipboardImage();
+                    break;
             }
         }
 
@@ -72,6 +78,37 @@ namespace AiTool3
             Base64Image = ImageHelpers.ImageToBase64(filename);
             Base64ImageType = ImageHelpers.GetImageType(filename);
             _settings.SetDefaultPath(Path.GetDirectoryName(filename)!);
+        }
+
+        public async Task AttachClipboardImage()
+        {
+            if (Clipboard.ContainsImage())
+            {
+                using (var image = Clipboard.GetImage())
+                {
+                    if (image != null)
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            try
+                            {
+                                image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                                Base64Image = Convert.ToBase64String(ms.ToArray());
+                                Base64ImageType = ImageHelpers.GetImageType(".png");
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log the exception or handle it appropriately
+                                Console.WriteLine($"Error saving image: {ex.Message}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to get image from clipboard.");
+                    }
+                }
+            }
         }
 
         private async Task AttachTextFiles()

@@ -1,4 +1,11 @@
-﻿namespace AiTool3.Helpers
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using NAudio.Utils;
+using Newtonsoft.Json.Linq;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Windows.Media;
+
+namespace AiTool3.Helpers
 {
     internal class ImageHelpers
     {
@@ -30,6 +37,19 @@
                     image.Save(ms, image.RawFormat);
                     return Convert.ToBase64String(ms.ToArray());
                 }
+            }
+        }
+
+        internal static string ImageToBase64(Image image)
+        {
+            //convert an image to a base64 string
+            using (var ms = new MemoryStream())
+            {
+
+                // gives   Message = Value cannot be null.Arg_ParamName_Name?
+
+                image.Save(ms, image.RawFormat);
+                return Convert.ToBase64String(ms.ToArray());
             }
         }
 

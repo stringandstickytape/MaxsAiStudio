@@ -4,14 +4,12 @@
             <style>
                 {`
                     html, body, #root {
-                        scroll-behavior: smooth;
                         height: 100%;
                         margin: 0;
                         padding: 0;
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     }
                     .app-container {
-                        scroll-behavior: smooth;
                         display: flex;
                         flex-direction: column;
                         height: 100vh;
@@ -31,10 +29,10 @@
                 <HeaderBar />
                 <div className="main-content">
                     <MessagesPane />
+                    <LiveStream />
                 </div>
                 <UserInputBar />
             </div>
-            <LiveStream />
         </>
     );
 }
