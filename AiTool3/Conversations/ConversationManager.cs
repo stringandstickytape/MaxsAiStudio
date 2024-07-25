@@ -157,7 +157,7 @@ namespace AiTool3.Conversations
 
             completionInput = new CompletionMessage(CompletionRole.User)
             {
-                Content = inputText,
+                Content = inputText.Replace("\r",""),
                 Parent = PreviousCompletion?.Guid,
                 Engine = model.ModelName,
                 SystemPrompt = systemPrompt,
@@ -176,7 +176,7 @@ namespace AiTool3.Conversations
 
             completionResponse = new CompletionMessage(CompletionRole.Assistant)
             {
-                Content = response.ResponseText,
+                Content = response.ResponseText.Replace("\r", ""),
                 Parent = completionInput.Guid,
                 Engine = model.ModelName,
                 SystemPrompt = systemPrompt,
