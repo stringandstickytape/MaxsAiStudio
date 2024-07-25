@@ -356,6 +356,47 @@ namespace AiTool3.Conversations
                 SaveConversation();
             //}
         }
+
+        internal void ContinueUnterminatedCodeBlock(ChatWebViewSimpleEventArgs e)
+        {
+            // get the message with the given guid value
+            var message = Conversation!.FindByGuid(e.Guid);
+
+            // get the child message that says "Continue", case insensitive
+            var continueMessage = Conversation.FindByGuid(message.Children!.FirstOrDefault(c => Conversation.FindByGuid(c).Content.ToLower().Contains("continue")));
+
+            // get that msg's first child
+            var child = Conversation.FindByGuid(continueMessage.Children!.First());
+            var childContent = child.Content.Substring(child.Content.IndexOf(ThreeTicks));
+
+            //remove the first line from childContent
+            childContent = childContent.Substring(childContent.IndexOf('\n')+1);
+
+            // split message.Content into lines and get the last
+            var lastMsgLine = message.Content.Split('\n').Last();
+
+            // similarly the first line for child.Content
+            var firstChildLine = childContent.Split('\n').First();
+
+            // IGNORING whitespace, is the last line of message the same as the first line of child?
+            if (lastMsgLine.Trim().StartsWith(firstChildLine.Trim()))
+            {
+                // remove the last line of message
+                message.Content = message.Content.Substring(0, message.Content.LastIndexOf('\n'));
+            }
+
+            var joinedMessage = message.Content + childContent;
+
+            message.Content = joinedMessage;
+            message.Children.Remove(continueMessage.Guid);
+            
+            Conversation.Messages.Remove(continueMessage);
+            Conversation.Messages.Remove(child);
+
+            SaveConversation();
+
+
+        }
     }
 
 

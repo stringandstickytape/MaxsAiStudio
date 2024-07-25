@@ -59,6 +59,7 @@ namespace AiTool3
             chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
             chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
             chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
+            chatWebView.ChatWebViewContinueEvent += ChatWebView_ChatWebViewContinueEvent;
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
@@ -164,6 +165,21 @@ namespace AiTool3
 
 
 
+        }
+
+        private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
+        {
+            await FetchAiInputResponse(null, "Continue");
+
+            ConversationManager.ContinueUnterminatedCodeBlock(e);
+
+            // update the webndc
+            WebNdcDrawNetworkDiagram();
+
+            // select the new node
+            //webViewManager.CentreOnNode(newNodeGuid);
+
+            WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(e.Guid));
         }
 
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -487,7 +503,7 @@ namespace AiTool3
 
 
 
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null)
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null)
         {
             string retVal = "";
             try
@@ -496,8 +512,8 @@ namespace AiTool3
 
                 var model = await chatWebView.GetDropdownModel("mainAI",  CurrentSettings);
 
-                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs);
+                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
+                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -506,8 +522,12 @@ namespace AiTool3
                 webViewManager.Enable();
 
                 await chatWebView.EnableSendButton();
-                await UpdateUi(response);
-                await UpdateConversationSummary();
+
+                if (overrideUserPrompt == null)
+                {
+                    await UpdateUi(response);
+                    await UpdateConversationSummary();
+                }
             }
             catch (Exception ex)
             {
@@ -548,7 +568,7 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
@@ -561,24 +581,19 @@ namespace AiTool3
                 response.ResponseText = $"{ThreeTicks}findandreplace.json\n{response.ResponseText}\n{ThreeTicks}\n";
             }
 
-
             var modelUsageManager = new ModelUsageManager(model);
 
             modelUsageManager.AddTokensAndSave(response.TokenUsage);
 
-
-
-
-
-
-            await ProcessAiResponse(response, model, conversation);
+            // update the chatwebview, conversation manager, and webndc
+            await ProcessAiResponse(response, model, conversation, overrideUserPrompt);
 
             return response;
         }
 
         private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.UpdateTemp(e);
 
-        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation)
+        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
         {
 
             var inputText = await chatWebView.GetUserPrompt();
@@ -586,9 +601,15 @@ namespace AiTool3
             var elapsed = stopwatch.Elapsed;
 
             CompletionMessage completionInput, completionResponse;
-            ConversationManager.AddInputAndResponseToConversation(response, model, conversation, inputText, systemPrompt, elapsed, out completionInput, out completionResponse);
+            ConversationManager.AddInputAndResponseToConversation(response, model, conversation, overrideUserPrompt == null ? inputText : overrideUserPrompt, systemPrompt, elapsed, out completionInput, out completionResponse);
 
             _fileAttachmentManager.ClearBase64();
+
+            // don't bother updating the UI if we're overriding the user prompt, because we're doing an auto continue
+            if(overrideUserPrompt != null)
+            {
+                return;
+            }
 
 
             if (CurrentSettings.NarrateResponses)

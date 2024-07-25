@@ -1,5 +1,8 @@
 ﻿// Message.js
 const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
+    const { colorScheme } = window.useColorScheme();
+    const [showContinueButton, setShowContinueButton] = useState(false);
+
     const getMessageClass = () => {
         switch (role) {
             case 0:
@@ -42,6 +45,21 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
         return occurrences % 2 !== 0;
     };
 
+    const handleContinue = () => {
+        window.chrome.webview.postMessage({
+            type: 'continue',
+            guid: guid
+        });
+    };
+
+    useEffect(() => {
+        if (role === 1 && isUnterminatedCodeBlock()) {
+            setShowContinueButton(true);
+        } else {
+            setShowContinueButton(false);
+        }
+    }, [role, content]);
+
     return (
         <div className={`message ${getMessageClass()}`} key={guid}>
             <div className="message-header">
@@ -62,6 +80,15 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
                     onCodeBlockRendered={() => codeBlockCounter++}
                 />
             </div>
+            {showContinueButton && (
+                <div className="message-footer">
+                    <SplitButton
+                        label="Continue..."
+                        onClick={handleContinue}
+                        color={colorScheme.buttonBackgroundColor}
+                    />
+                </div>
+            )}
         </div>
     );
 }
