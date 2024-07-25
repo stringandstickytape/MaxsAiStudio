@@ -60,6 +60,7 @@ namespace AiTool3
             chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
             chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
             chatWebView.ChatWebViewContinueEvent += ChatWebView_ChatWebViewContinueEvent;
+            chatWebView.ChatWebViewReadyEvent += ChatWebView_ChatWebViewReadyEvent;
             chatWebView.FileDropped += ChatWebView_FileDropped;
 
             splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
@@ -165,6 +166,11 @@ namespace AiTool3
 
 
 
+        }
+
+        private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
+        {
+            await InitialiseApiList_New();
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -381,12 +387,12 @@ namespace AiTool3
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
-            await InitialiseApiList_New();
+            
         }
 
         private async Task InitialiseApiList_New()
         {
-            await Task.Delay(1500);
+            
 
             await chatWebView.SetModels(CurrentSettings.ApiList!.SelectMany(x => x.Models).ToList());
 

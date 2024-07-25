@@ -58,7 +58,7 @@ DONE: cr's in template names cause menu nastiness
 DONE: On first run, create subdirs: Conversations, Settings, Templates, Embeddings
 DONE: json mode / tools ?
 DONE: Add spinner while embeddings are generated
-
+DONE: add a "continue" button at the end of an unterminated code block.  When clicked, fetch the next response and auto-concat.
 
 
 
@@ -72,17 +72,11 @@ No token counting for Groq
 Useful next:
 
 Persistent themes
-
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
-
-*** add a "continue" button at the end of an unterminated code block.  When clicked, fetch the next response and auto-concat.
-
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
 move conversations to subdirectory, templates to another, settings to a third?
-
-are there any prompt libraries we can pull from?
 
 Create embeddings from previous messages/conversations?
 
@@ -99,7 +93,6 @@ First-run "wizard"
 
 
 
-Make Regen All Summaries more friendly
 Add "working" to:
 * regen all summaries
 * transcribe
@@ -110,7 +103,7 @@ Templates:
 example templates set
 
 Build:
-Cublas and non-Cublas builds for whisperx - need dlls from another source - whisperX?
+Cublas and non-Cublas builds for whisperx (file transcription) - need dlls from another source - whisperX?
 
 UI:
 allow setting of proper URLs for local AI

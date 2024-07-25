@@ -2,6 +2,12 @@
 
 function App() {
     const { colorScheme } = React.useColorScheme();
+    useEffect(() => {
+        // This effect runs after the component has mounted
+        window.chrome.webview.postMessage({
+            type: 'ready'
+        });
+    }, []); // Empty dependency array means this effect runs once after initial render
     return ( 
         <>
             <style>

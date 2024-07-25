@@ -29,6 +29,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewJoinWithPreviousEventArgs>? ChatWebViewJoinWithPreviousEvent;
         public event EventHandler<ChatWebDropdownChangedEventArgs>? ChatWebDropdownChangedEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewContinueEvent;
+        public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
         public event EventHandler<string> FileDropped;
 
@@ -60,6 +61,9 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "ready":
+                    ChatWebViewReadyEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("ready", ""));
+                    break;
                 case "continue":
                     var guid = message["guid"];
                     ChatWebViewContinueEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("continue", guid));
