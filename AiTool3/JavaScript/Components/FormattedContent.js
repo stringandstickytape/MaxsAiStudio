@@ -26,7 +26,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     const fileTypes = {
         webView: ["html", "js"],
         viewJsonStringArray: ["json"],
-        viewSvg: ["svg","xml","html"],
+        viewSvg: ["svg", "xml", "html"],
+        installTheme: ["maxtheme.json"],
         browseJsonObject: ["json"],
         viewMermaidDiagram: ["mermaid"],
         viewPlantUMLDiagram: ["plantuml"],
@@ -115,6 +116,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         type: 'View JSON String Array',
                                         content: code.trim()
                                     });
+                                })
+                            }
+                            {fileTypes.installTheme.includes(trimmedFileType) &&
+                                addMessageButton("Install Theme", () => {
+                                    var obj = JSON.parse(code.trim());
+                                    var themeName = Object.keys(obj)[0];
+                                    window.addColorScheme(themeName, Object.values(obj)[0]);
+                                    
                                 })
                             }
                             {fileTypes.browseJsonObject.includes(trimmedFileType) &&

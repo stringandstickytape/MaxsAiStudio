@@ -64,6 +64,7 @@
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="JavaScript\Components\MessagesPane.js" />
     <None Remove="JavaScript\SvgViewer.js" />
+    <None Remove="JavaScript\ThemeEditor.js" />
     <None Remove="JavaScript\WorkingOverlay.html" />
     <None Remove="JavaScript\WorkingOverlay2.html" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
@@ -105,6 +106,7 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JavaScript\Components\MessagesPane.js" />
     <EmbeddedResource Include="JavaScript\SvgViewer.js" />
+    <EmbeddedResource Include="JavaScript\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />

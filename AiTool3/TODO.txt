@@ -71,6 +71,8 @@ No token counting for Groq
 
 Useful next:
 
+Templaets should be able to specify tools they're used wsith => colour scheme tool!
+
 *** add a "continue" button at the end of an unterminated code block.  When clicked, fetch the next response and auto-concat.
 
 add time-taken to search results and timestamp to all convo messages

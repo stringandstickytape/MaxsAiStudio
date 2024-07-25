@@ -101,6 +101,7 @@ const HeaderBar = () => {
                         font-size: 24px;
                         font-weight: bold;
                         margin-bottom: 10px;
+                        color: ${colorScheme.headerTextColor};
                     }
                     .system-prompt-container {
                         flex-grow: 1;
@@ -110,15 +111,16 @@ const HeaderBar = () => {
                     .option {
                         cursor: pointer;
                         padding: 5px 10px;
+                        color: ${colorScheme.textColor};
                     }
-                                        .dropdown-container {
+                    .dropdown-container {
                         display: flex;
                         align-items: center;
                         margin-right: 20px;
                     }
                     .dropdown-container label {
                         margin-right: 10px;
-                        color: white;
+                        color: ${colorScheme.textColor};
                     }
                  `}
             </style>
@@ -129,18 +131,16 @@ const HeaderBar = () => {
                         <div className="logo">{logoText}</div>
                         <ToolsDropdown />
                         <div height="24px" width="24px">
-                        <SplitButton
-                            color="#777"
-                            label="Attach"
-                            onClick={handleAttach}
-                            //disabled={newDisabled}
-                            svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
+                            <SplitButton
+                                color={colorScheme.buttonBackgroundColor}
+                                label="Attach"
+                                onClick={handleAttach}
+                                svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
                             />
                             <SplitButton
-                                color="#777"
+                                color={colorScheme.buttonBackgroundColor}
                                 label="Voice"
                                 onClick={handleVoice}
-                                //disabled={newDisabled}
                                 svgString='<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <rect fill="currentColor" x="15" y="67" width="10" height="16" rx="5" />
   <rect fill="currentColor" x="35" y="50" width="10" height="50" rx="5" />
@@ -152,10 +152,9 @@ const HeaderBar = () => {
 </svg>'
                             />
                             <SplitButton
-                                color="#777"
+                                color={colorScheme.buttonBackgroundColor}
                                 label="Project"
                                 onClick={handleProject}
-                                //disabled={newDisabled}
                                 svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2"></rect>
   <circle cx="25" cy="25" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
@@ -169,15 +168,13 @@ const HeaderBar = () => {
                             <ToggleSplitButton
                                 label="Toggle Me"
                                 onToggle={(index, state) => {
-                                    // The state here should now be correct
                                     console.log('Toggled menu item index:', index, 'New toggle state:', state);
-                                    // Call your postMessage function here
                                 }}
                                 dropdownItems={[
                                     { label: 'Option 1', onClick: () => console.log('Option 1 clicked') },
                                     { label: 'Option 2', onClick: () => console.log('Option 2 clicked') },
                                 ]}
-                                color="#4CAF50"
+                                color={colorScheme.buttonBackgroundColor}
                             />
                         </div>
                     </div>

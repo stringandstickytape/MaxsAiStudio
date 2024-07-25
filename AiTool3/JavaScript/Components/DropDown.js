@@ -1,5 +1,7 @@
 ﻿// DropDown.js
 const DropDown = ({ id, label, options, value, onChange }) => {
+    const { colorScheme } = React.useColorScheme();
+
     const handleChange = (e) => {
         const selectedValue = e.target.value;
         const selectedText = e.target.options[e.target.selectedIndex].text;
@@ -17,10 +19,24 @@ const DropDown = ({ id, label, options, value, onChange }) => {
         }
     };
 
+    const dropdownStyle = {
+        color: colorScheme.dropdownTextColor,
+        backgroundColor: colorScheme.dropdownBackgroundColor,
+    };
+
+    const labelStyle = {
+        color: colorScheme.textColor, // Using the general text color for the label
+    };
+
     return (
         <div className="dropdown-container">
-            <label>{label}</label>
-            <select id={id} value={value} onChange={handleChange}>
+            <label style={labelStyle}>{label}</label>
+            <select
+                id={id}
+                value={value}
+                onChange={handleChange}
+                style={dropdownStyle}
+            >
                 {options.map((option, index) => (
                     <option key={index} value={option}>
                         {option}

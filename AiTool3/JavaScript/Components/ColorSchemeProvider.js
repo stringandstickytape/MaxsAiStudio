@@ -1,4 +1,3 @@
-// ColorSchemeProvider.js
 const { createContext, useState, useContext } = React;
 
 const ColorSchemeContext = createContext();
@@ -79,6 +78,21 @@ const initialColorSchemes = {
                 ...prevSchemes,
                 [id]: scheme
             }));
+
+            // do this in 1 second's time
+            setTimeout(() => {
+                window.createThemeEditor();
+            }, 1000);
+        };
+
+        const updateColorScheme = (id, newColors) => {
+            setColorSchemes(prevSchemes => ({
+                ...prevSchemes,
+                [id]: {
+                    ...prevSchemes[id],
+                    ...newColors
+                }
+            }));
         };
 
         const getAllColorSchemes = () => {
@@ -95,6 +109,7 @@ const initialColorSchemes = {
 
         // Console commands
         window.addColorScheme = addColorScheme;
+        window.updateColorScheme = updateColorScheme;
         window.getAllColorSchemes = getAllColorSchemes;
         window.selectColorScheme = selectColorScheme;
 
@@ -104,6 +119,7 @@ const initialColorSchemes = {
                 currentSchemeId,
                 colorSchemes,
                 addColorScheme,
+                updateColorScheme,
                 getAllColorSchemes,
                 selectColorScheme
             }}>
@@ -115,5 +131,14 @@ const initialColorSchemes = {
     const useColorScheme = () => useContext(ColorSchemeContext);
 
     window.ColorSchemeProvider = ColorSchemeProvider;
-    window.useColorScheme = useColorScheme;
-    React.useColorScheme = useColorScheme;
+window.useColorScheme = useColorScheme;
+React.useColorScheme = useColorScheme;
+
+window.getColorSchemeData = () => {
+    return {
+        colorSchemes: window.getAllColorSchemes(),
+        currentSchemeId: window.useColorScheme().currentSchemeId,
+        updateColorScheme: window.updateColorScheme,
+        selectColorScheme: window.selectColorScheme
+    };
+};
