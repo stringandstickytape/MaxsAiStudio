@@ -8,6 +8,10 @@ const HeaderBar = () => {
     const [summaryAIOptions, setSummaryAIOptions] = useState([]);
     const [mainAIValue, setMainAIValue] = useState(mainAIOptions[0]);
     const [summaryAIValue, setSummaryAIValue] = useState(summaryAIOptions[0]);
+    const [tools, setTools] = useState([
+        { name: 'Find and Replace', checked: false },
+        { name: 'Tool 2', checked: false },
+    ]);
 
     // Export methods
     window.setDropdownOptions = (dropdownName, options) => {
@@ -34,6 +38,8 @@ const HeaderBar = () => {
         }
     };
 
+    window.getTools = () => tools;
+
     const changeLogo = (newText) => {
         setLogoText(newText);
     };
@@ -45,6 +51,12 @@ const HeaderBar = () => {
 
     const handleSystemPromptChange = (newPrompt) => {
         setSystemPrompt(newPrompt);
+    };
+
+    const handleToolToggle = (index, state) => {
+        const newTools = [...tools];
+        newTools[index].checked = state;
+        setTools(newTools);
     };
 
     // export changeLogo and getSystemPrompt
@@ -133,16 +145,20 @@ const HeaderBar = () => {
                         <div>
                             <ToolsDropdown />
                             <ToggleSplitButton
-                                label="Toggle Me"
-                                onToggle={(index, state) => {
-                                    console.log('Toggled menu item index:', index, 'New toggle state:', state);
-                                }}
-                                dropdownItems={[
-                                    { label: 'Option 1', onClick: () => console.log('Option 1 clicked') },
-                                    { label: 'Option 2', onClick: () => console.log('Option 2 clicked') },
-                                ]}
                                 color={colorScheme.buttonBackgroundColor}
-                                />
+                                label="Tools"
+                                svgString='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="transparent" fill="currentColor">
+  <path d="M12 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" fill="currentColour"/>
+  <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22l-1.92 3.32c-.12.21-.07.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColour"/>
+</svg>'
+                                onToggle={handleToolToggle}
+                                dropdownItems={tools.map((tool, index) => ({
+                                    label: tool.name,
+                                    onClick: (newState) => {
+                                        handleToolToggle(index, newState);
+                                    }
+                                }))}
+                            />
                         </div>
                         <div height="24px" width="24px">
                             <SplitButton
@@ -187,7 +203,7 @@ const HeaderBar = () => {
   <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C54.4 90 58 86.4 58 82C58 79.9 57.2 78 55.9 76.5C54.6 75 53.8 73.1 53.8 71C53.8 66.6 57.4 63 61.8 63H70C81 63 90 54 90 43C90 24.8 72.1 10 50 10ZM30 50C25.6 50 22 46.4 22 42C22 37.6 25.6 34 30 34C34.4 34 38 37.6 38 42C38 46.4 34.4 50 30 50ZM42 34C37.6 34 34 30.4 34 26C34 21.6 37.6 18 42 18C46.4 18 50 21.6 50 26C50 30.4 46.4 34 42 34ZM66 34C61.6 34 58 30.4 58 26C58 21.6 61.6 18 66 18C70.4 18 74 21.6 74 26C74 30.4 70.4 34 66 34Z" fill="currentColor"/>
 </svg>'
                             />
-  
+
                         </div>
                     </div>
                     <div className="system-prompt-container">

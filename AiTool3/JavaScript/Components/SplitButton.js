@@ -143,44 +143,31 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
     const hasSplit = dropdownItems.length > 0;
     const [mainState, setMainState] = useState(false);
     const [itemStates, setItemStates] = useState(dropdownItems.map(() => false));
-    const statesRef = useRef({ main: mainState, items: itemStates });
-
-    useEffect(() => {
-        statesRef.current = { main: mainState, items: itemStates };
-    }, [mainState, itemStates]);
 
     const handleMainToggle = () => {
         setMainState(prevState => !prevState);
-        // Use setTimeout to ensure we're getting the updated state
-        setTimeout(() => {
-            const newState = statesRef.current.main;
-            console.log('New main state:', newState);
-            onToggle(-1, newState);
-        }, 0);
+        const newState = !mainState;
+        console.log('Main button clicked. New state:', newState);
+        onToggle(-1, newState);
     };
 
-    const handleItemToggle = (index) => {
+    const handleItemToggle = (index, item) => {
         setItemStates(prevStates => {
             const newStates = [...prevStates];
             newStates[index] = !newStates[index];
+            const newState = newStates[index];
+            console.log(`${item.label} clicked. New state: ${newState ? 'checked' : 'unchecked'}`);
+            onToggle(index, newState);
+            item.onClick && item.onClick(newState);
             return newStates;
         });
-        // Use setTimeout to ensure we're getting the updated state
-        setTimeout(() => {
-            const newState = statesRef.current.items[index];
-            console.log(`New state for item ${index}:`, newState);
-            onToggle(index, newState);
-        }, 0);
     };
 
     const modifiedDropdownItems = hasSplit
         ? dropdownItems.map((item, index) => ({
             ...item,
             label: `${itemStates[index] ? '☑' : '☐'} ${item.label}`,
-            onClick: () => {
-                handleItemToggle(index);
-                item.onClick && item.onClick();
-            }
+            onClick: () => handleItemToggle(index, item)
         }))
         : [];
 
