@@ -1,6 +1,7 @@
 ﻿const { useState } = React;
 
 const HeaderBar = () => {
+    const { colorScheme } = React.useColorScheme();
     const [logoText, setLogoText] = useState("AI Studio");
     const [systemPrompt, setSystemPrompt] = useState("");
     const [mainAIOptions, setMainAIOptions] = useState([]);
@@ -57,9 +58,36 @@ const HeaderBar = () => {
                     .header-bar {
                         display: flex;
                         flex-direction: column;
-                        background-color: #333;
-                        color: white;
+                        background-color: ${colorScheme.headerBackgroundColor};
+                        color: ${colorScheme.headerTextColor};
                     }
+                    .system-prompt-input {
+                        background-color: ${colorScheme.inputBackgroundColor};
+                        color: ${colorScheme.inputTextColor};
+                        border: none;
+                        border-radius: 4px;
+                        width: 100%;
+                    }
+                    .system-prompt-input::placeholder {
+                        color: ${colorScheme.textColor}80;
+                    }
+                    .options-bar {
+                        display: flex;
+                        justify-content: space-around;
+                        background-color: ${colorScheme.toolbarBackgroundColor};
+                        padding: 5px 0;
+                    }
+                    .option:hover {
+                        background-color: ${colorScheme.selectedItemBackgroundColor};
+                    }
+                    .dropdown-container select {
+                        background-color: ${colorScheme.dropdownBackgroundColor};
+                        color: ${colorScheme.dropdownTextColor};
+                        border: none;
+                        border-radius: 4px;
+                        padding: 5px;
+                    }
+                
                     .main-header {
                         display: flex;
                         justify-content: space-between;
@@ -78,28 +106,10 @@ const HeaderBar = () => {
                         flex-grow: 1;
                         margin-left: 20px;
                     }
-                    .system-prompt-input {
-                        background-color: #555;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        width: 100%;
-                    }
-                    .system-prompt-input::placeholder {
-                        color: #aaa;
-                    }
-                    .options-bar {
-                        display: flex;
-                        justify-content: space-around;
-                        background-color: #444;
-                        padding: 5px 0;
-                    }
+
                     .option {
                         cursor: pointer;
                         padding: 5px 10px;
-                    }
-                    .option:hover {
-                        background-color: #555;
                     }
                                         .dropdown-container {
                         display: flex;
@@ -110,14 +120,7 @@ const HeaderBar = () => {
                         margin-right: 10px;
                         color: white;
                     }
-                    .dropdown-container select {
-                        background-color: #555;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        padding: 5px;
-                    }
-                `}
+                 `}
             </style>
 
             <div className="header-bar">

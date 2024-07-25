@@ -9,6 +9,7 @@
 }
 
 const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered }) => {
+    const { colorScheme } = React.useColorScheme();
     const [currentlySelectedFindAndReplaceSet, setCurrentlySelectedFindAndReplaceSet] = useState(window.currentlySelectedFindAndReplaceSet);
     const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
 
@@ -40,8 +41,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         <button
             onClick={action}
             style={{
-                backgroundColor: '#666',
-                color: 'white',
+                backgroundColor: colorScheme.buttonBackgroundColor,
+                color: colorScheme.buttonTextColor,
                 border: 'none',
                 padding: '3px 8px',
                 borderRadius: '3px',
@@ -73,8 +74,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         fontWeight: 'bold',
-                        backgroundColor: '#444',
-                        color: 'white',
+                        backgroundColor: colorScheme.codeBlockHeaderBackgroundColor,
+                        color: colorScheme.codeBlockHeaderTextColor,
                         padding: '5px 10px',
                         borderTopLeftRadius: '5px',
                         borderTopRightRadius: '5px',
@@ -198,8 +199,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                     <div style={{
                         fontFamily: 'monospace',
                         whiteSpace: 'pre-wrap',
-                        backgroundColor: '#333',
-                        color: 'white',
+                        backgroundColor: colorScheme.codeBlockBackgroundColor,
+                        color: colorScheme.codeBlockTextColor,
                         padding: '10px',
                         borderBottomLeftRadius: '5px',
                         borderBottomRightRadius: '5px',

@@ -2,6 +2,7 @@
 const { useState, useEffect, useRef } = React;
 
 const LiveStream = () => {
+    const { colorScheme } = React.useColorScheme();
     const [liveStreamData, setLiveStreamData] = useState('');
     const [isVisible, setIsVisible] = useState(false);
     const [opacity, setOpacity] = useState(0);
@@ -53,9 +54,9 @@ const LiveStream = () => {
             ref={containerRef}
             style={{
                 width: '100%',
-                maxHeight: '200px', // Adjust this value as needed
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                color: 'white',
+                maxHeight: '200px',
+                backgroundColor: colorScheme.messageAIBackgroundColor,
+                color: colorScheme.messageAITextColor,
                 overflow: 'auto',
                 padding: '10px',
                 boxSizing: 'border-box',
