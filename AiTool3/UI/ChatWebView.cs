@@ -307,7 +307,12 @@ namespace AiTool3.UI
 
         #endregion implemented in chatwebview2.html
 
-        internal async Task UpdateSendButtonColor(bool embeddingsEnabled) => await ExecuteScriptAsync($"updateSendButtonColor({embeddingsEnabled.ToString().ToLower()})");
+        internal async Task UpdateSendButtonColor(bool embeddingsEnabled)
+        {
+            // an orange version of #4a7c4c would be not #8a5c8c, but #8a7c4c
+            var js = embeddingsEnabled ? "window.setSendButtonAlternate(\"Send with Embeddings\", \"#ca8611\");" : "window.setSendButtonAlternate(\"Send\", \"#4a7c4c\");";
+            await ExecuteScriptAsync(js);
+        }
 
         internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
 

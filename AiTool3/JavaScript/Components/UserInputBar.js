@@ -3,6 +3,12 @@
     const [cancelDisabled, setCancelDisabled] = React.useState(false);
     const [newDisabled, setNewDisabled] = React.useState(false);
     const [inputContent, setInputContent] = React.useState('');
+    const [sendAlternateLabel, setSendAlternateLabel] = React.useState('');
+    const [sendAlternateColor, setSendAlternateColor] = React.useState('');
+    const [cancelAlternateLabel, setCancelAlternateLabel] = React.useState('');
+    const [cancelAlternateColor, setCancelAlternateColor] = React.useState('');
+    const [newAlternateLabel, setNewAlternateLabel] = React.useState('');
+    const [newAlternateColor, setNewAlternateColor] = React.useState('');
 
     const handleNew = () => {
         window.chrome.webview.postMessage({ type: 'new' });
@@ -25,7 +31,20 @@
             selectedTools: selectedTools
         });
     };
+    const setSendButtonAlternate = (label, color) => {
+        setSendAlternateLabel(label);
+        setSendAlternateColor(color);
+    };
 
+    const setCancelButtonAlternate = (label, color) => {
+        setCancelAlternateLabel(label);
+        setCancelAlternateColor(color);
+    };
+
+    const setNewButtonAlternate = (label, color) => {
+        setNewAlternateLabel(label);
+        setNewAlternateColor(color);
+    };
     const handleCancel = () => {
         window.chrome.webview.postMessage({ type: 'cancel'});
     };
@@ -59,6 +78,9 @@
         window.enableCancelButton = enableCancelButton;
         window.disableNewButton = disableNewButton;
         window.enableNewButton = enableNewButton;
+        window.setSendButtonAlternate = setSendButtonAlternate;
+        window.setCancelButtonAlternate = setCancelButtonAlternate;
+        window.setNewButtonAlternate = setNewButtonAlternate;
 
         return () => {
             delete window.disableSendButton;
@@ -67,6 +89,9 @@
             delete window.enableCancelButton;
             delete window.disableNewButton;
             delete window.enableNewButton;
+            delete window.setSendButtonAlternate;
+            delete window.setCancelButtonAlternate;
+            delete window.setNewButtonAlternate;
         };
     }, []);
 
@@ -173,12 +198,16 @@
                         onClick={handleSend}
                         disabled={sendDisabled}
                         color="#4a7c4c"
+                        alternateLabel={sendAlternateLabel}
+                        alternateColor={sendAlternateColor}
                     />
                     <SplitButton
                         label="Cancel"
                         onClick={handleCancel}
                         disabled={cancelDisabled}
                         color="#7c4a4a"
+                        alternateLabel={cancelAlternateLabel}
+                        alternateColor={cancelAlternateColor}
                     />
                     <SplitButton
                         label="New"
@@ -188,6 +217,8 @@
                             { label: "New with prompt", onClick: handleNewWithPrompt }
                         ]}
                         disabled={newDisabled}
+                        alternateLabel={newAlternateLabel}
+                        alternateColor={newAlternateColor}
                     />
                 </div>
             </div>

@@ -56,7 +56,7 @@ DONE: Hide project browser behind experimental setting? At least needs tidying u
 DONE: Image from clipboard
 DONE: cr's in template names cause menu nastiness
 DONE: On first run, create subdirs: Conversations, Settings, Templates, Embeddings
-
+DONE: json mode / tools ?
 
 
 
@@ -134,15 +134,15 @@ Thid-party utils:
 fix // bit thin, this...
 
 
-Possibly post-release:
-
 js => jsx
+
 project helper: # to include files?
+
 project helper: fox fixed or new files, write to project structure? (!) - could use tool for this?
 popup that lets you interfere with the embeddings selected...!
 source code browser thing, to let you choose which files to upload from your project?
 launch sql? browse xml? launch svg? azure az command?! 
-json mode / tools ?
+
 Local web front-end - genericise existing html somehow?
 tools support? pull from api? what public apis could we test with?
 launch JS directly would be nice

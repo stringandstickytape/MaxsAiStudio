@@ -41,6 +41,7 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
                 {`
                     .input-box-container {
                         position: relative;
+                            height: calc(100% - 10px);
                         width: 100%;
                     }
                     .input-box {
@@ -54,6 +55,8 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
                         word-wrap: break-word;
                         background-color: #333;
                         color: white;
+                        margin-top: 5px;
+                        margin-left: 3px;
                     }
                 .fullscreen-icon {
                     position: absolute;
