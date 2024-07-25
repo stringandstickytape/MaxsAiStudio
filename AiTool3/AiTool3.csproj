@@ -45,6 +45,7 @@
     <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\Components\AiStudioButton.js" />
     <None Remove="JavaScript\Components\App.js" />
+    <None Remove="JavaScript\Components\ColorSchemeProvider.js" />
     <None Remove="JavaScript\Components\DropDown.js" />
     <None Remove="JavaScript\Components\FormattedContent.js" />
     <None Remove="JavaScript\Components\LiveStream.js" />
@@ -85,6 +86,7 @@
     <EmbeddedResource Include="JavaScript\ChatWebView.css" />
     <EmbeddedResource Include="JavaScript\ChatWebView.html" />
     <EmbeddedResource Include="JavaScript\Components\App.js" />
+    <EmbeddedResource Include="JavaScript\Components\ColorSchemeProvider.js" />
     <EmbeddedResource Include="JavaScript\Components\DropDown.js" />
     <EmbeddedResource Include="JavaScript\Components\FormattedContent.js" />
     <EmbeddedResource Include="JavaScript\Components\LiveStream.js" />

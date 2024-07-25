@@ -1,8 +1,10 @@
 ﻿// MessagesPane.js
 const { useState, useEffect } = React;
+const { useColorScheme } = React;
 
 const MessagesPane = () => {
     const [messages, setMessages] = useState([]);
+    const { colorScheme } = useColorScheme();
 
     const clearMessages = () => {
         setMessages([]);
@@ -33,7 +35,6 @@ const MessagesPane = () => {
     window.findMessageByGuid = findMessageByGuid;
     window.AddInitialMessages = addInitialMessages;
     window.AddMessage = addMessage;
-
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -70,40 +71,44 @@ const MessagesPane = () => {
             <style>
                 {`.messages-pane {
                     width: calc(100% - 20px);
-                    border: 1px solid #444;
+                    border: 1px solid ${colorScheme.textColor};
                     border-radius: 4px;
                     overflow-y: auto;
                     overflow-x: hidden;
                     white-space: pre-wrap;
                     word-wrap: break-word;
-                    background-color: #1a1a1a;
+                    background-color: ${colorScheme.backgroundColor};
                     padding: 10px;
                     scroll-behavior: smooth;  
+                    color: ${colorScheme.textColor};
                 }
                 .message {
                     margin-bottom: 10px;
                     border-radius: 4px;
                     padding: 10px;
                     max-width: 80%;
-                    border:1px solid #555;
-                    margin-bottom:10px;
+                    border: 1px solid ${colorScheme.textColor};
+                    margin-bottom: 10px;
                 }
                 .message-role {
                     font-weight: bold;
                     margin-bottom: 5px;
                 }
                 .user-message {
-                    background-color: #1e3a5f;
+                    background-color: ${colorScheme.messageUserBackgroundColor};
                     align-self: flex-end;
                     margin-left: auto;
+                    color: ${colorScheme.messageUserTextColor};
                 }
                 .ai-message {
-                    background-color: #2a2a0a;
+                    background-color: ${colorScheme.messageAIBackgroundColor};
                     align-self: flex-start;
+                    color: ${colorScheme.messageAITextColor};
                 }
                 .root-message {
-                    background-color: #1a1a2e;
+                    background-color: ${colorScheme.messageRootBackgroundColor};
                     align-self: center;
+                    color: ${colorScheme.messageRootTextColor};
                 }
                 .message-header {
                     display: flex;
@@ -117,7 +122,7 @@ const MessagesPane = () => {
                 .message-actions {
                     flex-grow: 1;
                     height: 17px;
-                    background-color: #333;
+                    background-color: ${colorScheme.toolbarBackgroundColor};
                 }`}
             </style>
 
@@ -131,7 +136,6 @@ const MessagesPane = () => {
                         previousAssistantUnbalanced={isPreviousAssistantMessageUnbalanced(index)}
                     />
                 ))}
-
             </div>
         </>
     );

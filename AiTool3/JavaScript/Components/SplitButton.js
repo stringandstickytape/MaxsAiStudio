@@ -1,13 +1,15 @@
 ﻿const { useState, useEffect, useRef } = React;
 
 const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor }) => {
+    const { colorScheme } = window.useColorScheme();
+    //const { colorScheme } = useColorScheme();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const hasSplit = dropdownItems.length > 0;
     const uniqueId = useRef(`split-button-${Math.random().toString(36).substr(2, 9)}`).current;
 
     const currentLabel = alternateLabel || label;
-    const currentColor = alternateColor || color;
+    const currentColor = alternateColor || colorScheme.buttonBackgroundColor;
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -23,8 +25,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     }, []);
 
     const buttonStyle = {
-        backgroundColor: color,
-        color: 'white',
+        backgroundColor: currentColor,
+        color: colorScheme.buttonTextColor,
         border: 'none',
         padding: '8px 8px',
         cursor: 'pointer',
@@ -40,24 +42,21 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         flexGrow: 1,
         textAlign: 'center',
         borderRadius: hasSplit ? '4px 0 0 4px' : '4px',
-        backgroundColor: currentColor,
     };
 
     const arrowButtonStyle = {
         ...buttonStyle,
         borderRadius: '0 4px 4px 0',
         padding: '8px 8px',
-        borderLeft: '3px solid #333',
-        backgroundColor: currentColor,
+        borderLeft: `3px solid ${colorScheme.backgroundColor}`,
     };
-
 
     const dropdownStyle = {
         position: 'absolute',
         left: '-44px',
         bottom: '15px',
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
+        backgroundColor: colorScheme.dropdownBackgroundColor,
+        border: `1px solid ${colorScheme.textColor}`,
         borderRadius: '4px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
         zIndex: 1000,
@@ -71,7 +70,9 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         background: 'none',
         border: 'none',
         cursor: 'pointer',
+        color: colorScheme.dropdownTextColor,
     };
+
 
     const svgStyle = {
         width: '20px',

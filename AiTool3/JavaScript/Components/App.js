@@ -1,4 +1,6 @@
-﻿function App() {
+﻿const { useColorScheme } = React;
+
+function App() {
     return ( 
         <>
             <style>
@@ -38,6 +40,10 @@
 }
 
 ReactDOM.render(
-    React.createElement(App),
+    <React.StrictMode>
+        <ColorSchemeProvider>
+            <App />
+        </ColorSchemeProvider>
+    </React.StrictMode>,
     document.getElementById('root')
 );
