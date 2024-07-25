@@ -76,11 +76,15 @@ const ColorSchemeProvider = ({ children }) => {
         setColorScheme(prevScheme => prevScheme === lightScheme ? darkScheme : lightScheme);
     };
 
+    window.toggleColorScheme = toggleColorScheme;
+
     return (
         <ColorSchemeContext.Provider value={{ colorScheme, toggleColorScheme }}>
             {children}
         </ColorSchemeContext.Provider>
     );
+
+    
 };
 
 const useColorScheme = () => useContext(ColorSchemeContext);
