@@ -1,6 +1,7 @@
 ﻿const { useColorScheme } = React;
 
 function App() {
+    const { colorScheme } = React.useColorScheme();
     return ( 
         <>
             <style>
@@ -22,8 +23,8 @@ function App() {
                         padding: 20px;
                         overflow-x: hidden;
                         scroll-behavior: smooth;
-                            background-color: black;
-                            color:white;
+                        background-color: ${colorScheme.backgroundColor};
+                        color: ${colorScheme.textColor};
                     }
                 `}
             </style>

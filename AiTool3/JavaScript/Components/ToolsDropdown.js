@@ -1,5 +1,6 @@
 ﻿// ToolsDropdown.js
 const { useState, useEffect, useRef } = React;
+const { useColorScheme } = React;
 
 const ToolsDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -8,6 +9,7 @@ const ToolsDropdown = () => {
         { id: 'tool-2', name: 'Tool2', isSelected: false }
     ]);
     const dropdownRef = useRef(null);
+    const { colorScheme } = useColorScheme();
 
     const toggleTool = (id) => {
         setTools(tools.map(tool =>
@@ -34,9 +36,6 @@ const ToolsDropdown = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-    
-    // Export method to get selected tools
-    window.getSelectedTools = getSelectedTools;
 
     return (
         <>
@@ -47,8 +46,8 @@ const ToolsDropdown = () => {
                         display: inline-block;
                     }
                     .tools-dropdown-button {
-                        background-color: #4a617c;
-                        color: white;
+                        background-color: ${colorScheme.buttonBackgroundColor};
+                        color: ${colorScheme.buttonTextColor};
                         padding: 5px 7px;
                         border: none;
                         cursor: pointer;
@@ -57,14 +56,14 @@ const ToolsDropdown = () => {
                     .tools-dropdown-content {
                         display: ${isOpen ? 'block' : 'none'};
                         position: absolute;
-                        background-color: #2a2a2a;
+                        background-color: ${colorScheme.dropdownBackgroundColor};
                         min-width: 160px;
                         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
                         z-index: 1;
                         border-radius: 4px;
                     }
                     .tools-dropdown-item {
-                        color: white;
+                        color: ${colorScheme.dropdownTextColor};
                         padding: 6px 8px;
                         text-decoration: none;
                         display: block;
@@ -75,7 +74,11 @@ const ToolsDropdown = () => {
                         cursor: pointer;
                     }
                     .tools-dropdown-item:hover {
-                        background-color: #3a3a3a;
+                        background-color: ${colorScheme.selectedItemBackgroundColor};
+                    }
+                    .tool-selected {
+                        background-color: ${colorScheme.selectedItemBackgroundColor};
+                        color: ${colorScheme.selectedItemTextColor};
                     }
                     .tool-selected::before {
                         content: ' ★';

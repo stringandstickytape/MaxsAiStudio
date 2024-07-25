@@ -38,36 +38,37 @@ const lightScheme = {
 };
 
 const darkScheme = {
-    backgroundColor: '#1a1a1a',
-    headerBackgroundColor: '#333333',
-    inputBackgroundColor: '#2a2a2a',
-    buttonBackgroundColor: '#4a7c4c',
-    dropdownBackgroundColor: '#2a2a2a',
-    messageUserBackgroundColor: '#1e3a5f',
-    messageAIBackgroundColor: '#2a2a2a',
-    messageRootBackgroundColor: '#1a1a2e',
-    codeBlockBackgroundColor: '#333333',
-    codeBlockHeaderBackgroundColor: '#444444',
-    scrollbarBackgroundColor: '#333333',
-    toolbarBackgroundColor: '#2a2a2a',
-    toolbarButtonBackgroundColor: '#4a617c',
-    selectedItemBackgroundColor: '#3a3a3a',
-    textColor: '#ffffff',
-    headerTextColor: '#ffffff',
-    inputTextColor: '#ffffff',
-    buttonTextColor: '#ffffff',
-    dropdownTextColor: '#ffffff',
-    messageUserTextColor: '#ffffff',
-    messageAITextColor: '#ffffff',
-    messageRootTextColor: '#ffffff',
-    codeBlockTextColor: '#ffffff',
-    codeBlockHeaderTextColor: '#ffffff',
-    toolbarButtonTextColor: '#ffffff',
-    selectedItemTextColor: '#4a7c4c',
-    linkColor: '#6ca6ff',
-    buttonDisabledBackgroundColor: '#555555',
-    buttonDisabledTextColor: '#999999',
+    backgroundColor: '#0E1C4D', // Dark blue
+    headerBackgroundColor: '#1C3A9F', // Slightly lighter blue
+    inputBackgroundColor: '#2A4CC6', // Medium blue
+    buttonBackgroundColor: '#FFFFFF', // White
+    dropdownBackgroundColor: '#2A4CC6', // Medium blue
+    messageUserBackgroundColor: '#FFFFFF', // White
+    messageAIBackgroundColor: '#1C3A9F', // Slightly lighter blue
+    messageRootBackgroundColor: '#0E1C4D', // Dark blue
+    codeBlockBackgroundColor: '#1C3A9F', // Slightly lighter blue
+    codeBlockHeaderBackgroundColor: '#2A4CC6', // Medium blue
+    scrollbarBackgroundColor: '#1C3A9F', // Slightly lighter blue
+    toolbarBackgroundColor: '#2A4CC6', // Medium blue
+    toolbarButtonBackgroundColor: '#FFFFFF', // White
+    selectedItemBackgroundColor: '#3B5DE8', // Lighter blue
+    textColor: '#FFFFFF', // White
+    headerTextColor: '#FFFFFF', // White
+    inputTextColor: '#FFFFFF', // White
+    buttonTextColor: '#0E1C4D', // Dark blue
+    dropdownTextColor: '#FFFFFF', // White
+    messageUserTextColor: '#0E1C4D', // Dark blue
+    messageAITextColor: '#FFFFFF', // White
+    messageRootTextColor: '#FFFFFF', // White
+    codeBlockTextColor: '#FFFFFF', // White
+    codeBlockHeaderTextColor: '#FFFFFF', // White
+    toolbarButtonTextColor: '#0E1C4D', // Dark blue
+    selectedItemTextColor: '#FFFFFF', // White
+    linkColor: '#FFFFFF', // White
+    buttonDisabledBackgroundColor: '#7A8CD9', // Light blue
+    buttonDisabledTextColor: '#B8C2E8', // Very light blue
 };
+
 
 const ColorSchemeProvider = ({ children }) => {
     const [colorScheme, setColorScheme] = useState(darkScheme);
