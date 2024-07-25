@@ -57,6 +57,9 @@ DONE: Image from clipboard
 DONE: cr's in template names cause menu nastiness
 DONE: On first run, create subdirs: Conversations, Settings, Templates, Embeddings
 DONE: json mode / tools ?
+DONE: Add spinner while embeddings are generated
+
+
 
 
 
@@ -67,6 +70,8 @@ No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
 
 Useful next:
+
+*** add a "continue" button at the end of an unterminated code block.  When clicked, fetch the next response and auto-concat.
 
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
@@ -92,7 +97,6 @@ First-run "wizard"
 
 Make Regen All Summaries more friendly
 Add "working" to:
-* create embeddings
 * regen all summaries
 * transcribe
 
@@ -110,13 +114,13 @@ Allow choice of embedding engine
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
+That weird one where you've picked a conersation but not a mesasge, and try to send a new message.  I suppose when you click a conversation, it could jump to the most recent message.
 
 Github version check
 inline https://unpkg.com/viz.js@2.1.2/viz.js
 
 Embeddings:
 Include embedding model name in default filename ext
-Add spinner while embeddings are generated
 
 Docs:
 Instructions for external apps: whisper, ...
@@ -179,3 +183,34 @@ AI ideas:
 • Ability to import conversations in various formats (PDF, DOCX, etc.)
 • Collaborative real-time editing for shared conversations lol
 • Sentiment analysis for conversation messages lol
+
+
+
+
+~~~ Tools
+
+an ai tool, in this context, is one an AI can use to request that an action be carried out, outside its domain, to help complete its assigned task. Completely rewrite your list
+AI
+I apologize for the misunderstanding. Thank you for clarifying. Here's a revised list of 20 AI tools that an AI could request to use for completing tasks outside its domain:
+
+1. Web scraper: to gather information from websites
+2. Database query executor: to retrieve specific data from databases
+3. File system navigator: to search and access files on a system
+4. API caller: to interact with external services and fetch data
+5. Email sender: to compose and send emails
+6. Calendar scheduler: to create, modify, or delete calendar events
+7. Document converter: to change file formats (e.g., PDF to Word)
+8. Image editor: to manipulate images (resize, crop, filter)
+9. Video processor: to edit or analyze video content
+10. Audio manipulator: to edit or analyze audio files
+11. Geolocation service: to get or interpret geographic data
+12. Weather data fetcher: to retrieve current or forecasted weather information
+13. Currency converter: to perform real-time currency conversions
+14. Social media poster: to publish content on various social platforms
+15. SMS sender: to send text messages to phone numbers
+16. Data visualizer: to create charts or graphs from datasets
+17. QR code generator: to create QR codes from given information
+18. URL shortener: to create shortened versions of long URLs
+19. Encryption/decryption tool: to secure or access protected information
+20. System resource monitor: to check CPU, memory, or disk usage
+

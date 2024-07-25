@@ -134,6 +134,10 @@ namespace AiTool3
             {
                 fragments.AddRange(webCodeFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
+            foreach (var file in files)
+            {
+                fragments.AddRange(csFragmenter.FragmentCode(File.ReadAllText(file), file));
+            }
             // remove all frags under 10 chars in length
             foreach (var file in jsonFiles)
             {

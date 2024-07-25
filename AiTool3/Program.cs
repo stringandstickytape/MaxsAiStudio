@@ -12,7 +12,28 @@ namespace AiTool3
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
-            Application.Run(new MaxsAiStudio());
+            try
+            {
+                Application.Run(new MaxsAiStudio());
+            }
+            catch (Exception ex)
+            {
+                // write very-full exception details to temp path
+                var tempPath = Path.GetTempPath();
+                var tempFile = Path.Combine(tempPath, "MaxsAiStudio-Error.txt");
+
+                File.WriteAllText(tempFile, ex.ToString());
+                File.AppendAllLines(tempFile, new[] { "----------------------", "Inner Exception", "----------------------", ex.InnerException?.ToString() });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "StackTrace", "----------------------", ex.StackTrace });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "Source", "----------------------", ex.Source });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "TargetSite", "----------------------", ex.TargetSite?.ToString() });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "Message", "----------------------", ex.Message });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "HelpLink", "----------------------", ex.HelpLink });
+                File.AppendAllLines(tempFile, new[] { "----------------------", "HResult", "----------------------", ex.HResult.ToString() });
+
+                MessageBox.Show(ex.Message, $"Error has been written to {tempFile}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
 
         }
     }
