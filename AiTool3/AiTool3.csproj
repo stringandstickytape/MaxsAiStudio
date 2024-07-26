@@ -63,6 +63,7 @@
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="JavaScript\Components\MessagesPane.js" />
+    <None Remove="JavaScript\ScratchPad.js" />
     <None Remove="JavaScript\SvgViewer.js" />
     <None Remove="JavaScript\ThemeEditor.js" />
     <None Remove="JavaScript\WorkingOverlay.html" />
@@ -105,6 +106,7 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JavaScript\Components\MessagesPane.js" />
+    <EmbeddedResource Include="JavaScript\ScratchPad.js" />
     <EmbeddedResource Include="JavaScript\SvgViewer.js" />
     <EmbeddedResource Include="JavaScript\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
