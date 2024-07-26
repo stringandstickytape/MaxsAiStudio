@@ -312,6 +312,7 @@ namespace AiTool3
                     SettingsSet.Save(CurrentSettings);
                     cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
                     await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
+                    await InitialiseApiList_New();
                 }
             };
 

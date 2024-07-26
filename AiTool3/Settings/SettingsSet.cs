@@ -73,6 +73,36 @@ namespace AiTool3
             SettingsSet.Save(this);
         }
 
+        public void AddOrUpdateModel(string apiName, Model model)
+        {
+            var api = ApiList.FirstOrDefault(a => a.ApiName == apiName);
+            if (api == null)
+            {
+                api = new Api { ApiName = apiName, ApiUrl = model.Url, Models = new List<Model>() };
+                ApiList.Add(api);
+            }
+
+            var existingModel = api.Models.FirstOrDefault(m => m.ModelName == model.ModelName);
+            if (existingModel != null)
+            {
+                api.Models.Remove(existingModel);
+            }
+            api.Models.Add(model);
+        }
+
+        public void RemoveModel(string apiName, string modelName)
+        {
+            var api = ApiList.FirstOrDefault(a => a.ApiName == apiName);
+            if (api != null)
+            {
+                api.Models.RemoveAll(m => m.ModelName == modelName);
+                if (api.Models.Count == 0)
+                {
+                    ApiList.Remove(api);
+                }
+            }
+        }
+
         private void Create()
         {
             ApiList = new List<Api>();

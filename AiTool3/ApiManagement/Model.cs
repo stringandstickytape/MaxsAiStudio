@@ -10,11 +10,24 @@ namespace AiTool3.ApiManagement
         public string ServiceName { get; set; }
         public string Key { get; set; }
         public string Url { get; set; }
-
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }
         public Color Color { get; set; }
 
+        // Add a parameterless constructor
+        public Model() { }
+
+        // Add a constructor with parameters
+        public Model(string modelName, string serviceName, string key, string url, decimal inputPrice, decimal outputPrice, Color color)
+        {
+            ModelName = modelName;
+            ServiceName = serviceName;
+            Key = key;
+            Url = url;
+            input1MTokenPrice = inputPrice;
+            output1MTokenPrice = outputPrice;
+            Color = color;
+        }
         public override string ToString()
         {
             return $"{ServiceName} - {ModelName}";

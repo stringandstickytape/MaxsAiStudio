@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AiTool3.ApiManagement;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -25,6 +26,9 @@ namespace AiTool3.Settings
 
             InitializeDgvModels();
             CreateDgvColumns();
+
+            dgvModels.CellClick += DgvModels_CellClick;
+
             CreateDgvRows(settings);
 
             var ypos = 0;
@@ -224,22 +228,26 @@ namespace AiTool3.Settings
 
         private void InitializeDgvModels()
         {
-            dgvModels.AllowUserToAddRows = false;
+            dgvModels.AllowUserToAddRows = true;
             dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvModels.CellValueChanged += DgvModels_CellValueChanged;
+            dgvModels.UserAddedRow += DgvModels_UserAddedRow;
+            dgvModels.CellClick += DgvModels_CellClick;
         }
 
         private void CreateDgvColumns()
         {
             var columns = new[]
             {
-        new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = true },
-        new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = true },
-        new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
-        new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
-        new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false }
-
-            };
+            new { Name = "ApiName", HeaderText = "API Name", ReadOnly = false },
+            new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
+            new { Name = "ServiceName", HeaderText = "Service Name", ReadOnly = false },
+            new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
+            new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
+            new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
+            new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false },
+            new { Name = "ModelColor", HeaderText = "Color", ReadOnly = false }
+        };
 
             foreach (var col in columns)
             {
@@ -251,57 +259,103 @@ namespace AiTool3.Settings
                     ReadOnly = col.ReadOnly
                 });
             }
+
+            dgvModels.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "DeleteButton",
+                HeaderText = "Delete",
+                Text = "Delete",
+                UseColumnTextForButtonValue = true
+            });
         }
 
         private void CreateDgvRows(SettingsSet settings)
         {
             dgvModels.Rows.Clear();
-            // for each model in the settings, add a row to the dgv
             foreach (var api in settings.ApiList)
             {
                 foreach (var model in api.Models)
                 {
-                    // populate the dgv with the model data
-                    dgvModels.Rows.Add(model.ModelName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice);
+                    var index = dgvModels.Rows.Add(api.ApiName, model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
+                    dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
+                }
+            }
+        }
+
+        private void DgvModels_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == dgvModels.Columns["DeleteButton"].Index && e.RowIndex >= 0)
+            {
+                if (MessageBox.Show("Are you sure you want to delete this model?", "Confirm Delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    var row = dgvModels.Rows[e.RowIndex];
+                    var apiName = row.Cells["ApiName"].Value?.ToString();
+                    var modelName = row.Cells["ModelName"].Value?.ToString();
+
+                    if (string.IsNullOrEmpty(apiName) || string.IsNullOrEmpty(modelName)) return;
+
+                    var api = NewSettings.ApiList.FirstOrDefault(a => a.ApiName == apiName);
+                    if (api != null)
+                    {
+                        api.Models.RemoveAll(m => m.ModelName == modelName);
+                        if (api.Models.Count == 0)
+                        {
+                            NewSettings.ApiList.Remove(api);
+                        }
+                    }
+
+                    dgvModels.Rows.RemoveAt(e.RowIndex);
                 }
             }
         }
 
         private void DgvModels_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
         {
-            // get the name of the column changed
-            var columnName = dgvModels.Columns[e.ColumnIndex].Name; // ModelKey
+            if (e.RowIndex < 0) return;
 
-            // get the row changed
-            var rowIndex = e.RowIndex;
+            var row = dgvModels.Rows[e.RowIndex];
+            var apiName = row.Cells["ApiName"].Value?.ToString();
+            var modelName = row.Cells["ModelName"].Value?.ToString();
 
-            // get the row
-            var row = dgvModels.Rows[rowIndex];
+            if (string.IsNullOrEmpty(apiName) || string.IsNullOrEmpty(modelName)) return;
 
-            // get the first item from the row
-            var modelName = row.Cells[0].Value;
-
-            // get the new value
-            var newValue = row.Cells[e.ColumnIndex].Value;
-
-            if (e.ColumnIndex > 1)
+            var api = NewSettings.ApiList.FirstOrDefault(a => a.ApiName == apiName);
+            if (api == null)
             {
-                // get the model from settings
-                var models = NewSettings.ApiList.SelectMany(a => a.Models);
-                var model = models.Where(x => x.ModelName == modelName.ToString()).First();
-                switch (e.ColumnIndex)
-                {
-                    case 2:
-                        model.Key = (string)newValue;
-                        break;
-                    case 3:
-                        model.input1MTokenPrice = decimal.Parse(newValue.ToString());
-                        break;
-                    case 4:
-                        model.output1MTokenPrice = decimal.Parse(newValue.ToString());
-                        break;
-                }
+                api = new Api { ApiName = apiName, ApiUrl = "", Models = new List<Model>() };
+                NewSettings.ApiList.Add(api);
             }
+
+            var model = api.Models.FirstOrDefault(m => m.ModelName == modelName);
+            if (model == null)
+            {
+                model = new Model();
+                api.Models.Add(model);
+            }
+
+            model.ModelName = modelName;
+            model.ServiceName = row.Cells["ServiceName"].Value?.ToString() ?? "";
+            model.Url = row.Cells["ModelUrl"].Value?.ToString() ?? "";
+            model.Key = row.Cells["ModelKey"].Value?.ToString() ?? "";
+            decimal.TryParse(row.Cells["ModelInputPrice"].Value?.ToString(), out decimal inputPrice);
+            model.input1MTokenPrice = inputPrice;
+            decimal.TryParse(row.Cells["ModelOutputPrice"].Value?.ToString(), out decimal outputPrice);
+            model.output1MTokenPrice = outputPrice;
+            model.Color = ColorTranslator.FromHtml(row.Cells["ModelColor"].Value?.ToString() ?? "#FFFFFF");
+        }
+
+        private void DgvModels_UserAddedRow(object sender, DataGridViewRowEventArgs e)
+        {
+            // Set default values for the new row
+            var row = e.Row;
+            row.Cells["ApiName"].Value = "New API";
+            row.Cells["ModelName"].Value = "New Model";
+            row.Cells["ServiceName"].Value = "NewService";
+            row.Cells["ModelUrl"].Value = "https://api.example.com";
+            row.Cells["ModelKey"].Value = "";
+            row.Cells["ModelInputPrice"].Value = 0;
+            row.Cells["ModelOutputPrice"].Value = 0;
+            row.Cells["ModelColor"].Value = "#FFFFFF";
         }
 
         private void btnSettingsCancel_Click(object sender, EventArgs e)
