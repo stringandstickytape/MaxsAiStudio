@@ -171,6 +171,18 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             await InitialiseApiList_New();
+
+            // send color schemes to the chatwebview
+            var themesPath = Path.Combine("Settings\\Themes.json");
+            if (File.Exists(themesPath))
+            {
+                await chatWebView.SetThemes(File.ReadAllText(themesPath));
+
+                if(!string.IsNullOrWhiteSpace(CurrentSettings.SelectedTheme))
+                {
+                    await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
+                }
+            }
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -191,6 +203,16 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {   switch(e.EventType)
             {
+                case "allThemes":
+                    // persist e.Json to settings subdirectory Themes.json
+                    var themes = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(e.Json);
+                    var themesPath = Path.Combine("Settings\\Themes.json");
+                    File.WriteAllText(themesPath, themes.ToString());
+                    break;
+                case "selectTheme":
+                    CurrentSettings.SelectedTheme = e.Json;
+                    SettingsSet.Save(CurrentSettings);
+                    break;
                 case "attach":
                     await _fileAttachmentManager.HandleAttachment(chatWebView);
                     break;

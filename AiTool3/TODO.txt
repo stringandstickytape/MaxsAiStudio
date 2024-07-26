@@ -59,7 +59,7 @@ DONE: On first run, create subdirs: Conversations, Settings, Templates, Embeddin
 DONE: json mode / tools ?
 DONE: Add spinner while embeddings are generated
 DONE: add a "continue" button at the end of an unterminated code block.  When clicked, fetch the next response and auto-concat.
-
+DONE: fix // bit thin, this...
 
 
 
@@ -132,14 +132,16 @@ Thid-party utils:
 
 * Ollama: install, ollama pull <model>.  Need to pull mxbai-embed-large for embeddings.
 
-fix // bit thin, this...
+
 
 
 js => jsx
 
 project helper: # to include files?
 
-project helper: fox fixed or new files, write to project structure? (!) - could use tool for this?
+add a few gradients?
+
+project helper: for fixed or new files, write to project structure? (!) - could use tool for this?
 popup that lets you interfere with the embeddings selected...!
 source code browser thing, to let you choose which files to upload from your project?
 launch sql? browse xml? launch svg? azure az command?! 

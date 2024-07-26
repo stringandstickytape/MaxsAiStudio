@@ -63,7 +63,7 @@ namespace AiTool3
 
         public string SelectedModel { get; set; } = "";
         public string SelectedSummaryModel { get; set; } = "";
-        
+        public string SelectedTheme { get; set; }
 
         public SettingsSet() { }
 

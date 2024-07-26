@@ -92,6 +92,12 @@ namespace AiTool3.UI
                 case "voice":
                     ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type));
                     break;
+                case "allThemes":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
+                    break;
+                case "selectTheme":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
+                    break;
                 case "send":
                     var selectedTools = message?["selectedTools"];
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools.Split(',').ToList() });
@@ -474,5 +480,15 @@ namespace AiTool3.UI
             }
         }
 
+        internal async Task SetThemes(string themesJson)
+        {
+            await ExecuteScriptAsync($"window.setAllColorSchemes({themesJson})");
+        }
+
+        internal async Task SetTheme(string selectedTheme)
+        {
+            // deserialize selectedTheme to string
+            await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
+        }
     }
 }

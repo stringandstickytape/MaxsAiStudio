@@ -118,11 +118,6 @@ const MessagesPane = () => {
                 .message-role {
                     font-weight: bold;
                     margin-right: 10px;
-                }
-                .message-actions {
-                    flex-grow: 1;
-                    height: 17px;
-                    background-color: ${colorScheme.toolbarBackgroundColor};
                 }`}
             </style>
 

@@ -6,6 +6,8 @@
         public string EventType { get; set; }
 
         public string Guid { get; set; }
+        public string Json { get; internal set; }
+
         public ChatWebViewSimpleEventArgs(string type)
         {
             EventType = type;

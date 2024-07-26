@@ -69,68 +69,73 @@ const initialColorSchemes = {
     }
 };
 
-    const ColorSchemeProvider = ({ children }) => {
-        const [colorSchemes, setColorSchemes] = useState(initialColorSchemes);
-        const [currentSchemeId, setCurrentSchemeId] = useState('dark');
+const ColorSchemeProvider = ({ children }) => {
+    const [colorSchemes, setColorSchemes] = useState(initialColorSchemes);
+    const [currentSchemeId, setCurrentSchemeId] = useState('dark');
 
-        const addColorScheme = (id, scheme) => {
-            setColorSchemes(prevSchemes => ({
-                ...prevSchemes,
-                [id]: scheme
-            }));
+    const addColorScheme = (id, scheme) => {
+        setColorSchemes(prevSchemes => ({
+            ...prevSchemes,
+            [id]: scheme
+        }));
 
-            // do this in 1 second's time
-            setTimeout(() => {
-                window.createThemeEditor();
-            }, 1000);
-        };
-
-        const updateColorScheme = (id, newColors) => {
-            setColorSchemes(prevSchemes => ({
-                ...prevSchemes,
-                [id]: {
-                    ...prevSchemes[id],
-                    ...newColors
-                }
-            }));
-        };
-
-        const getAllColorSchemes = () => {
-            return colorSchemes;
-        };
-
-        const selectColorScheme = (id) => {
-            if (colorSchemes[id]) {
-                setCurrentSchemeId(id);
-            } else {
-                console.error(`Color scheme with id "${id}" not found.`);
-            }
-        };
-
-        // Console commands
-        window.addColorScheme = addColorScheme;
-        window.updateColorScheme = updateColorScheme;
-        window.getAllColorSchemes = getAllColorSchemes;
-        window.selectColorScheme = selectColorScheme;
-
-        return (
-            <ColorSchemeContext.Provider value={{
-                colorScheme: colorSchemes[currentSchemeId],
-                currentSchemeId,
-                colorSchemes,
-                addColorScheme,
-                updateColorScheme,
-                getAllColorSchemes,
-                selectColorScheme
-            }}>
-                {children}
-            </ColorSchemeContext.Provider>
-        );
+        setTimeout(() => {
+            window.createThemeEditor();
+        }, 1000);
     };
 
-    const useColorScheme = () => useContext(ColorSchemeContext);
+    const updateColorScheme = (id, newColors) => {
+        setColorSchemes(prevSchemes => ({
+            ...prevSchemes,
+            [id]: {
+                ...prevSchemes[id],
+                ...newColors
+            }
+        }));
+    };
 
-    window.ColorSchemeProvider = ColorSchemeProvider;
+    const getAllColorSchemes = () => {
+        return colorSchemes;
+    };
+
+    const setAllColorSchemes = (newColorSchemes) => {
+        setColorSchemes(newColorSchemes);
+    };
+
+    const selectColorScheme = (id) => {
+        if (colorSchemes[id]) {
+            setCurrentSchemeId(id);
+        } else {
+            console.error(`Color scheme with id "${id}" not found.`);
+        }
+    };
+
+    // Console commands
+    window.addColorScheme = addColorScheme;
+    window.updateColorScheme = updateColorScheme;
+    window.getAllColorSchemes = getAllColorSchemes;
+    window.setAllColorSchemes = setAllColorSchemes;
+    window.selectColorScheme = selectColorScheme;
+
+    return (
+        <ColorSchemeContext.Provider value={{
+            colorScheme: colorSchemes[currentSchemeId],
+            currentSchemeId,
+            colorSchemes,
+            addColorScheme,
+            updateColorScheme,
+            getAllColorSchemes,
+            setAllColorSchemes,
+            selectColorScheme
+        }}>
+            {children}
+        </ColorSchemeContext.Provider>
+    );
+};
+
+const useColorScheme = () => useContext(ColorSchemeContext);
+
+window.ColorSchemeProvider = ColorSchemeProvider;
 window.useColorScheme = useColorScheme;
 React.useColorScheme = useColorScheme;
 
@@ -141,4 +146,10 @@ window.getColorSchemeData = () => {
         updateColorScheme: window.updateColorScheme,
         selectColorScheme: window.selectColorScheme
     };
+};
+
+// New function to set all color schemes
+window.setColorSchemeData = (data) => {
+    window.setAllColorSchemes(data.colorSchemes);
+    window.selectColorScheme(data.currentSchemeId);
 };

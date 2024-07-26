@@ -141,12 +141,24 @@
     // Handle OK button click
     okButton.addEventListener('click', (e) => {
         e.preventDefault();
+        
+        window.chrome.webview.postMessage({
+            type: 'allThemes',
+            content: JSON.stringify(window.getAllColorSchemes())
+        });
+
         const updatedTheme = {};
         form.querySelectorAll('input[type="color"]').forEach(input => {
             updatedTheme[input.previousElementSibling.textContent] = input.value;
         });
         window.updateColorScheme(schemeSelector.value, updatedTheme);
         window.selectColorScheme(schemeSelector.value);
+
+        window.chrome.webview.postMessage({
+            type: 'selectTheme',
+            content: JSON.stringify(schemeSelector.value)
+        });
+
         document.body.removeChild(container);
     });
 

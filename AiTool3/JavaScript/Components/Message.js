@@ -32,13 +32,6 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
     // Initialize a counter for code blocks
     let codeBlockCounter = 0;
 
-    const handleRofls = () => {
-        window.chrome.webview.postMessage({
-            type: 'joinWithPrevious',
-            guid: guid
-        });
-    };
-
     const isUnterminatedCodeBlock = () => {
         const threeBackticks = String.fromCharCode(96, 96, 96);
         const occurrences = (content.match(new RegExp(threeBackticks, 'g')) || []).length;
@@ -64,13 +57,6 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
         <div className={`message ${getMessageClass()}`} key={guid}>
             <div className="message-header">
                 <div className="message-role">{getMessageLabel()}</div>
-                <div className="message-actions">
-                    {role === 1 && previousAssistantUnbalanced && (
-                        <button onClick={handleRofls} className="rofls-button">
-                            Join with previous message
-                        </button>
-                    )}
-                </div>
             </div>
             <div className="message-content">
                 <FormattedContent
