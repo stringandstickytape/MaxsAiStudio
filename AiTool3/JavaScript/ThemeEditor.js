@@ -58,7 +58,6 @@
     wrapper.appendChild(form);
 
     // Function to update form with selected scheme
-    // Function to update form with selected scheme
     function updateForm(schemeId) {
         form.innerHTML = ''; // Clear existing form fields
         const scheme = allColorSchemes[schemeId];
@@ -75,8 +74,8 @@
             label.style.marginBottom = '5px';
             formGroup.appendChild(label);
 
-            if (key === 'messagesPaneBackgroundCss') {
-                // Create textarea for messagesPaneBackgroundCss
+            if (key === 'messagesPaneBackgroundCss' || key === 'mainContentBackgroundCss') {
+                // Create textarea for messagesPaneBackgroundCss and mainContentBackgroundCss
                 const textarea = document.createElement('textarea');
                 textarea.value = value;
                 textarea.style.width = '100%';
@@ -165,10 +164,14 @@
         form.querySelectorAll('input[type="color"]').forEach(input => {
             updatedTheme[input.previousElementSibling.textContent] = input.value;
         });
-        // Add support for messagesPaneBackgroundCss
-        const messagesPaneBackgroundCss = form.querySelector('textarea');
+        // Add support for messagesPaneBackgroundCss and mainContentBackgroundCss
+        const messagesPaneBackgroundCss = form.querySelector('textarea[value="' + allColorSchemes[schemeSelector.value].messagesPaneBackgroundCss + '"]');
+        const mainContentBackgroundCss = form.querySelector('textarea[value="' + allColorSchemes[schemeSelector.value].mainContentBackgroundCss + '"]');
         if (messagesPaneBackgroundCss) {
             updatedTheme['messagesPaneBackgroundCss'] = messagesPaneBackgroundCss.value;
+        }
+        if (mainContentBackgroundCss) {
+            updatedTheme['mainContentBackgroundCss'] = mainContentBackgroundCss.value;
         }
         window.updateColorScheme(schemeSelector.value, updatedTheme);
         window.selectColorScheme(schemeSelector.value);

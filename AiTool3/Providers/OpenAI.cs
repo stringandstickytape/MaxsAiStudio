@@ -87,75 +87,64 @@ namespace AiTool3.Providers
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
-
             if (useStreaming)
             {
-                return await HandleStreamingResponse(response, cancellationToken);
+                return await HandleStreamingResponse(apiModel, content, cancellationToken);
             }
             else
             {
-                return await HandleNonStreamingResponse(response);
+                var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
+                return await HandleNonStreamingResponse(response, cancellationToken);
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
+
+        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
         {
-            using (var stream = await response.Content.ReadAsStreamAsync())
+            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var reader = new StreamReader(stream);
+            var responseBuilder = new StringBuilder();
+            var buffer = new char[1024];
+            int charsRead;
+
+            int inputTokens = 0;
+            int outputTokens = 0;
+
+            while ((charsRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
-                byte[] buffer = new byte[48];
-                var decoder = new UTF8Encoding(false).GetDecoder();
-                StringBuilder fullResponse = new StringBuilder();
-                StringBuilder lineBuilder = new StringBuilder();
-                int inputTokens = 0;
-                int outputTokens = 0;
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
 
-                while (true)
+
+                var chunk = new string(buffer, 0, charsRead);
+                var lines = chunk.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var line in lines)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-
-                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    if (bytesRead == 0) break;
-
-                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
-                    int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, chars, 0);
-
-                    for (int i = 0; i < charsDecodedCount; i++)
-                    {
-                        char c = chars[i];
-                        if (c == '\n')
-                        {
-                            ProcessLine(lineBuilder.ToString(), fullResponse, ref inputTokens, ref outputTokens);
-                            lineBuilder.Clear();
-                        }
-                        else
-                        {
-                            lineBuilder.Append(c);
-                        }
-                    }
+                    ProcessLine(line.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
                 }
-
-                if (lineBuilder.Length > 0)
-                {
-                    ProcessLine(lineBuilder.ToString(), fullResponse, ref inputTokens, ref outputTokens);
-                }
-                StreamingComplete?.Invoke(this, null);
-                return new AiResponse
-                {
-                    ResponseText = fullResponse.ToString(),
-                    Success = true,
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
-                };
             }
+
+            StreamingComplete?.Invoke(this, null);
+
+            return new AiResponse
+            {
+                ResponseText = responseBuilder.ToString(),
+                Success = true,
+                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+            };
         }
 
-        private void ProcessLine(string line, StringBuilder fullResponse, ref int inputTokens, ref int outputTokens)
+        private void ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
             if (line.StartsWith("data: "))
             {
                 string jsonData = line.Substring("data: ".Length).Trim();
-                
+
                 if (jsonData == "[DONE]")
                     return;
 
@@ -166,7 +155,8 @@ namespace AiTool3.Providers
                     if (!string.IsNullOrEmpty(content))
                     {
                         Debug.Write(content);
-                        fullResponse.Append(content);
+                        responseBuilder.Append(content);
+                        StreamingTextReceived?.Invoke(this, content);
                     }
 
                     // Update token counts if available
@@ -183,10 +173,9 @@ namespace AiTool3.Providers
                 }
             }
         }
-
-        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response)
+        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cts)
         {
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = await response.Content.ReadAsStringAsync(cts);
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
             var responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();

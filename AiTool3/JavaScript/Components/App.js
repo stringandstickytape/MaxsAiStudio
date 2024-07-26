@@ -30,6 +30,7 @@ function App() {
                         overflow-x: hidden;
                         scroll-behavior: smooth;
                         background-color: ${colorScheme.backgroundColor};
+                        background: ${colorScheme.messagesPaneBackgroundCss};
                         color: ${colorScheme.textColor};
                     }
                 `}

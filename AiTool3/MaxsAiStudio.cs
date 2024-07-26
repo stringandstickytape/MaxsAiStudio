@@ -619,7 +619,7 @@ namespace AiTool3
             return response;
         }
 
-        private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.UpdateTemp(e);
+        private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.InvokeIfNeeded(() => chatWebView.UpdateTemp(e));
 
         private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
         {

@@ -67,7 +67,13 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                 parts.push(text.slice(lastIndex, offset));
             }
 
-            const trimmedFileType = fileType.trim().toLowerCase();
+            let trimmedFileType = fileType.trim().toLowerCase();
+
+            let fileExt = trimmedFileType;
+            if (fileExt.indexOf('.') > -1) {
+                fileExt = fileExt.split('.').reverse()[0];
+            }
+            console.log(trimmedFileType);
 
             parts.push(
                 <div key={offset}>
@@ -97,7 +103,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     content: code.trim()
                                 });
                             })}
-                            {fileTypes.webView.includes(trimmedFileType) &&
+                            {fileTypes.webView.includes(fileExt) &&
                                 addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'WebView',
@@ -105,12 +111,12 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.viewSvg.includes(trimmedFileType) &&
+                            {fileTypes.viewSvg.includes(fileExt) &&
                                 addMessageButton("View SVG", () => {
                                     createSvgViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewJsonStringArray.includes(trimmedFileType) &&
+                            {fileTypes.viewJsonStringArray.includes(fileExt) &&
                                 addMessageButton("View JSON String Array", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View JSON String Array',
@@ -126,17 +132,17 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     
                                 })
                             }
-                            {fileTypes.browseJsonObject.includes(trimmedFileType) &&
+                            {fileTypes.browseJsonObject.includes(fileExt) &&
                                 addMessageButton("Browse JSON Object", () => {
                                     createJsonViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewMermaidDiagram.includes(trimmedFileType) &&
+                            {fileTypes.viewMermaidDiagram.includes(fileExt) &&
                                 addMessageButton("View Mermaid Diagram", () => {
                                     createMermaidViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewPlantUMLDiagram.includes(trimmedFileType) &&
+                            {fileTypes.viewPlantUMLDiagram.includes(fileExt) &&
                                 addMessageButton("View PlantUML Diagram", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View PlantUML Diagram',
@@ -144,12 +150,12 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.viewDOTDiagram.includes(trimmedFileType) &&
+                            {fileTypes.viewDOTDiagram.includes(fileExt) &&
                                 addMessageButton("View DOT Diagram", () => {
                                     renderDotString(code.trim());
                                 })
                             }
-                            {fileTypes.runPythonScript.includes(trimmedFileType) &&
+                            {fileTypes.runPythonScript.includes(fileExt) &&
                                 addMessageButton("Run Python Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run Python Script',
@@ -157,7 +163,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.launchSTL.includes(trimmedFileType) &&
+                            {fileTypes.launchSTL.includes(fileExt) &&
                                 addMessageButton("Launch STL", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Launch STL',
@@ -165,7 +171,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.runPowerShellScript.includes(trimmedFileType) &&
+                            {fileTypes.runPowerShellScript.includes(fileExt) &&
                                 addMessageButton("Run PowerShell Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run PowerShell Script',

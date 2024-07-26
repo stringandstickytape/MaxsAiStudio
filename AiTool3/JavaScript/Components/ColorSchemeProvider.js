@@ -6,38 +6,37 @@ const initialColorSchemes = {
     light: {
         backgroundColor: '#ffffff',
         headerBackgroundColor: '#f0f0f0',
-    inputBackgroundColor: '#ffffff',
-    buttonBackgroundColor: '#007bff',
-    dropdownBackgroundColor: '#ffffff',
-    messageUserBackgroundColor: '#e6f2ff',
-    messageAIBackgroundColor: '#f0f0f0',
-    messageRootBackgroundColor: '#fff8e1',
-    codeBlockBackgroundColor: '#f8f8f8',
-    codeBlockHeaderBackgroundColor: '#e8e8e8',
-    scrollbarBackgroundColor: '#f0f0f0',
-    toolbarBackgroundColor: '#f8f8f8',
-    toolbarButtonBackgroundColor: '#e0e0e0',
-    selectedItemBackgroundColor: '#e6f2ff',
-    textColor: '#333333',
-    headerTextColor: '#000000',
-    inputTextColor: '#333333',
-    buttonTextColor: '#ffffff',
-    dropdownTextColor: '#333333',
-    messageUserTextColor: '#333333',
-    messageAITextColor: '#333333',
-    messageRootTextColor: '#333333',
-    codeBlockTextColor: '#333333',
-    codeBlockHeaderTextColor: '#333333',
-    toolbarButtonTextColor: '#333333',
-    selectedItemTextColor: '#007bff',
-    linkColor: '#0056b3',
-    buttonDisabledBackgroundColor: '#cccccc',
+        inputBackgroundColor: '#ffffff',
+        buttonBackgroundColor: '#007bff',
+        dropdownBackgroundColor: '#ffffff',
+        messageUserBackgroundColor: '#e6f2ff',
+        messageAIBackgroundColor: '#f0f0f0',
+        messageRootBackgroundColor: '#fff8e1',
+        codeBlockBackgroundColor: '#f8f8f8',
+        codeBlockHeaderBackgroundColor: '#e8e8e8',
+        scrollbarBackgroundColor: '#f0f0f0',
+        toolbarBackgroundColor: '#f8f8f8',
+        toolbarButtonBackgroundColor: '#e0e0e0',
+        selectedItemBackgroundColor: '#e6f2ff',
+        textColor: '#333333',
+        headerTextColor: '#000000',
+        inputTextColor: '#333333',
+        buttonTextColor: '#ffffff',
+        dropdownTextColor: '#333333',
+        messageUserTextColor: '#333333',
+        messageAITextColor: '#333333',
+        messageRootTextColor: '#333333',
+        codeBlockTextColor: '#333333',
+        codeBlockHeaderTextColor: '#333333',
+        toolbarButtonTextColor: '#333333',
+        selectedItemTextColor: '#007bff',
+        linkColor: '#0056b3',
+        buttonDisabledBackgroundColor: '#cccccc',
         buttonDisabledTextColor: '#666666',
-        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)'
+        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
+        mainContentBackgroundCss: 'linear-gradient(160deg, #ffffff 0%, #f0f0f0 100%)'
     },
     dark: {
-        backgroundColor: '#121212',
-        headerBackgroundColor: '#1E1E1E',
         backgroundColor: '#121212',
         headerBackgroundColor: '#1E1E1E',
         inputBackgroundColor: '#1A1A1A',
@@ -67,7 +66,8 @@ const initialColorSchemes = {
         linkColor: '#81A1C1',
         buttonDisabledBackgroundColor: '#2A2A2A',
         buttonDisabledTextColor: '#6E6E6E',
-        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)'
+        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
+        mainContentBackgroundCss: 'linear-gradient(160deg, #121212 0%, #1E1E1E 100%)'
     }
 };
 
@@ -92,7 +92,8 @@ const ColorSchemeProvider = ({ children }) => {
             [id]: {
                 ...prevSchemes[id],
                 ...newColors,
-                messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss
+                messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss,
+                mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss
             }
         }));
     };
