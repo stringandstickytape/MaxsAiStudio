@@ -91,7 +91,8 @@ const ColorSchemeProvider = ({ children }) => {
             ...prevSchemes,
             [id]: {
                 ...prevSchemes[id],
-                ...newColors
+                ...newColors,
+                messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss
             }
         }));
     };

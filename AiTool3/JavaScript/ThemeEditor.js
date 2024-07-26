@@ -58,6 +58,7 @@
     wrapper.appendChild(form);
 
     // Function to update form with selected scheme
+    // Function to update form with selected scheme
     function updateForm(schemeId) {
         form.innerHTML = ''; // Clear existing form fields
         const scheme = allColorSchemes[schemeId];
@@ -74,32 +75,45 @@
             label.style.marginBottom = '5px';
             formGroup.appendChild(label);
 
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.value = value;
-            input.style.width = '50px';
-            input.style.height = '30px';
-            input.style.verticalAlign = 'middle';
-            formGroup.appendChild(input);
+            if (key === 'messagesPaneBackgroundCss') {
+                // Create textarea for messagesPaneBackgroundCss
+                const textarea = document.createElement('textarea');
+                textarea.value = value;
+                textarea.style.width = '100%';
+                textarea.style.height = '60px';
+                textarea.style.backgroundColor = '#2C2C2C';
+                textarea.style.color = '#FFFFFF';
+                textarea.style.border = 'none';
+                textarea.style.padding = '5px';
+                formGroup.appendChild(textarea);
+            } else {
+                const input = document.createElement('input');
+                input.type = 'color';
+                input.value = value;
+                input.style.width = '50px';
+                input.style.height = '30px';
+                input.style.verticalAlign = 'middle';
+                formGroup.appendChild(input);
 
-            const textInput = document.createElement('input');
-            textInput.type = 'text';
-            textInput.value = value;
-            textInput.style.marginLeft = '10px';
-            textInput.style.width = '100px';
-            textInput.style.backgroundColor = '#2C2C2C';
-            textInput.style.color = '#FFFFFF';
-            textInput.style.border = 'none';
-            textInput.style.padding = '5px';
-            formGroup.appendChild(textInput);
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.value = value;
+                textInput.style.marginLeft = '10px';
+                textInput.style.width = '100px';
+                textInput.style.backgroundColor = '#2C2C2C';
+                textInput.style.color = '#FFFFFF';
+                textInput.style.border = 'none';
+                textInput.style.padding = '5px';
+                formGroup.appendChild(textInput);
 
-            // Sync color input and text input
-            input.addEventListener('input', () => {
-                textInput.value = input.value;
-            });
-            textInput.addEventListener('input', () => {
-                input.value = textInput.value;
-            });
+                // Sync color input and text input
+                input.addEventListener('input', () => {
+                    textInput.value = input.value;
+                });
+                textInput.addEventListener('input', () => {
+                    input.value = textInput.value;
+                });
+            }
         }
     }
 
@@ -141,7 +155,7 @@
     // Handle OK button click
     okButton.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         window.chrome.webview.postMessage({
             type: 'allThemes',
             content: JSON.stringify(window.getAllColorSchemes())
@@ -151,6 +165,11 @@
         form.querySelectorAll('input[type="color"]').forEach(input => {
             updatedTheme[input.previousElementSibling.textContent] = input.value;
         });
+        // Add support for messagesPaneBackgroundCss
+        const messagesPaneBackgroundCss = form.querySelector('textarea');
+        if (messagesPaneBackgroundCss) {
+            updatedTheme['messagesPaneBackgroundCss'] = messagesPaneBackgroundCss.value;
+        }
         window.updateColorScheme(schemeSelector.value, updatedTheme);
         window.selectColorScheme(schemeSelector.value);
 
