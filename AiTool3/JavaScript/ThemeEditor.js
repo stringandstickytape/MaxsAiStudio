@@ -1,255 +1,291 @@
 ﻿function createThemeEditor() {
     const allColorSchemes = window.getAllColorSchemes();
-    const currentSchemeId = Object.keys(allColorSchemes)[0];
+    let currentSchemeId = Object.keys(allColorSchemes)[0];
 
     const container = createContainer();
     const wrapper = createWrapper();
     container.appendChild(wrapper);
 
-    const title = createTitle('Theme Editor');
-    wrapper.appendChild(title);
+    const header = createHeader();
+    wrapper.appendChild(header);
 
-    const schemeSelector = createSchemeSelector(allColorSchemes, currentSchemeId);
-    wrapper.appendChild(schemeSelector);
+    const content = createContent();
+    wrapper.appendChild(content);
 
-    const form = document.createElement('form');
-    form.style.display = 'flex';
-    form.style.flexWrap = 'wrap';
-    form.style.justifyContent = 'space-between';
-    wrapper.appendChild(form);
-
-    function updateForm(schemeId) {
-        form.innerHTML = '';
-        const scheme = allColorSchemes[schemeId];
-
-        const entries = Object.entries(scheme);
-        const columnCount = Math.min(3, Math.ceil(entries.length / 5)); // Max 3 columns, min 5 items per column
-
-        for (let i = 0; i < columnCount; i++) {
-            const column = document.createElement('div');
-            column.style.flex = `1 1 ${100 / columnCount}%`;
-            column.style.minWidth = '250px';
-            column.style.padding = '0 10px';
-            form.appendChild(column);
-        }
-
-        entries.forEach((entry, index) => {
-            const [key, value] = entry;
-            const formGroup = createFormGroup(key, value);
-            form.children[index % columnCount].appendChild(formGroup);
-        });
-    }
-
-    updateForm(currentSchemeId);
-
-    schemeSelector.addEventListener('change', (e) => {
-        updateForm(e.target.value);
-    });
-
-    const buttonContainer = createButtonContainer();
-    wrapper.appendChild(buttonContainer);
-
-    const okButton = createButton('OK', '#4CAF50');
-    const cancelButton = createButton('Cancel', '#F44336');
-    buttonContainer.appendChild(okButton);
-    buttonContainer.appendChild(cancelButton);
-
-    okButton.addEventListener('click', handleOkClick);
-    cancelButton.addEventListener('click', handleCancelClick);
+    const footer = createFooter();
+    wrapper.appendChild(footer);
 
     document.body.appendChild(container);
 
+    updateContent(currentSchemeId);  // Move this call here, after appending to DOM
     function createContainer() {
-        const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        container.style.zIndex = '10000';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'center';
-        container.style.alignItems = 'center';
-        return container;
+        return createElement('div', {
+            style: {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                zIndex: 10000,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }
+        });
     }
 
     function createWrapper() {
-        const wrapper = document.createElement('div');
-        wrapper.style.width = 'calc(100% - 40px)';
-        wrapper.style.height = 'calc(100% - 40px)';
-        wrapper.style.backgroundColor = '#3A3A3A';
-        wrapper.style.overflow = 'auto';
-        wrapper.style.padding = '20px';
-        wrapper.style.borderRadius = '10px';
-        return wrapper;
+        return createElement('div', {
+            style: {
+                width: 'calc(100% - 40px)',
+                height: 'calc(100% - 40px)',
+                backgroundColor: '#2C2C2C',
+                borderRadius: '10px',
+                display: 'flex',
+                flexDirection: 'column'
+            }
+        });
     }
 
-    function createTitle(text) {
-        const title = document.createElement('h2');
-        title.textContent = text;
-        title.style.color = '#FFFFFF';
-        title.style.marginBottom = '20px';
-        return title;
+    function createHeader() {
+        const header = createElement('div', {
+            style: {
+                padding: '20px',
+                borderBottom: '1px solid #444'
+            }
+        });
+
+        const title = createElement('h2', {
+            textContent: 'Theme Editor',
+            style: {
+                color: '#FFFFFF',
+                marginBottom: '20px'
+            }
+        });
+
+        const schemeSelector = createSchemeSelector();
+
+        header.appendChild(title);
+        header.appendChild(schemeSelector);
+
+        return header;
     }
 
-    function createSchemeSelector(schemes, currentId) {
-        const selector = document.createElement('select');
-        selector.style.marginBottom = '20px';
-        selector.style.padding = '5px';
-        selector.style.backgroundColor = '#2C2C2C';
-        selector.style.color = '#FFFFFF';
-        selector.style.border = 'none';
+    function createSchemeSelector() {
+        const selector = createElement('select', {
+            style: {
+                padding: '10px',
+                backgroundColor: '#3A3A3A',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '16px'
+            },
+            onchange: (e) => updateContent(e.target.value)
+        });
 
-        Object.keys(schemes).forEach(schemeId => {
-            const option = document.createElement('option');
-            option.value = schemeId;
-            option.textContent = schemeId;
-            option.selected = schemeId === currentId;
+        Object.keys(allColorSchemes).forEach(schemeId => {
+            const option = createElement('option', {
+                value: schemeId,
+                textContent: schemeId,
+                selected: schemeId === currentSchemeId
+            });
             selector.appendChild(option);
         });
 
         return selector;
     }
 
-    function createFormGroup(key, value) {
-        const formGroup = document.createElement('div');
-        formGroup.style.marginBottom = '10px';
+    function createContent() {
+        return createElement('div', {
+            style: {
+                flex: 1,
+                padding: '20px',
+                overflowY: 'auto'
+            }
+        });
+    }
 
-        const label = document.createElement('label');
-        label.textContent = key;
-        label.style.color = '#FFFFFF';
-        label.style.display = 'block';
-        label.style.marginBottom = '5px';
+    function updateContent(schemeId) {
+        currentSchemeId = schemeId;
+        const scheme = allColorSchemes[schemeId];
+        const content = wrapper.querySelector('div:nth-child(2)');
+        content.innerHTML = '';
+
+        const form = createElement('form', {
+            style: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '20px'
+            }
+        });
+        debugger;
+        Object.entries(scheme).forEach(([key, value]) => {
+            const formGroup = createFormGroup(key, value);
+            form.appendChild(formGroup);
+        });
+
+        content.appendChild(form);
+    }
+
+    function createFormGroup(key, value) {
+        const formGroup = createElement('div');
+
+        const label = createElement('label', {
+            textContent: key,
+            style: {
+                color: '#FFFFFF',
+                display: 'block',
+                marginBottom: '5px'
+            }
+        });
+
         formGroup.appendChild(label);
 
         if (key === 'messagesPaneBackgroundCss' || key === 'mainContentBackgroundCss') {
-            const textarea = createTextarea(value);
+            const textarea = createElement('textarea', {
+                value: value,
+                name: key,  // Add name attribute
+                style: {
+                    width: '100%',
+                    height: '80px',
+                    backgroundColor: '#3A3A3A',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '10px',
+                    resize: 'vertical'
+                }
+            });
             formGroup.appendChild(textarea);
         } else {
-            const inputContainer = document.createElement('div');
-            inputContainer.style.display = 'flex';
-            inputContainer.style.alignItems = 'center';
+            const inputContainer = createElement('div', {
+                style: {
+                    display: 'flex',
+                    alignItems: 'center'
+                }
+            });
 
-            const colorInput = createColorInput(value);
-            const textInput = createTextInput(value);
+            const colorInput = createElement('input', {
+                type: 'color',
+                value: value,
+                name: key,  // Add name attribute
+                style: {
+                    width: '50px',
+                    height: '50px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    marginRight: '10px'
+                }
+            });
+
+            const textInput = createElement('input', {
+                type: 'text',
+                value: value,
+                name: key,  // Add name attribute
+                style: {
+                    flex: 1,
+                    backgroundColor: '#3A3A3A',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '10px'
+                }
+            });
+
+            colorInput.addEventListener('input', () => textInput.value = colorInput.value);
+            textInput.addEventListener('input', () => colorInput.value = textInput.value);
+
             inputContainer.appendChild(colorInput);
             inputContainer.appendChild(textInput);
             formGroup.appendChild(inputContainer);
-
-            colorInput.addEventListener('input', () => {
-                textInput.value = colorInput.value;
-            });
-            textInput.addEventListener('input', () => {
-                colorInput.value = textInput.value;
-            });
         }
 
         return formGroup;
     }
 
-    function createTextInput(value) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = value;
-        input.style.marginLeft = '10px';
-        input.style.flex = '1';
-        input.style.backgroundColor = '#2C2C2C';
-        input.style.color = '#FFFFFF';
-        input.style.border = 'none';
-        input.style.padding = '5px';
-        return input;
-    }
-
-    function createTextarea(value) {
-        const textarea = document.createElement('textarea');
-        textarea.value = value;
-        textarea.style.width = '100%';
-        textarea.style.height = '60px';
-        textarea.style.backgroundColor = '#2C2C2C';
-        textarea.style.color = '#FFFFFF';
-        textarea.style.border = 'none';
-        textarea.style.padding = '5px';
-        return textarea;
-    }
-
-    function createColorInput(value) {
-        const input = document.createElement('input');
-        input.type = 'color';
-        input.value = value;
-        input.style.width = '50px';
-        input.style.height = '30px';
-        input.style.verticalAlign = 'middle';
-        return input;
-    }
-
-    function createTextInput(value) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = value;
-        input.style.marginLeft = '10px';
-        input.style.width = '100px';
-        input.style.backgroundColor = '#2C2C2C';
-        input.style.color = '#FFFFFF';
-        input.style.border = 'none';
-        input.style.padding = '5px';
-        return input;
-    }
-
-    function createButtonContainer() {
-        const container = document.createElement('div');
-        container.style.marginTop = '20px';
-        container.style.textAlign = 'right';
-        return container;
-    }
-
-    function createButton(text, color) {
-        const button = document.createElement('button');
-        button.textContent = text;
-        button.style.padding = '10px 20px';
-        button.style.marginRight = text === 'OK' ? '10px' : '0';
-        button.style.backgroundColor = color;
-        button.style.color = '#FFFFFF';
-        button.style.border = 'none';
-        button.style.cursor = 'pointer';
-        return button;
-    }
-
-    function handleOkClick(e) {
-        e.preventDefault();
-
-        window.chrome.webview.postMessage({
-            type: 'allThemes',
-            content: JSON.stringify(window.getAllColorSchemes())
+    function createFooter() {
+        const footer = createElement('div', {
+            style: {
+                padding: '20px',
+                borderTop: '1px solid #444',
+                display: 'flex',
+                justifyContent: 'flex-end'
+            }
         });
 
+        const cancelButton = createButton('Cancel', '#F44336', handleCancel);
+        const saveButton = createButton('Save', '#4CAF50', handleSave);
+
+        footer.appendChild(cancelButton);
+        footer.appendChild(saveButton);
+
+        return footer;
+    }
+
+    function createButton(text, color, onClick) {
+        return createElement('button', {
+            textContent: text,
+            style: {
+                padding: '10px 20px',
+                backgroundColor: color,
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginLeft: '10px',
+                fontSize: '16px'
+            },
+            onclick: onClick
+        });
+    }
+
+    function handleCancel() {
+        document.body.removeChild(container);
+    }
+
+    function handleSave() {
+        const form = wrapper.querySelector('form');
         const updatedTheme = {};
-        form.querySelectorAll('input[type="color"]').forEach(input => {
-            updatedTheme[input.previousElementSibling.textContent] = input.value;
+
+        form.querySelectorAll('input[type="color"], input[type="text"], textarea').forEach(input => {
+            let key;
+            const formGroup = input.closest('div');
+            const label = formGroup.querySelector('label');
+
+            if (label) {
+                key = label.textContent;
+            } else {
+                // Fallback: use the input's name attribute or a default
+                key = input.name || 'unknown';
+            }
+
+            updatedTheme[key] = input.value;
         });
 
-        const messagesPaneBackgroundCss = form.querySelector(`textarea[value="${allColorSchemes[schemeSelector.value].messagesPaneBackgroundCss}"]`);
-        const mainContentBackgroundCss = form.querySelector(`textarea[value="${allColorSchemes[schemeSelector.value].mainContentBackgroundCss}"]`);
-
-        if (messagesPaneBackgroundCss) {
-            updatedTheme['messagesPaneBackgroundCss'] = messagesPaneBackgroundCss.value;
-        }
-        if (mainContentBackgroundCss) {
-            updatedTheme['mainContentBackgroundCss'] = mainContentBackgroundCss.value;
-        }
-
-        window.updateColorScheme(schemeSelector.value, updatedTheme);
-        window.selectColorScheme(schemeSelector.value);
+        window.updateColorScheme(currentSchemeId, updatedTheme);
+        window.selectColorScheme(currentSchemeId);
 
         window.chrome.webview.postMessage({
             type: 'selectTheme',
-            content: JSON.stringify(schemeSelector.value)
+            content: JSON.stringify(currentSchemeId)
         });
 
         document.body.removeChild(container);
     }
 
-    function handleCancelClick() {
-        document.body.removeChild(container);
+    function createElement(tag, options = {}) {
+        const element = document.createElement(tag);
+        Object.entries(options).forEach(([key, value]) => {
+            if (key === 'style') {
+                Object.assign(element.style, value);
+            } else if (key.startsWith('on')) {
+                element.addEventListener(key.slice(2).toLowerCase(), value);
+            } else {
+                element[key] = value;
+            }
+        });
+        return element;
     }
 }
