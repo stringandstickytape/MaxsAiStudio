@@ -65,7 +65,7 @@ const MessagesPane = () => {
         const occurrences = (content.match(new RegExp(threeBackticks, 'g')) || []).length;
         return occurrences % 2 !== 0;
     };
-
+    console.log(colorScheme.messagesPaneBackgroundCss);
     return (
         <>
             <style>
@@ -78,9 +78,11 @@ const MessagesPane = () => {
                     white-space: pre-wrap;
                     word-wrap: break-word;
                     background-color: ${colorScheme.backgroundColor};
+                    background: ${colorScheme.messagesPaneBackgroundCss};
                     padding: 10px;
                     scroll-behavior: smooth;  
-                    color: ${colorScheme.textColor};
+                    color: ${colorScheme.textColor}
+                    ;
                 }
                 .message {
                     margin-bottom: 10px;

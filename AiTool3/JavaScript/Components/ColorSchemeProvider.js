@@ -32,7 +32,8 @@ const initialColorSchemes = {
     selectedItemTextColor: '#007bff',
     linkColor: '#0056b3',
     buttonDisabledBackgroundColor: '#cccccc',
-    buttonDisabledTextColor: '#666666',
+        buttonDisabledTextColor: '#666666',
+        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)'
     },
     dark: {
         backgroundColor: '#121212',
@@ -66,6 +67,7 @@ const initialColorSchemes = {
         linkColor: '#81A1C1',
         buttonDisabledBackgroundColor: '#2A2A2A',
         buttonDisabledTextColor: '#6E6E6E',
+        messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)'
     }
 };
 
