@@ -101,19 +101,40 @@ const ScratchPad = () => {
                         padding: 10px; 
                         background-color: ${colorScheme.backgroundColor};
                         color: ${colorScheme.textColor};
+                        display: flex;
+                        flex-direction: column;
+                        height: 100vh;
                     }
                     #scratchPadContent { 
                         width: 100%; 
-                        height: 90vh; 
+                        height: calc(100% - 65px); 
                         resize: none; 
                         background-color: ${colorScheme.inputBackgroundColor};
                         color: ${colorScheme.inputTextColor};
                         border: 1px solid ${colorScheme.buttonBackgroundColor};
+                        margin-bottom: 10px;
+                    }
+                    #copyToInputButton {
+                        padding: 10px;
+                        background-color: ${colorScheme.buttonBackgroundColor};
+                        color: ${colorScheme.buttonTextColor};
+                        border: none;
+                        cursor: pointer;
                     }
                 </style>
             </head>
             <body>
                 <textarea id="scratchPadContent"></textarea>
+                <button id="copyToInputButton">Copy Selected to Input</button>
+                <script>
+                    document.getElementById('copyToInputButton').addEventListener('click', function() {
+                        const selectedText = document.getElementById('scratchPadContent').value.substring(
+                            document.getElementById('scratchPadContent').selectionStart,
+                            document.getElementById('scratchPadContent').selectionEnd
+                        );
+                        window.opener.appendToUserInput(selectedText);
+                    });
+                </script>
             </body>
             </html>
         `);
@@ -230,6 +251,18 @@ const ScratchPad = () => {
         console.log("Updating pill button styles due to color scheme change");
         updatePillButtonStyles();
     }, [colorScheme, updatePillButtonStyles]);
+
+    useEffect(() => {
+        window.appendToUserInput = (text) => {
+            const currentContent = window.getUserPrompt();
+            const newContent = currentContent ? currentContent + '\n' + text : text;
+            window.setUserPrompt(newContent);
+        };
+
+        return () => {
+            delete window.appendToUserInput;
+        };
+    }, []);
 
     return null;
 };
