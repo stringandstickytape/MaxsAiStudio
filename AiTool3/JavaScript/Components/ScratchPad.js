@@ -1,18 +1,26 @@
 ﻿const { useState, useEffect, useCallback, useRef } = React;
+const { useColorScheme } = window;
 
 const ScratchPad = () => {
     console.log("ScratchPad component rendering");
 
+    const { colorScheme } = useColorScheme();
     const scratchPadWindowRef = useRef(null);
     const pillButtonRef = useRef(null);
     const [currentSelection, setCurrentSelection] = useState('');
     const selectionInProgressRef = useRef(false);
     const mousePositionRef = useRef({ x: 0, y: 0 });
 
+    const updatePillButtonStyles = useCallback(() => {
+        if (pillButtonRef.current) {
+            pillButtonRef.current.style.backgroundColor = colorScheme.buttonBackgroundColor;
+            pillButtonRef.current.style.color = colorScheme.buttonTextColor;
+        }
+    }, [colorScheme]);
+
     const createPillButton = useCallback(() => {
         console.log("Creating pill button");
         if (pillButtonRef.current && document.body.contains(pillButtonRef.current)) return;
-
         const button = document.createElement('button');
         button.id = 'scratchPadPillButton';
         button.textContent = 'Copy to Scratch Pad';
@@ -21,17 +29,17 @@ const ScratchPad = () => {
         button.style.borderRadius = '20px';
         button.style.display = 'none';
         button.style.padding = '5px 10px';
-        button.style.backgroundColor = '#007bff';
-        button.style.color = 'white';
         button.style.border = 'none';
         button.style.cursor = 'pointer';
         button.style.left = '50%';
         button.style.top = '50%';
+        button.style.opacity = '0.8';
         button.style.transform = 'translate(-50%, -50%)';
         document.body.appendChild(button);
         pillButtonRef.current = button;
+        updatePillButtonStyles();
         console.log("Pill button created and added to the DOM");
-    }, []);
+    }, [updatePillButtonStyles]);
 
     const showPillButton = useCallback((x, y) => {
         console.log("Showing pill button");
@@ -87,8 +95,21 @@ const ScratchPad = () => {
             <head>
                 <title>Scratch Pad</title>
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
-                    #scratchPadContent { width: 100%; height: 90vh; resize: none; }
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        margin: 0; 
+                        padding: 10px; 
+                        background-color: ${colorScheme.backgroundColor};
+                        color: ${colorScheme.textColor};
+                    }
+                    #scratchPadContent { 
+                        width: 100%; 
+                        height: 90vh; 
+                        resize: none; 
+                        background-color: ${colorScheme.inputBackgroundColor};
+                        color: ${colorScheme.inputTextColor};
+                        border: 1px solid ${colorScheme.buttonBackgroundColor};
+                    }
                 </style>
             </head>
             <body>
@@ -97,7 +118,7 @@ const ScratchPad = () => {
             </html>
         `);
         scratchPadWindowRef.current = newWindow;
-    }, []);
+    }, [colorScheme]);
 
     const clearSelection = useCallback(() => {
         console.log("Clearing selection");
@@ -139,6 +160,11 @@ const ScratchPad = () => {
             if (e.shiftKey) {
                 console.log("Shift key pressed");
                 selectionInProgressRef.current = true;
+            }
+            // Hide pill button when any key is pressed and the button is visible
+            if (pillButtonRef.current && pillButtonRef.current.style.display !== 'none') {
+                console.log("Key pressed, hiding pill button");
+                hidePillButton();
             }
         };
 
@@ -190,9 +216,12 @@ const ScratchPad = () => {
         };
     }, [createPillButton, checkSelection, hidePillButton, copyToScratchPad]);
 
+    useEffect(() => {
+        console.log("Updating pill button styles due to color scheme change");
+        updatePillButtonStyles();
+    }, [colorScheme, updatePillButtonStyles]);
+
     return null;
 };
-
-console.log("export");
 
 window.ScratchPad = ScratchPad;
