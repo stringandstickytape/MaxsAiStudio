@@ -14,7 +14,6 @@ const LiveStream = () => {
         mainContent.setAttribute("style", "scroll-behavior: auto");
         mainContent.scrollTop = mainContent.scrollHeight;
         mainContent.setAttribute("style", "scroll-behavior: smooth");
-        debugger;
     };
 
     useEffect(() => {

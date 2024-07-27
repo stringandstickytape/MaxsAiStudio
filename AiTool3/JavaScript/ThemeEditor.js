@@ -120,7 +120,6 @@
                 gap: '20px'
             }
         });
-        debugger;
         Object.entries(scheme).forEach(([key, value]) => {
             const formGroup = createFormGroup(key, value);
             form.appendChild(formGroup);

@@ -50,6 +50,7 @@
     <None Remove="JavaScript\Components\FormattedContent.js" />
     <None Remove="JavaScript\Components\LiveStream.js" />
     <None Remove="JavaScript\Components\Message.js" />
+    <None Remove="JavaScript\Components\ScratchPad.js" />
     <None Remove="JavaScript\Components\SplitButton.js" />
     <None Remove="JavaScript\Components\ToolsDropdown.js" />
     <None Remove="JavaScript\Components\UserInputBar.js" />
@@ -63,7 +64,6 @@
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="JavaScript\Components\MessagesPane.js" />
-    <None Remove="JavaScript\ScratchPad.js" />
     <None Remove="JavaScript\SvgViewer.js" />
     <None Remove="JavaScript\ThemeEditor.js" />
     <None Remove="JavaScript\WorkingOverlay.html" />
@@ -93,6 +93,7 @@
     <EmbeddedResource Include="JavaScript\Components\FormattedContent.js" />
     <EmbeddedResource Include="JavaScript\Components\LiveStream.js" />
     <EmbeddedResource Include="JavaScript\Components\Message.js" />
+    <EmbeddedResource Include="JavaScript\Components\ScratchPad.js" />
     <EmbeddedResource Include="JavaScript\Components\SplitButton.js" />
     <EmbeddedResource Include="JavaScript\Components\ToolsDropdown.js" />
     <EmbeddedResource Include="JavaScript\Components\UserInputBar.js" />
@@ -106,7 +107,6 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JavaScript\Components\MessagesPane.js" />
-    <EmbeddedResource Include="JavaScript\ScratchPad.js" />
     <EmbeddedResource Include="JavaScript\SvgViewer.js" />
     <EmbeddedResource Include="JavaScript\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />

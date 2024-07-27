@@ -73,7 +73,6 @@ function generatePlantUmlUrl(plantUmlContent) {
     return loadPakoScript()
         .then(() => {
             const encoded = compress(plantUmlContent);
-debugger;
             return `http://www.plantuml.com/plantuml/png/~1${encoded}`;
         });
 }
