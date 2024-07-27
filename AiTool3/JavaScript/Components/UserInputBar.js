@@ -150,9 +150,9 @@
                         opacity: 0.5;
                         cursor: not-allowed;
                     }
-                    .send-button { background-color: ${colorScheme.buttonBackgroundColor}; }
-                    .cancel-button { background-color: ${colorScheme.buttonBackgroundColor}; }
-                    .new-button { background-color: ${colorScheme.buttonBackgroundColor}; }
+                    .send-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
+                    .cancel-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
+                    .new-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
 
                     .split-button-container {
                         display: flex;
@@ -160,6 +160,7 @@
                     }
                     .split-button-main, .split-button-arrow {
                         background-color: ${colorScheme.buttonBackgroundColor};
+                        background: ${colorScheme.buttonBackgroundCss};
                         color: ${colorScheme.buttonTextColor};
                         border: none;
                         padding: 8px;
@@ -218,6 +219,7 @@
                         onClick={handleSend}
                         disabled={sendDisabled}
                         color={colorScheme.buttonBackgroundColor}
+                        background={colorScheme.buttonBackgroundCss}
                         alternateLabel={sendAlternateLabel}
                         alternateColor={sendAlternateColor}
                     />
@@ -226,6 +228,7 @@
                         onClick={handleCancel}
                         disabled={cancelDisabled}
                         color={colorScheme.buttonBackgroundColor}
+                        background={colorScheme.buttonBackgroundCss}
                         alternateLabel={cancelAlternateLabel}
                         alternateColor={cancelAlternateColor}
                     />
@@ -238,6 +241,7 @@
                         ]}
                         disabled={newDisabled}
                         color={colorScheme.buttonBackgroundColor}
+                        background={colorScheme.buttonBackgroundCss}
                         alternateLabel={newAlternateLabel}
                         alternateColor={newAlternateColor}
                     />

@@ -365,6 +365,11 @@ namespace AiTool3.Conversations
             // get the child message that says "Continue", case insensitive
             var continueMessage = Conversation.FindByGuid(message.Children!.FirstOrDefault(c => Conversation.FindByGuid(c).Content.ToLower().Contains("continue")));
 
+            if(continueMessage == null)
+            {
+                return;
+            }
+
             // get that msg's first child
             var child = Conversation.FindByGuid(continueMessage.Children!.First());
             var childContent = child.Content.Substring(child.Content.IndexOf(ThreeTicks));

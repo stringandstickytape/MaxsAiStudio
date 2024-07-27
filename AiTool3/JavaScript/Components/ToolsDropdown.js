@@ -47,6 +47,7 @@ const ToolsDropdown = () => {
                     }
                     .tools-dropdown-button {
                         background-color: ${colorScheme.buttonBackgroundColor};
+                        background: ${colorScheme.buttonBackgroundCss};
                         color: ${colorScheme.buttonTextColor};
                         padding: 5px 7px;
                         border: none;

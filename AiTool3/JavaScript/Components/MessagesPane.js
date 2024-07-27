@@ -79,6 +79,7 @@ const MessagesPane = () => {
                     word-wrap: break-word;
                     background-color: ${colorScheme.backgroundColor};
                     background: ${colorScheme.messagesPaneBackgroundCss};
+                    background-image: ${colorScheme.messagesPaneBackgroundImage};
                     padding: 10px;
                     scroll-behavior: smooth;  
                     color: ${colorScheme.textColor}

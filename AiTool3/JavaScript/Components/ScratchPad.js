@@ -14,6 +14,7 @@ const ScratchPad = () => {
     const updatePillButtonStyles = useCallback(() => {
         if (pillButtonRef.current) {
             pillButtonRef.current.style.backgroundColor = colorScheme.buttonBackgroundColor;
+            pillButtonRef.current.style.background = colorScheme.buttonBackgroundCss;
             pillButtonRef.current.style.color = colorScheme.buttonTextColor;
         }
     }, [colorScheme]);
@@ -117,6 +118,7 @@ const ScratchPad = () => {
                     #copyToInputButton {
                         padding: 10px;
                         background-color: ${colorScheme.buttonBackgroundColor};
+                        background: ${colorScheme.buttonBackgroundCss};
                         color: ${colorScheme.buttonTextColor};
                         border: none;
                         cursor: pointer;

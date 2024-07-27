@@ -187,7 +187,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await FetchAiInputResponse(null, "Continue");
+            await FetchAiInputResponse(null, "Continue from where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.");
 
             ConversationManager.ContinueUnterminatedCodeBlock(e);
 

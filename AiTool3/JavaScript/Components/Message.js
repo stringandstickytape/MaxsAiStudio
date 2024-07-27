@@ -72,6 +72,7 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
                         label="Continue..."
                         onClick={handleContinue}
                         color={colorScheme.buttonBackgroundColor}
+                        background={colorScheme.buttonBackgroundCss}
                     />
                 </div>
             )}

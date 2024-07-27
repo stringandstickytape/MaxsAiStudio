@@ -32,6 +32,7 @@ function App() {
                         scroll-behavior: smooth;
                         background-color: ${colorScheme.backgroundColor};
                         background: ${colorScheme.mainContentBackgroundCss};
+                        background-image: ${colorScheme.mainContentBackgroundImage};
                         color: ${colorScheme.textColor};
                     }
                 `}

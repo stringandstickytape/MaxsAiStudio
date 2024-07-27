@@ -42,6 +42,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         <button
             onClick={action}
             style={{
+                
+                background: colorScheme.buttonBackgroundCss ? colorScheme.buttonBackgroundCss : 'none',
                 backgroundColor: colorScheme.buttonBackgroundColor,
                 color: colorScheme.buttonTextColor,
                 border: 'none',

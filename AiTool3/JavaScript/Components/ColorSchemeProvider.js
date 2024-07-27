@@ -8,6 +8,7 @@ const initialColorSchemes = {
         headerBackgroundColor: '#f0f0f0',
         inputBackgroundColor: '#ffffff',
         buttonBackgroundColor: '#007bff',
+        buttonBackgroundCss: '',
         dropdownBackgroundColor: '#ffffff',
         messageUserBackgroundColor: '#e6f2ff',
         messageAIBackgroundColor: '#f0f0f0',
@@ -33,8 +34,12 @@ const initialColorSchemes = {
         linkColor: '#0056b3',
         buttonDisabledBackgroundColor: '#cccccc',
         buttonDisabledTextColor: '#666666',
+        headerBarBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
+        headerBarBackgroundImage: '',
         messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
-        mainContentBackgroundCss: 'linear-gradient(160deg, #ffffff 0%, #f0f0f0 100%)'
+        messagesPaneBackgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23e0e0e0' fill-opacity='0.1'/%3E%3C/svg%3E\")",
+        mainContentBackgroundCss: 'linear-gradient(160deg, #ffffff 0%, #f0f0f0 100%)',
+        mainContentBackgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23e0e0e0' fill-opacity='0.1'/%3E%3C/svg%3E\")"
     },
     dark: {
         backgroundColor: '#121212',
@@ -66,8 +71,13 @@ const initialColorSchemes = {
         linkColor: '#81A1C1',
         buttonDisabledBackgroundColor: '#2A2A2A',
         buttonDisabledTextColor: '#6E6E6E',
+        headerBarBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
+        headerBarBackgroundImage: '',
         messagesPaneBackgroundCss: 'linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)',
-        mainContentBackgroundCss: 'linear-gradient(160deg, #121212 0%, #1E1E1E 100%)'
+        messagesPaneBackgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23e0e0e0' fill-opacity='0.1'/%3E%3C/svg%3E\")",
+        mainContentBackgroundCss: 'linear-gradient(160deg, #121212 0%, #1E1E1E 100%)',
+        mainContentBackgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23e0e0e0' fill-opacity='0.1'/%3E%3C/svg%3E\")"
+
     }
 };
 
@@ -93,7 +103,9 @@ const ColorSchemeProvider = ({ children }) => {
                 ...prevSchemes[id],
                 ...newColors,
                 messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss,
-                mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss
+                mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss,
+                mainContentBackgroundImage: newColors.mainContentBackgroundImage || prevSchemes[id].mainContentBackground,
+                messagesPaneBackgroundImage: newColors.messagesPaneBackgroundImage || prevSchemes[id].messagesPaneBackgroundImage
             }
         }));
     };

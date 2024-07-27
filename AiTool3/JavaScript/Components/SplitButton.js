@@ -9,7 +9,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     const uniqueId = useRef(`split-button-${Math.random().toString(36).substr(2, 9)}`).current;
 
     const currentLabel = alternateLabel || label;
-    const currentColor = alternateColor || colorScheme.buttonBackgroundColor;
+    const currentColor = colorScheme.buttonBackgroundColor;
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -23,11 +23,11 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
+    
     const buttonStyle = {
         backgroundColor: currentColor,
         color: colorScheme.buttonTextColor,
-        border: 'none',
+        border: '1px solid black',
         padding: '8px 8px',
         cursor: 'pointer',
         transition: 'background-color 0.3s',
@@ -36,6 +36,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         alignItems: 'center',
         justifyContent: 'center',
     };
+
+    if (colorScheme.buttonBackgroundCss && colorScheme.buttonBackgroundCss.length > 0) buttonStyle.background = colorScheme.buttonBackgroundCss;
 
     const mainButtonStyle = {
         ...buttonStyle,
