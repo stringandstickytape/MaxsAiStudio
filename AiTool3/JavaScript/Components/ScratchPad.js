@@ -84,9 +84,35 @@ const ScratchPad = () => {
             createScratchPadWindow();
         }
         scratchPadWindowRef.current.document.getElementById('scratchPadContent').value += currentSelection + '\n\n';
+        window.chrome.webview.postMessage({
+            type: 'saveScratchpad',
+            content: scratchPadWindowRef.current.document.getElementById('scratchPadContent').value
+        });
         hidePillButton();
         clearSelection();
     }, [currentSelection, hidePillButton]);
+
+    const [scratchpadContent, setScratchpadContent] = useState('');
+    const debouncedAddMessageButtonRef = useRef(null);
+
+    const debouncedAddMessageButton = useCallback(() => {
+        if (debouncedAddMessageButtonRef.current) {
+            clearTimeout(debouncedAddMessageButtonRef.current);
+        }
+
+        debouncedAddMessageButtonRef.current = setTimeout(() => {
+            console.log('Sending content...');
+                window.chrome.webview.postMessage({
+                    type: 'saveScratchpad',
+                    content: scratchpadContent
+            });
+        }, 10000); // 10 seconds
+    }, [scratchpadContent]);
+
+    const updateScratchpadContent = useCallback((newContent) => {
+        setScratchpadContent(newContent);
+        debouncedAddMessageButton();
+    }, [debouncedAddMessageButton]);
 
     const createScratchPadWindow = useCallback(() => {
         console.log("Creating scratch pad window");
@@ -129,6 +155,9 @@ const ScratchPad = () => {
                 <textarea id="scratchPadContent"></textarea>
                 <button id="copyToInputButton">Copy Selected to Input</button>
                 <script>
+                    document.getElementById('scratchPadContent').addEventListener('input', function() {
+                        window.opener.updateScratchpadContent(this.value);
+                    });
                     document.getElementById('copyToInputButton').addEventListener('click', function() {
                         const selectedText = document.getElementById('scratchPadContent').value.substring(
                             document.getElementById('scratchPadContent').selectionStart,
@@ -141,7 +170,7 @@ const ScratchPad = () => {
             </html>
         `);
         scratchPadWindowRef.current = newWindow;
-    }, [colorScheme]);
+    }, [colorScheme, updateScratchpadContent]);
 
     const clearSelection = useCallback(() => {
         console.log("Clearing selection");
@@ -255,6 +284,7 @@ const ScratchPad = () => {
     }, [colorScheme, updatePillButtonStyles]);
 
     useEffect(() => {
+        window.updateScratchpadContent = updateScratchpadContent;
         window.appendToUserInput = (text) => {
             const currentContent = window.getUserPrompt();
             const newContent = currentContent ? currentContent + '\n' + text : text;
@@ -262,9 +292,10 @@ const ScratchPad = () => {
         };
 
         return () => {
+            delete window.updateScratchpadContent;
             delete window.appendToUserInput;
         };
-    }, []);
+    }, [updateScratchpadContent]);
 
     return null;
 };
