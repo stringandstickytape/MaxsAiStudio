@@ -168,6 +168,14 @@ const ScratchPad = () => {
             }
         };
 
+        const handleWheel = () => {
+            // Hide pill button when mouse wheel is scrolled and the button is visible
+            if (pillButtonRef.current && pillButtonRef.current.style.display !== 'none') {
+                console.log("Mouse wheel scrolled, hiding pill button");
+                hidePillButton();
+            }
+        };
+
         const handleKeyUp = (e) => {
             if (!e.shiftKey && selectionInProgressRef.current) {
                 console.log("Shift key released");
@@ -196,6 +204,7 @@ const ScratchPad = () => {
         document.addEventListener('keyup', handleKeyUp);
         document.addEventListener('click', handleDocumentClick);
         document.addEventListener('mousemove', updateMousePosition);
+        document.addEventListener('wheel', handleWheel);
 
         if (pillButtonRef.current) {
             pillButtonRef.current.addEventListener('click', copyToScratchPad);
@@ -209,6 +218,7 @@ const ScratchPad = () => {
             document.removeEventListener('keyup', handleKeyUp);
             document.removeEventListener('click', handleDocumentClick);
             document.removeEventListener('mousemove', updateMousePosition);
+            document.removeEventListener('wheel', handleWheel);
             if (pillButtonRef.current) {
                 pillButtonRef.current.removeEventListener('click', copyToScratchPad);
             }
