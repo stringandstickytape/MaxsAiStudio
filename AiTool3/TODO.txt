@@ -77,6 +77,12 @@ No token counting for Groq
 Useful next:
 
 Fade out and back in instead of smooth scrolling?
+
+Add the ability to Delete Theme and Rename Theme.
+Also, when a
+
+* Delete Theme
+* Rename 
 Delete colour theme, rename theme, that bug where it doesn't pre-select the one you just "install"ed, doesn't seem to be persisting new ones properly
 Shouldn't be an "add" on the categories page unless it works...
 

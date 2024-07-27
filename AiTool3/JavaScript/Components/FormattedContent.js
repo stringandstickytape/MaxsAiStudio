@@ -127,9 +127,16 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                             }
                             {fileTypes.installTheme.includes(trimmedFileType) &&
                                 addMessageButton("Install Theme", () => {
-                                    var obj = JSON.parse(code.trim());
+                                    try {
+                                        var obj = JSON.parse(code.trim());
+                                    }
+                                    catch (error) {
+                                        setUserPrompt("That JSON isn't valid: "+error);
+                                        return;
+                                    }
                                     var themeName = Object.keys(obj)[0];
                                     window.addColorScheme(themeName, Object.values(obj)[0]);
+                                    
                                     
                                 })
                             }

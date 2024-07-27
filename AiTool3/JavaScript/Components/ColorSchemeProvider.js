@@ -91,9 +91,12 @@ const ColorSchemeProvider = ({ children }) => {
             [id]: scheme
         }));
 
+        
+
         setTimeout(() => {
-            window.createThemeEditor();
-        }, 1000);
+            window.selectColorScheme(id);
+            //window.createThemeEditor();
+        }, 100);
     };
 
     const updateColorScheme = (id, newColors) => {
