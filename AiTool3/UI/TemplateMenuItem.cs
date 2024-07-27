@@ -11,7 +11,7 @@
         TextAlign = ContentAlignment.MiddleLeft;
         AutoSize = false;
         Height = 32;
-        ToolTipText = "CTRL-click to use System Prompt with current conversation";
+        ToolTipText = "CTRL-click to use System Prompt with current conversation;\nSHIFT-click to delete";
 
         // get the owner's font settings
         var parentFont = dropDownItems.Owner.Font;

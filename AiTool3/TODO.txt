@@ -64,6 +64,9 @@ DONE: Persistent themes
 DONE: move conversations to subdirectory, templates to another, settings to a third?
 DONE: basic scratchpad
 DONE: Seems like Cancel button doesn't work
+DONE: Add the ability to Delete Theme
+
+
 
 Ollama Tool Support
 
@@ -78,12 +81,8 @@ Useful next:
 
 Fade out and back in instead of smooth scrolling?
 
-Add the ability to Delete Theme and Rename Theme.
-Also, when a
+Possihble nasty bug in deleting themes
 
-* Delete Theme
-* Rename 
-Delete colour theme, rename theme, that bug where it doesn't pre-select the one you just "install"ed, doesn't seem to be persisting new ones properly
 Shouldn't be an "add" on the categories page unless it works...
 
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
