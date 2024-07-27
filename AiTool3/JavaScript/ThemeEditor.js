@@ -263,6 +263,12 @@
             updatedTheme[key] = input.value;
         });
 
+        window.chrome.webview.postMessage({
+            type: 'allThemes',
+            content: JSON.stringify(window.getAllColorSchemes())
+        });
+
+
         window.updateColorScheme(currentSchemeId, updatedTheme);
         window.selectColorScheme(currentSchemeId);
 

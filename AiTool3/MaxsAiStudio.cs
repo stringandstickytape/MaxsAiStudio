@@ -201,7 +201,8 @@ namespace AiTool3
         }
 
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
-        {   switch(e.EventType)
+        {   
+            switch(e.EventType)
             {
                 case "allThemes":
                     // persist e.Json to settings subdirectory Themes.json
