@@ -183,6 +183,23 @@ namespace AiTool3
                     await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
                 }
             }
+
+            // if there isn't a scratchpad file but there is a scratchpad bak file, rename the bak file to scratchpad.json
+            if (File.Exists(Path.Combine("Settings", "Scratchpad.json.bak")) && !File.Exists(Path.Combine("Settings", "Scratchpad.json")))
+            {
+                File.Move(Path.Combine("Settings", "Scratchpad.json.bak"), Path.Combine("Settings", "Scratchpad.json"));
+            }
+
+            if (File.Exists(Path.Combine("Settings", "Scratchpad.json")))
+            {
+                var scratchpadContent = File.ReadAllText(Path.Combine("Settings", "Scratchpad.json"));
+
+                //already JSON-encoded
+
+                await chatWebView.ExecuteScriptAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
+
+
+            }
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -205,7 +222,27 @@ namespace AiTool3
             switch(e.EventType)
             {
                 case "saveScratchpad":
+                    // persist e.Json to settings subdirectory Scratchpad.json
+                    if (e.Json == "")
+                        return;
+                    var scratchpadPath = Path.Combine("Settings\\Scratchpad.json");
 
+                    // enocde string as json
+                    var json = JsonConvert.SerializeObject(e.Json);
+
+                    // if there's an existing bak file, delete it
+                    if (File.Exists(scratchpadPath + ".bak"))
+                    {
+                        File.Delete(scratchpadPath + ".bak");
+                    }
+
+                    // if there's an existing file, rename it .json.bak
+                    if (File.Exists(scratchpadPath))
+                    {
+                        File.Move(scratchpadPath, scratchpadPath + ".bak");
+                    }
+
+                    File.WriteAllText(scratchpadPath, json);
                     break;
                 case "allThemes":
                     // persist e.Json to settings subdirectory Themes.json

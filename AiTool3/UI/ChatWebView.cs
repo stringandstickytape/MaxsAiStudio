@@ -186,6 +186,8 @@ namespace AiTool3.UI
             HandleCreated -= OnHandleCreated!;
             await InitializeAsync();
 
+
+
         }
 
 
@@ -232,8 +234,13 @@ namespace AiTool3.UI
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.FindAndReplacer.js"));
 
+            // get content from Path.Combine("Settings\\Scratchpad.json");
+
+
             
+
             
+
         }
 
         // begin webview interface methods

@@ -106,7 +106,7 @@ const ScratchPad = () => {
                     type: 'saveScratchpad',
                     content: scratchpadContent
             });
-        }, 10000); // 10 seconds
+        }, 1000); // 1 second
     }, [scratchpadContent]);
 
     const updateScratchpadContent = useCallback((newContent) => {
@@ -180,6 +180,22 @@ const ScratchPad = () => {
             document.selection.empty();
         }
     }, []);
+
+    const setScratchpadContentAndOpen = useCallback((content) => {
+        if (!scratchPadWindowRef.current || scratchPadWindowRef.current.closed) {
+            createScratchPadWindow();
+        }
+        scratchPadWindowRef.current.document.getElementById('scratchPadContent').value = content;
+        updateScratchpadContent(content);
+        scratchPadWindowRef.current.focus();
+    }, [createScratchPadWindow, updateScratchpadContent]);
+
+    const openScratchpad = useCallback(() => {
+        if (!scratchPadWindowRef.current || scratchPadWindowRef.current.closed) {
+            createScratchPadWindow();
+        }
+        scratchPadWindowRef.current.focus();
+    }, [createScratchPadWindow]);
 
     const checkSelection = useCallback((x, y) => {
         console.log("Checking selection");
@@ -290,12 +306,16 @@ const ScratchPad = () => {
             const newContent = currentContent ? currentContent + '\n' + text : text;
             window.setUserPrompt(newContent);
         };
+        window.setScratchpadContentAndOpen = setScratchpadContentAndOpen;
+        window.openScratchpad = openScratchpad;
 
         return () => {
             delete window.updateScratchpadContent;
             delete window.appendToUserInput;
+            delete window.setScratchpadContentAndOpen;
+            delete window.openScratchpad;
         };
-    }, [updateScratchpadContent]);
+    }, [updateScratchpadContent, setScratchpadContentAndOpen, openScratchpad]);
 
     return null;
 };
