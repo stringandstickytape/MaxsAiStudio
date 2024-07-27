@@ -61,6 +61,9 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "saveScratchpad":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
+                    break;
                 case "ready":
                     ChatWebViewReadyEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("ready", ""));
                     break;

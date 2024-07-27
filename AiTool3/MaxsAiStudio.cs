@@ -204,6 +204,9 @@ namespace AiTool3
         {   
             switch(e.EventType)
             {
+                case "saveScratchpad":
+
+                    break;
                 case "allThemes":
                     // persist e.Json to settings subdirectory Themes.json
                     var themes = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(e.Json);
