@@ -17,7 +17,8 @@
 
     document.body.appendChild(container);
 
-    updateContent(currentSchemeId);  // Move this call here, after appending to DOM
+    updateContent(currentSchemeId);
+
     function createContainer() {
         return createElement('div', {
             style: {
@@ -66,8 +67,12 @@
 
         const schemeSelector = createSchemeSelector();
 
+        const deleteButton = createButton('Delete Theme', '#FF5722', handleDeleteTheme);
+        deleteButton.style.marginLeft = '10px';
+
         header.appendChild(title);
         header.appendChild(schemeSelector);
+        header.appendChild(deleteButton);
 
         return header;
     }
@@ -85,6 +90,15 @@
             onchange: (e) => updateContent(e.target.value)
         });
 
+        setTimeout(updateSchemeSelector, 0);
+
+        return selector;
+    }
+
+    function updateSchemeSelector() {
+        const selector = wrapper.querySelector('select');
+        if (!selector) return;
+        selector.innerHTML = '';
         Object.keys(allColorSchemes).forEach(schemeId => {
             const option = createElement('option', {
                 value: schemeId,
@@ -93,8 +107,6 @@
             });
             selector.appendChild(option);
         });
-
-        return selector;
     }
 
     function createContent() {
@@ -146,7 +158,7 @@
             key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss' || key === 'messagesPaneBackgroundFilter') {
             const textarea = createElement('textarea', {
                 value: value,
-                name: key,  // Add name attribute
+                name: key,
                 style: {
                     width: '100%',
                     height: '80px',
@@ -170,7 +182,7 @@
             const colorInput = createElement('input', {
                 type: 'color',
                 value: value,
-                name: key,  // Add name attribute
+                name: key,
                 style: {
                     width: '50px',
                     height: '50px',
@@ -183,7 +195,7 @@
             const textInput = createElement('input', {
                 type: 'text',
                 value: value,
-                name: key,  // Add name attribute
+                name: key,
                 style: {
                     flex: 1,
                     backgroundColor: '#3A3A3A',
@@ -257,7 +269,6 @@
             if (label) {
                 key = label.textContent;
             } else {
-                // Fallback: use the input's name attribute or a default
                 key = input.name || 'unknown';
             }
 
@@ -269,9 +280,10 @@
             content: JSON.stringify(window.getAllColorSchemes())
         });
 
-
         window.updateColorScheme(currentSchemeId, updatedTheme);
         window.selectColorScheme(currentSchemeId);
+
+        setTimeout(updateSchemeSelector, 0);
 
         window.chrome.webview.postMessage({
             type: 'selectTheme',
@@ -279,6 +291,39 @@
         });
 
         document.body.removeChild(container);
+    }
+
+    function handleDeleteTheme() {
+        const remainingSchemes = Object.keys(allColorSchemes);
+        if (remainingSchemes.length <= 1) {
+            alert("Cannot delete the last remaining theme.");
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete the "${currentSchemeId}" theme?`)) {
+            delete allColorSchemes[currentSchemeId];
+            window.setAllColorSchemes(allColorSchemes);
+
+            // Select the first available theme
+            const newSchemeId = Object.keys(allColorSchemes)[0];
+            currentSchemeId = newSchemeId;
+            window.selectColorScheme(newSchemeId);
+
+            // Update the UI
+            setTimeout(updateSchemeSelector, 0);
+            updateContent(newSchemeId);
+
+            // Notify the main application
+            window.chrome.webview.postMessage({
+                type: 'allThemes',
+                content: JSON.stringify(allColorSchemes)
+            });
+
+            window.chrome.webview.postMessage({
+                type: 'selectTheme',
+                content: JSON.stringify(newSchemeId)
+            });
+        }
     }
 
     function createElement(tag, options = {}) {

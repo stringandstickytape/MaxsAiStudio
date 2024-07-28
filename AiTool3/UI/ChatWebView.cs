@@ -205,23 +205,7 @@ namespace AiTool3.UI
                 CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
             }
 
-            // ask the user whetehr to open cwv or cwv2
-            //var mb = MessageBox.Show("Use CWV2?", "CWV2", MessageBoxButtons.YesNo);
-            string html;
-            //if(mb == DialogResult.Yes)
-                html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html");
-            //else
-            //    html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.html");
-
-            var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView.css");
-
-            // find the first style tag
-            var styleTagIndex = html.IndexOf("<style>", StringComparison.Ordinal) + "<style>".Length;
-
-            // insert the css
-            html = html.Insert(styleTagIndex, css);
-
-            NavigateToString(html);
+            NavigateToString(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html"));
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js"));
 
@@ -234,14 +218,6 @@ namespace AiTool3.UI
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.DotViewer.js"));
 
             ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.FindAndReplacer.js"));
-
-            // get content from Path.Combine("Settings\\Scratchpad.json");
-
-
-            
-
-            
-
         }
 
         // begin webview interface methods
