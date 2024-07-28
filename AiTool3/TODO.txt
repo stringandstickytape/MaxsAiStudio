@@ -89,6 +89,10 @@ Possihble nasty bug in deleting themes
 
 Shouldn't be an "add" on the categories page unless it works...
 
+Theme names shouldn't be specified by property names, but by properties
+
+Tools should be specified by extrenal files and mapped in
+
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
 add time-taken to search results and timestamp to all convo messages
 add delete-template and save-as-new-template/copy template
