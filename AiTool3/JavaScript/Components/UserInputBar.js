@@ -31,12 +31,22 @@
         return () => clearInterval(intervalId);
     }, []);
 
+    function getTrueIndices(obj) {
+        return Object.keys(obj)
+            .filter(key => obj[key] === true)
+            .join(',');
+    }
+
     const handleSend = () => {
+
+        var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
+        var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
+        debugger;
         const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
             type: 'send',
             content: inputContent,
-            selectedTools: selectedTools
+            selectedTools: toolsEnabledIndices
         });
     };
     const handleNew = () => {

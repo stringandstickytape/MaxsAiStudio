@@ -24,7 +24,7 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, Tools.ToolManager toolManager = null)
         {
             if (!clientInitialised)
             {
@@ -44,21 +44,24 @@ namespace AiTool3.Providers
 
 
             JObject tool  = null;
-            if (toolIDs != null && toolIDs.Contains("tool-1"))
+            if(toolIDs != null && toolIDs.Any())
             {
-                tool = GetFindAndReplaceTool();
-            } else if (toolIDs != null && toolIDs.Contains("tool-2"))
-            {
-                tool = GetColorSchemeTool();
-            }
+                var toolObj = toolManager.Tools.First(x => x.Name == toolIDs[0]);
+                // get first line of toolObj.FullText
+                var firstLine = toolObj.FullText.Split("\n")[0];
+                firstLine = firstLine.Replace("//","").Replace(" ","").Replace("\r","").Replace("\n","");
 
-            if (tool != null)
-            {
-                req["tools"] = new JArray { tool };
+                var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly($"AiTool3.Tools.{firstLine}");
+
+                colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
+
+                var toolx = JObject.Parse(colorSchemeTool);
+
+                req["tools"] = new JArray { toolx };
                 req["tool_choice"] = new JObject
                 {
                     ["type"] = "tool",
-                    ["name"] = tool["name"].ToString()
+                    ["name"] = toolx["name"].ToString()
                 };
             }
 

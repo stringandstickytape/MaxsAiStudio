@@ -13,6 +13,7 @@ using System.Text;
 using System.Resources;
 using System.Runtime.InteropServices;
 using AiTool3.ApiManagement;
+using AiTool3.Tools;
 
 namespace AiTool3.UI
 {
@@ -286,7 +287,13 @@ namespace AiTool3.UI
                 ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)})");
             }
         }
+        internal async Task SetTools(List<Tool> tools)
+        {
+            var toolStrings = tools.Select(x => x.Name.ToString()).ToArray();
+            var toolStringsJson = JsonConvert.SerializeObject(toolStrings);
 
+            await ExecuteScriptAsync($"window.setTools({toolStringsJson})");
+        }
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
         internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");

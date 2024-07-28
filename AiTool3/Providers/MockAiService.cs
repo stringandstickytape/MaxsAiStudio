@@ -1,6 +1,7 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
+using AiTool3.Tools;
 using System;
 using System.Text;
 
@@ -14,7 +15,7 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null)
         {
             int wordCount = random.Next(10, 20);
             string[] words = LoremIpsum.Split(' ');

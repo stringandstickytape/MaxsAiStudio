@@ -1,5 +1,4 @@
 ﻿const { useState, useEffect, useRef } = React;
-
 const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor }) => {
     const { colorScheme } = window.useColorScheme();
     //const { colorScheme } = useColorScheme();
@@ -10,6 +9,9 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
 
     const currentLabel = alternateLabel || label;
     const currentColor = colorScheme.buttonBackgroundColor;
+
+    const [dropdownPosition, setDropdownPosition] = useState({ left: '-44px', bottom: '15px' });
+    const buttonRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -23,6 +25,26 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            const buttonRect = buttonRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            const dropdownWidth = 200; // Approximate width of the dropdown
+            const dropdownHeight = dropdownItems.length * 40; // Approximate height of the dropdown
+
+            if (buttonRect.left - dropdownWidth < 0 || buttonRect.top - dropdownHeight < 0) {
+                // If dropdown would appear off-screen to the left or top, position it to the bottom-right
+                setDropdownPosition({ left: '0', top: '100%' });
+            } else {
+                // Otherwise, keep the original position
+                setDropdownPosition({ left: '-44px', bottom: '15px' });
+            }
+        }
+    }, [isOpen, dropdownItems.length]);
+
     
     const buttonStyle = {
         backgroundColor: currentColor,
@@ -55,8 +77,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
 
     const dropdownStyle = {
         position: 'absolute',
-        left: '-44px',
-        bottom: '15px',
+        ...dropdownPosition,
         backgroundColor: colorScheme.dropdownBackgroundColor,
         border: `1px solid ${colorScheme.textColor}`,
         borderRadius: '4px',
@@ -87,7 +108,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     };
 
     return (
-        <div style={{ display: 'inline-flex', position: 'relative', padding: '4px' }} id={uniqueId}>
+        <div style={{ display: 'inline-flex', position: 'relative', padding: '4px' }} id={uniqueId} ref={buttonRef}>
             <button
                 style={mainButtonStyle}
                 onClick={onClick}
@@ -107,13 +128,12 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                         style={arrowButtonStyle}
                         onClick={() => setIsOpen(!isOpen)}
                         disabled={disabled}
-                        //onMouseEnter={(e) => e.target.style.backgroundColor = adjustColor(color, -20)}
-                        //onMouseLeave={(e) => e.target.style.backgroundColor = color}
                     >
                         ▼
                     </button>
                     {isOpen && (
                         <div style={dropdownStyle} ref={dropdownRef}>
+
                             {dropdownItems.map((item, index) => (
                                 <button
                                     key={index}
@@ -136,6 +156,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     );
 };
 
+
 // Helper function to adjust color brightness
 function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
@@ -145,6 +166,9 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
     const hasSplit = dropdownItems.length > 0;
     const [mainState, setMainState] = useState(false);
     const [itemStates, setItemStates] = useState(dropdownItems.map(() => false));
+
+    // Add this line to make the states accessible globally
+    window[`splitButtonState_${label}`] = { mainState, itemStates };
 
     const handleMainToggle = () => {
         setMainState(prevState => !prevState);

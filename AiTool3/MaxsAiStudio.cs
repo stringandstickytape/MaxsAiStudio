@@ -178,7 +178,7 @@ namespace AiTool3
             {
                 await chatWebView.SetThemes(File.ReadAllText(themesPath));
 
-                if(!string.IsNullOrWhiteSpace(CurrentSettings.SelectedTheme))
+                if (!string.IsNullOrWhiteSpace(CurrentSettings.SelectedTheme))
                 {
                     await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
                 }
@@ -200,6 +200,8 @@ namespace AiTool3
 
 
             }
+
+            await chatWebView.SetTools(toolManager.Tools);
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -218,8 +220,8 @@ namespace AiTool3
         }
 
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
-        {   
-            switch(e.EventType)
+        {
+            switch (e.EventType)
             {
                 case "saveScratchpad":
                     // persist e.Json to settings subdirectory Scratchpad.json
@@ -296,7 +298,7 @@ namespace AiTool3
         private void ChatWebView_ChatWebViewAddBranchEvent(object? sender, ChatWebViewAddBranchEventArgs e)
         {
             var newNodeGuid = ConversationManager.AddBranch(e);
-            if(newNodeGuid == null) return;
+            if (newNodeGuid == null) return;
             // update the webndc
             WebNdcDrawNetworkDiagram();
 
@@ -451,12 +453,13 @@ namespace AiTool3
 
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
 
-            
+            // Create things in Ready instead...
+
         }
 
         private async Task InitialiseApiList_New()
         {
-            
+
 
             await chatWebView.SetModels(CurrentSettings.ApiList!.SelectMany(x => x.Models).ToList());
 
@@ -464,8 +467,8 @@ namespace AiTool3
             {
                 await chatWebView.SetDropdownValue("mainAI", CurrentSettings.SelectedModel.ToString());
             }
-            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString()); 
-            
+            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
+
             if (CurrentSettings.SelectedSummaryModel != "")
             {
                 await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
@@ -491,7 +494,7 @@ namespace AiTool3
             }
         }
 
-        private async void RegenerateSummary(object sender, EventArgs e) => 
+        private async void RegenerateSummary(object sender, EventArgs e) =>
             await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
@@ -569,12 +572,15 @@ namespace AiTool3
             await chatWebView.UpdateSendButtonColor(CurrentSettings.UseEmbeddings);
         }
 
-        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e) => await FetchAiInputResponse(e.SelectedTools);
+        private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
+        { 
+            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager);
+    }
 
 
-
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null)
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null)
         {
+            toolIDs = toolIDs ?? new List<string>();
             string retVal = "";
             try
             {
@@ -583,7 +589,7 @@ namespace AiTool3
                 var model = await chatWebView.GetDropdownModel("mainAI",  CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt);
+                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -638,21 +644,25 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, ToolManager toolManager)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolIDs: toolIDs, useStreaming: CurrentSettings.StreamResponses);
+            var toolLabels = toolIDs.Select(t => toolManager.Tools[int.Parse(t)].Name).ToList();
 
-            if (toolIDs != null && toolIDs.Contains("tool-1"))
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, toolManager);
+
+            if (toolManager != null)
             {
-                response.ResponseText = $"{ThreeTicks}findandreplace.json\n{{{response.ResponseText.Replace("\r","").Replace("\n"," ")}}}\n{ThreeTicks}\n";
-            }
-            else if (toolIDs != null && toolIDs.Contains("tool-2"))
-            {
-                response.ResponseText = $"{ThreeTicks}maxtheme.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
+                if (toolLabels.Contains("Color-scheme"))
+                {
+                    response.ResponseText = $"{ThreeTicks}maxtheme.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
+                } else if (toolLabels.Contains("Find-and-replaces"))
+                {
+                    response.ResponseText = $"{ThreeTicks}findandreplace.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
+                }
             }
 
             var modelUsageManager = new ModelUsageManager(model);
