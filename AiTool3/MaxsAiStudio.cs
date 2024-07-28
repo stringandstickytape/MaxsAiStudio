@@ -15,6 +15,7 @@ using AiTool3.ExtensionMethods;
 using System.Windows.Forms;
 using AiTool3.Settings;
 using System.Diagnostics;
+using AiTool3.Tools;
 
 namespace AiTool3
 {
@@ -22,6 +23,7 @@ namespace AiTool3
     {
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;
+        private ToolManager toolManager = new ToolManager();
 
         private SearchManager _searchManager;
 
@@ -79,7 +81,6 @@ namespace AiTool3
             contextMenu.Items.Add(new ToolStripSeparator());
             var noHighlightItem = new ToolStripMenuItem("Clear Highlight");
 
-
             // add menu items for the six pastel Colors you can mark a summary with
             //foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, C })
             foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
@@ -119,7 +120,6 @@ namespace AiTool3
                     }
                 };
                 contextMenu.Items.Add(item);
-
 
             }
 
@@ -649,6 +649,10 @@ namespace AiTool3
             if (toolIDs != null && toolIDs.Contains("tool-1"))
             {
                 response.ResponseText = $"{ThreeTicks}findandreplace.json\n{{{response.ResponseText.Replace("\r","").Replace("\n"," ")}}}\n{ThreeTicks}\n";
+            }
+            else if (toolIDs != null && toolIDs.Contains("tool-2"))
+            {
+                response.ResponseText = $"{ThreeTicks}maxtheme.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
             }
 
             var modelUsageManager = new ModelUsageManager(model);

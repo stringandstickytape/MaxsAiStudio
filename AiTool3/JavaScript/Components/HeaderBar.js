@@ -1,4 +1,4 @@
-﻿const { useState } = React;
+﻿const { useState, useEffect } = React;
 
 const HeaderBar = () => {
     const { colorScheme } = React.useColorScheme();
@@ -8,10 +8,17 @@ const HeaderBar = () => {
     const [summaryAIOptions, setSummaryAIOptions] = useState([]);
     const [mainAIValue, setMainAIValue] = useState(mainAIOptions[0]);
     const [summaryAIValue, setSummaryAIValue] = useState(summaryAIOptions[0]);
-    const [tools, setTools] = useState([
-        { name: 'Find and Replace', checked: false },
-        { name: 'Tool 2', checked: false },
-    ]);
+    const [tools, setTools] = useState([]);
+
+    useEffect(() => {
+        window.setTools = (newTools) => {
+            setTools(newTools.map(tool => ({ name: tool, checked: false })));
+        };
+
+        return () => {
+            delete window.setTools;
+        };
+    }, []);
 
     // Export methods
     window.setDropdownOptions = (dropdownName, options) => {
@@ -67,6 +74,7 @@ const HeaderBar = () => {
     return (
         <>
             <style>
+
                 {`
                     .header-bar {
                         display: flex;
@@ -210,7 +218,6 @@ const HeaderBar = () => {
   <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C54.4 90 58 86.4 58 82C58 79.9 57.2 78 55.9 76.5C54.6 75 53.8 73.1 53.8 71C53.8 66.6 57.4 63 61.8 63H70C81 63 90 54 90 43C90 24.8 72.1 10 50 10ZM30 50C25.6 50 22 46.4 22 42C22 37.6 25.6 34 30 34C34.4 34 38 37.6 38 42C38 46.4 34.4 50 30 50ZM42 34C37.6 34 34 30.4 34 26C34 21.6 37.6 18 42 18C46.4 18 50 21.6 50 26C50 30.4 46.4 34 42 34ZM66 34C61.6 34 58 30.4 58 26C58 21.6 61.6 18 66 18C70.4 18 74 21.6 74 26C74 30.4 70.4 34 66 34Z" fill="currentColor"/>
 </svg>'
                             />
-
                         </div>
                     </div>
                     <div className="system-prompt-container">

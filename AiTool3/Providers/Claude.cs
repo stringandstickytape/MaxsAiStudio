@@ -261,17 +261,13 @@ namespace AiTool3.Providers
                     if (completion["content"][0]["name"].ToString() == "Color-scheme")
                     {
                         //var json = JsonConvert.DeserializeObject<JValue>(toolText.Replace("\r","").Replace("\n", " "));
-                        responseText = $"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
+                        responseText = toolText; //$"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
                     }
                     else
                     {
                         responseText = toolText;
                     }
                 }
-                //else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
-                //{
-                //    responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
-                //}
                 else responseText = completion["content"][0]["text"].ToString();
             }
             else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
