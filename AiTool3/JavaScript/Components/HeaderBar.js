@@ -153,7 +153,6 @@ const HeaderBar = () => {
                     <div className="left-section">
                         <div className="logo">{logoText}</div>
                         <div>
-                            <ToolsDropdown />
                             <ToggleSplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}

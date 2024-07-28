@@ -68,7 +68,8 @@ DONE: Add the ability to Delete Theme
 DONE: SVG? we already have svg-pan-zoom
 DONE: allow setting of proper URLs for local AI
 DONE: Cublas and non-Cublas builds for whisperx (file transcription) - need dlls from another source - whisperX?DONE: allow setting of proper URLs for local AI
-
+DONE: Theme names shouldn't be specified by property names, but by properties
+DONE: Tools should be specified by extrenal files and mapped in
 
 
 
@@ -81,6 +82,7 @@ No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
 
+
 Useful next:
 
 Fade out and back in instead of smooth scrolling?
@@ -88,10 +90,6 @@ Fade out and back in instead of smooth scrolling?
 Possihble nasty bug in deleting themes
 
 Shouldn't be an "add" on the categories page unless it works...
-
-Theme names shouldn't be specified by property names, but by properties
-
-Tools should be specified by extrenal files and mapped in
 
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
 add time-taken to search results and timestamp to all convo messages

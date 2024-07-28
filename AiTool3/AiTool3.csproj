@@ -52,7 +52,6 @@
     <None Remove="JavaScript\Components\Message.js" />
     <None Remove="JavaScript\Components\ScratchPad.js" />
     <None Remove="JavaScript\Components\SplitButton.js" />
-    <None Remove="JavaScript\Components\ToolsDropdown.js" />
     <None Remove="JavaScript\Components\UserInputBar.js" />
     <None Remove="JavaScript\DotViewer.js" />
     <None Remove="JavaScript\FindAndReplacer.js" />
@@ -98,7 +97,6 @@
     <EmbeddedResource Include="JavaScript\Components\Message.js" />
     <EmbeddedResource Include="JavaScript\Components\ScratchPad.js" />
     <EmbeddedResource Include="JavaScript\Components\SplitButton.js" />
-    <EmbeddedResource Include="JavaScript\Components\ToolsDropdown.js" />
     <EmbeddedResource Include="JavaScript\Components\UserInputBar.js" />
     <EmbeddedResource Include="JavaScript\DotViewer.js" />
     <EmbeddedResource Include="JavaScript\FindAndReplacer.js" />

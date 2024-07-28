@@ -41,7 +41,12 @@ namespace AiTool3.Providers
                         }
                     }
                 },
-                ["stream"] = useStreaming
+                ["stream"] = useStreaming,
+                //stream_options: {"include_usage": true}
+                ["stream_options"] = new JObject
+                {
+                    ["include_usage"] = true
+                }
             };
 
             foreach (var m in conversation.messages)
@@ -199,7 +204,7 @@ namespace AiTool3.Providers
 
                     if (leftovers != null)
                     {
-                        lineEd = $"{leftovers}{line}";
+                        lineEd = $"data: {leftovers}{line}";
                     }
 
                     leftovers = ProcessLine(lineEd.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
@@ -272,25 +277,38 @@ namespace AiTool3.Providers
                 try
                 {
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-                    var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
 
-                    if (string.IsNullOrEmpty(content))
-                        content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
-
-                    if (!string.IsNullOrEmpty(content))
+                    if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
-                        Debug.Write(content);
-                        responseBuilder.Append(content);
-                        StreamingTextReceived?.Invoke(this, content);
+
+                        var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                        if (string.IsNullOrEmpty(content))
+                            content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
+
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            Debug.Write(content);
+                            responseBuilder.Append(content);
+                            StreamingTextReceived?.Invoke(this, content);
+                        }
+                    }
+                    else
+                    {
+
+                        // Update token counts if available
+                        var usage = chunk["usage"];
+                        if (usage != null && usage.HasValues)
+                        {
+                            inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
+                            outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
+                        }
+                        else
+                        {
+                            return jsonData; /* left-overs */
+                        }
                     }
 
-                    // Update token counts if available
-                    var usage = chunk["usage"];
-                    if (usage != null)
-                    {
-                        inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
-                        outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
-                    }
                 }
                 catch (JsonException)
                 {
