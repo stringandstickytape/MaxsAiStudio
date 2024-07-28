@@ -42,51 +42,22 @@ namespace AiTool3.Providers
             };
 
 
-
+            JObject tool  = null;
             if (toolIDs != null && toolIDs.Contains("tool-1"))
             {
-                var findAndReplacesTool = new JObject
-                {
-                    ["name"] = "Find-and-replaces",
-                    ["description"] = "Supply a list of find-and-replaces",
-                    ["input_schema"] = new JObject
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new JObject
-                        {
-                            ["replacements"] = new JObject
-                            {
-                                ["type"] = "array",
-                                ["items"] = new JObject
-                                {
-                                    ["type"] = "object",
-                                    ["properties"] = new JObject
-                                    {
-                                        ["find"] = new JObject
-                                        {
-                                            ["type"] = "string",
-                                            ["description"] = "The string to find"
-                                        },
-                                        ["replace"] = new JObject
-                                        {
-                                            ["type"] = "string",
-                                            ["description"] = "The string to replace with"
-                                        }
-                                    },
-                                    ["required"] = new JArray { "find", "replace" }
-                                },
-                                ["description"] = "A list of find-and-replace pairs"
-                            }
-                        },
-                        ["required"] = new JArray { "replacements" }
-                    }
-                };
+                tool = GetFindAndReplaceTool();
+            } else if (toolIDs != null && toolIDs.Contains("tool-2"))
+            {
+                tool = GetColorSchemeTool();
+            }
 
-                req["tools"] = new JArray { findAndReplacesTool };
+            if (tool != null)
+            {
+                req["tools"] = new JArray { tool };
                 req["tool_choice"] = new JObject
                 {
                     ["type"] = "tool",
-                    ["name"] = "Find-and-replaces"
+                    ["name"] = tool["name"].ToString()
                 };
             }
 
@@ -151,6 +122,261 @@ namespace AiTool3.Providers
             }
         }
 
+        private static JObject GetFindAndReplaceTool()
+        {
+            return new JObject
+            {
+                ["name"] = "Find-and-replaces",
+                ["description"] = "Supply a list of find-and-replaces",
+                ["input_schema"] = new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject
+                    {
+                        ["replacements"] = new JObject
+                        {
+                            ["type"] = "array",
+                            ["items"] = new JObject
+                            {
+                                ["type"] = "object",
+                                ["properties"] = new JObject
+                                {
+                                    ["find"] = new JObject
+                                    {
+                                        ["type"] = "string",
+                                        ["description"] = "The string to find"
+                                    },
+                                    ["replace"] = new JObject
+                                    {
+                                        ["type"] = "string",
+                                        ["description"] = "The string to replace with"
+                                    }
+                                },
+                                ["required"] = new JArray { "find", "replace" }
+                            },
+                            ["description"] = "A list of find-and-replace pairs"
+                        }
+                    },
+                    ["required"] = new JArray { "replacements" }
+                }
+            };
+        }
+
+        private static JObject GetColorSchemeTool()
+        {
+            return new JObject
+            {
+                ["name"] = "Color-scheme",
+                ["description"] = "Supply a color scheme for the UI",
+                ["input_schema"] = new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject
+                    {
+                        ["themeName"] = new JObject
+                        {
+                            ["type"] = "object",
+                            ["properties"] = new JObject
+                            {
+                                ["backgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Background color in hex format"
+                                },
+                                ["headerBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Header background color in hex format"
+                                },
+                                ["inputBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Input background color in hex format"
+                                },
+                                ["buttonBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Button background color in hex format"
+                                },
+                                ["buttonBackgroundCss"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Button background CSS"
+                                },
+                                ["dropdownBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Dropdown background color in hex format"
+                                },
+                                ["messageUserBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "User message background color in hex format"
+                                },
+                                ["messageAIBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "AI message background color in hex format"
+                                },
+                                ["messageRootBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Root message background color in hex format"
+                                },
+                                ["codeBlockBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Code block background color in hex format"
+                                },
+                                ["codeBlockHeaderBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Code block header background color in hex format"
+                                },
+                                ["scrollbarBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Scrollbar background color in hex format"
+                                },
+                                ["toolbarBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Toolbar background color in hex format"
+                                },
+                                ["toolbarButtonBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Toolbar button background color in hex format"
+                                },
+                                ["selectedItemBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Selected item background color in hex format"
+                                },
+                                ["textColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Text color in hex format"
+                                },
+                                ["headerTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Header text color in hex format"
+                                },
+                                ["inputTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Input text color in hex format"
+                                },
+                                ["buttonTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Button text color in hex format"
+                                },
+                                ["dropdownTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Dropdown text color in hex format"
+                                },
+                                ["messageUserTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "User message text color in hex format"
+                                },
+                                ["messageAITextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "AI message text color in hex format"
+                                },
+                                ["messageRootTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Root message text color in hex format"
+                                },
+                                ["codeBlockTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Code block text color in hex format"
+                                },
+                                ["codeBlockHeaderTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Code block header text color in hex format"
+                                },
+                                ["toolbarButtonTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Toolbar button text color in hex format"
+                                },
+                                ["selectedItemTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Selected item text color in hex format"
+                                },
+                                ["linkColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Link color in hex format"
+                                },
+                                ["buttonDisabledBackgroundColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Disabled button background color in hex format"
+                                },
+                                ["buttonDisabledTextColor"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Disabled button text color in hex format"
+                                },
+                                ["headerBarBackgroundCss"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Header bar background CSS"
+                                },
+                                ["headerBarBackgroundImage"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Header bar background image URL"
+                                },
+                                ["messagesPaneBackgroundCss"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Messages pane background CSS"
+                                },
+                                ["messagesPaneBackgroundImage"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Messages pane background image URL"
+                                },
+                                ["mainContentBackgroundCss"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Main content background CSS"
+                                },
+                                ["mainContentBackgroundImage"] = new JObject
+                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Main content background image URL"
+                                }
+                            },
+                            ["required"] = new JArray {
+                        "backgroundColor", "headerBackgroundColor", "inputBackgroundColor",
+                        "buttonBackgroundColor", "dropdownBackgroundColor", "messageUserBackgroundColor",
+                        "messageAIBackgroundColor", "messageRootBackgroundColor", "codeBlockBackgroundColor",
+                        "codeBlockHeaderBackgroundColor", "scrollbarBackgroundColor", "toolbarBackgroundColor",
+                        "toolbarButtonBackgroundColor", "selectedItemBackgroundColor", "textColor",
+                        "headerTextColor", "inputTextColor", "buttonTextColor", "dropdownTextColor",
+                        "messageUserTextColor", "messageAITextColor", "messageRootTextColor",
+                        "codeBlockTextColor", "codeBlockHeaderTextColor", "toolbarButtonTextColor",
+                        "selectedItemTextColor", "linkColor", "buttonDisabledBackgroundColor",
+                        "buttonDisabledTextColor"
+                    }
+                        }
+                    },
+                    ["required"] = new JArray { "themeName" }
+                }
+            };
+        }
         private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
@@ -255,6 +481,7 @@ namespace AiTool3.Providers
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
             }
 
+
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
             var responseText = "";
@@ -265,13 +492,19 @@ namespace AiTool3.Providers
                 // is the content type tooL?
                 if (completion["content"][0]["type"].ToString() == "tool_use")
                 {
-                    var toolText = completion["content"][0]["input"]["replacements"].ToString();
+                    var toolText = completion["content"][0]["input"].First().ToString();
 
                     // deser to findandreplace
-                    var findAndReplace = JsonConvert.DeserializeObject<List<FindAndReplace>>(toolText);
-
-
-                    responseText = $"{MaxsAiStudio.ThreeTicks}findandreplace.json\n{toolText}\n{MaxsAiStudio.ThreeTicks}";
+                    if (completion["content"][0]["name"].ToString() == "Color-scheme")
+                    {
+                        //var json = JsonConvert.DeserializeObject<JValue>(toolText.Replace("\r","").Replace("\n", " "));
+                        responseText = $"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
+                    }
+                    else
+                    {
+                        var findAndReplace = JsonConvert.DeserializeObject<List<FindAndReplace>>(toolText);
+                        responseText = $"{MaxsAiStudio.ThreeTicks}findandreplace.json\n{toolText}\n{MaxsAiStudio.ThreeTicks}";
+                    }
                 }
                 //else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
                 //{

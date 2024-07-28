@@ -76,6 +76,14 @@ namespace AiTool3.Providers
                 });
             }
 
+            if (toolIDs != null && toolIDs.Contains("tool-1"))
+            {
+                JObject findAndReplacesTool = GetFindAndReplaceTool();
+
+                req["tools"] = new JArray { findAndReplacesTool };
+                req["tool_choice"] = findAndReplacesTool;
+            }
+
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
             req["messages"].Last["content"].Last()["text"] = newInput;
 
@@ -103,10 +111,11 @@ namespace AiTool3.Providers
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var reader = new StreamReader(stream);
+            
             var responseBuilder = new StringBuilder();
             var buffer = new char[1024];
             int charsRead;
@@ -125,6 +134,7 @@ namespace AiTool3.Providers
 
                 foreach (var line in lines)
                 {
+                    response.EnsureSuccessStatusCode();
                     ProcessLine(line.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
@@ -139,8 +149,52 @@ namespace AiTool3.Providers
             };
         }
 
+        private static JObject GetFindAndReplaceTool()
+        {
+            return new JObject
+            {
+                ["type"] = "function",
+                ["function"] = new JObject
+                {
+                    ["name"] = "find_and_replace",
+                    ["description"] = "Perform find and replace operations on text",
+                    ["parameters"] = new JObject
+                    {
+                        ["type"] = "object",
+                        ["properties"] = new JObject
+                        {
+                            ["replacements"] = new JObject
+                            {
+                                ["type"] = "array",
+                                ["items"] = new JObject
+                                {
+                                    ["type"] = "object",
+                                    ["properties"] = new JObject
+                                    {
+                                        ["find"] = new JObject
+                                        {
+                                            ["type"] = "string",
+                                            ["description"] = "The string to find"
+                                        },
+                                        ["replace"] = new JObject
+                                        {
+                                            ["type"] = "string",
+                                            ["description"] = "The string to replace with"
+                                        }
+                                    },
+                                    ["required"] = new JArray { "find", "replace" }
+                                },
+                                ["description"] = "A list of find-and-replace pairs"
+                            }
+                        },
+                        ["required"] = new JArray { "replacements" }
+                    }
+                }
+            };
+        }
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
+            Debug.WriteLine(line);
             if (line.StartsWith("data: "))
             {
                 string jsonData = line.Substring("data: ".Length).Trim();
@@ -152,6 +206,10 @@ namespace AiTool3.Providers
                 {
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
                     var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                    if (string.IsNullOrEmpty(content))
+                        content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
+
                     if (!string.IsNullOrEmpty(content))
                     {
                         Debug.Write(content);

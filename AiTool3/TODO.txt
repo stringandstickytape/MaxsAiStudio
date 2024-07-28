@@ -65,12 +65,16 @@ DONE: move conversations to subdirectory, templates to another, settings to a th
 DONE: basic scratchpad
 DONE: Seems like Cancel button doesn't work
 DONE: Add the ability to Delete Theme
+DONE: SVG? we already have svg-pan-zoom
+DONE: allow setting of proper URLs for local AI
+DONE: Cublas and non-Cublas builds for whisperx (file transcription) - need dlls from another source - whisperX?DONE: allow setting of proper URLs for local AI
+
 
 
 
 Ollama Tool Support
 
-
+Fix incomplete tools menu - add theme-generation tool?
 
 Known Limitations:
 No Base64 image support for Groq
@@ -91,7 +95,7 @@ add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
 
 
-Create embeddings from previous messages/conversations?
+
 
 popup that lets you pick embedding results to submit?
 
@@ -105,8 +109,7 @@ First-run "wizard"
  - ask for API/local AI details?
  - default the engine dropdowns as such
 
-
-Add "working" to:
+ Add "working" to:
 * regen all summaries
 * transcribe
 
@@ -116,10 +119,9 @@ Templates:
 example templates set
 
 Build:
-Cublas and non-Cublas builds for whisperx (file transcription) - need dlls from another source - whisperX?
+
 
 UI:
-allow setting of proper URLs for local AI
 Allow choice of embedding engine
 
 Core:
@@ -170,7 +172,6 @@ Pick-a-frame-from-a-video
 support markdown? :/
 regex viewer? :/
 GraphViz ??
-SVG? we already have svg-pan-zoom
 css viewer?
 
 It'd be nice if you could outright edit responses in the conversation - should really be able to do this
@@ -185,7 +186,7 @@ templates edit window is pretty crappy
 
 
 
-pie-in-the-sky:
+Create embeddings from previous messages/conversations?
 Custom handlers? External links to other apps or handlers?
 AI ideas:
 • Ability to export conversations in various formats (PDF, DOCX, etc.)
@@ -222,4 +223,5 @@ I apologize for the misunderstanding. Thank you for clarifying. Here's a revised
 18. URL shortener: to create shortened versions of long URLs
 19. Encryption/decryption tool: to secure or access protected information
 20. System resource monitor: to check CPU, memory, or disk usage
+
 
