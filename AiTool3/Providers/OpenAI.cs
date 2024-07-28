@@ -180,6 +180,8 @@ namespace AiTool3.Providers
             int inputTokens = 0;
             int outputTokens = 0;
 
+            string leftovers = null; ;
+
             while ((charsRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -192,7 +194,7 @@ namespace AiTool3.Providers
                 foreach (var line in lines)
                 {
                     response.EnsureSuccessStatusCode();
-                    ProcessLine(line.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
+                    leftovers = ProcessLine(line.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
 
@@ -249,7 +251,7 @@ namespace AiTool3.Providers
                 }
             };
         }
-        private void ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
+        private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
             Debug.WriteLine(line);
             if (line.StartsWith("data: "))
@@ -257,7 +259,7 @@ namespace AiTool3.Providers
                 string jsonData = line.Substring("data: ".Length).Trim();
 
                 if (jsonData == "[DONE]")
-                    return;
+                    return null;
 
                 try
                 {
@@ -284,9 +286,11 @@ namespace AiTool3.Providers
                 }
                 catch (JsonException)
                 {
+                    return jsonData; /* left-overs */
                     // Handle JSON parsing errors
                 }
             }
+            return null;
         }
         private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cts)
         {
