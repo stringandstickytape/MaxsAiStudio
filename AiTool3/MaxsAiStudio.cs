@@ -648,7 +648,7 @@ namespace AiTool3
 
             if (toolIDs != null && toolIDs.Contains("tool-1"))
             {
-                response.ResponseText = $"{ThreeTicks}findandreplace.json\n{response.ResponseText}\n{ThreeTicks}\n";
+                response.ResponseText = $"{ThreeTicks}findandreplace.json\n{{{response.ResponseText.Replace("\r","").Replace("\n"," ")}}}\n{ThreeTicks}\n";
             }
 
             var modelUsageManager = new ModelUsageManager(model);

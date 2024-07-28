@@ -1,15 +1,16 @@
-﻿{
+﻿// Colour Scheme Generator Tool
+{
   "name": "Color-scheme",
   "description": "Supply a color scheme for the UI",
   "input_schema": {
     "type": "object",
     "properties": {
-      "themeName": {
+      "colorScheme": {
         "type": "object",
         "properties": {
-          "themeName": {
+          "id": {
             "type": "string",
-            "description": "Name of the color scheme."
+            "description": "ID of the color scheme."
           },
           "backgroundColor": {
             "type": "string",

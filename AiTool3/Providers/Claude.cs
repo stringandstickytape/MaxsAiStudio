@@ -8,6 +8,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Providers
 {
@@ -124,47 +125,18 @@ namespace AiTool3.Providers
 
         private static JObject GetFindAndReplaceTool()
         {
-            return new JObject
-            {
-                ["name"] = "Find-and-replaces",
-                ["description"] = "Supply a list of find-and-replaces",
-                ["input_schema"] = new JObject
-                {
-                    ["type"] = "object",
-                    ["properties"] = new JObject
-                    {
-                        ["replacements"] = new JObject
-                        {
-                            ["type"] = "array",
-                            ["items"] = new JObject
-                            {
-                                ["type"] = "object",
-                                ["properties"] = new JObject
-                                {
-                                    ["find"] = new JObject
-                                    {
-                                        ["type"] = "string",
-                                        ["description"] = "The string to find"
-                                    },
-                                    ["replace"] = new JObject
-                                    {
-                                        ["type"] = "string",
-                                        ["description"] = "The string to replace with"
-                                    }
-                                },
-                                ["required"] = new JArray { "find", "replace" }
-                            },
-                            ["description"] = "A list of find-and-replace pairs"
-                        }
-                    },
-                    ["required"] = new JArray { "replacements" }
-                }
-            };
+            var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Tools.find-and-replace.json");
+
+            colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
+
+            return JObject.Parse(colorSchemeTool);
         }
 
         private static JObject GetColorSchemeTool()
         {
             var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Tools.color-scheme-spec.json");
+
+            colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
 
             return JObject.Parse(colorSchemeTool);
         }
@@ -293,8 +265,7 @@ namespace AiTool3.Providers
                     }
                     else
                     {
-                        var findAndReplace = JsonConvert.DeserializeObject<List<FindAndReplace>>(toolText);
-                        responseText = $"{MaxsAiStudio.ThreeTicks}findandreplace.json\n{toolText}\n{MaxsAiStudio.ThreeTicks}";
+                        responseText = toolText;
                     }
                 }
                 //else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")

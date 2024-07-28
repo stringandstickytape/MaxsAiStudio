@@ -4,6 +4,7 @@ const ColorSchemeContext = createContext();
 
 const initialColorSchemes = {
     light: {
+        name: 'Light',
         backgroundColor: '#ffffff',
         headerBackgroundColor: '#f0f0f0',
         inputBackgroundColor: '#ffffff',
@@ -43,6 +44,7 @@ const initialColorSchemes = {
         mainContentBackgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23e0e0e0' fill-opacity='0.1'/%3E%3C/svg%3E\")"
     },
     dark: {
+        name: 'Dark',
         backgroundColor: '#121212',
         headerBackgroundColor: '#1E1E1E',
         inputBackgroundColor: '#1A1A1A',
@@ -88,32 +90,34 @@ const ColorSchemeProvider = ({ children }) => {
     const [currentSchemeId, setCurrentSchemeId] = useState('dark');
 
     const addColorScheme = (id, scheme) => {
+        const schemeId = scheme.id || id;
         setColorSchemes(prevSchemes => ({
             ...prevSchemes,
-            [id]: scheme
+            [schemeId]: scheme
         }));
 
-        
-
         setTimeout(() => {
-            window.selectColorScheme(id);
+            window.selectColorScheme(schemeId);
             //window.createThemeEditor();
         }, 100);
     };
 
     const updateColorScheme = (id, newColors) => {
-        setColorSchemes(prevSchemes => ({
-            ...prevSchemes,
-            [id]: {
-                ...prevSchemes[id],
-                ...newColors,
-                messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss,
-                mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss,
-                mainContentBackgroundImage: newColors.mainContentBackgroundImage || prevSchemes[id].mainContentBackground,
-                messagesPaneBackgroundImage: newColors.messagesPaneBackgroundImage || prevSchemes[id].messagesPaneBackgroundImage,
-                messagesPaneBackgroundFilter: newColors.messagesPaneBackgroundFilter || prevSchemes[id].messagesPaneBackgroundFilter
-            }
-        }));
+        setColorSchemes(prevSchemes => {
+            const schemeId = prevSchemes[id].id || id;
+            return {
+                ...prevSchemes,
+                [schemeId]: {
+                    ...prevSchemes[id],
+                    ...newColors,
+                    messagesPaneBackgroundCss: newColors.messagesPaneBackgroundCss || prevSchemes[id].messagesPaneBackgroundCss,
+                    mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss,
+                    mainContentBackgroundImage: newColors.mainContentBackgroundImage || prevSchemes[id].mainContentBackground,
+                    messagesPaneBackgroundImage: newColors.messagesPaneBackgroundImage || prevSchemes[id].messagesPaneBackgroundImage,
+                    messagesPaneBackgroundFilter: newColors.messagesPaneBackgroundFilter || prevSchemes[id].messagesPaneBackgroundFilter
+                }
+            };
+        });
     };
 
     const getAllColorSchemes = () => {

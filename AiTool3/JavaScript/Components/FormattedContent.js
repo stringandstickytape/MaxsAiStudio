@@ -197,6 +197,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         window.selectedMessageGuid = guid;
                                         window.dispatchEvent(new Event('findAndReplaceUpdate'));
                                     } catch (error) {
+                                        debugger;
                                         alert('Error parsing Find-And-Replace script: ' + error);
                                     }
                                 })

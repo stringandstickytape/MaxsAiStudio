@@ -1,0 +1,29 @@
+﻿// Find And Replace Tool
+{
+  "name": "Find-and-replaces",
+  "description": "Supply a list of find-and-replaces",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "replacements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "find": {
+              "type": "string",
+              "description": "The string to find"
+            },
+            "replace": {
+              "type": "string",
+              "description": "The string to replace with"
+            }
+          },
+          "required": [ "find", "replace" ]
+        },
+        "description": "A list of find-and-replace pairs"
+      }
+    },
+    "required": [ "replacements" ]
+  }
+}
