@@ -16,6 +16,7 @@ using System.Windows.Forms;
 using AiTool3.Settings;
 using System.Diagnostics;
 using AiTool3.Tools;
+using System.Text;
 
 namespace AiTool3
 {
@@ -659,7 +660,24 @@ namespace AiTool3
             if (toolManager != null && toolIDs.Any())
             {
                 var tool = toolManager.GetToolByLabel(toolLabels[0]);
-                response.ResponseText = $"{ThreeTicks}{tool.OutputFilename}\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
+
+                var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
+
+                if (model.ServiceName == "Claude")
+                {
+                    sb.Append( "{");
+                }
+
+                sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
+
+                if (model.ServiceName == "Claude")
+                {
+                    sb.Append("}");
+                }
+
+                sb.Append($"\n{ThreeTicks}\n");
+
+                response.ResponseText = sb.ToString();
             }
 
             var modelUsageManager = new ModelUsageManager(model);

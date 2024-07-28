@@ -126,23 +126,6 @@ namespace AiTool3.Providers
             }
         }
 
-        private static JObject GetFindAndReplaceTool()
-        {
-            var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Tools.find-and-replace.json");
-
-            colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
-
-            return JObject.Parse(colorSchemeTool);
-        }
-
-        private static JObject GetColorSchemeTool()
-        {
-            var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Tools.color-scheme-spec.json");
-
-            colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
-
-            return JObject.Parse(colorSchemeTool);
-        }
         private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
@@ -246,30 +229,15 @@ namespace AiTool3.Providers
             {
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
             }
-
-
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
             var responseText = "";
             if (completion["content"] != null)
             {
-
-
                 // is the content type tooL?
                 if (completion["content"][0]["type"].ToString() == "tool_use")
                 {
                     responseText = completion["content"][0]["input"].First().ToString();
-
-                    // deser to findandreplace
-                    //if (completion["content"][0]["name"].ToString() == "Color-scheme")
-                    //{
-                    //    //var json = JsonConvert.DeserializeObject<JValue>(toolText.Replace("\r","").Replace("\n", " "));
-                    //    responseText = toolText; //$"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
-                    //}
-                    //else
-                    //{
-                    //    responseText = toolText;
-                    //}
                 }
                 else responseText = completion["content"][0]["text"].ToString();
             }

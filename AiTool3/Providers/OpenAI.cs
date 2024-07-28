@@ -77,12 +77,68 @@ namespace AiTool3.Providers
                 });
             }
 
-            if (toolIDs != null && toolIDs.Contains("tool-1"))
-            {
-                JObject findAndReplacesTool = GetFindAndReplaceTool();
 
-                req["tools"] = new JArray { findAndReplacesTool };
-                req["tool_choice"] = findAndReplacesTool;
+            JObject tool = null;
+            if (toolIDs != null && toolIDs.Any())
+            {
+                var toolObj = toolManager.Tools.First(x => x.Name == toolIDs[0]);
+                // get first line of toolObj.FullText
+                var firstLine = toolObj.FullText.Split("\n")[0];
+                firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
+
+                var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly($"AiTool3.Tools.{firstLine}");
+
+                colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
+
+                var toolx = JObject.Parse(colorSchemeTool);
+
+                var wrappedtool = new JObject
+                {
+                    ["type"] = "function",
+                    ["function"] = toolx
+                };
+
+                var compare = GetFindAndReplaceTool();
+
+                wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
+                // neow remove input_schema
+                wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
+                { if (((JProperty)c).Name == "input_schema") c.Remove(); }
+                );
+
+                var jsonString = @"{
+      ""type"": ""function"",
+      ""function"": {
+        ""name"": ""get_current_temperature"",
+        ""description"": ""Get the current temperature for a specific location"",
+        ""parameters"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""location"": {
+              ""type"": ""string"",
+              ""description"": ""The city and state, e.g., San Francisco, CA""
+            },
+            ""unit"": {
+              ""type"": ""string"",
+              ""enum"": [""Celsius"", ""Fahrenheit""],
+              ""description"": ""The temperature unit to use. Infer this from the user's location.""
+            }
+          },
+          ""required"": [""location"", ""unit""]
+        }
+      }
+    }";
+
+                // set req["tools"] from the jsonstring
+                //req["tools"] = new JArray { JObject.Parse(jsonString) };
+                //req["tool_choice"] = JObject.Parse(jsonString);
+                req["tools"] = new JArray { wrappedtool };
+                req["tool_choice"] = wrappedtool;
+
+                //JObject findAndReplacesTool = GetFindAndReplaceTool();
+                //
+                //req["tools"] = new JArray { findAndReplacesTool };
+                //req["tool_choice"] = findAndReplacesTool;
             }
 
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
@@ -237,7 +293,19 @@ namespace AiTool3.Providers
             var responseContent = await response.Content.ReadAsStringAsync(cts);
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
-            var responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
+            var responseText = "";
+            // if message has an array of tool_calls
+            if (jsonResponse["choices"]?[0]?["message"]?["tool_calls"] != null)
+            {
+                var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
+
+                // first tool call only for now... :/
+
+                responseText = toolCallArray?[0]["function"]["arguments"].ToString();
+
+            }
+            else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
+
             var usage = jsonResponse["usage"];
             var inputTokens = usage?["prompt_tokens"]?.Value<int>() ?? 0;
             var outputTokens = usage?["completion_tokens"]?.Value<int>() ?? 0;
