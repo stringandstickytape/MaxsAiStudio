@@ -7,6 +7,10 @@
       "themeName": {
         "type": "object",
         "properties": {
+          "themeName": {
+            "type": "string",
+            "description": "Name of the color scheme."
+          },
           "backgroundColor": {
             "type": "string",
             "description": "Background color in hex format"
