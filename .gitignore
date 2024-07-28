@@ -386,3 +386,4 @@ Sentinel/Configs/database.config
 /AiTool3/OpenAIEmbedFragged2.embeddings.zip
 /AiTool3/OllamaEmbeddings.embeddings.json
 /commit.ps1
+/AiTool3/Tools/hello-world.json

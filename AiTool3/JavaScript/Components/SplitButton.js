@@ -185,6 +185,13 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
             console.log(`${item.label} clicked. New state: ${newState ? 'checked' : 'unchecked'}`);
             onToggle(index, newState);
             item.onClick && item.onClick(newState);
+
+            // are any items checked?
+            const anyChecked = newStates.some(state => state);
+            if (anyChecked) {
+                window.setSendButtonLabel("Send Using Tools");
+            } else window.setSendButtonLabel("Send");
+
             return newStates;
         });
     };

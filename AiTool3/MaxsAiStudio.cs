@@ -650,19 +650,16 @@ namespace AiTool3
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
 
+            toolIDs = toolIDs.Where(x => int.TryParse(x, out _)).ToList();
+
             var toolLabels = toolIDs.Select(t => toolManager.Tools[int.Parse(t)].Name).ToList();
 
             var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, toolManager);
 
-            if (toolManager != null)
+            if (toolManager != null && toolIDs.Any())
             {
-                if (toolLabels.Contains("Color-scheme"))
-                {
-                    response.ResponseText = $"{ThreeTicks}maxtheme.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
-                } else if (toolLabels.Contains("Find-and-replaces"))
-                {
-                    response.ResponseText = $"{ThreeTicks}findandreplace.json\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
-                }
+                var tool = toolManager.GetToolByLabel(toolLabels[0]);
+                response.ResponseText = $"{ThreeTicks}{tool.OutputFilename}\n{{{response.ResponseText.Replace("\r", "").Replace("\n", " ")}}}\n{ThreeTicks}\n";
             }
 
             var modelUsageManager = new ModelUsageManager(model);

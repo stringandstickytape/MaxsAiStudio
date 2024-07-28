@@ -34,7 +34,17 @@ namespace AiTool3.Tools
                 {
                     try
                     {
+                        // get first and second lines of json file
+                        string[] lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+                        string firstLine = lines[0].Replace("//", "").Replace(" ", "").Replace("\r","").Replace("\n","").Trim();
+                        string secondLine = lines[1].Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
+
                         Tool tool = JsonConvert.DeserializeObject<Tool>(json);
+
+                        tool.InternalName = firstLine;
+                        tool.OutputFilename = secondLine;
+
                         if (tool != null)
                         {
                             tool.FullText = json;
@@ -56,6 +66,11 @@ namespace AiTool3.Tools
                 }
             }
         }
+
+        internal Tool GetToolByLabel(string v)
+        {
+            return Tools.FirstOrDefault(t => t.Name == v);
+        }
     }
 
     public class Tool
@@ -63,6 +78,9 @@ namespace AiTool3.Tools
         public string Name { get; set; }
         public string Description { get; set; }
         public string FullText { get; set; }
+
+        public string InternalName { get; set; }
+        public string OutputFilename { get; set; }
         // Add other properties as needed
     }
 

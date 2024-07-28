@@ -258,18 +258,18 @@ namespace AiTool3.Providers
                 // is the content type tooL?
                 if (completion["content"][0]["type"].ToString() == "tool_use")
                 {
-                    var toolText = completion["content"][0]["input"].First().ToString();
+                    responseText = completion["content"][0]["input"].First().ToString();
 
                     // deser to findandreplace
-                    if (completion["content"][0]["name"].ToString() == "Color-scheme")
-                    {
-                        //var json = JsonConvert.DeserializeObject<JValue>(toolText.Replace("\r","").Replace("\n", " "));
-                        responseText = toolText; //$"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
-                    }
-                    else
-                    {
-                        responseText = toolText;
-                    }
+                    //if (completion["content"][0]["name"].ToString() == "Color-scheme")
+                    //{
+                    //    //var json = JsonConvert.DeserializeObject<JValue>(toolText.Replace("\r","").Replace("\n", " "));
+                    //    responseText = toolText; //$"{MaxsAiStudio.ThreeTicks}maxtheme.json\n{{{toolText.Replace("\r", "").Replace("\n", " ")}}}\n{MaxsAiStudio.ThreeTicks}";
+                    //}
+                    //else
+                    //{
+                    //    responseText = toolText;
+                    //}
                 }
                 else responseText = completion["content"][0]["text"].ToString();
             }

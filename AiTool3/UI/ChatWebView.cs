@@ -314,7 +314,7 @@ namespace AiTool3.UI
             await ExecuteScriptAsync($"ClearMessages()");
             await DisableCancelButton();
             await EnableSendButton();
-            await UpdateSendButtonColor(currentSettings.UseEmbeddings);
+            //await UpdateSendButtonColor(currentSettings.UseEmbeddings);
         }
 
         internal async Task DisableCancelButton()

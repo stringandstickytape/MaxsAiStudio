@@ -14,22 +14,7 @@
     const [newAlternateColor, setNewAlternateColor] = React.useState('');
     const [sendButtonLabel, setSendButtonLabel] = React.useState('Send');
 
-    React.useEffect(() => {
-        const updateSendButtonLabel = () => {
-            const tools = window.getTools ? window.getTools() : [];
-            const anyToolOn = tools.some(tool => tool.checked);
-            setSendButtonLabel(anyToolOn ? 'Send with Tools' : 'Send');
-        };
-
-        // Initial update
-        updateSendButtonLabel();
-
-        // Set up an interval to check and update the button label
-        const intervalId = setInterval(updateSendButtonLabel, 1000);
-
-        // Clean up the interval on component unmount
-        return () => clearInterval(intervalId);
-    }, []);
+    window.setSendButtonLabel = setSendButtonLabel;
 
     function getTrueIndices(obj) {
         return Object.keys(obj)

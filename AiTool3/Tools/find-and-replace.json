@@ -1,4 +1,5 @@
 ﻿// find-and-replace.json
+// findandreplace.json
 {
   "name": "Find-and-replaces",
   "description": "Supply a list of find-and-replaces",

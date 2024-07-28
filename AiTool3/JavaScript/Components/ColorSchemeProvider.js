@@ -90,7 +90,7 @@ const ColorSchemeProvider = ({ children }) => {
     const [currentSchemeId, setCurrentSchemeId] = useState('dark');
 
     const addColorScheme = (id, scheme) => {
-        const schemeId = scheme.id || id;
+        const schemeId = scheme.id || scheme.themeName || id;
         setColorSchemes(prevSchemes => ({
             ...prevSchemes,
             [schemeId]: scheme

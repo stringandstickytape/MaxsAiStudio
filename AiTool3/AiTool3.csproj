@@ -81,6 +81,7 @@
     <None Remove="ThirdPartyJavascript\svg-pan-zoom.min.js" />
     <None Remove="Tools\color-scheme-spec.json" />
     <None Remove="Tools\find-and-replace.json" />
+    <None Remove="Tools\hello-world.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
     <None Remove="UI\Licenses.txt" />
   </ItemGroup>
@@ -124,6 +125,7 @@
     <EmbeddedResource Include="ThirdPartyJavascript\mermaid.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\svg-pan-zoom.min.js" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
+    <EmbeddedResource Include="Tools\hello-world.json" />
     <EmbeddedResource Include="Tools\find-and-replace.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>

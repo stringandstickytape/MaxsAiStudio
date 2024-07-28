@@ -1,4 +1,5 @@
 ﻿// color-scheme-spec.json
+// maxtheme.json
 {
   "name": "Color-scheme",
   "description": "Supply a color scheme for the UI",
