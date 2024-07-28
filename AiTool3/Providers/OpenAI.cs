@@ -194,7 +194,15 @@ namespace AiTool3.Providers
                 foreach (var line in lines)
                 {
                     response.EnsureSuccessStatusCode();
-                    leftovers = ProcessLine(line.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
+
+                    var lineEd = line;
+
+                    if (leftovers != null)
+                    {
+                        lineEd = $"{leftovers}{line}";
+                    }
+
+                    leftovers = ProcessLine(lineEd.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
 

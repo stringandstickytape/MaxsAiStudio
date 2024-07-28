@@ -663,14 +663,14 @@ namespace AiTool3
 
                 var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
 
-                //if (model.ServiceName == "Claude")
-                //{
-                //    sb.Append( "{");
-                //}
+               //if (model.ServiceName == "OpenAI")
+               //{
+               //    sb.Append( "{");
+               //}
 
                 sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
 
-                //if (model.ServiceName == "Claude")
+                //if (model.ServiceName == "OpenAI")
                 //{
                 //    sb.Append("}");
                 //}
