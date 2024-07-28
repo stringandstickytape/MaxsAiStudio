@@ -338,6 +338,11 @@ namespace AiTool3.Providers
                                     ["type"] = "string",
                                     ["description"] = "Header bar background image URL"
                                 },
+                                ["messagesPaneBackgroundFilter"] = new JObject
+                                                                {
+                                    ["type"] = "string",
+                                    ["description"] = "Messages pane background-filter CSS property"
+                                },
                                 ["messagesPaneBackgroundCss"] = new JObject
                                 {
                                     ["type"] = "string",

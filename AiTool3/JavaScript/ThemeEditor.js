@@ -143,7 +143,7 @@
         formGroup.appendChild(label);
 
         if (key === 'messagesPaneBackgroundCss' || key === 'mainContentBackgroundCss' || key === 'mainContentBackgroundImage' || key === 'messagesPaneBackgroundImage' ||
-            key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss') {
+            key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss' || key === 'messagesPaneBackgroundFilter') {
             const textarea = createElement('textarea', {
                 value: value,
                 name: key,  // Add name attribute
