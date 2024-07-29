@@ -14,6 +14,7 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using AiTool3.ApiManagement;
 using AiTool3.Tools;
+using AiTool3.ExtensionMethods;
 
 namespace AiTool3.UI
 {
@@ -280,8 +281,11 @@ namespace AiTool3.UI
 
         internal async Task SetUserPrompt(string content)
         {
-            await ExecuteScriptAsync($"document.querySelector('#chatInput').value = {JsonConvert.SerializeObject(content)}");//changeChatHeaderLabel
-            await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");//changeChatHeaderLabel
+            this.InvokeIfNeeded(async () =>
+            {
+                await ExecuteScriptAsync($"setUserPrompt(getUserPrompt()+ ' ' + {JsonConvert.SerializeObject(content)})");
+            });
+            
         }
 
         internal async Task Clear(SettingsSet currentSettings)

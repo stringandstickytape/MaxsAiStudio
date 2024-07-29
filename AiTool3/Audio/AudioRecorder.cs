@@ -7,13 +7,16 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace AiTool3.Audio
 {
-    public class AudioRecorder
+    public class AudioRecorder : IDisposable
     {
         private MemoryStream? memoryStream;
         private WaveFileWriter? writer;
 
         public bool soundDetected = false;
         public DateTime lastDateTimeAboveThreshold { get; set; } = DateTime.MinValue;
+
+        private WhisperFactory WhisperFactory;
+        private WhisperProcessor WhisperProcessor;
 
         // Define the event
         public event EventHandler<string>? AudioProcessed;
@@ -106,6 +109,14 @@ namespace AiTool3.Audio
             }
         }
 
+        public void Dispose()
+        {
+            writer?.Dispose();
+            memoryStream?.Dispose();
+            WhisperFactory?.Dispose();
+            WhisperProcessor?.Dispose();
+        }
+
         public static byte[] ApplyLowPassFilter(byte[] inputWav, int cutoffFrequency)
         {
             // Constants
@@ -168,16 +179,17 @@ namespace AiTool3.Audio
             WhisperProcessor = WhisperFactory.CreateBuilder()
                     .WithLanguage("en")
                     .Build(); ;
+
+            
         }
 
-        private WhisperFactory WhisperFactory;
-        private WhisperProcessor WhisperProcessor;
+
 
         private async Task ProcessAudio(byte[] audioData)
         {
             await DownloadModel();
 
-            var filteredAudioData = ApplyLowPassFilter(audioData, 4000);
+            var filteredAudioData = ApplyLowPassFilter(audioData, 10000);
 
             var retVal = "";
 

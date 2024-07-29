@@ -32,6 +32,7 @@ namespace AiTool3.Audio
         public async Task StartRecording()
         {
             recorder = new AudioRecorder("ggml-smallen.bin");
+            
             cts = new CancellationTokenSource();
             
 
@@ -80,11 +81,10 @@ namespace AiTool3.Audio
                 // Clean up
                 cts.Dispose();
                 cts = null;
-                recorder = null;
-
-                return;
-
             }
+            recorder?.Dispose();
+            recorder = null;
+
             return;
         }
 
