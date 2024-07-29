@@ -18,6 +18,7 @@ namespace AiTool3
         private Panel buttonPanel;
         private Button testButton;
         private Button addFilesToInputButton;
+        private TextBox quickJumpTextBox;
         private string rootPath;
         private string[] fileExtensions;
         public EventHandler<List<string>> AddFilesToInput;
@@ -31,7 +32,7 @@ namespace AiTool3
             InitializeComponent();
 
             List<string> checkedFiles = new List<string>();
-            
+
             if (File.Exists("Settings\\ProjectHelperSelection.json"))
             {
                 var json = File.ReadAllText("Settings\\ProjectHelperSelection.json");
@@ -44,7 +45,7 @@ namespace AiTool3
             if (File.Exists(Path.Combine(rootPath, ".gitignore")))
             {
                 gitignore = File.ReadAllText(Path.Combine(rootPath, ".gitignore"));
-                gitIgnoreFilterManager  = new GitIgnoreFilterManager(gitignore);
+                gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
             }
 
             PopulateTreeView(gitignore, checkedFiles);
@@ -78,7 +79,7 @@ namespace AiTool3
                 }
             }
             return lastNode;
-            
+
         }
 
         private TreeNode FindFirstCheckedNode(TreeNodeCollection nodes)
@@ -100,6 +101,7 @@ namespace AiTool3
 
         private void InitializeComponent()
         {
+            this.ClientSize = new System.Drawing.Size(500, 800);
             this.treeView = new TreeView();
             this.buttonPanel = new Panel();
             this.testButton = new Button();
@@ -112,7 +114,10 @@ namespace AiTool3
             this.treeView.AfterCheck += new TreeViewEventHandler(treeView_AfterCheck);
             this.treeView.ItemDrag += new ItemDragEventHandler(treeView_ItemDrag);
             this.treeView.AllowDrop = true;
-
+            this.treeView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            this.treeView.Width = this.Width-22;
+            treeView.Top = 40;
+            this.treeView.Height = this.Height-140;
             // Button Panel
             this.buttonPanel.Dock = DockStyle.Bottom;
             this.buttonPanel.Height = 40;
@@ -135,19 +140,66 @@ namespace AiTool3
             this.addFilesToInputButton.Click += (sender, e) => AddFilesToInput?.Invoke(this, GetCheckedFiles());
 
             this.buttonPanel.Controls.Add(this.addFilesToInputButton);
-            
+
+
+            // Quick Jump TextBox
+            this.quickJumpTextBox = new TextBox();
+            this.quickJumpTextBox.Dock = DockStyle.Top;
+            this.quickJumpTextBox.Font = new Font("Segoe UI", 9F);
+            this.quickJumpTextBox.PlaceholderText = "Quick Jump (type to search)";
+            this.quickJumpTextBox.TextChanged += new EventHandler(quickJumpTextBox_TextChanged);
 
             // Form
-            this.ClientSize = new System.Drawing.Size(500, 800);
+            
             this.Controls.Add(this.buttonPanel);
             this.Controls.Add(this.treeView);
+            this.Controls.Add(this.quickJumpTextBox); // Add the quick jump textbox
             this.Name = "FileExplorerForm";
             this.Text = "File Explorer (set start location in Edit -> Settings -> Default Path)";
+
+
             this.ResumeLayout(false);
-            
-            
+
+
         }
 
+        private void quickJumpTextBox_TextChanged(object sender, EventArgs e)
+        {
+            string searchText = quickJumpTextBox.Text.ToLower();
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return;
+            }
+
+            TreeNode matchingNode = FindMatchingNode(treeView.Nodes, searchText);
+            if (matchingNode != null)
+            {
+                treeView.SelectedNode = matchingNode;
+                // scroll to the last node first
+                FindLastNode(treeView.Nodes)?.EnsureVisible();
+
+                matchingNode.EnsureVisible();
+            }
+        }
+
+        private TreeNode FindMatchingNode(TreeNodeCollection nodes, string searchText)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Text.ToLower().Contains(searchText))
+                {
+                    return node;
+                }
+
+                TreeNode matchingChild = FindMatchingNode(node.Nodes, searchText);
+                if (matchingChild != null)
+                {
+                    return matchingChild;
+                }
+            }
+
+            return null;
+        }
         private void testButton_Click(object sender, EventArgs e)
         {
             var files = GetCheckedFiles();
@@ -156,11 +208,11 @@ namespace AiTool3
             var methodInfos = cSharpAnalyzer.AnalyzeFiles(files);
             // remove all System methods
             methodInfos.RemoveAll(m => m.Namespace.StartsWith("System"));
-            foreach(var m in methodInfos)
+            foreach (var m in methodInfos)
                 m.RelatedMethodsFullName = m.RelatedMethodsFullName.Where(m => !m.StartsWith("System")).ToList();
 
             var mermaidDiagram = cSharpAnalyzer.GenerateMermaidDiagram(methodInfos);
-            
+
             var interestingMethods = methodInfos.OrderByDescending(m => m.RelatedMethodsFullName.Count).ToList();
 
             MessageBox.Show($"Files checked: {string.Join(", ", files)}");
@@ -183,7 +235,7 @@ namespace AiTool3
         {
             treeView.Nodes.Clear();
             TreeNode rootNode = new TreeNode(rootPath);
-            
+
             if (PopulateTreeNode(rootNode, rootPath, checkedFiles))
             {
                 treeView.Nodes.Add(rootNode);
@@ -278,11 +330,11 @@ namespace AiTool3
             treeView.AfterCheck += treeView_AfterCheck;
 
             var checkedFiles = GetCheckedFiles(true);
-            
+
             // serialize to Settings\ProjectHelperSelection.json
             var json = JsonConvert.SerializeObject(checkedFiles);
             File.WriteAllText("Settings\\ProjectHelperSelection.json", json);
-            
+
         }
 
         private void CheckAllChildNodes(TreeNode treeNode, bool nodeChecked)
@@ -349,17 +401,5 @@ namespace AiTool3
             pathParts.Reverse();
             return Path.Combine(pathParts.ToArray());
         }
-
-        /* private string GetFullPath(TreeNode node)
-   {
-       List<string> pathParts = new List<string>();
-       while (node != null)
-       {
-           pathParts.Add(node.Text);
-           node = node.Parent;
-       }
-       pathParts.Reverse();
-       return Path.Combine(rootPath, Path.Combine(pathParts.ToArray()));
-   } */
     }
 }
