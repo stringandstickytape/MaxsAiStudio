@@ -67,6 +67,7 @@
 
     const handleInputChange = (newContent) => {
         setInputContent(newContent);
+        window.setMessageText("temp-user-msg", newContent);
     };
 
     const setUserPrompt = (string) => {

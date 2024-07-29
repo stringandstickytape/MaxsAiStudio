@@ -1,7 +1,8 @@
 ﻿// Message.js
-const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
+const Message = ({ role, content: initialContent, guid, previousAssistantUnbalanced }) => {
     const { colorScheme } = window.useColorScheme();
     const [showContinueButton, setShowContinueButton] = useState(false);
+    const [content, setContent] = useState(initialContent);
 
     const getMessageClass = () => {
         switch (role) {
@@ -44,6 +45,10 @@ const Message = ({ role, content, guid, previousAssistantUnbalanced }) => {
             guid: guid
         });
     };
+
+    useEffect(() => {
+        setContent(initialContent);
+    }, [initialContent]);
 
     useEffect(() => {
         if (role === 1 && isUnterminatedCodeBlock()) {

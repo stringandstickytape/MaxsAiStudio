@@ -22,12 +22,37 @@ const MessagesPane = () => {
         })));
     };
 
+    const setMessageText = (guid, newContent, role = 0) => {
+        setMessages(prevMessages => {
+            const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
+            if (existingMessageIndex !== -1) {
+                // If the message exists, update its content
+                return prevMessages.map(msg =>
+                    msg.guid === guid ? { ...msg, content: newContent } : msg
+                );
+            } else {
+                // If the message doesn't exist, create a new one
+                return [...prevMessages, {
+                    role: role,
+                    content: newContent,
+                    guid: guid
+                }];
+            }
+        });
+    };
+
     const addMessage = (msg) => {
         setMessages(prevMessages => [...prevMessages, {
             role: msg.Role,
             content: msg.Content,
             guid: msg.Guid
         }]);
+        window.removeMessageByGuid("temp-user-msg");
+    };
+
+    // New method to remove a message by its GUID
+    const removeMessageByGuid = (guid) => {
+        setMessages(prevMessages => prevMessages.filter(msg => msg.guid !== guid));
     };
 
     // Export methods
@@ -35,6 +60,8 @@ const MessagesPane = () => {
     window.findMessageByGuid = findMessageByGuid;
     window.AddInitialMessages = addInitialMessages;
     window.AddMessage = addMessage;
+    window.setMessageText = setMessageText;
+    window.removeMessageByGuid = removeMessageByGuid; // Export the new method
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -139,3 +166,4 @@ const MessagesPane = () => {
         </>
     );
 };
+
