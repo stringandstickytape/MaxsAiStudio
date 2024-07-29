@@ -58,6 +58,7 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
                     .input-box {
                         width: 100%;
                         min-height: 100px;
+                        height:100%;
                         font-size: 16px;
                         border: 1px solid ${colorScheme.inputBackgroundColor};
                         border-radius: 4px;

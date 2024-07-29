@@ -70,8 +70,9 @@ DONE: allow setting of proper URLs for local AI
 DONE: Cublas and non-Cublas builds for whisperx (file transcription) - need dlls from another source - whisperX?DONE: allow setting of proper URLs for local AI
 DONE: Theme names shouldn't be specified by property names, but by properties
 DONE: Tools should be specified by extrenal files and mapped in
-
-
+DONE: Possihble nasty bug in deleting themes
+DONE: Shouldn't be an "add" on the categories page unless it works...
+DONE:add delete-template
 
 Ollama Tool Support
 
@@ -86,24 +87,12 @@ No token counting for Groq
 Useful next:
 
 Fade out and back in instead of smooth scrolling?
-
-Possihble nasty bug in deleting themes
-
-Shouldn't be an "add" on the categories page unless it works...
-
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
 add time-taken to search results and timestamp to all convo messages
-add delete-template and save-as-new-template/copy template
 alter to proper attachments model w multiple images, files saved in original form, etc?
-
-
-
-
 popup that lets you pick embedding results to submit?
 
 Expand and clarify the embeddings workflow
-
-Copy back from scratchpad?!
 
 Necessary for release:
 
@@ -120,11 +109,8 @@ Remove unnecessary experiments
 Templates:
 example templates set
 
-Build:
-
-
 UI:
-Allow choice of embedding engine
+Allow choice of embedding engine?
 
 Core:
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
