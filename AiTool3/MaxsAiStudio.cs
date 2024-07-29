@@ -549,7 +549,7 @@ namespace AiTool3
             }
         }
 
-        private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.SetUserPrompt(e);
+        private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.ConcatenateUserPrompt(e);
 
 
 
@@ -592,6 +592,7 @@ namespace AiTool3
             var parents = ConversationManager.GetParentNodeList();
 
             await chatWebView.AddMessages(parents);
+
 
         }
 

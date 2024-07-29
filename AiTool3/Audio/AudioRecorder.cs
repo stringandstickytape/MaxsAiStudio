@@ -70,8 +70,6 @@ namespace AiTool3.Audio
 
                     if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold > TimeSpan.FromMilliseconds(1000))
                     {
-
-                        Debug.WriteLine("((");
                         writer.Flush();
                         memoryStream.Position = 0;
                         var buffer = new byte[memoryStream.Length];

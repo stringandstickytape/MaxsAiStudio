@@ -281,11 +281,20 @@ namespace AiTool3.UI
 
         internal async Task SetUserPrompt(string content)
         {
-            this.InvokeIfNeeded(async () =>
+            await this.InvokeIfNeeded(async () =>
+            {
+                await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");
+            });
+            
+        }
+
+        internal async Task ConcatenateUserPrompt(string content)
+        {
+            await this.InvokeIfNeeded(async () =>
             {
                 await ExecuteScriptAsync($"setUserPrompt(getUserPrompt()+ ' ' + {JsonConvert.SerializeObject(content)})");
             });
-            
+
         }
 
         internal async Task Clear(SettingsSet currentSettings)
