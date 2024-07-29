@@ -75,6 +75,7 @@ DONE: Shouldn't be an "add" on the categories page unless it works...
 DONE:add delete-template
 DONE: popup that lets you pick embedding results to submit?
 DONE: Concatenate messages
+DONE: It'd be nice if you could outright edit responses in the conversation - should really be able to do this
 
 Ollama Tool Support
 
@@ -84,6 +85,8 @@ Known Limitations:
 No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
+
+fix model weirdness w local opanai
 
 
 Useful next:
@@ -163,7 +166,7 @@ regex viewer? :/
 GraphViz ??
 css viewer?
 
-It'd be nice if you could outright edit responses in the conversation - should really be able to do this
+
 Tip of the day
 add tokens-per-second to the status bar?
 Different Whisper models w/ UI
