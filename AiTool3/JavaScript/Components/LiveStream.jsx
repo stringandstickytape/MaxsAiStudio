@@ -19,6 +19,8 @@ const LiveStream = () => {
     useEffect(() => {
         window.updateTemp = (string) => {
             setLiveStreamData(prevData => prevData + string);
+            debugger;
+            window.setMessageText("temp-ai-msg", liveStreamData);
             setIsVisible(true);
             setOpacity(1);
             clearTimeout(timeoutRef.current);
@@ -26,6 +28,7 @@ const LiveStream = () => {
         };
 
         window.clearTemp = () => {
+            window.removeMessageByGuid("temp-ai-msg");
             setOpacity(0);
             timeoutRef.current = setTimeout(() => {
                 setLiveStreamData('');

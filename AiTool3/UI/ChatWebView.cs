@@ -337,9 +337,9 @@ namespace AiTool3.UI
             await ExecuteScriptAsync(js);
         }
 
-        internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"updateTemp({JsonConvert.SerializeObject(e)})");
+        internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(e)}, 1)");
 
-        internal async void ClearTemp() => await ExecuteScriptAsync($"clearTemp()");
+        internal async void ClearTemp() => await ExecuteScriptAsync($"removeMessageByGuid(\"temp-ai-msg\");");
 
         internal async Task ChangeChatHeaderLabel(string content) => await ExecuteScriptAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
 

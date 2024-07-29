@@ -41,6 +41,25 @@ const MessagesPane = () => {
         });
     };
 
+    const appendMessageText = (guid, additionalContent, role = 0) => {
+        setMessages(prevMessages => {
+            const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
+            if (existingMessageIndex !== -1) {
+                // If the message exists, append the new content
+                return prevMessages.map(msg =>
+                    msg.guid === guid ? { ...msg, content: msg.content + additionalContent } : msg
+                );
+            } else {
+                // If the message doesn't exist, create a new one
+                return [...prevMessages, {
+                    role: role,
+                    content: additionalContent,
+                    guid: guid
+                }];
+            }
+        });
+    };
+
     const addMessage = (msg) => {
         setMessages(prevMessages => [...prevMessages, {
             role: msg.Role,
@@ -61,7 +80,8 @@ const MessagesPane = () => {
     window.AddInitialMessages = addInitialMessages;
     window.AddMessage = addMessage;
     window.setMessageText = setMessageText;
-    window.removeMessageByGuid = removeMessageByGuid; // Export the new method
+    window.appendMessageText = appendMessageText; // Export the new method
+    window.removeMessageByGuid = removeMessageByGuid;
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -92,7 +112,7 @@ const MessagesPane = () => {
         const occurrences = (content.match(new RegExp(threeBackticks, 'g')) || []).length;
         return occurrences % 2 !== 0;
     };
-    
+
     return (
         <>
             <style>
@@ -166,4 +186,3 @@ const MessagesPane = () => {
         </>
     );
 };
-
