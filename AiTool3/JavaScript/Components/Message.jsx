@@ -1,4 +1,4 @@
-﻿// Message.js
+// Message.js
 const Message = ({ role, content: initialContent, guid, previousAssistantUnbalanced }) => {
     const { colorScheme } = window.useColorScheme();
     const [showContinueButton, setShowContinueButton] = useState(false);
@@ -51,12 +51,12 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
     }, [initialContent]);
 
     useEffect(() => {
-        if (role === 1 && isUnterminatedCodeBlock()) {
+        if (role === 1 && isUnterminatedCodeBlock() && guid !== 'temp-ai-msg' && guid !== 'temp-user-msg') {
             setShowContinueButton(true);
         } else {
             setShowContinueButton(false);
         }
-    }, [role, content]);
+    }, [role, content, guid]);
 
     return (
         <div className={`message ${getMessageClass()}`} key={guid}>

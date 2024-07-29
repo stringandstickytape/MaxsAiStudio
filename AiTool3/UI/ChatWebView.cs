@@ -181,7 +181,7 @@ namespace AiTool3.UI
                     saveFileDialog.RestoreDirectory = true;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        File.WriteAllText(saveFileDialog.FileName, SnippetHelper.StripFirstAndLastLine(content));
+                        File.WriteAllText(saveFileDialog.FileName, content);
                     }
                     break;
                 case "WebView":
