@@ -58,22 +58,18 @@ namespace AiTool3.Providers
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
             req["messages"].Last()["content"] = newInput;
 
-            var settings = AiTool3.SettingsSet.Load();
-
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             StartOllama(apiModel.ModelName);
 
-            var url = GetAdjustedUrl(apiModel.Url, settings.OllamaLocalPort);
-
             if (useStreaming)
             {
-                return await HandleStreamingResponse(url, content, cancellationToken);
+                return await HandleStreamingResponse(apiModel.Url, content, cancellationToken);
             }
             else
             {
-                return await HandleNonStreamingResponse(url, content, cancellationToken);
+                return await HandleNonStreamingResponse(apiModel.Url, content, cancellationToken);
             }
         }
 

@@ -22,8 +22,6 @@ namespace AiTool3
 {
     public partial class MaxsAiStudio : Form
     {
-        public static MaxsAiStudio MaxRef;
-
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;
         private ToolManager toolManager = new ToolManager();
@@ -34,7 +32,7 @@ namespace AiTool3
 
         public TemplateManager templateManager = new TemplateManager();
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
-        public SettingsSet CurrentSettings { get; set; } = AiTool3.SettingsSet.Load()!;
+        public SettingsSet CurrentSettings { get; set; } 
 
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
@@ -45,7 +43,15 @@ namespace AiTool3
         public string selectedConversationGuid = "";
         public MaxsAiStudio()
         {
-            MaxsAiStudio.MaxRef = this;
+            if(!File.Exists("Settings\\settings.json"))
+            {
+                CurrentSettings = AiTool3.SettingsSet.Load()!;
+                // show the settings dialog first up
+                var settingsForm = new SettingsForm(CurrentSettings);
+                var result = settingsForm.ShowDialog();
+                CurrentSettings = settingsForm.NewSettings;
+                SettingsSet.Save(CurrentSettings);
+            } else  CurrentSettings = AiTool3.SettingsSet.Load()!;
 
             InitializeComponent();
 
@@ -280,13 +286,27 @@ namespace AiTool3
                     }
                     break;
                 case "project":
-                    var form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
-                    form.AddFilesToInput += async (s, e) =>
-                    {
-                        // attach files as txt
-                        await _fileAttachmentManager.AttachTextFiles(e.ToArray());
+                    this.ShowWorking("Scanning files", CurrentSettings.SoftwareToyMode);
 
-                    };
+                    FileSearchForm form = null;
+
+                    await Task.Run(async () =>
+                    {
+                        try
+                        {
+                            form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
+                            form.AddFilesToInput += async (s, e) =>
+                            {
+                                // attach files as txt
+                                await _fileAttachmentManager.AttachTextFiles(e.ToArray());
+                            };
+                        }
+                        finally
+                        {
+                            
+                        }
+                    });
+                    this.HideWorking();
                     form.Show();
                     break;
             }
@@ -978,18 +998,6 @@ namespace AiTool3
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
-        }
-
-        private async void btnProjectHelper_Click(object sender, EventArgs e)
-        {
-            var form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
-            form.AddFilesToInput += async (s, e) =>
-            {
-                // attach files as txt
-                await _fileAttachmentManager.AttachTextFiles(e.ToArray());
-
-            };
-            form.Show();
         }
 
         private async void button2_Click(object sender, EventArgs e)

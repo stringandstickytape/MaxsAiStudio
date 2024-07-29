@@ -19,9 +19,6 @@ namespace AiTool3
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
         public bool NarrateResponses { get; set; } = false;
 
-        [MyDisplayNameAttr("Ollama Local Port")]
-        public int OllamaLocalPort { get; set; } = 11434;
-
         [MyDisplayNameAttr("Temperature")]
         public float Temperature { get; set; } = 0.9f;
 
@@ -34,7 +31,7 @@ namespace AiTool3
         [MyDisplayNameAttr("Entertain me with dumb software toys while I wait for non-chat tasks")]
         public bool SoftwareToyMode { get; set; } = false;
 
-        [MyDisplayNameAttr("Use embeddings (experimental)")]
+        [MyDisplayNameAttr("Use embeddings")]
         public bool UseEmbeddings { get; set; } = false;
 
         [MyDisplayNameAttr("Stream responses")]

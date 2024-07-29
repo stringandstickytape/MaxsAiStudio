@@ -159,10 +159,25 @@ namespace AiTool3.UI
                     break;
                 case "Save As":
                     var dataType = message["dataType"];
-                    var filext = SnippetManager.GetFileExtFromLanguage(dataType);
+
+                    var inFileExt = dataType.Contains(".") ? dataType.Split('.').Last() : dataType;
+
+                    var filext = SnippetManager.GetFileExtFromLanguage(inFileExt);
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-                    saveFileDialog.Filter = $"{dataType} files (*.{filext})|*.{filext}|All files (*.*)|*.*";
+                    saveFileDialog.Filter = $"{filext} files (*{filext})|*{filext}|All files (*.*)|*.*";
+
+                    // if datatype contains \\ it's a full path and file.  Default teh save file dialog thus.
+                    if (dataType.Contains(".")|| dataType.Contains("\\"))
+                    {
+                        
+                        if (dataType.Contains("\\"))
+                        {   
+                            saveFileDialog.FileName = Path.GetFileName(dataType);
+                            saveFileDialog.InitialDirectory = Path.GetDirectoryName(dataType);
+                        } else saveFileDialog.FileName = dataType;
+                    }
+
                     saveFileDialog.RestoreDirectory = true;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
@@ -435,6 +450,12 @@ namespace AiTool3.UI
                 {
                     Uri = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js",
                     ResourceName = "AiTool3.ThirdPartyJavascript.dagre.min.js",
+                    MimeType = "application/javascript"
+                },// https://unpkg.com/viz.js@2.1.2/viz.js
+                new ResourceDetails
+                {
+                    Uri = "https://unpkg.com/viz.js@2.1.2/viz.js",
+                    ResourceName = "AiTool3.ThirdPartyJavascript.viz.js",
                     MimeType = "application/javascript"
                 },
                 new ResourceDetails

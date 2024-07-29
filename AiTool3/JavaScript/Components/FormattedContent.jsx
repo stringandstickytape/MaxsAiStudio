@@ -88,6 +88,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                         padding: '5px 10px',
                         borderTopLeftRadius: '5px',
                         borderTopRightRadius: '5px',
+                        overflowWrap: 'anywhere'
                     }}>
                         <span>{fileType.trim()}</span>
                         <div>

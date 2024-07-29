@@ -130,7 +130,7 @@ namespace AiTool3
             foreach (var file in filenames)
             {
                 sb.AppendMany(MaxsAiStudio.ThreeTicks,
-                    Path.GetFileName(file),
+                    file,
                     Environment.NewLine,
                     File.ReadAllText(file),
                     Environment.NewLine,
@@ -208,11 +208,9 @@ namespace AiTool3
 
                     await chatWebView.SetUserPrompt(output);
 
-                    MaxsAiStudio.MaxRef.HideWorking();
                 }
                 else
                 {
-                    MaxsAiStudio.MaxRef.HideWorking();
                     throw new Exception("Couldn't transcribe video/audio file");
                 }
             }
