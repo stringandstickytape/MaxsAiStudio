@@ -11,13 +11,16 @@ function App() {
 
     return (
         <>
+            {colorScheme.fontLink && (
+                <link href={colorScheme.fontLink} rel="stylesheet" />
+            )}
             <style>
                 {`
                     html, body, #root {
                         height: 100%;
                         margin: 0;
                         padding: 0;
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
                     .app-container {
                         display: flex;

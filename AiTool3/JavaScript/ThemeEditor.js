@@ -155,7 +155,8 @@
         formGroup.appendChild(label);
 
         if (key === 'messagesPaneBackgroundCss' || key === 'mainContentBackgroundCss' || key === 'mainContentBackgroundImage' || key === 'messagesPaneBackgroundImage' ||
-            key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss' || key === 'messagesPaneBackgroundFilter') {
+            key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss' || key === 'messagesPaneBackgroundFilter'
+            || key === 'fontLink' || key === 'fontFamily') {
             const textarea = createElement('textarea', {
                 value: value,
                 name: key,

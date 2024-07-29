@@ -13,6 +13,14 @@
             "type": "string",
             "description": "ID of the color scheme."
           },
+          "fontLink": {
+            "type": "string",
+            "description": "Link element source url for a Google or other CDN font to be used across the UI."
+          },
+          "fontFamily": {
+            "type": "string",
+            "description": "Font-family element for the fontLink, to be used across the UI."
+          },
           "backgroundColor": {
             "type": "string",
             "description": "Background color in hex format"

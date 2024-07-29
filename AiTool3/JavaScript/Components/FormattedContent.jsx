@@ -1,4 +1,6 @@
-﻿function fixNewlinesInStrings(jsonString) {
+﻿// FormattedContent.jsx
+
+function fixNewlinesInStrings(jsonString) {
     return jsonString.replace(
         /("find"|"replace")\s*:\s*"((?:\\.|[^"\\])*?)"/g,
         (match, key, value) => {
@@ -8,10 +10,23 @@
     );
 }
 
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered }) => {
     const { colorScheme } = React.useColorScheme();
     const [currentlySelectedFindAndReplaceSet, setCurrentlySelectedFindAndReplaceSet] = useState(window.currentlySelectedFindAndReplaceSet);
     const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
+    const [isInstallingTheme, setIsInstallingTheme] = useState(false);
 
     useEffect(() => {
         const handleFindAndReplaceUpdate = () => {
@@ -42,7 +57,6 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         <button
             onClick={action}
             style={{
-                
                 background: colorScheme.buttonBackgroundCss ? colorScheme.buttonBackgroundCss : 'none',
                 backgroundColor: colorScheme.buttonBackgroundColor,
                 color: colorScheme.buttonTextColor,
@@ -127,26 +141,34 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                 })
                             }
                             {fileTypes.installTheme.includes(trimmedFileType) &&
-                                addMessageButton("Install Theme", () => {
+                                addMessageButton("Install Theme", debounce(() => {
+                                    if (isInstallingTheme) return;
+                                    setIsInstallingTheme(true);
+
                                     try {
                                         var obj = JSON.parse(code.trim());
                                     }
                                     catch (error) {
-                                        setUserPrompt("That JSON isn't valid: "+error);
+                                        setUserPrompt("That JSON isn't valid: " + error);
+                                        setIsInstallingTheme(false);
                                         return;
                                     }
                                     var themeName = Object.keys(obj)[0];
                                     window.addColorScheme(themeName, Object.values(obj)[0]);
-                                    window.chrome.webview.postMessage({
-                                        type: 'allThemes',
-                                        content: JSON.stringify(window.getAllColorSchemes())
+
+                                    Promise.all([
+                                        window.chrome.webview.postMessage({
+                                            type: 'allThemes',
+                                            content: JSON.stringify(window.getAllColorSchemes())
+                                        }),
+                                        window.chrome.webview.postMessage({
+                                            type: 'selectTheme',
+                                            content: JSON.stringify(obj.colorScheme.id)
+                                        })
+                                    ]).then(() => {
+                                        setIsInstallingTheme(false);
                                     });
-                                    window.chrome.webview.postMessage({
-                                        type: 'selectTheme',
-                                        content: JSON.stringify(obj.colorScheme.id)
-                                    });
-                                    
-                                })
+                                }, 300))
                             }
                             {fileTypes.browseJsonObject.includes(fileExt) &&
                                 addMessageButton("Browse JSON Object", () => {
