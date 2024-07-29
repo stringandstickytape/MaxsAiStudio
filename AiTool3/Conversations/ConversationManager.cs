@@ -77,7 +77,7 @@ namespace AiTool3.Conversations
 
         }
 
-        public async Task RegenerateSummary(Model summaryModel, bool useLocalAi, DataGridView dgv, string guid, SettingsSet currentSettings)
+        public async Task RegenerateSummary(Model summaryModel, DataGridView dgv, string guid, SettingsSet currentSettings)
         {
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename(guid)).OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
 
@@ -112,9 +112,9 @@ namespace AiTool3.Conversations
             dgv.Refresh();
         }
 
-        public async Task<AutoSuggestForm> Autosuggest(Model model, bool useLocalAi, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
+        public async Task<AutoSuggestForm> Autosuggest(Model model, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
         {
-            return await Conversation!.GenerateAutosuggests(model, useLocalAi, fun, userAutoSuggestPrompt);
+            return await Conversation!.GenerateAutosuggests(model, fun, userAutoSuggestPrompt);
         }
 
         public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)

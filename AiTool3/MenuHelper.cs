@@ -250,7 +250,7 @@ namespace AiTool3
                     new LabelAndEventHander("Rewrite Summaries", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        await conversationManager.RegenerateSummary(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, "*", currentSettings);
+                        await conversationManager.RegenerateSummary(model, dgvConversations, "*", currentSettings);
                     }),
 
                     new LabelAndEventHander("Transcribe MP4", async (s, e) =>
@@ -270,14 +270,14 @@ namespace AiTool3
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations);
+                        var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
 
                     new LabelAndEventHander("Autosuggest (Fun)", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true);
+                        var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, true);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
 
@@ -298,7 +298,7 @@ namespace AiTool3
                             userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
 
                             var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                            var autoSuggestForm = await conversationManager.Autosuggest(model, currentSettings.GenerateSummariesUsingLocalAi, dgvConversations, true, userAutoSuggestPrompt);
+                            var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, true, userAutoSuggestPrompt);
                             autoSuggestForm.StringSelected += autoSuggestStringSelected;
                         }
                     }),

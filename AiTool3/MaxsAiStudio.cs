@@ -492,7 +492,7 @@ namespace AiTool3
         }
 
         private async void RegenerateSummary(object sender, EventArgs e) =>
-            await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), CurrentSettings.GenerateSummariesUsingLocalAi, dgvConversations, selectedConversationGuid, CurrentSettings);
+            await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), dgvConversations, selectedConversationGuid, CurrentSettings);
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {

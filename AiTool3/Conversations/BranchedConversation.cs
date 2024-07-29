@@ -61,8 +61,7 @@ namespace AiTool3.Conversations
 
             string responseText = "";
             Debug.WriteLine(Summary);
-            if (currentSettings.GenerateSummariesUsingLocalAi)
-            {
+
                 // instantiate the service from name
                 var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
 
@@ -119,14 +118,7 @@ namespace AiTool3.Conversations
                         Summary = "Summary failed";
                     }
                 } else Summary = "Summary failed";
-            }
-            // jsonconvert to dynamic
-            else
-            {
-                var msg = Messages.First(x => x.Role != CompletionRole.Root).Content;
 
-                Summary = msg.Length > 100 ? msg.Substring(0, 100) : msg;
-            }
 
             SaveConversation();
 
@@ -135,7 +127,7 @@ namespace AiTool3.Conversations
 
         public event StringSelectedEventHandler StringSelected;
 
-        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool useLocalAi, bool fun, string userAutoSuggestPrompt)
+        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool fun, string userAutoSuggestPrompt)
         {
             AutoSuggestForm form = null;
             string responseText = "";
