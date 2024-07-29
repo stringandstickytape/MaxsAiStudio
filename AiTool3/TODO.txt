@@ -82,8 +82,7 @@ DONE: regen all summaries
 DONE: Check whisper still works through microphone
 DONE: js => jsx
 SORT-OF-DONE (can edit raw) : Copy response as raw text (no backtick issues!)
-
-fix the load-thousands-of-conversations bug
+DONE: fix the load-thousands-of-conversations bug
 
 selected theme isn't sticking  when installing theme directly
 

@@ -136,7 +136,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     }
                                     var themeName = Object.keys(obj)[0];
                                     window.addColorScheme(themeName, Object.values(obj)[0]);
-                                    
+                                    window.chrome.webview.postMessage({
+                                        type: 'allThemes',
+                                        content: JSON.stringify(window.getAllColorSchemes())
+                                    });
+                                    window.chrome.webview.postMessage({
+                                        type: 'selectTheme',
+                                        content: JSON.stringify(obj.colorScheme.id)
+                                    });
                                     
                                 })
                             }

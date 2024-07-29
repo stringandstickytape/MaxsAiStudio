@@ -96,10 +96,7 @@ const ColorSchemeProvider = ({ children }) => {
             [schemeId]: scheme
         }));
 
-        setTimeout(() => {
-            window.selectColorScheme(schemeId);
-            //window.createThemeEditor();
-        }, 100);
+        window.selectColorScheme(schemeId);
     };
 
     const updateColorScheme = (id, newColors) => {
