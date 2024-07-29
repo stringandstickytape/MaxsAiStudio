@@ -29,7 +29,7 @@ function App() {
                         overflow-y: scroll;
                         padding: 20px;
                         overflow-x: hidden;
-                        scroll-behavior: smooth;
+                        scroll-behavior: auto;
                         background-color: ${colorScheme.backgroundColor};
                         background: ${colorScheme.mainContentBackgroundCss};
                         background-image: ${colorScheme.mainContentBackgroundImage};

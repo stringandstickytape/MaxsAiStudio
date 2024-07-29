@@ -11,9 +11,9 @@ const LiveStream = () => {
 
     window.ScrollToTemp = () => {
         const mainContent = document.getElementsByClassName('main-content')[0];
-        mainContent.setAttribute("style", "scroll-behavior: auto");
+        //mainContent.setAttribute("style", "scroll-behavior: auto");
         mainContent.scrollTop = mainContent.scrollHeight;
-        mainContent.setAttribute("style", "scroll-behavior: smooth");
+        //mainContent.setAttribute("style", "scroll-behavior: smooth");
     };
 
     useEffect(() => {

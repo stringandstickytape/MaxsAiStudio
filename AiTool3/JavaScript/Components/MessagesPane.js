@@ -82,7 +82,7 @@ const MessagesPane = () => {
                     background-image: ${colorScheme.messagesPaneBackgroundImage};
                     ${colorScheme?.messagesPaneBackgroundFilter ? `background-filter: ${colorScheme.messagesPaneBackgroundFilter}` : ``};
                     padding: 10px;
-                    scroll-behavior: smooth;  
+                    scroll-behavior: auto;  
                     color: ${colorScheme.textColor}
                     ;
                 }
