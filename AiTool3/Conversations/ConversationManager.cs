@@ -244,44 +244,44 @@ namespace AiTool3.Conversations
             }
             // now take the original content, and replace the code block with the processed content
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
-
+            nodeToDuplicate.Content = newContent;
             // now add a new message which we'll append to NodeToDuplicate, ostensibly from the user, sayign "incorporate those changes"
-            var newMessage = new CompletionMessage(CompletionRole.User)
-            {
-                Content = "Incorporate those changes",
-                Parent = e.SelectedMessageGuid,
-                Engine = nodeToDuplicate.Engine,
-                SystemPrompt = nodeToDuplicate.SystemPrompt,
-                InputTokens = 0,
-                OutputTokens = 0,
-                Base64Image = nodeToDuplicate.Base64Image,
-                Base64Type = nodeToDuplicate.Base64Type,
-                CreatedAt = DateTime.Now,
-            };
-
-            Conversation!.Messages.Add(newMessage);
-            nodeToDuplicate.Children!.Add(newMessage.Guid);
-
-            // and from that message, add another, ostensibly from the assistant, quoting the new content
-            var newMessage2 = new CompletionMessage(CompletionRole.Assistant)
-            {
-                Content = newContent,
-                Parent = newMessage.Guid,
-                Engine = nodeToDuplicate.Engine,
-                SystemPrompt = nodeToDuplicate.SystemPrompt,
-                InputTokens = 0,
-                OutputTokens = 0,
-                Base64Image = nodeToDuplicate.Base64Image,
-                Base64Type = nodeToDuplicate.Base64Type,
-                CreatedAt = DateTime.Now,
-            };
-
-            Conversation.Messages.Add(newMessage2);
-            newMessage.Children.Add(newMessage2.Guid);
+            //var newMessage = new CompletionMessage(CompletionRole.User)
+            //{
+            //    Content = "Incorporate those changes",
+            //    Parent = e.SelectedMessageGuid,
+            //    Engine = nodeToDuplicate.Engine,
+            //    SystemPrompt = nodeToDuplicate.SystemPrompt,
+            //    InputTokens = 0,
+            //    OutputTokens = 0,
+            //    Base64Image = nodeToDuplicate.Base64Image,
+            //    Base64Type = nodeToDuplicate.Base64Type,
+            //    CreatedAt = DateTime.Now,
+            //};
+            //
+            //Conversation!.Messages.Add(newMessage);
+            //nodeToDuplicate.Children!.Add(newMessage.Guid);
+            //
+            //// and from that message, add another, ostensibly from the assistant, quoting the new content
+            //var newMessage2 = new CompletionMessage(CompletionRole.Assistant)
+            //{
+            //    Content = newContent,
+            //    Parent = newMessage.Guid,
+            //    Engine = nodeToDuplicate.Engine,
+            //    SystemPrompt = nodeToDuplicate.SystemPrompt,
+            //    InputTokens = 0,
+            //    OutputTokens = 0,
+            //    Base64Image = nodeToDuplicate.Base64Image,
+            //    Base64Type = nodeToDuplicate.Base64Type,
+            //    CreatedAt = DateTime.Now,
+            //};
+            //
+            //Conversation.Messages.Add(newMessage2);
+            //newMessage.Children.Add(newMessage2.Guid);
 
             SaveConversation();
 
-            return newMessage2.Guid;
+            return nodeToDuplicate.Guid;
         }
 
         internal void MergeWithPrevious(string guidValue)

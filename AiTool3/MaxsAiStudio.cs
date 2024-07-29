@@ -22,6 +22,8 @@ namespace AiTool3
 {
     public partial class MaxsAiStudio : Form
     {
+        public static MaxsAiStudio MaxRef;
+
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;
         private ToolManager toolManager = new ToolManager();
@@ -43,6 +45,8 @@ namespace AiTool3
         public string selectedConversationGuid = "";
         public MaxsAiStudio()
         {
+            MaxsAiStudio.MaxRef = this;
+
             InitializeComponent();
 
             DirectoryHelper.CreateSubdirectories();
@@ -362,7 +366,7 @@ namespace AiTool3
             MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
 
-            await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
+            await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager, this);
             await MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
 
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
@@ -860,7 +864,12 @@ namespace AiTool3
 
             ConversationManager.LoadConversation(clickedGuid!);
 
-            await WebNdcDrawNetworkDiagram();
+            if (ConversationManager.Conversation.GetRootNode() != null)
+            {
+                WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(ConversationManager.Conversation.GetRootNode()?.Guid));
+            }
+
+                await WebNdcDrawNetworkDiagram();
 
         }
 

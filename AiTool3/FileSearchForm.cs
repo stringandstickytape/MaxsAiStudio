@@ -21,6 +21,7 @@ namespace AiTool3
         private string rootPath;
         private string[] fileExtensions;
         public EventHandler<List<string>> AddFilesToInput;
+        private GitIgnoreFilterManager gitIgnoreFilterManager = new GitIgnoreFilterManager("");
 
         public FileSearchForm(string path, string csvFileTypes)
         {
@@ -37,7 +38,16 @@ namespace AiTool3
                 checkedFiles = JsonConvert.DeserializeObject<List<string>>(json);
             }
 
-            PopulateTreeView(@"", checkedFiles);
+            string gitignore = null;
+            gitIgnoreFilterManager = null;
+            // check for a .gitignore
+            if (File.Exists(Path.Combine(rootPath, ".gitignore")))
+            {
+                gitignore = File.ReadAllText(Path.Combine(rootPath, ".gitignore"));
+                gitIgnoreFilterManager  = new GitIgnoreFilterManager(gitignore);
+            }
+
+            PopulateTreeView(gitignore, checkedFiles);
 
             Load += (sender, e) =>
             {
@@ -173,15 +183,15 @@ namespace AiTool3
         {
             treeView.Nodes.Clear();
             TreeNode rootNode = new TreeNode(rootPath);
-            var ignoreList = ParseGitignore(gitignoreContent);
-            if (PopulateTreeNode(rootNode, rootPath, ignoreList, checkedFiles))
+            
+            if (PopulateTreeNode(rootNode, rootPath, checkedFiles))
             {
                 treeView.Nodes.Add(rootNode);
             }
             treeView.ExpandAll();
         }
 
-        private bool PopulateTreeNode(TreeNode node, string path, List<string> ignoreList, List<string>? checkedFiles)
+        private bool PopulateTreeNode(TreeNode node, string path, List<string>? checkedFiles)
         {
             bool hasValidChildren = false;
 
@@ -189,10 +199,11 @@ namespace AiTool3
             foreach (string subdirectory in subdirectories)
             {
                 string relativePath = GetRelativePath(rootPath, subdirectory);
-                if (!ShouldIgnore(relativePath, ignoreList))
+
+                if (!gitIgnoreFilterManager.PathIsIgnored(subdirectory))
                 {
                     TreeNode subNode = new TreeNode(Path.GetFileName(subdirectory));
-                    if (PopulateTreeNode(subNode, subdirectory, ignoreList, checkedFiles))
+                    if (PopulateTreeNode(subNode, subdirectory, checkedFiles))
                     {
                         if (checkedFiles != null && checkedFiles.Contains(subdirectory))
                         {
@@ -203,20 +214,20 @@ namespace AiTool3
                         hasValidChildren = true;
                     }
                 }
-                else Debug.WriteLine(subdirectory);
             }
 
             string[] files = Directory.GetFiles(path);
             foreach (string file in files)
             {
                 string relativePath = GetRelativePath(rootPath, file);
-                if (!ShouldIgnore(relativePath, ignoreList))
+
+                if (!gitIgnoreFilterManager.PathIsIgnored(file))
                 {
                     string extension = Path.GetExtension(file).ToLower();
                     if (fileExtensions.Contains(extension))
                     {
                         TreeNode fileNode = new TreeNode(Path.GetFileName(file));
-                        if(checkedFiles != null && checkedFiles.Contains(file))
+                        if (checkedFiles != null && checkedFiles.Contains(file))
                         {
                             fileNode.Checked = true;
                         }
@@ -224,7 +235,6 @@ namespace AiTool3
                         hasValidChildren = true;
                     }
                 }
-                else Debug.WriteLine(file);
             }
 
             return hasValidChildren;

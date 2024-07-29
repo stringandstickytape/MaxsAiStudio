@@ -211,7 +211,7 @@ namespace AiTool3
             CreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, form);
         }
 
-        public static async Task CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager)
+        public static async Task CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager, MaxsAiStudio maxsAiStudio)
         {
             
 
@@ -249,8 +249,10 @@ namespace AiTool3
 
                     new LabelAndEventHander("Rewrite Summaries", async (s, e) =>
                     {
+                        maxsAiStudio.ShowWorking("Regenerating Summaries", maxsAiStudio.CurrentSettings.SoftwareToyMode);
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         await conversationManager.RegenerateSummary(model, dgvConversations, "*", currentSettings);
+
                     }),
 
                     new LabelAndEventHander("Transcribe MP4", async (s, e) =>

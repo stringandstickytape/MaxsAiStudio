@@ -146,8 +146,8 @@ namespace AiTool3
         public async Task TranscribeMP4(string filename, ChatWebView chatWebView)
         {
             // Path to the Miniconda installation
-            string condaPath = @"C:\ProgramData\miniconda3\Scripts\activate.bat";
-
+            string condaPath = @"C:\Users\maxhe\miniconda3\Scripts\activate.bat";
+            
             // Command to activate the WhisperX environment and run Whisper
             string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\" --output_format json";
 
@@ -207,9 +207,14 @@ namespace AiTool3
                     string output = NewMethod(filename, result);
 
                     await chatWebView.SetUserPrompt(output);
+
+                    MaxsAiStudio.MaxRef.HideWorking();
                 }
-                else 
+                else
+                {
+                    MaxsAiStudio.MaxRef.HideWorking();
                     throw new Exception("Couldn't transcribe video/audio file");
+                }
             }
         }
 

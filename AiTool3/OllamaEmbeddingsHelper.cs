@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Windows.Forms;
+using System.Drawing;
 
 namespace AiTool3
 {
@@ -16,7 +18,6 @@ namespace AiTool3
             if (!mustNotUseEmbedding && currentSettings.UseEmbeddings)
             {
                 var embeddingText = input + " ";
-                // last but one msg
                 var lbom = conversation.messages.Count > 1 ? conversation.messages[conversation.messages.Count - 2].content : "";
 
                 if (string.IsNullOrEmpty(lbom) || lbom != input)
@@ -24,9 +25,13 @@ namespace AiTool3
                     embeddingText += lbom + " ";
                 }
                 var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename);
+
+                // Display embeddings in a modal dialog and let user select
+                var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
+
                 var lastMsg = $"{Environment.NewLine}{Environment.NewLine}" +
                     $"Here's some related content:{Environment.NewLine}" +
-                    $"{string.Join(Environment.NewLine, embeddings.Select(
+                    $"{string.Join(Environment.NewLine, selectedEmbeddings.Select(
                         x => $"{new string('`', 3)}{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
                         $"{x.Code}{Environment.NewLine}" +
                         $"" +
@@ -37,6 +42,87 @@ namespace AiTool3
                 return lastMsg;
             }
             else return input;
+        }
+
+        private static List<CodeSnippet> ShowEmbeddingsSelectionDialog(List<CodeSnippet> embeddings)
+        {
+            var selectedEmbeddings = new List<CodeSnippet>();
+
+            using (var form = new Form())
+            {
+                form.Text = "Select Embeddings";
+                form.Size = new Size(800, 600);
+                form.StartPosition = FormStartPosition.CenterScreen;
+
+                // Create a split container
+                var splitContainer = new SplitContainer
+                {
+                    Dock = DockStyle.Fill,
+                    SplitterDistance = 200
+                };
+                form.Controls.Add(splitContainer);
+
+                // Create the checkedListBox for filenames
+                var checkedListBox = new CheckedListBox
+                {
+                    Dock = DockStyle.Fill,
+                    CheckOnClick = true
+                };
+                splitContainer.Panel1.Controls.Add(checkedListBox);
+
+                // Create the textbox for content
+                var contentTextBox = new TextBox
+                {
+                    Dock = DockStyle.Fill,
+                    Multiline = true,
+                    ReadOnly = true,
+                    ScrollBars = ScrollBars.Vertical
+                };
+                splitContainer.Panel2.Controls.Add(contentTextBox);
+
+                // Populate the checkedListBox
+                foreach (var snippet in embeddings)
+                {
+                    checkedListBox.Items.Add($"{snippet.Filename} (Line {snippet.LineNumber})", true);
+                }
+
+                // Event handler for selection change
+                checkedListBox.SelectedIndexChanged += (sender, e) =>
+                {
+                    if (checkedListBox.SelectedIndex != -1)
+                    {
+                        var selectedSnippet = embeddings[checkedListBox.SelectedIndex];
+                        contentTextBox.Text = $"Filename: {selectedSnippet.Filename}\r\n" +
+                                              $"Line: {selectedSnippet.LineNumber}\r\n" +
+                                              $"Namespace: {selectedSnippet.Namespace}\r\n" +
+                                              $"Class: {selectedSnippet.Class}\r\n\r\n" +
+                                              $"Code:\r\n{selectedSnippet.Code}";
+                    }
+                };
+
+                var okButton = new Button
+                {
+                    Text = "OK",
+                    DialogResult = DialogResult.OK,
+                    Dock = DockStyle.Bottom
+                };
+                form.Controls.Add(okButton);
+
+                form.AcceptButton = okButton;
+
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    for (int i = 0; i < checkedListBox.Items.Count; i++)
+                    {
+                        if (checkedListBox.GetItemChecked(i))
+                        {
+                            selectedEmbeddings.Add(embeddings[i]);
+                        }
+                    }
+                }
+            }
+
+            return selectedEmbeddings;
         }
 
         public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename)

@@ -104,15 +104,36 @@ namespace AiTool3
             }
 
             maxsAiStudio.ShowWorking("Generating Embeddings", maxsAiStudio.CurrentSettings.SoftwareToyMode);
+
+            string gitignore = null;
+            GitIgnoreFilterManager gitIgnoreFilterManager = new GitIgnoreFilterManager("");
+            // check for a .gitignore
+            if (File.Exists(Path.Combine(folderBrowserDialog.SelectedPath, ".gitignore")))
+            {
+                gitignore = File.ReadAllText(Path.Combine(folderBrowserDialog.SelectedPath, ".gitignore"));
+                gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+            }
+
             // recursively find all cs files within that dir and subdirs
             var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
-            files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
+
+            
+
+            if (gitignore != null)
+            {
+                files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files.ToList()).ToArray();
+            }
 
 
-            var htmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories);
-            var xmlFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories);
-            var jsonFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories);
-            var jsFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories);
+            //files = files.Where(files => !files.Contains(".g") && !files.Contains(".Assembly") && !files.Contains(".Designer")).ToArray();
+
+
+            var htmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories).ToList());
+            var xmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories) .ToList());
+
+            var x = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories).ToList();
+            var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);
+            var jsFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories)  .ToList());
 
             var csFragmenter = new CsFragmenter();
             var webCodeFragmenter = new WebCodeFragmenter();
@@ -257,6 +278,4 @@ namespace AiTool3
         }
 
     }
-
-
 }

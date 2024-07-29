@@ -266,7 +266,7 @@ namespace AiTool3.Conversations
 
         public CompletionMessage GetRootNode()
         {
-            return Messages.First(x => x.Role == CompletionRole.Root);
+            return Messages.FirstOrDefault(x => x.Role == CompletionRole.Root);
         }
 
         internal static void DeleteConversation(string guid)

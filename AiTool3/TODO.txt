@@ -101,7 +101,7 @@ First-run "wizard"
  - default the engine dropdowns as such
 
  Add "working" to:
-* regen all summaries
+DONE: regen all summaries
 * transcribe
 
 Remove unnecessary experiments
