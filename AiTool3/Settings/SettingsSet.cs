@@ -75,7 +75,7 @@ namespace AiTool3
             var api = ApiList.FirstOrDefault(a => a.ApiName == apiName);
             if (api == null)
             {
-                api = new Api { ApiName = apiName, ApiUrl = model.Url, Models = new List<Model>() };
+                api = new Api { ApiName = apiName, Models = new List<Model>() };
                 ApiList.Add(api);
             }
 
@@ -107,7 +107,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "OpenAI",
-                ApiUrl = "https://api.openai.com/v1/chat/completions",
                 Models = new List<Model>
                 {// gpt-4o-mini
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o", Color = Color.FromArgb(255, 179, 186)},
@@ -121,7 +120,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "Ollama (Port 11434 default)",
-                ApiUrl = "http://localhost:11434/api/chat/",
                 Models = new List<Model>
                 {
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:7b", Color = Color.FromArgb(255, 255, 186)},
@@ -138,7 +136,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "Groq",
-                ApiUrl = "https://api.groq.com/openai/v1/chat/completions",
                 Models = new List<Model>
                 {
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-8b-8192", Color = Color.FromArgb(255, 216, 186)},
@@ -149,7 +146,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "Gemini",
-                ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/",
                 Models = new List<Model>
                 {
                     new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro", Color = Color.FromArgb(186, 255, 216)},
@@ -159,7 +155,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "Anthropic",
-                ApiUrl = "https://api.anthropic.com/v1/messages",
                 Models = new List<Model>
                 {
                     new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-5-sonnet-20240620", Color = Color.FromArgb(255, 219, 186) },
@@ -173,7 +168,6 @@ namespace AiTool3
             ApiList.Add(new Api
             {
                 ApiName = "Mock AI Service",
-                ApiUrl = "Not Applicable",
                 Models = new List<Model>
                 {
                     new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, ModelName = "lorem-ipsum-1", Color = Color.FromArgb(255, 186, 186)},

@@ -322,7 +322,7 @@ namespace AiTool3.Settings
             var api = NewSettings.ApiList.FirstOrDefault(a => a.ApiName == apiName);
             if (api == null)
             {
-                api = new Api { ApiName = apiName, ApiUrl = "", Models = new List<Model>() };
+                api = new Api { ApiName = apiName, Models = new List<Model>() };
                 NewSettings.ApiList.Add(api);
             }
 
