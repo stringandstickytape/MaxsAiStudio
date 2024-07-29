@@ -1,13 +1,13 @@
 ﻿namespace AiTool3
 {
-    public partial class EditRawMessageForm : Form
+    public class EditRawMessageForm : Form
     {
         public string EditedContent { get; private set; }
 
         public EditRawMessageForm(string initialContent)
         {
             InitializeComponent();
-            textBoxContent.Text = initialContent.Replace("\r\n","\n").Replace("\n","\r\n");
+            textBoxContent.Text = initialContent.Replace("\r\n", "\n").Replace("\n", "\r\n");
         }
 
         private void InitializeComponent()
@@ -76,7 +76,7 @@
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            EditedContent = textBoxContent.Text.Replace("\r\n","\n");
+            EditedContent = textBoxContent.Text.Replace("\r\n", "\n");
         }
     }
 }

@@ -463,19 +463,19 @@ namespace AiTool3
         {
 
 
-            await chatWebView.SetModels(CurrentSettings.ApiList!.SelectMany(x => x.Models).ToList());
+            await chatWebView.SetModels(CurrentSettings.ModelList);
 
             if (CurrentSettings.SelectedModel != "")
             {
                 await chatWebView.SetDropdownValue("mainAI", CurrentSettings.SelectedModel.ToString());
             }
-            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
+            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.ModelList.FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
 
             if (CurrentSettings.SelectedSummaryModel != "")
             {
                 await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
             }
-            else await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.GetAllModels().FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
+            else await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.ModelList.FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
 
         }
 

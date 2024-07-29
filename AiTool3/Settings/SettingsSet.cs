@@ -14,7 +14,7 @@ namespace AiTool3
     public class SettingsSet
 
     {
-        public List<Api>? ApiList { get; set; }
+        public List<Model> ModelList { get; set; } = new List<Model>();
 
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
         public bool NarrateResponses { get; set; } = false;
@@ -70,58 +70,14 @@ namespace AiTool3
             SettingsSet.Save(this);
         }
 
-        public void AddOrUpdateModel(string apiName, Model model)
-        {
-            var api = ApiList.FirstOrDefault(a => a.ApiName == apiName);
-            if (api == null)
-            {
-                api = new Api { ApiName = apiName, Models = new List<Model>() };
-                ApiList.Add(api);
-            }
-
-            var existingModel = api.Models.FirstOrDefault(m => m.ModelName == model.ModelName);
-            if (existingModel != null)
-            {
-                api.Models.Remove(existingModel);
-            }
-            api.Models.Add(model);
-        }
-
-        public void RemoveModel(string apiName, string modelName)
-        {
-            var api = ApiList.FirstOrDefault(a => a.ApiName == apiName);
-            if (api != null)
-            {
-                api.Models.RemoveAll(m => m.ModelName == modelName);
-                if (api.Models.Count == 0)
-                {
-                    ApiList.Remove(api);
-                }
-            }
-        }
-
         private void Create()
         {
-            ApiList = new List<Api>();
-
-            ApiList.Add(new Api
+            ModelList = new List<Model>()
             {
-                ApiName = "OpenAI",
-                Models = new List<Model>
-                {// gpt-4o-mini
-                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o", Color = Color.FromArgb(255, 179, 186)},
-                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-mini-2024-07-18", Color = Color.FromArgb(186, 201, 255) },
-                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4-turbo", Color = Color.FromArgb(186, 255, 201)},
-                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", Color = Color.FromArgb(186, 225, 255)}
-                },
-
-            });
-
-            ApiList.Add(new Api
-            {
-                ApiName = "Ollama (Port 11434 default)",
-                Models = new List<Model>
-                {
+                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 5, output1MTokenPrice = 15},
+                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-mini-2024-07-18", Color = Color.FromArgb(186, 201, 255) , input1MTokenPrice = 0.15m, output1MTokenPrice = .6m},
+                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4-turbo", Color = Color.FromArgb(186, 255, 201), input1MTokenPrice = 10, output1MTokenPrice = 30},
+                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0.5m, output1MTokenPrice = 1.5m},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:7b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:13b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.1:8b", Color = Color.FromArgb(255, 255, 186)},
@@ -130,50 +86,15 @@ namespace AiTool3
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:27b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},
-                },
-            });
-
-            ApiList.Add(new Api
-            {
-                ApiName = "Groq",
-                Models = new List<Model>
-                {
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-8b-8192", Color = Color.FromArgb(255, 216, 186)},
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-70b-8192", Color = Color.FromArgb(224, 186, 255)},
-                },
-            });
-
-            ApiList.Add(new Api
-            {
-                ApiName = "Gemini",
-                Models = new List<Model>
-                {
-                    new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro", Color = Color.FromArgb(186, 255, 216)},
-                },
-            });
-
-            ApiList.Add(new Api
-            {
-                ApiName = "Anthropic",
-                Models = new List<Model>
-                {
-                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-5-sonnet-20240620", Color = Color.FromArgb(255, 219, 186) },
-                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-opus-20240229", Color = Color.FromArgb(186, 207, 255)},
-                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-sonnet-20240229", Color = Color.FromArgb(186, 255, 237)},
-                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-haiku-20240307", Color = Color.FromArgb(216, 186, 255)},
-                },
-            });
-
-            // mock service
-            ApiList.Add(new Api
-            {
-                ApiName = "Mock AI Service",
-                Models = new List<Model>
-                {
+                    new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .7m, output1MTokenPrice = 2.1m},
+                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-5-sonnet-20240620", Color = Color.FromArgb(255, 219, 186) , input1MTokenPrice = 3, output1MTokenPrice = 15},
+                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-opus-20240229", Color = Color.FromArgb(186, 207, 255), input1MTokenPrice = 15, output1MTokenPrice = 75},
+                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-sonnet-20240229", Color = Color.FromArgb(186, 255, 237), input1MTokenPrice = 3, output1MTokenPrice = 15},
+                    new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, ModelName = "claude-3-haiku-20240307", Color = Color.FromArgb(216, 186, 255), input1MTokenPrice = .25m, output1MTokenPrice = 1.25m},
                     new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, ModelName = "lorem-ipsum-1", Color = Color.FromArgb(255, 186, 186)},
-                },
-
-            });
+            };
         }
 
         public static void Save(SettingsSet mgr)
@@ -212,10 +133,10 @@ namespace AiTool3
             }
         }
 
-        public Model GetModelByName(string modelName) =>  ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ModelName == modelName);
+        public Model GetModelByName(string modelName) =>  ModelList.FirstOrDefault(x => x.ModelName == modelName);
 
 
-        public Model GetModelByFullStringReference(string modelName) => ApiList.SelectMany(x => x.Models).FirstOrDefault(x => x.ToString() == modelName);
+        public Model GetModelByFullStringReference(string modelName) => ModelList.FirstOrDefault(x => x.ToString() == modelName);
 
         public Model GetSummaryModel() => GetModelByFullStringReference(SelectedSummaryModel);
 
@@ -223,32 +144,17 @@ namespace AiTool3
         {
             var newSettings = new SettingsSet();
             newSettings.Create();
-            foreach (var api in newSettings.ApiList)
+            foreach (var model in newSettings.ModelList)
             {
-                if (!ApiList.Any(x => x.ApiName == api.ApiName))
-                {
-                    ApiList.Add(api);
-                }
-
-
-                foreach(var model in api.Models)
-                {
                     var newModel = GetModelByName(model.ModelName);
                     if (newModel == null)
                     {
                         // add to correct in apilist
-                        var correctApi = ApiList.First(x => x.ApiName == api.ApiName);
-                        correctApi.Models.Add(model);
+                        ModelList.Add(model);
                     }
-                }
             }
 
             Save(this);
-        }
-
-        internal IEnumerable<Model> GetAllModels()
-        {
-            return ApiList!.SelectMany(x => x.Models).ToList();
         }
     }
 

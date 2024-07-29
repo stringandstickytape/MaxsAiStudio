@@ -12,8 +12,7 @@ internal partial class ModelUsageManager
         public UsageStatisticsForm(SettingsSet settings)
         {
             this.settings = settings;
-            List<Api> apis = settings.ApiList;
-            List<Model> models = apis.SelectMany(x => x.Models).ToList();
+            List<Model> models = settings.ModelList;
 
             this.Text = "Model Usage Statistics";
             this.Size = new Size(800, 600);

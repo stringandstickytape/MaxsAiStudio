@@ -229,7 +229,7 @@ namespace AiTool3.Settings
         private void InitializeDgvModels()
         {
             dgvModels.AllowUserToAddRows = true;
-            dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dgvModels.CellValueChanged += DgvModels_CellValueChanged;
             dgvModels.UserAddedRow += DgvModels_UserAddedRow;
             dgvModels.CellClick += DgvModels_CellClick;
@@ -239,9 +239,9 @@ namespace AiTool3.Settings
         {
             var columns = new[]
             {
-            new { Name = "ApiName", HeaderText = "API Name", ReadOnly = false },
+            //new { Name = "ApiName", HeaderText = "API Name", ReadOnly = false },
             new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
-            new { Name = "ServiceName", HeaderText = "Service Name", ReadOnly = false },
+            new { Name = "ServiceName", HeaderText = "Protocol", ReadOnly = false },
             new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
             new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
             new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
@@ -251,13 +251,35 @@ namespace AiTool3.Settings
 
             foreach (var col in columns)
             {
-                dgvModels.Columns.Add(new DataGridViewTextBoxColumn
+                var newCol = new DataGridViewTextBoxColumn
                 {
                     Name = col.Name,
                     HeaderText = col.HeaderText,
                     DataPropertyName = col.Name,
-                    ReadOnly = col.ReadOnly
-                });
+                    ReadOnly = col.ReadOnly,
+                };
+                
+                switch(newCol.Name)
+                {
+                    case "ModelName":
+                        newCol.Width = 200;
+                        break;
+                    case "ServiceName":
+                        newCol.Width = 100;
+                        break;
+                    case "ModelUrl":
+                        newCol.Width = 300;
+                        break;
+                    case "ModelKey":
+                        newCol.Width = 200;
+                        break;
+                    case "ModelInputPrice":
+                    case "ModelOutputPrice":
+                        newCol.DefaultCellStyle.Format = "N2";
+                        newCol.Width = 100;
+                        break;
+                }
+                dgvModels.Columns.Add(newCol);
             }
 
             dgvModels.Columns.Add(new DataGridViewButtonColumn
@@ -272,13 +294,10 @@ namespace AiTool3.Settings
         private void CreateDgvRows(SettingsSet settings)
         {
             dgvModels.Rows.Clear();
-            foreach (var api in settings.ApiList)
+            foreach (var model in settings.ModelList)
             {
-                foreach (var model in api.Models)
-                {
-                    var index = dgvModels.Rows.Add(api.ApiName, model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
-                    dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
-                }
+                var index = dgvModels.Rows.Add(model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
+                dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
             }
         }
 
@@ -289,20 +308,11 @@ namespace AiTool3.Settings
                 if (MessageBox.Show("Are you sure you want to delete this model?", "Confirm Delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     var row = dgvModels.Rows[e.RowIndex];
-                    var apiName = row.Cells["ApiName"].Value?.ToString();
                     var modelName = row.Cells["ModelName"].Value?.ToString();
 
-                    if (string.IsNullOrEmpty(apiName) || string.IsNullOrEmpty(modelName)) return;
-
-                    var api = NewSettings.ApiList.FirstOrDefault(a => a.ApiName == apiName);
-                    if (api != null)
-                    {
-                        api.Models.RemoveAll(m => m.ModelName == modelName);
-                        if (api.Models.Count == 0)
-                        {
-                            NewSettings.ApiList.Remove(api);
-                        }
-                    }
+                    if (string.IsNullOrEmpty(modelName)) return;
+                    var model = NewSettings.ModelList.FirstOrDefault(a => a.ModelName == modelName);
+                    NewSettings.ModelList.Remove(model);
 
                     dgvModels.Rows.RemoveAt(e.RowIndex);
                 }
@@ -314,23 +324,17 @@ namespace AiTool3.Settings
             if (e.RowIndex < 0) return;
 
             var row = dgvModels.Rows[e.RowIndex];
-            var apiName = row.Cells["ApiName"].Value?.ToString();
             var modelName = row.Cells["ModelName"].Value?.ToString();
 
-            if (string.IsNullOrEmpty(apiName) || string.IsNullOrEmpty(modelName)) return;
+            if (string.IsNullOrEmpty(modelName)) return;
 
-            var api = NewSettings.ApiList.FirstOrDefault(a => a.ApiName == apiName);
-            if (api == null)
-            {
-                api = new Api { ApiName = apiName, Models = new List<Model>() };
-                NewSettings.ApiList.Add(api);
-            }
 
-            var model = api.Models.FirstOrDefault(m => m.ModelName == modelName);
+
+            var model = NewSettings.ModelList.FirstOrDefault(m => m.ModelName == modelName);
             if (model == null)
             {
                 model = new Model();
-                api.Models.Add(model);
+                NewSettings.ModelList.Add(model);
             }
 
             model.ModelName = modelName;
@@ -348,7 +352,7 @@ namespace AiTool3.Settings
         {
             // Set default values for the new row
             var row = e.Row;
-            row.Cells["ApiName"].Value = "New API";
+            //row.Cells["ApiName"].Value = "New API";
             row.Cells["ModelName"].Value = "New Model";
             row.Cells["ServiceName"].Value = "NewService";
             row.Cells["ModelUrl"].Value = "https://api.example.com";
