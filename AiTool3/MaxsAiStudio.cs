@@ -576,6 +576,18 @@ namespace AiTool3
                 return;
             ConversationManager.PreviousCompletion = clickedCompletion;
 
+            var parents = ConversationManager.GetParentNodeList();
+
+            // if the clicked completion is a user message, remove it from parents
+            if (clickedCompletion.Role == CompletionRole.User)
+            {
+                parents.Reverse();
+                parents = parents.Skip(1).ToList();
+                parents.Reverse();
+            }
+
+            await chatWebView.AddMessages(parents);
+
             string systemPrompt = "";
             systemPrompt = ConversationManager.PreviousCompletion.SystemPrompt!;
             if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
@@ -590,9 +602,7 @@ namespace AiTool3
             //await chatWebView.ChangeChatHeaderLabel(ConversationManager.PreviousCompletion.Engine);
             await chatWebView.UpdateSystemPrompt(systemPrompt);
 
-            var parents = ConversationManager.GetParentNodeList();
 
-            await chatWebView.AddMessages(parents);
 
 
         }

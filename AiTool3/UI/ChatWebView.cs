@@ -273,7 +273,8 @@ namespace AiTool3.UI
         }
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
-        internal async Task AddMessage(CompletionMessage message) => await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
+        internal async Task AddMessage(CompletionMessage message) => 
+            await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
         internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
 

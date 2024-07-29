@@ -71,7 +71,9 @@
     };
 
     const setUserPrompt = (string) => {
+        
         setInputContent(string);
+        window.setMessageText("temp-user-msg", string);
     };
     window.setUserPrompt = setUserPrompt;
 

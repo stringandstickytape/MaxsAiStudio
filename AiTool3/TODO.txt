@@ -84,8 +84,11 @@ DONE: js => jsx
 SORT-OF-DONE (can edit raw) : Copy response as raw text (no backtick issues!)
 DONE: fix the load-thousands-of-conversations bug
 DONE: selected theme isn't sticking  when installing theme directly
+DONE? : Cancel button didn't work during Claude streaming response
 
-Cancel button didn't work during Claude streaming response
+Scrolling:
+  * scroll to bottom when appending temp-ai-msg
+  * otherwise scroll to top?
 
 Parameterise conda loading
 

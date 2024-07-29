@@ -89,9 +89,16 @@ const MessagesPane = () => {
             const messagesContainer = document.getElementById('messages-container');
 
             if (mainContent && messagesContainer) {
-                const lastMessage = messagesContainer.lastElementChild;
+                const lastMessage = messages[messages.length - 1];
                 if (lastMessage) {
-                    mainContent.scrollTop = lastMessage.offsetTop - mainContent.offsetTop;
+                    if (lastMessage.guid === "temp-ai-msg" || lastMessage.guid === "temp-user-msg") {
+                        mainContent.scrollTop = mainContent.scrollHeight;
+                    } else {
+                        const lastMessageElement = messagesContainer.lastElementChild;
+                        if (lastMessageElement) {
+                            mainContent.scrollTop = lastMessageElement.offsetTop - mainContent.offsetTop;
+                        }
+                    }
                 }
             }
         }
