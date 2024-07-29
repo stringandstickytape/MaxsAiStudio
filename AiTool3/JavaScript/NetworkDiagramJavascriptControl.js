@@ -82,10 +82,13 @@ function createContextMenu() {
         });
 
     menu.append('div')
-        .text('Disable')
+        .text('Edit Raw')
         .attr('class', 'context-menu-item')
         .on('click', () => {
-            console.log('lol');
+            window.chrome.webview.postMessage({
+                type: 'editRaw',
+                nodeId: selectedNode
+            });
             menu.style('display', 'none');
         });
 

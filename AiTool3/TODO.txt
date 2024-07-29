@@ -73,6 +73,8 @@ DONE: Tools should be specified by extrenal files and mapped in
 DONE: Possihble nasty bug in deleting themes
 DONE: Shouldn't be an "add" on the categories page unless it works...
 DONE:add delete-template
+DONE: popup that lets you pick embedding results to submit?
+DONE: Concatenate messages
 
 Ollama Tool Support
 
@@ -90,7 +92,6 @@ Fade out and back in instead of smooth scrolling?
 Templaets should be able to specify tools they're used wsith => colour scheme tool!
 add time-taken to search results and timestamp to all convo messages
 alter to proper attachments model w multiple images, files saved in original form, etc?
-popup that lets you pick embedding results to submit?
 
 Expand and clarify the embeddings workflow
 
@@ -163,16 +164,10 @@ GraphViz ??
 css viewer?
 
 It'd be nice if you could outright edit responses in the conversation - should really be able to do this
-Concatenate messages :(
 Tip of the day
 add tokens-per-second to the status bar?
 Different Whisper models w/ UI
-
 templates edit window is pretty crappy
-
-
-
-
 
 Create embeddings from previous messages/conversations?
 Custom handlers? External links to other apps or handlers?

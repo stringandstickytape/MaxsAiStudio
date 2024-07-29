@@ -513,7 +513,30 @@ namespace AiTool3
         private async void AutoSuggestStringSelected(string selectedString) => await chatWebView.SetUserPrompt(selectedString);
 
         private void WebViewNdc_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
-            => WebNdcRightClickLogic.ProcessWebNdcContextMenuOption(ConversationManager.GetParentNodeList(), e.MenuOption);
+        {
+            if (e.MenuOption == "editRaw")
+            {
+                var messageGuid = e.Guid;
+                var message = ConversationManager.Conversation.Messages.FirstOrDefault(m => m.Guid == messageGuid);
+                if (message != null)
+                {
+                    using (var form = new EditRawMessageForm(message.Content))
+                    {
+                        if (form.ShowDialog() == DialogResult.OK)
+                        {
+                            message.Content = form.EditedContent;
+                            ConversationManager.SaveConversation();
+                            WebNdcDrawNetworkDiagram();
+                            WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(messageGuid));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                WebNdcRightClickLogic.ProcessWebNdcContextMenuOption(ConversationManager.GetParentNodeList(), e.MenuOption);
+            }
+        }
 
 
         private void UpdateTimer_Tick(object sender, EventArgs e)
@@ -573,9 +596,9 @@ namespace AiTool3
         }
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
-        { 
+        {
             await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager);
-    }
+        }
 
 
         private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null)
@@ -586,7 +609,7 @@ namespace AiTool3
             {
                 PrepareForNewResponse();
 
-                var model = await chatWebView.GetDropdownModel("mainAI",  CurrentSettings);
+                var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
                 var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager);
@@ -663,10 +686,10 @@ namespace AiTool3
 
                 var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
 
-               //if (model.ServiceName == "OpenAI")
-               //{
-               //    sb.Append( "{");
-               //}
+                //if (model.ServiceName == "OpenAI")
+                //{
+                //    sb.Append( "{");
+                //}
 
                 sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
 
@@ -705,7 +728,7 @@ namespace AiTool3
             _fileAttachmentManager.ClearBase64();
 
             // don't bother updating the UI if we're overriding the user prompt, because we're doing an auto continue
-            if(overrideUserPrompt != null)
+            if (overrideUserPrompt != null)
             {
                 return;
             }
@@ -869,7 +892,7 @@ namespace AiTool3
                 WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(ConversationManager.Conversation.GetRootNode()?.Guid));
             }
 
-                await WebNdcDrawNetworkDiagram();
+            await WebNdcDrawNetworkDiagram();
 
         }
 
@@ -964,6 +987,86 @@ namespace AiTool3
             await Task.Delay(10000); // 10000 milliseconds = 10 seconds
             this.HideWorking();
             dgvConversations.HideWorking();
+        }
+    }
+
+    public partial class EditRawMessageForm : Form
+    {
+        public string EditedContent { get; private set; }
+
+        public EditRawMessageForm(string initialContent)
+        {
+            InitializeComponent();
+            textBoxContent.Text = initialContent.Replace("\r\n","\n").Replace("\n","\r\n");
+        }
+
+        private void InitializeComponent()
+        {
+            this.textBoxContent = new System.Windows.Forms.TextBox();
+            this.buttonOK = new System.Windows.Forms.Button();
+            this.buttonCancel = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // textBoxContent
+            // 
+            this.textBoxContent.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxContent.Location = new System.Drawing.Point(12, 12);
+            this.textBoxContent.Multiline = true;
+            this.textBoxContent.Name = "textBoxContent";
+            this.textBoxContent.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxContent.Size = new System.Drawing.Size(776, 397);
+            this.textBoxContent.TabIndex = 0;
+            // 
+            // buttonOK
+            // 
+            this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.buttonOK.Location = new System.Drawing.Point(632, 415);
+            this.buttonOK.Name = "buttonOK";
+            this.buttonOK.Size = new System.Drawing.Size(75, 23);
+            this.buttonOK.TabIndex = 1;
+            this.buttonOK.Text = "OK";
+            this.buttonOK.UseVisualStyleBackColor = true;
+            this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
+            // 
+            // buttonCancel
+            // 
+            this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.buttonCancel.Location = new System.Drawing.Point(713, 415);
+            this.buttonCancel.Name = "buttonCancel";
+            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
+            this.buttonCancel.TabIndex = 2;
+            this.buttonCancel.Text = "Cancel";
+            this.buttonCancel.UseVisualStyleBackColor = true;
+            // 
+            // EditRawMessageForm
+            // 
+            this.AcceptButton = this.buttonOK;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.buttonCancel;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.buttonCancel);
+            this.Controls.Add(this.buttonOK);
+            this.Controls.Add(this.textBoxContent);
+            this.Name = "EditRawMessageForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "Edit Raw Message";
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        private System.Windows.Forms.TextBox textBoxContent;
+        private System.Windows.Forms.Button buttonOK;
+        private System.Windows.Forms.Button buttonCancel;
+
+        private void buttonOK_Click(object sender, EventArgs e)
+        {
+            EditedContent = textBoxContent.Text.Replace("\r\n","\n");
         }
     }
 }

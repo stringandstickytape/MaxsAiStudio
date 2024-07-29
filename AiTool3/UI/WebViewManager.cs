@@ -58,6 +58,7 @@ namespace AiTool3.UI
                     // raise event
                     //WebNdcContextMenuOptionSelected?.Invoke(this, new WebNdcContextMenuOptionSelectedEventArgs("contex"));
                     break;
+                case "editRaw":
                 case "saveHtml":
                 case "saveTxt":
                     string nodeId = message["nodeId"];
