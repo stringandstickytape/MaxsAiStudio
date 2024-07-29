@@ -81,6 +81,7 @@ DONE: Fix incomplete tools menu - add theme-generation tool
 DONE: regen all summaries
 DONE: Check whisper still works through microphone
 DONE: js => jsx
+SORT-OF-DONE (can edit raw) : Copy response as raw text (no backtick issues!)
 
 fix the load-thousands-of-conversations bug
 
@@ -154,8 +155,7 @@ popup that lets you interfere with the embeddings selected...!
 source code browser thing, to let you choose which files to upload from your project?
 launch sql? browse xml? launch svg? azure az command?! 
 launch JS directly would be nice
-
-Copy response as raw text (no backtick issues!)
+Choose-microphone
 
 enable/disable cs/html highlighting
 Pick-a-frame-from-a-video

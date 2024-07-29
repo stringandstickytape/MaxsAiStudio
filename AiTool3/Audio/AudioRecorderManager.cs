@@ -5,6 +5,7 @@ using Whisper.net.Wave;
 using System.Text;
 using NAudio.Wave;
 using NAudio.MediaFoundation;
+using AiTool3.UI;
 
 namespace AiTool3.Audio
 {
@@ -12,6 +13,7 @@ namespace AiTool3.Audio
     {
         private AudioRecorder? recorder;
         private CancellationTokenSource? cts;
+        private ChatWebView chatWebView;
 
         public event EventHandler<string>? AudioProcessed;
 
@@ -22,10 +24,11 @@ namespace AiTool3.Audio
 
         private string modelName { get; set; }
             
-        public AudioRecorderManager(GgmlType ggmlType)
+        public AudioRecorderManager(GgmlType ggmlType, ChatWebView chatWebView)
         {
             this.ggmlType = ggmlType;
             modelName = $"ggml-smallen.bin";
+            this.chatWebView = chatWebView;
         }
 
 
@@ -35,16 +38,12 @@ namespace AiTool3.Audio
             
             cts = new CancellationTokenSource();
             
-
-
-            
-
             recorder.AudioProcessed += (sender, result) =>
             {
                 AudioProcessed?.Invoke(this, result);
             };
 
-
+            chatWebView.SetIndicator("Voice", "#FF0000");
 
             // Start recording in a separate task
             recordingTask = recorder.RecordAudioAsync(cts.Token);
@@ -53,8 +52,6 @@ namespace AiTool3.Audio
 
             // check whether the level is silent
             var level = recorder.GetAudioLevel();
-
-
 
         }
 
@@ -82,6 +79,9 @@ namespace AiTool3.Audio
                 cts.Dispose();
                 cts = null;
             }
+
+            chatWebView.ClearIndicator("Voice");
+
             recorder?.Dispose();
             recorder = null;
 

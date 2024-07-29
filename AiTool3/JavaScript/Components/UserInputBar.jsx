@@ -26,7 +26,7 @@
 
         var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
-        debugger;
+        
         const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
             type: 'send',

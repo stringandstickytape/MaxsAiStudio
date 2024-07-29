@@ -496,5 +496,17 @@ namespace AiTool3.UI
             // deserialize selectedTheme to string
             await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
         }
+
+        internal async void SetIndicator(string Label, string Colour)
+        {
+            // addIndicator('Voice','#FFFFFF')
+            await ExecuteScriptAsync($"addIndicator('{Label}','{Colour}')");
+        }
+
+        internal async void ClearIndicator(string Label)
+        {
+            // addIndicator('Voice','#FFFFFF')
+            await ExecuteScriptAsync($"clearIndicator('{Label}')");
+        }
     }
 }

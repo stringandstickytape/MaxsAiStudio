@@ -1,4 +1,9 @@
 ﻿const { useState, useEffect, useRef } = React;
+
+if (typeof window !== 'undefined') {
+    window.buttonIndicators = {};
+}
+
 const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor }) => {
     const { colorScheme } = window.useColorScheme();
     //const { colorScheme } = useColorScheme();
@@ -12,6 +17,40 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
 
     const [dropdownPosition, setDropdownPosition] = useState({ left: '-44px', bottom: '15px' });
     const buttonRef = useRef(null);
+
+    const [indicator, setIndicator] = useState(null);
+
+    useEffect(() => {
+        const updateIndicator = () => {
+            setIndicator(window.buttonIndicators[label] || null);
+        };
+
+        // Initial update
+        updateIndicator();
+
+        // Set up event listener
+        window.addEventListener(`indicatorUpdate_${label}`, updateIndicator);
+
+        return () => {
+            window.removeEventListener(`indicatorUpdate_${label}`, updateIndicator);
+        };
+    }, [label]);
+
+    useEffect(() => {
+        if (!window.addIndicator) {
+            window.addIndicator = (buttonLabel, indicatorColor) => {
+                window.buttonIndicators[buttonLabel] = indicatorColor;
+                window.dispatchEvent(new Event(`indicatorUpdate_${buttonLabel}`));
+            };
+        }
+
+        if (!window.clearIndicator) {
+            window.clearIndicator = (buttonLabel) => {
+                delete window.buttonIndicators[buttonLabel];
+                window.dispatchEvent(new Event(`indicatorUpdate_${buttonLabel}`));
+            };
+        }
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -42,6 +81,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
             }
         }
     }, [isOpen, dropdownItems.length]);
+
+
 
     
     const buttonStyle = {
@@ -105,6 +146,17 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         fontSize: svgString ? '0.8em' : '1em',
     };
 
+    const indicatorStyle = {
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        width: '25%',
+        height: '25%',
+        borderRadius: '50%',
+        backgroundColor: indicator,
+        border: '1px solid black'
+    };
+
     return (
         <div style={{ display: 'inline-flex', position: 'relative', padding: '4px' }} id={uniqueId} ref={buttonRef}>
             <button
@@ -119,6 +171,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                     />
                 )}
                 <span style={labelStyle}>{currentLabel}</span>
+                {indicator && <div style={indicatorStyle} />}
             </button>
             {hasSplit && (
                 <>

@@ -9,7 +9,7 @@ namespace AiTool3.Helpers
     public static class DataGridViewHelper
     {
 
-        public static void InitialiseDataGridView(DataGridView dgv)
+        public static async Task InitialiseDataGridView(DataGridView dgv)
         {
             // hide dgv headers
             dgv.ColumnHeadersVisible = false;
