@@ -7,5 +7,6 @@
         public List<string> SelectedTools {get; set;}
 
         public bool SendViaSecondaryAI { get; set; }
+        public bool AddEmbeddings { get; internal set; }
     }
 }

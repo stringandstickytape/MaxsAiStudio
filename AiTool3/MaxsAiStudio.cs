@@ -629,11 +629,11 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager, sendSecondary: e.SendViaSecondaryAI);
+            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings);
         }
 
 
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null, bool sendSecondary = false)
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null, bool sendSecondary = false, bool addEmbeddings = false)
         {
             toolIDs = toolIDs ?? new List<string>();
             string retVal = "";
@@ -644,7 +644,7 @@ namespace AiTool3
                 var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager);
+                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager, addEmbeddings);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -700,7 +700,7 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, ToolManager toolManager)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, ToolManager toolManager, bool addEmbeddings = false)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
@@ -710,7 +710,7 @@ namespace AiTool3
 
             var toolLabels = toolIDs.Select(t => toolManager.Tools[int.Parse(t)].Name).ToList();
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, toolManager);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, toolManager, addEmbeddings);
 
             if (toolManager != null && toolIDs.Any())
             {

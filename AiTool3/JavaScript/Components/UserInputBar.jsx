@@ -1,5 +1,4 @@
 ﻿const UserInputBar = () => {
-
     const { colorScheme } = React.useColorScheme();
 
     const [sendDisabled, setSendDisabled] = React.useState(false);
@@ -14,6 +13,9 @@
     const [newAlternateColor, setNewAlternateColor] = React.useState('');
     const [sendButtonLabel, setSendButtonLabel] = React.useState('Send');
 
+    // New checkbox state
+    const [addEmbeddings, setAddEmbeddings] = React.useState(false);
+
     window.setSendButtonLabel = setSendButtonLabel;
 
     function getTrueIndices(obj) {
@@ -23,20 +25,19 @@
     }
 
     const handleSend = () => {
-
         var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
-        
+
         const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
             type: window.event.shiftKey ? 'sendSecondary' : 'send',
             content: inputContent,
-            selectedTools: toolsEnabledIndices
+            selectedTools: toolsEnabledIndices,
+            addEmbeddings: addEmbeddings.toString()
         });
     };
 
     const handleSendSecondary = () => {
-
         var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
 
@@ -44,7 +45,8 @@
         window.chrome.webview.postMessage({
             type: 'sendSecondary',
             content: inputContent,
-            selectedTools: toolsEnabledIndices
+            selectedTools: toolsEnabledIndices,
+            addEmbeddings: addEmbeddings.toString()
         });
     };
 
@@ -75,8 +77,9 @@
         setNewAlternateLabel(label);
         setNewAlternateColor(color);
     };
+
     const handleCancel = () => {
-        window.chrome.webview.postMessage({ type: 'cancel'});
+        window.chrome.webview.postMessage({ type: 'cancel' });
     };
 
     const handleInputChange = (newContent) => {
@@ -85,7 +88,6 @@
     };
 
     const setUserPrompt = (string) => {
-        
         setInputContent(string);
         window.setMessageText("temp-user-msg", string);
     };
@@ -166,6 +168,17 @@
                     .cancel-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
                     .new-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
 
+                    .checkbox-wrapper {
+                        display: flex;
+                        align-items: center;
+                        font-size: 10px;
+                        max-width: 95%;
+                        overflow: hidden;
+                    }
+                    .checkbox-wrapper input[type="checkbox"] {
+                        margin-right: 5px;
+                    }
+
                     .split-button-container {
                         display: flex;
                         margin-bottom: 5px;
@@ -223,7 +236,6 @@
                         onChange={handleInputChange}
                         placeholderText="Enter prompt..."
                         disabled={sendDisabled}
-                        
                     />
                 </div>
                 <div className="buttons-wrapper">
@@ -240,6 +252,15 @@
                         ]}
                         title="CTRL+Enter to send, CTRL+SHIFT+Enter to send via Secondary AI"
                     />
+                    <div className="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="addEmbeddings"
+                            checked={addEmbeddings}
+                            onChange={(e) => setAddEmbeddings(e.target.checked)}
+                        />
+                        <label htmlFor="addEmbeddings">Add Embeddings</label>
+                    </div>
                     <SplitButton
                         label="Cancel"
                         onClick={handleCancel}

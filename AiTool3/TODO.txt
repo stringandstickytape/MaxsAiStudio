@@ -102,7 +102,7 @@ No token counting for Groq
 Give me the full file button?
 - button is a combination of prompt and engine
 
-
+Add "go to top" button at bottom of message
 
 Necessary for release:
 

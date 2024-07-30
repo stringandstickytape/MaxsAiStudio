@@ -15,7 +15,7 @@ namespace AiTool3
     {
         public static async Task<string> AddEmbeddingsToInput(Conversation conversation, SettingsSet currentSettings, string input, bool mustNotUseEmbedding)
         {
-            if (!mustNotUseEmbedding && currentSettings.UseEmbeddings)
+            if (!mustNotUseEmbedding)
             {
                 var embeddingText = input + " ";
                 var lbom = conversation.messages.Count > 1 ? conversation.messages[conversation.messages.Count - 2].content : "";
@@ -50,7 +50,7 @@ namespace AiTool3
 
             using (var form = new Form())
             {
-                form.Text = "Select Embeddings";
+                form.Text = "Select Embeddings (or close window to select no embeddings)";
                 form.Size = new Size(800, 600);
                 form.StartPosition = FormStartPosition.CenterScreen;
 
@@ -58,7 +58,7 @@ namespace AiTool3
                 var splitContainer = new SplitContainer
                 {
                     Dock = DockStyle.Fill,
-                    SplitterDistance = 200
+                    SplitterDistance = 50
                 };
                 form.Controls.Add(splitContainer);
 
@@ -102,9 +102,10 @@ namespace AiTool3
 
                 var okButton = new Button
                 {
-                    Text = "OK",
+                    Text = "Accept Embeddings",
                     DialogResult = DialogResult.OK,
-                    Dock = DockStyle.Bottom
+                    Dock = DockStyle.Bottom,
+                    Height = 50
                 };
                 form.Controls.Add(okButton);
 

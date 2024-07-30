@@ -22,7 +22,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null, bool addEmbeddings = false)
         {
             string url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
 
@@ -68,27 +68,23 @@ namespace AiTool3.Providers
 
             AddFakeSystemPrompt(conversation, obj);
 
-            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-
-            // does the last content array thing have a text prop?
-            var lastContent = ((JArray)obj["contents"]).Last;
-            if(lastContent["parts"].Last["text"] != null)
+            if(addEmbeddings)
             {
-                lastContent["parts"].Last["text"] = newInput;
+                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
+
+                // does the last content array thing have a text prop?
+                var lastContent = ((JArray)obj["contents"]).Last;
+                if(lastContent["parts"].Last["text"] != null)
+                {
+                    lastContent["parts"].Last["text"] = newInput;
+                }
+                else
+                {
+                    // set the text prop on the last-but-one content instead
+                    var lastButOneContent = ((JArray)obj["contents"]).Reverse().Skip(1).First();
+                    lastButOneContent["parts"].Last["text"] = newInput;
+                }
             }
-            else
-            {
-                // set the text prop on the last-but-one content instead
-                var lastButOneContent = ((JArray)obj["contents"]).Reverse().Skip(1).First();
-                lastButOneContent["parts"].Last["text"] = newInput;
-            }
-            
-
-
-
-
-            
-
             
             var jsonPayload = JsonConvert.SerializeObject(obj);
 

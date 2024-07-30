@@ -25,7 +25,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null, bool addEmbeddings = false)
         {
             useStreaming = true;
             if (client.DefaultRequestHeaders.Authorization == null)
@@ -55,9 +55,12 @@ namespace AiTool3.Providers
                 req["stream"] = true;
             }
 
-            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-            //(obj["contents"] as JArray).Last()["parts"].Last()["text"] = newInput;
-            req["messages"].Last["content"] = newInput;
+            if (addEmbeddings)
+            {
+                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
+                req["messages"].Last["content"] = newInput;
+            }
+
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
