@@ -233,7 +233,7 @@ namespace AiTool3
                         {
                             var code = snippets.Snippets.First().Content;
                             code = SnippetHelper.StripFirstAndLastLine(code);
-                            File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\README.md", code);
+                            File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiStudio\README.md", code);
                         }
                         catch (Exception ex)
                         {
@@ -241,19 +241,19 @@ namespace AiTool3
                         }
                     }),
 
-                    new LabelAndEventHander("Review Code", async (s, e) =>
-                    {
-                        SpecialsHelper.ReviewCode(out string userMessage);
-                        await chatWebView.SetUserPrompt(userMessage);
-                    }),
+                    //new LabelAndEventHander("Review Code", async (s, e) =>
+                    //{
+                    //    SpecialsHelper.ReviewCode(out string userMessage);
+                    //    await chatWebView.SetUserPrompt(userMessage);
+                    //}),
 
-                    new LabelAndEventHander("Rewrite Summaries", async (s, e) =>
-                    {
-                        maxsAiStudio.ShowWorking("Regenerating Summaries", maxsAiStudio.CurrentSettings.SoftwareToyMode);
-                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        await conversationManager.RegenerateSummary(model, dgvConversations, "*", currentSettings);
-
-                    }),
+                    //new LabelAndEventHander("Rewrite All Message Summaries", async (s, e) =>
+                    //{
+                    //    maxsAiStudio.ShowWorking("Regenerating Summaries", maxsAiStudio.CurrentSettings.SoftwareToyMode);
+                    //    var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
+                    //    await conversationManager.RegenerateSummary(model, dgvConversations, "*", currentSettings);
+                    //
+                    //}),
 
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
@@ -291,10 +291,10 @@ namespace AiTool3
                         }
                     }),
 
-                    new LabelAndEventHander("Test Snippets Code", (s, e) =>
-                    {
-                        SnippetHelper.ShowSnippets(SnippetHelper.GetAllSnippets(conversationManager.PreviousCompletion, conversationManager.Conversation, snippetManager));
-                    }),
+                    //new LabelAndEventHander("Test Snippets Code", (s, e) =>
+                    //{
+                    //    SnippetHelper.ShowSnippets(SnippetHelper.GetAllSnippets(conversationManager.PreviousCompletion, conversationManager.Conversation, snippetManager));
+                    //}),
 
                     //ModelUsageManager.ShowUsageStatistics(CurrentSettings.Models);
                     new LabelAndEventHander("Show Model Usage/Cost Statistics", (s, e) =>

@@ -13,51 +13,7 @@ namespace AiTool3
 {
     internal static class EmbeddingsHelper
     {
-        public static void HandleSetEmbeddingsFileClick(SettingsSet currentSettings)
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "Embeddings JSON files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*",
-                Title = "Select Embeddings File",
-                InitialDirectory = Path.Combine(Environment.CurrentDirectory, "Embeddings")
-            };
-
-            openFileDialog.ShowDialog();
-
-            if (string.IsNullOrEmpty(openFileDialog.FileName))
-            {
-                return;
-            }
-
-            currentSettings.EmbeddingsFilename = openFileDialog.FileName;
-            AiTool3.SettingsSet.Save(currentSettings);
-        }
-        public static async Task<string> AddEmbeddingsToInput(Conversation conversation, SettingsSet currentSettings, string input)
-        {
-            if (currentSettings.UseEmbeddings)
-            {
-                var embeddingText = input+" ";
-                // last but one msg
-                var lbom = conversation.messages.Count > 1 ? conversation.messages[conversation.messages.Count - 2].content : "";
-
-                if(string.IsNullOrEmpty(lbom) || lbom != input)
-                {
-                    embeddingText += lbom + " ";
-                }
-                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename);
-                var lastMsg = $"{conversation.messages.Last().content}" +
-                    $"{Environment.NewLine}{Environment.NewLine}" +
-                    $"Here's some related content:{Environment.NewLine}" +
-                    $"{string.Join(Environment.NewLine, embeddings.Select(
-                        x => $"{new string('`', 3)}{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
-                        $"{x.Code}{Environment.NewLine}" +
-                        $"" +
-                        $"{new string('`', 3)}"))}";
-                conversation.messages.Last().content = lastMsg;
-                return lastMsg;
-            }
-            else return input;
-        }
+ 
 
         public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename)
         {

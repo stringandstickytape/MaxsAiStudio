@@ -26,14 +26,14 @@ namespace AiTool3
             _settings = settings;
         }
 
-        public async Task HandleAttachment(ChatWebView chatWebView)
+        public async Task HandleAttachment(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode)
         {
             var result = SimpleDialogsHelper.ShowAttachmentDialog();
 
             switch (result)
             {
                 case DialogResult.Retry:
-                    await AttachAndTranscribeMP4(chatWebView);
+                    await AttachAndTranscribeMP4(chatWebView, maxsAiStudio, softwareToyMode);
                     break;
                 case DialogResult.Yes:
                     DialogAndAttachImage();
@@ -50,7 +50,7 @@ namespace AiTool3
             }
         }
 
-        private async Task AttachAndTranscribeMP4(ChatWebView chatWebView)
+        private async Task AttachAndTranscribeMP4(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -59,7 +59,13 @@ namespace AiTool3
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                await TranscribeMP4(openFileDialog.FileName, chatWebView);
+                maxsAiStudio.ShowWorking("Attaching file", softwareToyMode);
+                await Task.Run(async () =>
+                {
+                    var output = await TranscribeMP4(openFileDialog.FileName);
+                    chatWebView.SetUserPrompt(output);
+                });
+                maxsAiStudio.HideWorking();
             }
         }
 
@@ -143,7 +149,7 @@ namespace AiTool3
             await _chatWebView.SetUserPrompt($"{sb}{existingPrompt}");
         }
 
-        public async Task TranscribeMP4(string filename, ChatWebView chatWebView)
+        public async Task<string> TranscribeMP4(string filename)
         {
             // Path to the Miniconda installation
             string condaPath = @"C:\Users\maxhe\miniconda3\Scripts\activate.bat";
@@ -206,7 +212,7 @@ namespace AiTool3
                     }
                     string output = NewMethod(filename, result);
 
-                    await chatWebView.SetUserPrompt(output);
+                    return output;
 
                 }
                 else

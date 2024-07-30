@@ -272,7 +272,11 @@ namespace AiTool3
                     SettingsSet.Save(CurrentSettings);
                     break;
                 case "attach":
-                    await _fileAttachmentManager.HandleAttachment(chatWebView);
+                    
+
+
+                        await _fileAttachmentManager.HandleAttachment(chatWebView, this, CurrentSettings.SoftwareToyMode);
+                    
                     break;
                 case "voice":
                     if (!audioRecorderManager.IsRecording)
@@ -386,7 +390,6 @@ namespace AiTool3
                 }
             };
 
-            MenuHelper.CreateMenuItem("Set Embeddings File", ref editMenu).Click += (s, e) => EmbeddingsHelper.HandleSetEmbeddingsFileClick(CurrentSettings);
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
 
             await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager, this);
@@ -461,7 +464,8 @@ namespace AiTool3
                 {
                     case FileTypeClassifier.FileClassification.Video:
                     case FileTypeClassifier.FileClassification.Audio:
-                        await _fileAttachmentManager.TranscribeMP4(filename, chatWebView);
+                        var output = await _fileAttachmentManager.TranscribeMP4(filename);
+                        chatWebView.SetUserPrompt(output);
                         break;
                     case FileTypeClassifier.FileClassification.Image:
                         await _fileAttachmentManager.AttachImage(filename);
@@ -504,7 +508,7 @@ namespace AiTool3
 
             await BeginNewConversation();
 
-            await CreateNewWebNdc(CurrentSettings.ShowDevTools);
+            await CreateNewWebNdc(false);
 
             // Create things in Ready instead...
 
