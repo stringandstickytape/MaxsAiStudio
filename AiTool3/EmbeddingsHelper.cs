@@ -19,6 +19,8 @@ namespace AiTool3
         {
             // get a directory to open from the user
             var folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.Description = "Select a root directory to generate embeddings from.  Respects .gitignore; accepts only .json, .cs, .html, .js, .xml, .jsx for now.";
+            folderBrowserDialog.UseDescriptionForTitle = true;
             folderBrowserDialog.ShowDialog();
             if (folderBrowserDialog.SelectedPath == "")
             {
@@ -68,7 +70,8 @@ namespace AiTool3
 
             var x = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories).ToList();
             var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);
-            var jsFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories)  .ToList());
+            var jsFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories)
+                .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.jsx", SearchOption.AllDirectories)).ToList());
 
             var csFragmenter = new CsFragmenter();
             var webCodeFragmenter = new WebCodeFragmenter();
@@ -78,7 +81,6 @@ namespace AiTool3
 
             foreach (var file in jsFiles)
             {
-                if (file.Contains("\\bin\\") || file.Contains("ThirdPartyJavascript") || file.Contains("JsonViewer")) continue;
                 fragments.AddRange(webCodeFragmenter.FragmentJavaScriptCode(File.ReadAllText(file), file));
             }
 

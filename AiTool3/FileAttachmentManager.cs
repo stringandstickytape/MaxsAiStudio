@@ -156,7 +156,7 @@ namespace AiTool3
             
             if(!File.Exists(condaPath))
             {
-                MessageBox.Show($"Conda activate script not found at {condaPath}");
+                MessageBox.Show($"Conda activate script not found at {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
                 return "";
             }
 
