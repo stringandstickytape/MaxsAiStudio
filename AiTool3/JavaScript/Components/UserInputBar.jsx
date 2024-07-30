@@ -34,6 +34,20 @@
             selectedTools: toolsEnabledIndices
         });
     };
+
+    const handleSendSecondary = () => {
+
+        var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
+        var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
+
+        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
+        window.chrome.webview.postMessage({
+            type: 'sendSecondary',
+            content: inputContent,
+            selectedTools: toolsEnabledIndices
+        });
+    };
+
     const handleNew = () => {
         window.chrome.webview.postMessage({ type: 'new' });
         setInputContent("");
@@ -220,6 +234,9 @@
                         background={colorScheme.buttonBackgroundCss}
                         alternateLabel={sendAlternateLabel}
                         alternateColor={sendAlternateColor}
+                        dropdownItems={[
+                            { label: "Send via Secondary AI", onClick: handleSendSecondary }
+                        ]}
                     />
                     <SplitButton
                         label="Cancel"

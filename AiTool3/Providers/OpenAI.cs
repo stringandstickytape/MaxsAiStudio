@@ -43,10 +43,10 @@ namespace AiTool3.Providers
                 },
                 ["stream"] = useStreaming,
                 //stream_options: {"include_usage": true}
-                ["stream_options"] = new JObject
+                ["stream_options"] = useStreaming ?new JObject
                 {
                     ["include_usage"] = true
-                }
+                } : null
             };
 
             foreach (var m in conversation.messages)

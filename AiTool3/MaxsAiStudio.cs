@@ -629,11 +629,11 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager);
+            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager, sendSecondary: e.SendViaSecondaryAI);
         }
 
 
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null)
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null, bool sendSecondary = false)
         {
             toolIDs = toolIDs ?? new List<string>();
             string retVal = "";
@@ -641,7 +641,7 @@ namespace AiTool3
             {
                 PrepareForNewResponse();
 
-                var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
+                var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
                 var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager);
