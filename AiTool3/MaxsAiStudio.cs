@@ -775,7 +775,7 @@ namespace AiTool3
                 sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
 
 
-                if (firstChar != '}')
+                if (firstChar != '{')
                 {
                     sb.Append("}");
                 }

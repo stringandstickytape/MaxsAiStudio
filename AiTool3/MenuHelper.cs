@@ -90,6 +90,21 @@ namespace AiTool3
             foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
                 var categoryMenuItem = MenuHelper.CreateMenuItem(category.Name, ref templatesMenu);
+                categoryMenuItem.ToolTipText = "SHIFT-click to delete";
+                // Add shift-click functionality to delete the entire category
+                categoryMenuItem.MouseDown += (s, e) =>
+                {
+                    if (e.Button == MouseButtons.Left && MaxsAiStudio.ModifierKeys == Keys.Shift)
+                    {
+                        templatesMenu.DropDown.Close();
+                        if (MessageBox.Show($"Are you sure you want to delete the entire '{category.Name}' category and all its templates?", "Delete Category", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                        {
+                            templateManager.TemplateSet.Categories.Remove(category);
+                            templateManager.TemplateSet.Save();
+                            RecreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm);
+                        }
+                    }
+                };
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
@@ -116,7 +131,6 @@ namespace AiTool3
                             await chatWebView.UpdateSystemPrompt(template?.SystemPrompt ?? "");
                         }
                         else
-
                         {
                             templateManager.SelectTemplateByCategoryAndName(category.Name, template.TemplateName);
 
@@ -130,7 +144,6 @@ namespace AiTool3
                         templateManager.EditAndSaveTemplate(template, false, category.Name);
                         RecreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm);
                     };
-
                 }
 
                 // at the end of each category, add a separator then an Add... option
