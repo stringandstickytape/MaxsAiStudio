@@ -26,12 +26,10 @@ const MessagesPane = () => {
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
-                // If the message exists, update its content
                 return prevMessages.map(msg =>
                     msg.guid === guid ? { ...msg, content: newContent } : msg
                 );
             } else {
-                // If the message doesn't exist, create a new one
                 return [...prevMessages, {
                     role: role,
                     content: newContent,
@@ -45,12 +43,10 @@ const MessagesPane = () => {
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
-                // If the message exists, append the new content
                 return prevMessages.map(msg =>
                     msg.guid === guid ? { ...msg, content: msg.content + additionalContent } : msg
                 );
             } else {
-                // If the message doesn't exist, create a new one
                 return [...prevMessages, {
                     role: role,
                     content: additionalContent,
@@ -123,7 +119,8 @@ const MessagesPane = () => {
     return (
         <>
             <style>
-                {`.messages-pane {
+                {`
+                .messages-pane {
                     width: calc(100% - 20px);
                     border: 1px solid ${colorScheme.textColor};
                     border-radius: 4px;
@@ -137,8 +134,7 @@ const MessagesPane = () => {
                     ${colorScheme?.messagesPaneBackgroundFilter ? `background-filter: ${colorScheme.messagesPaneBackgroundFilter}` : ``};
                     padding: 10px;
                     scroll-behavior: auto;  
-                    color: ${colorScheme.textColor}
-                    ;
+                    color: ${colorScheme.textColor};
                 }
                 .message {
                     margin-bottom: 10px;
@@ -146,11 +142,15 @@ const MessagesPane = () => {
                     padding: 10px;
                     max-width: 80%;
                     border: 1px solid ${colorScheme.textColor};
-                    margin-bottom: 10px;
+                }
+                .message-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 5px;
                 }
                 .message-role {
                     font-weight: bold;
-                    margin-bottom: 5px;
+                    margin-right: 10px;
                 }
                 .user-message {
                     background-color: ${colorScheme.messageUserBackgroundColor};
@@ -168,15 +168,27 @@ const MessagesPane = () => {
                     align-self: center;
                     color: ${colorScheme.messageRootTextColor};
                 }
-                .message-header {
+                .message-footer {
                     display: flex;
+                    justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 5px;
+                    margin-top: 10px;
+                    justify-content: end;
                 }
-                .message-role {
-                    font-weight: bold;
-                    margin-right: 10px;
-                }`}
+                .top-button {
+                    background-color: ${colorScheme.buttonBackgroundColor};
+                    color: ${colorScheme.buttonTextColor};
+                    border: none;
+                    border-radius: 4px;
+                    padding: 5px 10px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: background-color 0.3s;
+                }
+                .top-button:hover {
+                    background-color: ${colorScheme.buttonHoverBackgroundColor};
+                }
+                `}
             </style>
 
             <div id="messages-container" className="messages-pane">

@@ -154,7 +154,7 @@
                     }
                     .input-button {
                         margin-bottom: 5px;
-                        padding: 8px;
+                        padding: 4px;
                         border: none;
                         border-radius: 4px;
                         color: ${colorScheme.buttonTextColor};
@@ -190,7 +190,7 @@
                         background: ${colorScheme.buttonBackgroundCss};
                         color: ${colorScheme.buttonTextColor};
                         border: none;
-                        padding: 8px;
+                        padding: 4px;
                         cursor: pointer;
                         transition: opacity 0.3s ease;
                     }

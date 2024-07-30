@@ -1,8 +1,9 @@
-// Message.js
+﻿// Message.js
 const Message = ({ role, content: initialContent, guid, previousAssistantUnbalanced }) => {
     const { colorScheme } = window.useColorScheme();
     const [showContinueButton, setShowContinueButton] = useState(false);
     const [content, setContent] = useState(initialContent);
+    const messageRef = useRef(null);
 
     const getMessageClass = () => {
         switch (role) {
@@ -46,6 +47,12 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
         });
     };
 
+    const scrollToTop = () => {
+        if (messageRef.current) {
+            messageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     useEffect(() => {
         setContent(initialContent);
     }, [initialContent]);
@@ -59,7 +66,7 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
     }, [role, content, guid]);
 
     return (
-        <div className={`message ${getMessageClass()}`} key={guid}>
+        <div className={`message ${getMessageClass()}`} key={guid} ref={messageRef}>
             <div className="message-header">
                 <div className="message-role">{getMessageLabel()}</div>
             </div>
@@ -71,16 +78,17 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
                     onCodeBlockRendered={() => codeBlockCounter++}
                 />
             </div>
-            {showContinueButton && (
-                <div className="message-footer">
+            <div className="message-footer">
+                {showContinueButton && (
                     <SplitButton
                         label="Continue..."
                         onClick={handleContinue}
                         color={colorScheme.buttonBackgroundColor}
                         background={colorScheme.buttonBackgroundCss}
                     />
-                </div>
-            )}
+                )}
+                <button className="top-button" onClick={scrollToTop}>↑ Top</button>
+            </div>
         </div>
     );
 }

@@ -20,6 +20,7 @@ function App() {
                         height: 100%;
                         margin: 0;
                         padding: 0;
+                        overflow: hidden;
                         font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
 

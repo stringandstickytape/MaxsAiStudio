@@ -85,7 +85,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         backgroundColor: currentColor,
         color: colorScheme.buttonTextColor,
         border: '1px solid black',
-        padding: '8px 8px',
+        padding: '4px 4px',
         cursor: 'pointer',
         transition: 'background-color 0.3s',
         display: 'flex',
@@ -106,7 +106,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     const arrowButtonStyle = {
         ...buttonStyle,
         borderRadius: '0 4px 4px 0',
-        padding: '8px 8px',
+        padding: '4px 4px',
         borderLeft: `3px solid ${colorScheme.backgroundColor}`,
     };
 
