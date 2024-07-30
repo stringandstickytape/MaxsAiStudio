@@ -4,9 +4,8 @@ if (typeof window !== 'undefined') {
     window.buttonIndicators = {};
 }
 
-const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor }) => {
+const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor, title }) => {
     const { colorScheme } = window.useColorScheme();
-    //const { colorScheme } = useColorScheme();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const hasSplit = dropdownItems.length > 0;
@@ -82,9 +81,6 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         }
     }, [isOpen, dropdownItems.length]);
 
-
-
-    
     const buttonStyle = {
         backgroundColor: currentColor,
         color: colorScheme.buttonTextColor,
@@ -135,7 +131,6 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         color: colorScheme.dropdownTextColor,
     };
 
-
     const svgStyle = {
         width: '20px',
         height: '20px',
@@ -163,6 +158,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                 style={mainButtonStyle}
                 onClick={onClick}
                 disabled={disabled}
+                title={title} // Added title prop here
             >
                 {svgString && (
                     <div
@@ -179,12 +175,12 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                         style={arrowButtonStyle}
                         onClick={() => setIsOpen(!isOpen)}
                         disabled={disabled}
+                        title={title} // Added title prop here
                     >
                         ▼
                     </button>
                     {isOpen && (
                         <div style={dropdownStyle} ref={dropdownRef}>
-
                             {dropdownItems.map((item, index) => (
                                 <button
                                     key={index}
@@ -193,8 +189,6 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                                         item.onClick();
                                         setIsOpen(false);
                                     }}
-                                    //onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-                                    //onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
                                 >
                                     {item.label}
                                 </button>
@@ -213,7 +207,7 @@ function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
 }
 
-const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, color = '#007bff', svgString }) => {
+const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, color = '#007bff', svgString, title }) => {
     const hasSplit = dropdownItems.length > 0;
     const [mainState, setMainState] = useState(false);
     const [itemStates, setItemStates] = useState(dropdownItems.map(() => false));
@@ -267,6 +261,7 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
             disabled={disabled}
             color={color}
             svgString={svgString}
+            title={title} // Pass title prop here
         />
     );
 };

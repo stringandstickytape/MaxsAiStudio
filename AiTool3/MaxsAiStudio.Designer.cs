@@ -37,9 +37,9 @@ namespace AiTool3
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
             cbUseEmbeddings = new CheckBox();
+            button1 = new Button();
             panel1 = new Panel();
             chatWebView = new ChatWebView();
-            button1 = new Button();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
@@ -73,9 +73,7 @@ namespace AiTool3
             // 
             // splitContainer1.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
             splitContainer1.Panel2.Controls.Add(panel1);
-            splitContainer1.Panel2.Controls.Add(button1);
             splitContainer1.Panel2MinSize = 1000;
             splitContainer1.Size = new Size(1363, 672);
             splitContainer1.SplitterDistance = 336;
@@ -162,22 +160,38 @@ namespace AiTool3
             // 
             cbUseEmbeddings.BackColor = Color.Transparent;
             cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(2, 93);
+            cbUseEmbeddings.Location = new Point(0, 131);
             cbUseEmbeddings.Margin = new Padding(2);
             cbUseEmbeddings.Name = "cbUseEmbeddings";
             cbUseEmbeddings.Size = new Size(14, 23);
             cbUseEmbeddings.TabIndex = 15;
             cbUseEmbeddings.UseVisualStyleBackColor = false;
             // 
+            // button1
+            // 
+            button1.BackColor = Color.FromArgb(64, 64, 64);
+            button1.FlatStyle = FlatStyle.Popup;
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(0, 68);
+            button1.Margin = new Padding(2);
+            button1.Name = "button1";
+            button1.Size = new Size(19, 59);
+            button1.TabIndex = 13;
+            button1.Text = ">\r\n>\r\n>";
+            button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
+            // 
             // panel1
             // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Black;
+            panel1.Controls.Add(button1);
+            panel1.Controls.Add(cbUseEmbeddings);
             panel1.Controls.Add(chatWebView);
-            panel1.Location = new Point(21, 4);
+            panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(995, 662);
+            panel1.Size = new Size(1022, 666);
             panel1.TabIndex = 21;
             // 
             // chatWebView
@@ -190,24 +204,10 @@ namespace AiTool3
             chatWebView.Location = new Point(0, 0);
             chatWebView.Margin = new Padding(0);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(995, 662);
+            chatWebView.Size = new Size(1022, 666);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             chatWebView.DragDrop += chatWebView_DragDrop;
-            // 
-            // button1
-            // 
-            button1.BackColor = Color.FromArgb(64, 64, 64);
-            button1.FlatStyle = FlatStyle.Popup;
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(2, 2);
-            button1.Margin = new Padding(2);
-            button1.Name = "button1";
-            button1.Size = new Size(19, 59);
-            button1.TabIndex = 13;
-            button1.Text = ">\r\n>\r\n>";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
             // 
             // menuBar
             // 

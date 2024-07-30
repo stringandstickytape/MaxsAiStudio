@@ -29,7 +29,7 @@
         
         const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
-            type: 'send',
+            type: window.event.shiftKey ? 'sendSecondary' : 'send',
             content: inputContent,
             selectedTools: toolsEnabledIndices
         });
@@ -223,6 +223,7 @@
                         onChange={handleInputChange}
                         placeholderText="Enter prompt..."
                         disabled={sendDisabled}
+                        
                     />
                 </div>
                 <div className="buttons-wrapper">
@@ -237,6 +238,7 @@
                         dropdownItems={[
                             { label: "Send via Secondary AI", onClick: handleSendSecondary }
                         ]}
+                        title="CTRL+Enter to send, CTRL+SHIFT+Enter to send via Secondary AI"
                     />
                     <SplitButton
                         label="Cancel"
