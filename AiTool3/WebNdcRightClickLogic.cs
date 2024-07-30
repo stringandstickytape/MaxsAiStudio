@@ -65,7 +65,7 @@ namespace AiTool3
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         .message.expanded {
-            max-height: 2000px;
+            max-height: 20000000px;
         }
         .message:last-child {
             margin-bottom: 0;

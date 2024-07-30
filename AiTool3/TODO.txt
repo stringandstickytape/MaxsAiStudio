@@ -196,3 +196,99 @@ I apologize for the misunderstanding. Thank you for clarifying. Here's a revised
 20. System resource monitor: to check CPU, memory, or disk usage
 
 
+
+
+
+
+
+
+1. Multiple AI Model Support
+   - Support for various AI models (e.g., GPT-4, GPT-3.5-turbo, Claude, Gemini, local models)
+   - Ability to switch between different AI models for main conversation and summaries
+
+2. Conversation Management
+   - Save and load conversations
+   - Organize conversations with summaries and highlights
+   - Search through past conversations
+   - Edit raw message content
+   - Continue unfinished code blocks or responses
+   - Branched conversations
+
+3. Templates System
+   - Create, edit, and manage conversation templates
+   - Organize templates into categories
+   - Quick access to templates for starting new conversations
+
+4. File Attachment and Processing
+   - Attach images to conversations
+   - Transcribe audio and video files using Whisper
+   - Drag and drop file support
+   - Process and embed content from various file types (e.g., CS, HTML, XML, JSON, JS)
+
+5. Code Handling
+   - Syntax highlighting for various programming languages
+   - Code block actions (copy, save, execute)
+   - Find and replace tool (tools work in Claude, OpenAI and Ollama only)
+
+6. Embeddings and Context
+   - Generate and use embeddings for enhanced context
+   - Select or reject code snippets identified via embeddings
+
+7. Voice Input and Output
+   - Voice recording for input
+   - Text-to-speech for AI responses
+
+8. Visualization Tools
+   - Network diagram for conversation flow
+   - Mermaid diagram support
+   - PlantUML diagram support
+   - DOT graph visualization
+
+9. Project Helper
+   - Browse and select project files from a fixed root directory (configured in Settings)
+   - Gitignore-aware file filtering
+
+10. Theme Customization
+    - Create and edit custom color schemes using a specific tool (tools work in Claude, OpenAI and Ollama only)
+    - Apply themes to the user interface
+
+11. Special Features
+    - Auto-suggest for conversation continuations
+    - Generate and update README files
+    - Code review functionality
+    - Transcribe MP4 files
+
+12. Usage Statistics
+    - Track token usage and costs for different models
+    - View and reset usage statistics
+
+13. Web Interface
+    - Built-in web server for remote access (experimental feature)
+
+14. Utility Functions
+    - Scratchpad for quick notes, editing etc.
+    - Execute Python and PowerShell scripts
+    - Launch STL files
+    - JSON viewer and editor
+
+15. Customization Options
+    - Adjust AI parameters (e.g., temperature)
+    - Configure file extensions for project helper
+    - Set default paths and embedding files
+
+16. Interface Features
+    - Collapsible conversation pane
+
+17. Export Options
+    - Save conversations as TXT or HTML
+    - Export code snippets and diagrams
+
+18. Keyboard Shortcuts
+    - Various keyboard shortcuts for efficient operation
+
+19. Error Handling and Logging
+    - Detailed error logging for troubleshooting
+
+20. Updates and Licensing
+    - View software licenses
+    - Potential for checking and applying updates

@@ -109,6 +109,7 @@ const HeaderBar = () => {
                         border: none;
                         border-radius: 4px;
                         padding: 5px;
+                        font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
                 
                     .main-header {

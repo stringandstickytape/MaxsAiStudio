@@ -22,6 +22,11 @@ function App() {
                         padding: 0;
                         font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
+
+                    button {
+                        font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
+                    }
+
                     .app-container {
                         display: flex;
                         flex-direction: column;
