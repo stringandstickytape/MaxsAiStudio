@@ -405,16 +405,25 @@ namespace AiTool3
 
                     var currentVersion = MaxsAiStudio.Version;
 
+                    ToolStripMenuItem updateMenu = null;
                     if (latestVersion > currentVersion)
                     {
-                        var updateMenu = MenuHelper.CreateMenu("Update Available");
+                        updateMenu = MenuHelper.CreateMenu("Update Available");
                         updateMenu.BackColor = System.Drawing.Color.DarkRed;
+                    }
+                    else if (latestVersion < currentVersion) { 
+                        updateMenu = MenuHelper.CreateMenu($"Pre-Release Version {currentVersion}");
+                        updateMenu.BackColor = System.Drawing.Color.DarkSalmon;
+                    }
+                    else if (latestVersion == currentVersion) { 
+                        updateMenu = MenuHelper.CreateMenu($"Version {currentVersion}"); 
+                        updateMenu.BackColor = System.Drawing.Color.DarkGreen; }
+                    
                         updateMenu.Click += (s, e) =>
                         {
                             Process.Start(new ProcessStartInfo("cmd", $"/c start {latestVersionUrl.Replace("&", "^&")}") { CreateNoWindow = true });
                         };
                         menuBar.Items.Add(updateMenu);
-                    }
                 }
             }
             catch { }
