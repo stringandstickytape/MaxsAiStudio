@@ -2,7 +2,7 @@
 
 const HeaderBar = () => {
     const { colorScheme } = React.useColorScheme();
-    const [logoText, setLogoText] = useState("AI Studio");
+    const [logoText, setLogoText] = useState("Max's AI Studio");
     const [systemPrompt, setSystemPrompt] = useState("");
     const [mainAIOptions, setMainAIOptions] = useState([]);
     const [summaryAIOptions, setSummaryAIOptions] = useState([]);

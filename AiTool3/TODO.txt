@@ -97,7 +97,8 @@ No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
 
-
+Give me the full file button?
+- button is a combination of prompt and engine
 
 
 
@@ -281,14 +282,5 @@ I apologize for the misunderstanding. Thank you for clarifying. Here's a revised
 
 17. Export Options
     - Save conversations as TXT or HTML
-    - Export code snippets and diagrams
+   
 
-18. Keyboard Shortcuts
-    - Various keyboard shortcuts for efficient operation
-
-19. Error Handling and Logging
-    - Detailed error logging for troubleshooting
-
-20. Updates and Licensing
-    - View software licenses
-    - Potential for checking and applying updates

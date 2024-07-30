@@ -277,7 +277,10 @@ namespace AiTool3.Providers
                 try
                 {
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-
+                    if(chunk == null)
+                    {
+                        return jsonData;
+                    }
                     if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
 
