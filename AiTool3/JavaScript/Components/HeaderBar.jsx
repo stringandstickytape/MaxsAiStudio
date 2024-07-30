@@ -237,13 +237,15 @@ const HeaderBar = () => {
                         options={mainAIOptions}
                         value={mainAIValue}
                         onChange={setMainAIValue}
+                        helpText="Used only when you click Send."
                     />
                     <DropDown
                         id="summaryAI"
-                        label="Summaries and Suggestions AI"
+                        label="Secondary AI"
                         options={summaryAIOptions}
                         value={summaryAIValue}
                         onChange={setSummaryAIValue}
+                        helpText="Used for summaries, suggestions, and when you click Send via Secondary AI."
                     />
                 </div>
             </div>

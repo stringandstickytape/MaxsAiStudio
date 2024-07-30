@@ -1,5 +1,5 @@
 ﻿// DropDown.js
-const DropDown = ({ id, label, options, value, onChange }) => {
+const DropDown = ({ id, label, options, value, onChange, helpText }) => {
     const { colorScheme } = React.useColorScheme();
 
     const handleChange = (e) => {
@@ -25,16 +25,30 @@ const DropDown = ({ id, label, options, value, onChange }) => {
     };
 
     const labelStyle = {
-        color: colorScheme.textColor, // Using the general text color for the label
+        color: colorScheme.textColor,
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '5px',
+    };
+
+    const helpIconStyle = {
+        marginLeft: '5px',
+        cursor: 'help',
+        fontSize: '14px',
+        color: colorScheme.textColor,
     };
 
     return (
         <div className="dropdown-container">
-            <label style={labelStyle}>{label}</label>
+            <div style={labelStyle}>
+                <label htmlFor={id}>{label}</label>
+
+            </div>
             <select
                 id={id}
                 value={value}
                 onChange={handleChange}
+                title={helpText}
                 style={dropdownStyle}
             >
                 {options.map((option, index) => (
