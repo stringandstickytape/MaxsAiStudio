@@ -101,6 +101,8 @@ DONE: popup that lets you interfere with the embeddings selected...!
 DONE: source code browser thing, to let you choose which files to upload from your project?
 DONE: Github version check
 DONE: Add "working" to transcribe
+DONE (sort-of): Allow choice of embedding engine?
+DONE: Remove unnecessary experiments
 
 Known Limitations:
 No Base64 image support for Groq
@@ -111,14 +113,10 @@ Tools only for Claude and OpenAI protocols (incl Ollama-via-OpenAI-protocol)
 Necessary for release:
 
 Parameterise conda loading
+example templates set incl colour scheme generator
 
-Remove unnecessary experiments
-example templates set
-Allow choice of embedding engine?
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
  
-
-
 Add another handler like formattedcontent for urls
 
 Docs:

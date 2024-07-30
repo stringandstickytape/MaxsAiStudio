@@ -327,10 +327,10 @@ namespace AiTool3
                         
                     }),
 
-                    new LabelAndEventHander("Select embedding...", async (s, e) =>
+                    new LabelAndEventHander("Select Embedding...", async (s, e) =>
                     {
                         var openFileDialog = new OpenFileDialog();
-                        openFileDialog.Filter = "Embeddings files (*.embeddings.json)|*.embeddings.json|All files (*.*)|*.*";
+                        openFileDialog.Filter = $"{maxsAiStudio.CurrentSettings.EmbeddingModel} Embeddings JSON file|*.{maxsAiStudio.CurrentSettings.EmbeddingModel}.embeddings.json";
                         openFileDialog.InitialDirectory = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Embeddings");
                         openFileDialog.Multiselect = false;
                         openFileDialog.ShowDialog();

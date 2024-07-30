@@ -56,6 +56,9 @@ namespace AiTool3
         public string SelectedSummaryModel { get; set; } = "";
         public string SelectedTheme { get; set; }
 
+        [MyDisplayNameAttr("Name of the Ollama embedding model to use")]
+        public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";
+
         public SettingsSet() { }
 
         public void SetDefaultPath(string v)

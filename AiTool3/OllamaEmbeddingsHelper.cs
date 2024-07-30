@@ -24,7 +24,7 @@ namespace AiTool3
                 {
                     embeddingText += lbom + " ";
                 }
-                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename);
+                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename, currentSettings.EmbeddingModel);
 
                 // Display embeddings in a modal dialog and let user select
                 var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
@@ -196,9 +196,9 @@ namespace AiTool3
             return selectedEmbeddings;
         }
 
-        public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename)
+        public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename, string embeddingsModelName)
         {
-            var inputEmbedding = await CreateEmbeddingsAsync(new List<string> { input }, key);
+            var inputEmbedding = await CreateEmbeddingsAsync(new List<string> { input }, key, embeddingsModelName);
 
             
             if(!File.Exists(filename))
@@ -215,7 +215,7 @@ namespace AiTool3
             List<CodeSnippet> result = new List<CodeSnippet>();
             foreach (var snippet in s)
             {
-                var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
+                var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key, embeddingsModelName);
                 var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
                 result.AddRange(subs);
             }
@@ -224,7 +224,7 @@ namespace AiTool3
             return result;
         }
 
-        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string apiUrl = "http://localhost:11434/api/embeddings")
+        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string embeddingsModelName, string apiUrl = "http://localhost:11434/api/embeddings")
         {
             using var client = new HttpClient();
 
@@ -232,10 +232,10 @@ namespace AiTool3
 
             foreach (var text in texts)
             {
-                LocalAI.StartOllama("mxbai-embed-large");
+                LocalAI.StartOllama(embeddingsModelName);
                 var request = new
                 {
-                    model = "mxbai-embed-large",
+                    model = embeddingsModelName,
                     prompt = text
                 };
 

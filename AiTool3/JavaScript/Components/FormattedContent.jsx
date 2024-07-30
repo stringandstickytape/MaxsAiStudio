@@ -73,22 +73,22 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
+        const urlRegex = /(?:https?|ftp):\/\/[^\s/$.?#].[^\s]*/g; // Simple regex to match URLs
         console.log(text);
         const parts = [];
         let lastIndex = 0;
 
+        // Handle code blocks first
         text.replace(codeBlockRegex, (match, fileType, code, offset) => {
             if (offset > lastIndex) {
                 parts.push(text.slice(lastIndex, offset));
             }
 
             let trimmedFileType = fileType.trim().toLowerCase();
-
             let fileExt = trimmedFileType;
             if (fileExt.indexOf('.') > -1) {
                 fileExt = fileExt.split('.').reverse()[0];
             }
-            console.log(trimmedFileType);
 
             parts.push(
                 <div key={offset}>
@@ -269,8 +269,39 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
             onCodeBlockRendered(); // Increment the counter after rendering a code block
         });
 
-        if (lastIndex < text.length) {
-            parts.push(text.slice(lastIndex));
+        // Now check for URLs outside of code blocks
+        const textParts = text.slice(lastIndex).split(urlRegex);
+        const urlMatches = text.match(urlRegex) || [];
+
+        urlMatches.forEach((url, index) => {
+            // Render text that's not a URL
+            if (textParts[index]) {
+                parts.push(<span key={`text-${index}`}>{textParts[index]}</span>);
+            }
+            // Render the URL as a clickable link
+            parts.push(
+                <span
+                    key={`url-${index}`}
+                    onClick={() => {
+                        window.chrome.webview.postMessage({
+                            type: 'openUrl',
+                            content: url
+                        });
+                    }}
+                    style={{
+                        color: colorScheme.linkColor,
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                    }}
+                >
+                    {url}
+                </span>
+            );
+        });
+
+        // If there's any remaining text after the last URL
+        if (textParts[urlMatches.length]) {
+            parts.push(<span key={`text-${urlMatches.length}`}>{textParts[urlMatches.length]}</span>);
         }
 
         return parts;
