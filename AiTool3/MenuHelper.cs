@@ -255,20 +255,6 @@ namespace AiTool3
 
                     }),
 
-                    new LabelAndEventHander("Transcribe MP4", async (s, e) =>
-                    {
-                        var openFileDialog = new OpenFileDialog();
-                        openFileDialog.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
-
-                        openFileDialog.ShowDialog();
-
-                        if (openFileDialog.FileName == "")
-                        {
-                            return;
-                        }
-                        await _fileAttachmentManager.TranscribeMP4(openFileDialog.FileName, chatWebView);
-                    }),
-
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);

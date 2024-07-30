@@ -91,6 +91,8 @@ DONE: ask for API/local AI details
 DONE: inline https://unpkg.com/viz.js@2.1.2/viz.js
 DONE: Improve recording button toggle whatnot
 DONE: Loading spinner while working out the project helper
+DONE: That weird one where you've picked a conersation but not a mesasge, and try to send a new message.  I suppose when you click a conversation, it could jump to the most recent message.
+DONE: Ensure "Continue" button doesn't appear on temp-ai-msg
 
 Known Limitations:
 No Base64 image support for Groq
@@ -112,9 +114,7 @@ Remove unnecessary experiments
 example templates set
 Allow choice of embedding engine?
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
-That weird one where you've picked a conersation but not a mesasge, and try to send a new message.  I suppose when you click a conversation, it could jump to the most recent message.
 Github version check
-Ensure "Continue" button doesn't appear on temp-ai-msg
 
 Docs:
 Instructions for external apps: whisper, ...
