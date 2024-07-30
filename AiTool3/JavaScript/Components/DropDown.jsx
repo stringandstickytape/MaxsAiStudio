@@ -28,8 +28,8 @@ const DropDown = ({ id, label, options, value, onChange, helpText }) => {
         color: colorScheme.textColor,
         display: 'flex',
         alignItems: 'center',
-        marginBottom: '5px',
     };
+
 
     const helpIconStyle = {
         marginLeft: '5px',
