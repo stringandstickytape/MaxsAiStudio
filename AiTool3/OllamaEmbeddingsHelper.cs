@@ -34,7 +34,6 @@ namespace AiTool3
                     $"{string.Join(Environment.NewLine, selectedEmbeddings.Select(
                         x => $"{new string('`', 3)}{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
                         $"{x.Code}{Environment.NewLine}" +
-                        $"" +
                         $"{new string('`', 3)}"))}" +
                         $"{Environment.NewLine}{Environment.NewLine}" +
                         $"{conversation.messages.Last().content}";
@@ -47,6 +46,7 @@ namespace AiTool3
         private static List<CodeSnippet> ShowEmbeddingsSelectionDialog(List<CodeSnippet> embeddings)
         {
             var selectedEmbeddings = new List<CodeSnippet>();
+            bool isMouseClick = false; // Track mouse click events
 
             using (var form = new Form())
             {
@@ -66,7 +66,7 @@ namespace AiTool3
                 var checkedListBox = new CheckedListBox
                 {
                     Dock = DockStyle.Fill,
-                    CheckOnClick = true
+                    CheckOnClick = false // Disable check on click
                 };
                 splitContainer.Panel1.Controls.Add(checkedListBox);
 
@@ -86,6 +86,31 @@ namespace AiTool3
                     checkedListBox.Items.Add($"{snippet.Filename} (Line {snippet.LineNumber})", true);
                 }
 
+                // Add event handlers
+                checkedListBox.MouseDown += (sender, e) => { isMouseClick = true; };
+                checkedListBox.MouseUp += (sender, e) => { isMouseClick = false; };
+                checkedListBox.ItemCheck += (sender, e) =>
+                {
+                    if (!isMouseClick)
+                    {
+                        e.NewValue = e.CurrentValue; // Prevent toggling on item click
+                    }
+                    else
+                    {
+                        var clickPoint = checkedListBox.PointToClient(Cursor.Position);
+                        var index = checkedListBox.IndexFromPoint(clickPoint);
+                        if (index != ListBox.NoMatches)
+                        {
+                            var itemRect = checkedListBox.GetItemRectangle(index);
+                            var checkBoxWidth = SystemInformation.MenuCheckSize.Width;
+                            if (clickPoint.X > itemRect.X + checkBoxWidth)
+                            {
+                                e.NewValue = e.CurrentValue; // Prevent toggling on item text click
+                            }
+                        }
+                    }
+                };
+
                 // Event handler for selection change
                 checkedListBox.SelectedIndexChanged += (sender, e) =>
                 {
@@ -100,14 +125,59 @@ namespace AiTool3
                     }
                 };
 
+                // Create a panel for buttons
+                var buttonPanel = new Panel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 50
+                };
+                form.Controls.Add(buttonPanel);
+
+                // Create "Select All" button
+                var selectAllButton = new Button
+                {
+                    Text = "Select All",
+                    Width = 100,
+                    Height = 40,
+                    Location = new Point(10, 5)
+                };
+                selectAllButton.Click += (sender, e) =>
+                {
+                    for (int i = 0; i < checkedListBox.Items.Count; i++)
+                    {
+                        checkedListBox.SetItemChecked(i, true);
+                    }
+
+                };
+                buttonPanel.Controls.Add(selectAllButton);
+
+                // Create "Select None" button
+                var selectNoneButton = new Button
+                {
+                    Text = "Select None",
+                    Width = 100,
+                    Height = 40,
+                    Location = new Point(120, 5)
+                };
+                selectNoneButton.Click += (sender, e) =>
+                {
+                    for (int i = 0; i < checkedListBox.Items.Count; i++)
+                    {
+                        checkedListBox.SetItemChecked(i, false);
+                    }
+                };
+                buttonPanel.Controls.Add(selectNoneButton);
+
+                // Create "Accept Embeddings" button
                 var okButton = new Button
                 {
                     Text = "Accept Embeddings",
                     DialogResult = DialogResult.OK,
-                    Dock = DockStyle.Bottom,
-                    Height = 50
+                    Width = 150,
+                    Height = 40,
+                    Location = new Point(buttonPanel.Width - 160, 5)
                 };
-                form.Controls.Add(okButton);
+                buttonPanel.Controls.Add(okButton);
 
                 form.AcceptButton = okButton;
 
@@ -128,9 +198,9 @@ namespace AiTool3
 
         public static async Task<List<CodeSnippet>> GetRelatedCodeFromEmbeddings(string key, string input, string filename)
         {
-            var inputEmbedding = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { input }, key);
+            var inputEmbedding = await CreateEmbeddingsAsync(new List<string> { input }, key);
 
-            // deserialize from C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiTool3\OpenAIEmbedFragged.embeddings.json
+            // Deserialize from the specified embeddings file
             var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
 
             var embeddingManager = new EmbeddingManager();
@@ -139,7 +209,7 @@ namespace AiTool3
             List<CodeSnippet> result = new List<CodeSnippet>();
             foreach (var snippet in s)
             {
-                var subInputEmbedding = await OllamaEmbeddingsHelper.CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
+                var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key);
                 var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
                 result.AddRange(subs);
             }

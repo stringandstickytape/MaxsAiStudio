@@ -84,12 +84,14 @@
 
     const handleInputChange = (newContent) => {
         setInputContent(newContent);
-        window.setMessageText("temp-user-msg", newContent);
+        if (string.trim().length > 0) window.setMessageText("temp-user-msg", newContent);
     };
 
     const setUserPrompt = (string) => {
         setInputContent(string);
-        window.setMessageText("temp-user-msg", string);
+
+        // only set if not whitespace
+        if (string.trim().length > 0) window.setMessageText("temp-user-msg", string);
     };
     window.setUserPrompt = setUserPrompt;
 

@@ -104,6 +104,8 @@ Give me the full file button?
 
 Add "go to top" button at bottom of message
 
+Timer keeps running on cancel?
+
 Necessary for release:
 
 Expand and clarify the embeddings workflow esp the checkboxes
