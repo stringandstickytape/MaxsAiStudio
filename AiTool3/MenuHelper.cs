@@ -340,8 +340,8 @@ namespace AiTool3
                             return;
                         }
 
-                        currentSettings.EmbeddingsFilename = openFileDialog.FileName;
-                        SettingsSet.Save(currentSettings);
+                        maxsAiStudio.CurrentSettings.EmbeddingsFilename = openFileDialog.FileName;
+                        SettingsSet.Save(maxsAiStudio.CurrentSettings);
 
                     })
                 }

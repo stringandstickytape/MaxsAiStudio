@@ -42,7 +42,7 @@ namespace AiTool3.Providers
         {
             if (embedding1.Count != embedding2.Count)
             {
-                throw new ArgumentException("Embeddings must have the same dimension.");
+                throw new ArgumentException("Embeddings must have the same dimension.  You're probably using an embeddings file which is wrong for the current embedding model...");
             }
 
             float dotProduct = 0;

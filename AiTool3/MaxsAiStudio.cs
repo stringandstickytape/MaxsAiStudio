@@ -758,12 +758,27 @@ namespace AiTool3
 
                 var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
 
+                // get the first non-whitespace character from response.ResponseText
+                var firstChar = response.ResponseText.FirstOrDefault(c => !char.IsWhiteSpace(c));
+
+                // if it's not { then wrap the response in {}
+                if (firstChar != '{')
+                {
+                    sb.Append("{");
+                }
+
                 //if (model.ServiceName == "OpenAI")
                 //{
                 //    sb.Append( "{");
                 //}
 
                 sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
+
+
+                if (firstChar != '}')
+                {
+                    sb.Append("}");
+                }
 
                 //if (model.ServiceName == "OpenAI")
                 //{
