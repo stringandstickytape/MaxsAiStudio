@@ -1000,13 +1000,6 @@ namespace AiTool3
 
         }
 
-        private async void button2_Click(object sender, EventArgs e)
-        {
-            this.ShowWorking("button clicked", CurrentSettings.SoftwareToyMode);
-            dgvConversations.ShowWorking("button clicked", CurrentSettings.SoftwareToyMode);
-            await Task.Delay(10000); // 10000 milliseconds = 10 seconds
-            this.HideWorking();
-            dgvConversations.HideWorking();
-        }
+
     }
 }

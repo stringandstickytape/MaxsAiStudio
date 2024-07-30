@@ -36,7 +36,6 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
-            button2 = new Button();
             cbUseEmbeddings = new CheckBox();
             panel1 = new Panel();
             chatWebView = new ChatWebView();
@@ -74,7 +73,6 @@ namespace AiTool3
             // 
             // splitContainer1.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(button2);
             splitContainer1.Panel2.Controls.Add(cbUseEmbeddings);
             splitContainer1.Panel2.Controls.Add(panel1);
             splitContainer1.Panel2.Controls.Add(button1);
@@ -159,16 +157,6 @@ namespace AiTool3
             ndcWeb.Size = new Size(325, 349);
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
-            // 
-            // button2
-            // 
-            button2.Location = new Point(3, 66);
-            button2.Name = "button2";
-            button2.Size = new Size(13, 22);
-            button2.TabIndex = 22;
-            button2.Text = "!";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
             // 
             // cbUseEmbeddings
             // 
@@ -306,8 +294,6 @@ namespace AiTool3
         private ChatWebView chatWebView;
         private Button button1;
         private CheckBox cbUseEmbeddings;
-        private ComboBox cbSummaryEngine;
         private Panel panel1;
-        private Button button2;
     }
 }
