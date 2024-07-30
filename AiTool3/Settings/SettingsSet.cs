@@ -45,6 +45,10 @@ namespace AiTool3
         [MyDisplayNameAttr("Default Path")]
         public string DefaultPath { get; set; } = Directory.GetCurrentDirectory();
 
+        [IsPathAttribute]
+        [MyDisplayNameAttr("Path to Conda Activate Script")]
+        public string PathToCondaActivateScript { get; set; } = "C:\\Users\\username\\miniconda3\\Scripts\\";
+
         [MyDisplayNameAttr("File extensions to display in the Project Helper")]
         public string ProjectHelperFileExtensions { get; set; } = "*.cs, *.html, *.css, *.js";
 

@@ -62,7 +62,7 @@ namespace AiTool3
                 maxsAiStudio.ShowWorking("Attaching file", softwareToyMode);
                 await Task.Run(async () =>
                 {
-                    var output = await TranscribeMP4(openFileDialog.FileName);
+                    var output = await TranscribeMP4(openFileDialog.FileName, maxsAiStudio.CurrentSettings.PathToCondaActivateScript);
                     chatWebView.SetUserPrompt(output);
                 });
                 maxsAiStudio.HideWorking();
@@ -149,11 +149,17 @@ namespace AiTool3
             await _chatWebView.SetUserPrompt($"{sb}{existingPrompt}");
         }
 
-        public async Task<string> TranscribeMP4(string filename)
+        public async Task<string> TranscribeMP4(string filename, string condaActivateScriptPath)
         {
             // Path to the Miniconda installation
-            string condaPath = @"C:\Users\maxhe\miniconda3\Scripts\activate.bat";
+            string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat"); 
             
+            if(!File.Exists(condaPath))
+            {
+                MessageBox.Show($"Conda activate script not found at {condaPath}");
+                return "";
+            }
+
             // Command to activate the WhisperX environment and run Whisper
             string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\" --output_format json";
 
@@ -217,7 +223,8 @@ namespace AiTool3
                 }
                 else
                 {
-                    throw new Exception("Couldn't transcribe video/audio file");
+                    MessageBox.Show("Unable to transcribe file.");
+                    return "";
                 }
             }
         }

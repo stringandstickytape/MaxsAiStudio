@@ -37,6 +37,7 @@ namespace AiTool3
         public TemplateManager templateManager = new TemplateManager();
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public SettingsSet CurrentSettings { get; set; }
+        
 
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
@@ -464,7 +465,7 @@ namespace AiTool3
                 {
                     case FileTypeClassifier.FileClassification.Video:
                     case FileTypeClassifier.FileClassification.Audio:
-                        var output = await _fileAttachmentManager.TranscribeMP4(filename);
+                        var output = await _fileAttachmentManager.TranscribeMP4(filename, CurrentSettings.PathToCondaActivateScript);
                         chatWebView.SetUserPrompt(output);
                         break;
                     case FileTypeClassifier.FileClassification.Image:
