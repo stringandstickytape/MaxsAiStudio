@@ -95,20 +95,20 @@ DONE: That weird one where you've picked a conersation but not a mesasge, and tr
 DONE: Ensure "Continue" button doesn't appear on temp-ai-msg
 DONE: Add "go to top" button at bottom of message
 DONE: CTRL-SHIFT-RETURn to send to alternate AI
+DONE: Timer keeps running on cancel?
+DONE (sort of): project helper: for fixed or new files, write to project structure? (!) - could use tool for this?
+DONE: popup that lets you interfere with the embeddings selected...!
+DONE: source code browser thing, to let you choose which files to upload from your project?
+
 
 Known Limitations:
 No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
-
-
-
-Timer keeps running on cancel?
+Tools only for Claude and OpenAI protocols (incl Ollama-via-OpenAI-protocol)
 
 Necessary for release:
 
-Expand and clarify the embeddings workflow esp the checkboxes
- - Include embedding model name in default filename ext
 Parameterise conda loading
 Add "working" to transcribe
 Remove unnecessary experiments
@@ -116,6 +116,9 @@ example templates set
 Allow choice of embedding engine?
 better error-trapping - where are the crashes tho? . what happens if there's no network? 400 bad request is caught tho.
 Github version check
+
+
+Add another handler like formattedcontent for urls
 
 Docs:
 Instructions for external apps: whisper, ...
@@ -128,13 +131,7 @@ Thid-party utils:
 
 project helper: # to include files?
 
-
-
-
-add a few gradients?
-project helper: for fixed or new files, write to project structure? (!) - could use tool for this?
-popup that lets you interfere with the embeddings selected...!
-source code browser thing, to let you choose which files to upload from your project?
+add more theme settings?
 launch sql? browse xml? launch svg? azure az command?! 
 launch JS directly would be nice
 Choose-microphone
