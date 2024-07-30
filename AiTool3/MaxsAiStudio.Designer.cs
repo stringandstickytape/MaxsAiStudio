@@ -36,9 +36,8 @@ namespace AiTool3
             tbSearch = new TextBox();
             dgvConversations = new DataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
-            cbUseEmbeddings = new CheckBox();
-            button1 = new Button();
             panel1 = new Panel();
+            button1 = new Button();
             chatWebView = new ChatWebView();
             menuBar = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
@@ -156,16 +155,17 @@ namespace AiTool3
             ndcWeb.TabIndex = 1;
             ndcWeb.ZoomFactor = 1D;
             // 
-            // cbUseEmbeddings
+            // panel1
             // 
-            cbUseEmbeddings.BackColor = Color.Transparent;
-            cbUseEmbeddings.ForeColor = Color.White;
-            cbUseEmbeddings.Location = new Point(0, 131);
-            cbUseEmbeddings.Margin = new Padding(2);
-            cbUseEmbeddings.Name = "cbUseEmbeddings";
-            cbUseEmbeddings.Size = new Size(14, 23);
-            cbUseEmbeddings.TabIndex = 15;
-            cbUseEmbeddings.UseVisualStyleBackColor = false;
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel1.BackColor = Color.Black;
+            panel1.Controls.Add(button1);
+            panel1.Controls.Add(chatWebView);
+            panel1.Location = new Point(0, 0);
+            panel1.Margin = new Padding(0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1023, 666);
+            panel1.TabIndex = 21;
             // 
             // button1
             // 
@@ -181,19 +181,6 @@ namespace AiTool3
             button1.UseVisualStyleBackColor = false;
             button1.Click += button1_Click;
             // 
-            // panel1
-            // 
-            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            panel1.BackColor = Color.Black;
-            panel1.Controls.Add(button1);
-            panel1.Controls.Add(cbUseEmbeddings);
-            panel1.Controls.Add(chatWebView);
-            panel1.Location = new Point(0, 0);
-            panel1.Margin = new Padding(0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(1022, 666);
-            panel1.TabIndex = 21;
-            // 
             // chatWebView
             // 
             chatWebView.AllowExternalDrop = true;
@@ -204,7 +191,7 @@ namespace AiTool3
             chatWebView.Location = new Point(0, 0);
             chatWebView.Margin = new Padding(0);
             chatWebView.Name = "chatWebView";
-            chatWebView.Size = new Size(1022, 666);
+            chatWebView.Size = new Size(1023, 666);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
             chatWebView.DragDrop += chatWebView_DragDrop;
@@ -293,7 +280,6 @@ namespace AiTool3
         private Microsoft.Web.WebView2.WinForms.WebView2 ndcWeb;
         private ChatWebView chatWebView;
         private Button button1;
-        private CheckBox cbUseEmbeddings;
         private Panel panel1;
     }
 }

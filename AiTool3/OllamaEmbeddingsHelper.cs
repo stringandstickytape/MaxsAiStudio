@@ -134,39 +134,39 @@ namespace AiTool3
                 form.Controls.Add(buttonPanel);
 
                 // Create "Select All" button
-                var selectAllButton = new Button
-                {
-                    Text = "Select All",
-                    Width = 100,
-                    Height = 40,
-                    Location = new Point(10, 5)
-                };
-                selectAllButton.Click += (sender, e) =>
-                {
-                    for (int i = 0; i < checkedListBox.Items.Count; i++)
-                    {
-                        checkedListBox.SetItemChecked(i, true);
-                    }
-
-                };
-                buttonPanel.Controls.Add(selectAllButton);
-
-                // Create "Select None" button
-                var selectNoneButton = new Button
-                {
-                    Text = "Select None",
-                    Width = 100,
-                    Height = 40,
-                    Location = new Point(120, 5)
-                };
-                selectNoneButton.Click += (sender, e) =>
-                {
-                    for (int i = 0; i < checkedListBox.Items.Count; i++)
-                    {
-                        checkedListBox.SetItemChecked(i, false);
-                    }
-                };
-                buttonPanel.Controls.Add(selectNoneButton);
+                //var selectAllButton = new Button
+                //{
+                //    Text = "Select All",
+                //    Width = 100,
+                //    Height = 40,
+                //    Location = new Point(10, 5)
+                //};
+                //selectAllButton.Click += (sender, e) =>
+                //{
+                //    for (int i = 0; i < checkedListBox.Items.Count; i++)
+                //    {
+                //        checkedListBox.SetItemChecked(i, true);
+                //    }
+                //
+                //};
+                //buttonPanel.Controls.Add(selectAllButton);
+                //
+                //// Create "Select None" button
+                //var selectNoneButton = new Button
+                //{
+                //    Text = "Select None",
+                //    Width = 100,
+                //    Height = 40,
+                //    Location = new Point(120, 5)
+                //};
+                //selectNoneButton.Click += (sender, e) =>
+                //{
+                //    for (int i = 0; i < checkedListBox.Items.Count; i++)
+                //    {
+                //        checkedListBox.SetItemChecked(i, false);
+                //    }
+                //};
+                //buttonPanel.Controls.Add(selectNoneButton);
 
                 // Create "Accept Embeddings" button
                 var okButton = new Button
@@ -200,6 +200,12 @@ namespace AiTool3
         {
             var inputEmbedding = await CreateEmbeddingsAsync(new List<string> { input }, key);
 
+            
+            if(!File.Exists(filename))
+            {
+                MessageBox.Show("Embeddings file not found. Please check the path in settings and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return new List<CodeSnippet>();
+            }
             // Deserialize from the specified embeddings file
             var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
 

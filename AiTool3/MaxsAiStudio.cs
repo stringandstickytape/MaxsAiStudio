@@ -32,7 +32,7 @@ namespace AiTool3
 
         public TemplateManager templateManager = new TemplateManager();
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
-        public SettingsSet CurrentSettings { get; set; } 
+        public SettingsSet CurrentSettings { get; set; }
 
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
@@ -43,7 +43,7 @@ namespace AiTool3
         public string selectedConversationGuid = "";
         public MaxsAiStudio()
         {
-            if(!File.Exists("Settings\\settings.json"))
+            if (!File.Exists("Settings\\settings.json"))
             {
                 CurrentSettings = AiTool3.SettingsSet.Load()!;
                 // show the settings dialog first up
@@ -51,11 +51,12 @@ namespace AiTool3
                 var result = settingsForm.ShowDialog();
                 CurrentSettings = settingsForm.NewSettings;
                 SettingsSet.Save(CurrentSettings);
-            } else  CurrentSettings = AiTool3.SettingsSet.Load()!;
+            }
+            else CurrentSettings = AiTool3.SettingsSet.Load()!;
 
             InitializeComponent();
 
-            
+
 
             DirectoryHelper.CreateSubdirectories();
 
@@ -63,8 +64,6 @@ namespace AiTool3
 
             webViewManager = new WebViewManager(ndcWeb);
 
-            cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
-            cbUseEmbeddings.CheckedChanged += CbUseEmbeddings_CheckedChanged;
 
             chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
             chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
@@ -303,7 +302,7 @@ namespace AiTool3
                         }
                         finally
                         {
-                            
+
                         }
                     });
                     this.HideWorking();
@@ -379,7 +378,6 @@ namespace AiTool3
                 {
                     CurrentSettings = settingsForm.NewSettings;
                     SettingsSet.Save(CurrentSettings);
-                    cbUseEmbeddings.Checked = CurrentSettings.UseEmbeddings;
                     await InitialiseApiList_New();
                 }
             };
@@ -459,11 +457,6 @@ namespace AiTool3
             }
         }
 
-        private async void CbUseEmbeddings_CheckedChanged(object? sender, EventArgs e)
-        {
-            CurrentSettings.UseEmbeddings = cbUseEmbeddings.Checked;
-            SettingsSet.Save(CurrentSettings);
-        }
 
         private async void OnHandleCreated(object sender, EventArgs e)
         {
@@ -999,7 +992,6 @@ namespace AiTool3
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
         }
-
 
     }
 }
