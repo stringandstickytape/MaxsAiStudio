@@ -647,16 +647,20 @@ namespace AiTool3
 
                 await chatWebView.EnableSendButton();
 
+                stopwatch.Stop();
+                updateTimer.Stop();
+
                 if (overrideUserPrompt == null)
                 {
-                    stopwatch.Stop();
-                    updateTimer.Stop();
                     await UpdateUi(response);
                     await UpdateConversationSummary();
                 }
             }
             catch (Exception ex)
             {
+                stopwatch.Stop();
+                updateTimer.Stop();
+
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
 
                 chatWebView.ClearTemp();

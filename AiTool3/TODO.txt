@@ -93,16 +93,15 @@ DONE: Improve recording button toggle whatnot
 DONE: Loading spinner while working out the project helper
 DONE: That weird one where you've picked a conersation but not a mesasge, and try to send a new message.  I suppose when you click a conversation, it could jump to the most recent message.
 DONE: Ensure "Continue" button doesn't appear on temp-ai-msg
+DONE: Add "go to top" button at bottom of message
+DONE: CTRL-SHIFT-RETURn to send to alternate AI
 
 Known Limitations:
 No Base64 image support for Groq
 No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
 No token counting for Groq
 
-Give me the full file button?
-- button is a combination of prompt and engine
 
-Add "go to top" button at bottom of message
 
 Timer keeps running on cancel?
 

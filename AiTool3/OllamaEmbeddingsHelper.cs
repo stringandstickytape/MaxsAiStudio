@@ -203,7 +203,7 @@ namespace AiTool3
             
             if(!File.Exists(filename))
             {
-                MessageBox.Show("Embeddings file not found. Please check the path in settings and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Embeddings file not found. Please check the path in settings, or use Embeddings -> Select Embedding..., and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new List<CodeSnippet>();
             }
             // Deserialize from the specified embeddings file
