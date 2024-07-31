@@ -18,7 +18,7 @@ namespace AiTool3.Helpers
             string pythonPath = GetPythonPath();
             if (string.IsNullOrEmpty(pythonPath))
             {
-                Console.WriteLine("Python executable not found.");
+                MessageBox.Show("Python executable not found.");
                 return;
             }
 
@@ -31,11 +31,9 @@ namespace AiTool3.Helpers
                 process.StartInfo.FileName = pythonPath;
                 process.StartInfo.Arguments = tempScriptPath;
                 process.StartInfo.UseShellExecute = true;
-                process.StartInfo.RedirectStandardOutput = false;
+                process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.CreateNoWindow = false;
 
-                
-                
                 process.Start();
                 process.WaitForExit();
                 string output = process.StandardOutput.ReadToEnd();

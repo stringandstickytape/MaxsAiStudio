@@ -73,23 +73,18 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
-        const urlRegex = /(?:https?|ftp):\/\/[^\s/$.?#].[^\s]*/g; // Simple regex to match URLs
-        console.log(text);
         const parts = [];
         let lastIndex = 0;
 
         // Handle code blocks first
         text.replace(codeBlockRegex, (match, fileType, code, offset) => {
             if (offset > lastIndex) {
-                parts.push(text.slice(lastIndex, offset));
+                // Process text before the code block for URLs
+                const beforeCodeBlock = text.slice(lastIndex, offset);
+                parts.push(...formatUrls(beforeCodeBlock));
             }
 
-            let trimmedFileType = fileType.trim().toLowerCase();
-            let fileExt = trimmedFileType;
-            if (fileExt.indexOf('.') > -1) {
-                fileExt = fileExt.split('.').reverse()[0];
-            }
-
+            // Add the code block as is, without URL formatting
             parts.push(
                 <div key={offset}>
                     <div style={{
@@ -115,11 +110,12 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                             {addMessageButton("Save As", () => {
                                 window.chrome.webview.postMessage({
                                     type: 'Save As',
-                                    dataType: trimmedFileType,
+                                    dataType: fileType.trim().toLowerCase(),
                                     content: code.trim()
                                 });
                             })}
-                            {fileTypes.webView.includes(fileExt) &&
+                            {/* Additional buttons for different file types */}
+                            {fileTypes.webView.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("WebView", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'WebView',
@@ -127,12 +123,12 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.viewSvg.includes(fileExt) &&
+                            {fileTypes.viewSvg.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("View SVG", () => {
                                     createSvgViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewJsonStringArray.includes(fileExt) &&
+                            {fileTypes.viewJsonStringArray.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("View JSON String Array", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View JSON String Array',
@@ -140,7 +136,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.installTheme.includes(trimmedFileType) &&
+                            {fileTypes.installTheme.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Install Theme", debounce(() => {
                                     if (isInstallingTheme) return;
                                     setIsInstallingTheme(true);
@@ -170,17 +166,17 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 }, 300))
                             }
-                            {fileTypes.browseJsonObject.includes(fileExt) &&
+                            {fileTypes.browseJsonObject.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Browse JSON Object", () => {
                                     createJsonViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewMermaidDiagram.includes(fileExt) &&
+                            {fileTypes.viewMermaidDiagram.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("View Mermaid Diagram", () => {
                                     createMermaidViewer(code.trim());
                                 })
                             }
-                            {fileTypes.viewPlantUMLDiagram.includes(fileExt) &&
+                            {fileTypes.viewPlantUMLDiagram.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("View PlantUML Diagram", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'View PlantUML Diagram',
@@ -188,12 +184,12 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.viewDOTDiagram.includes(fileExt) &&
+                            {fileTypes.viewDOTDiagram.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("View DOT Diagram", () => {
                                     renderDotString(code.trim());
                                 })
                             }
-                            {fileTypes.runPythonScript.includes(fileExt) &&
+                            {fileTypes.runPythonScript.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Run Python Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run Python Script',
@@ -201,7 +197,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.launchSTL.includes(fileExt) &&
+                            {fileTypes.launchSTL.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Launch STL", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Launch STL',
@@ -209,7 +205,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-                            {fileTypes.runPowerShellScript.includes(fileExt) &&
+                            {fileTypes.runPowerShellScript.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Run PowerShell Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run PowerShell Script',
@@ -217,8 +213,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     });
                                 })
                             }
-
-                            {fileTypes.selectFindAndReplaceScript.includes(trimmedFileType) &&
+                            {fileTypes.selectFindAndReplaceScript.includes(fileType.trim().toLowerCase()) &&
                                 addMessageButton("Select Find-And-Replace Script", () => {
                                     try {
                                         const fixedJsonString = fixNewlinesInStrings(code.trim());
@@ -227,7 +222,6 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         window.selectedMessageGuid = guid;
                                         window.dispatchEvent(new Event('findAndReplaceUpdate'));
                                     } catch (error) {
-                                        debugger;
                                         alert('Error parsing Find-And-Replace script: ' + error);
                                     }
                                 })
@@ -238,7 +232,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         type: 'applyFindAndReplace',
                                         content: code.trim(),
                                         guid: guid,
-                                        dataType: trimmedFileType,
+                                        dataType: fileType.trim(),
                                         codeBlockIndex: codeBlockCounter.toString(),
                                         findAndReplaces: JSON.stringify(currentlySelectedFindAndReplaceSet),
                                         selectedMessageGuid: selectedMessageGuid
@@ -269,40 +263,47 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
             onCodeBlockRendered(); // Increment the counter after rendering a code block
         });
 
-        // Now check for URLs outside of code blocks
-        const textParts = text.slice(lastIndex).split(urlRegex);
+        // Process any remaining text after the last code block
+        if (lastIndex < text.length) {
+            const remainingText = text.slice(lastIndex);
+            parts.push(...formatUrls(remainingText));
+        }
+
+        return parts;
+    };
+
+    // New helper function to format URLs in non-code text
+    const formatUrls = (text) => {
+        const urlRegex = /(?:https?|ftp):\/\/[^\s/$.?#].[^\s]*/g;
+        const parts = [];
+        const textParts = text.split(urlRegex);
         const urlMatches = text.match(urlRegex) || [];
 
-        urlMatches.forEach((url, index) => {
-            // Render text that's not a URL
-            if (textParts[index]) {
-                parts.push(<span key={`text-${index}`}>{textParts[index]}</span>);
+        textParts.forEach((part, index) => {
+            if (part) {
+                parts.push(<span key={`text-${index}`}>{part}</span>);
             }
-            // Render the URL as a clickable link
-            parts.push(
-                <span
-                    key={`url-${index}`}
-                    onClick={() => {
-                        window.chrome.webview.postMessage({
-                            type: 'openUrl',
-                            content: url
-                        });
-                    }}
-                    style={{
-                        color: colorScheme.linkColor,
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                    }}
-                >
-                    {url}
-                </span>
-            );
+            if (index < urlMatches.length) {
+                parts.push(
+                    <span
+                        key={`url-${index}`}
+                        onClick={() => {
+                            window.chrome.webview.postMessage({
+                                type: 'openUrl',
+                                content: urlMatches[index]
+                            });
+                        }}
+                        style={{
+                            color: colorScheme.linkColor,
+                            cursor: 'pointer',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        {urlMatches[index]}
+                    </span>
+                );
+            }
         });
-
-        // If there's any remaining text after the last URL
-        if (textParts[urlMatches.length]) {
-            parts.push(<span key={`text-${urlMatches.length}`}>{textParts[urlMatches.length]}</span>);
-        }
 
         return parts;
     };

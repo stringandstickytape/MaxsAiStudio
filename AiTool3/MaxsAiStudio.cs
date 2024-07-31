@@ -48,6 +48,32 @@ namespace AiTool3
         public string selectedConversationGuid = "";
         public MaxsAiStudio()
         {
+            Form splash = null;
+            Thread splashThread = null;
+
+            try
+            {
+                splash = new Form();
+                splash.Size = new System.Drawing.Size(200, 200);
+                splash.StartPosition = FormStartPosition.CenterScreen;
+                splash.FormBorderStyle = FormBorderStyle.None;
+
+                var loadingLabel = new Label();
+                loadingLabel.Text = "Loading Max's AI Studio";
+                loadingLabel.TextAlign = ContentAlignment.MiddleCenter;
+                loadingLabel.AutoSize = false;
+                loadingLabel.Dock = DockStyle.Fill;
+                splash.Controls.Add(loadingLabel);
+
+                splashThread = new Thread(() =>
+            {
+                Application.Run(splash);
+            });
+            splashThread.SetApartmentState(ApartmentState.STA);
+            splashThread.Start();
+
+
+
             if (!File.Exists("Settings\\settings.json"))
             {
                 CurrentSettings = AiTool3.SettingsSet.Load()!;
@@ -180,8 +206,23 @@ namespace AiTool3
             _searchManager = new SearchManager(dgvConversations);
             _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
 
+            // hide splash
+            //plash.Close();
+        }
+    finally
+    {
+        // Close the splash screen
+        if (splash != null && !splash.IsDisposed)
+        {
+            if (splash.InvokeRequired)
+                splash.Invoke(new Action(() => splash.Close()));
+            else
+                splash.Close();
+        }
 
-
+        if (splashThread != null && splashThread.IsAlive)
+            splashThread.Join();
+    }
         }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
