@@ -70,12 +70,13 @@ Install the resulting theme:
 # Extensions
 
 Extensions are included to:
- * view JSON
+ * Launch HTML in WebView (try "give me complete HTML/JS that draws the Mandelbrot set")
+ * view JSON (try "demonstrate python recursion in tree-drawing")
  * view DOT (GraphViz) diagram files
  * view Mermaid diagram files
  * view PlantUML diagrams (patchy, with external website dependency)
- * view SVG files
- * launch Python scripts
+ * view SVG files (used to generate the icons for this application)
+ * launch Python scripts (at the time of writing this may or may not be working)
  * launch Powershell scripts
  * save to file
  * copy to clipboard

@@ -13,7 +13,7 @@ namespace AiTool3.Helpers
 {
     public static class PythonHelper
     {
-        public static void LaunchPythonScript(string scriptContent)
+        public static async Task LaunchPythonScriptAsync(string scriptContent)
         {
             string pythonPath = GetPythonPath();
             if (string.IsNullOrEmpty(pythonPath))
@@ -23,35 +23,40 @@ namespace AiTool3.Helpers
             }
 
             string tempScriptPath = Path.GetTempFileName() + ".py";
-            File.WriteAllText(tempScriptPath, $"{scriptContent}{Environment.NewLine}{Environment.NewLine}input(\"Script completed, press Enter to exit...\")");
+            await File.WriteAllTextAsync(tempScriptPath, $"{scriptContent}{Environment.NewLine}{Environment.NewLine}input(\"Script completed, press Enter to exit...\")");
 
             try
             {
-                Process process = new Process();
-                process.StartInfo.FileName = pythonPath;
-                process.StartInfo.Arguments = tempScriptPath;
-                process.StartInfo.UseShellExecute = true;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.CreateNoWindow = false;
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = pythonPath;
+                    process.StartInfo.Arguments = tempScriptPath;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.CreateNoWindow = false;
 
-                process.Start();
-                process.WaitForExit();
-                string output = process.StandardOutput.ReadToEnd();
+                    process.Start();
+                    await process.WaitForExitAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
 
-                // display in an mb
-                MessageBox.Show(output, "Python Script Output", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        MessageBox.Show($"Error executing Python script: {error}");
+                        return;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing Python script: {ex.Message}");
+                MessageBox.Show($"Error executing Python script: {ex.Message}");
             }
             finally
             {
-                File.Delete(tempScriptPath);
+                await Task.Run(() => File.Delete(tempScriptPath));
             }
         }
 
-        private static string GetPythonPath()
+    private static string GetPythonPath()
         {
             // Try to get Python path from registry
             string[] registryKeys = { @"SOFTWARE\Python\PythonCore\3.9\InstallPath",

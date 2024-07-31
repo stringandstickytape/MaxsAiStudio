@@ -133,7 +133,7 @@ namespace AiTool3.UI
                     ChatWebViewCopyEvent?.Invoke(this, new ChatWebViewCopyEventArgs { Content = content, Guid = null });
                     break;
                 case "Run Python Script":
-                    PythonHelper.LaunchPythonScript(content);
+                    await PythonHelper.LaunchPythonScriptAsync(content);
                     break;
                 case "Run PowerShell Script":
                     await LaunchHelpers.LaunchPowerShell(content);
