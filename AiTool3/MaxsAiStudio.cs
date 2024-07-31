@@ -234,11 +234,14 @@ namespace AiTool3
             if (File.Exists(themesPath))
             {
                 await chatWebView.SetThemes(File.ReadAllText(themesPath));
-
-                if (!string.IsNullOrWhiteSpace(CurrentSettings.SelectedTheme))
-                {
-                    await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
-                }
+            }
+            else
+            {
+                var themesJson = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Defaults.themes.json");
+                await chatWebView.SetThemes(themesJson);
+                File.WriteAllText(themesPath, themesJson);
+                CurrentSettings.SelectedTheme = "Serene";
+                SettingsSet.Save(CurrentSettings);
             }
 
             // if there isn't a scratchpad file but there is a scratchpad bak file, rename the bak file to scratchpad.json
@@ -259,6 +262,8 @@ namespace AiTool3
             }
 
             await chatWebView.SetTools(toolManager.Tools);
+
+            this.BringToFront();
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)

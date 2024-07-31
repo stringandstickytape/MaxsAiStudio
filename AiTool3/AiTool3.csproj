@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Configurations>Debug;Release;DebugCublas</Configurations>
 	<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
+	<AssemblyName>MaxsAIStudio</AssemblyName>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'DebugCublas'">
@@ -39,6 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Defaults\templates.json" />
+    <None Remove="Defaults\themes.json" />
     <None Remove="JavaScript\AiStudioButton.js" />
     <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\Components\AiStudioButton.js" />
@@ -86,6 +89,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Defaults\templates.json" />
+    <EmbeddedResource Include="Defaults\themes.json" />
     <EmbeddedResource Include="JavaScript\ChatWebView2.html" />
     <EmbeddedResource Include="JavaScript\Components\App.jsx" />
     <EmbeddedResource Include="JavaScript\Components\ColorSchemeProvider.jsx" />

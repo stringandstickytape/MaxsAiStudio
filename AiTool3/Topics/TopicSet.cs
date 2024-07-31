@@ -40,21 +40,25 @@ namespace AiTool3.Topics
         internal static TopicSet Load()
         {
             TopicSet t;
+
+            string jsonText = "";
+
             if (File.Exists(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json")))
             {
 
-                string jsonString = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json"));
-                t = JsonSerializer.Deserialize<TopicSet>(jsonString, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    IncludeFields = true
-                });
+                jsonText = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json"));
             }
-            else
+            else jsonText = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Defaults.templates.json");
+
+            t = JsonSerializer.Deserialize<TopicSet>(jsonText, new JsonSerializerOptions
             {
-                t = new TopicSet();
-                t.Categories.Add(new Topic("00000000-0000-0000-0000-000000000000", "<uncategorised>") { Templates = new List<ConversationTemplate>() });
-            }
+                WriteIndented = true,
+                IncludeFields = true,
+                AllowTrailingCommas = true
+            });
+
+            if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json")))
+                t.Save();
 
             return t;
         }
