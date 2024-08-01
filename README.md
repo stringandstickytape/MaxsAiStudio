@@ -1,6 +1,6 @@
 # Max's AI Studio
 
-An open-source Windows C# application to query various LLM AIs, including Anthropic Claude, OpenAI ChatGPT, and Ollama-hosted models.  Many features including branched conversations.
+An open-source Windows C# AI chat application which works with Anthropic Claude, OpenAI ChatGPT, Groq, Google Gemini, and Ollama-hosted models.  It includes many features including conversation management, templating, embeddings retrieval and more.
 
 ![The basic chat interface for Max's AI Studio](./AiTool3/Screenshots/MainUI.png)
 
@@ -106,4 +106,11 @@ Pressing CTRL-Return in the input box, will Send the current message.  Pressing 
 Token costs can be entered into the Settings dialog, and are correct at the time of writing.  Interaction costs appear in the status bar at the bottom of the window; accumulated costs are accessible via Specials -> Show Model Usage/Cost Statistics.
 
 You can edit the raw content of a message by right-clicking in the messages diagram.
- 
+
+In theory at least, any OpenAI-compatible API, including that offered by Ollama, should work if you set the Protocol to "OpenAI" in the Settings form.
+
+# Known issues
+
+No Base64 image support for Groq
+No token counting for Groq
+Tools only for Claude and OpenAI protocols (incl Ollama-via-OpenAI-protocol)

@@ -61,6 +61,8 @@ namespace AiTool3.Conversations
 
             string responseText = "";
             Debug.WriteLine(Summary);
+            try
+            {
 
                 // instantiate the service from name
                 var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
@@ -117,12 +119,18 @@ namespace AiTool3.Conversations
                     {
                         Summary = "Summary failed";
                     }
-                } else Summary = "Summary failed";
+                }
+                else Summary = "Summary failed";
 
 
-            SaveConversation();
+                SaveConversation();
 
-            return Summary;
+                return Summary;
+            }
+            catch (Exception e)
+            {
+                return "Summary failed";
+            }
         }
 
         public event StringSelectedEventHandler StringSelected;

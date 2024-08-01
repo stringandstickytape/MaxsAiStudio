@@ -24,7 +24,7 @@ namespace AiTool3
                 {
                     embeddingText += lbom + " ";
                 }
-                var embeddings = await GetRelatedCodeFromEmbeddings(currentSettings.EmbeddingKey, embeddingText, currentSettings.EmbeddingsFilename, currentSettings.EmbeddingModel);
+                var embeddings = await GetRelatedCodeFromEmbeddings("Ollama", embeddingText, currentSettings.EmbeddingsFilename, currentSettings.EmbeddingModel);
 
                 // Display embeddings in a modal dialog and let user select
                 var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);

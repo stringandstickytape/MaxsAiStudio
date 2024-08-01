@@ -34,8 +34,8 @@ namespace AiTool3
         [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;
 
-        [MyDisplayNameAttr("OpenAI API key for embeddings")]
-        public string EmbeddingKey { get; set; } = "";
+        //[MyDisplayNameAttr("OpenAI API key for embeddings")]
+        //public string EmbeddingKey { get; set; } = "";
 
         [IsFileAttribute(".embeddings.json")]
         [MyDisplayNameAttr("Embeddings Filename/path")]

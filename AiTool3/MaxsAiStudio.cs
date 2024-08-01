@@ -24,7 +24,7 @@ namespace AiTool3
 {
     public partial class MaxsAiStudio : Form
     {
-        public const decimal Version = 0.001m;
+        public const decimal Version = 0.2m;
 
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;

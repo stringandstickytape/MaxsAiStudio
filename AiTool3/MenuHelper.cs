@@ -336,7 +336,7 @@ namespace AiTool3
                     new LabelAndEventHander("Create Embedding...", async (s, e) =>
                     {
                         
-                        await EmbeddingsHelper.CreateEmbeddingsAsync(currentSettings.EmbeddingKey, maxsAiStudio);
+                        await EmbeddingsHelper.CreateEmbeddingsAsync("Ollama", maxsAiStudio);
                         
                     }),
 

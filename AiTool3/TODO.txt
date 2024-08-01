@@ -105,27 +105,11 @@ DONE (sort-of): Allow choice of embedding engine?
 DONE: Remove unnecessary experiments
 DONE: Add another handler like formattedcontent for urls
 DONE: Parameterise conda loading
+DONE: example templates set incl colour scheme generator
 
-Known Limitations:
-No Base64 image support for Groq
-No streaming token counting for OpenAI (implemented for Claude, LocalAI, Gemini)
-No token counting for Groq
-Tools only for Claude and OpenAI protocols (incl Ollama-via-OpenAI-protocol)
 
 Necessary for release:
-example templates set incl colour scheme generator
-
-Docs:
-Instructions for external apps: whisper, ...
-Instructions for usage
-Make demo videos or screenshots
-
-Thid-party utils:
-
-* Ollama: install, ollama pull <model>.  Need to pull mxbai-embed-large for embeddings.
-
-
-
+Clean build
 
 
 
