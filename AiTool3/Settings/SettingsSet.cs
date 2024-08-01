@@ -79,12 +79,15 @@ namespace AiTool3
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-mini-2024-07-18", Color = Color.FromArgb(186, 201, 255) , input1MTokenPrice = 0.15m, output1MTokenPrice = .6m},
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4-turbo", Color = Color.FromArgb(186, 255, 201), input1MTokenPrice = 10, output1MTokenPrice = 30},
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0.5m, output1MTokenPrice = 1.5m},
+                    new Model { Url = "http://localhost:11434/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gemma2:2b", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
+                    new Model { Url = "http://localhost:11434/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "llama3.1:8b", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:7b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:13b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.1:8b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.1:70b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "codestral", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", Color = Color.FromArgb(255, 255, 186)},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:2b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:27b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-8b-8192", Color = Color.FromArgb(255, 216, 186)},
@@ -148,7 +151,7 @@ namespace AiTool3
             newSettings.Create();
             foreach (var model in newSettings.ModelList)
             {
-                    var newModel = GetModelByName(model.ModelName);
+                    var newModel = ModelList.FirstOrDefault(x => x.ServiceName == model.ServiceName && x.ModelName == model.ModelName);
                     if (newModel == null)
                     {
                         // add to correct in apilist
