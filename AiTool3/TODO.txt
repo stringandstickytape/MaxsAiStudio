@@ -109,8 +109,9 @@ DONE: example templates set incl colour scheme generator
 
 
 Necessary for release:
-Clean build
 
+Clean build
+Change "first local engine" logic and null summary model
 
 
 ~~~~~~~~~~ Further ideas

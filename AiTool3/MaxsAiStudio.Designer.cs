@@ -30,6 +30,7 @@ namespace AiTool3
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MaxsAiStudio));
             splitContainer1 = new SplitContainer();
             splitContainer5 = new SplitContainer();
             btnClearSearch = new Button();
@@ -241,6 +242,7 @@ namespace AiTool3
             Controls.Add(splitContainer1);
             Controls.Add(statusStrip1);
             Controls.Add(menuBar);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuBar;
             Margin = new Padding(2);
             Name = "MaxsAiStudio";

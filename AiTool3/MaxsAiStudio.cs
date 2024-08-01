@@ -34,7 +34,7 @@ namespace AiTool3
 
         public static readonly string ThreeTicks = new string('`', 3);
 
-        public TemplateManager templateManager = new TemplateManager();
+        public TemplateManager templateManager;
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public SettingsSet CurrentSettings { get; set; }
         
@@ -66,88 +66,113 @@ namespace AiTool3
                 splash.Controls.Add(loadingLabel);
 
                 splashThread = new Thread(() =>
-            {
-                Application.Run(splash);
-            });
-            splashThread.SetApartmentState(ApartmentState.STA);
-            splashThread.Start();
-
-
-
-            if (!File.Exists("Settings\\settings.json"))
-            {
-                CurrentSettings = AiTool3.SettingsSet.Load()!;
-                // show the settings dialog first up
-                var settingsForm = new SettingsForm(CurrentSettings);
-                var result = settingsForm.ShowDialog();
-                CurrentSettings = settingsForm.NewSettings;
-                SettingsSet.Save(CurrentSettings);
-            }
-            else CurrentSettings = AiTool3.SettingsSet.Load()!;
-
-            InitializeComponent();
-
-
-
-            DirectoryHelper.CreateSubdirectories();
-
-            splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
-
-            webViewManager = new WebViewManager(ndcWeb);
-
-
-            chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
-            chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
-            chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
-            chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
-            chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
-            chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
-            chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
-            chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
-            chatWebView.ChatWebViewContinueEvent += ChatWebView_ChatWebViewContinueEvent;
-            chatWebView.ChatWebViewReadyEvent += ChatWebView_ChatWebViewReadyEvent;
-            chatWebView.FileDropped += ChatWebView_FileDropped;
-
-            splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
-
-            audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn, chatWebView);
-            audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
-
-            splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
-            splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
-
-            DataGridViewHelper.InitialiseDataGridView(dgvConversations);
-
-            ContextMenuStrip contextMenu = new ContextMenuStrip();
-
-            contextMenu.Items.Add("Regenerate Summary", null, RegenerateSummary);
-
-            contextMenu.Items.Add(new ToolStripSeparator());
-            var noHighlightItem = new ToolStripMenuItem("Clear Highlight");
-
-            foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
-            {
-                var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "Highlight in ").Replace("]", ""));
-
-                // add a colour swatch to the item (!)
-                var bmp = new System.Drawing.Bitmap(16, 16);
-                using (var g = System.Drawing.Graphics.FromImage(bmp))
                 {
-                    g.Clear(colour);
+                    Application.Run(splash);
+                });
+                splashThread.SetApartmentState(ApartmentState.STA);
+                splashThread.Start();
 
-                    // add 1px solid black border
-                    g.DrawRectangle(System.Drawing.Pens.Black, 0, 0, bmp.Width - 1, bmp.Height - 1);
+                DirectoryHelper.CreateSubdirectories();
+
+                templateManager = new TemplateManager();
+
+                if (!File.Exists("Settings\\settings.json"))
+                {
+                    CurrentSettings = AiTool3.SettingsSet.Load()!;
+                    // show the settings dialog first up
+                    var settingsForm = new SettingsForm(CurrentSettings);
+                    var result = settingsForm.ShowDialog();
+                    CurrentSettings = settingsForm.NewSettings;
+                    SettingsSet.Save(CurrentSettings);
+                }
+                else CurrentSettings = AiTool3.SettingsSet.Load()!;
+
+                InitializeComponent();
+
+
+
+            
+
+                splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
+
+                webViewManager = new WebViewManager(ndcWeb);
+
+
+                chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
+                chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
+                chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
+                chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
+                chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
+                chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
+                chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
+                chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
+                chatWebView.ChatWebViewContinueEvent += ChatWebView_ChatWebViewContinueEvent;
+                chatWebView.ChatWebViewReadyEvent += ChatWebView_ChatWebViewReadyEvent;
+                chatWebView.FileDropped += ChatWebView_FileDropped;
+
+                splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
+
+                audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn, chatWebView);
+                audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
+
+                splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
+                splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
+
+                DataGridViewHelper.InitialiseDataGridView(dgvConversations);
+
+                ContextMenuStrip contextMenu = new ContextMenuStrip();
+
+                contextMenu.Items.Add("Regenerate Summary", null, RegenerateSummary);
+
+                contextMenu.Items.Add(new ToolStripSeparator());
+                var noHighlightItem = new ToolStripMenuItem("Clear Highlight");
+
+                foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
+                {
+                    var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "Highlight in ").Replace("]", ""));
+
+                    // add a colour swatch to the item (!)
+                    var bmp = new System.Drawing.Bitmap(16, 16);
+                    using (var g = System.Drawing.Graphics.FromImage(bmp))
+                    {
+                        g.Clear(colour);
+
+                        // add 1px solid black border
+                        g.DrawRectangle(System.Drawing.Pens.Black, 0, 0, bmp.Width - 1, bmp.Height - 1);
+
+                    }
+
+                    item.Image = bmp;
+
+
+
+                    item.Click += (s, e) =>
+                    {
+                        var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
+                        conv.HighlightColour = colour;
+                        conv.SaveConversation();
+
+                        // find the dgv row
+                        foreach (DataGridViewRow row in dgvConversations.Rows)
+                        {
+                            if (row.Cells[0].Value.ToString() == selectedConversationGuid)
+                            {
+                                row.DefaultCellStyle.BackColor = colour;
+                                row.DefaultCellStyle.ForeColor = Color.Black;
+                                break;
+                            }
+                        }
+                    };
+                    contextMenu.Items.Add(item);
 
                 }
 
-                item.Image = bmp;
+                // add a split and no-highlight option which sets conv.highlightcolour to null and updates the row
 
-
-
-                item.Click += (s, e) =>
+                noHighlightItem.Click += (s, e) =>
                 {
                     var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
-                    conv.HighlightColour = colour;
+                    conv.HighlightColour = null;
                     conv.SaveConversation();
 
                     // find the dgv row
@@ -155,78 +180,58 @@ namespace AiTool3
                     {
                         if (row.Cells[0].Value.ToString() == selectedConversationGuid)
                         {
-                            row.DefaultCellStyle.BackColor = colour;
-                            row.DefaultCellStyle.ForeColor = Color.Black;
+                            row.DefaultCellStyle.BackColor = Color.Black;
+                            row.DefaultCellStyle.ForeColor = Color.White;
                             break;
                         }
                     }
                 };
-                contextMenu.Items.Add(item);
 
-            }
+                contextMenu.Items.Add(new ToolStripSeparator());
 
-            // add a split and no-highlight option which sets conv.highlightcolour to null and updates the row
+                contextMenu.Items.Add(noHighlightItem);
 
-            noHighlightItem.Click += (s, e) =>
-            {
-                var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
-                conv.HighlightColour = null;
-                conv.SaveConversation();
+                contextMenu.Items.Add(new ToolStripSeparator());
+                contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
 
-                // find the dgv row
-                foreach (DataGridViewRow row in dgvConversations.Rows)
-                {
-                    if (row.Cells[0].Value.ToString() == selectedConversationGuid)
-                    {
-                        row.DefaultCellStyle.BackColor = Color.Black;
-                        row.DefaultCellStyle.ForeColor = Color.White;
-                        break;
-                    }
-                }
-            };
+                dgvConversations.ContextMenuStrip = contextMenu;
 
-            contextMenu.Items.Add(new ToolStripSeparator());
+                InitialiseMenus();
 
-            contextMenu.Items.Add(noHighlightItem);
+                updateTimer.Interval = 100;
+                updateTimer.Tick += UpdateTimer_Tick!;
 
-            contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
+                Load += OnLoad!;
 
-            dgvConversations.ContextMenuStrip = contextMenu;
+                dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-            InitialiseMenus();
-
-            updateTimer.Interval = 100;
-            updateTimer.Tick += UpdateTimer_Tick!;
-
-            Load += OnHandleCreated!;
-
-            dgvConversations.MouseDown += DgvConversations_MouseDown;
-
-            _searchManager = new SearchManager(dgvConversations);
-            _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
+                _searchManager = new SearchManager(dgvConversations);
+                _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
 
             // hide splash
             //plash.Close();
-        }
-    finally
-    {
-        // Close the splash screen
-        if (splash != null && !splash.IsDisposed)
-        {
-            if (splash.InvokeRequired)
-                splash.Invoke(new Action(() => splash.Close()));
-            else
-                splash.Close();
-        }
+                }
+            finally
+            {
+                // Close the splash screen
+                if (splash != null && !splash.IsDisposed)
+                {
+                    if (splash.InvokeRequired)
+                        splash.Invoke(new Action(() => splash.Close()));
+                    else
+                        splash.Close();
+                }
 
-        if (splashThread != null && splashThread.IsAlive)
-            splashThread.Join();
-    }
+                if (splashThread != null && splashThread.IsAlive)
+                    splashThread.Join();
+
+                
+            }
         }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
+
             await InitialiseApiList_New();
 
             // send color schemes to the chatwebview
@@ -263,7 +268,6 @@ namespace AiTool3
 
             await chatWebView.SetTools(toolManager.Tools);
 
-            this.BringToFront();
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -547,15 +551,17 @@ namespace AiTool3
         }
 
 
-        private async void OnHandleCreated(object sender, EventArgs e)
+        private async void OnLoad(object sender, EventArgs e)
         {
-            Load -= OnHandleCreated!;
+            Load -= OnLoad!;
 
             await chatWebView.EnsureCoreWebView2Async(null);
 
             await BeginNewConversation();
 
             await CreateNewWebNdc(false);
+
+            this.BringToFront();
 
             // Create things in Ready instead...
 
@@ -571,13 +577,25 @@ namespace AiTool3
             {
                 await chatWebView.SetDropdownValue("mainAI", CurrentSettings.SelectedModel.ToString());
             }
-            else await chatWebView.SetDropdownValue("mainAI", CurrentSettings.ModelList.FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
+            else
+            {
+                var selectedModel  = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3")); 
+                await chatWebView.SetDropdownValue("mainAI", selectedModel.ToString());
+                CurrentSettings.SelectedModel = selectedModel.ToString();
+                SettingsSet.Save(CurrentSettings);
+            }
 
             if (CurrentSettings.SelectedSummaryModel != "")
             {
                 await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
             }
-            else await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.ModelList.FirstOrDefault(m => m.ServiceName.StartsWith("Local")).ToString());
+            else
+            {
+                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+                await chatWebView.SetDropdownValue("summaryAI", selectedModel.ToString());
+                CurrentSettings.SelectedSummaryModel = selectedModel.ToString();
+                SettingsSet.Save(CurrentSettings);
+            }
 
         }
 
@@ -593,7 +611,11 @@ namespace AiTool3
                         dgvConversations.ClearSelection();
                     }
                     dgvConversations.Rows[hti.RowIndex].Selected = true;
-                    selectedConversationGuid = dgvConversations.Rows[hti.RowIndex].Cells[0].Value.ToString();
+                    try
+                    {
+                        selectedConversationGuid = dgvConversations.Rows[hti.RowIndex].Cells[0].Value.ToString();
+                    }
+                                        catch { }
                 }
             }
         }
@@ -1016,16 +1038,24 @@ namespace AiTool3
 
         private async void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
-
-            ConversationManager.LoadConversation(clickedGuid!);
-
-            if (ConversationManager.Conversation.GetRootNode() != null)
+            try
             {
-                WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(ConversationManager.Conversation.GetRootNode()?.Guid));
-            }
+                var clickedGuid = dgvConversations.Rows[e.RowIndex].Cells[0].Value.ToString();
 
-            await WebNdcDrawNetworkDiagram();
+                ConversationManager.LoadConversation(clickedGuid!);
+
+                if (ConversationManager.Conversation.GetRootNode() != null)
+                {
+                    WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(ConversationManager.Conversation.GetRootNode()?.Guid));
+                }
+
+                await WebNdcDrawNetworkDiagram();
+            }
+            catch
+            {
+                // corrupt conversation file
+                return;
+            }
 
         }
 

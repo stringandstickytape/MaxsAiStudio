@@ -12,7 +12,7 @@ namespace AiTool3.Helpers
             string exeDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Define the subdirectories to create
-            string[] subdirectories = { "Conversations", "Settings", "Templates", "Embeddings", "UsageStats" };
+            string[] subdirectories = { "Conversations", "Settings", "Templates", "Embeddings", "UsageStats", "TokenUsage" };
 
             foreach (var subdirectory in subdirectories)
             {

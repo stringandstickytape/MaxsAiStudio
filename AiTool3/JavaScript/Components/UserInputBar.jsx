@@ -82,9 +82,9 @@
         window.chrome.webview.postMessage({ type: 'cancel' });
     };
 
-    const handleInputChange = (newContent) => {
-        setInputContent(newContent);
-        if (string.trim().length > 0) window.setMessageText("temp-user-msg", newContent);
+    const handleInputChange = (string) => {
+        setInputContent(string);
+        if (string.trim().length > 0) window.setMessageText("temp-user-msg", string);
     };
 
     const setUserPrompt = (string) => {

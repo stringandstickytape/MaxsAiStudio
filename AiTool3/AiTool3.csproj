@@ -6,12 +6,20 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Configurations>Debug;Release;DebugCublas</Configurations>
+    <Configurations>Debug;Release;DebugCublas;CleanCublas</Configurations>
 	<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	<AssemblyName>MaxsAIStudio</AssemblyName>
+	<ApplicationIcon>Icon\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'DebugCublas'">
+	  <DefineConstants>DEBUG;TRACE;CUBLAS</DefineConstants>
+	  <DebugSymbols>true</DebugSymbols>
+	  <DebugType>full</DebugType>
+	  <Optimize>false</Optimize>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)' == 'CleanCublas'">
 	  <DefineConstants>DEBUG;TRACE;CUBLAS</DefineConstants>
 	  <DebugSymbols>true</DebugSymbols>
 	  <DebugType>full</DebugType>
@@ -42,6 +50,7 @@
   <ItemGroup>
     <None Remove="Defaults\templates.json" />
     <None Remove="Defaults\themes.json" />
+    <None Remove="Icon\icon.ico" />
     <None Remove="JavaScript\AiStudioButton.js" />
     <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\Components\AiStudioButton.js" />
@@ -86,6 +95,10 @@
     <None Remove="Tools\hello-world.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
     <None Remove="UI\Licenses.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icon\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -145,6 +158,10 @@
     <PackageReference Include="System.Speech" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
 	<PackageReference Include="Whisper.net" Version="1.5.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Resource Include="Icon\icon.ico" />
   </ItemGroup>
 
 </Project>

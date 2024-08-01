@@ -7,11 +7,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiTool3", "AiTool3\AiTool3.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		CleanCublas|Any CPU = CleanCublas|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		DebugCublas|Any CPU = DebugCublas|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B0BAD54-2C79-4DAF-A5B1-75970E919030}.CleanCublas|Any CPU.ActiveCfg = CleanCublas|Any CPU
+		{5B0BAD54-2C79-4DAF-A5B1-75970E919030}.CleanCublas|Any CPU.Build.0 = CleanCublas|Any CPU
 		{5B0BAD54-2C79-4DAF-A5B1-75970E919030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B0BAD54-2C79-4DAF-A5B1-75970E919030}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B0BAD54-2C79-4DAF-A5B1-75970E919030}.DebugCublas|Any CPU.ActiveCfg = DebugCublas|Any CPU

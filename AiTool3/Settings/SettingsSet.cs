@@ -57,7 +57,10 @@ namespace AiTool3
 
 
         public string SelectedModel { get; set; } = "";
-        public string SelectedSummaryModel { get; set; } = "";
+        public string SelectedSummaryModel { 
+            get; 
+            set; 
+        } = "";
         public string SelectedTheme { get; set; }
 
         [MyDisplayNameAttr("Name of the Ollama embedding model to use")]
