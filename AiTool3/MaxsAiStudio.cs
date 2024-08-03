@@ -239,6 +239,7 @@ namespace AiTool3
             if (File.Exists(themesPath))
             {
                 await chatWebView.SetThemes(File.ReadAllText(themesPath));
+                await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
             }
             else
             {
