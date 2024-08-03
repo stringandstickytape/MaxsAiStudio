@@ -9,7 +9,7 @@ namespace AiTool3.Helpers
     public static class DataGridViewHelper
     {
 
-        public static async Task InitialiseDataGridView(DataGridView dgv)
+        public static async Task InitialiseDataGridView(DataGridView dgv, ConversationCacheManager conversationCacheManager)
         {
             // hide dgv headers
             dgv.ColumnHeadersVisible = false;
@@ -47,30 +47,19 @@ namespace AiTool3.Helpers
             // populate dgv with the conversation files in the current directory, ordered by date desc
             var files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename("*")).OrderByDescending(f => new FileInfo(f).LastWriteTime);
 
-
-            //foreach (var file in files)
-            //{
-            //    var conv = JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(file));
-            //    if (conv.Messages.Any())
-            //    {
-            //        File.SetLastWriteTime(file, conv.Messages[0].CreatedAt ?? DateTime.Now.AddDays(-60));
-            //    }
-            //}
-
-            var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x)));
+            
 
             // populate dgv
-            foreach (var conv in convs)
+            foreach (var file in files)
             {
-                if (!conv.Messages.Any())
-                    continue;
+                var fileSummary = conversationCacheManager.GetSummary(file);
 
-                int rowIndex = dgv.Rows.Add(conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.ToString());
+                int rowIndex = dgv.Rows.Add(fileSummary.ConvGuid, fileSummary.Content, fileSummary.Engine, fileSummary.Summary);
 
-                if (conv.HighlightColour.HasValue)
+                if (fileSummary.HighlightColour.HasValue)
                 {
                     var dCS = dgv.Rows[rowIndex].DefaultCellStyle;
-                    dCS.BackColor = conv.HighlightColour.Value;
+                    dCS.BackColor = fileSummary.HighlightColour.Value;
                     dCS.ForeColor = Color.Black;
                 }
             }

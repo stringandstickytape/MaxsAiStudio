@@ -118,7 +118,7 @@ namespace AiTool3
                 splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
                 splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
 
-                DataGridViewHelper.InitialiseDataGridView(dgvConversations);
+                DataGridViewHelper.InitialiseDataGridView(dgvConversations, new ConversationCacheManager());
 
                 ContextMenuStrip contextMenu = new ContextMenuStrip();
 

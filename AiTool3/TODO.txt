@@ -106,12 +106,11 @@ DONE: Remove unnecessary experiments
 DONE: Add another handler like formattedcontent for urls
 DONE: Parameterise conda loading
 DONE: example templates set incl colour scheme generator
-
+DONE: Change "first local engine" logic and null summary model
 
 Necessary for release:
 
-Clean build
-Change "first local engine" logic and null summary model
+Clean build : check whisper can be got up-and-running and doesn't b0rk too badly beforehand
 
 
 ~~~~~~~~~~ Further ideas
