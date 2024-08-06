@@ -1,6 +1,6 @@
 # Max's AI Studio
 
-An open-source Windows C# AI chat application which works with Anthropic Claude, OpenAI ChatGPT, Groq, Google Gemini, and Ollama-hosted models.  It includes many features including conversation management, templating, embeddings retrieval and more.
+An open-source Windows C# AI chat application which works with Anthropic Claude, OpenAI ChatGPT, Groq, Google Gemini, and Ollama-hosted models.  It includes many features including conversation management, templating, embeddings retrieval, diagramming extensions and more.
 
 ![The basic chat interface for Max's AI Studio](./AiTool3/Screenshots/MainUI.png)
 
@@ -8,7 +8,7 @@ An open-source Windows C# AI chat application which works with Anthropic Claude,
 
 For OpenAI, Anthropic, Groq or Gemini, you will need an API key.  Enter it in Edit -> Settings or on first run.
 
-For local AI via Ollama, you will need to install https://ollama.com/download/windows and one or more models.
+For local AI via Ollama, you will need to install https://ollama.com/download/windows and one or more models.  Note that you can use Ollama-hosted models via its dedicated API protocol, or via the OpenAI API protocol.
 
 For media transcription, you will need to install https://github.com/m-bain/whisperX .  You can configure the Conda activate.bat path in Edit -> Settings.
 
@@ -71,7 +71,7 @@ Install the resulting theme:
 
 Extensions are included to:
  * Launch HTML in WebView (try "give me complete HTML/JS that draws the Mandelbrot set")
- * view JSON (try "demonstrate python recursion in tree-drawing")
+ * view JSON
  * view DOT (GraphViz) diagram files
  * view Mermaid diagram files
  * view PlantUML diagrams (patchy, with external website dependency)
@@ -80,6 +80,7 @@ Extensions are included to:
  * launch Powershell scripts
  * save to file
  * copy to clipboard
+ * probably some others
  
  Amongst many others, these extensions can be used for easy diagramming:
  
@@ -95,11 +96,11 @@ This section is to be expanded, but:
 
 2) Select the embeddings file using Embeddings -> Select Embeddings... .
 
-3) Turn on "Add Embeddings".  When you send a message, the system will derive embeddings and present them in a list, where you can select which (if any) should be included.
+3) Turn on "Add Embeddings".  When you send a message, the system will derive embeddings and present them in a list, where you can select which (if any) should be included with your prompt.
 
 Embeddings can currently only be created via local (Ollama) installs, for instance mxbai-embed-large .  Note that the model name can be configured in Settings.
 
-# Other points of interest
+# Other points to note
 
 Pressing CTRL-Return in the input box, will Send the current message.  Pressing CTRL-SHIFT-Return will do the same, using the secondary AI.
 

@@ -252,7 +252,7 @@ namespace AiTool3
             {
                 string relativePath = GetRelativePath(rootPath, subdirectory);
 
-                if (!gitIgnoreFilterManager.PathIsIgnored(subdirectory))
+                if (gitIgnoreFilterManager == null || !gitIgnoreFilterManager.PathIsIgnored(subdirectory))
                 {
                     TreeNode subNode = new TreeNode(Path.GetFileName(subdirectory));
                     if (PopulateTreeNode(subNode, subdirectory, checkedFiles))
@@ -273,7 +273,7 @@ namespace AiTool3
             {
                 string relativePath = GetRelativePath(rootPath, file);
 
-                if (!gitIgnoreFilterManager.PathIsIgnored(file))
+                if (gitIgnoreFilterManager == null || !gitIgnoreFilterManager.PathIsIgnored(file))
                 {
                     string extension = Path.GetExtension(file).ToLower();
                     if (fileExtensions.Contains(extension))
