@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Commands package="guidVSIXTestPackage">
+    <Groups>
+      <Group guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+    <Buttons>
+      <Button guid="guidVSIXTestPackageCmdSet" id="GetSurroundingLinesCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Get Surrounding Lines</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <KeyBindings>
+    <KeyBinding guid="guidVSIXTestPackageCmdSet" id="GetSurroundingLinesCommandId" editor="guidVSStd97" key1="G" mod1="Control Shift" />
+  </KeyBindings>
+
+  <Symbols>
+    <GuidSymbol name="guidVSIXTestPackage" value="{743967b7-4ad8-4103-8a28-bf2933a5bdf2}" />
+    <GuidSymbol name="guidVSIXTestPackageCmdSet" value="{743967b7-4ad8-4103-8a28-bf2933a5bdf3}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="GetSurroundingLinesCommandId" value="0x0100" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
