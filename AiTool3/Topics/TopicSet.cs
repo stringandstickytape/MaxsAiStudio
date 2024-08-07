@@ -12,15 +12,6 @@ namespace AiTool3.Topics
         [JsonPropertyName(name: "topics")]
         public List<Topic> Categories { get; set; }
 
-
-        public TopicSet()
-        {
-            Categories = new List<Topic>();
-        }
-        public Topic GetDefaultTopic()
-        {
-            return Categories.Single(x => x.Guid == "00000000-0000-0000-0000-000000000000");
-        }
         internal void Save()
         {
             string jsonString = JsonSerializer.Serialize(this, new JsonSerializerOptions

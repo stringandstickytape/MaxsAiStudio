@@ -133,41 +133,6 @@ namespace AiTool3
                 };
                 form.Controls.Add(buttonPanel);
 
-                // Create "Select All" button
-                //var selectAllButton = new Button
-                //{
-                //    Text = "Select All",
-                //    Width = 100,
-                //    Height = 40,
-                //    Location = new Point(10, 5)
-                //};
-                //selectAllButton.Click += (sender, e) =>
-                //{
-                //    for (int i = 0; i < checkedListBox.Items.Count; i++)
-                //    {
-                //        checkedListBox.SetItemChecked(i, true);
-                //    }
-                //
-                //};
-                //buttonPanel.Controls.Add(selectAllButton);
-                //
-                //// Create "Select None" button
-                //var selectNoneButton = new Button
-                //{
-                //    Text = "Select None",
-                //    Width = 100,
-                //    Height = 40,
-                //    Location = new Point(120, 5)
-                //};
-                //selectNoneButton.Click += (sender, e) =>
-                //{
-                //    for (int i = 0; i < checkedListBox.Items.Count; i++)
-                //    {
-                //        checkedListBox.SetItemChecked(i, false);
-                //    }
-                //};
-                //buttonPanel.Controls.Add(selectNoneButton);
-
                 // Create "Accept Embeddings" button
                 var okButton = new Button
                 {
@@ -271,36 +236,6 @@ namespace AiTool3
             }
 
             return embeddings;
-        }
-
-        private static string GetSourceFileName(Type type)
-        {
-            var attributes = type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false);
-            if (attributes.Length > 0)
-            {
-                var debuggerDisplay = (DebuggerDisplayAttribute)attributes[0];
-                return debuggerDisplay.Value;
-            }
-
-            // If DebuggerDisplay attribute is not available, try to get it from a method
-            var method = type.GetMethods().FirstOrDefault();
-            if (method != null)
-            {
-                try
-                {
-                    var fileName = method.GetMethodBody()?.LocalVariables.FirstOrDefault()?.ToString();
-                    if (!string.IsNullOrEmpty(fileName))
-                    {
-                        return System.IO.Path.GetFileName(fileName);
-                    }
-                }
-                catch
-                {
-                    // Ignore any exceptions and return empty string
-                }
-            }
-
-            return string.Empty;
         }
     }
 }

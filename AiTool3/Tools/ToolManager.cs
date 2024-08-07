@@ -1,9 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Newtonsoft.Json;
 
 namespace AiTool3.Tools
