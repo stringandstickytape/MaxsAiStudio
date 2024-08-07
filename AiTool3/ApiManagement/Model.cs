@@ -14,10 +14,8 @@ namespace AiTool3.ApiManagement
         public decimal output1MTokenPrice { get; set; }
         public Color Color { get; set; }
 
-        // Add a parameterless constructor
         public Model() { }
 
-        // Add a constructor with parameters
         public Model(string modelName, string serviceName, string key, string url, decimal inputPrice, decimal outputPrice, Color color)
         {
             ModelName = modelName;

@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using Whisper.net.Ggml;
 using Whisper.net;
-using System.IO;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace AiTool3.Audio
 {
@@ -56,17 +54,11 @@ namespace AiTool3.Audio
                     }
                     else
                     {
-                        //memoryStream.Position = 0;
-                        //memoryStream.SetLength(0);
-
                         if (!soundDetected)
                         {
                             GetNewMemoryWriter();
                         }
                     }
-
-                    // if sound detectes and mroe than 3 seconds of silence, transcribe audio and begin new memory stream
-
 
                     if (soundDetected && DateTime.Now - lastDateTimeAboveThreshold > TimeSpan.FromMilliseconds(1000))
                     {
@@ -74,8 +66,7 @@ namespace AiTool3.Audio
                         memoryStream.Position = 0;
                         var buffer = new byte[memoryStream.Length];
                         memoryStream.Read(buffer, 0, buffer.Length);
-
-                        // Run processaudio in a new thread
+                        
                         Task.Run(async () =>
                         {
                             await ProcessAudio(buffer);
@@ -117,21 +108,17 @@ namespace AiTool3.Audio
 
         public static byte[] ApplyLowPassFilter(byte[] inputWav, int cutoffFrequency)
         {
-            // Constants
             const int HEADER_SIZE = 44;
             const int SAMPLE_RATE = 16000;
             const int BYTES_PER_SAMPLE = 2;
 
-            // Extract audio data (skip WAV header)
             short[] audioData = new short[(inputWav.Length - HEADER_SIZE) / BYTES_PER_SAMPLE];
             Buffer.BlockCopy(inputWav, HEADER_SIZE, audioData, 0, inputWav.Length - HEADER_SIZE);
 
-            // Calculate filter coefficients
             double dt = 1.0 / SAMPLE_RATE;
             double rc = 1.0 / (2 * Math.PI * cutoffFrequency);
             double alpha = dt / (rc + dt);
 
-            // Apply low-pass filter
             double[] filteredData = new double[audioData.Length];
             filteredData[0] = audioData[0];
             for (int i = 1; i < audioData.Length; i++)
@@ -139,10 +126,8 @@ namespace AiTool3.Audio
                 filteredData[i] = filteredData[i - 1] + alpha * (audioData[i] - filteredData[i - 1]);
             }
 
-            // Convert filtered data back to short array
             short[] filteredAudioData = filteredData.Select(x => (short)Math.Round(x)).ToArray();
 
-            // Create output byte array
             byte[] outputWav = new byte[inputWav.Length];
             Buffer.BlockCopy(inputWav, 0, outputWav, 0, HEADER_SIZE);
             Buffer.BlockCopy(filteredAudioData, 0, outputWav, HEADER_SIZE, filteredAudioData.Length * BYTES_PER_SAMPLE);
@@ -159,8 +144,6 @@ namespace AiTool3.Audio
 
             memoryStream = new MemoryStream();
             writer = new WaveFileWriter(memoryStream, new WaveFormat(16000,1));
-
-
         }
 
         internal int GetAudioLevel()
@@ -230,6 +213,5 @@ namespace AiTool3.Audio
         {
             AudioProcessed?.Invoke(this, result);
         }
-
     }
 }
