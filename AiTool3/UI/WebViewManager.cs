@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static AiTool3.UI.NetworkDiagramControl;
 
 namespace AiTool3.UI
 {

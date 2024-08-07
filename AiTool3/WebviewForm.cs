@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static AiTool3.UI.NetworkDiagramControl;
 
 namespace AiTool3
 {

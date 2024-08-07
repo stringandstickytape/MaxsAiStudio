@@ -48,6 +48,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="UI\FitAllAnimation.cs" />
+    <Compile Remove="UI\NetworkDiagramControl.cs" />
+    <Compile Remove="UI\NetworkDiagramControlHelpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Defaults\templates.json" />
     <None Remove="Defaults\themes.json" />
     <None Remove="Icon\icon.ico" />

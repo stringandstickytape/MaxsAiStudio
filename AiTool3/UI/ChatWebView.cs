@@ -4,7 +4,6 @@ using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
-using static AiTool3.UI.NetworkDiagramControl;
 using System.Windows.Forms;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
