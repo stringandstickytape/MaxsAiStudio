@@ -104,6 +104,7 @@ namespace AiTool3.Audio
             memoryStream?.Dispose();
             WhisperFactory?.Dispose();
             WhisperProcessor?.Dispose();
+
         }
 
         public static byte[] ApplyLowPassFilter(byte[] inputWav, int cutoffFrequency)

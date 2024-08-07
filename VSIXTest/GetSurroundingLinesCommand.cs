@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using AiTool3.SharedCode;
+using System.IO.Pipes;
+using System.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -47,9 +48,10 @@ namespace VSIXTest
             Instance = new GetSurroundingLinesCommand(package, commandService);
         }
 
-        private void Execute(object sender, EventArgs e)
+
+        private async void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var dte = Package.GetGlobalService(typeof(SDTE)) as EnvDTE80.DTE2;
             var textDocument = dte.ActiveDocument.Object("TextDocument") as EnvDTE.TextDocument;
@@ -57,25 +59,58 @@ namespace VSIXTest
             if (textDocument != null)
             {
                 var selection = textDocument.Selection;
-                string text;
+                string entireFileContent = textDocument.CreateEditPoint(textDocument.StartPoint).GetText(textDocument.EndPoint);
 
-                if (selection.IsEmpty)
+                int cursorPosition = selection.ActivePoint.AbsoluteCharOffset;
+                string textWithCursor = entireFileContent.Insert(cursorPosition - 1, "<CURSOR>");
+
+                System.Diagnostics.Debug.WriteLine("Entire file content with cursor position:");
+                System.Diagnostics.Debug.WriteLine(textWithCursor);
+
+                try
                 {
-                    // No selection, get surrounding lines
-                    var currentLine = selection.CurrentLine;
-                    text = textDocument.CreateEditPoint().GetLines(Math.Max(1, currentLine - 10), Math.Min(textDocument.EndPoint.Line, currentLine + 10));
-                    System.Diagnostics.Debug.WriteLine("Surrounding 20 lines:");
+                    using (var pipeClient = new NamedPipeClientStream(".", "MaxsAIStudioVSIX", PipeDirection.InOut))
+                    {
+                        await pipeClient.ConnectAsync(5000); // Wait for a maximum of 5 seconds for the connection
+
+
+
+                        var writer = new StreamWriter(pipeClient);
+
+                        using (var reader = new StreamReader(pipeClient))
+                        {
+                            writer.AutoFlush = true;
+                            await writer.WriteAsync(textWithCursor + "\n<END>\n");
+                            await writer.FlushAsync();
+                            System.Diagnostics.Debug.WriteLine("Entire file content with cursor position sent to AiTool3 via pipe.");
+
+                            // Listen for the return message
+                            string returnMessage = "";
+                            string line;
+                            while ((line = await reader.ReadLineAsync()) != null)
+                            {
+                                if (line == "<END>")
+                                    break;
+                                returnMessage += line + "\n";
+                            }
+                            System.Diagnostics.Debug.WriteLine("Received return message from AiTool3:");
+                            System.Diagnostics.Debug.WriteLine(returnMessage);
+                        }
+
+                    }
                 }
-                else
+                catch (TimeoutException)
                 {
-                    // There is a selection, get selected text
-                    text = selection.Text;
-                    System.Diagnostics.Debug.WriteLine("Selected text:");
+                    System.Diagnostics.Debug.WriteLine("Connection to AiTool3 timed out.");
                 }
-
-                System.Diagnostics.Debug.WriteLine(text);
-
-                IpcCommunicator.SendObject(text);
+                catch (IOException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"IO error while connecting to pipe: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Unexpected error: {ex.Message}");
+                }
             }
         }
     }

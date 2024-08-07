@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Audio;
+using AiTool3.Communications;
 using AiTool3.Conversations;
 using AiTool3.ExtensionMethods;
 using AiTool3.Helpers;
@@ -25,6 +26,7 @@ namespace AiTool3
         // injected dependencies
         private ToolManager _toolManager;
         private SnippetManager _snippetManager;
+        private NamedPipeListener _namedPipeListener;
 
         public const decimal Version = 0.3m;
 
@@ -48,10 +50,11 @@ namespace AiTool3
 
         public string selectedConversationGuid = "";
 
-        public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager)
+        public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener)
         {
             _toolManager = toolManager;
             _snippetManager = snippetManager;
+            _namedPipeListener = namedPipeListener;
 
             Form splash = null;
             Thread splashThread = null;

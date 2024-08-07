@@ -1,4 +1,5 @@
 using AiTool3;
+using AiTool3.Communications;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.UI;
@@ -44,6 +45,7 @@ internal static class Program
     {
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
+        services.AddSingleton<NamedPipeListener>();
         //services.AddTransient<FileAttachmentManager>();
         //services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
