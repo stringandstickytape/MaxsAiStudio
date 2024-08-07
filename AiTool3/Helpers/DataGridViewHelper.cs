@@ -11,9 +11,8 @@ namespace AiTool3.Helpers
 
         public static async Task InitialiseDataGridView(DataGridView dgv, ConversationCacheManager conversationCacheManager)
         {
-            // hide dgv headers
             dgv.ColumnHeadersVisible = false;
-            // Setting the default cell style for the DataGridView
+            
             DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
             cellStyle.BackColor = Color.Black;
             cellStyle.ForeColor = Color.White;
@@ -21,7 +20,6 @@ namespace AiTool3.Helpers
 
             dgv.DefaultCellStyle = cellStyle;
 
-            // add cols to dgv
             dgv.Columns.Add("ConvGuid", "ConvGuid");
             dgv.Columns.Add("Content", "Content");
             dgv.Columns.Add("Engine", "Engine");
@@ -36,18 +34,11 @@ namespace AiTool3.Helpers
             dgv.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dgv.Columns[3].ReadOnly = true;
 
-            // make the columns wrap text
-            //dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-
-            // make the selection column thin
             dgv.RowHeadersWidth = 10;
-
 
             // populate dgv with the conversation files in the current directory, ordered by date desc
             var files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename("*")).OrderByDescending(f => new FileInfo(f).LastWriteTime);
-
-            
 
             // populate dgv
             foreach (var file in files)
@@ -63,17 +54,6 @@ namespace AiTool3.Helpers
                     dCS.ForeColor = Color.Black;
                 }
             }
-
-
-
-
-            // Handle the CellMouseClick event
-
-
         }
-
- 
-
-
     }
 }
