@@ -28,7 +28,7 @@ namespace AiTool3.Helpers
             }
             finally
             {
-                // delete temp file
+                File.Delete(tempFilePath);
             }
         }
     }
