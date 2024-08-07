@@ -29,20 +29,6 @@ namespace AiTool3.Providers.Embeddings.Fragmenters
             }).ToList();
 
         }
-
-        private void AddFragment(List<CodeFragment> fragments, string content, string type, string filePath, int lineNumber, string className, string namespaceName)
-        {
-            // strip path from filename
-            fragments.Add(new CodeFragment
-            {
-                Content = content,
-                Type = type,
-                FilePath = filePath.Split('\\').Last(),
-                LineNumber = lineNumber,
-                Class = className,
-                Namespace = namespaceName
-            });
-        }
     }
 
     public class CodeFragment

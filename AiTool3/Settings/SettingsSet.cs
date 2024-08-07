@@ -142,9 +142,6 @@ namespace AiTool3
             }
         }
 
-        public Model GetModelByName(string modelName) =>  ModelList.FirstOrDefault(x => x.ModelName == modelName);
-
-
         public Model GetModelByFullStringReference(string modelName) => ModelList.FirstOrDefault(x => x.ToString() == modelName);
 
         public Model GetSummaryModel() => GetModelByFullStringReference(SelectedSummaryModel);
