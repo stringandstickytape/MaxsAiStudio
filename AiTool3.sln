@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiTool3", "AiTool3\AiTool3.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSIXTest", "VSIXTest\VSIXTest.csproj", "{DA51FCD4-326F-49AF-A073-7ABE94F3EB79}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedCode", "SharedCode\SharedCode.csproj", "{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CleanCublas|Any CPU = CleanCublas|Any CPU
@@ -71,6 +73,30 @@ Global
 		{DA51FCD4-326F-49AF-A073-7ABE94F3EB79}.Release|arm64.Build.0 = Release|arm64
 		{DA51FCD4-326F-49AF-A073-7ABE94F3EB79}.Release|x86.ActiveCfg = Release|x86
 		{DA51FCD4-326F-49AF-A073-7ABE94F3EB79}.Release|x86.Build.0 = Release|x86
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|Any CPU.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|arm64.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|arm64.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|x86.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.CleanCublas|x86.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|arm64.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Debug|x86.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|Any CPU.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|arm64.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|arm64.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|x86.ActiveCfg = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.DebugCublas|x86.Build.0 = Debug|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|arm64.ActiveCfg = Release|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|arm64.Build.0 = Release|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|x86.ActiveCfg = Release|Any CPU
+		{69920D7F-C8B8-4BE7-9ECF-AEC63B7C1A41}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using AiTool3.SharedCode;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -56,11 +57,25 @@ namespace VSIXTest
             if (textDocument != null)
             {
                 var selection = textDocument.Selection;
-                var currentLine = selection.CurrentLine;
-                var text = textDocument.CreateEditPoint().GetLines(Math.Max(1, currentLine - 10), Math.Min(textDocument.EndPoint.Line, currentLine + 10));
+                string text;
 
-                System.Diagnostics.Debug.WriteLine("Surrounding 20 lines:");
+                if (selection.IsEmpty)
+                {
+                    // No selection, get surrounding lines
+                    var currentLine = selection.CurrentLine;
+                    text = textDocument.CreateEditPoint().GetLines(Math.Max(1, currentLine - 10), Math.Min(textDocument.EndPoint.Line, currentLine + 10));
+                    System.Diagnostics.Debug.WriteLine("Surrounding 20 lines:");
+                }
+                else
+                {
+                    // There is a selection, get selected text
+                    text = selection.Text;
+                    System.Diagnostics.Debug.WriteLine("Selected text:");
+                }
+
                 System.Diagnostics.Debug.WriteLine(text);
+
+                IpcCommunicator.SendObject(text);
             }
         }
     }
