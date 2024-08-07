@@ -84,6 +84,7 @@
     <None Remove="JavaScript\WorkingOverlay-dull.html" />
     <None Remove="JavaScript\WorkingOverlay.html" />
     <None Remove="JavaScript\WorkingOverlay2.html" />
+    <None Remove="OllamaEmbeddings.embeddings.json" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
     <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
     <None Remove="ThirdPartyJavascript\cytoscape-dagre.min.js" />
@@ -169,6 +170,18 @@
   
   <ItemGroup>
     <Resource Include="Icon\icon.ico" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="C:\Users\maxhe\.nuget\packages\naudio.lame\2.1.0\build\libmp3lame.32.dll" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="C:\Users\maxhe\.nuget\packages\naudio.lame\2.1.0\build\libmp3lame.32.dll" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="C:\Users\maxhe\.nuget\packages\naudio.lame\2.1.0\build\libmp3lame.64.dll" />
   </ItemGroup>
 
 </Project>

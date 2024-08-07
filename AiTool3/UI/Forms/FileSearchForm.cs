@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace AiTool3
+namespace AiTool3.UI.Forms
 {
     public class FileSearchForm : Form
     {
@@ -101,64 +101,64 @@ namespace AiTool3
 
         private void InitializeComponent()
         {
-            this.ClientSize = new System.Drawing.Size(500, 800);
-            this.treeView = new TreeView();
-            this.buttonPanel = new Panel();
-            this.testButton = new Button();
-            this.addFilesToInputButton = new Button();
-            this.SuspendLayout();
+            ClientSize = new Size(500, 800);
+            treeView = new TreeView();
+            buttonPanel = new Panel();
+            testButton = new Button();
+            addFilesToInputButton = new Button();
+            SuspendLayout();
 
             // TreeView
-            this.treeView.Dock = DockStyle.Fill;
-            this.treeView.CheckBoxes = true;
-            this.treeView.AfterCheck += new TreeViewEventHandler(treeView_AfterCheck);
-            this.treeView.ItemDrag += new ItemDragEventHandler(treeView_ItemDrag);
-            this.treeView.AllowDrop = true;
-            this.treeView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            this.treeView.Width = this.Width-22;
+            treeView.Dock = DockStyle.Fill;
+            treeView.CheckBoxes = true;
+            treeView.AfterCheck += new TreeViewEventHandler(treeView_AfterCheck);
+            treeView.ItemDrag += new ItemDragEventHandler(treeView_ItemDrag);
+            treeView.AllowDrop = true;
+            treeView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            treeView.Width = Width - 22;
             treeView.Top = 40;
-            this.treeView.Height = this.Height-140;
+            treeView.Height = Height - 140;
             // Button Panel
-            this.buttonPanel.Dock = DockStyle.Bottom;
-            this.buttonPanel.Height = 40;
+            buttonPanel.Dock = DockStyle.Bottom;
+            buttonPanel.Height = 40;
 
             // Test Button
-            this.testButton.Text = "Test";
-            this.testButton.Location = new Point(10, 5);
-            this.testButton.Size = new Size(75, 30);
-            this.testButton.Click += new EventHandler(testButton_Click);
-            this.testButton.Enabled = false;
+            testButton.Text = "Test";
+            testButton.Location = new Point(10, 5);
+            testButton.Size = new Size(75, 30);
+            testButton.Click += new EventHandler(testButton_Click);
+            testButton.Enabled = false;
 
             // Add Test Button to Button Panel
-            this.buttonPanel.Controls.Add(this.testButton);
+            buttonPanel.Controls.Add(testButton);
 
             // add files to input button
 
-            this.addFilesToInputButton.Text = "Add Files to Input";
-            this.addFilesToInputButton.Location = new Point(100, 5);
-            this.addFilesToInputButton.Size = new Size(250, 30);
-            this.addFilesToInputButton.Click += (sender, e) => AddFilesToInput?.Invoke(this, GetCheckedFiles());
+            addFilesToInputButton.Text = "Add Files to Input";
+            addFilesToInputButton.Location = new Point(100, 5);
+            addFilesToInputButton.Size = new Size(250, 30);
+            addFilesToInputButton.Click += (sender, e) => AddFilesToInput?.Invoke(this, GetCheckedFiles());
 
-            this.buttonPanel.Controls.Add(this.addFilesToInputButton);
+            buttonPanel.Controls.Add(addFilesToInputButton);
 
 
             // Quick Jump TextBox
-            this.quickJumpTextBox = new TextBox();
-            this.quickJumpTextBox.Dock = DockStyle.Top;
-            this.quickJumpTextBox.Font = new Font("Segoe UI", 9F);
-            this.quickJumpTextBox.PlaceholderText = "Quick Jump (type to search)";
-            this.quickJumpTextBox.TextChanged += new EventHandler(quickJumpTextBox_TextChanged);
+            quickJumpTextBox = new TextBox();
+            quickJumpTextBox.Dock = DockStyle.Top;
+            quickJumpTextBox.Font = new Font("Segoe UI", 9F);
+            quickJumpTextBox.PlaceholderText = "Quick Jump (type to search)";
+            quickJumpTextBox.TextChanged += new EventHandler(quickJumpTextBox_TextChanged);
 
             // Form
-            
-            this.Controls.Add(this.buttonPanel);
-            this.Controls.Add(this.treeView);
-            this.Controls.Add(this.quickJumpTextBox); // Add the quick jump textbox
-            this.Name = "FileExplorerForm";
-            this.Text = "File Explorer (set start location in Edit -> Settings -> Default Path)";
+
+            Controls.Add(buttonPanel);
+            Controls.Add(treeView);
+            Controls.Add(quickJumpTextBox); // Add the quick jump textbox
+            Name = "FileExplorerForm";
+            Text = "File Explorer (set start location in Edit -> Settings -> Default Path)";
 
 
-            this.ResumeLayout(false);
+            ResumeLayout(false);
 
 
         }
