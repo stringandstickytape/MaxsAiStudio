@@ -1,8 +1,4 @@
-﻿using AiTool3.Conversations;
-using AiTool3.Snippets;
-using AiTool3.UI;
-
-namespace AiTool3.Helpers
+﻿namespace AiTool3.Helpers
 {
     public static class SnippetHelper
     {

@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using AiTool3.ApiManagement;
-using AiTool3.Conversations;
-using AiTool3.Interfaces;
-using AiTool3.Settings;
+﻿using AiTool3.ApiManagement;
 using AiTool3.UI;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using static AiTool3.AutoSuggestForm;
 
 namespace AiTool3.Conversations
@@ -53,7 +45,7 @@ namespace AiTool3.Conversations
                 return nodes;
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 MessageBox.Show("Weird bug I haven't nailed yet, has fired.  Please start a new conversation :/");
                 return null;
@@ -152,7 +144,7 @@ namespace AiTool3.Conversations
 
             completionInput = new CompletionMessage(CompletionRole.User)
             {
-                Content = inputText.Replace("\r",""),
+                Content = inputText.Replace("\r", ""),
                 Parent = PreviousCompletion?.Guid,
                 Engine = model.ModelName,
                 SystemPrompt = systemPrompt,
@@ -210,7 +202,7 @@ namespace AiTool3.Conversations
             var targetCodeBlock = matches[codeBlockIndex];
             var codeBlockStartIndex = targetCodeBlock.Index;
             var codeBlockEndIndex = codeBlockStartIndex + targetCodeBlock.Length;
-            
+
             while (codeBlockStartIndex < nodeToDuplicate.Content.Length && nodeToDuplicate.Content[codeBlockStartIndex] != '\n')
             {
                 codeBlockStartIndex++;
@@ -226,14 +218,14 @@ namespace AiTool3.Conversations
             var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(findAndReplacesJson);
 
             var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
-            if(processed == null)
+            if (processed == null)
             {
                 return null;
             }
-            
+
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
             nodeToDuplicate.Content = newContent;
-            
+
             SaveConversation();
 
             return nodeToDuplicate.Guid;
@@ -253,11 +245,11 @@ namespace AiTool3.Conversations
             msgContent = msgContent.Substring(firstThreeTicksIndex);
 
             // remove the next line
-            var nextLineIndex = msgContent.IndexOf('\n')+1;
+            var nextLineIndex = msgContent.IndexOf('\n') + 1;
             msgContent = msgContent.Substring(nextLineIndex);
 
             // get the last line of previousMessage
-            var lastLineIndex = previousMessage.Content.LastIndexOf('\n')+1;
+            var lastLineIndex = previousMessage.Content.LastIndexOf('\n') + 1;
             var lastLine = previousMessage.Content.Substring(lastLineIndex);
 
             // get the first line of msgContent
@@ -269,43 +261,43 @@ namespace AiTool3.Conversations
                 // remove the last line of prev
                 newContent = previousMessage.Content.Substring(0, lastLineIndex);
             }
-                // append the message content to the end of prev
-                newContent += msgContent;
+            // append the message content to the end of prev
+            newContent += msgContent;
 
-                // find the parent message of message
-                var parentOfCurrent = Conversation.FindByGuid(message.Parent);
-                var parentOfPrevious = Conversation.FindByGuid(previousMessage.Parent);
+            // find the parent message of message
+            var parentOfCurrent = Conversation.FindByGuid(message.Parent);
+            var parentOfPrevious = Conversation.FindByGuid(previousMessage.Parent);
 
-                // remove previousMessage from the parent's children
-                parentOfPrevious.Children!.Remove(previousMessage.Guid);
+            // remove previousMessage from the parent's children
+            parentOfPrevious.Children!.Remove(previousMessage.Guid);
 
-                // remove all three from the conversation
-                Conversation.Messages.Remove(message);
-                Conversation.Messages.Remove(parentOfCurrent);
-                Conversation.Messages.Remove(previousMessage);
+            // remove all three from the conversation
+            Conversation.Messages.Remove(message);
+            Conversation.Messages.Remove(parentOfCurrent);
+            Conversation.Messages.Remove(previousMessage);
 
-                // create a new message out of newContent, Assistant role
-                var newMessage = new CompletionMessage(CompletionRole.Assistant)
-                {
-                    Content = newContent,
-                    Parent = parentOfPrevious.Guid,
-                    Engine = previousMessage.Engine,
-                    SystemPrompt = previousMessage.SystemPrompt,
-                    InputTokens = previousMessage.InputTokens,
-                    OutputTokens = previousMessage.OutputTokens,
-                    Base64Image = previousMessage.Base64Image,
-                    Base64Type = previousMessage.Base64Type,
-                    CreatedAt = DateTime.Now,
-                };
+            // create a new message out of newContent, Assistant role
+            var newMessage = new CompletionMessage(CompletionRole.Assistant)
+            {
+                Content = newContent,
+                Parent = parentOfPrevious.Guid,
+                Engine = previousMessage.Engine,
+                SystemPrompt = previousMessage.SystemPrompt,
+                InputTokens = previousMessage.InputTokens,
+                OutputTokens = previousMessage.OutputTokens,
+                Base64Image = previousMessage.Base64Image,
+                Base64Type = previousMessage.Base64Type,
+                CreatedAt = DateTime.Now,
+            };
 
-                // add the new message to the conversation
-                Conversation.Messages.Add(newMessage);
+            // add the new message to the conversation
+            Conversation.Messages.Add(newMessage);
 
-                // add the new message to the parent's children
-                parentOfPrevious.Children!.Add(newMessage.Guid);
+            // add the new message to the parent's children
+            parentOfPrevious.Children!.Add(newMessage.Guid);
 
-                // save the conversation
-                SaveConversation();
+            // save the conversation
+            SaveConversation();
             //}
         }
 
@@ -317,7 +309,7 @@ namespace AiTool3.Conversations
             // get the child message that says "Continue", case insensitive
             var continueMessage = Conversation.FindByGuid(message.Children!.FirstOrDefault(c => Conversation.FindByGuid(c).Content.ToLower().Contains("continue")));
 
-            if(continueMessage == null)
+            if (continueMessage == null)
             {
                 return;
             }
@@ -327,7 +319,7 @@ namespace AiTool3.Conversations
             var childContent = child.Content.Substring(child.Content.IndexOf(ThreeTicks));
 
             //remove the first line from childContent
-            childContent = childContent.Substring(childContent.IndexOf('\n')+1);
+            childContent = childContent.Substring(childContent.IndexOf('\n') + 1);
 
             // split message.Content into lines and get the last
             var lastMsgLine = message.Content.Split('\n').Last();
@@ -346,7 +338,7 @@ namespace AiTool3.Conversations
 
             message.Content = joinedMessage;
             message.Children.Remove(continueMessage.Guid);
-            
+
             Conversation.Messages.Remove(continueMessage);
             Conversation.Messages.Remove(child);
 

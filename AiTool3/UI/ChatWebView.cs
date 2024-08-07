@@ -1,20 +1,16 @@
-﻿using AiTool3.Conversations;
+﻿using AiTool3.ApiManagement;
+using AiTool3.Conversations;
+using AiTool3.ExtensionMethods;
+using AiTool3.Helpers;
+using AiTool3.Snippets;
+using AiTool3.Tools;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
-using System;
 using System.ComponentModel;
-using System.Windows.Forms;
-using AiTool3.Helpers;
-using AiTool3.Snippets;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using System.Resources;
-using System.Runtime.InteropServices;
-using AiTool3.ApiManagement;
-using AiTool3.Tools;
-using AiTool3.ExtensionMethods;
-using System.Diagnostics;
 
 namespace AiTool3.UI
 {
@@ -42,10 +38,10 @@ namespace AiTool3.UI
             {
                 HandleCreated += OnHandleCreated!;
                 WebMessageReceived += WebView_WebMessageReceived;
-                
+
             }
             AllowExternalDrop = false;
-            
+
         }
 
         public void InjectDependencies(ToolManager toolManager)
@@ -58,9 +54,9 @@ namespace AiTool3.UI
             FileDropped?.Invoke(this, filename);
         }
 
-        private async void  WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private async void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
-            
+
             string jsonMessage = e.WebMessageAsJson;
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
             var content = message.ContainsKey("content") ? message["content"] : null;
@@ -119,7 +115,8 @@ namespace AiTool3.UI
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools2.Split(',').ToList(), SendViaSecondaryAI = true, AddEmbeddings = bool.Parse(message?["addEmbeddings"]) });
                     break;
                 case "applyFindAndReplace":
-                    ChatWebViewAddBranchEvent?.Invoke(this, new ChatWebViewAddBranchEventArgs {
+                    ChatWebViewAddBranchEvent?.Invoke(this, new ChatWebViewAddBranchEventArgs
+                    {
                         CodeBlockIndex = int.Parse(message["codeBlockIndex"]),
                         Content = content,
                         DataType = message["dataType"],
@@ -179,14 +176,15 @@ namespace AiTool3.UI
                     saveFileDialog.Filter = $"{filext} files (*{filext})|*{filext}|All files (*.*)|*.*";
 
                     // if datatype contains \\ it's a full path and file.  Default teh save file dialog thus.
-                    if (dataType.Contains(".")|| dataType.Contains("\\"))
+                    if (dataType.Contains(".") || dataType.Contains("\\"))
                     {
-                        
+
                         if (dataType.Contains("\\"))
-                        {   
+                        {
                             saveFileDialog.FileName = Path.GetFileName(dataType);
                             saveFileDialog.InitialDirectory = Path.GetDirectoryName(dataType);
-                        } else saveFileDialog.FileName = dataType;
+                        }
+                        else saveFileDialog.FileName = dataType;
                     }
 
                     saveFileDialog.RestoreDirectory = true;
@@ -285,7 +283,7 @@ namespace AiTool3.UI
 
             // window.setDropdownOptions('mainAI',
 
-            foreach(var dropdown in new[] { "mainAI", "summaryAI" })
+            foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
                 ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)})");
             }
@@ -299,7 +297,7 @@ namespace AiTool3.UI
         }
         internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
-        internal async Task AddMessage(CompletionMessage message) => 
+        internal async Task AddMessage(CompletionMessage message) =>
             await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
         internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
@@ -312,7 +310,7 @@ namespace AiTool3.UI
             {
                 await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");
             });
-            
+
         }
 
         internal async Task ConcatenateUserPrompt(string content)

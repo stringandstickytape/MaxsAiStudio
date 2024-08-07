@@ -1,11 +1,4 @@
-﻿using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.WinForms;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Web.WebView2.WinForms;
 
 namespace AiTool3.UI
 {
@@ -67,7 +60,7 @@ namespace AiTool3.UI
             }
         }
 
-        
+
         public async Task InitializeAsync()
         {
             await webView.EnsureCoreWebView2Async(null);
@@ -100,7 +93,7 @@ namespace AiTool3.UI
             await webView.EnsureCoreWebView2Async(null);
             await webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
 
-            if(showDevTools) webView.CoreWebView2.OpenDevToolsWindow();
+            if (showDevTools) webView.CoreWebView2.OpenDevToolsWindow();
 
             WebNdcContextMenuOptionSelected += Form_WebNdcContextMenuOptionSelected;
             await InitializeAsync();
@@ -110,7 +103,7 @@ namespace AiTool3.UI
 
         private static void Form_WebNdcContextMenuOptionSelected(object? sender, WebNdcContextMenuOptionSelectedEventArgs e)
         {
-            
+
         }
 
         internal async Task OpenWebViewWithHtml(string result)

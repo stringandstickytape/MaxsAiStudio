@@ -1,18 +1,8 @@
-﻿using AiTool3.ApiManagement;
-using AiTool3.Conversations;
-using AiTool3.ExtensionMethods;
+﻿using AiTool3.Conversations;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Topics;
 using AiTool3.UI;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Input;
 
 namespace AiTool3
 {
@@ -226,7 +216,7 @@ namespace AiTool3
 
         public static async Task CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager, MaxsAiStudio maxsAiStudio)
         {
-            
+
 
             var menuText = "Specials";
             ToolStripMenuItem specialsMenu = MenuHelper.CreateMenu(menuText);
@@ -305,7 +295,7 @@ namespace AiTool3
         internal static async Task CreateEmbeddingsMenu(MaxsAiStudio maxsAiStudio, MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager fileAttachmentManager)
         {
 
-            
+
 
             var menuText = "Embeddings";
             ToolStripMenuItem embeddingsMenu = MenuHelper.CreateMenu(menuText);
@@ -315,9 +305,9 @@ namespace AiTool3
                 {
                     new LabelAndEventHander("Create Embedding...", async (s, e) =>
                     {
-                        
+
                         await EmbeddingsHelper.CreateEmbeddingsAsync("Ollama", maxsAiStudio);
-                        
+
                     }),
 
                     new LabelAndEventHander("Select Embedding...", async (s, e) =>

@@ -1,13 +1,8 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.Providers;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Windows.Forms;
-using System.Drawing;
 
 namespace AiTool3
 {
@@ -165,8 +160,8 @@ namespace AiTool3
         {
             var inputEmbedding = await CreateEmbeddingsAsync(new List<string> { input }, key, embeddingsModelName);
 
-            
-            if(!File.Exists(filename))
+
+            if (!File.Exists(filename))
             {
                 MessageBox.Show("Embeddings file not found. Please check the path in settings, or use Embeddings -> Select Embedding..., and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new List<CodeSnippet>();

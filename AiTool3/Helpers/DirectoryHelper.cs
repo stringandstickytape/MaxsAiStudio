@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace AiTool3.Helpers
+﻿namespace AiTool3.Helpers
 {
 
     public static class DirectoryHelper

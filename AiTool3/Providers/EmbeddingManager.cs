@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AiTool3.Providers
+﻿namespace AiTool3.Providers
 {
     public class EmbeddingManager
     {

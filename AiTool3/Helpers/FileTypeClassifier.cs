@@ -1,11 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AiTool3.Helpers
+﻿namespace AiTool3.Helpers
 {
     public static class FileTypeClassifier
     {

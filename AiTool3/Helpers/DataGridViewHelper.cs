@@ -1,8 +1,5 @@
 ﻿using AiTool3.Conversations;
-using Microsoft.CodeAnalysis;
-using Newtonsoft.Json;
 using System.Data;
-using System.Windows.Forms;
 
 namespace AiTool3.Helpers
 {
@@ -12,7 +9,7 @@ namespace AiTool3.Helpers
         public static async Task InitialiseDataGridView(DataGridView dgv, ConversationCacheManager conversationCacheManager)
         {
             dgv.ColumnHeadersVisible = false;
-            
+
             DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
             cellStyle.BackColor = Color.Black;
             cellStyle.ForeColor = Color.White;

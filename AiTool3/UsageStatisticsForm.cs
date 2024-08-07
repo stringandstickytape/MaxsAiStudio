@@ -1,7 +1,6 @@
-﻿using AiTool3.ApiManagement;
-using AiTool3;
+﻿using AiTool3;
+using AiTool3.ApiManagement;
 using AiTool3.Conversations;
-using System.Drawing;
 
 internal partial class ModelUsageManager
 {
@@ -171,7 +170,7 @@ internal partial class ModelUsageManager
                 Model = model,
                 Manager = new ModelUsageManager(model),
                 CostPerOutputToken = model.output1MTokenPrice
-                                      })
+            })
             .OrderByDescending(x => x.CostPerOutputToken)
             .ToList();
 

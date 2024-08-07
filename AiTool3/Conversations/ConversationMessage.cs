@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace AiTool3.Conversations
+﻿namespace AiTool3.Conversations
 {
     public class ConversationMessage
     {

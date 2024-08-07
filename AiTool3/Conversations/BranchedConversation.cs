@@ -1,11 +1,7 @@
 ﻿using AiTool3.ApiManagement;
-using AiTool3.Interfaces;
 using AiTool3.Providers;
 using Newtonsoft.Json;
-using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using static AiTool3.AutoSuggestForm;
 
 namespace AiTool3.Conversations
@@ -128,7 +124,7 @@ namespace AiTool3.Conversations
 
                 return Summary;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return "Summary failed";
             }
@@ -139,7 +135,7 @@ namespace AiTool3.Conversations
             AutoSuggestForm form = null;
             string responseText = "";
             Debug.WriteLine(Summary);
-                
+
             var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
 
             Conversation conversation = null;
@@ -163,7 +159,7 @@ namespace AiTool3.Conversations
                 foreach (var node in nodes.Where(x => x.Role != CompletionRole.Root))
                 {
                     var nodeContent = node.Content;
-                        
+
                     if (nodeContent.Length > 1000)
                     {
                         nodeContent = nodeContent.Substring(0, 1000);
@@ -173,53 +169,53 @@ namespace AiTool3.Conversations
                 conversation.messages.Add(new ConversationMessage { role = "user", content = $"based on our conversation so far, give me 25 {(fun ? "fun and interesting" : "")} things I might ask you to do next, as a json array of strings." });
 
             }
-                
+
             var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
             var cost = apiModel.GetCost(response.TokenUsage);
 
             responseText = response.ResponseText;
-                if (responseText.Contains("```"))
-                {
-                    responseText = responseText.Substring(responseText.IndexOf("```"));
-                }
+            if (responseText.Contains("```"))
+            {
+                responseText = responseText.Substring(responseText.IndexOf("```"));
+            }
 
-                // if there is anything after the second ```, remove it
-                if (responseText.IndexOf("```", 3) > 0)
-                {
-                    responseText = responseText.Substring(0, responseText.IndexOf("```", 3));
-                }
-                // if there is anything before the first ```, remove it but not the ```
-                if (responseText.IndexOf("```") > 0)
-                {
-                    responseText = responseText.Substring(responseText.IndexOf("```"));
-                }
+            // if there is anything after the second ```, remove it
+            if (responseText.IndexOf("```", 3) > 0)
+            {
+                responseText = responseText.Substring(0, responseText.IndexOf("```", 3));
+            }
+            // if there is anything before the first ```, remove it but not the ```
+            if (responseText.IndexOf("```") > 0)
+            {
+                responseText = responseText.Substring(responseText.IndexOf("```"));
+            }
 
 
-                // remove ```json and ``` from the response
-                responseText = responseText.Replace("```json", "").Replace("```", "");
+            // remove ```json and ``` from the response
+            responseText = responseText.Replace("```json", "").Replace("```", "");
 
             var regex = new System.Text.RegularExpressions.Regex(@"\[[\s\S]*\]");
 
             var matches = regex.Matches(responseText);
             responseText = matches[0].Value;
 
-                try
-                {
+            try
+            {
                 Debug.WriteLine(responseText);
                 dynamic obj = JsonConvert.DeserializeObject(responseText);
 
 
 
-            var suggestions = obj.ToObject<string[]>();
-                
+                var suggestions = obj.ToObject<string[]>();
+
                 form = new AutoSuggestForm(suggestions);
                 form.StringSelected += Form_StringSelected;
                 form.Show();
 
-                }
-                catch(Exception e)
-                {
+            }
+            catch (Exception e)
+            {
                 MessageBox.Show($"Something went wrong with AutoSuggest: {e.Message}");
             }
 

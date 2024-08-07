@@ -6,8 +6,8 @@
         {
         }
 
-        public string Uri { get;  set; }
-        public string ResourceName { get;  set; }
-        public string MimeType { get;  set; }
+        public string Uri { get; set; }
+        public string ResourceName { get; set; }
+        public string MimeType { get; set; }
     }
 }

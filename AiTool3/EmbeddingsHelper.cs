@@ -1,19 +1,11 @@
-﻿using AiTool3.Conversations;
-using AiTool3.Providers;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
+﻿using AiTool3.ExtensionMethods;
 using AiTool3.Providers.Embeddings.Fragmenters;
-using AiTool3.ExtensionMethods;
 
 namespace AiTool3
 {
     internal static class EmbeddingsHelper
     {
- 
+
 
         public static async Task CreateEmbeddingsAsync(string apiKey, MaxsAiStudio maxsAiStudio)
         {
@@ -54,7 +46,7 @@ namespace AiTool3
             // recursively find all cs files within that dir and subdirs
             var files = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
 
-            
+
 
             if (gitignore != null)
             {
@@ -66,7 +58,7 @@ namespace AiTool3
 
 
             var htmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories).ToList());
-            var xmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories) .ToList());
+            var xmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories).ToList());
 
             var x = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories).ToList();
             var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);

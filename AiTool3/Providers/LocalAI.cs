@@ -4,13 +4,9 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AiTool3.Providers
 {
@@ -49,7 +45,7 @@ namespace AiTool3.Providers
             foreach (var m in x)
             {
                 req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
-                if(m.Base64Image != null)
+                if (m.Base64Image != null)
                 {
                     req["messages"].Last["images"] = new JArray { m.Base64Image };
                 }
@@ -247,7 +243,7 @@ namespace AiTool3.Providers
     }
 
 
-        public class LocalAIRequest
+    public class LocalAIRequest
     {
         [JsonProperty("model")]
         public string model { get; set; }

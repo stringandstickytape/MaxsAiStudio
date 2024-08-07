@@ -1,11 +1,4 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using NAudio.Utils;
-using Newtonsoft.Json.Linq;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Windows.Media;
-
-namespace AiTool3.Helpers
+﻿namespace AiTool3.Helpers
 {
     internal class ImageHelpers
     {

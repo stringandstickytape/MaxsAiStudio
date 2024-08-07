@@ -1,11 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AiTool3.UI;
+﻿using AiTool3.UI;
 
 namespace AiTool3.ExtensionMethods
 {
@@ -37,7 +30,7 @@ namespace AiTool3.ExtensionMethods
             }
         }
 
-            private const string OverlayTag = "WorkingOverlay";
+        private const string OverlayTag = "WorkingOverlay";
 
         public static void ShowWorking(this Control control, string message, bool softwareToysMode)
         {
@@ -59,23 +52,23 @@ namespace AiTool3.ExtensionMethods
         }
 
         public static void HideWorking(this Control control)
+        {
+            var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault();
+            if (overlay != null)
             {
-                var overlay = control.Controls.OfType<WorkingOverlay>().FirstOrDefault();
-                if (overlay != null)
-                {
 
-                    
-                    control.Controls.Remove(overlay);
-                    overlay.Dispose();
-                }
-                 
-                control.Enabled = true;
+
+                control.Controls.Remove(overlay);
+                overlay.Dispose();
             }
 
-            public static bool IsWorking(this Control control)
-            {
-                return control.Controls.OfType<WorkingOverlay>().Any(c => c.Tag as string == OverlayTag);
-            }
+            control.Enabled = true;
+        }
+
+        public static bool IsWorking(this Control control)
+        {
+            return control.Controls.OfType<WorkingOverlay>().Any(c => c.Tag as string == OverlayTag);
+        }
 
     }
 }

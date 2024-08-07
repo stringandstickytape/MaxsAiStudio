@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AiTool3.Conversations
 {
@@ -15,7 +10,7 @@ namespace AiTool3.Conversations
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Settings", "conversationCache.json");
 
-            if(File.Exists(filePath))
+            if (File.Exists(filePath))
                 Conversations = JsonConvert.DeserializeObject<List<CachedConversation>>(File.ReadAllText(filePath));
             else
                 Conversations = new List<CachedConversation>();

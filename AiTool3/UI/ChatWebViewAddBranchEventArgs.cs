@@ -1,11 +1,11 @@
 ﻿namespace AiTool3.UI
 {
- /*                               type: 'applyFindAndReplace',
-                                content: "",
-                                guid: guid,
-                                dataType: dataType,
-                                codeBlockIndex: index.toString()
-   */     
+    /*                               type: 'applyFindAndReplace',
+                                   content: "",
+                                   guid: guid,
+                                   dataType: dataType,
+                                   codeBlockIndex: index.toString()
+      */
     public class ChatWebViewAddBranchEventArgs
     {
         public string Type { get; set; }

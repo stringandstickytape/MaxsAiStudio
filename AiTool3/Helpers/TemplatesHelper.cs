@@ -1,6 +1,5 @@
 ﻿using AiTool3.Topics;
 using Microsoft.CodeAnalysis;
-using System.Data;
 
 namespace AiTool3.Helpers
 {

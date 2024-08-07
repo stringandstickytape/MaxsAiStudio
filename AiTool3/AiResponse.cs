@@ -12,7 +12,7 @@ namespace AiTool3
 
         public AiResponse()
         {
-            TokenUsage = new TokenUsage("","");
+            TokenUsage = new TokenUsage("", "");
         }
     }
 }

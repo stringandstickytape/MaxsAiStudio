@@ -1,6 +1,4 @@
-﻿using AiTool3.Snippets;
-using Microsoft.CodeAnalysis.Scripting;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace AiTool3.UI
 {
@@ -59,7 +57,7 @@ namespace AiTool3.UI
                 ScrollBars = ScrollBars.Both,
                 Font = new Font("Consolas", 10),
                 Dock = DockStyle.Fill,
-                Text = output, 
+                Text = output,
                 WordWrap = false
             };
 

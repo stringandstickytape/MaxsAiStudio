@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using AiTool3.ApiManagement;
+﻿using AiTool3.ApiManagement;
 using AiTool3.Providers;
-using System.ComponentModel;
 using System.Diagnostics;
 
 namespace AiTool3
@@ -57,9 +50,10 @@ namespace AiTool3
 
 
         public string SelectedModel { get; set; } = "";
-        public string SelectedSummaryModel { 
-            get; 
-            set; 
+        public string SelectedSummaryModel
+        {
+            get;
+            set;
         } = "";
         public string SelectedTheme { get; set; }
 
@@ -131,7 +125,7 @@ namespace AiTool3
                 Save(retVal);
                 return retVal;
             }
-            catch(DirectoryNotFoundException e)
+            catch (DirectoryNotFoundException e)
             {
                 Debug.WriteLine(e.Message);
                 Directory.CreateDirectory("Settings");
@@ -152,12 +146,12 @@ namespace AiTool3
             newSettings.Create();
             foreach (var model in newSettings.ModelList)
             {
-                    var newModel = ModelList.FirstOrDefault(x => x.ServiceName == model.ServiceName && x.ModelName == model.ModelName);
-                    if (newModel == null)
-                    {
-                        // add to correct in apilist
-                        ModelList.Add(model);
-                    }
+                var newModel = ModelList.FirstOrDefault(x => x.ServiceName == model.ServiceName && x.ModelName == model.ModelName);
+                if (newModel == null)
+                {
+                    // add to correct in apilist
+                    ModelList.Add(model);
+                }
             }
 
             Save(this);
@@ -193,5 +187,5 @@ namespace AiTool3
         }
     }
 
-    
+
 }

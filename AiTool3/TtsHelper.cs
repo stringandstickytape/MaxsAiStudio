@@ -2,7 +2,7 @@
 
 namespace AiTool3
 {
-    public  static class TtsHelper
+    public static class TtsHelper
     {
 
         public static void ReadAloud(string txt)

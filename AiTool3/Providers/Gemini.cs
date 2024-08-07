@@ -4,11 +4,8 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Text;
-using static System.Windows.Forms.Design.AxImporter;
 
 namespace AiTool3.Providers
 {
@@ -44,7 +41,7 @@ namespace AiTool3.Providers
                 var message = conversation.messages[i];
                 var contentArray = (JArray)((JArray)obj["contents"])[i]["parts"];
 
-                                // Add image if present in message history
+                // Add image if present in message history
 
 
                 // Add text content
@@ -69,13 +66,13 @@ namespace AiTool3.Providers
 
             AddFakeSystemPrompt(conversation, obj);
 
-            if(addEmbeddings)
+            if (addEmbeddings)
             {
                 var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
 
                 // does the last content array thing have a text prop?
                 var lastContent = ((JArray)obj["contents"]).Last;
-                if(lastContent["parts"].Last["text"] != null)
+                if (lastContent["parts"].Last["text"] != null)
                 {
                     lastContent["parts"].Last["text"] = newInput;
                 }
@@ -86,7 +83,7 @@ namespace AiTool3.Providers
                     lastButOneContent["parts"].Last["text"] = newInput;
                 }
             }
-            
+
             var jsonPayload = JsonConvert.SerializeObject(obj);
 
             using (HttpClient client = new HttpClient())
@@ -156,7 +153,7 @@ namespace AiTool3.Providers
                                 char c = charBuffer[i];
                                 jsonBuffer.Append(c);
 
-                                if(c == '{')
+                                if (c == '{')
                                 {
                                     indent++;
                                 }
@@ -184,7 +181,7 @@ namespace AiTool3.Providers
                             {
                                 await ProcessJsonObject(json, fullResponse);
                             }
-                            catch (Exception e)
+                            catch (Exception)
                             {
 
                             }
@@ -212,7 +209,8 @@ namespace AiTool3.Providers
                     {
                         var textChunk = streamData["candidates"][0]["content"]["parts"][0]["text"]?.ToString();
                         if (!string.IsNullOrEmpty(textChunk))
-                        {Debug.WriteLine(textChunk);
+                        {
+                            Debug.WriteLine(textChunk);
                             fullResponse.Append(textChunk);
 
                             StreamingTextReceived?.Invoke(this, textChunk);
@@ -225,7 +223,7 @@ namespace AiTool3.Providers
   } */
                     if (streamData["usageMetadata"] != null)
                     {
-                        inputTokenCount =  streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
+                        inputTokenCount = streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                     }
                 }

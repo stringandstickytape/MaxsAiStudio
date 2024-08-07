@@ -1,6 +1,6 @@
 ﻿namespace AiTool3.UI
 {
-    
+
     public class ChatWebViewSimpleEventArgs
     {
         public string EventType { get; set; }

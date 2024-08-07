@@ -1,25 +1,22 @@
 ﻿using AiTool3.ApiManagement;
+using AiTool3.Audio;
 using AiTool3.Conversations;
+using AiTool3.ExtensionMethods;
+using AiTool3.Helpers;
+using AiTool3.Providers;
+using AiTool3.Settings;
+using AiTool3.Snippets;
+using AiTool3.Tools;
 using AiTool3.Topics;
 using AiTool3.UI;
+using AiTool3.UI.Forms;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
-using Microsoft.CodeAnalysis;
-using AiTool3.Audio;
-using AiTool3.Snippets;
-using Whisper.net.Ggml;
-using AiTool3.Providers;
-using AiTool3.Helpers;
-using FontAwesome.Sharp;
-using AiTool3.ExtensionMethods;
-using System.Windows.Forms;
-using AiTool3.Settings;
 using System.Diagnostics;
-using AiTool3.Tools;
 using System.Text;
 using System.Text.Json;
-using System.Security.Policy;
-using AiTool3.UI.Forms;
+using Whisper.net.Ggml;
 
 namespace AiTool3
 {
@@ -32,7 +29,7 @@ namespace AiTool3
         public const decimal Version = 0.3m;
 
         private FileAttachmentManager _fileAttachmentManager;
-        
+
 
         private SearchManager _searchManager;
 
@@ -41,7 +38,7 @@ namespace AiTool3
         public TemplateManager templateManager;
         public ConversationManager ConversationManager { get; set; } = new ConversationManager();
         public SettingsSet CurrentSettings { get; set; }
-        
+
 
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
@@ -214,9 +211,9 @@ namespace AiTool3
                 _searchManager = new SearchManager(dgvConversations);
                 _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
 
-            // hide splash
-            //plash.Close();
-                }
+                // hide splash
+                //plash.Close();
+            }
             finally
             {
                 // Close the splash screen
@@ -231,7 +228,7 @@ namespace AiTool3
                 if (splashThread != null && splashThread.IsAlive)
                     splashThread.Join();
 
-                
+
             }
         }
 
@@ -330,11 +327,11 @@ namespace AiTool3
                     SettingsSet.Save(CurrentSettings);
                     break;
                 case "attach":
-                    
 
 
-                        await _fileAttachmentManager.HandleAttachment(chatWebView, this, CurrentSettings.SoftwareToyMode);
-                    
+
+                    await _fileAttachmentManager.HandleAttachment(chatWebView, this, CurrentSettings.SoftwareToyMode);
+
                     break;
                 case "voice":
                     if (!audioRecorderManager.IsRecording)
@@ -472,19 +469,22 @@ namespace AiTool3
                         updateMenu = MenuHelper.CreateMenu("Update Available");
                         updateMenu.BackColor = System.Drawing.Color.DarkRed;
                     }
-                    else if (latestVersion < currentVersion) { 
+                    else if (latestVersion < currentVersion)
+                    {
                         updateMenu = MenuHelper.CreateMenu($"Pre-Release Version {currentVersion}");
                         updateMenu.BackColor = System.Drawing.Color.DarkSalmon;
                     }
-                    else if (latestVersion == currentVersion) { 
-                        updateMenu = MenuHelper.CreateMenu($"Version {currentVersion}"); 
-                        updateMenu.BackColor = System.Drawing.Color.DarkGreen; }
-                    
-                        updateMenu.Click += (s, e) =>
-                        {
-                            Process.Start(new ProcessStartInfo("cmd", $"/c start {latestVersionUrl.Replace("&", "^&")}") { CreateNoWindow = true });
-                        };
-                        menuBar.Items.Add(updateMenu);
+                    else if (latestVersion == currentVersion)
+                    {
+                        updateMenu = MenuHelper.CreateMenu($"Version {currentVersion}");
+                        updateMenu.BackColor = System.Drawing.Color.DarkGreen;
+                    }
+
+                    updateMenu.Click += (s, e) =>
+                    {
+                        Process.Start(new ProcessStartInfo("cmd", $"/c start {latestVersionUrl.Replace("&", "^&")}") { CreateNoWindow = true });
+                    };
+                    menuBar.Items.Add(updateMenu);
                 }
             }
             catch { }
@@ -586,7 +586,7 @@ namespace AiTool3
             }
             else
             {
-                var selectedModel  = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3")); 
+                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
                 await chatWebView.SetDropdownValue("mainAI", selectedModel.ToString());
                 CurrentSettings.SelectedModel = selectedModel.ToString();
                 SettingsSet.Save(CurrentSettings);
@@ -622,7 +622,7 @@ namespace AiTool3
                     {
                         selectedConversationGuid = dgvConversations.Rows[hti.RowIndex].Cells[0].Value.ToString();
                     }
-                                        catch { }
+                    catch { }
                 }
             }
         }

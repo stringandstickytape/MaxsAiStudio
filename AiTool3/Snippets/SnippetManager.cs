@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 
 namespace AiTool3.Snippets
@@ -134,7 +133,7 @@ namespace AiTool3.Snippets
     }
 
 
-    public class  SnippetSet
+    public class SnippetSet
     {
         public List<Snippet> Snippets;
 

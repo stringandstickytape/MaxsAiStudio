@@ -1,7 +1,7 @@
 ﻿using NAudio.Wave;
 using System.Diagnostics;
-using Whisper.net.Ggml;
 using Whisper.net;
+using Whisper.net.Ggml;
 
 namespace AiTool3.Audio
 {
@@ -66,7 +66,7 @@ namespace AiTool3.Audio
                         memoryStream.Position = 0;
                         var buffer = new byte[memoryStream.Length];
                         memoryStream.Read(buffer, 0, buffer.Length);
-                        
+
                         Task.Run(async () =>
                         {
                             await ProcessAudio(buffer);
@@ -143,7 +143,7 @@ namespace AiTool3.Audio
                 memoryStream.Dispose();
 
             memoryStream = new MemoryStream();
-            writer = new WaveFileWriter(memoryStream, new WaveFormat(16000,1));
+            writer = new WaveFileWriter(memoryStream, new WaveFormat(16000, 1));
         }
 
         internal int GetAudioLevel()
@@ -155,13 +155,13 @@ namespace AiTool3.Audio
         {
             modelName = modelNameIn;
             DownloadModel().Wait();
-                
+
             WhisperFactory = WhisperFactory.FromPath(modelName);
             WhisperProcessor = WhisperFactory.CreateBuilder()
                     .WithLanguage("en")
                     .Build(); ;
 
-            
+
         }
 
 

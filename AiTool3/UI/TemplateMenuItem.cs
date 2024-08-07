@@ -19,7 +19,7 @@
         // measure "text" using that font
         var size = TextRenderer.MeasureText(text, parentFont);
 
-        Width = size.Width+48;
+        Width = size.Width + 48;
 
         dropDownItems.DropDownItems.Add(this);
     }
@@ -27,10 +27,10 @@
     protected override void OnPaint(PaintEventArgs e)
     {
         // Draw the background
-        
+
 
         // Calculate text rectangle
-        Rectangle textRect = new Rectangle(48, 0, Width-48, Height);
+        Rectangle textRect = new Rectangle(48, 0, Width - 48, Height);
 
         // check if any child objects are IsSelecetd
         var highlightAsParent = false;
@@ -66,13 +66,13 @@
 
         // Draw the edit button
         Rectangle buttonRect = new Rectangle(0, 0, 32, 32);
-        
+
         using (Bitmap bmp2 = new Bitmap(32, 32))
         using (Graphics g = Graphics.FromImage(bmp2))
         {
             // Change background color to gryel when mouse is over the button
             g.Clear(_isMouseOverButton ? Color.GreenYellow : Color.LightGray);
-        
+
             using (StringFormat sf = new StringFormat())
             {
                 sf.Alignment = StringAlignment.Center;

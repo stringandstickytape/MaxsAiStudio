@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Reflection;
 
 namespace AiTool3.Tools
 {
@@ -32,7 +32,7 @@ namespace AiTool3.Tools
                         // get first and second lines of json file
                         string[] lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
-                        string firstLine = lines[0].Replace("//", "").Replace(" ", "").Replace("\r","").Replace("\n","").Trim();
+                        string firstLine = lines[0].Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
                         string secondLine = lines[1].Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
 
                         Tool tool = JsonConvert.DeserializeObject<Tool>(json);

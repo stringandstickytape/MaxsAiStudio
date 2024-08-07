@@ -89,20 +89,20 @@ namespace AiTool3.Settings
                 panelToggles.Controls.Add(lbl);
 
                 // does the prop have an IsPathAttribute?
-                
+
                 if (takesBrowserDialog != null)
                 {
                     var btn = new Button
                     {
                         Text = "...",
-                        Location = new Point(tb.Width +10, ypos),
+                        Location = new Point(tb.Width + 10, ypos),
                         Width = 50,
                         Height = 30
                     };
 
                     btn.Click += (s, e) =>
                     {
-                        if(isPathAttr != null)
+                        if (isPathAttr != null)
                         {
                             var dialog = new FolderBrowserDialog();
                             if (dialog.ShowDialog() == DialogResult.OK)
@@ -110,7 +110,7 @@ namespace AiTool3.Settings
                                 tb.Text = dialog.SelectedPath;
                             }
                         }
-                        else if(isFileAttr != null)
+                        else if (isFileAttr != null)
                         {
                             var ext = isFileAttr.Extension;
 
@@ -146,7 +146,7 @@ namespace AiTool3.Settings
                 {
                     Minimum = 0,
                     Maximum = 65535,
-                    Location = new Point(0, ypos-1)
+                    Location = new Point(0, ypos - 1)
                 };
 
                 nud.Value = (int)prop.GetValue(settings);
@@ -156,7 +156,7 @@ namespace AiTool3.Settings
                 {
                     prop.SetValue(NewSettings, (int)(nud.Value));
                 };
-                
+
                 // add to panel
                 panelToggles.Controls.Add(nud);
                 // add matching label to the right
@@ -176,7 +176,7 @@ namespace AiTool3.Settings
 
 
             // for every float - use a textbox and convvert to float
-            foreach(var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(float)))
+            foreach (var prop in settings.GetType().GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
                 if (displayNameAttr == null) continue;
@@ -249,8 +249,8 @@ namespace AiTool3.Settings
                     DataPropertyName = col.Name,
                     ReadOnly = col.ReadOnly,
                 };
-                
-                switch(newCol.Name)
+
+                switch (newCol.Name)
                 {
                     case "ModelName":
                         newCol.Width = 200;

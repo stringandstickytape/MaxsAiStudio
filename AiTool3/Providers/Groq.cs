@@ -4,13 +4,9 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using static System.Windows.Forms.Design.AxImporter;
 
 namespace AiTool3.Providers
 {
@@ -109,10 +105,10 @@ namespace AiTool3.Providers
                 {
                     char c = charBuffer[i];
                     lineSb.Append(c);
-                    
+
                     if (c == '\n')
                     {
-                        
+
                         ProcessLine(lineSb.ToString(), sb);
                         lineSb.Clear();
                     }
@@ -141,7 +137,8 @@ namespace AiTool3.Providers
                     var content = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
 
                     if (!string.IsNullOrEmpty(content))
-                    {Debug.WriteLine(content);
+                    {
+                        Debug.WriteLine(content);
                         sb.Append(content);
                     }
                 }

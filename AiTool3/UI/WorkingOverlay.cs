@@ -1,8 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using System.Drawing;
-using Microsoft.Web.WebView2.WinForms;
-using Microsoft.Web.WebView2.Core;
+﻿using Microsoft.Web.WebView2.WinForms;
 
 namespace AiTool3.UI
 {

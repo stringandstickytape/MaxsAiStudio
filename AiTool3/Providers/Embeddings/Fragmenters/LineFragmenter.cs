@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace AiTool3.Providers.Embeddings.Fragmenters
+﻿namespace AiTool3.Providers.Embeddings.Fragmenters
 {
     public class LineFragmenter
 

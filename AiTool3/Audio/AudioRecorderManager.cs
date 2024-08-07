@@ -1,6 +1,5 @@
-﻿using Whisper.net.Ggml;
-using Whisper.net;
-using AiTool3.UI;
+﻿using AiTool3.UI;
+using Whisper.net.Ggml;
 
 namespace AiTool3.Audio
 {
@@ -18,7 +17,7 @@ namespace AiTool3.Audio
         private GgmlType ggmlType;
 
         private string modelName { get; set; }
-            
+
         public AudioRecorderManager(GgmlType ggmlType, ChatWebView chatWebView)
         {
             this.ggmlType = ggmlType;
@@ -30,9 +29,9 @@ namespace AiTool3.Audio
         public async Task StartRecording()
         {
             recorder = new AudioRecorder("ggml-smallen.bin");
-            
+
             cts = new CancellationTokenSource();
-            
+
             recorder.AudioProcessed += (sender, result) =>
             {
                 AudioProcessed?.Invoke(this, result);

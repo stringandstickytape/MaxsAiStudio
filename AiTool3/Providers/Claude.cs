@@ -1,15 +1,12 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.Interfaces;
-using System;
-using System.Diagnostics;
-using System.Net.Http.Headers;
-using System.Text;
+using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Net;
+using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
-using AiTool3.Tools;
 
 namespace AiTool3.Providers
 {
@@ -43,15 +40,12 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
             };
-
-
-            JObject tool  = null;
-            if(toolIDs != null && toolIDs.Any())
+            if (toolIDs != null && toolIDs.Any())
             {
                 var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
                 // get first line of toolObj.FullText
                 var firstLine = toolObj.FullText.Split("\n")[0];
-                firstLine = firstLine.Replace("//","").Replace(" ","").Replace("\r","").Replace("\n","");
+                firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
                 var colorSchemeTool = AssemblyHelper.GetEmbeddedAssembly($"AiTool3.Tools.{firstLine}");
 

@@ -1,6 +1,4 @@
 ﻿using AiTool3.Conversations;
-using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace AiTool3

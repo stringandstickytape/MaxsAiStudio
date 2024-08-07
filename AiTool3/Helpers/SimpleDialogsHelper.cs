@@ -49,7 +49,7 @@
                 w += 2;
                 h += 2;
                 // draw a one-pixel white border around the image
-                using (Bitmap bmp = new Bitmap(w,h))
+                using (Bitmap bmp = new Bitmap(w, h))
                 {
                     Graphics g = Graphics.FromImage(bmp);
                     g.Clear(Color.White);
@@ -62,7 +62,7 @@
 
                     g.Dispose();
                     image = bmp;
-                    PictureBox pictureBox = new PictureBox() { Left = margin, Top = margin * 2 + buttonHeight+30, Width = w, Height = h, Image = image.GetThumbnailImage(w, h, null, IntPtr.Zero) };
+                    PictureBox pictureBox = new PictureBox() { Left = margin, Top = margin * 2 + buttonHeight + 30, Width = w, Height = h, Image = image.GetThumbnailImage(w, h, null, IntPtr.Zero) };
                     pictureBox.Click += (sender, e) => { prompt.DialogResult = DialogResult.Continue; };
                     prompt.Controls.Add(pictureBox);
                 }

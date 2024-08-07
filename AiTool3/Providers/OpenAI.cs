@@ -4,7 +4,6 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
@@ -44,7 +43,7 @@ namespace AiTool3.Providers
                 },
                 ["stream"] = useStreaming,
                 //stream_options: {"include_usage": true}
-                ["stream_options"] = useStreaming ?new JObject
+                ["stream_options"] = useStreaming ? new JObject
                 {
                     ["include_usage"] = true
                 } : null
@@ -82,9 +81,6 @@ namespace AiTool3.Providers
                     ["content"] = messageContent
                 });
             }
-
-
-            JObject tool = null;
             if (toolIDs != null && toolIDs.Any())
             {
                 var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
@@ -111,29 +107,6 @@ namespace AiTool3.Providers
                 wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
                 { if (((JProperty)c).Name == "input_schema") c.Remove(); }
                 );
-
-                var jsonString = @"{
-      ""type"": ""function"",
-      ""function"": {
-        ""name"": ""get_current_temperature"",
-        ""description"": ""Get the current temperature for a specific location"",
-        ""parameters"": {
-          ""type"": ""object"",
-          ""properties"": {
-            ""location"": {
-              ""type"": ""string"",
-              ""description"": ""The city and state, e.g., San Francisco, CA""
-            },
-            ""unit"": {
-              ""type"": ""string"",
-              ""enum"": [""Celsius"", ""Fahrenheit""],
-              ""description"": ""The temperature unit to use. Infer this from the user's location.""
-            }
-          },
-          ""required"": [""location"", ""unit""]
-        }
-      }
-    }";
 
                 // set req["tools"] from the jsonstring
                 //req["tools"] = new JArray { JObject.Parse(jsonString) };
@@ -177,11 +150,11 @@ namespace AiTool3.Providers
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            
+
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var reader = new StreamReader(stream);
-            
+
             var responseBuilder = new StringBuilder();
             var buffer = new char[1024];
             int charsRead;
@@ -281,7 +254,7 @@ namespace AiTool3.Providers
                 try
                 {
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-                    if(chunk == null)
+                    if (chunk == null)
                     {
                         return jsonData;
                     }

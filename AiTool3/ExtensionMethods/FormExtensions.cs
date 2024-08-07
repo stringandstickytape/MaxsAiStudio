@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using System.Linq;
-using AiTool3.UI;
+﻿using AiTool3.UI;
 
 namespace AiTool3.ExtensionMethods
 {

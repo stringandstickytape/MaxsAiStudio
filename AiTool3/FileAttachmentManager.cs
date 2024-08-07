@@ -1,12 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Windows.Forms;
-using AiTool3.ExtensionMethods;
+﻿using AiTool3.ExtensionMethods;
 using AiTool3.Helpers;
 using AiTool3.UI;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
+using System.Text;
 
 namespace AiTool3
 {
@@ -130,7 +127,7 @@ namespace AiTool3
             }
         }
 
-        public  async Task AttachTextFiles(string[] filenames)
+        public async Task AttachTextFiles(string[] filenames)
         {
             StringBuilder sb = new StringBuilder();
             foreach (var file in filenames)
@@ -152,9 +149,9 @@ namespace AiTool3
         public async Task<string> TranscribeMP4(string filename, string condaActivateScriptPath)
         {
             // Path to the Miniconda installation
-            string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat"); 
-            
-            if(!File.Exists(condaPath))
+            string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat");
+
+            if (!File.Exists(condaPath))
             {
                 MessageBox.Show($"Conda activate script not found at {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
                 return "";
