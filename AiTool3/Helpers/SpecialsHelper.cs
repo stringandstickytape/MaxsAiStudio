@@ -32,36 +32,5 @@ namespace AiTool3.Helpers
 
             return response;
         }
-
-        public static void ReviewCode(out string userMessage)
-        {
-            var path = Directory.GetCurrentDirectory();
-            while (!Directory.Exists(Path.Combine(path!, "MaxsAiTool")))
-            {
-                path = Path.GetDirectoryName(path);
-            }
-
-            // recurse downwards through all subdirectories finding all the CS files
-            var files = Directory.GetFiles(path!, "*.cs", SearchOption.AllDirectories);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var file in files)
-            {
-                if (file.Contains(".g") || file.Contains(".Assembly"))
-                    continue;
-                sb.AppendLine($"###{file}");
-                sb.Append(File.ReadAllText(file));
-                sb.AppendLine($"");
-                sb.AppendLine($"###");
-                sb.AppendLine();
-
-            };
-
-            // get AI to compare them
-
-            userMessage = $"{sb.ToString()}{Environment.NewLine}Review this C# code and spot the bugs please.";
-
-        }
     }
 }
