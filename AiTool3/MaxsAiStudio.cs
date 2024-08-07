@@ -24,11 +24,14 @@ namespace AiTool3
 {
     public partial class MaxsAiStudio : Form
     {
-        public const decimal Version = 0.2m;
+        // injected dependencies
+        private ToolManager _toolManager;
+
+        public const decimal Version = 0.3m;
 
         private SnippetManager snippetManager = new SnippetManager();
         private FileAttachmentManager _fileAttachmentManager;
-        private ToolManager toolManager = new ToolManager();
+        
 
         private SearchManager _searchManager;
 
@@ -46,8 +49,11 @@ namespace AiTool3
         private AudioRecorderManager audioRecorderManager;
 
         public string selectedConversationGuid = "";
-        public MaxsAiStudio()
+
+        public MaxsAiStudio(ToolManager toolManager)
         {
+            _toolManager = toolManager;
+
             Form splash = null;
             Thread splashThread = null;
 
@@ -89,6 +95,7 @@ namespace AiTool3
 
                 InitializeComponent();
 
+                chatWebView.InjectDependencies(toolManager);
 
 
             
@@ -267,7 +274,7 @@ namespace AiTool3
 
             }
 
-            await chatWebView.SetTools(toolManager.Tools);
+            await chatWebView.SetTools();
 
         }
 
@@ -734,11 +741,11 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            await FetchAiInputResponse(e.SelectedTools, toolManager: toolManager, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings);
+            await FetchAiInputResponse(e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings);
         }
 
 
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, ToolManager toolManager = null, bool sendSecondary = false, bool addEmbeddings = false)
+        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, bool sendSecondary = false, bool addEmbeddings = false)
         {
             toolIDs = toolIDs ?? new List<string>();
             string retVal = "";
@@ -749,7 +756,7 @@ namespace AiTool3
                 var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
 
                 var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, toolManager, addEmbeddings);
+                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, addEmbeddings);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");
                 await chatWebView.DisableCancelButton();
@@ -809,7 +816,7 @@ namespace AiTool3
 
 
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, ToolManager toolManager, bool addEmbeddings = false)
+        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, bool addEmbeddings = false)
         {
             var aiService = AiServiceResolver.GetAiService(model.ServiceName);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
@@ -817,13 +824,13 @@ namespace AiTool3
 
             toolIDs = toolIDs.Where(x => int.TryParse(x, out _)).ToList();
 
-            var toolLabels = toolIDs.Select(t => toolManager.Tools[int.Parse(t)].Name).ToList();
+            var toolLabels = toolIDs.Select(t => _toolManager.Tools[int.Parse(t)].Name).ToList();
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, toolManager, addEmbeddings);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, _toolManager, addEmbeddings);
 
-            if (toolManager != null && toolIDs.Any())
+            if (_toolManager != null && toolIDs.Any())
             {
-                var tool = toolManager.GetToolByLabel(toolLabels[0]);
+                var tool = _toolManager.GetToolByLabel(toolLabels[0]);
 
                 var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
 

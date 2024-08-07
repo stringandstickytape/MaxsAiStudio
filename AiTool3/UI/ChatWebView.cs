@@ -34,6 +34,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewContinueEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
+        private ToolManager _toolManager;
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -48,7 +49,10 @@ namespace AiTool3.UI
             
         }
 
-   
+        public void InjectDependencies(ToolManager toolManager)
+        {
+            _toolManager = toolManager;
+        }
 
         protected virtual void OnFileDropped(string filename)
         {
@@ -287,9 +291,9 @@ namespace AiTool3.UI
                 ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)})");
             }
         }
-        internal async Task SetTools(List<Tool> tools)
+        internal async Task SetTools()
         {
-            var toolStrings = tools.Select(x => x.Name.ToString()).ToArray();
+            var toolStrings = _toolManager.Tools.Select(x => x.Name.ToString()).ToArray();
             var toolStringsJson = JsonConvert.SerializeObject(toolStrings);
 
             await ExecuteScriptAsync($"window.setTools({toolStringsJson})");

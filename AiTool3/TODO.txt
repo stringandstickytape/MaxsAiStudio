@@ -112,6 +112,8 @@ Necessary for release:
 
 Clean build : check whisper can be got up-and-running and doesn't b0rk too badly beforehand
 
+Claude pre-fills
+OPenAI structured output
 
 ~~~~~~~~~~ Further ideas
 

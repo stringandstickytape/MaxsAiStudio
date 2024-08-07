@@ -102,6 +102,8 @@ Embeddings can currently only be created via local (Ollama) installs, for instan
 
 # Other points to note
 
+The main window is a WebView.  Therefore you can use CTRL-mousewheel to set the zoom level, CTRL-F to Find, and so on.
+
 Pressing CTRL-Return in the input box, will Send the current message.  Pressing CTRL-SHIFT-Return will do the same, using the secondary AI.
 
 Token costs can be entered into the Settings dialog, and are correct at the time of writing.  Interaction costs appear in the status bar at the bottom of the window; accumulated costs are accessible via Specials -> Show Model Usage/Cost Statistics.
