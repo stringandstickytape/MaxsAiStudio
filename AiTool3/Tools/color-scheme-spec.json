@@ -41,6 +41,14 @@
             "type": "string",
             "description": "Button background CSS"
           },
+          "buttonBorder": {
+            "type": "string",
+            "description": "Button border CSS property"
+          },
+          "borderRadius": {
+            "type": "string",
+            "description": "Button border radius property"
+          },
           "dropdownBackgroundColor": {
             "type": "string",
             "description": "Dropdown background color in hex format"

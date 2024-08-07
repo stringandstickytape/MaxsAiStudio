@@ -157,6 +157,8 @@ const HeaderBar = () => {
                             <ToggleSplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                                 label="Tools"
                                 svgString='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="transparent" fill="currentColor">
   <path d="M12 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" fill="currentColour"/>
@@ -175,6 +177,8 @@ const HeaderBar = () => {
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                                 label="Attach"
                                 onClick={handleAttach}
                                 svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
@@ -182,6 +186,8 @@ const HeaderBar = () => {
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                                 label="Voice"
                                 onClick={handleVoice}
                                 svgString='<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -197,6 +203,8 @@ const HeaderBar = () => {
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                                 label="Project"
                                 onClick={handleProject}
                                 svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -212,6 +220,8 @@ const HeaderBar = () => {
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                                 label="Theme"
                                 onClick={handleTheme}
                                 svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">

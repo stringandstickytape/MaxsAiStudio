@@ -166,9 +166,19 @@
                         opacity: 0.5;
                         cursor: not-allowed;
                     }
-                    .send-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
-                    .cancel-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
-                    .new-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; }
+                    .send-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; 
+                                border: ${colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'};
+                                borderRadius: ${colorScheme.borderRadius ? colorScheme.borderRadius : '3px'};
+                
+                }
+                    .cancel-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; 
+                                                border: ${colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'};
+                                borderRadius: ${colorScheme.borderRadius ? colorScheme.borderRadius : '3px'};
+                            }
+                    .new-button { background-color: ${colorScheme.buttonBackgroundColor}; background: ${colorScheme.buttonBackgroundCss}; 
+                                                border: ${colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'};
+                                borderRadius: ${colorScheme.borderRadius ? colorScheme.borderRadius : '3px'};
+                            }
 
                     .checkbox-wrapper {
                         display: flex;
@@ -189,7 +199,8 @@
                         background-color: ${colorScheme.buttonBackgroundColor};
                         background: ${colorScheme.buttonBackgroundCss};
                         color: ${colorScheme.buttonTextColor};
-                        border: none;
+                        border: ${colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'};
+                        borderRadius: ${colorScheme.borderRadius ? colorScheme.borderRadius : '3px'};
                         padding: 4px;
                         cursor: pointer;
                         transition: opacity 0.3s ease;
@@ -256,6 +267,8 @@
                         disabled={sendDisabled}
                         color={colorScheme.buttonBackgroundColor}
                         background={colorScheme.buttonBackgroundCss}
+                        border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                        borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                         alternateLabel={sendAlternateLabel}
                         alternateColor={sendAlternateColor}
                         dropdownItems={[
@@ -272,6 +285,8 @@
                         background={colorScheme.buttonBackgroundCss}
                         alternateLabel={cancelAlternateLabel}
                         alternateColor={cancelAlternateColor}
+                        border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                        borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                     />
                     <SplitButton
                         label="New"
@@ -285,6 +300,8 @@
                         background={colorScheme.buttonBackgroundCss}
                         alternateLabel={newAlternateLabel}
                         alternateColor={newAlternateColor}
+                        border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                        borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                     />
                 </div>
             </div>

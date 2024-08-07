@@ -85,6 +85,8 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
                         onClick={handleContinue}
                         color={colorScheme.buttonBackgroundColor}
                         background={colorScheme.buttonBackgroundCss}
+                        border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                        borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
                     />
                 )}
                 <button className="top-button" onClick={scrollToTop}>↑ Top</button>

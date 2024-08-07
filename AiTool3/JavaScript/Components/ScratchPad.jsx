@@ -16,6 +16,8 @@ const ScratchPad = () => {
             pillButtonRef.current.style.backgroundColor = colorScheme.buttonBackgroundColor;
             pillButtonRef.current.style.background = colorScheme.buttonBackgroundCss;
             pillButtonRef.current.style.color = colorScheme.buttonTextColor;
+            pillButtonRef.current.style.border = colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none';
+            pillButtonRef.current.style.borderRadius = colorScheme.borderRadius ? colorScheme.borderRadius : '3px';
         }
     }, [colorScheme]);
 
@@ -145,6 +147,8 @@ const ScratchPad = () => {
                         padding: 10px;
                         background-color: ${colorScheme.buttonBackgroundColor};
                         background: ${colorScheme.buttonBackgroundCss};
+                        border: ${colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'};
+                        borderRadius: ${colorScheme.borderRadius ? colorScheme.borderRadius : '3px'};
                         color: ${colorScheme.buttonTextColor};
                         border: none;
                         cursor: pointer;

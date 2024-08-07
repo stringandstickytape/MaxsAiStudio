@@ -60,9 +60,9 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                 background: colorScheme.buttonBackgroundCss ? colorScheme.buttonBackgroundCss : 'none',
                 backgroundColor: colorScheme.buttonBackgroundColor,
                 color: colorScheme.buttonTextColor,
-                border: 'none',
+                border: colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none',
+                borderRadius: colorScheme.borderRadius ? colorScheme.borderRadius : '3px',
                 padding: '3px 8px',
-                borderRadius: '3px',
                 cursor: 'pointer',
                 marginRight: '5px',
             }}
@@ -251,8 +251,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                         backgroundColor: colorScheme.codeBlockBackgroundColor,
                         color: colorScheme.codeBlockTextColor,
                         padding: '10px',
-                        borderBottomLeftRadius: '5px',
-                        borderBottomRightRadius: '5px',
+                        //borderBottomLeftRadius: '5px',
+                        //borderBottomRightRadius: '5px',
                         marginBottom: '10px'
                     }}>
                         {code.trim()}

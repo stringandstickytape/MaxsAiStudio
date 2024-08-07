@@ -98,9 +98,6 @@ namespace AiTool3
 
                 chatWebView.InjectDependencies(toolManager);
 
-
-            
-
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
                 webViewManager = new WebViewManager(ndcWeb);
