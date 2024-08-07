@@ -16,6 +16,7 @@ namespace AiTool3.Providers
 {
     internal class Groq : IAiService
     {
+        public ToolManager ToolManager { get; set; }
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
@@ -25,7 +26,7 @@ namespace AiTool3.Providers
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, ToolManager toolManager = null, bool addEmbeddings = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
             useStreaming = true;
             if (client.DefaultRequestHeaders.Authorization == null)

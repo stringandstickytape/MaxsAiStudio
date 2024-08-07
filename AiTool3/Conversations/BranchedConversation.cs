@@ -65,7 +65,7 @@ namespace AiTool3.Conversations
             {
 
                 // instantiate the service from name
-                var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
+                var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
 
                 Conversation conversation = null;
 
@@ -141,7 +141,7 @@ namespace AiTool3.Conversations
             string responseText = "";
             Debug.WriteLine(Summary);
                 // instantiate the service from name
-                var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName);
+                var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
 
                 Conversation conversation = null;
 

@@ -44,7 +44,7 @@ internal static class Program
     private static void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<ToolManager>();
-        //services.AddTransient<SnippetManager>();
+        services.AddTransient<SnippetManager>();
         //services.AddTransient<FileAttachmentManager>();
         //services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();

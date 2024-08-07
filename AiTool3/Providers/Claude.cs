@@ -9,11 +9,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using AiTool3.Tools;
 
 namespace AiTool3.Providers
 {
     internal class Claude : IAiService
     {
+        public ToolManager ToolManager { get; set; }
         public bool UseTool { get; set; } = true;
 
         HttpClient client = new HttpClient();
@@ -24,7 +26,7 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, Tools.ToolManager toolManager = null, bool addEmbeddings = false)
+        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
             if (!clientInitialised)
             {
@@ -46,7 +48,7 @@ namespace AiTool3.Providers
             JObject tool  = null;
             if(toolIDs != null && toolIDs.Any())
             {
-                var toolObj = toolManager.Tools.First(x => x.Name == toolIDs[0]);
+                var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
                 // get first line of toolObj.FullText
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//","").Replace(" ","").Replace("\r","").Replace("\n","");

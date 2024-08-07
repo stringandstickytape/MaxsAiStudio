@@ -6,8 +6,9 @@ namespace AiTool3.Interfaces
 {
     public interface IAiService
     {
-        Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolNames, bool useStreaming = false, ToolManager toolManager = null, bool addEmbeddings = false);
+        Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolNames, bool useStreaming = false, bool addEmbeddings = false);
 
+        ToolManager ToolManager { get; set; }
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
     }
