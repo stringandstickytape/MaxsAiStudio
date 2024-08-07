@@ -25,7 +25,6 @@ namespace AiTool3.Conversations
         public List<string> Children { get; set; }
         public string? Parent { get; set; }
 
-        // don't json this
         [JsonIgnore]
         public bool Omit { get; set; }
         public string? Engine { get; set; }
@@ -69,16 +68,6 @@ namespace AiTool3.Conversations
 
         public int InputTokens { get; set; }
         public int OutputTokens { get; set; }
-
-        public string InfoLabel
-        {
-            get
-            {
-                var inputTokens = InputTokens == 0 ? "" : $"{InputTokens} in";
-                var outputTokens = OutputTokens == 0 ? "" : $"{OutputTokens} out";
-                return $"{(CreatedAt != null ? "Created at" : "")} {CreatedAt?.ToShortTimeString()} {CreatedAt?.ToShortDateString()} {(CreatedAt != null && !string.IsNullOrWhiteSpace(Engine)? "by" : "")} {Engine}{Environment.NewLine}{(String.Format("{0:00}:{1:00}:{2:00}",TimeTaken.Minutes, TimeTaken.Seconds, TimeTaken.Milliseconds / 10))}  {inputTokens}{outputTokens}";
-            }
-        }
 
         public TimeSpan TimeTaken { get; set; }
         public string? Base64Type { get; set; }

@@ -17,6 +17,7 @@ namespace AiTool3.Conversations
         public string Summary { get; set; }
         public Color? HighlightColour { get; set; } = null;
 
+        public event StringSelectedEventHandler StringSelected;
 
         public static string GetFilename(string guid) => $"Conversations\\v3-conversation-{guid}.json";
 
@@ -133,17 +134,15 @@ namespace AiTool3.Conversations
             }
         }
 
-        public event StringSelectedEventHandler StringSelected;
-
         internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool fun, string userAutoSuggestPrompt)
         {
             AutoSuggestForm form = null;
             string responseText = "";
             Debug.WriteLine(Summary);
-                // instantiate the service from name
-                var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
+                
+            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
 
-                Conversation conversation = null;
+            Conversation conversation = null;
 
             string systemprompt = "";
 
@@ -153,29 +152,29 @@ namespace AiTool3.Conversations
             else systemprompt = userAutoSuggestPrompt;
 
             {
-                    conversation = new Conversation();
-                    conversation.systemprompt = systemprompt;
-                    conversation.messages = new List<ConversationMessage>();
-                    conversation.systemprompt += $" {DateTime.Now.Ticks}";
-                    List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
+                conversation = new Conversation();
+                conversation.systemprompt = systemprompt;
+                conversation.messages = new List<ConversationMessage>();
+                conversation.systemprompt += $" {DateTime.Now.Ticks}";
+                List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
 
-                    Debug.WriteLine(nodes);
+                Debug.WriteLine(nodes);
 
-                    foreach (var node in nodes.Where(x => x.Role != CompletionRole.Root))
+                foreach (var node in nodes.Where(x => x.Role != CompletionRole.Root))
+                {
+                    var nodeContent = node.Content;
+                        
+                    if (nodeContent.Length > 1000)
                     {
-                        var nodeContent = node.Content;
-                        // truncate to 500 chars if necc
-                        if (nodeContent.Length > 1000)
-                        {
-                            nodeContent = nodeContent.Substring(0, 1000);
-                        }
-                        conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
+                        nodeContent = nodeContent.Substring(0, 1000);
                     }
-                    conversation.messages.Add(new ConversationMessage { role = "user", content = $"based on our conversation so far, give me 25 {(fun ? "fun and interesting" : "")} things I might ask you to do next, as a json array of strings." });
-
+                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                 }
-                // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                conversation.messages.Add(new ConversationMessage { role = "user", content = $"based on our conversation so far, give me 25 {(fun ? "fun and interesting" : "")} things I might ask you to do next, as a json array of strings." });
+
+            }
+                
+            var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
             var cost = apiModel.GetCost(response.TokenUsage);
 
@@ -200,7 +199,6 @@ namespace AiTool3.Conversations
                 // remove ```json and ``` from the response
                 responseText = responseText.Replace("```json", "").Replace("```", "");
 
-                // regex to match a json array
             var regex = new System.Text.RegularExpressions.Regex(@"\[[\s\S]*\]");
 
             var matches = regex.Matches(responseText);
@@ -213,7 +211,6 @@ namespace AiTool3.Conversations
 
 
 
-            // convert obj to string array
             var suggestions = obj.ToObject<string[]>();
                 
                 form = new AutoSuggestForm(suggestions);
@@ -230,11 +227,7 @@ namespace AiTool3.Conversations
             return form;
         }
 
-        private void Form_StringSelected(string selectedString)
-        {
-            // pass the selected string back to the main form
-            StringSelected?.Invoke(selectedString);
-        }
+        private void Form_StringSelected(string selectedString) => StringSelected?.Invoke(selectedString);
 
         public string AddNewRoot()
         {
@@ -249,7 +242,6 @@ namespace AiTool3.Conversations
 
         public List<CompletionMessage> GetParentNodeList(string guid)
         {
-            // starting at PreviousCompletion, walk up the tree to the root node and return a list of nodes
             var nodes = new List<CompletionMessage>();
             var current = guid;
 
@@ -265,21 +257,10 @@ namespace AiTool3.Conversations
             return nodes;
         }
 
-        public static BranchedConversation LoadConversation(string guid)
-        {
+        public static BranchedConversation LoadConversation(string guid) => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(GetFilename(guid)));
 
-            
-            return JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(GetFilename(guid)));
-        }
+        public CompletionMessage GetRootNode() => Messages.FirstOrDefault(x => x.Role == CompletionRole.Root);
 
-        public CompletionMessage GetRootNode()
-        {
-            return Messages.FirstOrDefault(x => x.Role == CompletionRole.Root);
-        }
-
-        internal static void DeleteConversation(string guid)
-        {
-            File.Delete(GetFilename(guid));
-        }
+        internal static void DeleteConversation(string guid) => File.Delete(GetFilename(guid));
     }
 }
