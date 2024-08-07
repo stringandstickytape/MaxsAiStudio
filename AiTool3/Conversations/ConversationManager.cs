@@ -146,11 +146,6 @@ namespace AiTool3.Conversations
             return conversation;
         }
 
-        internal void CreateNewMessages()
-        {
-            throw new NotImplementedException();
-        }
-
         public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)
         {
             var previousCompletionGuidBeforeAwait = PreviousCompletion?.Guid;
@@ -204,35 +199,28 @@ namespace AiTool3.Conversations
             var findAndReplacesJson = e.FindAndReplacesJson;
             var codeBlockIndex = e.CodeBlockIndex;
 
-            // code blocks in nodeToDuplicaet are demarcated by ThreeTicks either side. Find the start character index in nodeToDuplicate.Content
-            // for code block e.CodeBlockIndex, using a regex
-
-
             var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
             var matches = Regex.Matches(nodeToDuplicate.Content, codeBlockPattern, RegexOptions.Multiline);
 
             if (codeBlockIndex < 0 || codeBlockIndex >= matches.Count)
             {
-                // Handle invalid codeBlockIndex
                 throw new ArgumentOutOfRangeException(nameof(e.CodeBlockIndex), "Invalid code block index");
             }
 
             var targetCodeBlock = matches[codeBlockIndex];
             var codeBlockStartIndex = targetCodeBlock.Index;
             var codeBlockEndIndex = codeBlockStartIndex + targetCodeBlock.Length;
-            // advance codeBlockStartIndex to the begining of the next line
+            
             while (codeBlockStartIndex < nodeToDuplicate.Content.Length && nodeToDuplicate.Content[codeBlockStartIndex] != '\n')
             {
                 codeBlockStartIndex++;
             }
 
-            // reverse CodeBlockEndIndex to the beginning of the current line
             while (codeBlockEndIndex > 0 && nodeToDuplicate.Content[codeBlockEndIndex - 1] != '\n')
             {
                 codeBlockEndIndex--;
             }
 
-            // calculate codeBlockLength
             var codeBlockLength = codeBlockEndIndex - codeBlockStartIndex;
 
             var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(findAndReplacesJson);
@@ -242,43 +230,10 @@ namespace AiTool3.Conversations
             {
                 return null;
             }
-            // now take the original content, and replace the code block with the processed content
+            
             var newContent = nodeToDuplicate.Content.Substring(0, codeBlockStartIndex) + "\n" + processed + "\n" + nodeToDuplicate.Content.Substring(codeBlockStartIndex + codeBlockLength);
             nodeToDuplicate.Content = newContent;
-            // now add a new message which we'll append to NodeToDuplicate, ostensibly from the user, sayign "incorporate those changes"
-            //var newMessage = new CompletionMessage(CompletionRole.User)
-            //{
-            //    Content = "Incorporate those changes",
-            //    Parent = e.SelectedMessageGuid,
-            //    Engine = nodeToDuplicate.Engine,
-            //    SystemPrompt = nodeToDuplicate.SystemPrompt,
-            //    InputTokens = 0,
-            //    OutputTokens = 0,
-            //    Base64Image = nodeToDuplicate.Base64Image,
-            //    Base64Type = nodeToDuplicate.Base64Type,
-            //    CreatedAt = DateTime.Now,
-            //};
-            //
-            //Conversation!.Messages.Add(newMessage);
-            //nodeToDuplicate.Children!.Add(newMessage.Guid);
-            //
-            //// and from that message, add another, ostensibly from the assistant, quoting the new content
-            //var newMessage2 = new CompletionMessage(CompletionRole.Assistant)
-            //{
-            //    Content = newContent,
-            //    Parent = newMessage.Guid,
-            //    Engine = nodeToDuplicate.Engine,
-            //    SystemPrompt = nodeToDuplicate.SystemPrompt,
-            //    InputTokens = 0,
-            //    OutputTokens = 0,
-            //    Base64Image = nodeToDuplicate.Base64Image,
-            //    Base64Type = nodeToDuplicate.Base64Type,
-            //    CreatedAt = DateTime.Now,
-            //};
-            //
-            //Conversation.Messages.Add(newMessage2);
-            //newMessage.Children.Add(newMessage2.Guid);
-
+            
             SaveConversation();
 
             return nodeToDuplicate.Guid;
@@ -316,9 +271,6 @@ namespace AiTool3.Conversations
             }
                 // append the message content to the end of prev
                 newContent += msgContent;
-                // remove the message
-                //Conversation.Messages.Remove(message);
-                //SaveConversation();
 
                 // find the parent message of message
                 var parentOfCurrent = Conversation.FindByGuid(message.Parent);

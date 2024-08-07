@@ -30,8 +30,6 @@ namespace AiTool3.Conversations
 
         internal CachedConversation GetSummary(string file)
         {
-            //var convs = files.Select(x => JsonConvert.DeserializeObject<BranchedConversation>(File.ReadAllText(x)));
-
             var conversation = Conversations.FirstOrDefault(x => x.FileName == file);
             var lastWriteTime = new FileInfo(file).LastWriteTime;
 
@@ -77,7 +75,7 @@ namespace AiTool3.Conversations
     }
 
     public class CachedConversation
-    {// conv.ConvGuid, conv.Messages[0].Content, conv.Messages[0].Engine, conv.Summary
+    {
         public string ConvGuid { get; set; }
         public string Content { get; set; }
         public string Engine { get; set; }
