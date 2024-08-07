@@ -40,19 +40,6 @@ namespace AiTool3.Helpers
             }
         }
 
-        internal static string ImageToBase64(Image image)
-        {
-            //convert an image to a base64 string
-            using (var ms = new MemoryStream())
-            {
-
-                // gives   Message = Value cannot be null.Arg_ParamName_Name?
-
-                image.Save(ms, image.RawFormat);
-                return Convert.ToBase64String(ms.ToArray());
-            }
-        }
-
         public static OpenFileDialog ShowAttachImageFileDialog(string defaultPath)
         {
             // prompt the user for an image file.
