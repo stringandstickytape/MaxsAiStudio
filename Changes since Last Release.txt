@@ -1,0 +1,4 @@
+[MODELS/APIS] Add gpt-4o-2024-08-06
+[INTERNAL] Some internal refactoring
+[BUGFIX] Improve the chances of the "Continue..." function getting it right (which it still may not)
+[THEMES] Allow button border and radius to be controlled by themes

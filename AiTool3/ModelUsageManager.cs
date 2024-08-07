@@ -40,5 +40,7 @@ internal partial class ModelUsageManager
     {
         UsageStatisticsForm form = new UsageStatisticsForm(settings);
         form.Show();
+        var f2 = new ModelCostPerOutputTokenForm(settings);
+        f2.Show();
     }
 }

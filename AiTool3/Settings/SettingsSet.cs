@@ -79,7 +79,7 @@ namespace AiTool3
             ModelList = new List<Model>()
             {
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 5, output1MTokenPrice = 15},
-                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-2024-08-06", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 5, output1MTokenPrice = 15},
+                    new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-2024-08-06", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 2.5m, output1MTokenPrice = 10},
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-mini-2024-07-18", Color = Color.FromArgb(186, 201, 255) , input1MTokenPrice = 0.15m, output1MTokenPrice = .6m},
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4-turbo", Color = Color.FromArgb(186, 255, 201), input1MTokenPrice = 10, output1MTokenPrice = 30},
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0.5m, output1MTokenPrice = 1.5m},

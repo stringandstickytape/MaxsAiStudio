@@ -144,4 +144,75 @@ internal partial class ModelUsageManager
             }
         }
     }
+
+    public class ModelCostPerOutputTokenForm : Form
+    {
+        private SettingsSet settings;
+
+        public ModelCostPerOutputTokenForm(SettingsSet settings)
+        {
+            this.settings = settings;
+            List<Model> models = settings.ModelList;
+
+            this.Text = "Model Cost Per Output MToken";
+            this.Size = new Size(800, 600);
+            this.AutoScroll = true;
+
+            FlowLayoutPanel panel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                WrapContents = true,
+                BackColor = Color.FromArgb(30, 30, 30)
+            };
+
+            var sortedModels = models.Select(model => new
+            {
+                Model = model,
+                Manager = new ModelUsageManager(model),
+                CostPerOutputToken = model.output1MTokenPrice
+                                      })
+            .OrderByDescending(x => x.CostPerOutputToken)
+            .ToList();
+
+            foreach (var item in sortedModels)
+            {
+                Color boxColor = CompletionMessage.GetColorForEngine(item.Model.ModelName);
+
+                Panel modelPanel = new Panel
+                {
+                    Width = 350,
+                    Height = 150,
+                    Margin = new Padding(10),
+                    BackColor = boxColor
+                };
+
+                Label modelLabel = CreateCenteredLabel($"Model: {item.Model.ModelName}", new Font(this.Font, FontStyle.Bold), 10, modelPanel.Width);
+                Label costOutLabel = CreateCenteredLabel($"Cost Per Output MToken: ${item.CostPerOutputToken:F6}", this.Font, 40, modelPanel.Width);
+                Label outputTokensLabel = CreateCenteredLabel($"Output Tokens: {item.Manager.TokensUsed.OutputTokens}", this.Font, 60, modelPanel.Width);
+
+                modelPanel.Controls.Add(modelLabel);
+                modelPanel.Controls.Add(costOutLabel);
+                modelPanel.Controls.Add(outputTokensLabel);
+                panel.Controls.Add(modelPanel);
+            }
+
+            this.Controls.Add(panel);
+        }
+
+        private Label CreateCenteredLabel(string text, Font font, int yPosition, int panelWidth)
+        {
+            Label label = new Label
+            {
+                Text = text,
+                Font = font,
+                AutoSize = true,
+                ForeColor = Color.Black,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Width = panelWidth
+            };
+            label.Location = new Point(0, yPosition);
+            return label;
+        }
+    }
 }
