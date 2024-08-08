@@ -7,10 +7,24 @@ namespace AiTool3.Helpers
 
         private static readonly HttpClient httpClient = new HttpClient();
 
+        static HtmlTextExtractor()
+        {
+            httpClient = new HttpClient();
+            // Set a Chrome-like user agent
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        }
+
+
         public static async Task<string> ExtractTextFromUrlAsync(string url)
         {
             try
             {
+                // if the url doesn't start with a scheme, guess https://
+                if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                {
+                    url = "https://" + url;
+                }
+
                 // Download the HTML content
                 string htmlContent = await DownloadHtmlContentAsync(url);
 
@@ -56,12 +70,12 @@ namespace AiTool3.Helpers
                 }
             }
 
-            // remove any lines containing fewer than three tokens separated by spaces
+            // remove any lines containing fewer than three tokens separated by spaces, unless they contain a currency symbol!
             var lines = stringBuilder.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             stringBuilder.Clear();
             foreach (var line in lines)
             {
-                if (line.Split(' ').Length >= 4)
+                if (line.Split(' ').Length >= 0 || line.Contains('$') || line.Contains('€') || line.Contains('£'))
                 {
                     stringBuilder.AppendLine(line);
                 }
