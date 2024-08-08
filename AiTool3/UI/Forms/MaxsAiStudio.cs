@@ -17,6 +17,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Whisper.net.Ggml;
 using static AiTool3.Communications.NamedPipeListener;
 
@@ -816,7 +817,20 @@ namespace AiTool3
 
                 var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
 
-                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : await chatWebView.GetUserPrompt(), _fileAttachmentManager);
+                var userPrompt = await chatWebView.GetUserPrompt();
+
+                if (CurrentSettings.AllowUserPromptUrlPulls && userPrompt != null)
+                {
+                    var matches = Regex.Matches(userPrompt, @"\[pull:(.*?)\]");
+                    foreach (Match match in matches)
+                    {
+                        var url = match.Groups[1].Value;
+                        var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
+                        userPrompt = userPrompt.Replace(match.Value, $"\n{ThreeTicks}{url}\n{extractedText}\n{ThreeTicks}\n");
+                    }
+                }
+
+                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : userPrompt, _fileAttachmentManager);
                 var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, addEmbeddings);
                 retVal = response.ResponseText;
                 await chatWebView.SetUserPrompt("");

@@ -15,11 +15,18 @@
           <ButtonText>Get Surrounding Lines</ButtonText>
         </Strings>
       </Button>
+		<Button guid="guidVSIXTestPackageCmdSet" id="OpenChatWindowCommandId" priority="0x0100" type="Button">
+			<Parent guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" />
+			<Strings>
+				<ButtonText>Open Chat Window</ButtonText>
+			</Strings>
+		</Button>
     </Buttons>
   </Commands>
 
   <KeyBindings>
     <KeyBinding guid="guidVSIXTestPackageCmdSet" id="GetSurroundingLinesCommandId" editor="guidVSStd97" key1="G" mod1="Control Shift" />
+	  <KeyBinding guid="guidVSIXTestPackageCmdSet" id="OpenChatWindowCommandId" editor="guidVSStd97" key1="T" mod1="Control Shift" />
   </KeyBindings>
 
   <Symbols>
@@ -27,6 +34,7 @@
     <GuidSymbol name="guidVSIXTestPackageCmdSet" value="{743967b7-4ad8-4103-8a28-bf2933a5bdf3}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="GetSurroundingLinesCommandId" value="0x0100" />
+		<IDSymbol name="OpenChatWindowCommandId" value="0x0101" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

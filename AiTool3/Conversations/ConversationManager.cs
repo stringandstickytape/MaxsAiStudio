@@ -135,17 +135,6 @@ namespace AiTool3.Conversations
                     });
             }
 
-            // using a regex, find any tags of the type [pull:https://example.com]
-            
-            var matches = Regex.Matches(userPrompt, @"\[pull:(.*?)\]");
-            foreach (Match match in matches)
-            {
-                var url = match.Groups[1].Value;
-                var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
-                userPrompt = userPrompt.Replace(match.Value, $"\n{ThreeTicks}{url}\n{extractedText}\n{ThreeTicks}\n");
-            }
-
-
             conversation.messages.Add(new ConversationMessage { role = "user", content = userPrompt, base64image = fileAttachmentManager.Base64Image, base64type = fileAttachmentManager.Base64ImageType });
 
             return conversation;

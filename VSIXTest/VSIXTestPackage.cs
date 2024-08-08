@@ -48,6 +48,7 @@ namespace VSIXTest
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await GetSurroundingLinesCommand.InitializeAsync(this);
+            await OpenChatWindowCommand.InitializeAsync(this);
         }
 
 

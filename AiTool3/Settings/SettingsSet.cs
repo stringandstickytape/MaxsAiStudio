@@ -18,7 +18,7 @@ namespace AiTool3
         [MyDisplayNameAttr("Run HTTP webserver on port 8080 (experimental, requires app restart, app must run as administrator)")]
         public bool RunWebServer { get; set; } = false;
 
-        [MyDisplayNameAttr("When the prompt contains [pull:https://www.example.com], pull that URL, grab all the text fragments, and replace the url tag with the concatenated fragments")]
+        [MyDisplayNameAttr("For user prompts containing [pull:www.example.com], pull that URL, grab text fragments, and insert into prompt")]
         public bool AllowUserPromptUrlPulls{ get; set; } = false;
 
 
