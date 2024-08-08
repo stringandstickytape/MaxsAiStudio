@@ -2,17 +2,62 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #404040;
+}
+
+#svg-container {
+    width: 100%;
+    height: 100%;
+}
+
+.node rect {
+    rx: 5;
+    ry: 5;
+    filter: drop-shadow(3px 3px 2px rgba(0,0,0,0.1));
+    transition: all 0.3s ease;
+}
+
+.node:hover rect {
+    filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.2));
+}
+
+.link {
+    stroke: #cb4;
+    stroke-opacity: 1;
 }
 
 .context-menu {
-    font-family: Calibri, Arial, sans-serif;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .context-menu-item {
-    padding: 5px 10px;
+    padding: 8px 12px;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.context-menu-item:hover {
-    background-color: #c4c4c4;
+    .context-menu-item:hover {
+        background-color: #f0f0f0;
+    }
+
+#toggle-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #4a4a4a;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
+
+    #toggle-button:hover {
+        background-color: #333;
+    }

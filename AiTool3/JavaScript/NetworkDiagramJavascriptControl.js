@@ -1,109 +1,31 @@
-﻿function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
-let svg, g, zoom, root;
-let isVertical = true; // New variable to track the current layout
+﻿let svg, g, zoom, root;
+let isVertical = true;
 let selectedNode;
 
-// Create SVG container
-const svgContainer = document.createElement('div');
-svgContainer.id = 'svg-container';
-svgContainer.style.width = '100%';
-svgContainer.style.height = '100%';
-document.body.appendChild(svgContainer);
+const nodeWidth = 300;
+const nodeHeight = 80;
+const spacing = 60;
 
-// Create toggle button
-const toggleButton = document.createElement('button');
-toggleButton.textContent = '⯐';
-toggleButton.style.color = 'white';
-toggleButton.style.backgroundColor = '#444444';
-toggleButton.style.position = 'absolute';
-toggleButton.style.top = '10px';
-toggleButton.style.left = '10px';
-toggleButton.addEventListener('click', toggleLayout);
-document.body.appendChild(toggleButton);
-
-
-svg = d3.select('#svg-container')
-    .append('svg')
-    .attr('width', '100%')
-    .attr('height', '100%');
-
-// Add this block to create a background rectangle
-svg.append('rect')
-    .attr('width', '100%')
-    .attr('height', '100%')
-    .attr('fill', '#444444');
-
-
-// Initialize the graph
-initializeGraph();
-
-
-function createContextMenu() {
-    const menu = d3.select('body')
-        .append('div')
-        .attr('class', 'context-menu')
-        .style('position', 'absolute')
-        .style('background-color', 'white')
-        .style('border', '1px solid black')
-        .style('padding', '5px')
-        .style('display', 'none');
-
-    menu.append('div')
-        .text('Save this branch as TXT')
-        .attr('class', 'context-menu-item')
-        .on('click', () => {
-            window.chrome.webview.postMessage({
-                type: 'saveTxt',
-                nodeId: selectedNode
-            });
-
-            menu.style('display', 'none');
-        });
-
-    menu.append('div')
-        .text('Save this branch as HTML')
-        .attr('class', 'context-menu-item')
-        .on('click', (a, b) => {
-            window.chrome.webview.postMessage({
-                type: 'saveHtml',
-                nodeId: selectedNode
-            });
-
-            menu.style('display', 'none');
-        });
-
-    menu.append('div')
-        .text('Edit Raw')
-        .attr('class', 'context-menu-item')
-        .on('click', () => {
-            window.chrome.webview.postMessage({
-                type: 'editRaw',
-                nodeId: selectedNode
-            });
-            menu.style('display', 'none');
-        });
-
-
-    return menu;
-}
-function toggleGraphVisibility() {
-    const container = document.getElementById('svg-container');
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-    } else {
-        container.style.display = 'none';
-    }
-}
 function initializeGraph() {
+    const svgContainer = document.createElement('div');
+    svgContainer.id = 'svg-container';
+    document.body.appendChild(svgContainer);
+
+    const toggleButton = document.createElement('button');
+    toggleButton.id = 'toggle-button';
+    toggleButton.textContent = '⯐';
+    document.body.appendChild(toggleButton);
+
+    svg = d3.select('#svg-container')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%');
+
+    svg.append('rect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', '#404040');
+
     zoom = d3.zoom()
         .on('zoom', (event) => {
             g.attr('transform', event.transform);
@@ -111,33 +33,51 @@ function initializeGraph() {
 
     svg.call(zoom);
 
-    // Add a group for all graph elements
-    g = svg.append('g')
-        .attr('transform', `translate(${svg.node().clientWidth / 2},${svg.node().clientHeight / 2})`);
+    g = svg.append('g');
 
-    // Initialize root of the tree
     root = { id: 'root', label: 'Conversation Start', children: [] };
 
-    // Create context menu
     const contextMenu = createContextMenu();
-    window.chrome.webview.postMessage({
-        type: 'getContextMenuOptions'
-    });
 
-
-    // Add event listener to hide context menu on document click
     document.addEventListener('click', () => {
         contextMenu.style('display', 'none');
     });
 
+    d3.select('#toggle-button').on('click', toggleLayout);
+}
 
+function createContextMenu() {
+    const menu = d3.select('body')
+        .append('div')
+        .attr('class', 'context-menu')
+        .style('position', 'absolute')
+        .style('display', 'none');
+
+    const menuItems = [
+        { text: 'Save this branch as TXT', type: 'saveTxt' },
+        { text: 'Save this branch as HTML', type: 'saveHtml' },
+        { text: 'Edit Raw', type: 'editRaw' }
+    ];
+
+    menuItems.forEach(item => {
+        menu.append('div')
+            .text(item.text)
+            .attr('class', 'context-menu-item')
+            .on('click', () => {
+                window.chrome.webview.postMessage({
+                    type: item.type,
+                    nodeId: selectedNode
+                });
+                menu.style('display', 'none');
+            });
+    });
+
+    return menu;
 }
 
 function clear() {
-    console.log("Clearing graph");
     root.children = [];
     updateGraph();
-    console.log("Cleared");
 }
 
 function fitAll() {
@@ -146,49 +86,36 @@ function fitAll() {
     const bounds = g.node().getBBox();
     const fullWidth = svg.node().clientWidth;
     const fullHeight = svg.node().clientHeight;
-    const width = bounds.width;
-    const height = bounds.height;
-    const midX = bounds.x + width / 2;
-    const midY = bounds.y + height / 2;
+    const scale = 0.95 / Math.max(bounds.width / fullWidth, bounds.height / fullHeight);
+    const translate = [
+        fullWidth / 2 - scale * (bounds.x + bounds.width / 2),
+        fullHeight / 2 - scale * (bounds.y + bounds.height / 2)
+    ];
 
-    if (width === 0 || height === 0) return; // nothing to fit
-
-    const scale = 0.95 / Math.max(width / fullWidth, height / fullHeight);
-    const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
-
-    svg.transition().duration(1000)
-        .call(
-            zoom.transform,
-            d3.zoomIdentity
-                .translate(translate[0], translate[1])
-                .scale(scale)
-        );
+    svg.transition().duration(750)
+        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
 }
 
 function addNodes(nodes) {
-
-    console.log("Adding nodes: ", nodes);
     nodes.forEach(node => {
         root.children.push({
             id: node.id,
             label: node.label.length > 160 ? node.label.substring(0, 157) + '...' : node.label,
             role: node.role,
-            color: node.colour, // Add this line to store the color
+            color: node.colour,
             children: []
         });
     });
     updateGraph();
-
 }
+
 function addLinks(links) {
-    console.log("Adding links: ", links);
     links.forEach(link => {
         const sourceNode = findNode(root, link.source);
         const targetNode = findNode(root, link.target);
         if (sourceNode && targetNode) {
             if (!sourceNode.children) sourceNode.children = [];
             sourceNode.children.push(targetNode);
-            // Remove targetNode from root's direct children
             root.children = root.children.filter(n => n.id !== targetNode.id);
         }
     });
@@ -207,24 +134,19 @@ function findNode(node, id) {
 }
 
 function updateGraph() {
-    const nodeWidth = 300;
-    const nodeHeight = 80;
-    const spacing = 40;
-
-    // Recursive function to position nodes
     function positionNode(node, x, y, level) {
         node.x = x;
         node.y = y;
 
         if (node.children && node.children.length > 0) {
-            let totalWidth = 0;
+            let totalSize = 0;
             node.children.forEach(child => {
                 const childSize = getSubtreeSize(child);
-                totalWidth += childSize.width;
+                totalSize += isVertical ? childSize.width : childSize.height;
             });
-            totalWidth += (node.children.length - 1) * spacing;
+            totalSize += (node.children.length - 1) * spacing;
 
-            let childPos = isVertical ? x - totalWidth / 2 : y;
+            let childPos = isVertical ? x - totalSize / 2 : y;
 
             node.children.forEach(child => {
                 const childSize = getSubtreeSize(child);
@@ -232,36 +154,40 @@ function updateGraph() {
                     positionNode(child, childPos + childSize.width / 2, y + nodeHeight + spacing, level + 1);
                     childPos += childSize.width + spacing;
                 } else {
-                    positionNode(child, x + nodeWidth + spacing, childPos, level + 1);
-                    childPos += nodeHeight + spacing;
+                    positionNode(child, x + nodeWidth + spacing, childPos + childSize.height / 2, level + 1);
+                    childPos += childSize.height + spacing;
                 }
             });
         }
     }
 
-    // Function to calculate the size of a subtree
     function getSubtreeSize(node) {
         if (!node.children || node.children.length === 0) {
             return { width: nodeWidth, height: nodeHeight };
         }
 
         let totalWidth = 0;
-        let maxHeight = 0;
+        let totalHeight = 0;
 
         node.children.forEach(child => {
             const childSize = getSubtreeSize(child);
             totalWidth += childSize.width;
-            maxHeight = Math.max(maxHeight, childSize.height);
+            totalHeight += childSize.height;
         });
 
-        totalWidth += (node.children.length - 1) * spacing;
-        return { width: Math.max(nodeWidth, totalWidth), height: nodeHeight + spacing + maxHeight };
+        if (isVertical) {
+            totalWidth = Math.max(nodeWidth, totalWidth + (node.children.length - 1) * spacing);
+            totalHeight += nodeHeight + spacing;
+        } else {
+            totalWidth += nodeWidth + spacing;
+            totalHeight = Math.max(nodeHeight, totalHeight + (node.children.length - 1) * spacing);
+        }
+
+        return { width: totalWidth, height: totalHeight };
     }
 
-    // Position all nodes starting from root
     positionNode(root, 0, 0, 0);
 
-    // Update links
     const links = g.selectAll('.link')
         .data(getLinks(root), d => `${d.source.id}-${d.target.id}`);
 
@@ -270,24 +196,24 @@ function updateGraph() {
         .attr('class', 'link')
         .merge(links)
         .attr('fill', 'none')
-        .attr('stroke', '#ae3')
-        .attr('stroke-width', 3)
-        .attr('opacity', 0) // Set initial opacity to 0
+        .attr('stroke-width', 2)
+        .attr('opacity', 0)
         .attr('d', d => {
-            if (isVertical) {
-                return `M${d.source.x + nodeWidth / 2},${d.source.y + nodeHeight} C${d.source.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${(d.source.y + d.target.y + nodeHeight) / 2} ${d.target.x + nodeWidth / 2},${d.target.y}`;
-            } else {
-                return `M${d.source.x + nodeWidth},${d.source.y + nodeHeight / 2} C${(d.source.x + d.target.x + nodeWidth) / 2},${d.source.y + nodeHeight / 2} ${(d.source.x + d.target.x + nodeWidth) / 2},${d.target.y + nodeHeight / 2} ${d.target.x},${d.target.y + nodeHeight / 2}`;
-            }
-
+            const sourceX = d.source.x + nodeWidth / 2;
+            const sourceY = d.source.y + nodeHeight;
+            const targetX = d.target.x + nodeWidth / 2;
+            const targetY = d.target.y;
+            const midY = (sourceY + targetY) / 2;
+            return isVertical
+                ? `M${sourceX},${sourceY} C${sourceX},${midY} ${targetX},${midY} ${targetX},${targetY}`
+                : `M${sourceX},${sourceY} L${targetX},${targetY}`;
         })
-        .transition() // Add transition
-        .duration(500) // Set duration (adjust as needed)
-        .attr('opacity', 1); // Fade in to full opacity
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
 
     links.exit().remove();
 
-    // Update nodes
     const nodes = g.selectAll('.node')
         .data(getNodes(root), d => d.id);
 
@@ -295,13 +221,10 @@ function updateGraph() {
         .append('g')
         .attr('class', 'node')
         .attr('id', d => d.id)
-        .attr('opacity', 0); // Set initial opacity to 0
-
-
+        .attr('opacity', 0);
 
     nodeEnter.on('click', function (event, d) {
         selectedNode = d.id;
-
         window.chrome.webview.postMessage({
             type: 'nodeClicked',
             nodeId: selectedNode
@@ -321,15 +244,12 @@ function updateGraph() {
             .style('display', 'block');
     });
 
-
     nodeEnter.append('rect')
         .attr('width', nodeWidth)
         .attr('height', nodeHeight)
         .attr('fill', d => d.color || (d.role === 'Assistant' ? '#e6f3ff' : d.role === 'User' ? '#fff0e6' : '#f2f2f2'))
         .attr('stroke', d => d.role === 'Assistant' ? '#4da6ff' : d.role === 'User' ? '#ffa64d' : '#666')
-        .attr('stroke-width', 1);
-
-
+        .attr('stroke-width', 2);
 
     nodeEnter.append('foreignObject')
         .attr('width', nodeWidth)
@@ -339,7 +259,7 @@ function updateGraph() {
         .style('height', '100%')
         .style('display', 'flex')
         .style('align-items', 'center')
-        .style('justify-content', 'center') // Add this line
+        .style('justify-content', 'center')
         .style('padding', '5px')
         .style('box-sizing', 'border-box')
         .style('overflow', 'hidden')
@@ -347,21 +267,18 @@ function updateGraph() {
         .style('margin', '0')
         .style('font-size', '14px')
         .style('line-height', '1.2')
-        .style('font-family', 'Calibri, Arial, sans-serif')
-        .style('text-align', 'center') // Add this line
+        .style('text-align', 'center')
         .text(d => d.label);
 
     nodes.merge(nodeEnter)
         .transition()
-        .duration(500) // Set duration (adjust as needed)
+        .duration(500)
         .attr('transform', d => `translate(${d.x},${d.y})`)
-        .attr('opacity', 1); // Fade in to full opacity
+        .attr('opacity', 1);
 
     nodes.exit().remove();
 
-    setTimeout(fitAll, 550); // Slightly longer than the transition duration
-
-
+    setTimeout(fitAll, 550);
 }
 
 function getNodes(node) {
@@ -386,22 +303,20 @@ function getLinks(node) {
 }
 
 function centerOnNode(id) {
-    console.log("Centre on node");
     const node = g.select(`#${id}`);
     if (node.empty()) {
         console.warn(`Node with id '${id}' not found.`);
         return;
     }
 
-    const transform = d3.zoomTransform(svg.node());
     const bounds = node.node().getBBox();
     const fullWidth = svg.node().clientWidth;
     const fullHeight = svg.node().clientHeight;
-    const scale = 0.5; // You can adjust this value to change the zoom level
+    const scale = 0.5;
     const x = bounds.x + bounds.width / 2;
     const y = bounds.y + bounds.height / 2;
 
-    svg.transition().duration(1)
+    svg.transition().duration(750)
         .call(
             zoom.transform,
             d3.zoomIdentity
@@ -414,10 +329,8 @@ function centerOnNode(id) {
 function toggleLayout() {
     isVertical = !isVertical;
     updateGraph();
-    fitAll();
 }
 
-// Function to get all nodes as a flat array
 function getAllNodes(node) {
     let nodes = [node];
     if (node.children) {
@@ -427,3 +340,14 @@ function getAllNodes(node) {
     }
     return nodes;
 }
+
+// Initialize the graph
+initializeGraph();
+
+// Expose functions to the global scope for external use
+window.clear = clear;
+window.fitAll = fitAll;
+window.addNodes = addNodes;
+window.addLinks = addLinks;
+window.centerOnNode = centerOnNode;
+window.getAllNodes = getAllNodes;
