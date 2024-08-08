@@ -20,7 +20,11 @@ namespace AiTool3
                     embeddingText += lbom + " ";
                 }
                 var embeddings = await GetRelatedCodeFromEmbeddings("Ollama", embeddingText, currentSettings.EmbeddingsFilename, currentSettings.EmbeddingModel);
+                embeddings = embeddings.GroupBy(x => new { x.Filename, x.LineNumber }).Select(x => x.First()).ToList();
+                embeddings = embeddings.OrderBy(x => x.Filename).ToList();
 
+                // distinct embeddings by filename and linenumber
+                
                 // Display embeddings in a modal dialog and let user select
                 var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
 
@@ -38,6 +42,7 @@ namespace AiTool3
             else return input;
         }
 
+        private static int _previouslySelectedIndex = -1;
         private static List<CodeSnippet> ShowEmbeddingsSelectionDialog(List<CodeSnippet> embeddings)
         {
             var selectedEmbeddings = new List<CodeSnippet>();
@@ -45,7 +50,7 @@ namespace AiTool3
 
             using (var form = new Form())
             {
-                form.Text = "Select Embeddings (or close window to select no embeddings)";
+                form.Text = $"Select Embeddings (or close window to select no embeddings) {embeddings.Sum(x => x.Code.Split('\n').Length)} lines selected";
                 form.Size = new Size(800, 600);
                 form.StartPosition = FormStartPosition.CenterScreen;
 
@@ -76,9 +81,9 @@ namespace AiTool3
                 splitContainer.Panel2.Controls.Add(contentTextBox);
 
                 // Populate the checkedListBox
-                foreach (var snippet in embeddings)
+                foreach (var snippet in embeddings.OrderBy(x=>x.Filename))
                 {
-                    checkedListBox.Items.Add($"{snippet.Filename} (Line {snippet.LineNumber})", true);
+                    checkedListBox.Items.Add($"{snippet.Filename.Split('\\').Last()} (Line {snippet.LineNumber})", true);
                 }
 
                 // Add event handlers
@@ -86,24 +91,8 @@ namespace AiTool3
                 checkedListBox.MouseUp += (sender, e) => { isMouseClick = false; };
                 checkedListBox.ItemCheck += (sender, e) =>
                 {
-                    if (!isMouseClick)
-                    {
-                        e.NewValue = e.CurrentValue; // Prevent toggling on item click
-                    }
-                    else
-                    {
-                        var clickPoint = checkedListBox.PointToClient(Cursor.Position);
-                        var index = checkedListBox.IndexFromPoint(clickPoint);
-                        if (index != ListBox.NoMatches)
-                        {
-                            var itemRect = checkedListBox.GetItemRectangle(index);
-                            var checkBoxWidth = SystemInformation.MenuCheckSize.Width;
-                            if (clickPoint.X > itemRect.X + checkBoxWidth)
-                            {
-                                e.NewValue = e.CurrentValue; // Prevent toggling on item text click
-                            }
-                        }
-                    }
+                    // Update the form title with the new line count
+                    UpdateFormTitle(form, embeddings, checkedListBox, e.Index, e.NewValue == CheckState.Checked);
                 };
 
                 // Event handler for selection change
@@ -117,6 +106,26 @@ namespace AiTool3
                                               $"Namespace: {selectedSnippet.Namespace}\r\n" +
                                               $"Class: {selectedSnippet.Class}\r\n\r\n" +
                                               $"Code:\r\n{selectedSnippet.Code}";
+                    }
+
+                    // if the click was on the checkbox and the selected index has actually changed...
+                    if(isMouseClick && checkedListBox.SelectedIndex != _previouslySelectedIndex)
+                    {
+                        // toggle the checkbox
+                        var clickPoint = checkedListBox.PointToClient(Cursor.Position);
+                        var index = checkedListBox.IndexFromPoint(clickPoint);
+                        if (index != ListBox.NoMatches)
+                        {
+                            // check the item
+
+                            var itemRect = checkedListBox.GetItemRectangle(index);
+                            var checkBoxWidth = SystemInformation.MenuCheckSize.Width;
+                            if (clickPoint.X < itemRect.X + checkBoxWidth)
+                            {
+                                checkedListBox.SetItemChecked(index, !checkedListBox.GetItemChecked(index));
+                            }
+                        }
+                        _previouslySelectedIndex = checkedListBox.SelectedIndex;
                     }
                 };
 
@@ -171,12 +180,13 @@ namespace AiTool3
 
             var embeddingManager = new EmbeddingManager();
 
-            var s = embeddingManager.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 5);
+            var s = embeddingManager.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 10);
             List<CodeSnippet> result = new List<CodeSnippet>();
             foreach (var snippet in s)
             {
                 var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key, embeddingsModelName);
-                var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 5);
+                var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 10);
+                result.Add(snippet);
                 result.AddRange(subs);
             }
 
@@ -231,6 +241,19 @@ namespace AiTool3
             }
 
             return embeddings;
+        }
+
+        private static void UpdateFormTitle(Form form, List<CodeSnippet> embeddings, CheckedListBox checkedListBox, int changedIndex, bool isChecked)
+        {
+            int totalLines = 0;
+            for (int i = 0; i < checkedListBox.Items.Count; i++)
+            {
+                if (i == changedIndex ? isChecked : checkedListBox.GetItemChecked(i))
+                {
+                    totalLines += embeddings[i].Code.Split('\n').Length;
+                }
+            }
+            form.Text = $"Select Embeddings (or close window to select no embeddings) {totalLines} lines selected";
         }
     }
 }

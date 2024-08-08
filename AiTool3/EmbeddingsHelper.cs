@@ -63,7 +63,8 @@ namespace AiTool3
             var x = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories).ToList();
             var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);
             var jsFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories)
-                .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.jsx", SearchOption.AllDirectories)).ToList());
+                .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.jsx", SearchOption.AllDirectories))
+                .Where(x => !x.Contains(".min.js")).ToList());
 
             var csFragmenter = new CsFragmenter();
             var webCodeFragmenter = new WebCodeFragmenter();

@@ -893,6 +893,12 @@ namespace AiTool3
 
         private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, bool addEmbeddings = false)
         {
+            if(addEmbeddings != CurrentSettings.UseEmbeddings)
+            {
+                CurrentSettings.UseEmbeddings = addEmbeddings;
+                SettingsSet.Save(CurrentSettings);
+            }
+
             var aiService = AiServiceResolver.GetAiService(model.ServiceName, _toolManager);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
@@ -901,7 +907,7 @@ namespace AiTool3
 
             var toolLabels = toolIDs.Select(t => _toolManager.Tools[int.Parse(t)].Name).ToList();
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, addEmbeddings: CurrentSettings.UseEmbeddings);
 
             if (_toolManager != null && toolIDs.Any())
             {
