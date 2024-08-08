@@ -1,4 +1,4 @@
-﻿using AiTool3.ApiManagement;
+using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.ExtensionMethods;
 using AiTool3.Helpers;
@@ -283,12 +283,13 @@ namespace AiTool3.UI
         internal async Task SetModels(List<Model> models)
         {
             var modelStrings = models.Select(x => x.ToString());
+            var columnData = models.Select(x => new { inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2") });
 
             // window.setDropdownOptions('mainAI',
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
-                ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)})");
+                ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)}, {JsonConvert.SerializeObject(columnData)});");
             }
         }
         internal async Task SetTools()

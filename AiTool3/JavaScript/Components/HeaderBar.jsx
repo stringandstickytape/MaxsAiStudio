@@ -1,11 +1,13 @@
-﻿const { useState, useEffect } = React;
+const { useState, useEffect } = React;
 
 const HeaderBar = () => {
     const { colorScheme } = React.useColorScheme();
     const [logoText, setLogoText] = useState("Max's AI Studio");
     const [systemPrompt, setSystemPrompt] = useState("");
     const [mainAIOptions, setMainAIOptions] = useState([]);
+    const [mainAIColumnData, setMainAIColumnData] = useState([]);
     const [summaryAIOptions, setSummaryAIOptions] = useState([]);
+    const [summaryAIColumnData, setSummaryAIColumnData] = useState([]);
     const [mainAIValue, setMainAIValue] = useState(mainAIOptions[0]);
     const [summaryAIValue, setSummaryAIValue] = useState(summaryAIOptions[0]);
     const [tools, setTools] = useState([]);
@@ -21,11 +23,13 @@ const HeaderBar = () => {
     }, []);
 
     // Export methods
-    window.setDropdownOptions = (dropdownName, options) => {
+    window.setDropdownOptions = (dropdownName, options, columnData) => {
         if (dropdownName === 'mainAI') {
             setMainAIOptions(options);
+            setMainAIColumnData(columnData);
         } else if (dropdownName === 'summaryAI') {
             setSummaryAIOptions(options);
+            setSummaryAIColumnData(columnData);
         }
     };
 
@@ -248,6 +252,7 @@ const HeaderBar = () => {
                         value={mainAIValue}
                         onChange={setMainAIValue}
                         helpText="Used only when you click Send."
+                        columnData={mainAIColumnData}
                     />
                     <DropDown
                         id="summaryAI"
@@ -256,6 +261,7 @@ const HeaderBar = () => {
                         value={summaryAIValue}
                         onChange={setSummaryAIValue}
                         helpText="Used for summaries, suggestions, and when you click Send via Secondary AI."
+                        columnData={summaryAIColumnData}
                     />
                 </div>
             </div>

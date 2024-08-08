@@ -1,5 +1,5 @@
-﻿// DropDown.js
-const DropDown = ({ id, label, options, value, onChange, helpText }) => {
+// DropDown.js
+const DropDown = ({ id, label, options, value, onChange, helpText, columnData }) => {
     const { colorScheme } = React.useColorScheme();
 
     const handleChange = (e) => {
@@ -53,7 +53,7 @@ const DropDown = ({ id, label, options, value, onChange, helpText }) => {
             >
                 {options.map((option, index) => (
                     <option key={index} value={option}>
-                        {option}
+                        {option} {columnData && columnData[index] ? `  ${columnData[index].inputCost} / ${columnData[index].outputCost}` : ''}
                     </option>
                 ))}
             </select>
