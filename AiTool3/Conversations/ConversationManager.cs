@@ -370,6 +370,8 @@ namespace AiTool3.Conversations
     {
         public string find { get; set; }
         public string replace { get; set; }
+
+        public string? filename { get; set; }
     }
 
 }

@@ -95,6 +95,9 @@ namespace AiTool3.UI
                 case "newWithPrompt":
                     ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithPrompt));
                     break;
+                case "ApplyFaRArray":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
+                    break;
                 case "attach":
                 case "project":
                 case "voice":

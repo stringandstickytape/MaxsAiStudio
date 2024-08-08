@@ -363,6 +363,31 @@ namespace AiTool3
                     CurrentSettings.SelectedTheme = e.Json;
                     SettingsSet.Save(CurrentSettings);
                     break;
+                case "ApplyFaRArray":
+                    var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(e.Json);
+
+                    // group them by filename
+                    var grouped = fnrs.replacements.GroupBy(r => r.filename);
+
+                    // for each group
+                    foreach (var group in grouped)
+                    {
+                        // read the file
+                        var originalContent = File.ReadAllText(group.Key);
+
+                        // apply the replacements
+                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList());
+
+                        if (processed != null)
+                        {
+                            File.WriteAllText(group.Key, processed);
+                        }
+                        else MessageBox.Show($"Error processing file {group.Key}");
+                    }
+                    MessageBox.Show($"Done.");
+                    //var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
+                    break;
+
                 case "attach":
 
 

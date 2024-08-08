@@ -129,6 +129,12 @@ namespace AiTool3.Providers
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+            if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var content2 = await response.Content.ReadAsStringAsync();
+            }
+
             response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
