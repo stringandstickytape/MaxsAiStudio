@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Whisper.net.Ggml;
+using static AiTool3.Communications.NamedPipeListener;
 
 namespace AiTool3
 {
@@ -27,13 +28,13 @@ namespace AiTool3
         private ToolManager _toolManager;
         private SnippetManager _snippetManager;
         private NamedPipeListener _namedPipeListener;
+        private SearchManager _searchManager;
 
         public const decimal Version = 0.3m;
 
         private FileAttachmentManager _fileAttachmentManager;
 
-
-        private SearchManager _searchManager;
+        
 
         public static readonly string ThreeTicks = new string('`', 3);
 
@@ -55,6 +56,7 @@ namespace AiTool3
             _toolManager = toolManager;
             _snippetManager = snippetManager;
             _namedPipeListener = namedPipeListener;
+            _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
 
             Form splash = null;
             Thread splashThread = null;
@@ -233,6 +235,38 @@ namespace AiTool3
 
 
             }
+        }
+
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e)
+        {
+            VSCodeSelection selection = JsonConvert.DeserializeObject<VSCodeSelection>(e);
+
+            // create a new one-off summary-model conversation with the selected text as the user prompt
+            var summaryModel = CurrentSettings.GetSummaryModel();
+            var tempConversationManager = new ConversationManager();
+            tempConversationManager.Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            tempConversationManager.Conversation.AddNewRoot();
+
+            var content = $"{ThreeTicks}\n{selection.Before}<CURSOR LOCATION>{selection.After}\n{ThreeTicks}\n\n The user's instruction is: \n{ThreeTicks}\n{selection.Selected}\n{ThreeTicks}\n\n";
+
+            // or alternatively:
+
+            var conversation = new Conversation
+            {
+                systemprompt = "You are a code completion AI. You return a single code block which will be inserted in the user's current cursor location. The code block must be in the correct language and satisfy the user's request, based on the context before and after the user's current cursor location.",
+                messages = new List<ConversationMessage>
+        {
+            new ConversationMessage { role = "user", content = content }
+        }
+            };
+
+            var aiService = AiServiceResolver.GetAiService(summaryModel.ServiceName, _toolManager);
+            var response = await aiService.FetchResponse(summaryModel, conversation, null, null, CancellationToken.None, CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+
+            var txt = SnippetHelper.StripFirstAndLastLine(response.ResponseText);
+
+            await _namedPipeListener.SendResponseAsync(txt);
+
         }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)

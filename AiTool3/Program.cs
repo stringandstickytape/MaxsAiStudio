@@ -46,6 +46,8 @@ internal static class Program
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
         services.AddSingleton<NamedPipeListener>();
+
+        //services.AddSingleton<SearchManager>();
         //services.AddTransient<FileAttachmentManager>();
         //services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
