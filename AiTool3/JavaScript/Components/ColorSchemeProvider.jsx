@@ -40,7 +40,8 @@ const initialColorSchemes = {
         "messagesPaneBackgroundCss": "linear-gradient(135deg, rgba(30, 42, 61, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
         "mainContentBackgroundCss": "linear-gradient(135deg, #2C3E50 0%, #4A5568 50%, #2C3E50 100%)",
         "mainContentBackgroundImage": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='none'/%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E\")",
-        "fontFamily": "Segoe UI, sans-serif"
+        "fontFamily": "Segoe UI, sans-serif",
+        "fixedWidthFontFamily": "Consolas, monospace"
     }
 };
 

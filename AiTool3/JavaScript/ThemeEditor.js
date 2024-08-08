@@ -1,4 +1,4 @@
-﻿function createThemeEditor() {
+function createThemeEditor() {
     const allColorSchemes = window.getAllColorSchemes();
     let currentSchemeId = Object.keys(allColorSchemes)[0];
 
@@ -156,7 +156,7 @@
 
         if (key === 'messagesPaneBackgroundCss' || key === 'mainContentBackgroundCss' || key === 'mainContentBackgroundImage' || key === 'messagesPaneBackgroundImage' ||
             key === 'headerBarBackgroundCss' || key === 'headerBarBackgroundImage' || key === 'buttonBackgroundCss' || key === 'messagesPaneBackgroundFilter'
-            || key === 'fontLink' || key === 'fontFamily' || key === 'buttonBorder' || key === 'borderRadius') {
+            || key === 'fontLink' || key === 'fontFamily' || key === 'fixedWidthFontFamily' || key === 'buttonBorder' || key === 'borderRadius') {
             const textarea = createElement('textarea', {
                 value: value,
                 name: key,

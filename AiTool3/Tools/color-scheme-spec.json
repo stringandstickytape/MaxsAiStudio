@@ -21,6 +21,10 @@
             "type": "string",
             "description": "Font-family element for the fontLink, to be used across the UI."
           },
+          "fixedWidthFontFamily": {
+            "type": "string",
+            "description": "Fixed width font-family element for the fontLink, to be used across the UI."
+          },
           "backgroundColor": {
             "type": "string",
             "description": "Background color in hex format"

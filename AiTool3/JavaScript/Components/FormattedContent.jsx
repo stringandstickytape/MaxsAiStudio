@@ -1,4 +1,4 @@
-﻿// FormattedContent.jsx
+// FormattedContent.jsx
 
 function fixNewlinesInStrings(jsonString) {
     return jsonString.replace(
@@ -255,7 +255,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                         </div>
                     </div>
                     <div style={{
-                        fontFamily: 'monospace',
+                        fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
                         whiteSpace: 'pre-wrap',
                         backgroundColor: colorScheme.codeBlockBackgroundColor,
                         color: colorScheme.codeBlockTextColor,
