@@ -51,6 +51,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         launchSTL: ["stl"],
         runPowerShellScript: ["powershell"],
         selectFindAndReplaceScript: ["findandreplace.json"],
+        selectFindAndReplaceScript2: ["findandreplace2.json"],
     };
 
     const addMessageButton = (label, action, dataType) => (
@@ -209,6 +210,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                 addMessageButton("Run PowerShell Script", () => {
                                     window.chrome.webview.postMessage({
                                         type: 'Run PowerShell Script',
+                                        content: code.trim()
+                                    });
+                                })
+                            }
+                            {fileTypes.selectFindAndReplaceScript2.includes(fileType.trim().toLowerCase()) &&
+                                addMessageButton("Apply", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'ApplyFaRArray',
                                         content: code.trim()
                                     });
                                 })
