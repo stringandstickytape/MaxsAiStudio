@@ -1,5 +1,6 @@
 using AiTool3;
 using AiTool3.Communications;
+using AiTool3.Conversations;
 using AiTool3.FileAttachments;
 using AiTool3.Snippets;
 using AiTool3.Tools;
@@ -51,7 +52,7 @@ internal static class Program
         services.AddSingleton<SearchManager>();
         services.AddScoped<SettingsSet>();
         services.AddTransient<FileAttachmentManager>();
-        //services.AddTransient<ConversationManager>();
+        services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
         //services.AddScoped<SettingsSet>(); // If settings are context-specific
         //                                   // Add all necessary services here

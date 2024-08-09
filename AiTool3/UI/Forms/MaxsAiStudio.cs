@@ -41,7 +41,7 @@ namespace AiTool3
         public static readonly string ThreeTicks = new string('`', 3);
 
         public TemplateManager templateManager;
-        public ConversationManager ConversationManager { get; set; } = new ConversationManager();
+        public ConversationManager ConversationManager;
         public SettingsSet CurrentSettings { get; set; }
 
 
@@ -54,7 +54,7 @@ namespace AiTool3
         public string selectedConversationGuid = "";
 
         public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener,
-            SearchManager searchManager, FileAttachmentManager fileAttachmentManager )
+            SearchManager searchManager, FileAttachmentManager fileAttachmentManager, ConversationManager conversationManager )
         {
 
 
@@ -107,6 +107,7 @@ namespace AiTool3
                 _fileAttachmentManager.InjectDependencies(chatWebView);
                 _namedPipeListener = namedPipeListener;
                 _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
+                ConversationManager = conversationManager;
                 chatWebView.InjectDependencies(toolManager);
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
@@ -714,12 +715,12 @@ namespace AiTool3
 
             if (CurrentSettings.SelectedModel != "")
             {
-                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedModel);
+                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedModel.Split(' ')[0]);
                 await chatWebView.SetDropdownValue("mainAI", matchingModel.ToString());
             }
             else
             {
-            var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
                 await chatWebView.SetDropdownValue("mainAI", selectedModel.ToString());
                 CurrentSettings.SelectedModel = selectedModel.ToString();
                 SettingsSet.Save(CurrentSettings);
@@ -727,7 +728,7 @@ namespace AiTool3
 
             if (CurrentSettings.SelectedSummaryModel != "")
             {
-                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel);
+                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel.Split(' ')[0]);
                 await chatWebView.SetDropdownValue("summaryAI", matchingModel.ToString());
             }
             else
