@@ -1,7 +1,7 @@
 ﻿using AiTool3.Helpers;
 using AiTool3.Topics;
 
-namespace AiTool3
+namespace AiTool3.Templates
 {
     public class TemplateManager
     {

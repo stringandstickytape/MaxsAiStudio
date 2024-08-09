@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     internal static class OllamaEmbeddingsHelper
     {
@@ -24,7 +24,7 @@ namespace AiTool3
                 embeddings = embeddings.OrderBy(x => x.Filename).ToList();
 
                 // distinct embeddings by filename and linenumber
-                
+
                 // Display embeddings in a modal dialog and let user select
                 var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
 
@@ -81,7 +81,7 @@ namespace AiTool3
                 splitContainer.Panel2.Controls.Add(contentTextBox);
 
                 // Populate the checkedListBox
-                foreach (var snippet in embeddings.OrderBy(x=>x.Filename))
+                foreach (var snippet in embeddings.OrderBy(x => x.Filename))
                 {
                     checkedListBox.Items.Add($"{snippet.Filename.Split('\\').Last()} (Line {snippet.LineNumber})", true);
                 }
@@ -109,7 +109,7 @@ namespace AiTool3
                     }
 
                     // if the click was on the checkbox and the selected index has actually changed...
-                    if(isMouseClick && checkedListBox.SelectedIndex != _previouslySelectedIndex)
+                    if (isMouseClick && checkedListBox.SelectedIndex != _previouslySelectedIndex)
                     {
                         // toggle the checkbox
                         var clickPoint = checkedListBox.PointToClient(Cursor.Position);
@@ -176,7 +176,7 @@ namespace AiTool3
                 return new List<CodeSnippet>();
             }
             // Deserialize from the specified embeddings file
-            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(System.IO.File.ReadAllText(filename));
+            var codeEmbedding = JsonConvert.DeserializeObject<List<Embedding>>(File.ReadAllText(filename));
 
             var embeddingManager = new EmbeddingManager();
 

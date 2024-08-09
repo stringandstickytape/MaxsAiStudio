@@ -7,6 +7,7 @@ using AiTool3.Helpers;
 using AiTool3.Providers;
 using AiTool3.Settings;
 using AiTool3.Snippets;
+using AiTool3.Templates;
 using AiTool3.Tools;
 using AiTool3.Topics;
 using AiTool3.UI;
@@ -1325,14 +1326,6 @@ namespace AiTool3
             }
         }
 
-    }
-
-
-    public class TemplateImport
-    {
-        public string title { get; set; }
-        public string systemPrompt { get; set; }
-        public string initialUserPrompt { get; set; }
     }
 
 }

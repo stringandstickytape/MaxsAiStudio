@@ -1,6 +1,6 @@
 ﻿using System.Speech.Synthesis;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class TtsHelper
     {

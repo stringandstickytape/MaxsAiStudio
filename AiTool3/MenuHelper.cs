@@ -1,6 +1,7 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
+using AiTool3.Templates;
 using AiTool3.Topics;
 using AiTool3.UI;
 
