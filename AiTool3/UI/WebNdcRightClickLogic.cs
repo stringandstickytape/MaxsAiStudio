@@ -4,7 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Text;
 
-namespace AiTool3
+namespace AiTool3.UI
 {
     public static class WebNdcRightClickLogic
     {
@@ -175,7 +175,7 @@ namespace AiTool3
                     saveFileDialog2.RestoreDirectory = true;
                     if (saveFileDialog2.ShowDialog() == DialogResult.OK)
                     {
-                        System.IO.File.WriteAllText(saveFileDialog2.FileName, htmlBuilder.ToString());
+                        File.WriteAllText(saveFileDialog2.FileName, htmlBuilder.ToString());
                         Process.Start(new ProcessStartInfo(saveFileDialog2.FileName) { UseShellExecute = true });
                     }
                     break;

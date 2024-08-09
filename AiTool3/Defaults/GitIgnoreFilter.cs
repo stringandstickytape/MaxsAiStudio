@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace AiTool3
+namespace AiTool3.Defaults
 {
     public class GitIgnoreFilterManager
     {

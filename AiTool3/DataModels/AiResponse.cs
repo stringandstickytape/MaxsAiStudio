@@ -1,6 +1,6 @@
 ﻿using AiTool3.Providers;
 
-namespace AiTool3
+namespace AiTool3.DataModels
 {
     public class AiResponse
     {

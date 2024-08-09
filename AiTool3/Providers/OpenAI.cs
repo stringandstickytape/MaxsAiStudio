@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Conversations;
+using AiTool3.DataModels;
 using AiTool3.Embeddings;
 using AiTool3.Interfaces;
 using AiTool3.Tools;

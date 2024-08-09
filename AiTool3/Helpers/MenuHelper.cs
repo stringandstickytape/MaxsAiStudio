@@ -1,5 +1,7 @@
 ﻿using AiTool3.Conversations;
+using AiTool3.DataModels;
 using AiTool3.Embeddings;
+using AiTool3.FileAttachments;
 using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Topics;

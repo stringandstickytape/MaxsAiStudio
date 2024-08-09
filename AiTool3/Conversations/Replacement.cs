@@ -1,7 +1,6 @@
-﻿using AiTool3.Conversations;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace AiTool3
+namespace AiTool3.Conversations
 {
 
 

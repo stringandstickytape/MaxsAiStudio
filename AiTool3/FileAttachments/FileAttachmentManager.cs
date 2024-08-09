@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
 
-namespace AiTool3
+namespace AiTool3.FileAttachments
 {
     public class FileAttachmentManager
     {

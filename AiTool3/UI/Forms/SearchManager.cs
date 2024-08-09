@@ -1,7 +1,7 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.ExtensionMethods;
 
-namespace AiTool3
+namespace AiTool3.UI.Forms
 {
     public class SearchManager
     {
