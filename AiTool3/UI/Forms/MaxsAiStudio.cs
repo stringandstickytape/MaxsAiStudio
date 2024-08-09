@@ -35,8 +35,6 @@ namespace AiTool3
 
         private FileAttachmentManager _fileAttachmentManager;
 
-
-
         public static readonly string ThreeTicks = new string('`', 3);
 
         public TemplateManager templateManager;
