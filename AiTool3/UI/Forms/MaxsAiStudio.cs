@@ -1,4 +1,4 @@
-﻿using AiTool3.ApiManagement;
+using AiTool3.ApiManagement;
 using AiTool3.Audio;
 using AiTool3.Communications;
 using AiTool3.Conversations;
@@ -35,7 +35,7 @@ namespace AiTool3
 
         private FileAttachmentManager _fileAttachmentManager;
 
-        
+
 
         public static readonly string ThreeTicks = new string('`', 3);
 
@@ -327,10 +327,60 @@ namespace AiTool3
             WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(e.Guid));
         }
 
+
+        private async Task ImportTemplate(string jsonContent)
+        {
+            try
+            {
+                var importTemplate = JsonConvert.DeserializeObject<TemplateImport>(jsonContent);
+
+                var template = new ConversationTemplate(importTemplate.systemPrompt, importTemplate.initialUserPrompt);
+
+                if (template != null)
+                {
+                    var categoryForm = new Form();
+                    categoryForm.Text = "Select Category";
+                    categoryForm.Size = new Size(300, 150);
+                    categoryForm.StartPosition = FormStartPosition.CenterScreen;
+
+                    var comboBox = new ComboBox();
+                    comboBox.Dock = DockStyle.Top;
+                    comboBox.Items.AddRange(templateManager.TemplateSet.Categories.Select(c => c.Name).ToArray());
+
+                    var okButton = new Button();
+                    okButton.Text = "OK";
+                    okButton.DialogResult = DialogResult.OK;
+                    okButton.Dock = DockStyle.Bottom;
+
+                    categoryForm.Controls.Add(comboBox);
+                    categoryForm.Controls.Add(okButton);
+
+                    if (categoryForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var selectedCategory = comboBox.SelectedItem?.ToString();
+                        if (!string.IsNullOrEmpty(selectedCategory))
+                        {
+                            templateManager.EditAndSaveTemplate(template, true, selectedCategory);
+                            MenuHelper.RemoveOldTemplateMenus(menuBar);
+                            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
+                            MessageBox.Show("Template imported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error importing template: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             switch (e.EventType)
             {
+                case "importTemplate":
+                    await ImportTemplate(e.Json);
+                    break;
                 case "saveScratchpad":
                     // persist e.Json to settings subdirectory Scratchpad.json
                     if (e.Json == "")
@@ -367,21 +417,31 @@ namespace AiTool3
                 case "ApplyFaRArray":
                     var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(e.Json);
 
+                    // go through every file, calling applyfindandreplace but not saving.  if there's an error string, set the user prompt.
+
+
                     // group them by filename
                     var grouped = fnrs.replacements.GroupBy(r => r.filename);
+
+                    foreach (var group in grouped)
+                    {
+                        var originalContent = File.ReadAllText(group.Key);
+                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
+                        if (processed == null)
+                        {
+                            await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
+                            break;
+                        }
+                    }
 
                     // for each group
                     foreach (var group in grouped)
                     {
-                        // read the file
                         var originalContent = File.ReadAllText(group.Key);
-
-                        // apply the replacements
                         var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
-
                         if (processed != null)
                         {
-                           // File.WriteAllText(group.Key, processed);
+                            File.WriteAllText(group.Key, processed);
                         }
                         else
                         {
@@ -899,7 +959,7 @@ namespace AiTool3
 
         private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, bool addEmbeddings = false)
         {
-            if(addEmbeddings != CurrentSettings.UseEmbeddings)
+            if (addEmbeddings != CurrentSettings.UseEmbeddings)
             {
                 CurrentSettings.UseEmbeddings = addEmbeddings;
                 SettingsSet.Save(CurrentSettings);
@@ -1268,4 +1328,13 @@ namespace AiTool3
         }
 
     }
+
+
+    public class TemplateImport
+    {
+        public string title { get; set; }
+        public string systemPrompt { get; set; }
+        public string initialUserPrompt { get; set; }
+    }
+
 }

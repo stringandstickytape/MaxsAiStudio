@@ -43,6 +43,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         viewJsonStringArray: ["json"],
         viewSvg: ["svg", "xml", "html"],
         installTheme: ["maxtheme.json"],
+        importTemplate: ["maxchattemplate.json"],
         browseJsonObject: ["json"],
         viewMermaidDiagram: ["mermaid"],
         viewPlantUMLDiagram: ["plantuml"],
@@ -135,6 +136,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         type: 'View JSON String Array',
                                         content: code.trim()
                                     });
+                                })
+                            }
+                            {fileTypes.importTemplate.includes(fileType.trim().toLowerCase()) &&
+                                addMessageButton("Import Template", () => {
+                                    window.chrome.webview.postMessage({
+                                        type: 'importTemplate',
+                                        content: code.trim()
+                                    })
                                 })
                             }
                             {fileTypes.installTheme.includes(fileType.trim().toLowerCase()) &&
