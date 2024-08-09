@@ -34,15 +34,12 @@ namespace AiTool3
         private NamedPipeListener _namedPipeListener;
         private SearchManager _searchManager;
         private FileAttachmentManager _fileAttachmentManager;
-
+        private TemplateManager _templateManager;
 
         public const decimal Version = 0.3m;
 
-        
-
         public static readonly string ThreeTicks = new string('`', 3);
 
-        public TemplateManager templateManager;
         public ConversationManager ConversationManager;
         public SettingsSet CurrentSettings { get; set; }
 
@@ -60,7 +57,8 @@ namespace AiTool3
                             NamedPipeListener namedPipeListener,
                             SearchManager searchManager,
                             FileAttachmentManager fileAttachmentManager,
-                            ConversationManager conversationManager)
+                            ConversationManager conversationManager,
+                            TemplateManager templateManager)
         {
             SplashManager splashManager = new SplashManager();
             splashManager.ShowSplash();
@@ -70,7 +68,7 @@ namespace AiTool3
 
                 DirectoryHelper.CreateSubdirectories();
 
-                templateManager = new TemplateManager();
+                _templateManager = templateManager;
 
                 if (!File.Exists("Settings\\settings.json"))
                 {
@@ -326,7 +324,7 @@ namespace AiTool3
 
                     var comboBox = new ComboBox();
                     comboBox.Dock = DockStyle.Top;
-                    comboBox.Items.AddRange(templateManager.TemplateSet.Categories.Select(c => c.Name).ToArray());
+                    comboBox.Items.AddRange(_templateManager.TemplateSet.Categories.Select(c => c.Name).ToArray());
 
                     var okButton = new Button();
                     okButton.Text = "OK";
@@ -341,9 +339,9 @@ namespace AiTool3
                         var selectedCategory = comboBox.SelectedItem?.ToString();
                         if (!string.IsNullOrEmpty(selectedCategory))
                         {
-                            templateManager.EditAndSaveTemplate(template, true, selectedCategory);
+                            _templateManager.EditAndSaveTemplate(template, true, selectedCategory);
                             MenuHelper.RemoveOldTemplateMenus(menuBar);
-                            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
+                            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
                             MessageBox.Show("Template imported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
@@ -557,7 +555,7 @@ namespace AiTool3
             await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, _snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager, this);
             await MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, chatWebView, _snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
 
-            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, templateManager, CurrentSettings, this);
+            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
 
             // check for updates
             try
@@ -1092,7 +1090,7 @@ namespace AiTool3
         {
             await BeginNewConversation();
             await chatWebView.SetUserPrompt("");
-            await PopulateUiForTemplate(templateManager.CurrentTemplate!);
+            await PopulateUiForTemplate(_templateManager.CurrentTemplate!);
         }
 
 

@@ -3,6 +3,7 @@ using AiTool3.Communications;
 using AiTool3.Conversations;
 using AiTool3.FileAttachments;
 using AiTool3.Snippets;
+using AiTool3.Templates;
 using AiTool3.Tools;
 using AiTool3.UI;
 using AiTool3.UI.Forms;
@@ -52,6 +53,7 @@ internal static class Program
         services.AddSingleton<SearchManager>();
         services.AddSingleton<SettingsSet>();
         services.AddSingleton<FileAttachmentManager>();
+        services.AddSingleton<TemplateManager>();
         services.AddSingleton<ConversationManager>();
         services.AddSingleton<MaxsAiStudio>();
     }
