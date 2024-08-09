@@ -43,7 +43,6 @@ namespace AiTool3
         public ConversationManager ConversationManager;
         public SettingsSet CurrentSettings { get; set; }
 
-
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
@@ -98,7 +97,6 @@ namespace AiTool3
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
                 webViewManager = new WebViewManager(ndcWeb);
-
 
                 chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
                 chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
@@ -190,9 +188,7 @@ namespace AiTool3
                 };
 
                 contextMenu.Items.Add(new ToolStripSeparator());
-
                 contextMenu.Items.Add(noHighlightItem);
-
                 contextMenu.Items.Add(new ToolStripSeparator());
                 contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
 
@@ -207,11 +203,8 @@ namespace AiTool3
 
                 dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-                
-
-                // hide splash
-                //plash.Close();
-            }            finally
+            }
+            finally
             {
                 splashManager.CloseSplash();
             }
@@ -235,9 +228,9 @@ namespace AiTool3
             {
                 systemprompt = "You are a code completion AI. You return a single code block which will be inserted in the user's current cursor location. The code block must be in the correct language and satisfy the user's request, based on the context before and after the user's current cursor location.",
                 messages = new List<ConversationMessage>
-        {
-            new ConversationMessage { role = "user", content = content }
-        }
+                {
+                    new ConversationMessage { role = "user", content = content }
+                }
             };
 
             var aiService = AiServiceResolver.GetAiService(summaryModel.ServiceName, _toolManager);
@@ -251,7 +244,6 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-
             await InitialiseApiList_New();
 
             // send color schemes to the chatwebview
@@ -297,17 +289,13 @@ namespace AiTool3
 
             ConversationManager.ContinueUnterminatedCodeBlock(e);
 
-            // update the webndc
-            WebNdcDrawNetworkDiagram();
-
-            // select the new node
-            //webViewManager.CentreOnNode(newNodeGuid);
+            await WebNdcDrawNetworkDiagram();
 
             WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(e.Guid));
         }
 
 
-        private async Task ImportTemplate(string jsonContent)
+        private void ImportTemplate(string jsonContent)
         {
             try
             {
@@ -358,7 +346,7 @@ namespace AiTool3
             switch (e.EventType)
             {
                 case "importTemplate":
-                    await ImportTemplate(e.Json);
+                    ImportTemplate(e.Json);
                     break;
                 case "saveScratchpad":
                     // persist e.Json to settings subdirectory Scratchpad.json
