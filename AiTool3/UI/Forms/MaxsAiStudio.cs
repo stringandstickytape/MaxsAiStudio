@@ -33,10 +33,12 @@ namespace AiTool3
         private SnippetManager _snippetManager;
         private NamedPipeListener _namedPipeListener;
         private SearchManager _searchManager;
+        private FileAttachmentManager _fileAttachmentManager;
+
 
         public const decimal Version = 0.3m;
 
-        private FileAttachmentManager _fileAttachmentManager;
+        
 
         public static readonly string ThreeTicks = new string('`', 3);
 
@@ -53,34 +55,18 @@ namespace AiTool3
 
         public string selectedConversationGuid = "";
 
-        public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener,
-            SearchManager searchManager, FileAttachmentManager fileAttachmentManager, ConversationManager conversationManager )
+        public MaxsAiStudio(ToolManager toolManager,
+                            SnippetManager snippetManager,
+                            NamedPipeListener namedPipeListener,
+                            SearchManager searchManager,
+                            FileAttachmentManager fileAttachmentManager,
+                            ConversationManager conversationManager)
         {
-
-
-            Form splash = null;
-            Thread splashThread = null;
+            SplashManager splashManager = new SplashManager();
+            splashManager.ShowSplash();
 
             try
             {
-                splash = new Form();
-                splash.Size = new System.Drawing.Size(200, 200);
-                splash.StartPosition = FormStartPosition.CenterScreen;
-                splash.FormBorderStyle = FormBorderStyle.None;
-
-                var loadingLabel = new Label();
-                loadingLabel.Text = "Loading Max's AI Studio";
-                loadingLabel.TextAlign = ContentAlignment.MiddleCenter;
-                loadingLabel.AutoSize = false;
-                loadingLabel.Dock = DockStyle.Fill;
-                splash.Controls.Add(loadingLabel);
-
-                splashThread = new Thread(() =>
-                {
-                    Application.Run(splash);
-                });
-                splashThread.SetApartmentState(ApartmentState.STA);
-                splashThread.Start();
 
                 DirectoryHelper.CreateSubdirectories();
 
@@ -227,22 +213,9 @@ namespace AiTool3
 
                 // hide splash
                 //plash.Close();
-            }
-            finally
+            }            finally
             {
-                // Close the splash screen
-                if (splash != null && !splash.IsDisposed)
-                {
-                    if (splash.InvokeRequired)
-                        splash.Invoke(new Action(() => splash.Close()));
-                    else
-                        splash.Close();
-                }
-
-                if (splashThread != null && splashThread.IsAlive)
-                    splashThread.Join();
-
-
+                splashManager.CloseSplash();
             }
         }
 
