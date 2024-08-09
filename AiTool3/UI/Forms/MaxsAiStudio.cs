@@ -377,13 +377,16 @@ namespace AiTool3
                         var originalContent = File.ReadAllText(group.Key);
 
                         // apply the replacements
-                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList());
+                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
 
                         if (processed != null)
                         {
-                            File.WriteAllText(group.Key, processed);
+                           // File.WriteAllText(group.Key, processed);
                         }
-                        else MessageBox.Show($"Error processing file {group.Key}");
+                        else
+                        {
+                            await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
+                        }
                     }
                     MessageBox.Show($"Done.");
                     //var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());

@@ -7,8 +7,9 @@ namespace AiTool3
 
     public static class FileProcessor
     {
-        public static string ApplyFindAndReplace(string originalFile, List<FindAndReplace> replacements)
+        public static string ApplyFindAndReplace(string originalFile, List<FindAndReplace> replacements, out string errorString)
         {
+            errorString = "";
             string modifiedFile = originalFile;
 
             foreach (var replacement in replacements)
@@ -31,6 +32,10 @@ namespace AiTool3
                     Console.WriteLine($"Find string not found: \"{replacement.find}\"");
                     Console.WriteLine($"Pattern used: {pattern}");
                     MessageBox.Show($"Couldn't find the string \"{replacement.find}\" in the file. The file will not be modified.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    errorString = $"Couldn't find the string \"{replacement.find}\"";
+
+
                     return null;
                 }
 

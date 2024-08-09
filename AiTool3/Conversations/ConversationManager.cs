@@ -219,7 +219,7 @@ namespace AiTool3.Conversations
 
             var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(findAndReplacesJson);
 
-            var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
+            var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList(), out string errorString);
             if (processed == null)
             {
                 return null;

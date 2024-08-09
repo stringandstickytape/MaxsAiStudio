@@ -160,6 +160,8 @@ namespace AiTool3
 
             Save(this);
         }
+
+        public Model GetModel() => GetModelByFullStringReference(SelectedModel);
     }
 
 
