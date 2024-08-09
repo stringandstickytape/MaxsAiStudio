@@ -54,15 +54,9 @@ namespace AiTool3
         public string selectedConversationGuid = "";
 
         public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener,
-            SearchManager searchManager )
+            SearchManager searchManager, FileAttachmentManager fileAttachmentManager )
         {
-            _toolManager = toolManager;
-            _snippetManager = snippetManager;
-            _searchManager = searchManager;
-            _searchManager.SetDgv(dgvConversations);
 
-            _namedPipeListener = namedPipeListener;
-            _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
 
             Form splash = null;
             Thread splashThread = null;
@@ -104,6 +98,15 @@ namespace AiTool3
                 else CurrentSettings = AiTool3.SettingsSet.Load()!;
 
                 InitializeComponent();
+
+                _toolManager = toolManager;
+                _snippetManager = snippetManager;
+                _searchManager = searchManager;
+                _searchManager.SetDgv(dgvConversations);
+                _fileAttachmentManager = fileAttachmentManager;
+                _fileAttachmentManager.InjectDependencies(chatWebView);
+                _namedPipeListener = namedPipeListener;
+                _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
 
                 chatWebView.InjectDependencies(toolManager);
 
@@ -219,7 +222,7 @@ namespace AiTool3
 
                 dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-                _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
+                
 
                 // hide splash
                 //plash.Close();

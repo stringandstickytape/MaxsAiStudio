@@ -1,5 +1,6 @@
 using AiTool3;
 using AiTool3.Communications;
+using AiTool3.FileAttachments;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.UI;
@@ -48,14 +49,13 @@ internal static class Program
         services.AddTransient<SnippetManager>();
         services.AddSingleton<NamedPipeListener>();
         services.AddSingleton<SearchManager>();
-
-        //services.AddTransient<FileAttachmentManager>();
+        services.AddScoped<SettingsSet>();
+        services.AddTransient<FileAttachmentManager>();
         //services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
         //services.AddScoped<SettingsSet>(); // If settings are context-specific
         //                                   // Add all necessary services here
 
         services.AddSingleton<MaxsAiStudio>();
-        services.AddSingleton<ChatWebView>();
     }
 }

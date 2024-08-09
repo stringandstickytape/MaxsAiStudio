@@ -11,16 +11,20 @@ namespace AiTool3.FileAttachments
     {
 
 
-        private readonly ChatWebView _chatWebView;
-        private readonly SettingsSet _settings;
+        private ChatWebView _chatWebView;
+        private SettingsSet _settings;
 
         public string? Base64Image { get; private set; }
         public string? Base64ImageType { get; private set; }
 
-        public FileAttachmentManager(ChatWebView chatWebView, SettingsSet settings)
+        public FileAttachmentManager(SettingsSet settings)
+        {
+            _settings = settings;
+        }
+
+        public void InjectDependencies(ChatWebView chatWebView)
         {
             _chatWebView = chatWebView;
-            _settings = settings;
         }
 
         public async Task HandleAttachment(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode)
