@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace AiTool3.UI
+namespace AiTool3.Helpers
 {
     public static class LaunchHelpers
     {

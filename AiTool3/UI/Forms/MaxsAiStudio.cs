@@ -107,7 +107,6 @@ namespace AiTool3
                 _fileAttachmentManager.InjectDependencies(chatWebView);
                 _namedPipeListener = namedPipeListener;
                 _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
-
                 chatWebView.InjectDependencies(toolManager);
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
