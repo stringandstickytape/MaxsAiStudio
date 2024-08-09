@@ -826,7 +826,10 @@ namespace AiTool3
                     {
                         var url = match.Groups[1].Value;
                         var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
-                        userPrompt = userPrompt.Replace(match.Value, $"\n{ThreeTicks}{url}\n{extractedText}\n{ThreeTicks}\n");
+                        if (extractedText != "")
+                        {
+                            userPrompt = userPrompt.Replace(match.Value, $"\n{ThreeTicks}{url}\n{extractedText}\n{ThreeTicks}\n");
+                        }
                     }
                 }
 

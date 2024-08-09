@@ -1,4 +1,5 @@
-﻿TODO:
+﻿
+TODO:
 
 DONE: crashes if a find and replace won't apply 
 DONE: Token counting
@@ -114,6 +115,9 @@ Clean build : check whisper can be got up-and-running and doesn't b0rk too badly
 
 Claude pre-fills
 OPenAI structured output
+
+
+hide selected models - better model selection generally
 
 ~~~~~~~~~~ Further ideas
 

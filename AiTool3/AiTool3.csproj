@@ -98,6 +98,7 @@
     <None Remove="ThirdPartyJavascript\svg-pan-zoom.min.js" />
     <None Remove="ThirdPartyJavascript\viz.js" />
     <None Remove="Tools\array-find-and-replace.json" />
+    <None Remove="Tools\chat-template.json" />
     <None Remove="Tools\color-scheme-spec.json" />
     <None Remove="Tools\find-and-replace.json" />
     <None Remove="Tools\hello-world.json" />
@@ -150,6 +151,7 @@
     <EmbeddedResource Include="ThirdPartyJavascript\viz.js" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\array-find-and-replace.json" />
+    <EmbeddedResource Include="Tools\chat-template.json" />
     <EmbeddedResource Include="Tools\hello-world.json" />
     <EmbeddedResource Include="Tools\find-and-replace.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
