@@ -108,6 +108,7 @@ namespace AiTool3
                 _namedPipeListener = namedPipeListener;
                 _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
                 ConversationManager = conversationManager;
+                ConversationManager.InjectDepencencies(dgvConversations);
                 chatWebView.InjectDependencies(toolManager);
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
@@ -999,23 +1000,12 @@ namespace AiTool3
                     sb.Append("{");
                 }
 
-                //if (model.ServiceName == "OpenAI")
-                //{
-                //    sb.Append( "{");
-                //}
-
                 sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
-
 
                 if (firstChar != '{')
                 {
                     sb.Append("}");
                 }
-
-                //if (model.ServiceName == "OpenAI")
-                //{
-                //    sb.Append("}");
-                //}
 
                 sb.Append($"\n{ThreeTicks}\n");
 
@@ -1144,12 +1134,8 @@ namespace AiTool3
 
         private async Task NewKeepContext()
         {
-            var lastAssistantMessage = ConversationManager.PreviousCompletion;
-            var lastUserMessage = ConversationManager.Conversation!.FindByGuid(lastAssistantMessage!.Parent!);
-            if (lastUserMessage == null)
-                return;
-            if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = ConversationManager.Conversation.FindByGuid(ConversationManager.PreviousCompletion!.Parent!);
+            CompletionMessage? lastAssistantMessage, lastUserMessage;
+            ConversationManager.GetConversationContext(out lastAssistantMessage, out lastUserMessage);
 
             await BeginNewConversationPreserveInputAndSystemPrompts();
 
@@ -1175,27 +1161,23 @@ namespace AiTool3
             rootMessage.Children!.Add(userMessage.Guid);
             assistantMessage.Parent = userMessage.Guid;
             userMessage.Children.Add(assistantMessage.Guid);
-            //await BeginNewConversation();
-            ConversationManager.Conversation.Messages.AddRange(new[] { userMessage, assistantMessage });
-            ConversationManager.PreviousCompletion = assistantMessage;
 
-            // update ui
+            ConversationManager.AddMessagePair(userMessage, assistantMessage);
+
             await chatWebView.AddMessage(userMessage);
             await chatWebView.AddMessage(assistantMessage);
 
             await WebNdcDrawNetworkDiagram();
         }
 
+
+
         private async Task BeginNewConversation()
         {
             await chatWebView.Clear(CurrentSettings);
-
-            dgvConversations.Enabled = true;
             webViewManager.Enable();
 
-            ConversationManager.Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            ConversationManager.Conversation.AddNewRoot();
-            ConversationManager.PreviousCompletion = ConversationManager.Conversation.Messages.First();
+            ConversationManager.BeginNewConversation();
 
             await WebNdcDrawNetworkDiagram();
         }

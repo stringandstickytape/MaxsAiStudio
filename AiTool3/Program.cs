@@ -53,10 +53,6 @@ internal static class Program
         services.AddSingleton<SettingsSet>();
         services.AddSingleton<FileAttachmentManager>();
         services.AddSingleton<ConversationManager>();
-        //services.AddTransient<ModelUsageManager>();
-        //services.AddScoped<SettingsSet>(); // If settings are context-specific
-        //                                   // Add all necessary services here
-
         services.AddSingleton<MaxsAiStudio>();
     }
 }

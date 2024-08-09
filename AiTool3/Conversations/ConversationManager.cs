@@ -17,6 +17,8 @@ namespace AiTool3.Conversations
 
         public event StringSelectedEventHandler? StringSelected;
 
+        private DataGridView _dgvConversations;
+
         public ConversationManager()
         {
 
@@ -349,6 +351,35 @@ namespace AiTool3.Conversations
             SaveConversation();
 
 
+        }
+
+        internal void InjectDepencencies(DataGridView dgvConversations)
+        {
+            _dgvConversations = dgvConversations;
+        }
+
+        internal void BeginNewConversation()
+        {
+            _dgvConversations.Enabled = true;
+            Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            Conversation.AddNewRoot();
+            PreviousCompletion = Conversation.Messages.First();
+        }
+
+        internal void AddMessagePair(CompletionMessage userMessage, CompletionMessage assistantMessage)
+        {
+            Conversation.Messages.AddRange(new[] { userMessage, assistantMessage });
+            PreviousCompletion = assistantMessage;
+        }
+
+        internal void GetConversationContext(out CompletionMessage? lastAssistantMessage, out CompletionMessage lastUserMessage)
+        {
+            lastAssistantMessage = PreviousCompletion;
+            lastUserMessage = Conversation!.FindByGuid(lastAssistantMessage!.Parent!);
+            if (lastUserMessage == null)
+                return;
+            if (lastAssistantMessage.Role == CompletionRole.User)
+                lastAssistantMessage = Conversation.FindByGuid(PreviousCompletion!.Parent!);
         }
     }
 
