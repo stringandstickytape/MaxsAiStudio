@@ -35,6 +35,7 @@ namespace AiTool3
         private SearchManager _searchManager;
         private FileAttachmentManager _fileAttachmentManager;
         private TemplateManager _templateManager;
+        private ScratchpadManager _scratchpadManager;
 
         public const decimal Version = 0.3m;
 
@@ -57,7 +58,8 @@ namespace AiTool3
                             SearchManager searchManager,
                             FileAttachmentManager fileAttachmentManager,
                             ConversationManager conversationManager,
-                            TemplateManager templateManager)
+                            TemplateManager templateManager,
+                            ScratchpadManager scratchpadManager)
         {
             SplashManager splashManager = new SplashManager();
             splashManager.ShowSplash();
@@ -93,6 +95,7 @@ namespace AiTool3
                 ConversationManager = conversationManager;
                 ConversationManager.InjectDepencencies(dgvConversations);
                 chatWebView.InjectDependencies(toolManager);
+                _scratchpadManager = scratchpadManager;
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -268,15 +271,10 @@ namespace AiTool3
                 File.Move(Path.Combine("Settings", "Scratchpad.json.bak"), Path.Combine("Settings", "Scratchpad.json"));
             }
 
-            if (File.Exists(Path.Combine("Settings", "Scratchpad.json")))
+            var scratchpadContent = _scratchpadManager.LoadScratchpad();
+            if (!string.IsNullOrEmpty(scratchpadContent))
             {
-                var scratchpadContent = File.ReadAllText(Path.Combine("Settings", "Scratchpad.json"));
-
-                //already JSON-encoded
-
                 await chatWebView.ExecuteScriptAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
-
-
             }
 
             await chatWebView.SetTools();
@@ -349,27 +347,7 @@ namespace AiTool3
                     ImportTemplate(e.Json);
                     break;
                 case "saveScratchpad":
-                    // persist e.Json to settings subdirectory Scratchpad.json
-                    if (e.Json == "")
-                        return;
-                    var scratchpadPath = Path.Combine("Settings\\Scratchpad.json");
-
-                    // enocde string as json
-                    var json = JsonConvert.SerializeObject(e.Json);
-
-                    // if there's an existing bak file, delete it
-                    if (File.Exists(scratchpadPath + ".bak"))
-                    {
-                        File.Delete(scratchpadPath + ".bak");
-                    }
-
-                    // if there's an existing file, rename it .json.bak
-                    if (File.Exists(scratchpadPath))
-                    {
-                        File.Move(scratchpadPath, scratchpadPath + ".bak");
-                    }
-
-                    File.WriteAllText(scratchpadPath, json);
+                    _scratchpadManager.SaveScratchpad(e.Json);
                     break;
                 case "allThemes":
                     // persist e.Json to settings subdirectory Themes.json
@@ -383,11 +361,7 @@ namespace AiTool3
                     break;
                 case "ApplyFaRArray":
                     var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(e.Json);
-
-                    // go through every file, calling applyfindandreplace but not saving.  if there's an error string, set the user prompt.
-
-
-                    // group them by filename
+                    
                     var grouped = fnrs.replacements.GroupBy(r => r.filename);
 
                     foreach (var group in grouped)
@@ -1283,5 +1257,4 @@ namespace AiTool3
         }
 
     }
-
 }

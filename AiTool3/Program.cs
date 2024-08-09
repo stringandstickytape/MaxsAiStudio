@@ -49,6 +49,7 @@ internal static class Program
     {
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
+        services.AddTransient<ScratchpadManager>();
         services.AddSingleton<NamedPipeListener>();
         services.AddSingleton<SearchManager>();
         services.AddSingleton<SettingsSet>();
