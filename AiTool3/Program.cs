@@ -50,9 +50,9 @@ internal static class Program
         services.AddTransient<SnippetManager>();
         services.AddSingleton<NamedPipeListener>();
         services.AddSingleton<SearchManager>();
-        services.AddScoped<SettingsSet>();
-        services.AddTransient<FileAttachmentManager>();
-        services.AddTransient<ConversationManager>();
+        services.AddSingleton<SettingsSet>();
+        services.AddSingleton<FileAttachmentManager>();
+        services.AddSingleton<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
         //services.AddScoped<SettingsSet>(); // If settings are context-specific
         //                                   // Add all necessary services here
