@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace AiTool3.Helpers
+namespace AiTool3.Embeddings
 {
     internal static class OllamaEmbeddingsHelper
     {

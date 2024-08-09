@@ -1,4 +1,6 @@
-﻿namespace AiTool3.Providers
+﻿using AiTool3.Providers;
+
+namespace AiTool3.Embeddings
 {
     public class EmbeddingManager
     {

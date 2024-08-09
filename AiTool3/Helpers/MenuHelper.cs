@@ -1,11 +1,11 @@
 ﻿using AiTool3.Conversations;
-using AiTool3.Helpers;
+using AiTool3.Embeddings;
 using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Topics;
 using AiTool3.UI;
 
-namespace AiTool3
+namespace AiTool3.Helpers
 {
     public static class MenuHelper
     {
@@ -66,10 +66,10 @@ namespace AiTool3
         {
             templateManager.templateMenuItems.Clear();
 
-            var templatesMenu = MenuHelper.CreateMenu("Templates");
+            var templatesMenu = CreateMenu("Templates");
 
             // Add "None" option at the top
-            var noneMenuItem = MenuHelper.CreateMenuItem("None", ref templatesMenu);
+            var noneMenuItem = CreateMenuItem("None", ref templatesMenu);
             noneMenuItem.Click += async (s, e) =>
             {
                 await SelectNoneTemplate(menuBar, chatWebView, templateManager, currentSettings);
@@ -80,12 +80,12 @@ namespace AiTool3
 
             foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
-                var categoryMenuItem = MenuHelper.CreateMenuItem(category.Name, ref templatesMenu);
+                var categoryMenuItem = CreateMenuItem(category.Name, ref templatesMenu);
                 categoryMenuItem.ToolTipText = "SHIFT-click to delete";
                 // Add shift-click functionality to delete the entire category
                 categoryMenuItem.MouseDown += (s, e) =>
                 {
-                    if (e.Button == MouseButtons.Left && MaxsAiStudio.ModifierKeys == Keys.Shift)
+                    if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Shift)
                     {
                         templatesMenu.DropDown.Close();
                         if (MessageBox.Show($"Are you sure you want to delete the entire '{category.Name}' category and all its templates?", "Delete Category", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
@@ -99,13 +99,13 @@ namespace AiTool3
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
-                    var templateMenuItem = (TemplateMenuItem)MenuHelper.CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
+                    var templateMenuItem = (TemplateMenuItem)CreateMenuItem(template.TemplateName, ref categoryMenuItem, true);
                     templateManager.templateMenuItems[template.TemplateName] = templateMenuItem;
 
                     templateMenuItem.Click += async (s, e) =>
                     {
                         // if shift is held:
-                        if (MaxsAiStudio.ModifierKeys == Keys.Shift)
+                        if (Control.ModifierKeys == Keys.Shift)
                         {
                             if (MessageBox.Show("Are you sure you want to delete this template?", "Delete Template", MessageBoxButtons.YesNo) == DialogResult.Yes)
                             {
@@ -115,7 +115,7 @@ namespace AiTool3
                             }
                         }
                         else // if ctrl is held:
-                        if (MaxsAiStudio.ModifierKeys == Keys.Control)
+                        if (Control.ModifierKeys == Keys.Control)
                         {
                             templateManager.SelectTemplateByCategoryAndName(category.Name, template.TemplateName);
 
@@ -139,7 +139,7 @@ namespace AiTool3
 
                 // at the end of each category, add a separator then an Add... option
                 categoryMenuItem.DropDownItems.Add(new ToolStripSeparator());
-                var addMenuItem = MenuHelper.CreateMenuItem("Add...", ref categoryMenuItem);
+                var addMenuItem = CreateMenuItem("Add...", ref categoryMenuItem);
                 addMenuItem.Click += (s, e) =>
                 {
                     // s is a ToolStripMenuItem
@@ -156,7 +156,7 @@ namespace AiTool3
 
 
             templatesMenu.DropDownItems.Add(new ToolStripSeparator());
-            var addMenuItem2 = MenuHelper.CreateMenuItem("Add...", ref templatesMenu);
+            var addMenuItem2 = CreateMenuItem("Add...", ref templatesMenu);
             addMenuItem2.Click += (s, e) =>
             {
                 // request a single string from the user for category name, w ok and cancel buttons
@@ -166,24 +166,24 @@ namespace AiTool3
                 var cancelButton = new Button();
 
                 form.Text = "Add Category";
-                form.Size = new System.Drawing.Size(400, 150);
+                form.Size = new Size(400, 150);
                 form.StartPosition = FormStartPosition.CenterScreen;
 
-                tb.Location = new System.Drawing.Point(50, 10);
-                tb.Size = new System.Drawing.Size(300, 20);
+                tb.Location = new Point(50, 10);
+                tb.Size = new Size(300, 20);
                 tb.TabIndex = 0;
                 form.Controls.Add(tb);
 
                 okButton.Text = "OK";
-                okButton.Location = new System.Drawing.Point(50, 50);
-                okButton.Size = new System.Drawing.Size(75, 23);
+                okButton.Location = new Point(50, 50);
+                okButton.Size = new Size(75, 23);
                 okButton.DialogResult = DialogResult.OK;
                 form.Controls.Add(okButton);
 
                 cancelButton.Text = "Cancel";
-                cancelButton.Location = new System.Drawing.Point(150, 50);
+                cancelButton.Location = new Point(150, 50);
 
-                cancelButton.Size = new System.Drawing.Size(75, 23);
+                cancelButton.Size = new Size(75, 23);
                 cancelButton.DialogResult = DialogResult.Cancel;
 
                 form.Controls.Add(cancelButton);
@@ -210,7 +210,7 @@ namespace AiTool3
 
         private static void RecreateTemplatesMenu(MenuStrip menuBar, ChatWebView chatWebView, TemplateManager templateManager, SettingsSet currentSettings, MaxsAiStudio form)
         {
-            MenuHelper.RemoveOldTemplateMenus(menuBar);
+            RemoveOldTemplateMenus(menuBar);
 
             CreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, form);
         }
@@ -220,9 +220,9 @@ namespace AiTool3
 
 
             var menuText = "Specials";
-            ToolStripMenuItem specialsMenu = MenuHelper.CreateMenu(menuText);
+            ToolStripMenuItem specialsMenu = CreateMenu(menuText);
 
-            MenuHelper.AddSpecials(specialsMenu,
+            AddSpecials(specialsMenu,
                 new List<LabelAndEventHander>
                 {
 
@@ -299,9 +299,9 @@ namespace AiTool3
 
 
             var menuText = "Embeddings";
-            ToolStripMenuItem embeddingsMenu = MenuHelper.CreateMenu(menuText);
+            ToolStripMenuItem embeddingsMenu = CreateMenu(menuText);
 
-            MenuHelper.AddSpecials(embeddingsMenu,
+            AddSpecials(embeddingsMenu,
                 new List<LabelAndEventHander>
                 {
                     new LabelAndEventHander("Create Embedding...", async (s, e) =>

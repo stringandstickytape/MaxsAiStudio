@@ -1,7 +1,7 @@
-﻿using AiTool3.ExtensionMethods;
-using AiTool3.Providers.Embeddings.Fragmenters;
+﻿using AiTool3.Embeddings.Fragmenters;
+using AiTool3.ExtensionMethods;
 
-namespace AiTool3.Helpers
+namespace AiTool3.Embeddings
 {
     internal static class EmbeddingsHelper
     {

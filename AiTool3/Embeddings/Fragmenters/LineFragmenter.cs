@@ -1,4 +1,4 @@
-﻿namespace AiTool3.Providers.Embeddings.Fragmenters
+﻿namespace AiTool3.Embeddings.Fragmenters
 {
     public class LineFragmenter
 

@@ -1,4 +1,4 @@
-﻿namespace AiTool3
+﻿namespace AiTool3.Embeddings
 {
     public class Embedding
     {
