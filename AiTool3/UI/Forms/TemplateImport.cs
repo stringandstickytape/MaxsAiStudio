@@ -1,4 +1,5 @@
-﻿namespace AiTool3
+﻿using System;
+namespace AiTool3
 {
     public class TemplateImport
     {

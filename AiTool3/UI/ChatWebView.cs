@@ -264,7 +264,7 @@ namespace AiTool3.UI
         public async Task<Model> GetDropdownModel(string str, SettingsSet settings)
         {
             var modelString = JsonConvert.DeserializeObject<string>(await GetDropdownValue(str));
-            var model = settings.ModelList.FirstOrDefault(m => modelString.StartsWith(m.ToString()));
+            var model = settings.ModelList.FirstOrDefault(m => $"{modelString.Split(' ')[0]}" == m.ModelName);
             return model;
         }
 

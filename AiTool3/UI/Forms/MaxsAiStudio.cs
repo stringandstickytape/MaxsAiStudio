@@ -53,10 +53,14 @@ namespace AiTool3
 
         public string selectedConversationGuid = "";
 
-        public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener)
+        public MaxsAiStudio(ToolManager toolManager, SnippetManager snippetManager, NamedPipeListener namedPipeListener,
+            SearchManager searchManager )
         {
             _toolManager = toolManager;
             _snippetManager = snippetManager;
+            _searchManager = searchManager;
+            _searchManager.SetDgv(dgvConversations);
+
             _namedPipeListener = namedPipeListener;
             _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
 
@@ -215,7 +219,6 @@ namespace AiTool3
 
                 dgvConversations.MouseDown += DgvConversations_MouseDown;
 
-                _searchManager = new SearchManager(dgvConversations);
                 _fileAttachmentManager = new FileAttachmentManager(chatWebView, CurrentSettings);
 
                 // hide splash
@@ -709,11 +712,12 @@ namespace AiTool3
 
             if (CurrentSettings.SelectedModel != "")
             {
-                await chatWebView.SetDropdownValue("mainAI", CurrentSettings.SelectedModel.ToString());
+                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedModel);
+                await chatWebView.SetDropdownValue("mainAI", matchingModel.ToString());
             }
             else
             {
-                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+            var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
                 await chatWebView.SetDropdownValue("mainAI", selectedModel.ToString());
                 CurrentSettings.SelectedModel = selectedModel.ToString();
                 SettingsSet.Save(CurrentSettings);
@@ -721,7 +725,8 @@ namespace AiTool3
 
             if (CurrentSettings.SelectedSummaryModel != "")
             {
-                await chatWebView.SetDropdownValue("summaryAI", CurrentSettings.SelectedSummaryModel.ToString());
+                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel);
+                await chatWebView.SetDropdownValue("summaryAI", matchingModel.ToString());
             }
             else
             {
@@ -880,7 +885,7 @@ namespace AiTool3
                 PrepareForNewResponse();
 
                 var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
-
+                
                 var userPrompt = await chatWebView.GetUserPrompt();
 
                 if (CurrentSettings.AllowUserPromptUrlPulls && userPrompt != null)
@@ -1267,14 +1272,19 @@ namespace AiTool3
 
         private void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e)
         {
+
+            var models = CurrentSettings.ModelList;
+            var matchingModel = models.FirstOrDefault(m => $"{e.ModelString.Split(' ')[0]}" == m.ModelName);
             if (e.Dropdown == "mainAI")
             {
-                CurrentSettings.SelectedModel = e.ModelString;
+                
+
+                CurrentSettings.SelectedModel = matchingModel.ModelName;
                 SettingsSet.Save(CurrentSettings);
             }
             else if (e.Dropdown == "summaryAI")
             {
-                CurrentSettings.SelectedSummaryModel = e.ModelString;
+                CurrentSettings.SelectedSummaryModel = matchingModel.ModelName;
                 SettingsSet.Save(CurrentSettings);
             }
         }

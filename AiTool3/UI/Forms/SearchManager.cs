@@ -6,11 +6,15 @@ namespace AiTool3.UI.Forms
     public class SearchManager
     {
         private CancellationTokenSource? _cts;
-        private readonly DataGridView _dgvConversations;
+        private DataGridView _dgvConversations;
 
-        public SearchManager(DataGridView dgvConversations)
+        public SearchManager()
         {
-            _dgvConversations = dgvConversations;
+        }
+
+        public void SetDgv(DataGridView dgv)
+        {
+            _dgvConversations = dgv;
         }
 
         public async Task PerformSearch(string searchText)

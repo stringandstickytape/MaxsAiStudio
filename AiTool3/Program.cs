@@ -3,6 +3,7 @@ using AiTool3.Communications;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.UI;
+using AiTool3.UI.Forms;
 using Microsoft.Extensions.DependencyInjection;
 
 internal static class Program
@@ -46,8 +47,8 @@ internal static class Program
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
         services.AddSingleton<NamedPipeListener>();
+        services.AddSingleton<SearchManager>();
 
-        //services.AddSingleton<SearchManager>();
         //services.AddTransient<FileAttachmentManager>();
         //services.AddTransient<ConversationManager>();
         //services.AddTransient<ModelUsageManager>();
