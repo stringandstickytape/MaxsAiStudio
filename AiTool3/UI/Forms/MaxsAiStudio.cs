@@ -19,7 +19,6 @@ using Newtonsoft.Json;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Whisper.net.Ggml;
 using static AiTool3.Communications.NamedPipeListener;
@@ -522,7 +521,7 @@ namespace AiTool3
             // check for updates
             try
             {
-                var latestVersionDetails = await GetLatestRelease();
+                var latestVersionDetails = await VersionHelper.GetLatestRelease();
                 if (latestVersionDetails.Item1 != "")
                 {
                     var latestVersion = latestVersionDetails.Item2;
@@ -856,7 +855,7 @@ namespace AiTool3
                 if (overrideUserPrompt == null)
                 {
                     await UpdateUi(response);
-                    await UpdateConversationSummary();
+                    await ConversationManager.UpdateConversationSummary();
                 }
             }
             catch (Exception ex)
@@ -1010,20 +1009,7 @@ namespace AiTool3
             }
         }
 
-        private async Task UpdateConversationSummary()
-        {
 
-            var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
-
-            if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
-            {
-                await ConversationManager.GenerateConversationSummary(CurrentSettings);
-                row.Cells[3].Value = ConversationManager.Conversation.ToString();
-
-            }
-
-            ConversationManager.SaveConversation();
-        }
 
         private async Task<bool> WebNdcDrawNetworkDiagram()
         {
@@ -1132,10 +1118,8 @@ namespace AiTool3
             }
             catch
             {
-                // corrupt conversation file
                 return;
             }
-
         }
 
         public async Task PopulateUiForTemplate(ConversationTemplate template)
@@ -1160,7 +1144,6 @@ namespace AiTool3
             cts?.Cancel();
             return new CancellationTokenSource();
         }
-
 
         private void btnClearSearch_Click(object sender, EventArgs e)
         {
@@ -1214,47 +1197,5 @@ namespace AiTool3
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
         }
-
-        public static async Task<(string, decimal)> GetLatestRelease()
-        {
-            string apiUrl = "https://api.github.com/repos/stringandstickytape/MaxsAiStudio/releases";
-            string userAgent = "MyGitHubApp/1.0"; // Replace with your app name and version
-
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-
-                try
-                {
-                    HttpResponseMessage response = await client.GetAsync(apiUrl);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
-
-                    using (JsonDocument doc = JsonDocument.Parse(responseBody))
-                    {
-                        JsonElement root = doc.RootElement;
-
-                        if (root.GetArrayLength() > 0)
-                        {
-                            JsonElement latestRelease = root[0];
-                            string releaseName = latestRelease.GetProperty("name").GetString();
-                            string releaseUrl = latestRelease.GetProperty("html_url").GetString();
-
-                            if (decimal.TryParse(releaseName, out decimal releaseVersion))
-                            {
-                                return (releaseUrl, releaseVersion);
-                            }
-                        }
-                    }
-                }
-                catch (HttpRequestException e)
-                {
-                    Debug.WriteLine($"Error: {e.Message}");
-                }
-
-                return ("", 0);
-            }
-        }
-
     }
 }

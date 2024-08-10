@@ -19,6 +19,15 @@ namespace AiTool3.Conversations
 
         private DataGridView _dgvConversations;
 
+        private SettingsSet _settings = null;
+
+        public ConversationManager(SettingsSet settings)
+        {
+            _settings = settings;
+            Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
+            Conversation.StringSelected += Conversation_StringSelected;
+        }
+
         public ConversationManager()
         {
 
@@ -380,6 +389,19 @@ namespace AiTool3.Conversations
                 return;
             if (lastAssistantMessage.Role == CompletionRole.User)
                 lastAssistantMessage = Conversation.FindByGuid(PreviousCompletion!.Parent!);
+        }
+
+        internal async Task UpdateConversationSummary()
+        {
+            var row = _dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == Conversation.ConvGuid);
+
+            if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
+            {
+                await GenerateConversationSummary(_settings);
+                row.Cells[3].Value = Conversation.ToString();
+            }
+
+            SaveConversation();
         }
     }
 
