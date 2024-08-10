@@ -558,7 +558,7 @@ namespace AiTool3
 
             await BeginNewConversation();
 
-            await CreateNewWebNdc(false);
+            await webViewManager.CreateNewWebNdc(false, WebViewNdc_WebNdcContextMenuOptionSelected, WebViewNdc_WebNdcNodeClicked);
 
             this.BringToFront();
 
@@ -630,6 +630,11 @@ namespace AiTool3
             await chatWebView.EnableSendButton();
             await chatWebView.DisableCancelButton();
 
+            EnableConversationsAndWebView();
+        }
+
+        private void EnableConversationsAndWebView()
+        {
             dgvConversations.Enabled = true;
             webViewManager.Enable();
         }
@@ -846,7 +851,7 @@ namespace AiTool3
 
         private async Task BeginNewConversation()
         {
-            await chatWebView.Clear(CurrentSettings);
+            await chatWebView.Clear();
             webViewManager.Enable();
 
             ConversationManager.BeginNewConversation();
@@ -877,20 +882,13 @@ namespace AiTool3
 
         public async Task PopulateUiForTemplate(ConversationTemplate template)
         {
-            await chatWebView.Clear(CurrentSettings);
+            EnableConversationsAndWebView();
 
-            dgvConversations.Enabled = true;
-            webViewManager.Enable();
-
-            await chatWebView.UpdateSystemPrompt(template?.SystemPrompt ?? "");
-            await chatWebView.SetUserPrompt(template?.InitialPrompt ?? "");
+            await chatWebView.OpenTemplate(template);
         }
 
 
-        private async void tbSearch_TextChanged(object sender, EventArgs e)
-        {
-            await _searchManager.PerformSearch(tbSearch.Text);
-        }
+        private async void tbSearch_TextChanged(object sender, EventArgs e) => await _searchManager.PerformSearch(tbSearch.Text);
 
         public static CancellationTokenSource ResetCancellationtoken(CancellationTokenSource? cts)
         {
@@ -902,11 +900,6 @@ namespace AiTool3
         {
             tbSearch.Clear();
             _searchManager.ClearSearch();
-        }
-
-        private async Task CreateNewWebNdc(bool showDevTools)
-        {
-            await webViewManager.CreateNewWebNdc(showDevTools, WebViewNdc_WebNdcContextMenuOptionSelected, WebViewNdc_WebNdcNodeClicked);
         }
 
         private void MaxsAiStudio_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();

@@ -5,6 +5,7 @@ using AiTool3.ExtensionMethods;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Tools;
+using AiTool3.Topics;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
@@ -329,13 +330,11 @@ namespace AiTool3.UI
 
         }
 
-        internal async Task Clear(SettingsSet currentSettings)
+        internal async Task Clear()
         {
-            // run "addMessages" js function
             await ExecuteScriptAsync($"ClearMessages()");
             await DisableCancelButton();
             await EnableSendButton();
-            //await UpdateSendButtonColor(currentSettings.UseEmbeddings);
         }
 
         internal async Task DisableCancelButton()
@@ -545,6 +544,13 @@ namespace AiTool3.UI
         {
             // addIndicator('Voice','#FFFFFF')
             await ExecuteScriptAsync($"clearIndicator('{Label}')");
+        }
+
+        internal async Task OpenTemplate(ConversationTemplate template)
+        {
+            await Clear();
+            await UpdateSystemPrompt(template?.SystemPrompt ?? "");
+            await SetUserPrompt(template?.InitialPrompt ?? "");
         }
     }
 }

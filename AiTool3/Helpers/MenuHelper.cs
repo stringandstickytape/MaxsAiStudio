@@ -48,10 +48,10 @@ namespace AiTool3.Helpers
             menuBar.Items.OfType<ToolStripMenuItem>().Where(x => x.Text == "Templates").ToList().ForEach(x => menuBar.Items.Remove(x));
         }
 
-        private static async Task SelectNoneTemplate(MenuStrip menuBar, ChatWebView chatWebView, TemplateManager templateManager, SettingsSet currentSettings)
+        private static async Task SelectNoneTemplate(MenuStrip menuBar, ChatWebView chatWebView, TemplateManager templateManager)
         {
             templateManager.ClearTemplate();
-            await chatWebView.Clear(currentSettings);
+            await chatWebView.Clear();
             await chatWebView.UpdateSystemPrompt("");
             await chatWebView.SetUserPrompt("");
 
@@ -74,7 +74,7 @@ namespace AiTool3.Helpers
             var noneMenuItem = CreateMenuItem("None", ref templatesMenu);
             noneMenuItem.Click += async (s, e) =>
             {
-                await SelectNoneTemplate(menuBar, chatWebView, templateManager, currentSettings);
+                await SelectNoneTemplate(menuBar, chatWebView, templateManager);
             };
 
             // Add separator after "None"
