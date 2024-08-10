@@ -47,6 +47,7 @@ internal static class Program
     }
     private static void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton<AIResponseHandler>();
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
         services.AddTransient<ScratchpadManager>();
