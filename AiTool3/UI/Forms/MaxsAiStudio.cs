@@ -120,81 +120,7 @@ namespace AiTool3
                 splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
                 splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
 
-                DataGridViewHelper.InitialiseDataGridView(dgvConversations, new ConversationCacheManager());
-
-                ContextMenuStrip contextMenu = new ContextMenuStrip();
-
-                contextMenu.Items.Add("Regenerate Summary", null, RegenerateSummary);
-
-                contextMenu.Items.Add(new ToolStripSeparator());
-                var noHighlightItem = new ToolStripMenuItem("Clear Highlight");
-
-                foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
-                {
-                    var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "Highlight in ").Replace("]", ""));
-
-                    // add a colour swatch to the item (!)
-                    var bmp = new System.Drawing.Bitmap(16, 16);
-                    using (var g = System.Drawing.Graphics.FromImage(bmp))
-                    {
-                        g.Clear(colour);
-
-                        // add 1px solid black border
-                        g.DrawRectangle(System.Drawing.Pens.Black, 0, 0, bmp.Width - 1, bmp.Height - 1);
-
-                    }
-
-                    item.Image = bmp;
-
-
-
-                    item.Click += (s, e) =>
-                    {
-                        var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
-                        conv.HighlightColour = colour;
-                        conv.SaveConversation();
-
-                        // find the dgv row
-                        foreach (DataGridViewRow row in dgvConversations.Rows)
-                        {
-                            if (row.Cells[0].Value.ToString() == selectedConversationGuid)
-                            {
-                                row.DefaultCellStyle.BackColor = colour;
-                                row.DefaultCellStyle.ForeColor = Color.Black;
-                                break;
-                            }
-                        }
-                    };
-                    contextMenu.Items.Add(item);
-
-                }
-
-                // add a split and no-highlight option which sets conv.highlightcolour to null and updates the row
-
-                noHighlightItem.Click += (s, e) =>
-                {
-                    var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
-                    conv.HighlightColour = null;
-                    conv.SaveConversation();
-
-                    // find the dgv row
-                    foreach (DataGridViewRow row in dgvConversations.Rows)
-                    {
-                        if (row.Cells[0].Value.ToString() == selectedConversationGuid)
-                        {
-                            row.DefaultCellStyle.BackColor = Color.Black;
-                            row.DefaultCellStyle.ForeColor = Color.White;
-                            break;
-                        }
-                    }
-                };
-
-                contextMenu.Items.Add(new ToolStripSeparator());
-                contextMenu.Items.Add(noHighlightItem);
-                contextMenu.Items.Add(new ToolStripSeparator());
-                contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
-
-                dgvConversations.ContextMenuStrip = contextMenu;
+                dgvConversations.InitialiseDataGridView(RegenerateSummary, DeleteConversation, selectedConversationGuid);
 
                 InitialiseMenus();
 
@@ -211,6 +137,8 @@ namespace AiTool3
                 splashManager.CloseSplash();
             }
         }
+
+
 
         private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e)
         {

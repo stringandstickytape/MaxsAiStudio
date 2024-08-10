@@ -1,4 +1,5 @@
 ﻿using AiTool3.UI;
+using AiTool3.UI.Forms;
 
 namespace AiTool3
 {
@@ -35,7 +36,7 @@ namespace AiTool3
             splitContainer5 = new SplitContainer();
             btnClearSearch = new Button();
             tbSearch = new TextBox();
-            dgvConversations = new DataGridView();
+            dgvConversations = new ConversationDataGridView();
             ndcWeb = new Microsoft.Web.WebView2.WinForms.WebView2();
             panel1 = new Panel();
             button1 = new Button();
@@ -271,7 +272,7 @@ namespace AiTool3
 
         #endregion
         private SplitContainer splitContainer1;
-        private DataGridView dgvConversations;
+        private ConversationDataGridView dgvConversations;
         private SplitContainer splitContainer5;
         private MenuStrip menuBar;
         private ToolStripMenuItem toolStripMenuItem1;

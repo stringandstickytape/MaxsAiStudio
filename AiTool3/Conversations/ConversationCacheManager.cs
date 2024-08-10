@@ -46,8 +46,6 @@ namespace AiTool3.Conversations
                 var newConv = new CachedConversation
                 {
                     ConvGuid = conv.ConvGuid,
-                    Content = conv.Messages[0].Content,
-                    Engine = conv.Messages[0].Engine,
                     Summary = conv.Summary ?? summary,
                     FileName = file,
                     LastModified = lastWriteTime,
