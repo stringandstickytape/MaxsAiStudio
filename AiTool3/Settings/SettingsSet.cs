@@ -7,6 +7,8 @@ namespace AiTool3
     public class SettingsSet
 
     {
+        private string selectedSummaryModel = "";
+
         public List<Model> ModelList { get; set; } = new List<Model>();
 
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
@@ -56,9 +58,9 @@ namespace AiTool3
         public string SelectedModel { get; set; } = "";
         public string SelectedSummaryModel
         {
-            get;
-            set;
-        } = "";
+            get => selectedSummaryModel;
+            set => selectedSummaryModel = value;
+        }
         public string SelectedTheme { get; set; }
 
         [MyDisplayNameAttr("Name of the Ollama embedding model to use")]

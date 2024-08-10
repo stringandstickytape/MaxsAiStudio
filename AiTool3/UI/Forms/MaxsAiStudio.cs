@@ -746,15 +746,9 @@ namespace AiTool3
                 });
         }
 
-
-
-
-
-
         private async Task UpdateUi(AiResponse response)
         {
-            var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
-            var cost = model.GetCost(response.TokenUsage);
+            var cost = CurrentSettings.GetModel().GetCost(response.TokenUsage);
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
@@ -765,8 +759,6 @@ namespace AiTool3
                 dgvConversations.Rows.Insert(0, ConversationManager.Conversation.ConvGuid, ConversationManager.Conversation.Messages[0].Content, ConversationManager.Conversation.Messages[0].Engine, "");
             }
         }
-
-
 
         private async Task<bool> WebNdcDrawNetworkDiagram() => await webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages);
 
