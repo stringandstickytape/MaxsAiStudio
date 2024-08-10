@@ -13,7 +13,7 @@ namespace AiTool3.Conversations
     public class ConversationManager
     {
         public BranchedConversation? Conversation { get; set; }
-        public CompletionMessage? PreviousCompletion { get; set; }
+        public CompletionMessage? MostRecentCompletion { get; set; }
 
         public event StringSelectedEventHandler? StringSelected;
 
@@ -46,7 +46,7 @@ namespace AiTool3.Conversations
             try
             {
                 var nodes = new List<CompletionMessage>();
-                var current = PreviousCompletion?.Guid;
+                var current = MostRecentCompletion?.Guid;
 
                 while (current != null)
                 {
@@ -155,12 +155,12 @@ namespace AiTool3.Conversations
 
         public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)
         {
-            var previousCompletionGuidBeforeAwait = PreviousCompletion?.Guid;
+            var previousCompletionGuidBeforeAwait = MostRecentCompletion?.Guid;
 
             completionInput = new CompletionMessage(CompletionRole.User)
             {
                 Content = inputText.Replace("\r", ""),
-                Parent = PreviousCompletion?.Guid,
+                Parent = MostRecentCompletion?.Guid,
                 Engine = model.ModelName,
                 SystemPrompt = systemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
@@ -169,9 +169,9 @@ namespace AiTool3.Conversations
                 Base64Type = conversation.messages.Last().base64type,
                 CreatedAt = DateTime.Now,
             };
-            if (PreviousCompletion != null)
+            if (MostRecentCompletion != null)
             {
-                PreviousCompletion.Children!.Add(completionInput.Guid);
+                MostRecentCompletion.Children!.Add(completionInput.Guid);
             }
 
             Conversation!.Messages.Add(completionInput);
@@ -190,7 +190,7 @@ namespace AiTool3.Conversations
             Conversation.Messages.Add(completionResponse);
 
             completionInput.Children.Add(completionResponse.Guid);
-            PreviousCompletion = completionResponse;
+            MostRecentCompletion = completionResponse;
 
             SaveConversation();
 
@@ -372,23 +372,23 @@ namespace AiTool3.Conversations
             _dgvConversations.Enabled = true;
             Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             Conversation.AddNewRoot();
-            PreviousCompletion = Conversation.Messages.First();
+            MostRecentCompletion = Conversation.Messages.First();
         }
 
         internal void AddMessagePair(CompletionMessage userMessage, CompletionMessage assistantMessage)
         {
             Conversation.Messages.AddRange(new[] { userMessage, assistantMessage });
-            PreviousCompletion = assistantMessage;
+            MostRecentCompletion = assistantMessage;
         }
 
         internal void GetConversationContext(out CompletionMessage? lastAssistantMessage, out CompletionMessage lastUserMessage)
         {
-            lastAssistantMessage = PreviousCompletion;
+            lastAssistantMessage = MostRecentCompletion;
             lastUserMessage = Conversation!.FindByGuid(lastAssistantMessage!.Parent!);
             if (lastUserMessage == null)
                 return;
             if (lastAssistantMessage.Role == CompletionRole.User)
-                lastAssistantMessage = Conversation.FindByGuid(PreviousCompletion!.Parent!);
+                lastAssistantMessage = Conversation.FindByGuid(MostRecentCompletion!.Parent!);
         }
 
         internal async Task UpdateConversationSummary()

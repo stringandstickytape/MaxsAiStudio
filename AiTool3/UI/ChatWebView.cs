@@ -552,5 +552,10 @@ namespace AiTool3.UI
             await UpdateSystemPrompt(template?.SystemPrompt ?? "");
             await SetUserPrompt(template?.InitialPrompt ?? "");
         }
+
+        internal async Task NodeClicked(string nodeId, ConversationManager conversationManager)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

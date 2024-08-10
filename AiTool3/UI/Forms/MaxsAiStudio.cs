@@ -117,8 +117,8 @@ namespace AiTool3
                 audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn, chatWebView);
                 audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
-                splitContainer1.Paint += new PaintEventHandler(SplitContainer_Paint!);
-                splitContainer5.Paint += new PaintEventHandler(SplitContainer_Paint!);
+                splitContainer1.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
+                splitContainer5.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
 
                 dgvConversations.InitialiseDataGridView(RegenerateSummary, DeleteConversation, selectedConversationGuid);
 
@@ -684,27 +684,13 @@ namespace AiTool3
 
 
 
-        private void SplitContainer_Paint(object sender, PaintEventArgs e)
-        {
-            SplitContainer sc = (sender as SplitContainer)!;
-
-            Rectangle splitterRect = sc.Orientation == Orientation.Horizontal
-                ? new Rectangle(0, sc.SplitterDistance, sc.Width, sc.SplitterWidth)
-                : new Rectangle(sc.SplitterDistance, 0, sc.SplitterWidth, sc.Height);
-
-            using (SolidBrush brush = new SolidBrush(Color.FromArgb(200, 200, 200)))
-            {
-                e.Graphics.FillRectangle(brush, splitterRect);
-            }
-        }
-
 
         private async void WebViewNdc_WebNdcNodeClicked(object? sender, WebNdcNodeClickedEventArgs e)
         {
             var clickedCompletion = ConversationManager.Conversation!.Messages.FirstOrDefault(c => c.Guid == e.NodeId);
             if (clickedCompletion == null)
                 return;
-            ConversationManager.PreviousCompletion = clickedCompletion;
+            ConversationManager.MostRecentCompletion = clickedCompletion;
 
             var parents = ConversationManager.GetParentNodeList();
 
@@ -718,23 +704,17 @@ namespace AiTool3
 
             await chatWebView.AddMessages(parents);
 
-            string systemPrompt = "";
-            systemPrompt = ConversationManager.PreviousCompletion.SystemPrompt!;
-            if (ConversationManager.PreviousCompletion.Role == CompletionRole.User)
+            if (ConversationManager.MostRecentCompletion.Role == CompletionRole.User)
             {
-                await chatWebView.SetUserPrompt(ConversationManager.PreviousCompletion.Content!);
-                ConversationManager.PreviousCompletion = ConversationManager.Conversation.FindByGuid(ConversationManager.PreviousCompletion.Parent!);
+                await chatWebView.SetUserPrompt(ConversationManager.MostRecentCompletion.Content!);
+                ConversationManager.MostRecentCompletion = ConversationManager.Conversation.FindByGuid(ConversationManager.MostRecentCompletion.Parent!);
             }
             else
             {
                 await chatWebView.SetUserPrompt("");
             }
-            //await chatWebView.ChangeChatHeaderLabel(ConversationManager.PreviousCompletion.Engine);
-            await chatWebView.UpdateSystemPrompt(systemPrompt);
-
-
-
-
+            
+            await chatWebView.UpdateSystemPrompt(ConversationManager.MostRecentCompletion.SystemPrompt!);
         }
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
