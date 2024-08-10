@@ -1,4 +1,3 @@
-using AiTool3.ApiManagement;
 using AiTool3.Audio;
 using AiTool3.Communications;
 using AiTool3.Conversations;
@@ -18,8 +17,6 @@ using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
 using System.Diagnostics;
-using System.Text;
-using System.Text.RegularExpressions;
 using Whisper.net.Ggml;
 using static AiTool3.Communications.NamedPipeListener;
 
@@ -37,7 +34,7 @@ namespace AiTool3
         private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
 
-        public const decimal Version = 0.3m;
+        public static readonly decimal Version = 0.3m;
 
         public static readonly string ThreeTicks = new string('`', 3);
 
@@ -285,8 +282,9 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.", 
-                updateUiMethod: (response) => {
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.",
+                updateUiMethod: (response) =>
+                {
                     UpdateUi(response);
                 });
 
@@ -366,7 +364,7 @@ namespace AiTool3
                     break;
                 case "ApplyFaRArray":
                     var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(e.Json);
-                    
+
                     var grouped = fnrs.replacements.GroupBy(r => r.filename);
 
                     foreach (var group in grouped)
@@ -659,7 +657,7 @@ namespace AiTool3
                 SettingsSet.Save(CurrentSettings);
             }
 
-            if (CurrentSettings.SelectedSummaryModel != "") 
+            if (CurrentSettings.SelectedSummaryModel != "")
             {
                 var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel.Split(' ')[0]);
                 await chatWebView.SetDropdownValue("summaryAI", matchingModel.ToString());
@@ -809,7 +807,8 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
-                updateUiMethod: (response) => {
+                updateUiMethod: (response) =>
+                {
                     UpdateUi(response);
                 });
         }
@@ -817,8 +816,8 @@ namespace AiTool3
 
 
 
- 
- 
+
+
         private async Task UpdateUi(AiResponse response)
         {
             var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
@@ -1004,7 +1003,7 @@ namespace AiTool3
             var matchingModel = models.FirstOrDefault(m => $"{e.ModelString.Split(' ')[0]}" == m.ModelName);
             if (e.Dropdown == "mainAI")
             {
-                
+
 
                 CurrentSettings.SelectedModel = matchingModel.ModelName;
                 SettingsSet.Save(CurrentSettings);
