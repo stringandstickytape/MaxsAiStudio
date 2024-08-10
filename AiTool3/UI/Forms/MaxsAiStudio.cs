@@ -917,31 +917,11 @@ namespace AiTool3
 <";
         }
 
-        private void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e)
-        {
-
-            var models = CurrentSettings.ModelList;
-            var matchingModel = models.FirstOrDefault(m => $"{e.ModelString.Split(' ')[0]}" == m.ModelName);
-            if (e.Dropdown == "mainAI")
-            {
-
-
-                CurrentSettings.SelectedModel = matchingModel.ModelName;
-                SettingsSet.Save(CurrentSettings);
-            }
-            else if (e.Dropdown == "summaryAI")
-            {
-                CurrentSettings.SelectedSummaryModel = matchingModel.ModelName;
-                SettingsSet.Save(CurrentSettings);
-            }
-        }
+        private void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e) => CurrentSettings.SetModelFromDropdownValue(e.Dropdown, e.ModelString);
 
         private void chatWebView_DragDrop(object sender, DragEventArgs e)
         {
-            // get the name of the dropped file
-
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-
         }
     }
 }

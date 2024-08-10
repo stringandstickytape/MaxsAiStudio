@@ -162,6 +162,22 @@ namespace AiTool3
         }
 
         public Model GetModel() => GetModelByFullStringReference(SelectedModel);
+
+        internal void SetModelFromDropdownValue(string dropdown, string? modelString)
+        {
+            var models = ModelList;
+            var matchingModel = models.FirstOrDefault(m => $"{modelString.Split(' ')[0]}" == m.ModelName);
+            if (dropdown == "mainAI")
+            {
+                SelectedModel = matchingModel.ModelName;
+                SettingsSet.Save(this);
+            }
+            else if (dropdown == "summaryAI")
+            {
+                SelectedSummaryModel = matchingModel.ModelName;
+                SettingsSet.Save(this);
+            }
+        }
     }
 
 
