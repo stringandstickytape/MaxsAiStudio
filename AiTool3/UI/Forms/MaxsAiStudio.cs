@@ -35,6 +35,7 @@ namespace AiTool3
         private FileAttachmentManager _fileAttachmentManager;
         private TemplateManager _templateManager;
         private ScratchpadManager _scratchpadManager;
+        private AiResponseHandler _aiResponseHandler;
 
         public const decimal Version = 0.3m;
 
@@ -58,7 +59,8 @@ namespace AiTool3
                             FileAttachmentManager fileAttachmentManager,
                             ConversationManager conversationManager,
                             TemplateManager templateManager,
-                            ScratchpadManager scratchpadManager)
+                            ScratchpadManager scratchpadManager,
+                            AiResponseHandler aiResponseHandler)
         {
             SplashManager splashManager = new SplashManager();
             splashManager.ShowSplash();
@@ -95,10 +97,11 @@ namespace AiTool3
                 ConversationManager.InjectDepencencies(dgvConversations);
                 chatWebView.InjectDependencies(toolManager);
                 _scratchpadManager = scratchpadManager;
+                _aiResponseHandler = aiResponseHandler;
+                webViewManager = new WebViewManager(ndcWeb);
+                _aiResponseHandler.InjectDependencies(chatWebView, webViewManager);
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
-
-                webViewManager = new WebViewManager(ndcWeb);
 
                 chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
                 chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
@@ -282,7 +285,10 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await FetchAiInputResponse(null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.");
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.", 
+                updateUiMethod: (response) => {
+                    UpdateUi(response);
+                });
 
             ConversationManager.ContinueUnterminatedCodeBlock(e);
 
@@ -557,20 +563,14 @@ namespace AiTool3
         }
         private async void ChatWebView_FileDropped(object sender, string filename)
         {
-            // convert file:/// uri to filepath and name
-
-            // if it's an HTTP filename...
             if (filename.StartsWith("http"))
             {
                 var textFromUrl = await HtmlTextExtractor.ExtractTextFromUrlAsync(filename);
 
                 var quotedFile = HtmlTextExtractor.QuoteFile(filename, textFromUrl);
 
-                // prepend to existing cwv user input
                 var currentPrompt = await chatWebView.GetUserPrompt();
                 await chatWebView.SetUserPrompt($"{quotedFile}{Environment.NewLine}{currentPrompt}");
-
-
 
                 return;
             }
@@ -659,7 +659,7 @@ namespace AiTool3
                 SettingsSet.Save(CurrentSettings);
             }
 
-            if (CurrentSettings.SelectedSummaryModel != "")
+            if (CurrentSettings.SelectedSummaryModel != "") 
             {
                 var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel.Split(' ')[0]);
                 await chatWebView.SetDropdownValue("summaryAI", matchingModel.ToString());
@@ -808,194 +808,19 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            await FetchAiInputResponse(e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings);
-        }
-
-
-        private async Task<string> FetchAiInputResponse(List<string> toolIDs = null, string? overrideUserPrompt = null, bool sendSecondary = false, bool addEmbeddings = false)
-        {
-            toolIDs = toolIDs ?? new List<string>();
-            string retVal = "";
-            try
-            {
-                PrepareForNewResponse();
-
-                var model = sendSecondary ? await chatWebView.GetDropdownModel("summaryAI", CurrentSettings) : await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
-                
-                var userPrompt = await chatWebView.GetUserPrompt();
-
-                if (CurrentSettings.AllowUserPromptUrlPulls && userPrompt != null)
-                {
-                    var matches = Regex.Matches(userPrompt, @"\[pull:(.*?)\]");
-                    foreach (Match match in matches)
-                    {
-                        var url = match.Groups[1].Value;
-                        var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
-                        if (extractedText != "")
-                        {
-                            userPrompt = userPrompt.Replace(match.Value, $"\n{ThreeTicks}{url}\n{extractedText}\n{ThreeTicks}\n");
-                        }
-                    }
-                }
-
-                var conversation = await ConversationManager.PrepareConversationData(model, await chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : userPrompt, _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(conversation, model, toolIDs, overrideUserPrompt, addEmbeddings);
-                retVal = response.ResponseText;
-                await chatWebView.SetUserPrompt("");
-                await chatWebView.DisableCancelButton();
-
-                dgvConversations.Enabled = true;
-                webViewManager.Enable();
-
-                await chatWebView.EnableSendButton();
-
-                stopwatch.Stop();
-                updateTimer.Stop();
-
-                if (overrideUserPrompt == null)
-                {
-                    await UpdateUi(response);
-                    await ConversationManager.UpdateConversationSummary();
-                }
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                updateTimer.Stop();
-
-                MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
-
-                chatWebView.ClearTemp();
-                _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
-            }
-            finally
-            {
-                await chatWebView.DisableCancelButton();
-
-                dgvConversations.Enabled = true;
-                webViewManager.Enable();
-
-                await chatWebView.EnableSendButton();
-
-
-            }
-            return retVal;
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
+                updateUiMethod: (response) => {
+                    UpdateUi(response);
+                });
         }
 
 
 
-        private async void PrepareForNewResponse()
-        {
-            _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
-            stopwatch.Restart();
-            updateTimer.Start();
 
-            await chatWebView.DisableSendButton();
-            await chatWebView.EnableCancelButton();
-
-            dgvConversations.Enabled = false;
-            webViewManager.Disable();
-        }
-
-
-
-        private async Task<AiResponse> FetchAndProcessAiResponse(Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, bool addEmbeddings = false)
-        {
-            if (addEmbeddings != CurrentSettings.UseEmbeddings)
-            {
-                CurrentSettings.UseEmbeddings = addEmbeddings;
-                SettingsSet.Save(CurrentSettings);
-            }
-
-            var aiService = AiServiceResolver.GetAiService(model.ServiceName, _toolManager);
-            aiService.StreamingTextReceived += AiService_StreamingTextReceived;
-            aiService.StreamingComplete += (s, e) => { chatWebView.InvokeIfNeeded(() => chatWebView.ClearTemp()); };
-
-            toolIDs = toolIDs.Where(x => int.TryParse(x, out _)).ToList();
-
-            var toolLabels = toolIDs.Select(t => _toolManager.Tools[int.Parse(t)].Name).ToList();
-
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, _cts.Token, CurrentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: CurrentSettings.StreamResponses, addEmbeddings: CurrentSettings.UseEmbeddings);
-
-            if (_toolManager != null && toolIDs.Any())
-            {
-                var tool = _toolManager.GetToolByLabel(toolLabels[0]);
-
-                var sb = new StringBuilder($"{ThreeTicks}{tool.OutputFilename}\n");
-
-                // get the first non-whitespace character from response.ResponseText
-                var firstChar = response.ResponseText.FirstOrDefault(c => !char.IsWhiteSpace(c));
-
-                // if it's not { then wrap the response in {}
-                if (firstChar != '{')
-                {
-                    sb.Append("{");
-                }
-
-                sb.Append(response.ResponseText.Replace("\r", "").Replace("\n", " "));
-
-                if (firstChar != '{')
-                {
-                    sb.Append("}");
-                }
-
-                sb.Append($"\n{ThreeTicks}\n");
-
-                response.ResponseText = sb.ToString();
-            }
-
-            var modelUsageManager = new ModelUsageManager(model);
-
-            modelUsageManager.AddTokensAndSave(response.TokenUsage);
-
-            // update the chatwebview, conversation manager, and webndc
-            await ProcessAiResponse(response, model, conversation, overrideUserPrompt);
-
-            return response;
-        }
-
-        private void AiService_StreamingTextReceived(object? sender, string e) => chatWebView.InvokeIfNeeded(() => chatWebView.UpdateTemp(e));
-
-        private async Task ProcessAiResponse(AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
-        {
-
-            var inputText = await chatWebView.GetUserPrompt();
-            var systemPrompt = await chatWebView.GetSystemPrompt();
-            var elapsed = stopwatch.Elapsed;
-
-            CompletionMessage completionInput, completionResponse;
-            ConversationManager.AddInputAndResponseToConversation(response, model, conversation, overrideUserPrompt == null ? inputText : overrideUserPrompt, systemPrompt, elapsed, out completionInput, out completionResponse);
-
-            _fileAttachmentManager.ClearBase64();
-
-            // don't bother updating the UI if we're overriding the user prompt, because we're doing an auto continue
-            if (overrideUserPrompt != null)
-            {
-                return;
-            }
-
-
-            if (CurrentSettings.NarrateResponses)
-            {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                Task.Run(() => TtsHelper.ReadAloud(response.ResponseText));
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            }
-
-            await chatWebView.AddMessage(completionInput);
-            await chatWebView.AddMessage(completionResponse);
-            await WebNdcDrawNetworkDiagram();
-            webViewManager!.CentreOnNode(completionResponse.Guid);
-        }
-
-
+ 
+ 
         private async Task UpdateUi(AiResponse response)
         {
-            if (response.SuggestedNextPrompt != null)
-            {
-                await chatWebView.SetUserPrompt(response.SuggestedNextPrompt);
-            }
-
             var model = await chatWebView.GetDropdownModel("mainAI", CurrentSettings);
             var cost = model.GetCost(response.TokenUsage);
 
@@ -1050,6 +875,7 @@ namespace AiTool3
             await chatWebView.UpdateSystemPrompt(currentSystemPrompt);
             await chatWebView.SetUserPrompt(currentPrompt);
         }
+
 
         private async Task NewKeepContext()
         {

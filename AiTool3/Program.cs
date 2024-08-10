@@ -5,7 +5,7 @@ using AiTool3.FileAttachments;
 using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Tools;
-using AiTool3.UI;
+using AiTool3.Conversations;
 using AiTool3.UI.Forms;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,7 +47,7 @@ internal static class Program
     }
     private static void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton<AIResponseHandler>();
+        services.AddSingleton<AiResponseHandler>();
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
         services.AddTransient<ScratchpadManager>();
