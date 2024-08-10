@@ -542,7 +542,7 @@ namespace AiTool3
                     await BeginNewConversationPreserveInputAndSystemPrompts();
                     break;
                 case ChatWebViewNewType.NewWithContext:
-                    await NewKeepContext();
+                    await BeginNewConversationPreserveContext();
                     break;
 
 
@@ -768,26 +768,7 @@ namespace AiTool3
 
 
 
-        private async Task<bool> WebNdcDrawNetworkDiagram()
-        {
-            if (webViewManager == null || webViewManager.webView.CoreWebView2 == null) return false;
-
-            var a = await webViewManager.Clear();
-
-            var nodes = ConversationManager.Conversation!.Messages
-                .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
-
-            var links2 = ConversationManager.Conversation.Messages
-                .Where(x => x.Parent != null)
-                .Select(x => new Link { source = x.Parent!, target = x.Guid! }).ToList();
-
-
-            await webViewManager.EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
-            await webViewManager.EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
-            return true;
-        }
-
+        private async Task<bool> WebNdcDrawNetworkDiagram() => await webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages);
 
 
 
@@ -809,45 +790,21 @@ namespace AiTool3
         }
 
 
-        private async Task NewKeepContext()
+        private async Task BeginNewConversationPreserveContext()
         {
-            CompletionMessage? lastAssistantMessage, lastUserMessage;
-            ConversationManager.GetConversationContext(out lastAssistantMessage, out lastUserMessage);
+            ConversationManager.GetConversationContext(out CompletionMessage lastAssistantMessage, out CompletionMessage lastUserMessage);
 
             await BeginNewConversationPreserveInputAndSystemPrompts();
 
-            var assistantMessage = new CompletionMessage(CompletionRole.Assistant)
-            {
-                Parent = null,
-                Content = lastAssistantMessage.Content,
-                Engine = lastAssistantMessage.Engine,
+            CompletionMessage assistantMessage, userMessage;
 
-                CreatedAt = DateTime.Now,
-            };
-
-            var rootMessage = ConversationManager.Conversation.GetRootNode();
-
-            var userMessage = new CompletionMessage(CompletionRole.User)
-            {
-                Parent = rootMessage.Guid,
-                Content = lastUserMessage.Content,
-                Engine = lastUserMessage.Engine,
-
-                CreatedAt = DateTime.Now,
-            };
-            rootMessage.Children!.Add(userMessage.Guid);
-            assistantMessage.Parent = userMessage.Guid;
-            userMessage.Children.Add(assistantMessage.Guid);
-
-            ConversationManager.AddMessagePair(userMessage, assistantMessage);
+            ConversationManager.CreateNewConversationFromUserAssistantPair(lastAssistantMessage, lastUserMessage, out assistantMessage, out userMessage);
 
             await chatWebView.AddMessage(userMessage);
             await chatWebView.AddMessage(assistantMessage);
 
             await WebNdcDrawNetworkDiagram();
         }
-
-
 
         private async Task BeginNewConversation()
         {

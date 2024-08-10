@@ -403,6 +403,33 @@ namespace AiTool3.Conversations
 
             SaveConversation();
         }
+
+        internal void CreateNewConversationFromUserAssistantPair(CompletionMessage? lastAssistantMessage, CompletionMessage lastUserMessage, out CompletionMessage assistantMessage, out CompletionMessage userMessage)
+        {
+            assistantMessage = new CompletionMessage(CompletionRole.Assistant)
+            {
+                Parent = null,
+                Content = lastAssistantMessage.Content,
+                Engine = lastAssistantMessage.Engine,
+
+                CreatedAt = DateTime.Now,
+            };
+            var rootMessage = Conversation.GetRootNode();
+
+            userMessage = new CompletionMessage(CompletionRole.User)
+            {
+                Parent = rootMessage.Guid,
+                Content = lastUserMessage.Content,
+                Engine = lastUserMessage.Engine,
+
+                CreatedAt = DateTime.Now,
+            };
+            rootMessage.Children!.Add(userMessage.Guid);
+            assistantMessage.Parent = userMessage.Guid;
+            userMessage.Children.Add(assistantMessage.Guid);
+
+            AddMessagePair(userMessage, assistantMessage);
+        }
     }
 
 

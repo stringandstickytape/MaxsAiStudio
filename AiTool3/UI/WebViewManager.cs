@@ -1,6 +1,9 @@
-﻿using AiTool3.Helpers;
+﻿using AiTool3.Conversations;
+using AiTool3.DataModels;
+using AiTool3.Helpers;
 using AiTool3.Tools;
 using Microsoft.Web.WebView2.WinForms;
+using Newtonsoft.Json;
 
 namespace AiTool3.UI
 {
@@ -142,6 +145,25 @@ namespace AiTool3.UI
         internal void Disable() => webView.Enabled = false;
 
         internal void Enable() => webView.Enabled = true;
+
+        internal async Task<bool> DrawNetworkDiagram(List<CompletionMessage> messages)
+        {
+            if (webView.CoreWebView2 == null)
+                await webView.EnsureCoreWebView2Async(null);
+            var a = await Clear();
+
+            var nodes = messages
+                .Where(x => x.Role != CompletionRole.Root)
+                .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
+
+            var links2 = messages
+                .Where(x => x.Parent != null)
+                .Select(x => new Link { source = x.Parent!, target = x.Guid! }).ToList();
+
+            await EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
+            await EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
+            return true;
+        }
     }
 
     public class WebNdcContextMenuOptionSelectedEventArgs
