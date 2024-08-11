@@ -129,8 +129,6 @@ namespace AiTool3
             }
         }
 
-
-
         private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e) => _namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, JsonConvert.DeserializeObject<VSCodeSelection>(e));
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -152,7 +150,6 @@ namespace AiTool3
 
             WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(e.Guid));
         }
-
 
         private void ImportTemplate(string jsonContent)
         {

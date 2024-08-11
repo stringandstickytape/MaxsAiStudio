@@ -83,21 +83,10 @@ namespace AiTool3.Helpers
             foreach (var category in templateManager.TemplateSet.Categories.OrderBy(x => x.Name))
             {
                 var categoryMenuItem = CreateMenuItem(category.Name, ref templatesMenu);
+
                 categoryMenuItem.ToolTipText = "SHIFT-click to delete";
-                // Add shift-click functionality to delete the entire category
-                categoryMenuItem.MouseDown += (s, e) =>
-                {
-                    if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Shift)
-                    {
-                        templatesMenu.DropDown.Close();
-                        if (MessageBox.Show($"Are you sure you want to delete the entire '{category.Name}' category and all its templates?", "Delete Category", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                        {
-                            templateManager.TemplateSet.Categories.Remove(category);
-                            templateManager.TemplateSet.Save();
-                            RecreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm);
-                        }
-                    }
-                };
+                categoryMenuItem.MouseDown += 
+                    (s, e) => CategoryMenuItemMouseDown(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm, e, templatesMenu, category);
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))
                 {
@@ -208,6 +197,20 @@ namespace AiTool3.Helpers
             };
 
             menuBar.Items.Add(templatesMenu);
+        }
+
+        private static void CategoryMenuItemMouseDown(MenuStrip menuBar, ChatWebView chatWebView, TemplateManager templateManager, SettingsSet currentSettings, MaxsAiStudio maxsAiStudioForm, MouseEventArgs e, ToolStripMenuItem templatesMenu, Topic category)
+        {
+            if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Shift)
+            {
+                templatesMenu.DropDown.Close();
+                if (MessageBox.Show($"Are you sure you want to delete the entire '{category.Name}' category and all its templates?", "Delete Category", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    templateManager.TemplateSet.Categories.Remove(category);
+                    templateManager.TemplateSet.Save();
+                    RecreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm);
+                }
+            }
         }
 
         private static void RecreateTemplatesMenu(MenuStrip menuBar, ChatWebView chatWebView, TemplateManager templateManager, SettingsSet currentSettings, MaxsAiStudio form)
