@@ -1,4 +1,15 @@
 const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
+    React.useEffect(() => {
+        if (columnData && columnData.length > 0) {
+            const initialStarredModels = {};
+            columnData.forEach((data, index) => {
+                if (data.starred) {
+                    initialStarredModels[options[index]] = true;
+                }
+            });
+            onStarToggle(initialStarredModels);
+        }
+    }, [columnData]);
     const sortedOptions = React.useMemo(() => {
         return [...options].sort((a, b) => {
             if (starredModels[a] && !starredModels[b]) return -1;
@@ -89,19 +100,21 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
     };
 
     const cellStyle = {
-        padding: '5px 10px',
+        padding: '3px 3px',
         borderBottom: `1px solid ${colorScheme.borderColor}`,
     };
 
     const costStyle = {
-        padding: '5px 10px',
+        padding: '5px 3px',
         borderBottom: `1px solid ${colorScheme.borderColor}`,
         textAlign: 'center'
     };
 
     const starStyle = {
         cursor: 'pointer',
-        marginRight: '5px',
+        fontSize: '20px',
+        color: 'goldenrod',
+
     };
 
     return (

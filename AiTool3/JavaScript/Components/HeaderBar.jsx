@@ -13,7 +13,12 @@ const HeaderBar = () => {
     const [tools, setTools] = useState([]);
     const [starredModels, setStarredModels] = useState({});
 
-    const handleStarToggle = (modelName) => {
+    const handleStarToggle = (toggleData) => {
+    if (typeof toggleData === "object" && toggleData !== null) {
+        setStarredModels(toggleData);
+        return;
+    }
+    const modelName = toggleData;
         setStarredModels(prevState => {
             const newState = { ...prevState, [modelName]: !prevState[modelName] };
             console.log(`Model: ${modelName}, Starred: ${newState[modelName]}`);
