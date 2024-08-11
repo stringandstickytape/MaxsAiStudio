@@ -513,10 +513,10 @@ namespace AiTool3
             await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
                 updateUiMethod: async (response) =>
                 {
+                    updateTimer.Stop();
                     await UpdateUi(response);
                 });
-
-            updateTimer.Stop();
+            
             EnableConversationsAndWebView();
         }
 
