@@ -9,38 +9,30 @@ namespace AiTool3.FileAttachments
 {
     public class FileAttachmentManager
     {
-
-
-        private ChatWebView _chatWebView;
-        private SettingsSet _settings;
+       private ChatWebView _chatWebView;
 
         public string? Base64Image { get; private set; }
         public string? Base64ImageType { get; private set; }
-
-        public FileAttachmentManager(SettingsSet settings)
-        {
-            _settings = settings;
-        }
 
         public void InjectDependencies(ChatWebView chatWebView)
         {
             _chatWebView = chatWebView;
         }
 
-        public async Task HandleAttachment(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode)
+        public async Task HandleAttachment(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, SettingsSet settings)
         {
             var result = SimpleDialogsHelper.ShowAttachmentDialog();
 
             switch (result)
             {
                 case DialogResult.Retry:
-                    await AttachAndTranscribeMP4(chatWebView, maxsAiStudio, softwareToyMode);
+                    await AttachAndTranscribeMP4(chatWebView, maxsAiStudio, settings.SoftwareToyMode);
                     break;
                 case DialogResult.Yes:
-                    DialogAndAttachImage();
+                    DialogAndAttachImage(settings);
                     break;
                 case DialogResult.No:
-                    await AttachTextFiles();
+                    await AttachTextFiles(settings);
                     break;
                 case DialogResult.Continue:
 
@@ -70,21 +62,21 @@ namespace AiTool3.FileAttachments
             }
         }
 
-        private void DialogAndAttachImage()
+        private void DialogAndAttachImage(SettingsSet settings)
         {
-            OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(_settings.DefaultPath);
+            OpenFileDialog openFileDialog = ImageHelpers.ShowAttachImageFileDialog(settings.DefaultPath);
 
             if (openFileDialog.FileName != "")
             {
-                AttachImage(openFileDialog.FileName);
+                AttachImage(openFileDialog.FileName, settings);
             }
         }
 
-        public async Task AttachImage(string filename)
+        public async Task AttachImage(string filename, SettingsSet settings)
         {
             Base64Image = ImageHelpers.ImageToBase64(filename);
             Base64ImageType = ImageHelpers.GetImageType(filename);
-            _settings.SetDefaultPath(Path.GetDirectoryName(filename)!);
+            settings.SetDefaultPath(Path.GetDirectoryName(filename)!);
         }
 
         public async Task AttachClipboardImage()
@@ -118,16 +110,16 @@ namespace AiTool3.FileAttachments
             }
         }
 
-        private async Task AttachTextFiles()
+        private async Task AttachTextFiles(SettingsSet settings)
         {
-            OpenFileDialog attachTextFilesDialog = ImageHelpers.ShowAttachTextFilesDialog(_settings.DefaultPath);
+            OpenFileDialog attachTextFilesDialog = ImageHelpers.ShowAttachTextFilesDialog(settings.DefaultPath);
 
             if (attachTextFilesDialog.FileNames.Length > 0)
             {
                 var filenames = attachTextFilesDialog.FileNames;
                 await AttachTextFiles(filenames);
 
-                _settings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
+                settings.SetDefaultPath(Path.GetDirectoryName(attachTextFilesDialog.FileName)!);
             }
         }
 
@@ -239,6 +231,50 @@ namespace AiTool3.FileAttachments
         {
             Base64Image = null;
             Base64ImageType = null;
+        }
+
+        internal async Task FileDropped(string filename, SettingsSet settings)
+        {
+            if (filename.StartsWith("http"))
+            {
+                var textFromUrl = await HtmlTextExtractor.ExtractTextFromUrlAsync(filename);
+
+                var quotedFile = HtmlTextExtractor.QuoteFile(filename, textFromUrl);
+
+                var currentPrompt = await _chatWebView.GetUserPrompt();
+                await _chatWebView.SetUserPrompt($"{quotedFile}{Environment.NewLine}{currentPrompt}");
+
+                return;
+            }
+
+
+            var uri = new Uri(filename);
+            filename = uri.LocalPath;
+
+            try
+            {
+
+                var classification = FileTypeClassifier.GetFileClassification(Path.GetExtension(filename));
+
+                switch (classification)
+                {
+                    case FileTypeClassifier.FileClassification.Video:
+                    case FileTypeClassifier.FileClassification.Audio:
+                        var output = await TranscribeMP4(filename, settings.PathToCondaActivateScript);
+                        _chatWebView.SetUserPrompt(output);
+                        break;
+                    case FileTypeClassifier.FileClassification.Image:
+                        await AttachImage(filename, settings);
+                        break;
+                    default:
+                        await AttachTextFiles(new string[] { filename });
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

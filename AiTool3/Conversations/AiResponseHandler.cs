@@ -78,7 +78,7 @@ namespace AiTool3.Conversations
                     }
 
                     updateUiMethod?.Invoke(response);
-                    await _conversationManager.UpdateConversationSummary();
+                    await _conversationManager.UpdateConversationSummary(currentSettings);
                 }
             }
             catch (Exception ex)

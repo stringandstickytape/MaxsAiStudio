@@ -19,15 +19,6 @@ namespace AiTool3.Conversations
 
         private DataGridView _dgvConversations;
 
-        private SettingsSet _settings = null;
-
-        public ConversationManager(SettingsSet settings)
-        {
-            _settings = settings;
-            Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            Conversation.StringSelected += Conversation_StringSelected;
-        }
-
         public ConversationManager()
         {
 
@@ -391,13 +382,13 @@ namespace AiTool3.Conversations
                 lastAssistantMessage = Conversation.FindByGuid(MostRecentCompletion!.Parent!);
         }
 
-        internal async Task UpdateConversationSummary()
+        internal async Task UpdateConversationSummary(SettingsSet settings)
         {
             var row = _dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == Conversation.ConvGuid);
 
             if (row != null && row.Cells[3].Value != null && string.IsNullOrWhiteSpace(row.Cells[3].Value.ToString()))
             {
-                await GenerateConversationSummary(_settings);
+                await GenerateConversationSummary(settings);
                 row.Cells[3].Value = Conversation.ToString();
             }
 

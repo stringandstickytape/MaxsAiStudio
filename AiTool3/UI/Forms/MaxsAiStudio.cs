@@ -255,7 +255,7 @@ namespace AiTool3
 
 
 
-                    await _fileAttachmentManager.HandleAttachment(chatWebView, this, CurrentSettings.SoftwareToyMode);
+                    await _fileAttachmentManager.HandleAttachment(chatWebView, this, CurrentSettings);
 
                     break;
                 case "voice":
@@ -367,46 +367,12 @@ namespace AiTool3
 
         private async void ChatWebView_FileDropped(object sender, string filename)
         {
-            if (filename.StartsWith("http"))
-            {
-                var textFromUrl = await HtmlTextExtractor.ExtractTextFromUrlAsync(filename);
+            await _fileAttachmentManager.FileDropped(filename, CurrentSettings);
+        }
 
-                var quotedFile = HtmlTextExtractor.QuoteFile(filename, textFromUrl);
+        private async Task FileDropped(string filename)
+        {
 
-                var currentPrompt = await chatWebView.GetUserPrompt();
-                await chatWebView.SetUserPrompt($"{quotedFile}{Environment.NewLine}{currentPrompt}");
-
-                return;
-            }
-
-
-            var uri = new Uri(filename);
-            filename = uri.LocalPath;
-
-            try
-            {
-
-                var classification = FileTypeClassifier.GetFileClassification(Path.GetExtension(filename));
-
-                switch (classification)
-                {
-                    case FileTypeClassifier.FileClassification.Video:
-                    case FileTypeClassifier.FileClassification.Audio:
-                        var output = await _fileAttachmentManager.TranscribeMP4(filename, CurrentSettings.PathToCondaActivateScript);
-                        chatWebView.SetUserPrompt(output);
-                        break;
-                    case FileTypeClassifier.FileClassification.Image:
-                        await _fileAttachmentManager.AttachImage(filename);
-                        break;
-                    default:
-                        await _fileAttachmentManager.AttachTextFiles(new string[] { filename });
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private async void ChatWebView_ChatWebViewNewEvent(object? sender, ChatWebViewNewEventArgs e)
