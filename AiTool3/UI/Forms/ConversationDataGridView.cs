@@ -137,5 +137,17 @@ namespace AiTool3.UI.Forms
         {
             throw new NotImplementedException();
         }
+
+        internal void RemoveConversation(string selectedConversationGuid)
+        {
+            foreach (DataGridViewRow row in Rows)
+            {
+                if (row.Cells[0].Value.ToString() == selectedConversationGuid)
+                {
+                    Rows.Remove(row);
+                    break;
+                }
+            }
+        }
     }
 }

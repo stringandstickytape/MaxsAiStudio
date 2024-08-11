@@ -333,19 +333,10 @@ namespace AiTool3
                     await BeginNewConversation();
                 }
 
-                // Delete the conversation
                 BranchedConversation.DeleteConversation(selectedConversationGuid);
 
-                foreach (DataGridViewRow row in dgvConversations.Rows)
-                {
-                    if (row.Cells[0].Value.ToString() == selectedConversationGuid)
-                    {
-                        dgvConversations.Rows.Remove(row);
-                        break;
-                    }
-                }
+                dgvConversations.RemoveConversation(selectedConversationGuid);
             }
-
         }
 
         private async Task InitialiseMenus()
@@ -359,16 +350,9 @@ namespace AiTool3
 
             MenuHelper.CreateMenuItem("Settings", ref editMenu).Click += async (s, e) =>
             {
-                var settingsForm = new SettingsForm(CurrentSettings);
-                var result = settingsForm.ShowDialog();
-
-                if (result == DialogResult.OK)
-                {
-                    CurrentSettings = settingsForm.NewSettings;
-                    SettingsSet.Save(CurrentSettings);
-                    await chatWebView.InitialiseApiList(CurrentSettings);
-                }
+                CurrentSettings = await SettingsSet.OpenSettingsForm(chatWebView, CurrentSettings);
             };
+
 
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
 
