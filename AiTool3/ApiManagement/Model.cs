@@ -11,6 +11,7 @@ namespace AiTool3.ApiManagement
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }
         public Color Color { get; set; }
+        public bool Starred { get; set; }
 
         public Model() { }
 

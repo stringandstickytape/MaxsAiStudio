@@ -146,6 +146,9 @@ namespace AiTool3
 
         public Model GetModelByFullStringReference(string modelName) => ModelList.FirstOrDefault(x => x.ModelName == modelName);
 
+
+        public Model GetModelByNameAndApi(string modelAndApi) => ModelList.FirstOrDefault(x => x.ToString() == modelAndApi);
+
         public Model GetSummaryModel() => GetModelByFullStringReference(SelectedSummaryModel);
 
         private void AddMissingApis()

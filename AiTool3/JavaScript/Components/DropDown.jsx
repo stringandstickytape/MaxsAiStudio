@@ -1,4 +1,11 @@
-﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
+const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
+    const sortedOptions = React.useMemo(() => {
+        return [...options].sort((a, b) => {
+            if (starredModels[a] && !starredModels[b]) return -1;
+            if (!starredModels[a] && starredModels[b]) return 1;
+            return 0;
+        });
+    }, [options, starredModels]);
     const { colorScheme } = React.useColorScheme();
     const [isOpen, setIsOpen] = React.useState(false);
     const dropdownRef = React.useRef(null);
@@ -123,7 +130,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {options.map((option, index) => (
+                                {sortedOptions.map((option, index) => (
                                     <tr
                                         key={index}
                                         style={optionStyle}

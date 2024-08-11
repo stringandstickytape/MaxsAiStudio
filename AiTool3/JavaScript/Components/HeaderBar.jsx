@@ -19,6 +19,18 @@ const HeaderBar = () => {
             console.log(`Model: ${modelName}, Starred: ${newState[modelName]}`);
             return newState;
         });
+        // send toggled model name and new state
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({
+                type: 'toggleModelStar',
+                modelName: modelName,
+                isStarred: (!starredModels[modelName]).toString()
+            });
+        }
+
+        // Force re-render of dropdowns
+        setMainAIValue(prevValue => prevValue);
+        setSummaryAIValue(prevValue => prevValue);
     };
 
     useEffect(() => {

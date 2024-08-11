@@ -113,6 +113,9 @@ namespace AiTool3.UI
                 case "selectTheme":
                     ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
                     break;
+                case "toggleModelStar":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = jsonMessage });
+                    break;
                 case "send":
                     var selectedTools = message?["selectedTools"];
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools.Split(',').ToList(), SendViaSecondaryAI = false, AddEmbeddings = bool.Parse(message?["addEmbeddings"]) });

@@ -175,6 +175,16 @@ namespace AiTool3
         {
             switch (e.EventType)
             {
+                case "toggleModelStar":
+                    // deser e.Json to dynamic
+                    var json = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(e.Json);
+                    var model = CurrentSettings.GetModelByNameAndApi(json["modelName"].ToString());
+                    if(model != null)
+                    {
+                        model.Starred = json["isStarred"].ToString() == "true";
+                        SettingsSet.Save(CurrentSettings);
+                    }
+                    break;
                 case "importTemplate":
                     ImportTemplateAndRecreateMenus(e.Json);
                     break;
