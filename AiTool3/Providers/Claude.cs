@@ -1,4 +1,4 @@
-﻿using AiTool3.ApiManagement;
+using AiTool3.ApiManagement;
 using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.Embeddings;
@@ -69,10 +69,7 @@ namespace AiTool3.Providers
             {
                 var message = conversation.messages[i];
 
-
-
                 var contentArray = new JArray();
-
 
                 if (message.base64image != null)
                 {
@@ -140,6 +137,60 @@ namespace AiTool3.Providers
             response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var streamProcessor = new StreamProcessor();
+            var result = await streamProcessor.ProcessStream(stream, cancellationToken);
+
+            // call streaming complete
+            StreamingComplete?.Invoke(this, null);
+
+            return new AiResponse
+            {
+                ResponseText = result.ResponseText,
+                Success = true,
+                TokenUsage = new TokenUsage(result.InputTokens?.ToString(), result.OutputTokens?.ToString())
+            };
+        }
+
+
+
+
+        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        {
+            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+            var completion = JsonConvert.DeserializeObject<JObject>(responseString);
+
+            if (completion["type"]?.ToString() == "error")
+            {
+                return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
+            }
+            var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
+            var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
+            var responseText = "";
+            if (completion["content"] != null)
+            {
+                // is the content type tooL?
+                if (completion["content"][0]["type"].ToString() == "tool_use")
+                {
+                    responseText = completion["content"][0]["input"].First().ToString();
+                }
+                else responseText = completion["content"][0]["text"].ToString();
+            }
+            else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
+            {
+                responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
+            }
+
+            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+        }
+    }
+
+    internal class StreamProcessor
+    {
+        public event EventHandler<string> StreamingTextReceived;
+
+        public async Task<StreamProcessingResult> ProcessStream(Stream stream, CancellationToken cancellationToken)
+        {
             var responseBuilder = new StringBuilder();
             var lineBuilder = new StringBuilder();
             var buffer = new byte[48];
@@ -175,14 +226,11 @@ namespace AiTool3.Providers
                 ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens);
             }
 
-            // call streaming complete
-            StreamingComplete?.Invoke(this, null);
-
-            return new AiResponse
+            return new StreamProcessingResult
             {
                 ResponseText = responseBuilder.ToString(),
-                Success = true,
-                TokenUsage = new TokenUsage(inputTokens?.ToString(), outputTokens?.ToString())
+                InputTokens = inputTokens,
+                OutputTokens = outputTokens
             };
         }
 
@@ -225,50 +273,13 @@ namespace AiTool3.Providers
                 }
             }
         }
-
-        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
-        {
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-            var completion = JsonConvert.DeserializeObject<JObject>(responseString);
-
-            if (completion["type"]?.ToString() == "error")
-            {
-                return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
-            }
-            var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
-            var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
-            var responseText = "";
-            if (completion["content"] != null)
-            {
-                // is the content type tooL?
-                if (completion["content"][0]["type"].ToString() == "tool_use")
-                {
-                    responseText = completion["content"][0]["input"].First().ToString();
-                }
-                else responseText = completion["content"][0]["text"].ToString();
-            }
-            else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
-            {
-                responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
-            }
-
-            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
-        }
     }
 
 
-    public class CodeSnippet
+    internal class StreamProcessingResult
     {
-        public List<float> Embedding { get; set; }
-        public string Code { get; set; }
-
-        public string Filename { get; set; }
-        public int LineNumber { get; set; }
-        public string Namespace { get; set; }
-        public string Class { get; set; }
+        public string ResponseText { get; set; }
+        public int? InputTokens { get; set; }
+        public int? OutputTokens { get; set; }
     }
-
-
-
 }
