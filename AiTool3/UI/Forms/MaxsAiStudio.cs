@@ -69,16 +69,7 @@ namespace AiTool3
 
                 _templateManager = templateManager;
 
-                if (!File.Exists("Settings\\settings.json"))
-                {
-                    CurrentSettings = AiTool3.SettingsSet.Load()!;
-                    // show the settings dialog first up
-                    var settingsForm = new SettingsForm(CurrentSettings);
-                    var result = settingsForm.ShowDialog();
-                    CurrentSettings = settingsForm.NewSettings;
-                    SettingsSet.Save(CurrentSettings);
-                }
-                else CurrentSettings = AiTool3.SettingsSet.Load()!;
+                CurrentSettings = AiTool3.SettingsSet.LoadOrPromptOnFirstRun();
 
                 InitializeComponent();
 
@@ -140,47 +131,11 @@ namespace AiTool3
 
 
 
-        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e)
-        {
-            VSCodeSelection selection = JsonConvert.DeserializeObject<VSCodeSelection>(e);
-
-            _namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, selection);
-        }
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e) => _namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, JsonConvert.DeserializeObject<VSCodeSelection>(e));
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await InitialiseApiList_New();
-
-            // send color schemes to the chatwebview
-            var themesPath = Path.Combine("Settings\\Themes.json");
-            if (File.Exists(themesPath))
-            {
-                await chatWebView.SetThemes(File.ReadAllText(themesPath));
-                await chatWebView.SetTheme(CurrentSettings.SelectedTheme);
-            }
-            else
-            {
-                var themesJson = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Defaults.themes.json");
-                await chatWebView.SetThemes(themesJson);
-                File.WriteAllText(themesPath, themesJson);
-                CurrentSettings.SelectedTheme = "Serene";
-                SettingsSet.Save(CurrentSettings);
-            }
-
-            // if there isn't a scratchpad file but there is a scratchpad bak file, rename the bak file to scratchpad.json
-            if (File.Exists(Path.Combine("Settings", "Scratchpad.json.bak")) && !File.Exists(Path.Combine("Settings", "Scratchpad.json")))
-            {
-                File.Move(Path.Combine("Settings", "Scratchpad.json.bak"), Path.Combine("Settings", "Scratchpad.json"));
-            }
-
-            var scratchpadContent = _scratchpadManager.LoadScratchpad();
-            if (!string.IsNullOrEmpty(scratchpadContent))
-            {
-                await chatWebView.ExecuteScriptAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
-            }
-
-            await chatWebView.SetTools();
-
+            await chatWebView.InitialiseApiList(CurrentSettings, _scratchpadManager);
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -414,7 +369,7 @@ namespace AiTool3
                 {
                     CurrentSettings = settingsForm.NewSettings;
                     SettingsSet.Save(CurrentSettings);
-                    await InitialiseApiList_New();
+                    await chatWebView.InitialiseApiList(CurrentSettings);
                 }
             };
 
@@ -538,40 +493,6 @@ namespace AiTool3
             this.BringToFront();
 
             // Create things in Ready instead...
-
-        }
-
-        private async Task InitialiseApiList_New()
-        {
-
-
-            await chatWebView.SetModels(CurrentSettings.ModelList);
-
-            if (CurrentSettings.SelectedModel != "")
-            {
-                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedModel.Split(' ')[0]);
-                await chatWebView.SetDropdownValue("mainAI", matchingModel.ToString());
-            }
-            else
-            {
-                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
-                await chatWebView.SetDropdownValue("mainAI", selectedModel.ToString());
-                CurrentSettings.SelectedModel = selectedModel.ToString();
-                SettingsSet.Save(CurrentSettings);
-            }
-
-            if (CurrentSettings.SelectedSummaryModel != "")
-            {
-                var matchingModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SelectedSummaryModel.Split(' ')[0]);
-                await chatWebView.SetDropdownValue("summaryAI", matchingModel.ToString());
-            }
-            else
-            {
-                var selectedModel = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
-                await chatWebView.SetDropdownValue("summaryAI", selectedModel.ToString());
-                CurrentSettings.SelectedSummaryModel = selectedModel.ToString();
-                SettingsSet.Save(CurrentSettings);
-            }
 
         }
 

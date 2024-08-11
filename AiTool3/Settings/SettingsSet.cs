@@ -1,5 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.Providers;
+using AiTool3.Settings;
 using System.Diagnostics;
 
 namespace AiTool3
@@ -179,6 +180,23 @@ namespace AiTool3
                 SelectedSummaryModel = matchingModel.ModelName;
                 SettingsSet.Save(this);
             }
+        }
+
+        internal static SettingsSet? LoadOrPromptOnFirstRun()
+        {
+            SettingsSet settings = null;
+            if (!File.Exists("Settings\\settings.json"))
+            {
+                settings = Load()!;
+                // show the settings dialog first up
+                var settingsForm = new SettingsForm(settings);
+                var result = settingsForm.ShowDialog();
+                settings = settingsForm.NewSettings;
+                SettingsSet.Save(settings);
+            }
+            else settings = Load()!;
+
+            return settings;
         }
     }
 

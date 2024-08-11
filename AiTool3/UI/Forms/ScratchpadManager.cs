@@ -29,6 +29,12 @@ namespace AiTool3
 
         public string LoadScratchpad()
         {
+            // if there isn't a scratchpad file but there is a scratchpad bak file, rename the bak file to scratchpad.json
+            if (File.Exists(Path.Combine("Settings", "Scratchpad.json.bak")) && !File.Exists(Path.Combine("Settings", "Scratchpad.json")))
+            {
+                File.Move(Path.Combine("Settings", "Scratchpad.json.bak"), Path.Combine("Settings", "Scratchpad.json"));
+            }
+
             if (File.Exists(ScratchpadBackupPath) && !File.Exists(ScratchpadPath))
             {
                 File.Move(ScratchpadBackupPath, ScratchpadPath);

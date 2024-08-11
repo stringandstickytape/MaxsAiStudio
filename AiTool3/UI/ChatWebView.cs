@@ -557,5 +557,63 @@ namespace AiTool3.UI
         {
             throw new NotImplementedException();
         }
+
+        internal async Task InitialiseApiList(SettingsSet settings)
+        {
+            await SetModels(settings.ModelList);
+
+            if (settings.SelectedModel != "")
+            {
+                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == settings.SelectedModel.Split(' ')[0]);
+                await SetDropdownValue("mainAI", matchingModel.ToString());
+            }
+            else
+            {
+                var selectedModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+                await SetDropdownValue("mainAI", selectedModel.ToString());
+                settings.SelectedModel = selectedModel.ToString();
+                SettingsSet.Save(settings);
+            }
+
+            if (settings.SelectedSummaryModel != "")
+            {
+                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == settings.SelectedSummaryModel.Split(' ')[0]);
+                await SetDropdownValue("summaryAI", matchingModel.ToString());
+            }
+            else
+            {
+                var selectedModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+                await SetDropdownValue("summaryAI", selectedModel.ToString());
+                settings.SelectedSummaryModel = selectedModel.ToString();
+                SettingsSet.Save(settings);
+            }
+        }
+
+        internal async Task InitialiseApiList(SettingsSet settings, ScratchpadManager scratchpadManager)
+        {
+            // send color schemes to the chatwebview
+            var themesPath = Path.Combine("Settings\\Themes.json");
+            if (File.Exists(themesPath))
+            {
+                await SetThemes(File.ReadAllText(themesPath));
+                await SetTheme(settings.SelectedTheme);
+            }
+            else
+            {
+                var themesJson = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Defaults.themes.json");
+                await SetThemes(themesJson);
+                File.WriteAllText(themesPath, themesJson);
+                settings.SelectedTheme = "Serene";
+                SettingsSet.Save(settings);
+            }
+
+            var scratchpadContent = scratchpadManager.LoadScratchpad();
+            if (!string.IsNullOrEmpty(scratchpadContent))
+            {
+                await ExecuteScriptAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
+            }
+
+            await SetTools();
+        }
     }
 }
