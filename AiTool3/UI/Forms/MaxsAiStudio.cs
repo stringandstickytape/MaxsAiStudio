@@ -505,6 +505,8 @@ namespace AiTool3
                 {
                     await UpdateUi(response);
                 });
+
+            updateTimer.Stop();
         }
 
         private async Task UpdateUi(AiResponse response)
