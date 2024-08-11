@@ -53,7 +53,6 @@ internal static class Program
         services.AddTransient<ScratchpadManager>();
         services.AddSingleton<NamedPipeListener>();
         services.AddSingleton<SearchManager>();
-        services.AddSingleton<SettingsSet>();
         services.AddSingleton<FileAttachmentManager>();
         services.AddSingleton<TemplateManager>();
         services.AddSingleton<ConversationManager>();

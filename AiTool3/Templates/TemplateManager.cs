@@ -1,5 +1,6 @@
 ﻿using AiTool3.Helpers;
 using AiTool3.Topics;
+using Newtonsoft.Json;
 
 namespace AiTool3.Templates
 {
@@ -37,6 +38,47 @@ namespace AiTool3.Templates
         }
 
         public void ClearTemplate() => CurrentTemplate = null;
+
+        internal bool ImportTemplate(string jsonContent)
+        {
+            bool updateMenu = false;
+
+            var importTemplate = JsonConvert.DeserializeObject<TemplateImport>(jsonContent);
+
+            var template = new ConversationTemplate(importTemplate.systemPrompt, importTemplate.initialUserPrompt);
+
+            if (template != null)
+            {
+                var categoryForm = new Form();
+                categoryForm.Text = "Select Category";
+                categoryForm.Size = new Size(300, 150);
+                categoryForm.StartPosition = FormStartPosition.CenterScreen;
+
+                var comboBox = new ComboBox();
+                comboBox.Dock = DockStyle.Top;
+                comboBox.Items.AddRange(TemplateSet.Categories.Select(c => c.Name).ToArray());
+
+                var okButton = new Button();
+                okButton.Text = "OK";
+                okButton.DialogResult = DialogResult.OK;
+                okButton.Dock = DockStyle.Bottom;
+
+                categoryForm.Controls.Add(comboBox);
+                categoryForm.Controls.Add(okButton);
+
+                if (categoryForm.ShowDialog() == DialogResult.OK)
+                {
+                    var selectedCategory = comboBox.SelectedItem?.ToString();
+                    if (!string.IsNullOrEmpty(selectedCategory))
+                    {
+                        EditAndSaveTemplate(template, true, selectedCategory);
+                        updateMenu = true;
+                    }
+                }
+            }
+
+            return updateMenu;
+        }
 
         public Dictionary<string, TemplateMenuItem> templateMenuItems = new Dictionary<string, TemplateMenuItem>();
     }

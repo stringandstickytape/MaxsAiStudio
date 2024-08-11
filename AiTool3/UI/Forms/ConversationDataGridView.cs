@@ -131,6 +131,7 @@ namespace AiTool3.UI.Forms
             contextMenu.Items.Add("Delete conversation", null, DeleteConversation);
 
             ContextMenuStrip = contextMenu;
+
         }
 
         internal void InitialiseRightClickMenu()
@@ -146,6 +147,27 @@ namespace AiTool3.UI.Forms
                 {
                     Rows.Remove(row);
                     break;
+                }
+            }
+        }
+
+        internal void SetConversationForDgvClick(ref string selectedConversationGuid, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var hti = HitTest(e.X, e.Y);
+                if (hti.RowIndex >= 0)
+                {
+                    if (!ModifierKeys.HasFlag(Keys.Control))
+                    {
+                        ClearSelection();
+                    }
+                    Rows[hti.RowIndex].Selected = true;
+                    try
+                    {
+                        selectedConversationGuid = Rows[hti.RowIndex].Cells[0].Value.ToString();
+                    }
+                    catch { }
                 }
             }
         }

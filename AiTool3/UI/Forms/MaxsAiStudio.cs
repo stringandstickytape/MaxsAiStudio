@@ -39,7 +39,10 @@ namespace AiTool3
         public static readonly string ThreeTicks = new string('`', 3);
 
         public ConversationManager ConversationManager;
-        public SettingsSet CurrentSettings { get; set; }
+        public SettingsSet CurrentSettings { 
+            get; 
+            set;
+        }
 
         private CancellationTokenSource? _cts, _cts2;
         private WebViewManager? webViewManager = null;
@@ -133,7 +136,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await chatWebView.InitialiseApiList(CurrentSettings, _scratchpadManager);
+            await chatWebView.Initialise(CurrentSettings, _scratchpadManager);
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
@@ -151,44 +154,15 @@ namespace AiTool3
             WebViewNdc_WebNdcNodeClicked(null, new WebNdcNodeClickedEventArgs(e.Guid));
         }
 
-        private void ImportTemplate(string jsonContent)
+        private void ImportTemplateAndRecreateMenus(string jsonContent)
         {
             try
             {
-                var importTemplate = JsonConvert.DeserializeObject<TemplateImport>(jsonContent);
-
-                var template = new ConversationTemplate(importTemplate.systemPrompt, importTemplate.initialUserPrompt);
-
-                if (template != null)
+                if (_templateManager.ImportTemplate(jsonContent))
                 {
-                    var categoryForm = new Form();
-                    categoryForm.Text = "Select Category";
-                    categoryForm.Size = new Size(300, 150);
-                    categoryForm.StartPosition = FormStartPosition.CenterScreen;
-
-                    var comboBox = new ComboBox();
-                    comboBox.Dock = DockStyle.Top;
-                    comboBox.Items.AddRange(_templateManager.TemplateSet.Categories.Select(c => c.Name).ToArray());
-
-                    var okButton = new Button();
-                    okButton.Text = "OK";
-                    okButton.DialogResult = DialogResult.OK;
-                    okButton.Dock = DockStyle.Bottom;
-
-                    categoryForm.Controls.Add(comboBox);
-                    categoryForm.Controls.Add(okButton);
-
-                    if (categoryForm.ShowDialog() == DialogResult.OK)
-                    {
-                        var selectedCategory = comboBox.SelectedItem?.ToString();
-                        if (!string.IsNullOrEmpty(selectedCategory))
-                        {
-                            _templateManager.EditAndSaveTemplate(template, true, selectedCategory);
-                            MenuHelper.RemoveOldTemplateMenus(menuBar);
-                            MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
-                            MessageBox.Show("Template imported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                    }
+                    MenuHelper.RemoveOldTemplateMenus(menuBar);
+                    MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
+                    MessageBox.Show("Template imported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -197,12 +171,14 @@ namespace AiTool3
             }
         }
 
+
+
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             switch (e.EventType)
             {
                 case "importTemplate":
-                    ImportTemplate(e.Json);
+                    ImportTemplateAndRecreateMenus(e.Json);
                     break;
                 case "saveScratchpad":
                     _scratchpadManager.SaveScratchpad(e.Json);
@@ -412,24 +388,10 @@ namespace AiTool3
 
         private void DgvConversations_MouseDown(object? sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-                var hti = dgvConversations.HitTest(e.X, e.Y);
-                if (hti.RowIndex >= 0)
-                {
-                    if (!ModifierKeys.HasFlag(Keys.Control))
-                    {
-                        dgvConversations.ClearSelection();
-                    }
-                    dgvConversations.Rows[hti.RowIndex].Selected = true;
-                    try
-                    {
-                        selectedConversationGuid = dgvConversations.Rows[hti.RowIndex].Cells[0].Value.ToString();
-                    }
-                    catch { }
-                }
-            }
+            dgvConversations.SetConversationForDgvClick(ref selectedConversationGuid, e);
         }
+
+
 
         private async void RegenerateSummary(object sender, EventArgs e) =>
             await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), dgvConversations, selectedConversationGuid, CurrentSettings);

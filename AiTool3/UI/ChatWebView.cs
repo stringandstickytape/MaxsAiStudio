@@ -271,9 +271,6 @@ namespace AiTool3.UI
 
         // WebViewCallAndCallbackSystem
 
-        #region implemented in chatwebview2.html
-
-
         internal async Task SetDropdownValue(string v1, string v2)
         {
             ExecuteScriptAsync($"setDropdownValue('{v1}', '{v2}')");
@@ -358,8 +355,6 @@ namespace AiTool3.UI
             await ExecuteScriptAsync("enableButton('sendButton')");
             await ExecuteScriptAsync("enableSendButton()");
         }
-
-        #endregion implemented in chatwebview2.html
 
         internal async Task UpdateSendButtonColor(bool embeddingsEnabled)
         {
@@ -589,7 +584,7 @@ namespace AiTool3.UI
             }
         }
 
-        internal async Task InitialiseApiList(SettingsSet settings, ScratchpadManager scratchpadManager)
+        internal async Task Initialise(SettingsSet settings, ScratchpadManager scratchpadManager)
         {
             // send color schemes to the chatwebview
             var themesPath = Path.Combine("Settings\\Themes.json");
@@ -614,6 +609,8 @@ namespace AiTool3.UI
             }
 
             await SetTools();
+
+            await InitialiseApiList(settings);
         }
     }
 }
