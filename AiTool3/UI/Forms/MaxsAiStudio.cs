@@ -507,6 +507,7 @@ namespace AiTool3
                 });
 
             updateTimer.Stop();
+            EnableConversationsAndWebView();
         }
 
         private async Task UpdateUi(AiResponse response)
