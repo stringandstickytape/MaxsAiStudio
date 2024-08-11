@@ -138,6 +138,8 @@ namespace AiTool3.Providers
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var streamProcessor = new StreamProcessor();
+            streamProcessor.StreamingTextReceived += (s, e) => StreamingTextReceived?.Invoke(this, e);
+
             var result = await streamProcessor.ProcessStream(stream, cancellationToken);
 
             // call streaming complete
@@ -253,7 +255,7 @@ namespace AiTool3.Providers
                         }
 
                         Debug.WriteLine(text);
-                        //call streamingtextreceived
+                        
                         StreamingTextReceived?.Invoke(this, text);
                         responseBuilder.Append(text);
                     }

@@ -150,7 +150,9 @@ namespace AiTool3.Conversations
             return response;
         }
 
-        private void AiService_StreamingTextReceived(object? sender, string e) => _chatWebView.InvokeIfNeeded(() => _chatWebView.UpdateTemp(e));
+        private void AiService_StreamingTextReceived(object? sender, string e) => 
+            _chatWebView.InvokeIfNeeded(() =>
+            _chatWebView.UpdateTemp(e));
 
         private async Task ProcessAiResponse(SettingsSet currentSettings, AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
         {

@@ -1,4 +1,4 @@
-﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData }) => {
+﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
     const { colorScheme } = React.useColorScheme();
     const [isOpen, setIsOpen] = React.useState(false);
     const dropdownRef = React.useRef(null);
@@ -14,6 +14,11 @@
                 content: selectedText
             });
         }
+    };
+
+    const toggleStar = (event, modelName) => {
+        event.stopPropagation();
+        onStarToggle(modelName);
     };
 
     React.useEffect(() => {
@@ -87,6 +92,11 @@
         textAlign: 'center'
     };
 
+    const starStyle = {
+        cursor: 'pointer',
+        marginRight: '5px',
+    };
+
     return (
         <div className="dropdown-container" ref={dropdownRef}>
             <div style={labelStyle}>
@@ -106,6 +116,7 @@
                         <table style={tableStyle}>
                             <thead>
                                 <tr>
+                                    <th style={cellStyle}></th>
                                     <th style={cellStyle}>Model</th>
                                     <th style={costStyle}>Input Cost</th>
                                     <th style={costStyle}>Output Cost</th>
@@ -118,6 +129,14 @@
                                         style={optionStyle}
                                         onClick={() => handleSelect(option, option)}
                                     >
+                                        <td style={cellStyle}>
+                                            <span
+                                                style={starStyle}
+                                                onClick={(e) => toggleStar(e, option)}
+                                            >
+                                                {starredModels[option] ? '★' : '☆'}
+                                            </span>
+                                        </td>
                                         <td style={cellStyle}>{option}</td>
                                         <td style={costStyle}>{columnData && columnData[index] ? columnData[index].inputCost : ''}</td>
                                         <td style={costStyle}>{columnData && columnData[index] ? columnData[index].outputCost : ''}</td>

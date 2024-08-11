@@ -11,6 +11,15 @@ const HeaderBar = () => {
     const [mainAIValue, setMainAIValue] = useState(mainAIOptions[0]);
     const [summaryAIValue, setSummaryAIValue] = useState(summaryAIOptions[0]);
     const [tools, setTools] = useState([]);
+    const [starredModels, setStarredModels] = useState({});
+
+    const handleStarToggle = (modelName) => {
+        setStarredModels(prevState => {
+            const newState = { ...prevState, [modelName]: !prevState[modelName] };
+            console.log(`Model: ${modelName}, Starred: ${newState[modelName]}`);
+            return newState;
+        });
+    };
 
     useEffect(() => {
         window.setTools = (newTools) => {
@@ -253,6 +262,8 @@ const HeaderBar = () => {
                         onChange={setMainAIValue}
                         helpText="Used only when you click Send."
                         columnData={mainAIColumnData}
+                        starredModels={starredModels}
+                        onStarToggle={handleStarToggle}
                     />
                     <DropDown
                         id="summaryAI"
@@ -262,6 +273,8 @@ const HeaderBar = () => {
                         onChange={setSummaryAIValue}
                         helpText="Used for summaries, suggestions, and when you click Send via Secondary AI."
                         columnData={summaryAIColumnData}
+                        starredModels={starredModels}
+                        onStarToggle={handleStarToggle}
                     />
                 </div>
             </div>
