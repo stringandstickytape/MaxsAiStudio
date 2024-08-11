@@ -141,7 +141,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.",
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token,  null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.",
                 updateUiMethod: (response) =>
                 {
                     UpdateUi(response);
@@ -401,6 +401,7 @@ namespace AiTool3
             _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             await chatWebView.EnableSendButton();
             await chatWebView.DisableCancelButton();
+            updateTimer.Stop();
 
             EnableConversationsAndWebView();
         }
@@ -491,7 +492,17 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
+            _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
+            stopwatch.Restart();
+            updateTimer.Start();
+
+            await chatWebView.DisableSendButton();
+            await chatWebView.EnableCancelButton();
+
+            dgvConversations.Enabled = false;
+            webViewManager.Disable();
+
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
                 updateUiMethod: async (response) =>
                 {
                     await UpdateUi(response);

@@ -32,7 +32,7 @@ namespace AiTool3.Conversations
             _fileAttachmentManager = fileAttachmentManager;
         }
 
-        public async Task<string> FetchAiInputResponse(SettingsSet currentSettings, List<string> toolIDs = null, string? overrideUserPrompt = null, bool sendSecondary = false, bool addEmbeddings = false, Action<AiResponse> updateUiMethod = null)
+        public async Task<string> FetchAiInputResponse(SettingsSet currentSettings, CancellationToken cancellationToken, List<string> toolIDs = null, string? overrideUserPrompt = null, bool sendSecondary = false, bool addEmbeddings = false, Action<AiResponse> updateUiMethod = null)
         {
             toolIDs = toolIDs ?? new List<string>();
             string retVal = "";
@@ -57,7 +57,7 @@ namespace AiTool3.Conversations
                 }
 
                 var conversation = await _conversationManager.PrepareConversationData(model, await _chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : userPrompt, _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(currentSettings, conversation, model, toolIDs, overrideUserPrompt, addEmbeddings);
+                var response = await FetchAndProcessAiResponse(currentSettings, conversation, model, toolIDs, overrideUserPrompt, cancellationToken, addEmbeddings);
                 retVal = response.ResponseText;
                 await _chatWebView.SetUserPrompt("");
                 await _chatWebView.DisableCancelButton();
@@ -103,7 +103,7 @@ namespace AiTool3.Conversations
             return retVal;
         }
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, bool addEmbeddings = false)
+        private async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation, Model model, List<string> toolIDs, string? overrideUserPrompt, CancellationToken cancellationToken, bool addEmbeddings = false)
         {
             if (addEmbeddings != currentSettings.UseEmbeddings)
             {
@@ -119,7 +119,7 @@ namespace AiTool3.Conversations
 
             var toolLabels = toolIDs.Select(t => _toolManager.Tools[int.Parse(t)].Name).ToList();
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, CancellationToken.None, currentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: currentSettings.StreamResponses, addEmbeddings: currentSettings.UseEmbeddings);
+            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, cancellationToken, currentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: currentSettings.StreamResponses, addEmbeddings: currentSettings.UseEmbeddings);
 
             if (_toolManager != null && toolIDs.Any())
             {
