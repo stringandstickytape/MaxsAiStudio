@@ -1,15 +1,12 @@
-// DropDown.js
-const DropDown = ({ id, label, options, value, onChange, helpText, columnData }) => {
+﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData }) => {
     const { colorScheme } = React.useColorScheme();
+    const [isOpen, setIsOpen] = React.useState(false);
+    const dropdownRef = React.useRef(null);
 
-    const handleChange = (e) => {
-        const selectedValue = e.target.value;
-        const selectedText = e.target.options[e.target.selectedIndex].text;
-
-        // Call the original onChange function
+    const handleSelect = (selectedValue, selectedText) => {
         onChange(selectedValue);
+        setIsOpen(false);
 
-        // Post message to chrome.webview
         if (window.chrome && window.chrome.webview) {
             window.chrome.webview.postMessage({
                 type: 'dropdownChanged',
@@ -19,9 +16,53 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData })
         }
     };
 
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const dropdownStyle = {
+        position: 'relative',
+        minWidth: '300px',
+        fontSize: '13px',
+        border: '1px solid ' + colorScheme.borderColor
+    };
+
+    const selectedStyle = {
         color: colorScheme.dropdownTextColor,
         backgroundColor: colorScheme.dropdownBackgroundColor,
+        borderRadius: '4px',
+        cursor: 'pointer',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    };
+
+    const optionsStyle = {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        right: 0,
+        backgroundColor: colorScheme.dropdownBackgroundColor,
+        borderRadius: '4px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        maxHeight: '200px',
+        overflowY: 'auto',
+        zIndex: 1000,
+    };
+
+    const optionStyle = {
+        padding: '5px 10px',
+        cursor: 'pointer',
+        color: colorScheme.dropdownTextColor,
     };
 
     const labelStyle = {
@@ -30,33 +71,57 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData })
         alignItems: 'center',
     };
 
+    const tableStyle = {
+        width: '100%',
+        borderCollapse: 'collapse',
+    };
 
-    const helpIconStyle = {
-        marginLeft: '5px',
-        cursor: 'help',
-        fontSize: '14px',
-        color: colorScheme.textColor,
+    const cellStyle = {
+        padding: '5px 10px',
+        borderBottom: `1px solid ${colorScheme.borderColor}`,
     };
 
     return (
-        <div className="dropdown-container">
+        <div className="dropdown-container" ref={dropdownRef}>
             <div style={labelStyle}>
                 <label htmlFor={id}>{label}</label>
-
             </div>
-            <select
-                id={id}
-                value={value}
-                onChange={handleChange}
-                title={helpText}
-                style={dropdownStyle}
-            >
-                {options.map((option, index) => (
-                    <option key={index} value={option}>
-                        {option} {columnData && columnData[index] ? `  ${columnData[index].inputCost} / ${columnData[index].outputCost}` : ''}
-                    </option>
-                ))}
-            </select>
+            <div style={dropdownStyle}>
+                <div
+                    style={selectedStyle}
+                    onClick={() => setIsOpen(!isOpen)}
+                    title={helpText}
+                >
+                    <span>{value}</span>
+                    <span>▼</span>
+                </div>
+                {isOpen && (
+                    <div style={optionsStyle}>
+                        <table style={tableStyle}>
+                            <thead>
+                                <tr>
+                                    <th style={cellStyle}>Model</th>
+                                    <th style={cellStyle}>Input Cost</th>
+                                    <th style={cellStyle}>Output Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {options.map((option, index) => (
+                                    <tr
+                                        key={index}
+                                        style={optionStyle}
+                                        onClick={() => handleSelect(option, option)}
+                                    >
+                                        <td style={cellStyle}>{option}</td>
+                                        <td style={cellStyle}>{columnData && columnData[index] ? columnData[index].inputCost : ''}</td>
+                                        <td style={cellStyle}>{columnData && columnData[index] ? columnData[index].outputCost : ''}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

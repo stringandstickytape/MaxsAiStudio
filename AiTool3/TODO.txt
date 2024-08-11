@@ -109,12 +109,12 @@ DONE: Parameterise conda loading
 DONE: example templates set incl colour scheme generator
 DONE: Change "first local engine" logic and null summary model
 DONE: Template tool, to help AI generate new templates which we then install easily
+DONE: covn manager doesn't unlock when chat returns?
 
 * Refactor other AI providers like Claude (somtewhat - c == '\n' is used by groq, claude, localai)
 * There's a bug when installing a new theme (and it shouldn't crash the whole app :)
-* covn manager doesn't unlock when chat returns?
 * rename arrayfindandreplace
-
+* think iut's using toolds for summaries
 
 Clean build : check whisper can be got up-and-running and doesn't b0rk too badly beforehand
 

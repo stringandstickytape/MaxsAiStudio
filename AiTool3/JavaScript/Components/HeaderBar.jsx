@@ -100,7 +100,7 @@ const HeaderBar = () => {
                     }
                     .options-bar {
                         display: flex;
-                        justify-content: space-around;
+                        justify-content: space-evenly;
                         background-color: ${colorScheme.toolbarBackgroundColor};
                         padding: 5px 0;
                     }
