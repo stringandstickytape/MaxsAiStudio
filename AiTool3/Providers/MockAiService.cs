@@ -34,10 +34,6 @@ namespace AiTool3.Providers
             {
                 await SimulateStreaming(words, wordCount, cancellationToken, responseBuilder.ToString().Trim());
             }
-            else
-            {
-
-            }
 
             return new AiResponse
             {

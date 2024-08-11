@@ -110,16 +110,8 @@ namespace AiTool3.Providers
                 { if (((JProperty)c).Name == "input_schema") c.Remove(); }
                 );
 
-                // set req["tools"] from the jsonstring
-                //req["tools"] = new JArray { JObject.Parse(jsonString) };
-                //req["tool_choice"] = JObject.Parse(jsonString);
                 req["tools"] = new JArray { wrappedtool };
                 req["tool_choice"] = wrappedtool;
-
-                //JObject findAndReplacesTool = GetFindAndReplaceTool();
-                //
-                //req["tools"] = new JArray { findAndReplacesTool };
-                //req["tool_choice"] = findAndReplacesTool;
             }
 
             if (addEmbeddings)
