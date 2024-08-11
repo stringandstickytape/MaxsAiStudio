@@ -85,7 +85,7 @@ namespace AiTool3.Helpers
                 var categoryMenuItem = CreateMenuItem(category.Name, ref templatesMenu);
 
                 categoryMenuItem.ToolTipText = "SHIFT-click to delete";
-                categoryMenuItem.MouseDown += 
+                categoryMenuItem.MouseDown +=
                     (s, e) => CategoryMenuItemMouseDown(menuBar, chatWebView, templateManager, currentSettings, maxsAiStudioForm, e, templatesMenu, category);
 
                 foreach (var template in category.Templates.Where(x => x.SystemPrompt != null).OrderBy(x => x.TemplateName))

@@ -7,23 +7,18 @@ using AiTool3.Providers;
 using AiTool3.Tools;
 using AiTool3.UI;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AiTool3.Conversations
 {
     public class AiResponseHandler
     {
         private readonly ConversationManager _conversationManager;
-        private  ChatWebView _chatWebView;
+        private ChatWebView _chatWebView;
         private readonly ToolManager _toolManager;
         private readonly FileAttachmentManager _fileAttachmentManager;
-        private  WebViewManager _webViewManager;
+        private WebViewManager _webViewManager;
 
         public AiResponseHandler(ConversationManager conversationManager, ToolManager toolManager, FileAttachmentManager fileAttachmentManager)
         {

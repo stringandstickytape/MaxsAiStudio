@@ -1,6 +1,5 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
-using AiTool3.Helpers;
 using AiTool3.Tools;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;

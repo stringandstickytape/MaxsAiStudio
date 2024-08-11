@@ -65,7 +65,7 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
-                
+
                 case "openUrl":
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {content.Replace("&", "^&")}") { CreateNoWindow = true });
                     break;

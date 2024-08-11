@@ -23,7 +23,7 @@ namespace AiTool3
         public bool RunWebServer { get; set; } = false;
 
         [MyDisplayNameAttr("For user prompts containing [pull:www.example.com], pull that URL, grab text fragments, and insert into prompt")]
-        public bool AllowUserPromptUrlPulls{ get; set; } = false;
+        public bool AllowUserPromptUrlPulls { get; set; } = false;
 
 
         [MyDisplayNameAttr("Entertain me with dumb software toys while I wait for non-chat tasks")]

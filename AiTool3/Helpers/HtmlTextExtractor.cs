@@ -37,7 +37,7 @@ namespace AiTool3.Helpers
 
                 return extractedText;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //throw new Exception($"Error extracting text from URL: {url}", ex);
                 return string.Empty;

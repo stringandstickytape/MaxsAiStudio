@@ -9,7 +9,7 @@ namespace AiTool3.FileAttachments
 {
     public class FileAttachmentManager
     {
-       private ChatWebView _chatWebView;
+        private ChatWebView _chatWebView;
 
         public string? Base64Image { get; private set; }
         public string? Base64ImageType { get; private set; }

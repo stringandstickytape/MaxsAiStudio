@@ -5,8 +5,6 @@ using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.Helpers;
-using AiTool3.Providers;
-using AiTool3.Settings;
 using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Tools;
@@ -16,7 +14,6 @@ using AiTool3.UI.Forms;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
-using System.Diagnostics;
 using Whisper.net.Ggml;
 using static AiTool3.Communications.NamedPipeListener;
 
@@ -39,8 +36,9 @@ namespace AiTool3
         public static readonly string ThreeTicks = new string('`', 3);
 
         public ConversationManager ConversationManager;
-        public SettingsSet CurrentSettings { 
-            get; 
+        public SettingsSet CurrentSettings
+        {
+            get;
             set;
         }
 
@@ -141,7 +139,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token,  null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.",
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, null, "Continue from PRECISELY THE CHARACTER where you left off.  Do not restart or repeat anything.  Demarcate your output with three backticks.",
                 updateUiMethod: (response) =>
                 {
                     UpdateUi(response);
@@ -486,7 +484,7 @@ namespace AiTool3
             {
                 await chatWebView.SetUserPrompt("");
             }
-            
+
             await chatWebView.UpdateSystemPrompt(ConversationManager.MostRecentCompletion.SystemPrompt!);
         }
 

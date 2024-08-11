@@ -1,7 +1,6 @@
 ﻿using AiTool3.ApiManagement;
 using AiTool3.DataModels;
 using AiTool3.FileAttachments;
-using AiTool3.Helpers;
 using AiTool3.UI;
 using Newtonsoft.Json;
 using System.Diagnostics;
