@@ -492,9 +492,9 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
             await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
-                updateUiMethod: (response) =>
+                updateUiMethod: async (response) =>
                 {
-                    UpdateUi(response);
+                    await UpdateUi(response);
                 });
         }
 
