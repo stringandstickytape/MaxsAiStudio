@@ -353,7 +353,6 @@ namespace AiTool3
                 CurrentSettings = await SettingsSet.OpenSettingsForm(chatWebView, CurrentSettings);
             };
 
-
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedAssembly("AiTool3.UI.Licenses.txt")).ShowDialog();
 
             await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, _snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager, this);
@@ -361,7 +360,6 @@ namespace AiTool3
 
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
 
-            // check for updates
             await VersionHelper.CheckForUpdate(menuBar);
         }
 
