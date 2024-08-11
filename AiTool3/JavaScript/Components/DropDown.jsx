@@ -14,7 +14,7 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
         return [...options].sort((a, b) => {
             if (starredModels[a] && !starredModels[b]) return -1;
             if (!starredModels[a] && starredModels[b]) return 1;
-            return 0;
+            return a.localeCompare(b);
         });
     }, [options, starredModels]);
     const { colorScheme } = React.useColorScheme();
