@@ -144,32 +144,7 @@ namespace AiTool3
         {
             VSCodeSelection selection = JsonConvert.DeserializeObject<VSCodeSelection>(e);
 
-            // create a new one-off summary-model conversation with the selected text as the user prompt
-            var summaryModel = CurrentSettings.GetSummaryModel();
-            var tempConversationManager = new ConversationManager();
-            tempConversationManager.Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
-            tempConversationManager.Conversation.AddNewRoot();
-
-            var content = $"{ThreeTicks}\n{selection.Before}<CURSOR LOCATION>{selection.After}\n{ThreeTicks}\n\n The user's instruction is: \n{ThreeTicks}\n{selection.Selected}\n{ThreeTicks}\n\n";
-
-            // or alternatively:
-
-            var conversation = new Conversation
-            {
-                systemprompt = "You are a code completion AI. You return a single code block which will be inserted in the user's current cursor location. The code block must be in the correct language and satisfy the user's request, based on the context before and after the user's current cursor location.",
-                messages = new List<ConversationMessage>
-                {
-                    new ConversationMessage { role = "user", content = content }
-                }
-            };
-
-            var aiService = AiServiceResolver.GetAiService(summaryModel.ServiceName, _toolManager);
-            var response = await aiService.FetchResponse(summaryModel, conversation, null, null, CancellationToken.None, CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
-
-            var txt = SnippetHelper.StripFirstAndLastLine(response.ResponseText);
-
-            await _namedPipeListener.SendResponseAsync(txt);
-
+            _namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, selection);
         }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
