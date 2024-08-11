@@ -112,7 +112,7 @@ DONE: Template tool, to help AI generate new templates which we then install eas
 DONE: covn manager doesn't unlock when chat returns?
 
 * Refactor other AI providers like Claude (somtewhat - c == '\n' is used by groq, claude, localai)
-* There's a bug when installing a new theme (and it shouldn't crash the whole app :)
+* There's a bug when installing a new theme (and it shouldn't crash the whole app :) if it has no id? I think?
 * rename arrayfindandreplace
 * think iut's using toolds for summaries
 
