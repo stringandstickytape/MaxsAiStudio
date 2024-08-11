@@ -362,42 +362,11 @@ namespace AiTool3
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);
 
             // check for updates
-            try
-            {
-                var latestVersionDetails = await VersionHelper.GetLatestRelease();
-                if (latestVersionDetails.Item1 != "")
-                {
-                    var latestVersion = latestVersionDetails.Item2;
-                    var latestVersionUrl = latestVersionDetails.Item1.ToString();
-
-                    var currentVersion = MaxsAiStudio.Version;
-
-                    ToolStripMenuItem updateMenu = null;
-                    if (latestVersion > currentVersion)
-                    {
-                        updateMenu = MenuHelper.CreateMenu("Update Available");
-                        updateMenu.BackColor = System.Drawing.Color.DarkRed;
-                    }
-                    else if (latestVersion < currentVersion)
-                    {
-                        updateMenu = MenuHelper.CreateMenu($"Pre-Release Version {currentVersion}");
-                        updateMenu.BackColor = System.Drawing.Color.DarkSalmon;
-                    }
-                    else if (latestVersion == currentVersion)
-                    {
-                        updateMenu = MenuHelper.CreateMenu($"Version {currentVersion}");
-                        updateMenu.BackColor = System.Drawing.Color.DarkGreen;
-                    }
-
-                    updateMenu.Click += (s, e) =>
-                    {
-                        Process.Start(new ProcessStartInfo("cmd", $"/c start {latestVersionUrl.Replace("&", "^&")}") { CreateNoWindow = true });
-                    };
-                    menuBar.Items.Add(updateMenu);
-                }
-            }
-            catch { }
+            await VersionHelper.CheckForUpdate(menuBar);
         }
+
+
+
         private async void ChatWebView_FileDropped(object sender, string filename)
         {
             if (filename.StartsWith("http"))
