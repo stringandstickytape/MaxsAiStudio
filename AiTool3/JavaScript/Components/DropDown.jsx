@@ -81,6 +81,12 @@
         borderBottom: `1px solid ${colorScheme.borderColor}`,
     };
 
+    const costStyle = {
+        padding: '5px 10px',
+        borderBottom: `1px solid ${colorScheme.borderColor}`,
+        textAlign: 'center'
+    };
+
     return (
         <div className="dropdown-container" ref={dropdownRef}>
             <div style={labelStyle}>
@@ -101,8 +107,8 @@
                             <thead>
                                 <tr>
                                     <th style={cellStyle}>Model</th>
-                                    <th style={cellStyle}>Input Cost</th>
-                                    <th style={cellStyle}>Output Cost</th>
+                                    <th style={costStyle}>Input Cost</th>
+                                    <th style={costStyle}>Output Cost</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,8 +119,8 @@
                                         onClick={() => handleSelect(option, option)}
                                     >
                                         <td style={cellStyle}>{option}</td>
-                                        <td style={cellStyle}>{columnData && columnData[index] ? columnData[index].inputCost : ''}</td>
-                                        <td style={cellStyle}>{columnData && columnData[index] ? columnData[index].outputCost : ''}</td>
+                                        <td style={costStyle}>{columnData && columnData[index] ? columnData[index].inputCost : ''}</td>
+                                        <td style={costStyle}>{columnData && columnData[index] ? columnData[index].outputCost : ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
