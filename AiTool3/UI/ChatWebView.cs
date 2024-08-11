@@ -493,24 +493,13 @@ namespace AiTool3.UI
             {
                 if (stream != null)
                 {
-                    // Read the embedded resource
                     using (var reader = new StreamReader(stream))
                     {
                         string content = reader.ReadToEnd();
-
-                        // Create a memory stream from the content
                         var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-
-                        // Create a custom response
                         var response = CoreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {mimeType}");
-
-                        // Set the response
                         e.Response = response;
-
-                        // need to add a Access-Control-Allow-Origin header to the response
                         e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
-
-
                         return;
                     }
                 }
@@ -525,19 +514,16 @@ namespace AiTool3.UI
 
         internal async Task SetTheme(string selectedTheme)
         {
-            // deserialize selectedTheme to string
             await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
         }
 
         internal async void SetIndicator(string Label, string Colour)
         {
-            // addIndicator('Voice','#FFFFFF')
             await ExecuteScriptAsync($"addIndicator('{Label}','{Colour}')");
         }
 
         internal async void ClearIndicator(string Label)
         {
-            // addIndicator('Voice','#FFFFFF')
             await ExecuteScriptAsync($"clearIndicator('{Label}')");
         }
 
