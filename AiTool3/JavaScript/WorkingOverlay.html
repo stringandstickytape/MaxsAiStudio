@@ -1,537 +1,239 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: transparent;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
+        body { margin: 0; overflow: hidden; background-color: transparent; }
+        canvas { position: absolute; top: 0; left: 0; }
     </style>
 </head>
 <body>
-    <canvas id="animationCanvas"></canvas>
+    <canvas id="canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <script>
-                const canvas = document.getElementById('animationCanvas');
-                const ctx = canvas.getContext('2d');
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let scene, camera, renderer, letters = [], particles = [], sparkles = [], lava = [];
+        let phase = 0, phaseTime = 0;
 
-                let width, height;
-                const pieces = [];
-                let wordCount = 1;
-                const maxAdditionalWords = 5;
-                const word = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                let mouseX = null;
-                let mouseY = null;
-                let baseSize;
-                let startTime;
-                let lastWordAddTime;
-                let clickX = null;
-                let clickY = null;
-                let clickTime = null;
-                let dullMode = true;
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
 
-                function resizeCanvas() {
-                    width = window.innerWidth;
-                    height = window.innerHeight;
-                    canvas.width = width;
-                    canvas.height = height;
-                    baseSize = Math.min(width, height) / 30;
+            renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-                    pieces.forEach(piece => {
-                        piece.updateSize();
+            createLetters();
+            createParticles();
+            createSparkles();
+            createLava();
+            addLighting();
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function createLetters() {
+            const loader = new THREE.FontLoader();
+            loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function(font) {
+                alphabet.split('').forEach((char, i) => {
+                    const geometry = new THREE.TextGeometry(char, {
+                        font: font,
+                        size: 2,
+                        height: 0.5,
                     });
-                }
-
-                class Piece {
-                    constructor(letter, x, y, wordSize, opacity = 1) {
-                        this.letterType = letter;
-                        this.x = x;
-                        this.y = y;
-                        this.initialX = x;
-                        this.initialY = y;
-                        this.vx = 0;
-                        this.vy = 0;
-                        this.wordSize = wordSize;
-                        this.opacity = opacity;
-                        this.updateSize();
-                        this.angle = 0;
-                        this.rotationSpeed = (Math.random() - 0.5) * 0.05;
-                        this.maxSpeed = this.size / 6;
-                    }
-
-                    updateSize() {
-                        this.size = baseSize * this.wordSize;
-                    }
-
-                    update(elapsedTime) {
-                        if (dullMode) {
-                            this.x = this.initialX;
-                            this.y = this.initialY;
-                            this.angle = 0;
-                            return;
-                        }
-
-                        if (elapsedTime <= 1000) {
-                            // Do nothing for the first second
-                            return;
-                        }
-
-                        if (elapsedTime > 1000 && elapsedTime <= 1100) {
-                            // Initialize velocities after 1 second
-                            this.vx = (Math.random() - 0.5) * 2;
-                            this.vy = (Math.random() - 0.5) * 2;
-                        }
-
-                        // Fade in effect
-                        if (this.opacity < 1) {
-                            this.opacity = Math.min(1, this.opacity + 0.02);
-                        }
-
-                        // Mouse repulsion
-                        if (mouseX !== null && mouseY !== null) {
-                            const dx = this.x - mouseX;
-                            const dy = this.y - mouseY;
-                            const distance = Math.sqrt(dx * dx + dy * dy);
-                            const repulsionStrength = (this.size * 5) / (distance + 1);
-                            this.vx += (dx / distance) * repulsionStrength;
-                            this.vy += (dy / distance) * repulsionStrength;
-                        }
-
-                        // Click repulsion
-                        if (clickX !== null && clickY !== null) {
-                            const dx = this.x - clickX;
-                            const dy = this.y - clickY;
-                            const distance = Math.sqrt(dx * dx + dy * dy);
-                            const timeSinceClick = Date.now() - clickTime;
-                            const repulsionStrength = Math.max(0, (5000 - timeSinceClick) / 500) * (this.size * 10) / (distance + 1);
-                            this.vx += (dx / distance) * repulsionStrength;
-                            this.vy += (dy / distance) * repulsionStrength;
-
-                            if (timeSinceClick > 5000) {
-                                clickX = null;
-                                clickY = null;
-                            }
-                        }
-
-                        // Repulsion from other letters
-                        pieces.forEach(other => {
-                            if (other !== this) {
-                                const dx = this.x - other.x;
-                                const dy = this.y - other.y;
-                                const distance = Math.sqrt(dx * dx + dy * dy);
-                                if (distance < this.size * 5) {
-                                    const repulsionStrength = this.size / (15 * (distance + 1));
-                                    this.vx += (dx / distance) * repulsionStrength;
-                                    this.vy += (dy / distance) * repulsionStrength;
-                                }
-                            }
-                        });
-
-                        // Centering force
-                        const centerX = width / 2;
-                        const centerY = height / 2;
-                        const dx = centerX - this.x;
-                        const dy = centerY - this.y;
-                        const distanceToCenter = Math.sqrt(dx * dx + dy * dy);
-                        const centeringStrength = 0.0001 * distanceToCenter;
-                        this.vx += dx * centeringStrength;
-                        this.vy += dy * centeringStrength;
-
-                        // Soft boundary
-                        const margin = this.size * 2;
-                        if (this.x < margin) this.vx += (margin - this.x) * 0.1;
-                        if (this.x > width - margin) this.vx -= (this.x - (width - margin)) * 0.1;
-                        if (this.y < margin) this.vy += (margin - this.y) * 0.1;
-                        if (this.y > height - margin) this.vy -= (this.y - (height - margin)) * 0.1;
-
-                        // Add some randomness to movement
-                        this.vx += (Math.random() - 0.5) * 0.1;
-                        this.vy += (Math.random() - 0.5) * 0.1;
-
-                        // Apply friction
-                        this.vx *= 0.95;
-                        this.vy *= 0.95;
-
-                        // Limit speed
-                        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                        if (speed > this.maxSpeed) {
-                            this.vx = (this.vx / speed) * this.maxSpeed;
-                            this.vy = (this.vy / speed) * this.maxSpeed;
-                        }
-
-                        this.x += this.vx;
-                        this.y += this.vy;
-                        this.angle += this.rotationSpeed;
-                    }
-
-                    draw() {
-                        ctx.save();
-                        ctx.translate(this.x, this.y);
-                        ctx.rotate(this.angle);
-
-                        // White inner lines
-                        ctx.strokeStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                        ctx.lineWidth = this.size / 5;
-                        this.drawLetter(0, 0, this.size * 0.9, this.letterType);
-                        this.drawLetter(0, 0, this.size * 1.05, this.letterType);
-
-                        // Orange outline
-                        ctx.strokeStyle = `rgba(0, 0, 0, ${this.opacity})`;
-                        ctx.lineWidth = this.size / 10;
-                        this.drawLetter(0, 0, this.size, this.letterType);
-
-                        ctx.restore();
-                    }
-
-                    drawLetter(x, y, size, type) {
-                        ctx.beginPath();
-                        switch (type) {
-                            case 'A': this.drawA(x, y, size); break;
-                            case 'B': this.drawB(x, y, size); break;
-                            case 'C': this.drawC(x, y, size); break;
-                            case 'D': this.drawD(x, y, size); break;
-                            case 'E': this.drawE(x, y, size); break;
-                            case 'F': this.drawF(x, y, size); break;
-                            case 'G': this.drawG(x, y, size); break;
-                            case 'H': this.drawH(x, y, size); break;
-                            case 'I': this.drawI(x, y, size); break;
-                            case 'J': this.drawJ(x, y, size); break;
-                            case 'K': this.drawK(x, y, size); break;
-                            case 'L': this.drawL(x, y, size); break;
-                            case 'M': this.drawM(x, y, size); break;
-                            case 'N': this.drawN(x, y, size); break;
-                            case 'O': this.drawO(x, y, size); break;
-                            case 'P': this.drawP(x, y, size); break;
-                            case 'Q': this.drawQ(x, y, size); break;
-                            case 'R': this.drawR(x, y, size); break;
-                            case 'S': this.drawS(x, y, size); break;
-                            case 'T': this.drawT(x, y, size); break;
-                            case 'U': this.drawU(x, y, size); break;
-                            case 'V': this.drawV(x, y, size); break;
-                            case 'W': this.drawW(x, y, size); break;
-                            case 'X': this.drawX(x, y, size); break;
-                            case 'Y': this.drawY(x, y, size); break;
-                            case 'Z': this.drawZ(x, y, size); break;
-                        }
-                        ctx.stroke();
-                    }
-
-
-                    drawA(x, y, size) {
-                        ctx.moveTo(x - size / 2, y + size / 2);
-                        ctx.lineTo(x, y - size / 2);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y);
-                    }
-
-                    drawB(x, y, size) {
-                        const stemWidth = size / 8;
-                        const curveRadius = size * 0.28;
-
-                        // Start the path
-                        ctx.beginPath();
-
-                        // Draw the stem
-                        ctx.moveTo(x, y - size / 2);
-                        ctx.lineTo(x, y + size / 2);
-                        ctx.lineTo(x + stemWidth, y + size / 2);
-
-                        // Draw the bottom curve
-                        ctx.lineTo(x + size / 2 - curveRadius, y + size / 2);
-                        ctx.quadraticCurveTo(x + size / 2, y + size / 2, x + size / 2, y + size / 4);
-                        ctx.quadraticCurveTo(x + size / 2, y, x + size / 2 - curveRadius, y);
-
-                        // Draw the top curve
-                        ctx.lineTo(x + size / 2 - curveRadius, y);
-                        ctx.quadraticCurveTo(x + size / 2, y, x + size / 2, y - size / 4);
-                        ctx.quadraticCurveTo(x + size / 2, y - size / 2, x + size / 2 - curveRadius, y - size / 2);
-
-                        // Close the path
-                        ctx.lineTo(x + stemWidth, y - size / 2);
-                        ctx.closePath();
-                    }
-
-                    drawC(x, y, size) {
-                        ctx.arc(x, y, size / 2, 0.2 * Math.PI, 1.8 * Math.PI);
-                    }
-
-                    drawD(x, y, size) {
-                        ctx.moveTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x, y + size / 2);
-                        ctx.quadraticCurveTo(x + size / 2, y + size / 2, x + size / 2, y);
-                        ctx.quadraticCurveTo(x + size / 2, y - size / 2, x, y - size / 2);
-                        ctx.closePath();
-                    }
-
-                    drawE(x, y, size) {
-                        ctx.moveTo(x + size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y);
-                    }
-
-                    drawF(x, y, size) {
-                        ctx.moveTo(x + size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y);
-                    }
-
-                    drawG(x, y, size) {
-                        ctx.arc(x, y, size / 2, 0.2 * Math.PI, 1.8 * Math.PI);
-                        ctx.moveTo(x + size / 2, y);
-                        ctx.lineTo(x + size / 4, y);
-                        ctx.lineTo(x + size / 4, y + size / 4);
-                    }
-
-                    drawH(x, y, size) {
-                        ctx.moveTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.moveTo(x + size / 4, y - size / 2);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y);
-                    }
-
-                    drawI(x, y, size) {
-                        ctx.moveTo(x, y - size / 2);
-                        ctx.lineTo(x, y + size / 2);
-                    }
-
-                    drawJ(x, y, size) {
-                        ctx.moveTo(x + size / 4, y - size / 2);
-                        ctx.lineTo(x + size / 4, y + size / 4);
-                        ctx.quadraticCurveTo(x + size / 4, y + size / 2, x, y + size / 2);
-                        ctx.quadraticCurveTo(x - size / 4, y + size / 2, x - size / 4, y + size / 4);
-                    }
-
-                    drawK(x, y, size) {
-                        ctx.moveTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y - size / 2);
-                        ctx.moveTo(x - size / 4, y);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                    }
-
-                    drawL(x, y, size) {
-                        ctx.moveTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                    }
-
-                    drawM(x, y, size) {
-                        ctx.moveTo(x - size / 2, y + size / 2);
-                        ctx.lineTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x, y + size / 4);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                    }
-
-                    drawN(x, y, size) {
-                        ctx.moveTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                        ctx.lineTo(x + size / 4, y - size / 2);
-                    }
-
-                    drawO(x, y, size) {
-                        ctx.ellipse(x, y, size / 2, size / 2, 0, 0, Math.PI * 2);
-                    }
-
-                    drawP(x, y, size) {
-                        ctx.moveTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x + size / 4, y - size / 2);
-                        ctx.quadraticCurveTo(x + size / 2, y - size / 2, x + size / 2, y - size / 4);
-                        ctx.quadraticCurveTo(x + size / 2, y, x + size / 4, y);
-                        ctx.lineTo(x - size / 4, y);
-                    }
-
-                    drawQ(x, y, size) {
-                        ctx.ellipse(x, y, size / 2, size / 2, 0, 0, Math.PI * 2);
-                        ctx.moveTo(x + size / 4, y + size / 4);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                    }
-
-                    drawR(x, y, size) {
-                        ctx.moveTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x + size / 4, y - size / 2);
-                        ctx.quadraticCurveTo(x + size / 2, y - size / 2, x + size / 2, y - size / 4);
-                        ctx.quadraticCurveTo(x + size / 2, y, x + size / 4, y);
-                        ctx.lineTo(x - size / 4, y);
-                        ctx.moveTo(x, y);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                    }
-
-                    drawS(x, y, size) {
-                        const ctrlPoint = size * 0.55; // Control point distance
-                        const endPoint = size * 0.45; // End point distance
-
-                        ctx.beginPath();
-                        ctx.moveTo(x + size / 2, y - size / 2); // Start at top right
-
-                        // Top curve
-                        ctx.bezierCurveTo(
-                            x - ctrlPoint, y - size / 2,  // First control point
-                            x - ctrlPoint, y - endPoint,  // Second control point
-                            x, y  // End point
-                        );
-
-                        // Bottom curve
-                        ctx.bezierCurveTo(
-                            x + ctrlPoint, y + endPoint,  // First control point
-                            x + ctrlPoint, y + size / 2,  // Second control point
-                            x - size / 2, y + size / 2  // End point
-                        );
-                    }
-
-                    drawT(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                        ctx.moveTo(x, y - size / 2);
-                        ctx.lineTo(x, y + size / 2);
-                    }
-
-                    drawU(x, y, size) {
-                        ctx.moveTo(x - size / 4, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 4);
-                        ctx.quadraticCurveTo(x - size / 4, y + size / 2, x, y + size / 2);
-                        ctx.quadraticCurveTo(x + size / 4, y + size / 2, x + size / 4, y + size / 4);
-                        ctx.lineTo(x + size / 4, y - size / 2);
-                    }
-
-                    drawV(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x, y + size / 2);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                    }
-
-                    drawW(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x - size / 4, y + size / 2);
-                        ctx.lineTo(x, y - size / 4);
-                        ctx.lineTo(x + size / 4, y + size / 2);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                    }
-
-                    drawX(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                        ctx.moveTo(x + size / 2, y - size / 2);
-                        ctx.lineTo(x - size / 2, y + size / 2);
-                    }
-
-                    drawY(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x, y);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                        ctx.moveTo(x, y);
-                        ctx.lineTo(x, y + size / 2);
-                    }
-
-                    drawZ(x, y, size) {
-                        ctx.moveTo(x - size / 2, y - size / 2);
-                        ctx.lineTo(x + size / 2, y - size / 2);
-                        ctx.lineTo(x - size / 2, y + size / 2);
-                        ctx.lineTo(x + size / 2, y + size / 2);
-                    }
-
-                }
-
-                function addNewWord() {
-                    if (dullMode) return; // Don't add new words in dull mode
-
-                    const wordSize = 0.5 + Math.random(); // Random size between 0.5 and 1.5
-                    const letterSpacing = baseSize * 1.5 * wordSize;
-                    const wordWidth = word.length * letterSpacing;
-                    const startX = (width - wordWidth) / 2;
-                    const startY = Math.random() * height;
-
-                    for (let j = 0; j < word.length; j++) {
-                        const x = startX + j * letterSpacing;
-                        const y = startY;
-                        pieces.push(new Piece(word[j], x, y, wordSize, 0)); // Start with opacity 0
-                    }
-
-                    wordCount++;
-                }
-
-                function init() {
-                    resizeCanvas();
-                    pieces.length = 0;
-                    wordCount = 1;
-
-                    for (let i = 0; i < wordCount; i++) {
-                        const wordSize = 1.5; // Random size between 0.5 and 1.5
-                        const letterSpacing = baseSize * 1.5 * wordSize;
-                        const lineSpacing = baseSize * 3;
-                        const wordWidth = word.length * letterSpacing;
-                        const startX = (width - wordWidth) / 2;
-                        const startY = (height - (wordCount * lineSpacing)) / 2;
-
-                        for (let j = 0; j < word.length; j++) {
-                            const x = startX + j * letterSpacing;
-                            const y = startY + i * lineSpacing;
-                            pieces.push(new Piece(word[j], x, y, wordSize));
-                        }
-                    }
-
-                    startTime = Date.now();
-                    lastWordAddTime = startTime;
-                }
-
-                function animate() {
-                    ctx.clearRect(0, 0, width, height);
-
-                    const currentTime = Date.now();
-                    const elapsedTime = currentTime - startTime;
-
-                    // Add a new word every 2 seconds, up to 10 additional words
-                    if (!dullMode && currentTime - lastWordAddTime > 2000 && wordCount < 6 + maxAdditionalWords) {
-                        addNewWord();
-                        lastWordAddTime = currentTime;
-                    }
-
-                    pieces.forEach(piece => {
-                        piece.update(elapsedTime);
-                        piece.draw();
+                    const material = new THREE.MeshPhongMaterial({color: 0xffffff});
+                    const letter = new THREE.Mesh(geometry, material);
+                    letter.position.set(-40 + i * 3, 0, -20);
+                    letter.rotation.x = -Math.PI / 2;
+                    scene.add(letter);
+                    letters.push(letter);
+                    
+                    gsap.to(letter.position, {
+                        x: (i - 13) * 3,
+                        y: 0,
+                        z: 0,
+                        duration: 2,
+                        delay: i * 0.1,
+                        ease: "elastic.out(1, 0.3)"
                     });
-
-                    requestAnimationFrame(animate);
-                }
-
-                window.addEventListener('resize', init);
-                window.addEventListener('mousemove', (e) => {
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
+                    gsap.to(letter.rotation, {
+                        x: 0,
+                        duration: 2,
+                        delay: i * 0.1,
+                        ease: "elastic.out(1, 0.3)"
+                    });
                 });
-                window.addEventListener('mouseout', () => {
-                    mouseX = null;
-                    mouseY = null;
-                });
-                window.addEventListener('click', (e) => {
-                    clickX = e.clientX;
-                    clickY = e.clientY;
-                    clickTime = Date.now();
-                });
+            });
+        }
 
-                init();
-                animate();
+        function createParticles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (let i = 0; i < 10000; i++) {
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({color: 0xffffff, size: 0.1});
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+            particles = points;
+        }
+
+        function createSparkles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (let i = 0; i < 1000; i++) {
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+                vertices.push(THREE.MathUtils.randFloatSpread(100));
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({color: 0xffff00, size: 0.2});
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+            sparkles = points;
+        }
+
+        function createLava() {
+            const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+            const material = new THREE.MeshPhongMaterial({color: 0xff4500});
+            for (let i = 0; i < 100; i++) {
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(THREE.MathUtils.randFloatSpread(100), -20, THREE.MathUtils.randFloatSpread(100));
+                scene.add(sphere);
+                lava.push(sphere);
+            }
+        }
+
+        function addLighting() {
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xff0000, 1, 100);
+            pointLight.position.set(0, -10, 0);
+            scene.add(pointLight);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            phaseTime += 0.016;
+            if (phaseTime > 10) {
+                phaseTime = 0;
+                phase = (phase + 1) % 4;
+                if (phase === 0) resetLetters();
+            }
+
+            switch(phase) {
+                case 0: animateNormal(); break;
+                case 1: animateVolcano(); break;
+                case 2: animateExplosion(); break;
+                case 3: animateWhirlpool(); break;
+            }
+
+            animateParticles();
+            animateSparkles();
+            animateLava();
+
+            renderer.render(scene, camera);
+        }
+
+        function animateNormal() {
+            letters.forEach((letter, i) => {
+                letter.position.y = Math.sin(phaseTime * 2 + i * 0.1) * 0.5;
+                letter.rotation.y = Math.sin(phaseTime + i * 0.1) * 0.1;
+            });
+        }
+
+        function animateVolcano() {
+            letters.forEach((letter, i) => {
+                letter.position.y = 10 + Math.sin(phaseTime * 5 + i) * 5;
+                letter.position.x += Math.sin(phaseTime + i) * 0.1;
+                letter.rotation.x += 0.1;
+                letter.rotation.y += 0.1;
+            });
+        }
+
+        function animateExplosion() {
+            letters.forEach((letter, i) => {
+                letter.position.x += Math.sin(phaseTime + i) * 0.5;
+                letter.position.y += Math.cos(phaseTime + i) * 0.5;
+                letter.position.z += Math.sin(phaseTime * 2 + i) * 0.5;
+                letter.rotation.x += 0.1;
+                letter.rotation.y += 0.1;
+                letter.rotation.z += 0.1;
+            });
+        }
+
+        function animateWhirlpool() {
+            letters.forEach((letter, i) => {
+                const angle = phaseTime + i * 0.2;
+                const radius = 10 + Math.sin(phaseTime) * 5;
+                letter.position.x = Math.cos(angle) * radius;
+                letter.position.y = Math.sin(phaseTime * 2 + i * 0.1) * 2;
+                letter.position.z = Math.sin(angle) * radius;
+                letter.lookAt(0, 0, 0);
+            });
+        }
+
+        function resetLetters() {
+            letters.forEach((letter, i) => {
+                gsap.to(letter.position, {
+                    x: (i - 13) * 3,
+                    y: 0,
+                    z: 0,
+                    duration: 2,
+                    ease: "elastic.out(1, 0.3)"
+                });
+                gsap.to(letter.rotation, {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                    duration: 2,
+                    ease: "elastic.out(1, 0.3)"
+                });
+            });
+        }
+
+        function animateParticles() {
+            const time = Date.now() * 0.00005;
+            particles.rotation.x = time * 0.25;
+            particles.rotation.y = time * 0.5;
+        }
+
+        function animateSparkles() {
+            const positions = sparkles.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i + 1] += 0.1;
+                if (positions[i + 1] > 50) positions[i + 1] = -50;
+            }
+            sparkles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        function animateLava() {
+            lava.forEach((sphere, i) => {
+                sphere.position.y += 0.1;
+                if (sphere.position.y > 30) sphere.position.y = -20;
+                sphere.position.x += Math.sin(phaseTime + i) * 0.05;
+                sphere.position.z += Math.cos(phaseTime + i) * 0.05;
+            });
+        }
+
+        init();
+        animate();
     </script>
 </body>
 </html>

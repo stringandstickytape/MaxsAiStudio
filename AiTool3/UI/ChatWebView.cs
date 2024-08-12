@@ -10,6 +10,7 @@ using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -457,25 +458,13 @@ namespace AiTool3.UI
             }
         }
 
-        internal async Task SetThemes(string themesJson)
-        {
-            await ExecuteScriptAsync($"window.setAllColorSchemes({themesJson})");
-        }
+        internal async Task SetThemes(string themesJson) => await ExecuteScriptAsync($"window.setAllColorSchemes({themesJson})");
 
-        internal async Task SetTheme(string selectedTheme)
-        {
-            await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
-        }
+        internal async Task SetTheme(string selectedTheme) => await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
 
-        internal async void SetIndicator(string Label, string Colour)
-        {
-            await ExecuteScriptAsync($"addIndicator('{Label}','{Colour}')");
-        }
+        internal async void SetIndicator(string Label, string Colour) => await ExecuteScriptAsync($"addIndicator('{Label}','{Colour}')");
 
-        internal async void ClearIndicator(string Label)
-        {
-            await ExecuteScriptAsync($"clearIndicator('{Label}')");
-        }
+        internal async void ClearIndicator(string Label) => await ExecuteScriptAsync($"clearIndicator('{Label}')");
 
         internal async Task OpenTemplate(ConversationTemplate template)
         {
@@ -484,38 +473,29 @@ namespace AiTool3.UI
             await SetUserPrompt(template?.InitialPrompt ?? "");
         }
 
-        internal async Task NodeClicked(string nodeId, ConversationManager conversationManager)
-        {
-            throw new NotImplementedException();
-        }
-
         internal async Task InitialiseApiList(SettingsSet settings)
         {
             await SetModels(settings.ModelList);
 
-            if (settings.SelectedModel != "")
-            {
-                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == settings.SelectedModel.Split(' ')[0]);
-                await SetDropdownValue("mainAI", matchingModel.ToString());
-            }
-            else
-            {
-                var selectedModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
-                await SetDropdownValue("mainAI", selectedModel.ToString());
-                settings.SelectedModel = selectedModel.ToString();
-                SettingsSet.Save(settings);
-            }
+            await SetModelForDropdown("mainAI", settings.SelectedModel, settings, m => m.SelectedModel);
+            await SetModelForDropdown("summaryAI", settings.SelectedSummaryModel, settings, m => m.SelectedSummaryModel);
+        }
 
-            if (settings.SelectedSummaryModel != "")
+        private async Task SetModelForDropdown(string dropdownId, string selectedModel, SettingsSet settings, Expression<Func<SettingsSet, string>> propertySelector)
+        {
+            if (!string.IsNullOrEmpty(selectedModel))
             {
-                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == settings.SelectedSummaryModel.Split(' ')[0]);
-                await SetDropdownValue("summaryAI", matchingModel.ToString());
+                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == selectedModel.Split(' ')[0]);
+                await SetDropdownValue(dropdownId, matchingModel.ToString());
             }
             else
             {
-                var selectedModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
-                await SetDropdownValue("summaryAI", selectedModel.ToString());
-                settings.SelectedSummaryModel = selectedModel.ToString();
+                var defaultModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
+                await SetDropdownValue(dropdownId, defaultModel.ToString());
+
+                var property = (PropertyInfo)((MemberExpression)propertySelector.Body).Member;
+                property.SetValue(settings, defaultModel.ToString());
+
                 SettingsSet.Save(settings);
             }
         }

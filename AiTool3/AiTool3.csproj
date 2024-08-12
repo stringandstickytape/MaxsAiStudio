@@ -84,6 +84,7 @@
     <None Remove="JavaScript\WorkingOverlay-dull.html" />
     <None Remove="JavaScript\WorkingOverlay.html" />
     <None Remove="JavaScript\WorkingOverlay2.html" />
+    <None Remove="JavaScript\WorkingOverlay3.html" />
     <None Remove="OllamaEmbeddings.embeddings.json" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
     <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
@@ -136,7 +137,7 @@
     <EmbeddedResource Include="JavaScript\SvgViewer.js" />
     <EmbeddedResource Include="JavaScript\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay-dull.html" />
-    <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
+    <EmbeddedResource Include="JavaScript\WorkingOverlay3.html" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-dagre.min.js" />
@@ -186,6 +187,10 @@
   
   <ItemGroup>
     <None Remove="C:\Users\maxhe\.nuget\packages\naudio.lame\2.1.0\build\libmp3lame.64.dll" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
   </ItemGroup>
 
 </Project>
