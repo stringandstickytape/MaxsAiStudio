@@ -1,6 +1,6 @@
 ﻿using AiTool3.Providers;
 
-namespace AiTool3.ApiManagement
+namespace AiTool3.DataModels
 {
     public class Model
     {
@@ -32,7 +32,7 @@ namespace AiTool3.ApiManagement
 
         public string GetCost(TokenUsage tokenUsage)
         {
-            return ((tokenUsage.InputTokens * input1MTokenPrice / 1000000) + (tokenUsage.OutputTokens * output1MTokenPrice / 1000000)).ToString("0.00");
+            return (tokenUsage.InputTokens * input1MTokenPrice / 1000000 + tokenUsage.OutputTokens * output1MTokenPrice / 1000000).ToString("0.00");
         }
     }
 }

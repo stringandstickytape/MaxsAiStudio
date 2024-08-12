@@ -1,4 +1,4 @@
-﻿namespace AiTool3.Conversations
+﻿namespace AiTool3.DataModels
 {
     public class ConversationMessage
     {
