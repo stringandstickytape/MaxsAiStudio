@@ -238,17 +238,20 @@ namespace AiTool3.UI
 
             NavigateToString(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html"));
 
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.JsonViewer.js"));
+            string[] scriptResources = new[]
+                    {
+                "AiTool3.JavaScript.JsonViewer.js",
+                "AiTool3.JavaScript.ThemeEditor.js",
+                "AiTool3.JavaScript.SvgViewer.js",
+                "AiTool3.JavaScript.MermaidViewer.js",
+                "AiTool3.JavaScript.DotViewer.js",
+                "AiTool3.JavaScript.FindAndReplacer.js"
+            };
 
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ThemeEditor.js"));
-
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.SvgViewer.js"));
-
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.MermaidViewer.js"));
-
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.DotViewer.js"));
-
-            ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.FindAndReplacer.js"));
+            foreach (var resource in scriptResources)
+            {
+                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly(resource));
+            }
         }
 
         // begin webview interface methods
@@ -405,83 +408,31 @@ namespace AiTool3.UI
                 }
             }
 
-            resources.AddRange(new List<ResourceDetails>
-            {
-                new ResourceDetails
-                {
-                    Uri = "https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.mermaid.min.js",
-                    MimeType = "application/javascript"
-                },
-
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.mermaid.min.js",
-                    MimeType = "application/javascript"
-                },
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.svg-pan-zoom.min.js",
-                    MimeType = "application/javascript"
-                },
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.js",
-                    MimeType = "application/javascript"
-                },
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.css",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor.min.css",
-                    MimeType = "text/css"
-                },//
-
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor-icons.svg",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.jsoneditor-icons.svg",
-                    MimeType = "image/svg+xml"
-                },
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape.min.js",
-                    MimeType = "application/javascript"
-                },
-                new ResourceDetails
-                {
-                    Uri = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.dagre.min.js",
-                    MimeType = "application/javascript"
-                },// https://unpkg.com/viz.js@2.1.2/viz.js
-                new ResourceDetails
-                {
-                    Uri = "https://unpkg.com/viz.js@2.1.2/viz.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.viz.js",
-                    MimeType = "application/javascript"
-                },
-                new ResourceDetails
-                {
-                    Uri = "https://cdn.jsdelivr.net/npm/cytoscape-cxtmenu@3.4.0/cytoscape-cxtmenu.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape-cxtmenu.min.js",
-                    MimeType = "application/javascript"
-                },
-                new ResourceDetails
-                {
-                    Uri = "https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js",
-                    ResourceName = "AiTool3.ThirdPartyJavascript.cytoscape-dagre.min.js",
-                    MimeType = "application/javascript"
-                },
-            });
+            resources.AddRange(CreateResourceDetailsList());
 
             return resources;
+        }
+
+        private static List<ResourceDetails> CreateResourceDetailsList()
+        {
+            return new List<(string Uri, string ResourceName, string MimeType)>
+            {
+                ("https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js", "mermaid.min.js", "application/javascript"),
+                ("https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js", "svg-pan-zoom.min.js", "application/javascript"),
+                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js", "jsoneditor.min.js", "application/javascript"),
+                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.css", "jsoneditor.min.css", "text/css"),
+                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor-icons.svg", "jsoneditor-icons.svg", "image/svg+xml"),
+                ("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js", "cytoscape.min.js", "application/javascript"),
+                ("https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js", "dagre.min.js", "application/javascript"),
+                ("https://unpkg.com/viz.js@2.1.2/viz.js", "viz.js", "application/javascript"),
+                ("https://cdn.jsdelivr.net/npm/cytoscape-cxtmenu@3.4.0/cytoscape-cxtmenu.min.js", "cytoscape-cxtmenu.min.js", "application/javascript"),
+                ("https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js", "cytoscape-dagre.min.js", "application/javascript")
+            }.Select(item => new ResourceDetails
+            {
+                Uri = item.Uri,
+                ResourceName = $"AiTool3.ThirdPartyJavascript.{item.ResourceName}",
+                MimeType = item.MimeType
+            }).ToList();
         }
 
         private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
