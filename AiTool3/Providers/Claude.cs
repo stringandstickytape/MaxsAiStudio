@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AiTool3.Providers
 {
@@ -237,6 +238,8 @@ namespace AiTool3.Providers
 
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens)
         {
+            // could contain data: {"type":"error","error":{"details":null,"type":"overloaded_error","message":"Overloaded"}              }
+
             if (line.StartsWith("data: "))
             {
                 var data = line.Substring(6);
@@ -265,6 +268,11 @@ namespace AiTool3.Providers
                     else if (eventData["type"].ToString() == "message_delta")
                     {
                         outputTokens = eventData["usage"]["output_tokens"].Value<int>();
+                    }
+                    else if (eventData["type"].ToString() == "error")
+                    {
+                        StreamingTextReceived?.Invoke(this, eventData["error"]["message"].ToString());
+                        responseBuilder.Append(eventData["error"]["message"].ToString());
                     }
                 }
                 catch (JsonException ex)

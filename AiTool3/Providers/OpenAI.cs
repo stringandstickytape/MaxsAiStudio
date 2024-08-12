@@ -170,14 +170,7 @@ namespace AiTool3.Providers
                 {
                     response.EnsureSuccessStatusCode();
 
-                    var lineEd = line;
-
-                    if (leftovers != null)
-                    {
-                        lineEd = $"data: {leftovers}{line}";
-                    }
-
-                    leftovers = ProcessLine(lineEd.TrimStart(), responseBuilder, ref inputTokens, ref outputTokens);
+                    leftovers = ProcessLine($"{leftovers}{line}", responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
 
@@ -236,20 +229,23 @@ namespace AiTool3.Providers
         }
         private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
+            if (line.Length < 6)
+                return line;
+
             Debug.WriteLine(line);
             if (line.StartsWith("data: "))
             {
                 string jsonData = line.Substring("data: ".Length).Trim();
 
                 if (jsonData == "[DONE]")
-                    return null;
+                    return "";
 
                 try
                 {
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
                     if (chunk == null)
                     {
-                        return jsonData;
+                        return line;
                     }
                     if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
@@ -265,6 +261,7 @@ namespace AiTool3.Providers
                             responseBuilder.Append(content);
                             StreamingTextReceived?.Invoke(this, content);
                         }
+                        return "";
                     }
                     else
                     {
@@ -278,18 +275,19 @@ namespace AiTool3.Providers
                         }
                         else
                         {
-                            return jsonData; /* left-overs */
+                            return line; /* left-overs */
                         }
+                        return "";
                     }
 
                 }
                 catch (JsonException)
                 {
-                    return jsonData; /* left-overs */
+                    return line; /* left-overs */
                     // Handle JSON parsing errors
                 }
             }
-            return null;
+            return line;
         }
         private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cts)
         {
