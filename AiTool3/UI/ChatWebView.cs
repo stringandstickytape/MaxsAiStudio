@@ -171,9 +171,6 @@ namespace AiTool3.UI
                 case "View PlantUML Diagram":
                     PlantUMLViewer.View(content);
                     break;
-                case "View DOT Diagram":
-                    DotViewer.View(content);
-                    break;
                 case "Save As":
                     var dataType = message["dataType"];
 

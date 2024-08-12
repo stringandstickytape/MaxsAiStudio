@@ -1,4 +1,4 @@
-﻿namespace AiTool3.Providers
+﻿namespace AiTool3.DataModels
 {
     public class CodeSnippet
     {

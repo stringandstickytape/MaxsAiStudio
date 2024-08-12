@@ -1,4 +1,4 @@
-﻿using AiTool3.Providers;
+﻿using AiTool3.DataModels;
 
 namespace AiTool3.Embeddings
 {
