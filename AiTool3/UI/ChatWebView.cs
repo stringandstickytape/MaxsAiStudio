@@ -99,7 +99,7 @@ namespace AiTool3.UI
                     ChatWebViewNewEvent?.Invoke(this, new ChatWebViewNewEventArgs(ChatWebViewNewType.NewWithPrompt));
                     break;
                 case "ApplyFaRArray":
-                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
+                    await FineAndReplaceProcessor.ApplyFindAndReplaceArray(JsonConvert.DeserializeObject<FindAndReplaceSet>(message["content"]), this);
                     break;
                 case "attach":
                 case "project":

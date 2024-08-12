@@ -1,10 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using AiTool3.UI;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Conversations
 {
 
 
-    public static class FileProcessor
+    public static class FineAndReplaceProcessor
     {
         public static string ApplyFindAndReplace(string originalFile, List<FindAndReplace> replacements, out string errorString)
         {
@@ -43,6 +44,38 @@ namespace AiTool3.Conversations
             }
 
             return modifiedFile;
+        }
+
+        internal static async Task ApplyFindAndReplaceArray(FindAndReplaceSet? fnrs, ChatWebView chatWebView)
+        {
+            var grouped = fnrs.replacements.GroupBy(r => r.filename);
+
+            foreach (var group in grouped)
+            {
+                var originalContent = File.ReadAllText(group.Key);
+                var processed = FineAndReplaceProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
+                if (processed == null)
+                {
+                    await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
+                    break;
+                }
+            }
+
+            // for each group
+            foreach (var group in grouped)
+            {
+                var originalContent = File.ReadAllText(group.Key);
+                var processed = FineAndReplaceProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
+                if (processed != null)
+                {
+                    File.WriteAllText(group.Key, processed);
+                }
+                else
+                {
+                    await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
+                }
+            }
+            MessageBox.Show($"Done.");
         }
     }
 }

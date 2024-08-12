@@ -201,40 +201,6 @@ namespace AiTool3
                     CurrentSettings.SelectedTheme = e.Json;
                     SettingsSet.Save(CurrentSettings);
                     break;
-                case "ApplyFaRArray":
-                    var fnrs = JsonConvert.DeserializeObject<FindAndReplaceSet>(e.Json);
-
-                    var grouped = fnrs.replacements.GroupBy(r => r.filename);
-
-                    foreach (var group in grouped)
-                    {
-                        var originalContent = File.ReadAllText(group.Key);
-                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
-                        if (processed == null)
-                        {
-                            await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
-                            break;
-                        }
-                    }
-
-                    // for each group
-                    foreach (var group in grouped)
-                    {
-                        var originalContent = File.ReadAllText(group.Key);
-                        var processed = FileProcessor.ApplyFindAndReplace(originalContent, group.ToList(), out string errorString);
-                        if (processed != null)
-                        {
-                            File.WriteAllText(group.Key, processed);
-                        }
-                        else
-                        {
-                            await chatWebView.SetUserPrompt(await chatWebView.GetUserPrompt() + $"\nError processing file {group.Key}: {errorString}");
-                        }
-                    }
-                    MessageBox.Show($"Done.");
-                    //var processed = FileProcessor.ApplyFindAndReplace(originalContent, fnrs.replacements.ToList());
-                    break;
-
                 case "attach":
 
 
@@ -282,6 +248,8 @@ namespace AiTool3
                     break;
             }
         }
+
+
 
         private void ChatWebView_ChatWebViewJoinWithPreviousEvent(object? sender, ChatWebViewJoinWithPreviousEventArgs e)
         {
