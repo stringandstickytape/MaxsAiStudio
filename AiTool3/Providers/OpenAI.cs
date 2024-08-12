@@ -43,7 +43,7 @@ namespace AiTool3.Providers
                     }
                 },
                 ["stream"] = useStreaming,
-                //stream_options: {"include_usage": true}
+                
                 ["stream_options"] = useStreaming ? new JObject
                 {
                     ["include_usage"] = true
@@ -100,8 +100,6 @@ namespace AiTool3.Providers
                     ["type"] = "function",
                     ["function"] = toolx
                 };
-
-                var compare = GetFindAndReplaceTool();
 
                 wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
                 // neow remove input_schema
@@ -184,49 +182,6 @@ namespace AiTool3.Providers
             };
         }
 
-        private static JObject GetFindAndReplaceTool()
-        {
-            return new JObject
-            {
-                ["type"] = "function",
-                ["function"] = new JObject
-                {
-                    ["name"] = "find_and_replace",
-                    ["description"] = "Perform find and replace operations on text",
-                    ["parameters"] = new JObject
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new JObject
-                        {
-                            ["replacements"] = new JObject
-                            {
-                                ["type"] = "array",
-                                ["items"] = new JObject
-                                {
-                                    ["type"] = "object",
-                                    ["properties"] = new JObject
-                                    {
-                                        ["find"] = new JObject
-                                        {
-                                            ["type"] = "string",
-                                            ["description"] = "The string to find"
-                                        },
-                                        ["replace"] = new JObject
-                                        {
-                                            ["type"] = "string",
-                                            ["description"] = "The string to replace with"
-                                        }
-                                    },
-                                    ["required"] = new JArray { "find", "replace" }
-                                },
-                                ["description"] = "A list of find-and-replace pairs"
-                            }
-                        },
-                        ["required"] = new JArray { "replacements" }
-                    }
-                }
-            };
-        }
         private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
             if (line.Length < 6)
