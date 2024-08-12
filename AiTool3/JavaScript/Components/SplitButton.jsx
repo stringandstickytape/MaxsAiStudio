@@ -76,7 +76,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                 setDropdownPosition({ left: '0', top: '100%' });
             } else {
                 // Otherwise, keep the original position
-                setDropdownPosition({ left: '-44px', bottom: '15px' });
+                setDropdownPosition({ left: '-60px', bottom: '15px' });
             }
         }
     }, [isOpen, dropdownItems.length]);
@@ -114,6 +114,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     const dropdownStyle = {
         position: 'absolute',
         ...dropdownPosition,
+        minWidth: '150px',
         backgroundColor: colorScheme.dropdownBackgroundColor,
         border: `1px solid ${colorScheme.textColor}`,
         borderRadius: '4px',
@@ -124,7 +125,7 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     const dropdownItemStyle = {
         display: 'block',
         width: '100%',
-        padding: '10px 15px',
+        padding: '4px 6px',
         textAlign: 'left',
         background: 'none',
         border: 'none',
