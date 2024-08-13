@@ -133,64 +133,44 @@ namespace AiTool3.Providers
                 {
                     response.EnsureSuccessStatusCode();
                     using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var reader = new StreamReader(stream))
                     {
-                        byte[] buffer = new byte[48];
-                        Decoder decoder = new UTF8Encoding(false).GetDecoder();
                         StringBuilder fullResponse = new StringBuilder();
                         StringBuilder jsonBuffer = new StringBuilder();
-                        char[] charBuffer = new char[1024];
+                        bool isFirstLine = true;
 
-                        var indent = 0;
 
-                        while (true)
+
+                        while (!reader.EndOfStream)
                         {
-                            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                            if (bytesRead == 0) break;
-
-                            int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, charBuffer, 0);
-
-                            for (int i = 0; i < charsDecodedCount; i++)
+                            string line = await reader.ReadLineAsync();
+                            Debug.WriteLine(line);
+                            // :-/
+                            if (isFirstLine)
                             {
-                                char c = charBuffer[i];
-                                jsonBuffer.Append(c);
-
-                                if (c == '{')
-                                {
-                                    indent++;
-                                }
-
-                                if (c == '}')
-                                {
-                                    indent--;
-                                    if (indent == 0)
-                                    {
-                                        var json = jsonBuffer.ToString().Substring(jsonBuffer.ToString().IndexOf('{'));
-
-                                        await ProcessJsonObject(json, fullResponse);
-                                        jsonBuffer.Clear();
-                                    }
-                                }
+                                // Remove leading '[' from the first line
+                                line = line.TrimStart('[');
+                                isFirstLine = false;
                             }
-                        }
 
-                        if (jsonBuffer.Length > 0 && jsonBuffer.ToString().Contains("{"))
-                        {
-                            var json = jsonBuffer.ToString().Substring(jsonBuffer.ToString().IndexOf('{'));
+                            jsonBuffer.Append(line);
+                            if(line == "," || line == "]") {
 
-
-                            try
-                            {
-                                await ProcessJsonObject(json, fullResponse);
-                            }
-                            catch (Exception)
-                            {
-
+                                    // We have a complete JSON object
+                                    string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
+                                    await ProcessJsonObject(jsonObject, fullResponse);
+                                    jsonBuffer.Clear();
                             }
                         }
 
                         StreamingComplete?.Invoke(this, null);
 
-                        return new AiResponse { ResponseText = fullResponse.ToString(), Success = true, TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount) };
+                        return new AiResponse
+                        {
+                            ResponseText = fullResponse.ToString(),
+                            Success = true,
+                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
+                        };
                     }
                 }
             }
@@ -198,7 +178,7 @@ namespace AiTool3.Providers
         private string inputTokenCount = "";
         private string outputTokenCount = "";
 
-        private async Task ProcessJsonObject(string jsonString, StringBuilder fullResponse)
+        private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
         {
             if (!string.IsNullOrWhiteSpace(jsonString))
             {
@@ -228,10 +208,12 @@ namespace AiTool3.Providers
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                     }
                 }
-                catch (JsonReaderException)
+                catch (JsonReaderException ex)
                 {
+                    return jsonString;
                 }
             }
+            return "";
         }
 
         private async Task<AiResponse> NonStreamingResponse(HttpClient client, string url, HttpContent content, CancellationToken cancellationToken)
