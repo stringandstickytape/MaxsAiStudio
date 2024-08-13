@@ -3,8 +3,12 @@
 namespace AiTool3.UI.Forms
 {
     internal class ConversationDataGridView : DataGridView
+
+        
     {
-        internal void InitialiseDataGridView(EventHandler RegenerateSummary, EventHandler DeleteConversation, string selectedConversationGuid)
+        public string SelectedConversationGuid { get; set; }
+
+        internal void InitialiseDataGridView(EventHandler RegenerateSummary, EventHandler DeleteConversation)
         {
             var conversationCacheManager = new ConversationCacheManager();
 
@@ -81,14 +85,14 @@ namespace AiTool3.UI.Forms
 
                 item.Click += (s, e) =>
                 {
-                    var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
+                    var conv = BranchedConversation.LoadConversation(SelectedConversationGuid);
                     conv.HighlightColour = colour;
                     conv.SaveConversation();
 
                     // find the dgv row
                     foreach (DataGridViewRow row in Rows)
                     {
-                        if (row.Cells[0].Value.ToString() == selectedConversationGuid)
+                        if (row.Cells[0].Value.ToString() == SelectedConversationGuid)
                         {
                             row.DefaultCellStyle.BackColor = colour;
                             row.DefaultCellStyle.ForeColor = Color.Black;
@@ -104,14 +108,14 @@ namespace AiTool3.UI.Forms
 
             noHighlightItem.Click += (s, e) =>
             {
-                var conv = BranchedConversation.LoadConversation(selectedConversationGuid);
+                var conv = BranchedConversation.LoadConversation(SelectedConversationGuid);
                 conv.HighlightColour = null;
                 conv.SaveConversation();
 
                 // find the dgv row
                 foreach (DataGridViewRow row in Rows)
                 {
-                    if (row.Cells[0].Value.ToString() == selectedConversationGuid)
+                    if (row.Cells[0].Value.ToString() == SelectedConversationGuid)
                     {
                         row.DefaultCellStyle.BackColor = Color.Black;
                         row.DefaultCellStyle.ForeColor = Color.White;
@@ -160,7 +164,8 @@ namespace AiTool3.UI.Forms
                     Rows[hti.RowIndex].Selected = true;
                     try
                     {
-                        selectedConversationGuid = Rows[hti.RowIndex].Cells[0].Value.ToString();
+                        SelectedConversationGuid = Rows[hti.RowIndex].Cells[0].Value.ToString();
+                        selectedConversationGuid = SelectedConversationGuid;
                     }
                     catch { }
                 }

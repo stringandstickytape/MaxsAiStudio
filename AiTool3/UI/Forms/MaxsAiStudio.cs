@@ -112,7 +112,7 @@ namespace AiTool3
                 splitContainer1.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
                 splitContainer5.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
 
-                dgvConversations.InitialiseDataGridView(RegenerateSummary, DeleteConversation, selectedConversationGuid);
+                dgvConversations.InitialiseDataGridView(RegenerateSummary, DeleteConversation);
 
                 InitialiseMenus();
 
