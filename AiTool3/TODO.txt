@@ -118,9 +118,7 @@ DONE: better model selection generally
 * it's using toolds for summaries
 
 Tips thing in status bar?
-
 Clean build : check whisper can be got up-and-running and doesn't b0rk too badly beforehand
-
 Claude pre-fills
 OPenAI structured output
 
