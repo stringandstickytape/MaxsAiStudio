@@ -45,6 +45,7 @@ namespace AiTool3
             toolStripMenuItem1 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tokenUsageLabel = new ToolStripStatusLabel();
+            tipLabel = new ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -219,7 +220,7 @@ namespace AiTool3
             // 
             statusStrip1.BackColor = Color.Black;
             statusStrip1.ImageScalingSize = new Size(24, 24);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { tokenUsageLabel });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { tokenUsageLabel, tipLabel });
             statusStrip1.Location = new Point(0, 693);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
@@ -233,6 +234,13 @@ namespace AiTool3
             tokenUsageLabel.Name = "tokenUsageLabel";
             tokenUsageLabel.Size = new Size(73, 17);
             tokenUsageLabel.Text = "Token Usage";
+            // 
+            // tipLabel
+            // 
+            tipLabel.ForeColor = Color.White;
+            tipLabel.Name = "tipLabel";
+            tipLabel.Size = new Size(54, 17);
+            tipLabel.Text = "";
             // 
             // MaxsAiStudio
             // 
@@ -284,5 +292,6 @@ namespace AiTool3
         private ChatWebView chatWebView;
         private Button button1;
         private Panel panel1;
+        private ToolStripStatusLabel tipLabel;
     }
 }
