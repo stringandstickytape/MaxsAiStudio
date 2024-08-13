@@ -10,13 +10,17 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
             onStarToggle(initialStarredModels);
         }
     }, [columnData]);
-    const sortedOptions = React.useMemo(() => {
-        return [...options].sort((a, b) => {
-            if (starredModels[a] && !starredModels[b]) return -1;
-            if (!starredModels[a] && starredModels[b]) return 1;
-            return a.localeCompare(b);
+    const [sortedOptions, sortedColumnData] = React.useMemo(() => {
+        const optionsWithIndex = options.map((option, index) => ({ option, index }));
+        const sorted = optionsWithIndex.sort((a, b) => {
+            if (starredModels[a.option] && !starredModels[b.option]) return -1;
+            if (!starredModels[a.option] && starredModels[b.option]) return 1;
+            return a.option.localeCompare(b.option);
         });
-    }, [options, starredModels]);
+        const sortedOptions = sorted.map(item => item.option);
+        const sortedColumnData = sorted.map(item => columnData[item.index]);
+        return [sortedOptions, sortedColumnData];
+    }, [options, starredModels, columnData]);
     const { colorScheme } = React.useColorScheme();
     const [isOpen, setIsOpen] = React.useState(false);
     const dropdownRef = React.useRef(null);
@@ -158,8 +162,8 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
                                             </span>
                                         </td>
                                         <td style={cellStyle}>{option}</td>
-                                        <td style={costStyle}>{columnData && columnData[index] ? columnData[index].inputCost : ''}</td>
-                                        <td style={costStyle}>{columnData && columnData[index] ? columnData[index].outputCost : ''}</td>
+                                        <td style={costStyle}>{sortedColumnData && sortedColumnData[index] ? sortedColumnData[index].inputCost : ''}</td>
+                                        <td style={costStyle}>{sortedColumnData && sortedColumnData[index] ? sortedColumnData[index].outputCost : ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
