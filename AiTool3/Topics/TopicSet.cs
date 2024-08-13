@@ -20,6 +20,12 @@ namespace AiTool3.Topics
             // Write the JSON to a file
             string fileName = $"Templates\\templates.json";
             string filePath = Path.Combine(Environment.CurrentDirectory, fileName);
+
+            // Create the path if it doesn't exist
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            }
             File.WriteAllText(filePath, jsonString);
 
             return;

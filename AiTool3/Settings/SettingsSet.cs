@@ -57,7 +57,10 @@ namespace AiTool3
         public bool CollapseConversationPane { get; set; } = false;
 
 
-        public string SelectedModel { get; set; } = "";
+        public string SelectedModel {
+            get;
+            set; 
+        } = "";
         public string SelectedSummaryModel
         {
             get => selectedSummaryModel;
@@ -150,7 +153,7 @@ namespace AiTool3
 
         public Model GetModelByNameAndApi(string modelAndApi) => ModelList.FirstOrDefault(x => x.ToString() == modelAndApi);
 
-        public Model GetSummaryModel() => GetModelByFullStringReference(SelectedSummaryModel);
+        public Model GetSummaryModel() => GetModelByNameAndApi(SelectedSummaryModel);
 
         private void AddMissingApis()
         {
@@ -169,7 +172,7 @@ namespace AiTool3
             Save(this);
         }
 
-        public Model GetModel() => GetModelByFullStringReference(SelectedModel);
+        public Model GetModel() => GetModelByNameAndApi(SelectedModel);
 
         internal void SetModelFromDropdownValue(string dropdown, string? modelString)
         {
@@ -177,12 +180,12 @@ namespace AiTool3
             var matchingModel = models.FirstOrDefault(m => $"{modelString.Split(' ')[0]}" == m.ModelName);
             if (dropdown == "mainAI")
             {
-                SelectedModel = matchingModel.ModelName;
+                SelectedModel = matchingModel.ToString();
                 SettingsSet.Save(this);
             }
             else if (dropdown == "summaryAI")
             {
-                SelectedSummaryModel = matchingModel.ModelName;
+                SelectedSummaryModel = matchingModel.ToString();
                 SettingsSet.Save(this);
             }
         }
