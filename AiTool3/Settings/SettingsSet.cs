@@ -90,6 +90,7 @@ namespace AiTool3
                     new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0.5m, output1MTokenPrice = 1.5m},
                     new Model { Url = "http://localhost:11434/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gemma2:2b", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
                     new Model { Url = "http://localhost:11434/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "llama3.1:8b", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "mistral-nemo", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:7b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llava:13b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.1:8b", Color = Color.FromArgb(255, 255, 186)},
