@@ -114,12 +114,23 @@ namespace AiTool3.Conversations
 
         public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
         {
-            var conversation = new Conversation(Conversation.CreationDateTime)
+            var conversation = InitializeConversation(systemPrompt);
+            await AddHistoricalMessages(conversation);
+            AddCurrentUserMessage(conversation, userPrompt, fileAttachmentManager);
+            return conversation;
+        }
+
+        private Conversation InitializeConversation(string systemPrompt)
+        {
+            return new Conversation(Conversation.CreationDateTime)
             {
                 systemprompt = systemPrompt,
                 messages = new List<ConversationMessage>()
             };
+        }
 
+        private async Task AddHistoricalMessages(Conversation conversation)
+        {
             List<CompletionMessage> nodes = GetParentNodeList();
 
             foreach (var node in nodes)
@@ -127,19 +138,30 @@ namespace AiTool3.Conversations
                 if (node.Role == CompletionRole.Root || node.Omit)
                     continue;
 
-                conversation.messages.Add(
-                    new ConversationMessage
-                    {
-                        role = node.Role == CompletionRole.User ? "user" : "assistant",
-                        content = node.Content!,
-                        base64image = node.Base64Image,
-                        base64type = node.Base64Type
-                    });
+                conversation.messages.Add(CreateConversationMessage(node));
             }
+        }
 
-            conversation.messages.Add(new ConversationMessage { role = "user", content = userPrompt, base64image = fileAttachmentManager.Base64Image, base64type = fileAttachmentManager.Base64ImageType });
+        private ConversationMessage CreateConversationMessage(CompletionMessage node)
+        {
+            return new ConversationMessage
+            {
+                role = node.Role == CompletionRole.User ? "user" : "assistant",
+                content = node.Content!,
+                base64image = node.Base64Image,
+                base64type = node.Base64Type
+            };
+        }
 
-            return conversation;
+        private void AddCurrentUserMessage(Conversation conversation, string userPrompt, FileAttachmentManager fileAttachmentManager)
+        {
+            conversation.messages.Add(new ConversationMessage
+            {
+                role = "user",
+                content = userPrompt,
+                base64image = fileAttachmentManager.Base64Image,
+                base64type = fileAttachmentManager.Base64ImageType
+            });
         }
 
         public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)

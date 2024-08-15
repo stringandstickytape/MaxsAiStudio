@@ -503,6 +503,15 @@ namespace AiTool3
                 tokenUsageLabel.Text += $" ; {response.TokenUsage.CacheReadInputTokens} cache read tokens";
             }
 
+            if(response.TokenUsage.CacheCreationInputTokens > 0 || response.TokenUsage.CacheReadInputTokens > 0)
+            {
+                var totalCacheInputTokens = response.TokenUsage.CacheCreationInputTokens + response.TokenUsage.CacheReadInputTokens;
+                var equivUncachedInputTokens = response.TokenUsage.CacheCreationInputTokens * 1.25m + response.TokenUsage.CacheReadInputTokens * 0.1m;
+                var tokensSaved = totalCacheInputTokens - equivUncachedInputTokens;
+                tokenUsageLabel.Text += $" ; {tokensSaved} tokens saved by cache";
+
+            }
+
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
 
             if (row == null)

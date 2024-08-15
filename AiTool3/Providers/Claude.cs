@@ -108,7 +108,7 @@ namespace AiTool3.Providers
                 };
 
                 // Mark the first four USER messages as ephemeral
-                if (message.role.ToLower() == "user" && userMessageCount < 1)
+                if (message.role.ToLower() == "user" && userMessageCount < 4)
                 {
                     messageObject["content"][0]["cache_control"] = new JObject
                     {
@@ -192,6 +192,15 @@ namespace AiTool3.Providers
                     var lastEphemeral = json.LastIndexOf(",\"cache_control\":{\"type\":\"ephemeral\"}");
                     json = json.Remove(lastEphemeral, ",\"cache_control\":{\"type\":\"ephemeral\"}".Length);
                     return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                }
+                else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
+                {
+                    // ask the user if they want to retry, using a messagebox
+                    var result = MessageBox.Show("Claude reports that it's overloaded.  Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                    }
                 }
 
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };

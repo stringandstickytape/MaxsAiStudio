@@ -32,7 +32,12 @@ namespace AiTool3.DataModels
 
         public string GetCost(TokenUsage tokenUsage)
         {
-            return (tokenUsage.InputTokens * input1MTokenPrice / 1000000 + tokenUsage.OutputTokens * output1MTokenPrice / 1000000).ToString("0.00");
+            var cost = ((tokenUsage.InputTokens * input1MTokenPrice) +
+                (tokenUsage.CacheCreationInputTokens * input1MTokenPrice * 1.25m) +
+                (tokenUsage.CacheReadInputTokens * input1MTokenPrice * 0.1m) +
+                (tokenUsage.OutputTokens * output1MTokenPrice)) / 1000000m;
+
+            return cost.ToString("0.00");
         }
     }
 }

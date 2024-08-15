@@ -30,6 +30,8 @@ internal partial class ModelUsageManager
     {
         TokensUsed.InputTokens += tokenUsage.InputTokens;
         TokensUsed.OutputTokens += tokenUsage.OutputTokens;
+        TokensUsed.CacheCreationInputTokens += tokenUsage.CacheCreationInputTokens;
+        TokensUsed.CacheReadInputTokens += tokenUsage.CacheReadInputTokens;
 
         var json = JsonConvert.SerializeObject(TokensUsed);
         File.WriteAllText(Filename, json);

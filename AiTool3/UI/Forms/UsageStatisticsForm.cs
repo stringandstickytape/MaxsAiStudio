@@ -137,6 +137,8 @@ internal partial class ModelUsageManager
         {
             var manager = new ModelUsageManager(model);
             return ((manager.TokensUsed.InputTokens * model.input1MTokenPrice) +
+                (manager.TokensUsed.CacheCreationInputTokens * model.input1MTokenPrice * 1.25m) +
+                (manager.TokensUsed.CacheReadInputTokens * model.input1MTokenPrice * 0.1m) +
                     (manager.TokensUsed.OutputTokens * model.output1MTokenPrice)) / 1000000m;
         }
 
