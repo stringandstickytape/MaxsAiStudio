@@ -126,6 +126,8 @@ OPenAI structured output
 
 Does the damned thing work offline or is there still a dependency that prevents that?
 
+Implement streaming part of claude prompt caching
+
 -=-
 
 Versionize settings and preserve old settings/themes/templates etc on new version?

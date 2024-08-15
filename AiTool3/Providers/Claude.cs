@@ -34,7 +34,7 @@ namespace AiTool3.Providers
 
                 // Prompt Caching
                 //anthropic-beta: prompt-caching-2024-07-31
-                //client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
 
                 clientInitialised = true;
             }
@@ -108,13 +108,13 @@ namespace AiTool3.Providers
                 };
 
                 // Mark the first four USER messages as ephemeral
-                if (message.role.ToLower() == "user" && userMessageCount < 4)
+                if (message.role.ToLower() == "user" && userMessageCount < 1)
                 {
-                    //messageObject["content"][0]["cache_control"] = new JObject
-                    //{
-                    //    ["type"] = "ephemeral"
-                    //};
-                    //userMessageCount++;
+                    messageObject["content"][0]["cache_control"] = new JObject
+                    {
+                        ["type"] = "ephemeral"
+                    };
+                    userMessageCount++;
                 }
 
                 messagesArray.Add(messageObject);
@@ -136,16 +136,17 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(apiModel, content, cancellationToken);
+                return await HandleStreamingResponse(apiModel, json, cancellationToken);
             }
             else
             {
-                return await HandleNonStreamingResponse(apiModel, content, cancellationToken);
+                return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
         {
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
@@ -176,14 +177,23 @@ namespace AiTool3.Providers
 
 
 
-        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
         {
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             var completion = JsonConvert.DeserializeObject<JObject>(responseString);
 
             if (completion["type"]?.ToString() == "error")
             {
+                if (completion["error"]["message"].ToString().StartsWith("The message up to and including the first cache-control block must be at least 1024 tokens."))
+                {
+                    // remove last instance of "cache_control":{"type":"ephemeral"} ad retry
+                    var lastEphemeral = json.LastIndexOf(",\"cache_control\":{\"type\":\"ephemeral\"}");
+                    json = json.Remove(lastEphemeral, ",\"cache_control\":{\"type\":\"ephemeral\"}".Length);
+                    return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                }
+
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
             }
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
