@@ -34,7 +34,7 @@ namespace AiTool3.Providers
 
                 // Prompt Caching
                 //anthropic-beta: prompt-caching-2024-07-31
-                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+                //client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
 
                 clientInitialised = true;
             }
@@ -110,11 +110,11 @@ namespace AiTool3.Providers
                 // Mark the first four USER messages as ephemeral
                 if (message.role.ToLower() == "user" && userMessageCount < 4)
                 {
-                    messageObject["content"][0]["cache_control"] = new JObject
-                    {
-                        ["type"] = "ephemeral"
-                    };
-                    userMessageCount++;
+                    //messageObject["content"][0]["cache_control"] = new JObject
+                    //{
+                    //    ["type"] = "ephemeral"
+                    //};
+                    //userMessageCount++;
                 }
 
                 messagesArray.Add(messageObject);

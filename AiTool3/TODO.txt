@@ -134,7 +134,7 @@ Versionize settings and preserve old settings/themes/templates etc on new versio
 
 Claude prompt caching
  - token handling
- - requires datetime fix
+ DONE: requires datetime fix
  - turn off and on - cog next to AI model?
    - cache first message versus don't cache first message versus don't use the cacheing beta
  - needs 1024-token minimum...! :/
@@ -177,8 +177,36 @@ Claude prompt caching
 
  Would be nice if it could tell you how much you'd saved using it!
 
+ How about we implement a bucnh of different strategies (cache nothing, cache system prompt, cache to end of first input, cache to end of files in first input, cache to end of current user message,
+ cache to "MARKERLOL", ...)
+  on a "settings" bar for the (main?) AI, which can be left visible to easily pick a strategy, and which is sticky between sessions.
 
- 
+  With cachesystemprompt... do we need to hold it in memory for 5 minutes so we can tell it's still cached when you satrt a new conversation?!
+
+  Maybe don't need to go there if we have "cache to "MARKERLOL"".
+
+  
+  !
+     - Add a "Cache to here" marker at the left side of the current user chat message, which can be dragged up and down!
+     Or provide "cache to here" buttons and some kind of vertical green line type marker to indicate what's currently marked to be cached...?
+
+     You would think that if you marked up the first bit, sthen marked up another bit, the first bit  would be used to cheaply build the second bit... :/
+     CONFIRMED and this is why you might (say) mark the last four user messages!
+
+     Caching is use-or-create...
+
+     Claude estimates 28% reply from user to AI freq before caching is cheaper, but this ignores that earlier messagres are typically longer.  the last messages, where caching was "wasted", are typically.
+
+     Running pair means you're always rebuilding the cache up-to-date and maximising the savings
+
+     You can cache the last four message points, so you could highlight those as being available?  But something doesn't need to have been cached by the last req to be cached...
+
+     Maybe this does mean we need a memory log of what's been cached with expiry, so we can tell how to reuse?
+
+     Could we do that? 
+
+     Prompt Caching references the entire prompt - tools, system, and messages up to and including the block designated with cache_control.
+
 
  -=-
 

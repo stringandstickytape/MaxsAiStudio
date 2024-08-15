@@ -6,13 +6,15 @@ namespace AiTool3.Conversations
     {
         public List<ConversationMessage> messages { get; set; }
         public string systemprompt { get; set; }
-        public Conversation()
+        public DateTime ConversationCreationDateTime { get; set; }
+        public Conversation(DateTime creationDateTime)
         {
+            ConversationCreationDateTime = creationDateTime;
 
         }
         public string SystemPromptWithDateTime()
         {
-            return $"{systemprompt}\r\n\r\nThe current date and time is {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
+            return $"{systemprompt}\r\n\r\nThis conversation began at {ConversationCreationDateTime.ToString("yyyy-MM-dd HH:mm:ss")}.";
         }
     }
 }

@@ -114,7 +114,7 @@ namespace AiTool3.Conversations
 
         public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
         {
-            var conversation = new Conversation
+            var conversation = new Conversation(Conversation.CreationDateTime)
             {
                 systemprompt = systemPrompt,
                 messages = new List<ConversationMessage>()

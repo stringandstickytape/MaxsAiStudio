@@ -114,7 +114,7 @@ public class NamedPipeListener
 
         var content = $"{MaxsAiStudio.ThreeTicks}\n{selection.Before}<CURSOR LOCATION>{selection.After}\n{MaxsAiStudio.ThreeTicks}\n\n The user's instruction is: \n{MaxsAiStudio.ThreeTicks}\n{selection.Selected}\n{MaxsAiStudio.ThreeTicks}\n\n";
 
-        var conversation = new Conversation
+        var conversation = new Conversation(DateTime.Now)
         {
             systemprompt = "You are a code completion AI. You return a single code block which will be inserted in the user's current cursor location. The code block must be in the correct language and satisfy the user's request, based on the context before and after the user's current cursor location.",
             messages = new List<ConversationMessage>
