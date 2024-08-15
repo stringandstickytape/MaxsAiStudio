@@ -31,13 +31,22 @@ namespace AiTool3.Providers
             {
                 client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
                 client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+
+                // Prompt Caching
+                //anthropic-beta: prompt-caching-2024-07-31
+                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+
                 clientInitialised = true;
             }
 
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
-                ["system"] = conversation.SystemPromptWithDateTime(),
+
+                // can't use a different datetime each time, if we're using prompt caching :/
+                // will probably need to pass this through from outside...
+
+                ["system"] = conversation.systemprompt ?? "", //conversation.SystemPromptWithDateTime(),
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
@@ -64,6 +73,7 @@ namespace AiTool3.Providers
             }
 
             var messagesArray = new JArray();
+            int userMessageCount = 0;
 
             for (int i = 0; i < conversation.messages.Count; i++)
             {
@@ -97,9 +107,17 @@ namespace AiTool3.Providers
                     ["content"] = contentArray
                 };
 
+                // Mark the first four USER messages as ephemeral
+                if (message.role.ToLower() == "user" && userMessageCount < 4)
+                {
+                    messageObject["content"][0]["cache_control"] = new JObject
+                    {
+                        ["type"] = "ephemeral"
+                    };
+                    userMessageCount++;
+                }
+
                 messagesArray.Add(messageObject);
-
-
             }
 
             req["messages"] = messagesArray;
@@ -109,6 +127,8 @@ namespace AiTool3.Providers
                 var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
                 req["messages"].Last["content"].Last["text"] = newInput;
             }
+
+            // ***
 
 
             var json = JsonConvert.SerializeObject(req);
@@ -168,6 +188,8 @@ namespace AiTool3.Providers
             }
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
+            var cacheCreationInputTokens = completion["usage"]?["cache_creation_input_tokens"]?.ToString();
+            var cacheReadInputTokens = completion["usage"]?["cache_read_input_tokens"]?.ToString();
             var responseText = "";
             if (completion["content"] != null)
             {
@@ -238,6 +260,9 @@ namespace AiTool3.Providers
 
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens)
         {
+
+            var cacheCreationInputTokens = 0; //= completion["usage"]?["cache_creation_input_tokens"]?.ToString();
+            var cacheReadInputTokens = 0; // completion["usage"]?["cache_read_input_tokens"]?.ToString();
             // could contain data: {"type":"error","error":{"details":null,"type":"overloaded_error","message":"Overloaded"}              }
 
             if (line.StartsWith("data: "))
@@ -273,6 +298,10 @@ namespace AiTool3.Providers
                     {
                         StreamingTextReceived?.Invoke(this, eventData["error"]["message"].ToString());
                         responseBuilder.Append(eventData["error"]["message"].ToString());
+                    }
+                    else
+                    {
+
                     }
                 }
                 catch (JsonException ex)

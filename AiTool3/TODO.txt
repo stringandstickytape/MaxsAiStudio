@@ -117,10 +117,70 @@ DONE: better model selection generally
 * rename arrayfindandreplace
 * it's using toolds for summaries
 
-Tips thing in status bar?
+Would be nice if you could collapse code blocks in both the editors and the messages
+
+Tips thing in status bar woudl be excellent, especially if it could link to supporting information
 Clean build : check whisper can be got up-and-running and doesn't b0rk too badly beforehand
 Claude pre-fills
 OPenAI structured output
+
+Does the damned thing work offline or is there still a dependency that prevents that?
+
+-=-
+
+Versionize settings and preserve old settings/themes/templates etc on new version?
+
+-=-
+
+Claude prompt caching
+ - token handling
+ - requires datetime fix
+ - turn off and on - cog next to AI model?
+   - cache first message versus don't cache first message versus don't use the cacheing beta
+ - needs 1024-token minimum...! :/
+ - visual indicator that a message has been cached
+ - just the first user message, or ... ?
+
+ Add flag to model, SupportsPromptCaching.  
+
+ COuld have another thing on the send button, "Send and cache to the end of this prompt" or similar - but only models where SupportsPromptCaching.  
+
+ We can use the caching beta all the time if supportspromptcaching i guess, because if you don't ask for anything to be cached, nothign changes.
+
+ Allow a covnersation message to be marked as cached with its date and time. This needs to be updated whenever we confirm we've just used the cache.
+
+ need to extend tokenusage so it can cope with the new kinds of token and their pricing
+
+ but really you want to cache the systemprompt and first userprompt but add more to it...
+
+ Or, could cache all the code dumped across by the project helper, but not the rest of the prompt - IF we reworked how the project helper passes its files in
+
+ Or, you could insert some sort of "Cache to here" marker in your prompt?
+
+ Maybe an "auto-cache the first message if possible" metaphor is good?
+
+ We could capture the "not enough input" error and run rerun without caching... :/
+
+ But surely the likelihood is that if you're dumping a huge amount into one window, you're going to want to ask many follow-up questions?
+
+ It just doesn't help so much when you get the initial question wrong!
+
+ Maybe a marker in the input box which says "cache to here" which you can drag or move with the right mouse button? :/
+
+ Or you could "Send and cache all", or "Send and cache to...".  The latter works out the conversation and lets you set a point somewhere in it, to cache to.  We insert a marker or track the location against the 
+ message so that we can build the correct cached part separately from the rest.
+
+ Say the first message you sent is cached (and ofc we know that).
+
+ You click on the first message and amend it.  If you only add to it, we can reuse the cache as long as we detect that.  Or maybe (better) when you click on the cached object, it DOESN'T LET you
+ change the cached part without some interaction first ("editing this will invalidate your cached data").  But you probably do want to amend the cached bit, because the whole first message is cached.
+
+ Would be nice if it could tell you how much you'd saved using it!
+
+
+ 
+
+ -=-
 
 externalise tool definitions
 
