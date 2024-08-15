@@ -4,11 +4,16 @@
     {
         private int inputTokens = 0;
         private int outputTokens = 0;
+        private int cacheCreationInputTokens = 0;
+        private int cacheReadInputTokens = 0;
 
         public int InputTokens { get => inputTokens; set => inputTokens = value; }
         public int OutputTokens { get => outputTokens; set => outputTokens = value; }
+        public int CacheCreationInputTokens { get => cacheCreationInputTokens; set => cacheCreationInputTokens = value; }
+        public int CacheReadInputTokens { get => cacheReadInputTokens; set => cacheReadInputTokens = value; }
 
-        public TokenUsage(string input, string output)
+
+        public TokenUsage(string input, string output, string cacheCreationInputTokens = "0", string cacheReadInputTokens = "0")
         {
             if (int.TryParse(input, out int inputTokens))
             {
@@ -19,11 +24,21 @@
             {
                 OutputTokens = outputTokens;
             }
+
+            if (int.TryParse(cacheCreationInputTokens, out int cacheCreationInputTokensInt))
+            {
+                CacheCreationInputTokens = cacheCreationInputTokensInt;
+            }
+
+            if (int.TryParse(cacheReadInputTokens, out int cacheReadInputTokensInt))
+            {
+                CacheReadInputTokens = cacheReadInputTokensInt;
+            }
         }
 
         public override string ToString()
         {
-            return $"{InputTokens} {OutputTokens}";
+            return $"{InputTokens} {OutputTokens} {CacheCreationInputTokens} {CacheReadInputTokens}";
         }
     }
 }

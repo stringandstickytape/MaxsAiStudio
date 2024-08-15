@@ -215,7 +215,7 @@ namespace AiTool3.Providers
                 responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
             }
 
-            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens) };
         }
     }
 

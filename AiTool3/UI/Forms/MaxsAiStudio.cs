@@ -494,6 +494,15 @@ namespace AiTool3
 
             tokenUsageLabel.Text = $"Token Usage: ${cost} : {response.TokenUsage.InputTokens} in --- {response.TokenUsage.OutputTokens} out";
 
+            if(response.TokenUsage.CacheCreationInputTokens > 0)
+            {
+                tokenUsageLabel.Text += $" ; {response.TokenUsage.CacheCreationInputTokens} cache creation tokens";
+            }
+            if(response.TokenUsage.CacheReadInputTokens > 0)
+            {
+                tokenUsageLabel.Text += $" ; {response.TokenUsage.CacheReadInputTokens} cache read tokens";
+            }
+
             var row = dgvConversations.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => r.Cells[0]?.Value?.ToString() == ConversationManager.Conversation.ConvGuid);
 
             if (row == null)
