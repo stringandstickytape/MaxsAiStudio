@@ -505,10 +505,14 @@ namespace AiTool3
 
             if(response.TokenUsage.CacheCreationInputTokens > 0 || response.TokenUsage.CacheReadInputTokens > 0)
             {
-                var totalCacheInputTokens = response.TokenUsage.CacheCreationInputTokens + response.TokenUsage.CacheReadInputTokens;
-                var equivUncachedInputTokens = response.TokenUsage.CacheCreationInputTokens * 1.25m + response.TokenUsage.CacheReadInputTokens * 0.1m;
-                var tokensSaved = totalCacheInputTokens - equivUncachedInputTokens;
-                tokenUsageLabel.Text += $" ; {tokensSaved} tokens saved by cache";
+                var actualInputTokens = response.TokenUsage.InputTokens + response.TokenUsage.CacheCreationInputTokens + response.TokenUsage.CacheReadInputTokens;
+                var convertedCachedInputTokens = response.TokenUsage.InputTokens + response.TokenUsage.CacheCreationInputTokens * 1.25m + response.TokenUsage.CacheReadInputTokens * 0.1m;
+
+                // "Used 33% more tokens than without caching"
+                var percentage = (int)((convertedCachedInputTokens / actualInputTokens) * 100)-100;
+
+
+                tokenUsageLabel.Text += $" ; this request used {percentage}% {(percentage>0 ? "more" : "less")} tokens because of caching";
 
             }
 
