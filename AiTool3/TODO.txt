@@ -118,6 +118,8 @@ DONE: better model selection generally
 * is it using toolds for summaries
 * should be able to tell which LLMs support tools
 
+File explorer needs a clear-all button and possibly a next-search-result button
+
 * some kind of clean-build test might be nice...
 
 Would be nice if you could collapse code blocks in both the editors and the messages

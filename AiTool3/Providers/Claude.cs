@@ -132,7 +132,7 @@ namespace AiTool3.Providers
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(apiModel, json, cancellationToken);
+                return await HandleStreamingResponse(apiModel, json, cancellationToken, currentSettings);
             }
             else
             {
@@ -140,7 +140,44 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
+        private string RemoveCachingFromJson(string json)
+    {
+        var jObject = JObject.Parse(json);
+        var messages = jObject["messages"] as JArray;
+        if (messages != null)
+        {
+            foreach (var message in messages)
+            {
+                var content = message["content"] as JArray;
+                if (content != null)
+                {
+                    foreach (var item in content)
+                    {
+                        item["cache_control"]?.Parent.Remove();
+                    }
+                }
+            }
+        }
+        return jObject.ToString();
+    }
+
+    private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
+    {
+        while (true)
+        {
+            try
+            {
+                return await ProcessStreamingResponse(apiModel, json, cancellationToken, currentSettings);
+            }
+            catch (NotEnoughTokensForCachingException)
+            {
+                // Remove caching and retry
+                json = RemoveCachingFromJson(json);
+            }
+        }
+    }
+
+    private async Task<AiResponse> ProcessStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
         {
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
@@ -154,7 +191,7 @@ namespace AiTool3.Providers
             response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var streamProcessor = new StreamProcessor();
+            var streamProcessor = new StreamProcessor(currentSettings.UsePromptCaching);
             streamProcessor.StreamingTextReceived += (s, e) => StreamingTextReceived?.Invoke(this, e);
 
             var result = await streamProcessor.ProcessStream(stream, cancellationToken);
@@ -166,7 +203,7 @@ namespace AiTool3.Providers
             {
                 ResponseText = result.ResponseText,
                 Success = true,
-                TokenUsage = new TokenUsage(result.InputTokens?.ToString(), result.OutputTokens?.ToString())
+                TokenUsage = new TokenUsage(result.InputTokens?.ToString(), result.OutputTokens?.ToString(), result.CacheCreationInputTokens?.ToString(), result.CacheReadInputTokens?.ToString())
             };
         }
 
@@ -222,9 +259,20 @@ namespace AiTool3.Providers
         }
     }
 
+    internal class NotEnoughTokensForCachingException : Exception
+    {
+        public NotEnoughTokensForCachingException(string message) : base(message) { }
+    }
+
     internal class StreamProcessor
     {
+        private bool usePromptCaching;
         public event EventHandler<string> StreamingTextReceived;
+
+        public StreamProcessor(bool usePromptCaching)
+        {
+            this.usePromptCaching = usePromptCaching;
+        }
 
         public async Task<StreamProcessingResult> ProcessStream(Stream stream, CancellationToken cancellationToken)
         {
@@ -235,6 +283,8 @@ namespace AiTool3.Providers
 
             int? inputTokens = null;
             int? outputTokens = null;
+            int? cacheCreationInputTokens = null;
+            int? cacheReadInputTokens = null;
 
             while (true)
             {
@@ -248,7 +298,7 @@ namespace AiTool3.Providers
                 {
                     if (c == '\n')
                     {
-                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens);
+                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens, ref cacheCreationInputTokens, ref cacheReadInputTokens);
                         lineBuilder.Clear();
                     }
                     else
@@ -260,22 +310,23 @@ namespace AiTool3.Providers
 
             if (lineBuilder.Length > 0)
             {
-                ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens);
+                ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens, ref cacheCreationInputTokens, ref cacheReadInputTokens);
             }
 
             return new StreamProcessingResult
             {
                 ResponseText = responseBuilder.ToString(),
                 InputTokens = inputTokens,
-                OutputTokens = outputTokens
+                OutputTokens = outputTokens,
+                CacheCreationInputTokens = cacheCreationInputTokens,
+                CacheReadInputTokens = cacheReadInputTokens
             };
         }
 
-        private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens)
+        private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens, ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
 
-            var cacheCreationInputTokens = 0; //= completion["usage"]?["cache_creation_input_tokens"]?.ToString();
-            var cacheReadInputTokens = 0; // completion["usage"]?["cache_read_input_tokens"]?.ToString();
+            // These variables are now passed as ref parameters
             // could contain data: {"type":"error","error":{"details":null,"type":"overloaded_error","message":"Overloaded"}              }
 
             if (line.StartsWith("data: "))
@@ -302,15 +353,45 @@ namespace AiTool3.Providers
                     else if (eventData["type"].ToString() == "message_start")
                     {
                         inputTokens = eventData["message"]["usage"]["input_tokens"].Value<int>();
+
+                        if (eventData["message"]["usage"]["output_tokens"] != null)
+                        {
+                            outputTokens = eventData["message"]["usage"]["output_tokens"].Value<int>();
+                        }
+
+                        if (eventData["message"]["usage"]["cache_creation_input_tokens"] != null)
+                        {
+                            cacheCreationInputTokens = eventData["message"]["usage"]["cache_creation_input_tokens"].Value<int>();
+                        }
+
+                        if (eventData["message"]["usage"]["cache_read_input_tokens"] != null)
+                        {
+                            cacheReadInputTokens = eventData["message"]["usage"]["cache_read_input_tokens"].Value<int>();
+                        }
                     }
                     else if (eventData["type"].ToString() == "message_delta")
                     {
                         outputTokens = eventData["usage"]["output_tokens"].Value<int>();
+                        if (eventData["usage"]["cache_creation_input_tokens"] != null)
+                        {
+                            cacheCreationInputTokens = eventData["usage"]["cache_creation_input_tokens"].Value<int>();
+                        }
+
+                        if (eventData["usage"]["cache_read_input_tokens"] != null)
+                        {
+                            cacheReadInputTokens = eventData["usage"]["cache_read_input_tokens"].Value<int>();
+                        }
                     }
                     else if (eventData["type"].ToString() == "error")
                     {
-                        StreamingTextReceived?.Invoke(this, eventData["error"]["message"].ToString());
-                        responseBuilder.Append(eventData["error"]["message"].ToString());
+                        var errorMessage = eventData["error"]["message"].ToString();
+                        if (usePromptCaching && errorMessage.Contains("at least 1024 tokens"))
+                        {
+                            // Input isn't long enough to cache. We need to restart the stream without caching.
+                            throw new NotEnoughTokensForCachingException(errorMessage);
+                        }
+                        StreamingTextReceived?.Invoke(this, errorMessage);
+                        responseBuilder.Append(errorMessage);
                     }
                     else
                     {
@@ -332,5 +413,7 @@ namespace AiTool3.Providers
         public string ResponseText { get; set; }
         public int? InputTokens { get; set; }
         public int? OutputTokens { get; set; }
+        public int? CacheCreationInputTokens { get; set; }
+        public int? CacheReadInputTokens { get; set; }
     }
 }
