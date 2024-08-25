@@ -10,6 +10,7 @@ namespace AiTool3.Templates
 
         public TemplateManager()
         {
+            DirectoryHelper.CreateSubdirectories();
             TemplateSet = TopicSet.Load();
         }
         public ConversationTemplate? CurrentTemplate { get; set; }
