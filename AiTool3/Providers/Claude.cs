@@ -31,13 +31,21 @@ namespace AiTool3.Providers
             {
                 client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
                 client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+
+                // Prompt Caching
+                //anthropic-beta: prompt-caching-2024-07-31
+                if (currentSettings.UsePromptCaching)
+                {
+                    client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+                }
+
                 clientInitialised = true;
             }
 
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
-                ["system"] = conversation.SystemPromptWithDateTime(),
+                ["system"] = conversation.systemprompt ?? "",
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
@@ -45,7 +53,7 @@ namespace AiTool3.Providers
             if (toolIDs != null && toolIDs.Any())
             {
                 var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-                // get first line of toolObj.FullText
+                
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
@@ -64,6 +72,7 @@ namespace AiTool3.Providers
             }
 
             var messagesArray = new JArray();
+            int userMessageCount = 0;
 
             for (int i = 0; i < conversation.messages.Count; i++)
             {
@@ -97,9 +106,17 @@ namespace AiTool3.Providers
                     ["content"] = contentArray
                 };
 
+                // Mark the content up to each of the first four USER messages as ephemeral.  It's a strategy...
+                if (currentSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
+                {
+                    messageObject["content"][0]["cache_control"] = new JObject
+                    {
+                        ["type"] = "ephemeral"
+                    };
+                    userMessageCount++;
+                }
+
                 messagesArray.Add(messageObject);
-
-
             }
 
             req["messages"] = messagesArray;
@@ -110,22 +127,22 @@ namespace AiTool3.Providers
                 req["messages"].Last["content"].Last["text"] = newInput;
             }
 
-
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(apiModel, content, cancellationToken);
+                return await HandleStreamingResponse(apiModel, json, cancellationToken);
             }
             else
             {
-                return await HandleNonStreamingResponse(apiModel, content, cancellationToken);
+                return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
         {
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
@@ -154,20 +171,38 @@ namespace AiTool3.Providers
         }
 
 
-
-
-        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
         {
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             var completion = JsonConvert.DeserializeObject<JObject>(responseString);
 
             if (completion["type"]?.ToString() == "error")
             {
+                if (completion["error"]["message"].ToString().Contains("at least 1024 tokens"))
+                {
+                    // Input isn't long enough to cache.  Redo without caching.
+                    var lastEphemeral = json.LastIndexOf(",\"cache_control\":{\"type\":\"ephemeral\"}");
+                    json = json.Remove(lastEphemeral, ",\"cache_control\":{\"type\":\"ephemeral\"}".Length);
+                    return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                }
+                else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
+                {
+                    // ask the user if they want to retry, using a messagebox
+                    var result = MessageBox.Show("Claude reports that it's overloaded.  Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                    }
+                }
+
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
             }
             var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
             var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
+            var cacheCreationInputTokens = completion["usage"]?["cache_creation_input_tokens"]?.ToString();
+            var cacheReadInputTokens = completion["usage"]?["cache_read_input_tokens"]?.ToString();
             var responseText = "";
             if (completion["content"] != null)
             {
@@ -183,7 +218,7 @@ namespace AiTool3.Providers
                 responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
             }
 
-            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens) };
+            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens) };
         }
     }
 
@@ -238,6 +273,9 @@ namespace AiTool3.Providers
 
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens)
         {
+
+            var cacheCreationInputTokens = 0; //= completion["usage"]?["cache_creation_input_tokens"]?.ToString();
+            var cacheReadInputTokens = 0; // completion["usage"]?["cache_read_input_tokens"]?.ToString();
             // could contain data: {"type":"error","error":{"details":null,"type":"overloaded_error","message":"Overloaded"}              }
 
             if (line.StartsWith("data: "))
@@ -273,6 +311,10 @@ namespace AiTool3.Providers
                     {
                         StreamingTextReceived?.Invoke(this, eventData["error"]["message"].ToString());
                         responseBuilder.Append(eventData["error"]["message"].ToString());
+                    }
+                    else
+                    {
+
                     }
                 }
                 catch (JsonException ex)

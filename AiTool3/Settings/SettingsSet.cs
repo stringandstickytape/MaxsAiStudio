@@ -32,6 +32,9 @@ namespace AiTool3
         [MyDisplayNameAttr("Use embeddings")]
         public bool UseEmbeddings { get; set; } = false;
 
+        [MyDisplayNameAttr("Use prompt caching (Claude only)")]
+        public bool UsePromptCaching { get; set; } = true;
+
         [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;
 
@@ -100,6 +103,7 @@ namespace AiTool3
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:2b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:27b", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "deepseek-coder-v2", Color = Color.FromArgb(255, 255, 186)},
+                    new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "phi3.5", Color = Color.FromArgb(255, 255, 186)},
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-8b-8192", Color = Color.FromArgb(255, 216, 186)},
                     new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-70b-8192", Color = Color.FromArgb(224, 186, 255)},
                     new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 7m, output1MTokenPrice = 21m},
