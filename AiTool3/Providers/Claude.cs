@@ -136,7 +136,27 @@ namespace AiTool3.Providers
             }
             else
             {
-                return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                while (true)
+                {
+                    try
+                    {
+                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken, currentSettings);
+                    }
+                    catch (NotEnoughTokensForCachingException)
+                    {
+                        if (currentSettings.UsePromptCaching)
+                        {
+                            // Remove caching and retry
+                            json = RemoveCachingFromJson(json);
+                            currentSettings.UsePromptCaching = false;
+                        }
+                        else
+                        {
+                            // If we're not using caching and still get this exception, something else is wrong
+                            throw;
+                        }
+                    }
+                }
             }
         }
 
@@ -208,7 +228,7 @@ namespace AiTool3.Providers
         }
 
 
-        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
         {
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
@@ -219,10 +239,7 @@ namespace AiTool3.Providers
             {
                 if (completion["error"]["message"].ToString().Contains("at least 1024 tokens"))
                 {
-                    // Input isn't long enough to cache.  Redo without caching.
-                    var lastEphemeral = json.LastIndexOf(",\"cache_control\":{\"type\":\"ephemeral\"}");
-                    json = json.Remove(lastEphemeral, ",\"cache_control\":{\"type\":\"ephemeral\"}".Length);
-                    return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                    throw new NotEnoughTokensForCachingException(completion["error"]["message"].ToString());
                 }
                 else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
                 {
@@ -230,7 +247,7 @@ namespace AiTool3.Providers
                     var result = MessageBox.Show("Claude reports that it's overloaded.  Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
                     if (result == DialogResult.Yes)
                     {
-                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
+                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken, currentSettings);
                     }
                 }
 
