@@ -34,7 +34,10 @@ namespace AiTool3.Providers
 
                 // Prompt Caching
                 //anthropic-beta: prompt-caching-2024-07-31
-                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+                if (currentSettings.UsePromptCaching)
+                {
+                    client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
+                }
 
                 clientInitialised = true;
             }
@@ -42,11 +45,7 @@ namespace AiTool3.Providers
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
-
-                // can't use a different datetime each time, if we're using prompt caching :/
-                // will probably need to pass this through from outside...
-
-                ["system"] = conversation.systemprompt ?? "", //conversation.SystemPromptWithDateTime(),
+                ["system"] = conversation.systemprompt ?? "",
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
@@ -54,7 +53,7 @@ namespace AiTool3.Providers
             if (toolIDs != null && toolIDs.Any())
             {
                 var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-                // get first line of toolObj.FullText
+                
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
@@ -107,8 +106,8 @@ namespace AiTool3.Providers
                     ["content"] = contentArray
                 };
 
-                // Mark the first four USER messages as ephemeral
-                if (message.role.ToLower() == "user" && userMessageCount < 4)
+                // Mark the content up to each of the first four USER messages as ephemeral.  It's a strategy...
+                if (currentSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
                 {
                     messageObject["content"][0]["cache_control"] = new JObject
                     {
@@ -127,9 +126,6 @@ namespace AiTool3.Providers
                 var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
                 req["messages"].Last["content"].Last["text"] = newInput;
             }
-
-            // ***
-
 
             var json = JsonConvert.SerializeObject(req);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -175,8 +171,6 @@ namespace AiTool3.Providers
         }
 
 
-
-
         private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken)
         {
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -186,9 +180,9 @@ namespace AiTool3.Providers
 
             if (completion["type"]?.ToString() == "error")
             {
-                if (completion["error"]["message"].ToString().StartsWith("The message up to and including the first cache-control block must be at least 1024 tokens."))
+                if (completion["error"]["message"].ToString().Contains("at least 1024 tokens"))
                 {
-                    // remove last instance of "cache_control":{"type":"ephemeral"} ad retry
+                    // Input isn't long enough to cache.  Redo without caching.
                     var lastEphemeral = json.LastIndexOf(",\"cache_control\":{\"type\":\"ephemeral\"}");
                     json = json.Remove(lastEphemeral, ",\"cache_control\":{\"type\":\"ephemeral\"}".Length);
                     return await HandleNonStreamingResponse(apiModel, json, cancellationToken);
