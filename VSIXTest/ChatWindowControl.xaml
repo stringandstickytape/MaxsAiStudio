@@ -11,10 +11,15 @@
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <Setter Property="FontSize" Value="16"/> <!-- Adjusted Font Size -->
             </Style>
             <Style TargetType="TextBox">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
                 <Setter Property="Background" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+                <Setter Property="FontSize" Value="16"/> <!-- Adjusted Font Size -->
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="16"/> <!-- Adjusted Font Size -->
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>

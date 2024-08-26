@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.IO;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace VSIXTest
 {
@@ -19,6 +20,12 @@ namespace VSIXTest
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             InitializeComponent();
             ShortcutPopup.LayoutUpdated += ShortcutPopup_LayoutUpdated;
+            DTE vsEnvironment = (DTE)Package.GetGlobalService(typeof(SDTE));
+            EnvDTE.Properties propertiesList = vsEnvironment.get_Properties("FontsAndColors", "TextEditor");
+            Property prop = propertiesList.Item("FontSize");
+            int fontSize = (System.Int16)prop.Value;
+
+
         }
 
         private void ShortcutPopup_LayoutUpdated(object sender, EventArgs e)
@@ -273,7 +280,7 @@ namespace VSIXTest
             if (item == null)
                 return;
 
-            if (item.Kind == Constants.vsProjectItemKindPhysicalFolder)
+            if (item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder)
             {
                 foreach (ProjectItem subItem in item.ProjectItems)
                 {
