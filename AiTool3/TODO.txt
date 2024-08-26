@@ -120,6 +120,8 @@ DONE: better model selection generally
 * check which provider classes implement temperature correctly :/
 File explorer needs a clear-all button and possibly a next-search-result button
 
+For VS typew work, you might have a very long system prompt that's cached, telling it what's what.
+
 * some kind of clean-build test might be nice...
 
 Would be nice if you could collapse code blocks in both the editors and the messages

@@ -41,7 +41,10 @@ namespace VSIXTest
         public async Task Initialise()
         {
             var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
-            await EnsureCoreWebView2Async(env);
+            if (this.CoreWebView2 == null)
+            {
+                await EnsureCoreWebView2Async(env);
+            }
             WebMessageReceived += WebView_WebMessageReceived;
 
             CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
