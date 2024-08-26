@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -41,49 +42,14 @@ namespace VSIXTest
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var textManager = Package.GetGlobalService(typeof(SVsTextManager)) as IVsTextManager;
-            if (textManager == null)
+            ToolWindowPane window = this.package.FindToolWindow(typeof(ChatWindowPane), 0, true);
+            if ((null == window) || (null == window.Frame))
             {
-                // Handle the case where we couldn't get the text manager
-                return;
+                throw new NotSupportedException("Cannot create tool window");
             }
 
-            textManager.GetActiveView(1, null, out IVsTextView textViewCom);
-
-            if (textViewCom == null)
-            {
-                // Handle the case where we couldn't get the active text view
-                return;
-            }
-
-            // Get the IVsEditorAdaptersFactoryService
-            var editorAdaptersFactoryService = Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel;
-            if (editorAdaptersFactoryService == null)
-            {
-                // Handle the case where we couldn't get the component model
-                return;
-            }
-
-            var adaptersFactory = editorAdaptersFactoryService.GetService<IVsEditorAdaptersFactoryService>();
-            if (adaptersFactory == null)
-            {
-                // Handle the case where we couldn't get the adapters factory
-                return;
-            }
-
-            // Get the IWpfTextView from the IVsTextView
-            IWpfTextView textView = adaptersFactory.GetWpfTextView(textViewCom);
-
-
-            if (textView != null)
-            {
-                // Remove any existing InlineChatAdornment
-                var existingAdornmentLayer = textView.GetAdornmentLayer("InlineChatAdornment");
-                existingAdornmentLayer.RemoveAllAdornments();
-
-                // Create a new InlineChatAdornment
-                new InlineChatAdornment(textView);
-            }
+            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
     }
 }

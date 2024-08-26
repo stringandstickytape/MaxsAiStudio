@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
+using System.IO;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -26,33 +28,59 @@ namespace VSIXTest
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(VSIXTestPackage.PackageGuidString)]
+    [ProvideToolWindow(typeof(ChatWindowPane))]
     public sealed class VSIXTestPackage : AsyncPackage
     {
-        /// <summary>
-        /// VSIXTestPackage GUID string.
-        /// </summary>
         public const string PackageGuidString = "743967b7-4ad8-4103-8a28-bf2933a5bdf2";
+        public static VSIXTestPackage Instance { get; private set; }
 
-        #region Package Members
+        private NamedPipeClientStream pipeClient;
+        private StreamWriter writer;
+        private StreamReader reader;
 
-        /// <summary>
-        /// Initialization of the package; this method is called right after the package is sited, so this is the place
-        /// where you can put all the initialization code that rely on services provided by VisualStudio.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation token to monitor for initialization cancellation, which can occur when VS is shutting down.</param>
-        /// <param name="progress">A provider for progress updates.</param>
-        /// <returns>A task representing the async work of package initialization, or an already completed task if there is none. Do not return null from this method.</returns>
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            // When initialized asynchronously, the current thread may be a background thread at this point.
-            // Do any initialization that requires the UI thread after switching to the UI thread.
+            await base.InitializeAsync(cancellationToken, progress);
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await GetSurroundingLinesCommand.InitializeAsync(this);
+
+            Instance = this;
+            //await GetSurroundingLinesCommand.InitializeAsync(this);
             await OpenChatWindowCommand.InitializeAsync(this);
+
+            InitializePipeClient();
         }
 
+        private void InitializePipeClient()
+        {
+            pipeClient = new NamedPipeClientStream(".", "MaxsAIStudioVSIX", PipeDirection.InOut, PipeOptions.Asynchronous);
+            pipeClient.Connect(3000);
+            writer = new StreamWriter(pipeClient) { AutoFlush = true };
+            reader = new StreamReader(pipeClient);
 
+            // Start listening for messages
+            Task.Run(ListenForMessages);
+        }
 
-        #endregion
+        private async Task ListenForMessages()
+        {
+            while (true)
+            {
+                string message = await reader.ReadLineAsync();
+                    await JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var window = FindToolWindow(typeof(ChatWindowPane), 0, false) as ChatWindowPane;
+                    if (window != null)
+                    {
+                        var control = window.Content as ChatWindowControl;
+                        control?.ReceiveMessage(message);
+                    }
+            }
+        }
+
+        public async Task SendMessageThroughPipe(string message)
+        {
+            await writer.WriteLineAsync(message);
+            await writer.WriteLineAsync("<END>");
+            await writer.FlushAsync();
+        }
     }
 }

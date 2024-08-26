@@ -18,7 +18,7 @@
 		<Button guid="guidVSIXTestPackageCmdSet" id="OpenChatWindowCommandId" priority="0x0100" type="Button">
 			<Parent guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" />
 			<Strings>
-				<ButtonText>Open Chat Window</ButtonText>
+				<ButtonText>Open AI Chat</ButtonText>
 			</Strings>
 		</Button>
     </Buttons>

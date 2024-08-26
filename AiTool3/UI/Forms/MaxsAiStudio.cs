@@ -14,6 +14,7 @@ using AiTool3.UI.Forms;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Data;
+using System.Windows.Forms;
 using Whisper.net.Ggml;
 using static AiTool3.Communications.NamedPipeListener;
 
@@ -130,7 +131,15 @@ namespace AiTool3
             }
         }
 
-        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e) => _namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, JsonConvert.DeserializeObject<VSCodeSelection>(e));
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e)
+        {
+            // set the input box to e
+            chatWebView.SetUserPrompt(e);
+
+            this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+
+            //_namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, e);
+        }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
@@ -472,8 +481,14 @@ namespace AiTool3
             stopwatch.Restart();
             updateTimer.Start();
 
-            await chatWebView.DisableSendButton();
-            await chatWebView.EnableCancelButton();
+            try
+            {
+                await chatWebView.DisableSendButton();
+                await chatWebView.EnableCancelButton();
+            }
+            catch (Exception ex)
+            {
+            }
 
             dgvConversations.Enabled = false;
             webViewManager.Disable();
@@ -483,6 +498,12 @@ namespace AiTool3
                 {
                     updateTimer.Stop();
                     await UpdateUi(response);
+
+                    if (e.SendResponseToVsix)
+                    { 
+                        await _namedPipeListener.SendResponseAsync(response.ResponseText);
+                    }
+
                 });
             
             EnableConversationsAndWebView();
