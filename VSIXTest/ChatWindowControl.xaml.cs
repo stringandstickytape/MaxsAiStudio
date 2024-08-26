@@ -9,15 +9,9 @@ namespace VSIXTest
         public ChatWindowControl()
         {
             InitializeComponent();
-            InputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
         }
 
-        private void SendButton_Click(object sender, RoutedEventArgs e)
-        {
-            SendMessage();
-        }
-
-        private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+        private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
@@ -26,11 +20,32 @@ namespace VSIXTest
             }
         }
 
-        private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            if (InputTextBox.Text.EndsWith("#"))
             {
-                e.Handled = false;  // Allow the Enter key to insert a new line
+                ShowShortcutMenu();
+            }
+        }
+
+        private void ShowShortcutMenu()
+        {
+            var textBoxPosition = InputTextBox.GetRectFromCharacterIndex(InputTextBox.CaretIndex);
+            ShortcutMenu.PlacementTarget = InputTextBox;
+            ShortcutMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.RelativePoint;
+            ShortcutMenu.HorizontalOffset = textBoxPosition.Right;
+            ShortcutMenu.VerticalOffset = textBoxPosition.Bottom;
+            ShortcutMenu.IsOpen = true;
+        }
+
+        private void ShortcutMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                int caretIndex = InputTextBox.CaretIndex;
+                InputTextBox.Text = InputTextBox.Text.Insert(caretIndex, menuItem.Header.ToString());
+                InputTextBox.CaretIndex = caretIndex + menuItem.Header.ToString().Length;
+                ShortcutMenu.IsOpen = false;
             }
         }
 
@@ -50,6 +65,11 @@ namespace VSIXTest
         public void ReceiveMessage(string message)
         {
             ChatHistoryTextBox.AppendText($"AI: {message}\n");
+        }
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            SendMessage();
         }
     }
 }

@@ -29,12 +29,22 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="InputTextBox" 
-         AcceptsReturn="True" 
-         TextWrapping="Wrap" 
-         VerticalScrollBarVisibility="Auto" 
-         Height="100" 
-         Margin="10,0,10,10"/>
+			<TextBox x:Name="InputTextBox" 
+					 AcceptsReturn="True" 
+					 TextWrapping="Wrap" 
+					 VerticalScrollBarVisibility="Auto" 
+					 Height="100" 
+					 Margin="10,0,10,10"
+					 PreviewKeyDown="InputTextBox_PreviewKeyDown"
+					 TextChanged="InputTextBox_TextChanged">
+				<TextBox.ContextMenu>
+					<ContextMenu x:Name="ShortcutMenu" MaxHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto">
+						<MenuItem Header="#file1" Click="ShortcutMenuItem_Click"/>
+						<MenuItem Header="#file2" Click="ShortcutMenuItem_Click"/>
+						<MenuItem Header="#file3" Click="ShortcutMenuItem_Click"/>
+					</ContextMenu>
+				</TextBox.ContextMenu>
+			</TextBox>
             <Button Grid.Column="1" Content="Send" Click="SendButton_Click"/>
         </Grid>
     </Grid>
