@@ -19,5 +19,6 @@
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+	<Asset Type="Microsoft.Web.WebView2.Wpf.dll" d:Source="File" Path="Microsoft.Web.WebView2.Wpf.dll" />
     </Assets>
 </PackageManifest>

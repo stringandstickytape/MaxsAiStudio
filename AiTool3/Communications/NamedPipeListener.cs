@@ -74,7 +74,14 @@ public class NamedPipeListener
     private void CloseConnection()
     {
         reader?.Dispose();
-        writer?.Dispose();
+        try
+        {
+            writer?.Dispose();
+        }
+        catch (Exception)
+        {
+
+        }
         pipeServer?.Dispose();
         reader = null;
         writer = null;

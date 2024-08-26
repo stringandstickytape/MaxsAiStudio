@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Web.WebView2.Core;
 
 namespace VSIXTest
 {
@@ -24,10 +25,22 @@ namespace VSIXTest
             EnvDTE.Properties propertiesList = vsEnvironment.get_Properties("FontsAndColors", "TextEditor");
             Property prop = propertiesList.Item("FontSize");
             int fontSize = (System.Int16)prop.Value;
+            InitializeWebView();
 
 
         }
+        private async void InitializeWebView()
+        {
 
+            var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
+            await WebView.EnsureCoreWebView2Async(env);
+            SetWebViewContent();
+        }
+        private void SetWebViewContent()
+        {
+            string htmlContent = "<html><body><h1>Hello World</h1></body></html>";
+            WebView.NavigateToString(htmlContent);
+        }
         private void ShortcutPopup_LayoutUpdated(object sender, EventArgs e)
         {
             PositionPopup();

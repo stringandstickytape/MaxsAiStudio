@@ -83,6 +83,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.10.2186" />
+    <PackageReference Include="Microsoft.Web.WebView2">
+      <Version>1.0.2651.64</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="ChatControl.xaml">
