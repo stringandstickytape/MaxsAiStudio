@@ -32,6 +32,8 @@ namespace VSIXTest
             string currentToken = GetCurrentHashtagToken().ToLower();
             var files = GetAllFilesInSolution();
 
+            ShortcutListBox.Items.Add(new ListBoxItem { Content = $"#:selection:", Tag = "selection" });
+
             foreach (var file in files)
             {
                 string fileName = Path.GetFileName(file).ToLower();
@@ -323,17 +325,57 @@ namespace VSIXTest
             string message = InputTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(message))
             {
-                ChatHistoryTextBox.AppendText($"You: {message}\n");
+                // Replace #:selection: with the current selection
+                if (message.Contains("#:selection:"))
+                {
+                    ThreadHelper.ThrowIfNotOnUIThread();
+
+                    TextSelection selection = _dte.ActiveDocument?.Selection as TextSelection;
+                    if (selection != null && !selection.IsEmpty)
+                    {
+                        string selectedText = selection.Text;
+                        message = message.Replace("#:selection:", selectedText);
+                    }
+                }
+
+                // Handle filename hashtags
+                var files = GetAllFilesInSolution();
+                foreach (var file in files)
+                {
+                    string fileName = $"#{Path.GetFileName(file)}";
+                    if (message.Contains(fileName))
+                    {
+                        ThreadHelper.ThrowIfNotOnUIThread();
+                        ProjectItem projectItem = _dte.Solution.FindProjectItem(file);
+                        if (projectItem != null)
+                        {
+                            EnvDTE.Window window = projectItem.Open();
+                            if (window != null)
+                            {
+                                TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
+                                if (textDoc != null)
+                                {
+                                    string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
+                                    string backticks = new string('`', 3);
+                                    string replacement = $"\n{backticks}\n{fileContent}\n{backticks}\n";
+                                    message = message.Replace(fileName, replacement);
+                                }
+                                window.Close();
+                            }
+                        }
+                    }
+                }
+
+                ChatHistoryTextBox.Clear();// AppendText($"You: {message}\n");
                 InputTextBox.Clear();
 
                 // Send message through named pipe
                 VSIXTestPackage.Instance.SendMessageThroughPipe(message);
             }
         }
-
         public void ReceiveMessage(string message)
         {
-            ChatHistoryTextBox.AppendText($"AI: {message}\n");
+            ChatHistoryTextBox.AppendText($"{message}\n");
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)

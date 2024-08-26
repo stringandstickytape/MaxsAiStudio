@@ -117,7 +117,7 @@ DONE: better model selection generally
 * rename arrayfindandreplace
 * is it using toolds for summaries
 * should be able to tell which LLMs support tools
-
+* check which provider classes implement temperature correctly :/
 File explorer needs a clear-all button and possibly a next-search-result button
 
 * some kind of clean-build test might be nice...
