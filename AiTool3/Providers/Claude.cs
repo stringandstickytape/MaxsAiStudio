@@ -97,7 +97,7 @@ namespace AiTool3.Providers
                 contentArray.Add(new JObject
                 {
                     ["type"] = "text",
-                    ["text"] = message.content
+                    ["text"] = message.content.Replace("\r","")
                 });
 
                 var messageObject = new JObject
@@ -128,6 +128,11 @@ namespace AiTool3.Providers
             }
 
             var json = JsonConvert.SerializeObject(req);
+
+            // serialise to file w datetimestamp in filename and write to working dir
+            var filename = $"request_{DateTime.Now:yyyyMMddHHmmss}.json";
+            File.WriteAllText(filename, json);
+
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (useStreaming)
