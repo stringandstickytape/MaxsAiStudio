@@ -205,6 +205,23 @@ namespace VSIXTest
                     }
                 }
 
+                // replace any '#:selection:' with the selected text
+                if (message.Contains("#:selection:"))
+                {
+                    ThreadHelper.ThrowIfNotOnUIThread();
+                    var selection = (TextSelection)_dte.ActiveDocument.Selection;
+                    message = message.Replace("#:selection:", selection.Text);
+                }
+
+                // replace any '#:diff:' with the diff of the solution uising gitdiffhelper
+
+                if (message.Contains("#:diff:"))
+                {
+                    ThreadHelper.ThrowIfNotOnUIThread();
+                    var gitDiffHelper = new GitDiffHelper();
+                    var diff = gitDiffHelper.GetGitDiff();
+                    message = message.Replace("#:diff:", diff);
+                }
                 // Send message through named pipe
                 VSIXTestPackage.Instance.SendMessageThroughPipe(message);
             }
@@ -212,7 +229,7 @@ namespace VSIXTest
 
         private async void GetShortcuts(string token)
         {
-            var shortcuts = new List<string> { "#:selection:" };
+            var shortcuts = new List<string> { "#:selection:", "#:diff:" };
             var files = GetAllFilesInSolution();
 
             foreach (var file in files)

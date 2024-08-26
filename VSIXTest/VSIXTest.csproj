@@ -53,6 +53,7 @@
     </Compile>
     <Compile Include="ChatWindowPane.cs" />
     <Compile Include="GetSurroundingLinesCommand.cs" />
+    <Compile Include="GitDiffHelper.cs" />
     <Compile Include="InlineChatAdornment.cs" />
     <Compile Include="InlineChatAdornmentFactory.cs" />
     <Compile Include="OpenChatWindow.cs" />
