@@ -31,33 +31,102 @@ namespace VSIXTest
 
         private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (InputTextBox.Text.EndsWith("#"))
+            if (IsCaretAtEndOfHashTag())
             {
                 PopulateAndShowShortcutMenu();
             }
         }
 
+        private string GetCurrentHashtagToken()
+        {
+            int caretIndex = InputTextBox.CaretIndex;
+            string text = InputTextBox.Text;
+
+            int hashIndex = text.LastIndexOf('#', caretIndex - 1);
+            if (hashIndex == -1) return string.Empty;
+
+            return text.Substring(hashIndex + 1, caretIndex - hashIndex - 1);
+        }
+
+        private bool IsCaretAtEndOfHashTag()
+        {
+            int caretIndex = InputTextBox.CaretIndex;
+            string text = InputTextBox.Text;
+
+            // Check if we're at the end of the text
+            if (caretIndex == text.Length)
+            {
+                int hashIndex = text.LastIndexOf('#');
+                if (hashIndex == -1) return false;
+
+                // Check if there's whitespace before the '#'
+                if (hashIndex > 0 && !char.IsWhiteSpace(text[hashIndex - 1])) return false;
+
+                // Check if there's non-whitespace after the '#'
+                for (int i = hashIndex + 1; i < text.Length; i++)
+                {
+                    if (char.IsWhiteSpace(text[i])) return false;
+                    if (!char.IsWhiteSpace(text[i])) return true;
+                }
+            }
+            else if (caretIndex > 0)
+            {
+                // If we're not at the end, check if we're right after a non-whitespace character
+                if (!char.IsWhiteSpace(text[caretIndex - 1]))
+                {
+                    int hashIndex = text.LastIndexOf('#', caretIndex - 1);
+                    if (hashIndex == -1) return false;
+
+                    // Check if there's whitespace before the '#'
+                    if (hashIndex > 0 && !char.IsWhiteSpace(text[hashIndex - 1])) return false;
+
+                    // Check if there's only non-whitespace between '#' and caret
+                    for (int i = hashIndex + 1; i < caretIndex; i++)
+                    {
+                        if (char.IsWhiteSpace(text[i])) return false;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void PopulateAndShowShortcutMenu()
         {
             ShortcutMenu.Items.Clear();
+            string currentToken = GetCurrentHashtagToken().ToLower();
             var files = GetAllFilesInSolution();
+
             foreach (var file in files)
             {
-                var menuItem = new MenuItem
+                string fileName = Path.GetFileName(file).ToLower();
+                if (fileName.Contains(currentToken))
                 {
-                    Header = $"#{Path.GetFileName(file)}",
-                    Tag = file
-                };
-                menuItem.Click += ShortcutMenuItem_Click;
-                ShortcutMenu.Items.Add(menuItem);
+                    var menuItem = new MenuItem
+                    {
+                        Header = $"#{Path.GetFileName(file)}",
+                        Tag = file
+                    };
+                    menuItem.Click += ShortcutMenuItem_Click;
+                    ShortcutMenu.Items.Add(menuItem);
+                }
             }
 
-            var textBoxPosition = InputTextBox.GetRectFromCharacterIndex(InputTextBox.CaretIndex);
-            ShortcutMenu.PlacementTarget = InputTextBox;
-            ShortcutMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.RelativePoint;
-            ShortcutMenu.HorizontalOffset = textBoxPosition.Right;
-            ShortcutMenu.VerticalOffset = textBoxPosition.Bottom;
-            ShortcutMenu.IsOpen = true;
+            if (ShortcutMenu.Items.Count > 0)
+            {
+                var textBoxPosition = InputTextBox.GetRectFromCharacterIndex(InputTextBox.CaretIndex);
+                ShortcutMenu.PlacementTarget = InputTextBox;
+                ShortcutMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.RelativePoint;
+                ShortcutMenu.HorizontalOffset = textBoxPosition.Right;
+                ShortcutMenu.VerticalOffset = textBoxPosition.Bottom;
+                ShortcutMenu.IsOpen = true;
+            }
+            else
+            {
+                ShortcutMenu.IsOpen = false;
+            }
         }
 
         private List<string> GetAllFilesInSolution()
@@ -117,10 +186,17 @@ namespace VSIXTest
         {
             if (sender is MenuItem menuItem)
             {
+                string text = InputTextBox.Text;
                 int caretIndex = InputTextBox.CaretIndex;
-                string insertText = menuItem.Header.ToString();
-                InputTextBox.Text = InputTextBox.Text.Insert(caretIndex, insertText);
-                InputTextBox.CaretIndex = caretIndex + insertText.Length;
+                int hashIndex = text.LastIndexOf('#', caretIndex - 1);
+
+                if (hashIndex != -1)
+                {
+                    string insertText = menuItem.Header.ToString();
+                    InputTextBox.Text = text.Substring(0, hashIndex) + insertText + text.Substring(caretIndex);
+                    InputTextBox.CaretIndex = hashIndex + insertText.Length;
+                }
+
                 ShortcutMenu.IsOpen = false;
             }
         }
