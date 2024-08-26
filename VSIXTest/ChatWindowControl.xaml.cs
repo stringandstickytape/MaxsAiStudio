@@ -18,11 +18,98 @@ namespace VSIXTest
         {
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             InitializeComponent();
+            ShortcutPopup.LayoutUpdated += ShortcutPopup_LayoutUpdated;
+        }
+
+        private void ShortcutPopup_LayoutUpdated(object sender, EventArgs e)
+        {
+            PositionPopup();
+        }
+
+        private void PopulateAndShowShortcutMenu()
+        {
+            ShortcutListBox.Items.Clear();
+            string currentToken = GetCurrentHashtagToken().ToLower();
+            var files = GetAllFilesInSolution();
+
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileName(file).ToLower();
+                if (fileName.Contains(currentToken))
+                {
+                    ShortcutListBox.Items.Add(new ListBoxItem
+                    {
+                        Content = $"#{Path.GetFileName(file)}",
+                        Tag = file
+                    });
+                }
+            }
+
+            if (ShortcutListBox.Items.Count > 0)
+            {
+                ShortcutPopup.IsOpen = true;
+
+                // Use dispatcher to ensure UI is updated before positioning
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    PositionPopup();
+                }), System.Windows.Threading.DispatcherPriority.Render);
+            }
+            else
+            {
+                ShortcutPopup.IsOpen = false;
+            }
+        }
+
+        private void PositionPopup()
+        {
+            if (ShortcutPopup.IsOpen)
+            {
+                var caretPosition = InputTextBox.GetRectFromCharacterIndex(InputTextBox.CaretIndex);
+                var popupPosition = InputTextBox.TranslatePoint(new Point(caretPosition.Left, caretPosition.Top), this);
+
+                // Measure the popup to get its actual size
+                ShortcutPopup.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                ShortcutPopup.Arrange(new Rect(ShortcutPopup.DesiredSize));
+
+                double popupHeight = ShortcutPopup.ActualHeight;
+                double popupWidth = ShortcutPopup.ActualWidth;
+
+                
+                // Position the popup above the caret
+                ShortcutPopup.HorizontalOffset = caretPosition.X+20;
+                ShortcutPopup.VerticalOffset = 0-InputTextBox.Height; // 5 is an additional offset
+            }
         }
 
         private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            if (ShortcutPopup.IsOpen)
+            {
+                switch (e.Key)
+                {
+                    case Key.Down:
+                        ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex + 1) % ShortcutListBox.Items.Count;
+                        e.Handled = true;
+                        break;
+                    case Key.Up:
+                        ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex - 1 + ShortcutListBox.Items.Count) % ShortcutListBox.Items.Count;
+                        e.Handled = true;
+                        break;
+                    case Key.Enter:
+                        if (ShortcutListBox.SelectedItem != null)
+                        {
+                            ShortcutListBox_SelectionChanged(ShortcutListBox, null);
+                            e.Handled = true;
+                        }
+                        break;
+                    case Key.Escape:
+                        ShortcutPopup.IsOpen = false;
+                        e.Handled = true;
+                        break;
+                }
+            }
+            else if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 SendMessage();
                 e.Handled = true;
@@ -34,6 +121,10 @@ namespace VSIXTest
             if (IsCaretAtEndOfHashTag())
             {
                 PopulateAndShowShortcutMenu();
+            }
+            else
+            {
+                ShortcutPopup.IsOpen = false;
             }
         }
 
@@ -93,41 +184,26 @@ namespace VSIXTest
             return false;
         }
 
-        private void PopulateAndShowShortcutMenu()
+        private void ShortcutListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ShortcutMenu.Items.Clear();
-            string currentToken = GetCurrentHashtagToken().ToLower();
-            var files = GetAllFilesInSolution();
-
-            foreach (var file in files)
+            if (ShortcutListBox.SelectedItem is ListBoxItem selectedItem)
             {
-                string fileName = Path.GetFileName(file).ToLower();
-                if (fileName.Contains(currentToken))
+                string text = InputTextBox.Text;
+                int caretIndex = InputTextBox.CaretIndex;
+                int hashIndex = text.LastIndexOf('#', caretIndex - 1);
+
+                if (hashIndex != -1)
                 {
-                    var menuItem = new MenuItem
-                    {
-                        Header = $"#{Path.GetFileName(file)}",
-                        Tag = file
-                    };
-                    menuItem.Click += ShortcutMenuItem_Click;
-                    ShortcutMenu.Items.Add(menuItem);
+                    string insertText = selectedItem.Content.ToString();
+                    InputTextBox.Text = text.Substring(0, hashIndex) + insertText + text.Substring(caretIndex);
+                    InputTextBox.CaretIndex = hashIndex + insertText.Length;
                 }
-            }
 
-            if (ShortcutMenu.Items.Count > 0)
-            {
-                var textBoxPosition = InputTextBox.GetRectFromCharacterIndex(InputTextBox.CaretIndex);
-                ShortcutMenu.PlacementTarget = InputTextBox;
-                ShortcutMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.RelativePoint;
-                ShortcutMenu.HorizontalOffset = textBoxPosition.Right;
-                ShortcutMenu.VerticalOffset = textBoxPosition.Bottom;
-                ShortcutMenu.IsOpen = true;
-            }
-            else
-            {
-                ShortcutMenu.IsOpen = false;
+                ShortcutPopup.IsOpen = false;
             }
         }
+
+
 
         private List<string> GetAllFilesInSolution()
         {
@@ -149,6 +225,9 @@ namespace VSIXTest
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            if (project == null)
+                return;
+
             if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
             {
                 foreach (ProjectItem item in project.ProjectItems)
@@ -157,26 +236,51 @@ namespace VSIXTest
                     {
                         GetProjectFiles(item.SubProject, files);
                     }
+                    else
+                    {
+                        ProcessProjectItem(item, files);
+                    }
                 }
             }
             else
             {
                 foreach (ProjectItem item in project.ProjectItems)
                 {
-                    if (item.Properties != null)
+                    ProcessProjectItem(item, files);
+                }
+            }
+        }
+
+        private void ProcessProjectItem(ProjectItem item, List<string> files)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (item == null)
+                return;
+
+            if (item.Kind == Constants.vsProjectItemKindPhysicalFolder)
+            {
+                foreach (ProjectItem subItem in item.ProjectItems)
+                {
+                    ProcessProjectItem(subItem, files);
+                }
+            }
+            else
+            {
+                if (item.Properties != null)
+                {
+                    try
                     {
-                        try
+                        string filePath = item.Properties.Item("FullPath").Value.ToString();
+                        if (File.Exists(filePath))
                         {
-                            string filePath = item.Properties.Item("FullPath").Value.ToString();
-                            if (File.Exists(filePath))
-                            {
-                                files.Add(filePath);
-                            }
+                            files.Add(filePath);
                         }
-                        catch (Exception)
-                        {
-                            // Handle or log any exceptions
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle or log the exception
+                        System.Diagnostics.Debug.WriteLine($"Error processing item: {ex.Message}");
                     }
                 }
             }
@@ -197,7 +301,7 @@ namespace VSIXTest
                     InputTextBox.CaretIndex = hashIndex + insertText.Length;
                 }
 
-                ShortcutMenu.IsOpen = false;
+                ShortcutPopup.IsOpen = false;
             }
         }
 

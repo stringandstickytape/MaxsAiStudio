@@ -3,21 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-			              xmlns:vs_shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vs_shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-			 	<UserControl.Resources>
-		<ResourceDictionary>
-			<Style TargetType="Label">
-				<Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-			</Style>
-			<Style TargetType="TextBox">
-				<Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-				<Setter Property="Background" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
-			</Style>
-		</ResourceDictionary>
-	</UserControl.Resources>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vs_shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -29,19 +29,17 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-			<TextBox x:Name="InputTextBox" 
-					 AcceptsReturn="True" 
-					 TextWrapping="Wrap" 
-					 VerticalScrollBarVisibility="Auto" 
-					 Height="100" 
-					 Margin="10,0,10,10"
-					 PreviewKeyDown="InputTextBox_PreviewKeyDown"
-					 TextChanged="InputTextBox_TextChanged">
-				<TextBox.ContextMenu>
-					<ContextMenu x:Name="ShortcutMenu" MaxHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto">
-					</ContextMenu>
-				</TextBox.ContextMenu>
-			</TextBox>
+            <TextBox x:Name="InputTextBox" 
+                     AcceptsReturn="True" 
+                     TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto" 
+                     Height="100" 
+                     Margin="10,0,10,10"
+                     PreviewKeyDown="InputTextBox_PreviewKeyDown"
+                     TextChanged="InputTextBox_TextChanged"/>
+            <Popup x:Name="ShortcutPopup" StaysOpen="False" >
+                <ListBox x:Name="ShortcutListBox" SelectionChanged="ShortcutListBox_SelectionChanged"/>
+            </Popup>
             <Button Grid.Column="1" Content="Send" Click="SendButton_Click"/>
         </Grid>
     </Grid>
