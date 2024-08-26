@@ -9,6 +9,7 @@ namespace VSIXTest
         public ChatWindowControl()
         {
             InitializeComponent();
+            InputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
@@ -18,10 +19,18 @@ namespace VSIXTest
 
         private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 SendMessage();
                 e.Handled = true;
+            }
+        }
+
+        private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                e.Handled = false;  // Allow the Enter key to insert a new line
             }
         }
 
