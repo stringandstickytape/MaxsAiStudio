@@ -38,7 +38,7 @@
                      PreviewKeyDown="InputTextBox_PreviewKeyDown"
                      TextChanged="InputTextBox_TextChanged"/>
             <Popup x:Name="ShortcutPopup" StaysOpen="False" >
-                <ListBox x:Name="ShortcutListBox" SelectionChanged="ShortcutListBox_SelectionChanged"/>
+                <ListBox x:Name="ShortcutListBox" MouseLeftButtonUp="ShortcutListBox_MouseClick" />
             </Popup>
             <Button Grid.Column="1" Content="Send" Click="SendButton_Click"/>
         </Grid>

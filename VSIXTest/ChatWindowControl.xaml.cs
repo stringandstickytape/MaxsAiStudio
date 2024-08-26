@@ -89,17 +89,25 @@ namespace VSIXTest
                 switch (e.Key)
                 {
                     case Key.Down:
-                        ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex + 1) % ShortcutListBox.Items.Count;
+                        if (ShortcutListBox.SelectedIndex == -1)
+                            ShortcutListBox.SelectedIndex = 0;
+                        else
+                            ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex + 1) % ShortcutListBox.Items.Count;
+                        ShortcutListBox.ScrollIntoView(ShortcutListBox.SelectedItem);
                         e.Handled = true;
                         break;
                     case Key.Up:
-                        ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex - 1 + ShortcutListBox.Items.Count) % ShortcutListBox.Items.Count;
+                        if (ShortcutListBox.SelectedIndex == -1)
+                            ShortcutListBox.SelectedIndex = ShortcutListBox.Items.Count - 1;
+                        else
+                            ShortcutListBox.SelectedIndex = (ShortcutListBox.SelectedIndex - 1 + ShortcutListBox.Items.Count) % ShortcutListBox.Items.Count;
+                        ShortcutListBox.ScrollIntoView(ShortcutListBox.SelectedItem);
                         e.Handled = true;
                         break;
                     case Key.Enter:
                         if (ShortcutListBox.SelectedItem != null)
                         {
-                            ShortcutListBox_SelectionChanged(ShortcutListBox, null);
+                            InsertSelectedShortcut();
                             e.Handled = true;
                         }
                         break;
@@ -184,7 +192,12 @@ namespace VSIXTest
             return false;
         }
 
-        private void ShortcutListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ShortcutListBox_MouseClick(object sender, MouseButtonEventArgs e)
+        {
+            InsertSelectedShortcut();
+        }
+
+        private void InsertSelectedShortcut()
         {
             if (ShortcutListBox.SelectedItem is ListBoxItem selectedItem)
             {
