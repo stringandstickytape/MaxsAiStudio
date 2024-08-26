@@ -39,9 +39,6 @@
 					 TextChanged="InputTextBox_TextChanged">
 				<TextBox.ContextMenu>
 					<ContextMenu x:Name="ShortcutMenu" MaxHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto">
-						<MenuItem Header="#file1" Click="ShortcutMenuItem_Click"/>
-						<MenuItem Header="#file2" Click="ShortcutMenuItem_Click"/>
-						<MenuItem Header="#file3" Click="ShortcutMenuItem_Click"/>
 					</ContextMenu>
 				</TextBox.ContextMenu>
 			</TextBox>
