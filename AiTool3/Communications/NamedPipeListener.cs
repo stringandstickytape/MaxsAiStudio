@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AiTool3.Communications;
 
@@ -88,17 +89,15 @@ public class NamedPipeListener
         pipeServer = null;
     }
 
-    internal async Task SendResponseAsync(string responseText)
+    internal async Task SendResponseAsync(char messageType, string responseText)
     {
         if (pipeServer != null && pipeServer.IsConnected)
         {
             try
             {
-                await writer.WriteLineAsync(responseText);
-                //await writer.WriteLineAsync("<END>");
+                string jsonMessage = JsonConvert.SerializeObject($"{messageType}{responseText}");
+                await writer.WriteLineAsync(jsonMessage);
                 await writer.FlushAsync();
-                Debug.WriteLine("Response sent: " + responseText);
-
             }
             catch (Exception ex)
             {

@@ -1,9 +1,12 @@
 ﻿using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace VSIXTest
@@ -31,6 +34,10 @@ namespace VSIXTest
     [ProvideToolWindow(typeof(ChatWindowPane))]
     public sealed class VSIXTestPackage : AsyncPackage
     {
+        private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
+        private SemaphoreSlim processingSemaphore = new SemaphoreSlim(1, 1);
+
+
         public const string PackageGuidString = "743967b7-4ad8-4103-8a28-bf2933a5bdf2";
         public static VSIXTestPackage Instance { get; private set; }
 
@@ -60,19 +67,55 @@ namespace VSIXTest
             // Start listening for messages
             Task.Run(ListenForMessages);
         }
-
+        private ChatWindowPane GetChatWindowPane()
+        {
+            return this.FindToolWindow(typeof(ChatWindowPane), 0, true) as ChatWindowPane;
+        }
         private async Task ListenForMessages()
         {
             while (true)
             {
-                string message = await reader.ReadLineAsync();
+                string jsonMessage = await reader.ReadLineAsync();
+                if (jsonMessage == null) break; // End of stream
+
+                messageQueue.Enqueue(jsonMessage);
+                ProcessQueueAsync().FireAndForget();
+            }
+        }
+
+
+        private async Task ProcessQueueAsync()
+        {
+            if (!await processingSemaphore.WaitAsync(0))
+            {
+                return; // Another processing task is already running
+            }
+
+            try
+            {
+                while (messageQueue.TryDequeue(out string jsonMessage))
+                {
                     await JoinableTaskFactory.SwitchToMainThreadAsync();
-                    var window = FindToolWindow(typeof(ChatWindowPane), 0, false) as ChatWindowPane;
-                    if (window != null)
+
+                    var chatWindowPane = GetChatWindowPane();
+                    if (chatWindowPane != null)
                     {
-                        var control = window.Content as ChatWindowControl;
-                        control?.ReceiveMessage(message);
+                        var chatWindowControl = chatWindowPane.Content as ChatWindowControl;
+                        if (chatWindowControl != null && chatWindowControl.WebView != null)
+                        {
+                            // Deserialize the message if needed
+                            var message = JsonConvert.DeserializeObject<string>(jsonMessage);
+                            chatWindowControl.WebView.ReceiveMessage(message);
+                        }
                     }
+
+                    // Add a small delay to prevent UI freezing
+                    await Task.Delay(10);
+                }
+            }
+            finally
+            {
+                processingSemaphore.Release();
             }
         }
 

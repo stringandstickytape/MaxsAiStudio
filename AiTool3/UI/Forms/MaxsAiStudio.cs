@@ -501,7 +501,11 @@ namespace AiTool3
 
                     if (e.SendResponseToVsix)
                     { 
-                        await _namedPipeListener.SendResponseAsync(response.ResponseText);
+                        // get the entire messages pane div from the chatwebview
+                        var messagesPane = await chatWebView.GetMessagesPaneContent();
+
+
+                        await _namedPipeListener.SendResponseAsync('e', messagesPane);
                     }
 
                 });

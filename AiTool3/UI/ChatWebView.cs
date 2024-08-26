@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace AiTool3.UI
@@ -527,6 +528,16 @@ namespace AiTool3.UI
             await SetTools();
 
             await InitialiseApiList(settings);
+        }
+
+        internal async Task<string> GetMessagesPaneContent()
+        {
+            var content = await ExecuteScriptAsync("document.querySelector('.main-content').outerHTML;");
+
+            // decode \u003 etc
+            content = System.Text.RegularExpressions.Regex.Unescape(content);
+
+            return content;
         }
     }
 }

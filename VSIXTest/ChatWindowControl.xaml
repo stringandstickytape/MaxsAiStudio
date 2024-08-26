@@ -1,4 +1,5 @@
 <UserControl x:Class="VSIXTest.ChatWindowControl"
+             xmlns:local="clr-namespace:VSIXTest"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -24,31 +25,5 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-			<RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <TextBox x:Name="ChatHistoryTextBox" IsReadOnly="True" Height="100" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-		<WebView2:WebView2 x:Name="WebView" Grid.Row="1" />
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="InputTextBox" 
-                     AcceptsReturn="True" 
-                     TextWrapping="Wrap" 
-                     VerticalScrollBarVisibility="Auto" 
-                     Height="100" 
-                     Margin="10,0,10,10"
-                     PreviewKeyDown="InputTextBox_PreviewKeyDown"
-                     TextChanged="InputTextBox_TextChanged"/>
-            <Popup x:Name="ShortcutPopup" StaysOpen="False" >
-                <ListBox x:Name="ShortcutListBox" MouseLeftButtonUp="ShortcutListBox_MouseClick" />
-            </Popup>
-            <Button Grid.Column="1" Content="Send" Click="SendButton_Click"/>
-        </Grid>
-    </Grid>
+        <local:VsixChat x:Name="WebView"/>
 </UserControl>
