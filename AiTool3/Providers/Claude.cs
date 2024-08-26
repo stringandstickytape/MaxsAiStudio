@@ -71,6 +71,14 @@ namespace AiTool3.Providers
                 };
             }
 
+
+
+            if (addEmbeddings)
+            {
+                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
+                conversation.messages.Last().content = newInput;
+            }
+
             var messagesArray = new JArray();
             int userMessageCount = 0;
 
@@ -121,11 +129,11 @@ namespace AiTool3.Providers
 
             req["messages"] = messagesArray;
 
-            if (addEmbeddings)
-            {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last["content"].Last["text"] = newInput;
-            }
+            //if (addEmbeddings)
+            //{
+            //    var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
+            //    req["messages"].Last["content"].Last["text"] = newInput;
+            //}
 
             var json = JsonConvert.SerializeObject(req);
 

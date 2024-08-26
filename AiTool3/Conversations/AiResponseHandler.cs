@@ -1,4 +1,5 @@
-﻿using AiTool3.DataModels;
+﻿using AiTool3.Communications;
+using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.Helpers;
@@ -18,12 +19,14 @@ namespace AiTool3.Conversations
         private readonly ToolManager _toolManager;
         private readonly FileAttachmentManager _fileAttachmentManager;
         private WebViewManager _webViewManager;
+        private NamedPipeListener _namedPipeListener;
 
-        public AiResponseHandler(ConversationManager conversationManager, ToolManager toolManager, FileAttachmentManager fileAttachmentManager)
+        public AiResponseHandler(ConversationManager conversationManager, ToolManager toolManager, FileAttachmentManager fileAttachmentManager, NamedPipeListener namedPipeListener)
         {
             _conversationManager = conversationManager;
             _toolManager = toolManager;
             _fileAttachmentManager = fileAttachmentManager;
+            _namedPipeListener = namedPipeListener;
         }
 
         public async Task<string> FetchAiInputResponse(SettingsSet currentSettings, CancellationToken cancellationToken, List<string> toolIDs = null, string? overrideUserPrompt = null, bool sendSecondary = false, bool addEmbeddings = false, Action<AiResponse> updateUiMethod = null)
@@ -149,13 +152,16 @@ namespace AiTool3.Conversations
             return response;
         }
 
-        private void AiService_StreamingTextReceived(object? sender, string e) => 
-            _chatWebView.InvokeIfNeeded(() =>
-            _chatWebView.UpdateTemp(e));
+        private async void AiService_StreamingTextReceived(object? sender, string e)
+        {
+            _chatWebView.InvokeIfNeeded(() => _chatWebView.UpdateTemp(e));
+
+            _namedPipeListener.SendResponseAsync(e);
+        }
 
         private async Task ProcessAiResponse(SettingsSet currentSettings, AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
         {
-            var inputText = await _chatWebView.GetUserPrompt();
+            var inputText = conversation.messages.Last().content;
             var systemPrompt = await _chatWebView.GetSystemPrompt();
             var elapsed = TimeSpan.Zero; // Replace with actual elapsed time
 

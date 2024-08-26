@@ -181,14 +181,14 @@ namespace AiTool3.Embeddings
 
             var embeddingManager = new EmbeddingManager();
 
-            var s = embeddingManager.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 10);
+            var s = embeddingManager.FindSimilarCodeSnippets(inputEmbedding[0], codeEmbedding, 25);
             List<CodeSnippet> result = new List<CodeSnippet>();
             foreach (var snippet in s)
             {
-                var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key, embeddingsModelName);
-                var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 10);
+                //var subInputEmbedding = await CreateEmbeddingsAsync(new List<string> { snippet.Code }, key, embeddingsModelName);
+                //var subs = embeddingManager.FindSimilarCodeSnippets(subInputEmbedding[0], codeEmbedding, 10);
                 result.Add(snippet);
-                result.AddRange(subs);
+                //result.AddRange(subs);
             }
 
             result = result.GroupBy(x => x.Code).Select(x => x.First()).ToList();

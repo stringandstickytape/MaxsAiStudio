@@ -382,7 +382,7 @@ namespace VSIXTest
         }
         public void ReceiveMessage(string message)
         {
-            ChatHistoryTextBox.AppendText($"{message}\n");
+            ChatHistoryTextBox.AppendText($"{message}");
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
