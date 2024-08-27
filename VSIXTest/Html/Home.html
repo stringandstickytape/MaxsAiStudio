@@ -14,6 +14,27 @@
             background-color: black;
         }
 
+        #ButtonContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px; /* Adjust this value to control spacing between buttons */
+            justify-content: center; /* Center the buttons horizontally */
+        }
+
+            #ButtonContainer button {
+                background-color: #333;
+                color: #ccc;
+                font-size: 11px; /* Adjust this value to change text size */
+                font-weight: bold;
+                padding: 2px 4px; /* Adjust these values to change button size */
+                margin: 0; /* Remove default margins */
+                white-space: nowrap; /* Prevent button text from wrapping */
+                overflow: hidden; /* Hide overflowing text */
+                text-overflow: ellipsis; /* Show ellipsis for overflowing text */
+                max-width: 150px; /* Adjust this value to set maximum button width */
+                border-radius: 3px;
+            }
+
         #ChatHistory {
             flex-grow: 1;
             overflow-y: auto;
@@ -63,7 +84,7 @@
 <body>
     <div id='ChatHistory'></div>
     <textarea id='InputArea' rows='4' cols='50'></textarea>
-    <div id='ButtonContainer' style='overflow: scroll;'>
+    <div id='ButtonContainer'>
         <button onclick='performAction("newChat")'>New</button>
         <button id='SendButton' onclick='sendMessage()'>Send</button>
     </div>
