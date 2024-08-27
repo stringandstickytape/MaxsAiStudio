@@ -156,7 +156,7 @@ namespace AiTool3.Conversations
         {
             _chatWebView.InvokeIfNeeded(() => _chatWebView.UpdateTemp(e));
 
-            _namedPipeListener.SendResponseAsync('s', e);
+            //_namedPipeListener.SendResponseAsync('s', e);
         }
 
         private async Task ProcessAiResponse(SettingsSet currentSettings, AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)

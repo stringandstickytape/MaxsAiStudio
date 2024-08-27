@@ -187,7 +187,7 @@ namespace VSIXTest
                     break;
                 case "dryThis":
                     SendNewConversationMessage();
-                    SendMessage($"DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    SendMessage($"Suggest some clever ways, with examples, to DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
                     break;
 
             }
