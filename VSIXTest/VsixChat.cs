@@ -418,11 +418,7 @@ namespace VSIXTest
                     {
                         string fileName = window.Document.Name;
                         string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
-                        allOpenContents.AppendLine($"File: {fileName}");
-                        allOpenContents.AppendLine(BacktickHelper.ThreeTicks);
-                        allOpenContents.AppendLine(fileContent);
-                        allOpenContents.AppendLine(BacktickHelper.ThreeTicks);
-                        allOpenContents.AppendLine();
+                        allOpenContents.AppendLine($"File: {fileName}\n{BacktickHelper.ThreeTicks}\n{fileContent}\n{BacktickHelper.ThreeTicks}\n");
                     }
                 }
             }
