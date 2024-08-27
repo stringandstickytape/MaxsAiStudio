@@ -265,7 +265,7 @@ namespace VSIXTest
         private string ReplaceFileNameWithContent(string message, string file)
         {
             string fileName = $"#{Path.GetFileName(file)}";
-            if (message.Contains(fileName))
+            if (message.IndexOf(fileName, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
                 ProjectItem projectItem = _dte.Solution.FindProjectItem(file);
@@ -296,9 +296,32 @@ namespace VSIXTest
                 string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
                 string backticks = new string('`', 3);
                 string replacement = $"\n{backticks}\n{fileContent}\n{backticks}\n";
-                return message.Replace(fileName, replacement);
+                return ReplaceIgnoreCase(message, fileName, replacement);
             }
             return message;
+        }
+
+        private static string ReplaceIgnoreCase(string source, string oldValue, string newValue)
+        {
+            int index = source.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+                return source;
+
+            StringBuilder result = new StringBuilder();
+            int previousIndex = 0;
+
+            while (index >= 0)
+            {
+                result.Append(source, previousIndex, index - previousIndex);
+                result.Append(newValue);
+                index += oldValue.Length;
+                previousIndex = index;
+                index = source.IndexOf(oldValue, index, StringComparison.OrdinalIgnoreCase);
+            }
+
+            result.Append(source, previousIndex, source.Length - previousIndex);
+
+            return result.ToString();
         }
 
 
@@ -314,7 +337,7 @@ namespace VSIXTest
                 }
 
                 // replace any '#:selection:' with the selected text
-                if (message.Contains("#:selection:"))
+                if (message.Contains("#:selection:") && _dte.ActiveDocument != null)
                 {
                     ThreadHelper.ThrowIfNotOnUIThread();
                     var selection = (TextSelection)_dte.ActiveDocument.Selection;
