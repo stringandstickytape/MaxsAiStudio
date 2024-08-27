@@ -1,8 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
-using Microsoft.ServiceHub.Resources;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using Newtonsoft.Json;
@@ -16,7 +14,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 using SharedClasses;
-    
+
 namespace VSIXTest
 {
     public class VsixChat : WebView2
@@ -181,7 +179,7 @@ namespace VSIXTest
 
             // Naming and Documentation
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
-            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories:" },
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY] and demarcated by backticks. Do not mention unused categories." },
 
             // Code Generation and Extension
             new MessagePrompt { Category = "Generation", ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
@@ -276,7 +274,7 @@ namespace VSIXTest
                     SendNewConversationMessage();
                     break;
                 default:
-                    var insertionType = messageType == "commitMsg" ? "#:diff:" : "#:selection:";
+                    var insertionType = messageType == "commitMsg" ? BacktickHelper.PrependHash(":diff:") : BacktickHelper.PrependHash(":selection:");
 
                     var matchingPrompt = MessagePrompts.FirstOrDefault(mp => mp.MessageType == messageType);
                     if (matchingPrompt != null)
@@ -374,7 +372,7 @@ namespace VSIXTest
                 }
 
                 // replace any '#:selection:' with the selected text
-                if (message.Contains("#:selection:") && _dte.ActiveDocument != null)
+                if (message.Contains(BacktickHelper.PrependHash(":selection:")) && _dte.ActiveDocument != null)
                 {
                     ThreadHelper.ThrowIfNotOnUIThread();
                     var selection = (TextSelection)_dte.ActiveDocument.Selection;
@@ -382,12 +380,12 @@ namespace VSIXTest
                     message = MessageFormatter.InsertFilenamedSelection(message, documentFilename, selection);
                 }
 
-                if (message.Contains("#:diff:"))
+                if (message.Contains(BacktickHelper.PrependHash(":diff:")))
                 {
                     ThreadHelper.ThrowIfNotOnUIThread();
                     var gitDiffHelper = new GitDiffHelper();
                     var diff = gitDiffHelper.GetGitDiff();
-                    message = message.Replace("#:diff:", diff);
+                    message = message.Replace(BacktickHelper.PrependHash(":diff:"), diff);
                 }
                 
                 var vsixOutgoingMessage = new VsixOutgoingMessage { Content = message, MessageType = "prompt" };
@@ -399,7 +397,7 @@ namespace VSIXTest
 
         private async void GetShortcuts(string token)
         {
-            var shortcuts = new List<string> { "#:selection:", "#:diff:" };
+            var shortcuts = new List<string> { BacktickHelper.PrependHash(":selection:"), BacktickHelper.PrependHash(":diff:" )};
             var files = GetAllFilesInSolution();
 
             foreach (var file in files)
@@ -440,6 +438,19 @@ namespace VSIXTest
                     break;
                 case 'e':
                     await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
+
+                    await ExecuteScriptAsync(@"
+                        document.addEventListener('click', function(e) {
+                            if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
+                                const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
+                                if (codeBlock) {
+                                    const codeText = codeBlock.textContent;
+                                    navigator.clipboard.writeText(codeText);
+                                }
+                            }
+                        });
+                    ");
+
                     break;
             }
         }
