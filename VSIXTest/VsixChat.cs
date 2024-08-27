@@ -174,23 +174,30 @@ namespace VSIXTest
                     SendNewConversationMessage();
                     break;
                 case "commitMsg":
-                    SendNewConversationMessage();
-                    SendMessage($"Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]:{Environment.NewLine}{Environment.NewLine}#:diff:{Environment.NewLine}");
+                    BeginConversationWithPrompt($"Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories.:{Environment.NewLine}{Environment.NewLine}#:diff:{Environment.NewLine}");
                     break;
                 case "extractMethod":
-                    SendNewConversationMessage();
-                    SendMessage($"Perform an extract method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    BeginConversationWithPrompt($"Perform an extract method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
                     break;
                 case "extractStaticMethod":
-                    SendNewConversationMessage();
-                    SendMessage($"Perform an extract static method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    BeginConversationWithPrompt($"Perform an extract static method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
                     break;
                 case "dryThis":
-                    SendNewConversationMessage();
-                    SendMessage($"Suggest some clever ways, with examples, to DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    BeginConversationWithPrompt($"Suggest some clever ways, with examples, to DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
                     break;
-
+                case "autocompleteThis":
+                    BeginConversationWithPrompt($"Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after.{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    break;
+                case "suggestName":
+                    BeginConversationWithPrompt($"Suggest a concise and descriptive name for this code element:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    break;
             }
+        }
+
+        private void BeginConversationWithPrompt(string userPrompt)
+        {
+            SendNewConversationMessage();
+            SendMessage(userPrompt);
         }
 
         private static void SendNewConversationMessage()
