@@ -49,6 +49,7 @@ namespace VSIXTest
             WebMessageReceived += WebView_WebMessageReceived;
 
             CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
         
             foreach (var resource in GetResourceDetails())
             {
@@ -75,6 +76,7 @@ namespace VSIXTest
             //    await ExecuteScriptAsync(VsixAssemblyHelper.GetEmbeddedAssembly(resource));
             //}
         }
+
 
 
         private void CoreWebView2_WebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)
@@ -158,11 +160,62 @@ namespace VSIXTest
             }
         }
 
+        private static readonly MessagePrompt[] MessagePrompts = new[]
+        {
+            new MessagePrompt { ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories:" },
+            new MessagePrompt { ButtonLabel = "Extract Method", MessageType = "extractMethod", Prompt = "Perform an extract method on this:" },
+            new MessagePrompt { ButtonLabel = "Extract Static Method", MessageType = "extractStaticMethod", Prompt = "Perform an extract static method on this:" },
+            new MessagePrompt { ButtonLabel = "DRY This", MessageType = "dryThis", Prompt = "Suggest some clever ways, with examples, to DRY this code:" },
+            new MessagePrompt { ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
+            new MessagePrompt { ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" }
+        };
+
+        private async void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            string script = GenerateButtonScript();
+            await CoreWebView2.ExecuteScriptAsync(script);
+        }
+
+        private static string GenerateButtonScript()
+        {
+            var scriptBuilder = new StringBuilder();
+            scriptBuilder.Append(@"
+    // Get the button container
+    var buttonContainer = document.getElementById('ButtonContainer');
+
+    // Get the 'New' button
+    var newButton = buttonContainer.querySelector('button[onclick=""performAction(\\""newChat\\"")""]');
+
+    // Function to create a button
+    function createButton(label, messageType) {
+        var button = document.createElement('button');
+        button.textContent = label;
+        button.onclick = function() {
+            performAction(messageType);
+        };
+        return button;
+    }
+
+    // Create and insert buttons
+    ");
+
+            foreach (var prompt in MessagePrompts)
+            {
+                scriptBuilder.Append($@"
+    var {prompt.MessageType}Button = createButton('{prompt.ButtonLabel}', '{prompt.MessageType}');
+    buttonContainer.insertBefore({prompt.MessageType}Button, newButton);
+    ");
+            }
+
+            return scriptBuilder.ToString();
+        }
+
         private void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = JsonConvert.DeserializeObject<dynamic>(e.WebMessageAsJson);
+            string messageType = (string)message.type;
 
-            switch ((string)message.type)
+            switch (messageType)
             {
                 case "sendMessage":
                     SendMessage((string)message.message);
@@ -173,23 +226,15 @@ namespace VSIXTest
                 case "newChat":
                     SendNewConversationMessage();
                     break;
-                case "commitMsg":
-                    BeginConversationWithPrompt($"Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories.:{Environment.NewLine}{Environment.NewLine}#:diff:{Environment.NewLine}");
-                    break;
-                case "extractMethod":
-                    BeginConversationWithPrompt($"Perform an extract method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
-                    break;
-                case "extractStaticMethod":
-                    BeginConversationWithPrompt($"Perform an extract static method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
-                    break;
-                case "dryThis":
-                    BeginConversationWithPrompt($"Suggest some clever ways, with examples, to DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
-                    break;
-                case "autocompleteThis":
-                    BeginConversationWithPrompt($"Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after.{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
-                    break;
-                case "suggestName":
-                    BeginConversationWithPrompt($"Suggest a concise and descriptive name for this code element:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                default:
+                    var insertionType = messageType == "commitMsg" ? "#:diff:" : "#:selection:";
+
+                    var matchingPrompt = MessagePrompts.FirstOrDefault(mp => mp.MessageType == messageType);
+                    if (matchingPrompt != null)
+                    {
+                        string prompt = $"{matchingPrompt.Prompt}{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}";
+                        BeginConversationWithPrompt(prompt);
+                    }
                     break;
             }
         }
@@ -441,7 +486,13 @@ namespace VSIXTest
             return message.Replace("#:selection:", $"{BacktickHelper.ThreeTicks}{documentFilename}{Environment.NewLine}{selection.Text}{Environment.NewLine}{BacktickHelper.ThreeTicksAndNewline}");
         }
     }
+    public class MessagePrompt
+    {
+        public string MessageType { get; set; }
+        public string Prompt { get; set; }
 
+        public string ButtonLabel { get; set; }
+    }
 }
 
 

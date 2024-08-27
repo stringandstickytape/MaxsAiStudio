@@ -11,7 +11,7 @@
         }
 
         body {
-            background-color: white;
+            background-color: black;
         }
 
         #ChatHistory {
@@ -65,12 +65,6 @@
     <div id='ChatHistory'></div>
     <textarea id='InputArea' rows='4' cols='50'></textarea>
     <div id='ButtonContainer'>
-        <button onclick='performAction("suggestName")'>Suggest Name</button>
-        <button onclick='performAction("autocompleteThis")'>Autocomplete //! Marker</button>
-        <button onclick='performAction("dryThis")'>DRY This</button>
-        <button onclick='performAction("extractStaticMethod")'>Extract Static Method</button>
-        <button onclick='performAction("extractMethod")'>Extract Method</button>
-        <button onclick='performAction("commitMsg")'>Commit Msg</button>
         <button onclick='performAction("newChat")'>New</button>
         <button id='SendButton' onclick='sendMessage()'>Send</button>
     </div>
