@@ -177,6 +177,19 @@ namespace VSIXTest
                     SendNewConversationMessage();
                     SendMessage($"Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]:{Environment.NewLine}{Environment.NewLine}#:diff:{Environment.NewLine}");
                     break;
+                case "extractMethod":
+                    SendNewConversationMessage();
+                    SendMessage($"Perform an extract method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    break;
+                case "extractStaticMethod":
+                    SendNewConversationMessage();
+                    SendMessage($"Perform an extract static method on this:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    break;
+                case "dryThis":
+                    SendNewConversationMessage();
+                    SendMessage($"DRY this code:{Environment.NewLine}{Environment.NewLine}#:selection:{Environment.NewLine}");
+                    break;
+
             }
         }
 
@@ -184,6 +197,46 @@ namespace VSIXTest
         {
             VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixOutgoingMessage { MessageType = "new" }));
         }
+
+        private string ReplaceFileNameWithContent(string message, string file)
+        {
+            string fileName = $"#{Path.GetFileName(file)}";
+            if (message.Contains(fileName))
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                ProjectItem projectItem = _dte.Solution.FindProjectItem(file);
+                if (projectItem != null)
+                {
+                    EnvDTE.Window window = projectItem.Open();
+                    if (window != null)
+                    {
+                        try
+                        {
+                            message = ReplaceFileNameWithContentHelper(message, fileName, window);
+                        }
+                        finally
+                        {
+                            window.Close();
+                        }
+                    }
+                }
+            }
+            return message;
+        }
+
+        private static string ReplaceFileNameWithContentHelper(string message, string fileName, EnvDTE.Window window)
+        {
+            TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
+            if (textDoc != null)
+            {
+                string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
+                string backticks = new string('`', 3);
+                string replacement = $"\n{backticks}\n{fileContent}\n{backticks}\n";
+                return message.Replace(fileName, replacement);
+            }
+            return message;
+        }
+
 
         private void SendMessage(string message)
         {
@@ -193,28 +246,7 @@ namespace VSIXTest
                 var files = GetAllFilesInSolution();
                 foreach (var file in files)
                 {
-                    string fileName = $"#{Path.GetFileName(file)}";
-                    if (message.Contains(fileName))
-                    {
-                        ThreadHelper.ThrowIfNotOnUIThread();
-                        ProjectItem projectItem = _dte.Solution.FindProjectItem(file);
-                        if (projectItem != null)
-                        {
-                            EnvDTE.Window window = projectItem.Open();
-                            if (window != null)
-                            {
-                                TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
-                                if (textDoc != null)
-                                {
-                                    string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
-                                    string backticks = new string('`', 3);
-                                    string replacement = $"\n{backticks}\n{fileContent}\n{backticks}\n";
-                                    message = message.Replace(fileName, replacement);
-                                }
-                                window.Close();
-                            }
-                        }
-                    }
+                    message = ReplaceFileNameWithContent(message, file);
                 }
 
                 // replace any '#:selection:' with the selected text
@@ -222,7 +254,8 @@ namespace VSIXTest
                 {
                     ThreadHelper.ThrowIfNotOnUIThread();
                     var selection = (TextSelection)_dte.ActiveDocument.Selection;
-                    message = message.Replace("#:selection:", selection.Text);
+                    var documentFilename = _dte.ActiveDocument.Name;
+                    message = MessageFormatter.InsertFilenamedSelection(message, documentFilename, selection);
                 }
 
                 if (message.Contains("#:diff:"))
@@ -394,8 +427,14 @@ namespace VSIXTest
         }
     }
 
-
-
+    public static class MessageFormatter
+    {
+        public static string InsertFilenamedSelection(string message, string documentFilename, TextSelection selection)
+        {
+            return message.Replace("#:selection:", $"{BacktickHelper.ThreeTicks}{documentFilename}{Environment.NewLine}{selection.Text}{Environment.NewLine}{BacktickHelper.ThreeTicksAndNewline}");
+        }
     }
+
+}
 
 

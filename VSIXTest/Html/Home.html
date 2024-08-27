@@ -65,8 +65,10 @@
     <div id='ChatHistory'></div>
     <textarea id='InputArea' rows='4' cols='50'></textarea>
     <div id='ButtonContainer'>
-        <button id='CommitMsgButton' onclick='commitMsg()'>Commit Msg</button>
-        <button id='NewButton' onclick='newChat()'>New</button>
+        <button id='ExtractMethodButton' onclick='performAction("extractStaticMethod")'>Extract Static Method</button>
+        <button id='ExtractMethodButton' onclick='performAction("extractMethod")'>Extract Method</button>
+        <button id='CommitMsgButton' onclick='performAction("commitMsg")'>Commit Msg</button>
+        <button id='NewButton' onclick='performAction("newChat")'>New</button>
         <button id='SendButton' onclick='sendMessage()'>Send</button>
     </div>
     <div id='ShortcutPopup'>
@@ -78,14 +80,12 @@
         const shortcutPopup = document.getElementById('ShortcutPopup');
         const shortcutList = document.getElementById('ShortcutList');
 
-        function newChat() {
-            window.chrome.webview.postMessage({ type: 'newChat' });
-            chatHistory.innerHTML = '';
-            inputArea.value = '';
+        function performAction(actionType) {
+            window.chrome.webview.postMessage({ type: actionType });
+            clearUI();
         }
 
-        function commitMsg() {
-            window.chrome.webview.postMessage({ type: 'commitMsg' });
+        function clearUI() {
             chatHistory.innerHTML = '';
             inputArea.value = '';
         }

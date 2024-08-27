@@ -40,6 +40,10 @@ public class NamedPipeListener
             try
             {
                 string message = await reader.ReadLineAsync();
+                if(message==null)
+                {
+                    continue;
+                }
                 var vsixMessage = JsonConvert.DeserializeObject<VsixOutgoingMessage>(message);
                 NamedPipeMessageReceived?.Invoke(this, vsixMessage);
             }
