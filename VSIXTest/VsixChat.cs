@@ -162,24 +162,35 @@ namespace VSIXTest
 
         private static readonly MessagePrompt[] MessagePrompts = new[]
         {
-            new MessagePrompt { ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories:" },
-            new MessagePrompt { ButtonLabel = "Extract Method", MessageType = "extractMethod", Prompt = "Perform an extract method on this:" },
-            new MessagePrompt { ButtonLabel = "Extract Static Method", MessageType = "extractStaticMethod", Prompt = "Perform an extract static method on this:" },
-            new MessagePrompt { ButtonLabel = "DRY This", MessageType = "dryThis", Prompt = "Suggest some clever ways, with examples, to DRY this code:" },
-            new MessagePrompt { ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
-            new MessagePrompt { ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
-            new MessagePrompt { ButtonLabel = "General Refactor", MessageType = "generalRefactor", Prompt = "Suggest some clever ways, with examples, to generally refactor this code:" },
-            new MessagePrompt { ButtonLabel = "Improve Performance", MessageType = "improvePerformance", Prompt = "Analyse and, if possible, suggest some clever ways with examples, to improve the performance of this code:" },
-            new MessagePrompt { ButtonLabel = "Extend Series", MessageType = "addToSeries", Prompt = "Extend the series you see in this code:" },
-            new MessagePrompt { ButtonLabel = "Explain Code", MessageType = "explainCode", Prompt = "Provide a detailed explanation of what this code does:" },
-            new MessagePrompt { ButtonLabel = "Add Comments", MessageType = "addComments", Prompt = "Add appropriate comments to this code to improve its readability:" },
-            new MessagePrompt { ButtonLabel = "Remove Comments", MessageType = "removeComments", Prompt = "Remove all comments from this code:" },
-            new MessagePrompt { ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
-            new MessagePrompt { ButtonLabel = "Add Error Handling", MessageType = "addErrorHandling", Prompt = "Suggest appropriate error handling mechanisms for this code:" },
-            new MessagePrompt { ButtonLabel = "Create Unit Tests", MessageType = "createUnitTests", Prompt = "Generate unit tests for this code:" },
-            new MessagePrompt { ButtonLabel = "Identify Potential Bugs", MessageType = "identifyBugs", Prompt = "Analyze this code for potential bugs or edge cases that might cause issues:" },
-            new MessagePrompt { ButtonLabel = "Add Logging", MessageType = "addLogging", Prompt = "Suggest appropriate logging statements to add to this code for better debugging and monitoring:" },
-            new MessagePrompt { ButtonLabel = "Simplify Logic", MessageType = "simplifyLogic", Prompt = "Analyze and suggest ways to simplify the logic in this code without changing its functionality:" },
+            // Code Analysis and Explanation
+            new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Explain Code", MessageType = "explainCode", Prompt = "Provide a detailed explanation of what this code does:" },
+            new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Identify Potential Bugs", MessageType = "identifyBugs", Prompt = "Analyze this code for potential bugs or edge cases that might cause issues:" },
+
+            // Code Improvement and Refactoring
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Extract Method", MessageType = "extractMethod", Prompt = "Perform an extract method on this:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Extract Static Method", MessageType = "extractStaticMethod", Prompt = "Perform an extract static method on this:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "DRY This", MessageType = "dryThis", Prompt = "Suggest some clever ways, with examples, to DRY this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "General Refactor", MessageType = "generalRefactor", Prompt = "Suggest some clever ways, with examples, to generally refactor this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Improve Performance", MessageType = "improvePerformance", Prompt = "Analyse and, if possible, suggest some clever ways with examples, to improve the performance of this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Simplify Logic", MessageType = "simplifyLogic", Prompt = "Analyze and suggest ways to simplify the logic in this code without changing its functionality:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
+
+            // Code Enhancement
+            new MessagePrompt { Category = "Enhancement", ButtonLabel = "Add Error Handling", MessageType = "addErrorHandling", Prompt = "Suggest appropriate error handling mechanisms for this code:" },
+            new MessagePrompt { Category = "Enhancement", ButtonLabel = "Add Logging", MessageType = "addLogging", Prompt = "Suggest appropriate logging statements to add to this code for better debugging and monitoring:" },
+
+            // Naming and Documentation
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY]. Do not mention unused categories:" },
+
+            // Code Generation and Extension
+            new MessagePrompt { Category = "Generation", ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
+            new MessagePrompt { Category = "Generation", ButtonLabel = "Extend Series", MessageType = "addToSeries", Prompt = "Extend the series you see in this code:" },
+            new MessagePrompt { Category = "Generation", ButtonLabel = "Create Unit Tests", MessageType = "createUnitTests", Prompt = "Generate unit tests for this code:" },
+
+            // Code Readability
+            new MessagePrompt { Category = "Readability", ButtonLabel = "Add Comments", MessageType = "addComments", Prompt = "Add appropriate comments to this code to improve its readability:" },
+            new MessagePrompt { Category = "Readability", ButtonLabel = "Remove Comments", MessageType = "removeComments", Prompt = "Remove all comments from this code:" },
         };
 
         private async void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -195,8 +206,8 @@ namespace VSIXTest
     // Get the button container
     var buttonContainer = document.getElementById('ButtonContainer');
 
-    // Get the 'New' button
-    var newButton = buttonContainer.querySelector('button[onclick=""performAction(\\""newChat\\"")""]');
+    // Clear existing buttons
+    buttonContainer.innerHTML = '';
 
     // Function to create a button
     function createButton(label, messageType) {
@@ -208,16 +219,42 @@ namespace VSIXTest
         return button;
     }
 
-    // Create and insert buttons
+    // Group prompts by category
+    var groupedPrompts = {};
     ");
 
             foreach (var prompt in MessagePrompts)
             {
                 scriptBuilder.Append($@"
-    var {prompt.MessageType}Button = createButton('{prompt.ButtonLabel}', '{prompt.MessageType}');
-    buttonContainer.insertBefore({prompt.MessageType}Button, newButton);
+    if (!groupedPrompts['{prompt.Category}']) {{
+        groupedPrompts['{prompt.Category}'] = [];
+    }}
+    groupedPrompts['{prompt.Category}'].push({{ label: '{prompt.ButtonLabel}', messageType: '{prompt.MessageType}' }});
     ");
             }
+
+            scriptBuilder.Append(@"
+    // Create category boxes and add buttons
+    for (var category in groupedPrompts) {
+        var categoryBox = document.createElement('div');
+        categoryBox.className = 'category-box';
+        var categoryTitle = document.createElement('div');
+        categoryTitle.className = 'category-title';
+        categoryTitle.textContent = category;
+        categoryBox.appendChild(categoryTitle);
+
+        groupedPrompts[category].forEach(function(prompt) {
+            var button = createButton(prompt.label, prompt.messageType);
+            categoryBox.appendChild(button);
+        });
+
+        buttonContainer.appendChild(categoryBox);
+    }
+
+    // Add 'New' button
+    var newButton = createButton('New', 'newChat');
+    buttonContainer.appendChild(newButton);
+    ");
 
             return scriptBuilder.ToString();
         }
@@ -525,8 +562,8 @@ namespace VSIXTest
     {
         public string MessageType { get; set; }
         public string Prompt { get; set; }
-
         public string ButtonLabel { get; set; }
+        public string Category { get; set; }
     }
 }
 
