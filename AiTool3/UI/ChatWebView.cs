@@ -333,9 +333,13 @@ namespace AiTool3.UI
 
         internal async Task Clear()
         {
-            await ExecuteScriptAsync($"ClearMessages()");
-            await DisableCancelButton();
-            await EnableSendButton();
+                await ExecuteScriptAsync($"ClearMessages()");
+                await DisableCancelButton();
+                await EnableSendButton();
+
+
+
+                
         }
 
         internal async Task DisableCancelButton()

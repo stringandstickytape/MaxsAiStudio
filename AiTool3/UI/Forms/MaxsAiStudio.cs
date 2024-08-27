@@ -13,6 +13,7 @@ using AiTool3.UI;
 using AiTool3.UI.Forms;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
+using SharedClasses;
 using System.Data;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
@@ -131,12 +132,22 @@ namespace AiTool3
             }
         }
 
-        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, string e)
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, VsixOutgoingMessage e)
         {
+            switch(e.MessageType)
+            {
+                case "prompt":
+                    chatWebView.SetUserPrompt(e.Content);
+                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+                    break;
+                case "new":
+                    await this.InvokeIfNeeded(async () => await Clear());
+                    break;
+            }
             // set the input box to e
-            chatWebView.SetUserPrompt(e);
+            
 
-            this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+            
 
             //_namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, e);
         }

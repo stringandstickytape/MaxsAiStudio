@@ -18,7 +18,7 @@ public class NamedPipeListener
     private StreamReader reader;
     private StreamWriter writer;
 
-    public event EventHandler<string> NamedPipeMessageReceived;
+    public event EventHandler<VsixOutgoingMessage> NamedPipeMessageReceived;
 
     public NamedPipeListener()
     {
@@ -39,13 +39,9 @@ public class NamedPipeListener
         {
             try
             {
-
-
                 string message = await reader.ReadLineAsync();
                 var vsixMessage = JsonConvert.DeserializeObject<VsixOutgoingMessage>(message);
-
-                NamedPipeMessageReceived?.Invoke(this, vsixMessage.Content);
-
+                NamedPipeMessageReceived?.Invoke(this, vsixMessage);
             }
             catch (IOException ex)
             {

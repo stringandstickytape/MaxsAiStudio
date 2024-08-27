@@ -7,6 +7,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
@@ -64,6 +65,7 @@
     <div id='ChatHistory'></div>
     <textarea id='InputArea' rows='4' cols='50'></textarea>
     <div id='ButtonContainer'>
+        <button id='CommitMsgButton' onclick='commitMsg()'>Commit Msg</button>
         <button id='NewButton' onclick='newChat()'>New</button>
         <button id='SendButton' onclick='sendMessage()'>Send</button>
     </div>
@@ -78,6 +80,12 @@
 
         function newChat() {
             window.chrome.webview.postMessage({ type: 'newChat' });
+            chatHistory.innerHTML = '';
+            inputArea.value = '';
+        }
+
+        function commitMsg() {
+            window.chrome.webview.postMessage({ type: 'commitMsg' });
             chatHistory.innerHTML = '';
             inputArea.value = '';
         }
