@@ -173,6 +173,7 @@ namespace VSIXTest
             new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "Simplify Logic", MessageType = "simplifyLogic", Prompt = "Analyze and suggest ways to simplify the logic in this code without changing its functionality:" },
             new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
             new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "Extract Best Class", MessageType = "extractBestClass", Prompt = "Analyze this code and identify the single best class that could be extracted to improve general Object-Oriented Programming (OOP) principles. Describe the proposed class, its properties, methods, and how it would enhance the overall design:" },
+            new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "String Interpolation", MessageType = "stringInterpolation", Prompt = "Rewrite this to use string interpolation:" },
 
             // Code Enhancement
             new MessagePrompt { Category = "Enhancement", ButtonLabel = "Add Error Handling", MessageType = "addErrorHandling", Prompt = "Suggest appropriate error handling mechanisms for this code:" },
@@ -373,6 +374,12 @@ namespace VSIXTest
                     message = ReplaceFileNameWithContent(message, file);
                 }
 
+                // Replace #:all-open: with contents of all open code windows
+                if (message.Contains(BacktickHelper.PrependHash(":all-open:")))
+                {
+                    message = ReplaceAllOpenContents(message);
+                }
+
                 // replace any '#:selection:' with the selected text
                 if (message.Contains(BacktickHelper.PrependHash(":selection:")) && _dte.ActiveDocument != null)
                 {
@@ -389,12 +396,38 @@ namespace VSIXTest
                     var diff = gitDiffHelper.GetGitDiff();
                     message = message.Replace(BacktickHelper.PrependHash(":diff:"), diff);
                 }
-                
+
                 var vsixOutgoingMessage = new VsixOutgoingMessage { Content = message, MessageType = "prompt" };
                 string jsonMessage = JsonConvert.SerializeObject(vsixOutgoingMessage);
 
                 VSIXTestPackage.Instance.SendMessageThroughPipe(jsonMessage); // messagetype is p (for prompt)
             }
+        }
+
+        private string ReplaceAllOpenContents(string message)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            StringBuilder allOpenContents = new StringBuilder();
+
+            foreach (EnvDTE.Window window in _dte.Windows)
+            {
+                if (window.Kind == "Document" && window.Document != null)
+                {
+                    TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
+                    if (textDoc != null)
+                    {
+                        string fileName = window.Document.Name;
+                        string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
+                        allOpenContents.AppendLine($"File: {fileName}");
+                        allOpenContents.AppendLine(BacktickHelper.ThreeTicks);
+                        allOpenContents.AppendLine(fileContent);
+                        allOpenContents.AppendLine(BacktickHelper.ThreeTicks);
+                        allOpenContents.AppendLine();
+                    }
+                }
+            }
+
+            return message.Replace(BacktickHelper.PrependHash(":all-open:"), allOpenContents.ToString().TrimEnd());
         }
 
         private async void GetShortcuts(string token)
