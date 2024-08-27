@@ -4,6 +4,7 @@ using AiTool3.Helpers;
 using AiTool3.Providers;
 using AiTool3.Tools;
 using Newtonsoft.Json;
+using SharedClasses;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
@@ -26,36 +27,25 @@ public class NamedPipeListener
 
     private async Task StartListening()
     {
+        pipeServer = new NamedPipeServerStream("MaxsAIStudioVSIX", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+
+        await pipeServer.WaitForConnectionAsync();
+        Debug.WriteLine("Client connected.");
+
+        reader = new StreamReader(pipeServer);
+        writer = new StreamWriter(pipeServer) { AutoFlush = true };
+
         while (true)
         {
             try
             {
-                pipeServer = new NamedPipeServerStream("MaxsAIStudioVSIX", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-                await pipeServer.WaitForConnectionAsync();
-                Debug.WriteLine("Client connected.");
 
-                reader = new StreamReader(pipeServer);
-                writer = new StreamWriter(pipeServer) { AutoFlush = true };
+                string message = await reader.ReadLineAsync();
+                var vsixMessage = JsonConvert.DeserializeObject<VsixOutgoingMessage>(message);
 
-                while (true)
-                {
-                    string message = await reader.ReadLineAsync();
-                    if (message == null) break; // Client disconnected
+                NamedPipeMessageReceived?.Invoke(this, vsixMessage.Content);
 
-                    StringBuilder fullMessage = new StringBuilder();
-                    while (message != "<END>")
-                    {
-                        fullMessage.AppendLine(message);
-                        message = await reader.ReadLineAsync();
-                        if (message == null) break; // Client disconnected
-                    }
-
-                    if (message == null) break; // Client disconnected
-
-                    string returnMessage = fullMessage.ToString();
-                    NamedPipeMessageReceived?.Invoke(this, returnMessage);
-                }
             }
             catch (IOException ex)
             {
@@ -67,26 +57,9 @@ public class NamedPipeListener
             }
             finally
             {
-                CloseConnection();
+                //CloseConnection();
             }
         }
-    }
-
-    private void CloseConnection()
-    {
-        reader?.Dispose();
-        try
-        {
-            writer?.Dispose();
-        }
-        catch (Exception)
-        {
-
-        }
-        pipeServer?.Dispose();
-        reader = null;
-        writer = null;
-        pipeServer = null;
     }
 
     internal async Task SendResponseAsync(char messageType, string responseText)
@@ -148,4 +121,5 @@ public class NamedPipeListener
         [JsonProperty("after")]
         public string After { get; set; }
     }
+
 }

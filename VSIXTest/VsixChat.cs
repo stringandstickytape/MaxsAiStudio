@@ -15,7 +15,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
-
+using SharedClasses;
+    
 namespace VSIXTest
 {
     public class VsixChat : WebView2
@@ -225,8 +226,11 @@ namespace VSIXTest
                     var diff = gitDiffHelper.GetGitDiff();
                     message = message.Replace("#:diff:", diff);
                 }
-                // Send message through named pipe
-                VSIXTestPackage.Instance.SendMessageThroughPipe(message);
+                
+                var vsixOutgoingMessage = new VsixOutgoingMessage { Content = message, MessageType = "p" };
+                string jsonMessage = JsonConvert.SerializeObject(vsixOutgoingMessage);
+
+                VSIXTestPackage.Instance.SendMessageThroughPipe(jsonMessage); // messagetype is p (for prompt)
             }
         }
 

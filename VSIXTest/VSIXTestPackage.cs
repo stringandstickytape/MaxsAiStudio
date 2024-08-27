@@ -122,7 +122,6 @@ namespace VSIXTest
         public async Task SendMessageThroughPipe(string message)
         {
             await writer.WriteLineAsync(message);
-            await writer.WriteLineAsync("<END>");
             await writer.FlushAsync();
         }
     }

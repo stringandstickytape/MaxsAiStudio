@@ -112,6 +112,13 @@ DONE: Template tool, to help AI generate new templates which we then install eas
 DONE: covn manager doesn't unlock when chat returns?
 DONE: better model selection generally
 
+
+VSIX:
+ - all files in solution 
+ - all files in project
+ - all open files
+ - could define filegroups and then reference those, a bit like a much-better project helper
+
 * Refactor other AI providers like Claude (somtewhat - c == '\n' is used by groq, claude, localai)
 * There's a bug when installing a new theme (and it shouldn't crash the whole app :) if it has no id? I think?
 * rename arrayfindandreplace

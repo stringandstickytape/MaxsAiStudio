@@ -190,5 +190,9 @@
   <ItemGroup>
     <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
+  </ItemGroup>
 
 </Project>
