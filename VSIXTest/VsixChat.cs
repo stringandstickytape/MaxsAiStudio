@@ -416,20 +416,16 @@ namespace VSIXTest
         }
 
         public async void ReceiveMessage(string message)
-        {if (message.Length < 1)
+        {
+            if (message.Length < 1)
                 return;
-
 
             char messageType = message[0];
             message = message.Substring(1);
 
             string escapedMessage = HttpUtility.JavaScriptStringEncode(message);
-            //chatHistory.scrollTop = chatHistory.scrollHeight;
-            
-            // switch to ui thread
+
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-
 
             switch (messageType)
             {
@@ -440,16 +436,16 @@ namespace VSIXTest
                     await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
 
                     await ExecuteScriptAsync(@"
-                        document.addEventListener('click', function(e) {
-                            if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
-                                const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
-                                if (codeBlock) {
-                                    const codeText = codeBlock.textContent;
-                                    navigator.clipboard.writeText(codeText);
-                                }
-                            }
-                        });
-                    ");
+                document.addEventListener('click', function(e) {
+                    if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
+                        const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
+                        if (codeBlock) {
+                            const codeText = codeBlock.textContent;
+                            navigator.clipboard.writeText(codeText);
+                        }
+                    }
+                });
+            ");
 
                     break;
             }
