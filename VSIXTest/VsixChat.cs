@@ -170,7 +170,12 @@ namespace VSIXTest
             new MessagePrompt { ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
             new MessagePrompt { ButtonLabel = "General Refactor", MessageType = "generalRefactor", Prompt = "Suggest some clever ways, with examples, to generally refactor this code:" },
             new MessagePrompt { ButtonLabel = "Improve Performance", MessageType = "improvePerformance", Prompt = "Analyse and, if possible, suggest some clever ways with examples, to improve the performance of this code:" },
-            new MessagePrompt { ButtonLabel = "Add to Series", MessageType = "addToSeries", Prompt = "Extend the series you see in this code:" },
+            new MessagePrompt { ButtonLabel = "Extend Series", MessageType = "addToSeries", Prompt = "Extend the series you see in this code:" },
+            new MessagePrompt { ButtonLabel = "Explain Code", MessageType = "explainCode", Prompt = "Provide a detailed explanation of what this code does:" },
+            new MessagePrompt { ButtonLabel = "Add Comments", MessageType = "addComments", Prompt = "Add appropriate comments to this code to improve its readability:" },
+            new MessagePrompt { ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
+            new MessagePrompt { ButtonLabel = "Add Error Handling", MessageType = "addErrorHandling", Prompt = "Suggest appropriate error handling mechanisms for this code:" },
+            new MessagePrompt { ButtonLabel = "Create Unit Tests", MessageType = "createUnitTests", Prompt = "Generate unit tests for this code:" },
         };
 
         private async void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -235,7 +240,7 @@ namespace VSIXTest
                     var matchingPrompt = MessagePrompts.FirstOrDefault(mp => mp.MessageType == messageType);
                     if (matchingPrompt != null)
                     {
-                        string prompt = $"{matchingPrompt.Prompt}{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}";
+                        string prompt = $"{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}{matchingPrompt.Prompt}";
                         BeginConversationWithPrompt(prompt);
                     }
                     break;
