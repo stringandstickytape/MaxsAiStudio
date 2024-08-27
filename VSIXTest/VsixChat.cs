@@ -181,7 +181,7 @@ namespace VSIXTest
 
             // Naming and Documentation
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
-            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY] and demarcated by backticks. Do not mention unused categories." },
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY] and demarcated by backticks. Do not mention unused categories or insignficiant changes." },
 
             // Code Generation and Extension
             new MessagePrompt { Category = "Generation", ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },

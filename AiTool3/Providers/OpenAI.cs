@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace AiTool3.Providers
@@ -197,11 +198,22 @@ namespace AiTool3.Providers
 
                 try
                 {
-                    var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-                    if (chunk == null)
+
+                    try
+                    {
+                        // Attempt to parse the JSON string
+                        using (JsonDocument doc = JsonDocument.Parse(jsonData))
+                        {
+                            Debug.WriteLine("JSON valid.");
+                        }
+                    }
+                    catch (System.Text.Json.JsonException ex)
                     {
                         return line;
                     }
+
+                    var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
+
                     if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
 
@@ -236,7 +248,7 @@ namespace AiTool3.Providers
                     }
 
                 }
-                catch (JsonException)
+                catch (Newtonsoft.Json.JsonException)
                 {
                     return line; /* left-overs */
                     // Handle JSON parsing errors
