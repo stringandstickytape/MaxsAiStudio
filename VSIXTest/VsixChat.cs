@@ -181,7 +181,7 @@ namespace VSIXTest
 
             // Naming and Documentation
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
-            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff, broken down by [CATEGORY] and demarcated by backticks. Do not mention unused categories or insignficiant changes." },
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff.  Break the changes down by project and category.  Demarcate the summary as a single code block. Do not mention unused categories or insignficiant changes." },
 
             // Code Generation and Extension
             new MessagePrompt { Category = "Generation", ButtonLabel = "Autocomplete This", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
@@ -380,13 +380,28 @@ namespace VSIXTest
                     message = ReplaceAllOpenContents(message);
                 }
 
-                // replace any '#:selection:' with the selected text
+                // replace any '<hash>:selection:' with the selected text
                 if (message.Contains(BacktickHelper.PrependHash(":selection:")) && _dte.ActiveDocument != null)
                 {
                     ThreadHelper.ThrowIfNotOnUIThread();
                     var selection = (TextSelection)_dte.ActiveDocument.Selection;
                     var documentFilename = _dte.ActiveDocument.Name;
-                    message = MessageFormatter.InsertFilenamedSelection(message, documentFilename, selection);
+                    string textToInsert = "";
+
+                    if (selection.IsEmpty)
+                    {
+                        // If selection is empty, get the entire text of the document
+                        TextDocument textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                        EditPoint startPoint = textDocument.StartPoint.CreateEditPoint();
+                        textToInsert = startPoint.GetText(textDocument.EndPoint);
+                    }
+                    else
+                    {
+                        // If there's a selection, use the selected text
+                        textToInsert = selection.Text;
+                    }
+
+                    message = MessageFormatter.InsertFilenamedSelection(message, documentFilename, textToInsert);
                 }
 
                 if (message.Contains(BacktickHelper.PrependHash(":diff:")))
@@ -591,9 +606,9 @@ namespace VSIXTest
 
     public static class MessageFormatter
     {
-        public static string InsertFilenamedSelection(string message, string documentFilename, TextSelection selection)
+        public static string InsertFilenamedSelection(string message, string documentFilename, string selection)
         {
-            return message.Replace(BacktickHelper.PrependHash(":selection:"), $"{BacktickHelper.ThreeTicks}{documentFilename}{Environment.NewLine}{selection.Text}{Environment.NewLine}{BacktickHelper.ThreeTicksAndNewline}");
+            return message.Replace(BacktickHelper.PrependHash(":selection:"), $"{BacktickHelper.ThreeTicks}{documentFilename}{Environment.NewLine}{selection}{Environment.NewLine}{BacktickHelper.ThreeTicksAndNewline}");
         }
     }
     public class MessagePrompt
