@@ -194,5 +194,9 @@
   <ItemGroup>
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Communications\" />
+  </ItemGroup>
 
 </Project>

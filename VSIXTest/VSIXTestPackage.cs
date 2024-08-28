@@ -45,7 +45,7 @@ namespace VSIXTest
         private NamedPipeClientStream pipeClient;
         private StreamWriter writer;
         private StreamReader reader;
-        private NamedPipeManager namedPipeManager;
+        private TcpCommsManager namedPipeManager;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -56,7 +56,7 @@ namespace VSIXTest
             //await GetSurroundingLinesCommand.InitializeAsync(this);
             await OpenChatWindowCommand.InitializeAsync(this);
 
-            namedPipeManager = new NamedPipeManager(isVsix: true);
+            namedPipeManager = new TcpCommsManager(isVsix: true);
             namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
             await namedPipeManager.ConnectAsync();
 

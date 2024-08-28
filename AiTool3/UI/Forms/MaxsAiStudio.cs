@@ -1,5 +1,4 @@
 using AiTool3.Audio;
-using AiTool3.Communications;
 using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
@@ -17,7 +16,6 @@ using SharedClasses;
 using System.Data;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
-using static AiTool3.Communications.NamedPipeListener;
 
 namespace AiTool3
 {
@@ -26,13 +24,12 @@ namespace AiTool3
         // injected dependencies
         private ToolManager _toolManager;
         private SnippetManager _snippetManager;
-        private NamedPipeListener _namedPipeListener;
         private SearchManager _searchManager;
         private FileAttachmentManager _fileAttachmentManager;
         private TemplateManager _templateManager;
         private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
-        private NamedPipeManager _namedPipeManager;
+        private TcpCommsManager _namedPipeManager;
         public static readonly decimal Version = 0.3m;
 
         public static readonly string ThreeTicks = new string('`', 3);
@@ -54,7 +51,6 @@ namespace AiTool3
 
         public MaxsAiStudio(ToolManager toolManager,
                             SnippetManager snippetManager,
-                            NamedPipeListener namedPipeListener,
                             SearchManager searchManager,
                             FileAttachmentManager fileAttachmentManager,
                             ConversationManager conversationManager,
@@ -70,7 +66,7 @@ namespace AiTool3
                 FormClosed += (s, e) =>
                      _namedPipeManager.Dispose();
 
-                _namedPipeManager = new NamedPipeManager(isVsix: false);
+                _namedPipeManager = new TcpCommsManager(isVsix: false);
                 
                 _namedPipeManager.ReceiveMessage += NamedPipeListener_NamedPipeMessageReceived;
                 
@@ -89,8 +85,6 @@ namespace AiTool3
                 _searchManager.SetDgv(dgvConversations);
                 _fileAttachmentManager = fileAttachmentManager;
                 _fileAttachmentManager.InjectDependencies(chatWebView);
-                _namedPipeListener = namedPipeListener;
-                _namedPipeListener.NamedPipeMessageReceived += NamedPipeListener_NamedPipeMessageReceived;
                 ConversationManager = conversationManager;
                 ConversationManager.InjectDepencencies(dgvConversations);
                 chatWebView.InjectDependencies(toolManager);

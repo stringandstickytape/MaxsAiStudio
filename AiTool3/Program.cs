@@ -1,5 +1,4 @@
 using AiTool3;
-using AiTool3.Communications;
 using AiTool3.Conversations;
 using AiTool3.FileAttachments;
 using AiTool3.Snippets;
@@ -50,7 +49,6 @@ internal static class Program
         services.AddSingleton<ToolManager>();
         services.AddTransient<SnippetManager>();
         services.AddTransient<ScratchpadManager>();
-        services.AddSingleton<NamedPipeListener>();
         services.AddSingleton<SearchManager>();
         services.AddSingleton<FileAttachmentManager>();
         services.AddSingleton<TemplateManager>();
