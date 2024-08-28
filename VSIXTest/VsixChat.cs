@@ -21,14 +21,13 @@ namespace VSIXTest
     {
         private DTE2 _dte;
 
+        private readonly ResourceManager _resourceManager;
+
         public VsixChat() : base()
         {
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded +=  VsixChat_Loaded;
-            //this.HandleCreated += OnHandleCreated;
-
-            //EnsureCoreWebView2Async(null)
-            //AllowExternalDrop = false;
+            _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
 
         }
 
@@ -49,7 +48,7 @@ namespace VSIXTest
             CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
             CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
         
-            foreach (var resource in GetResourceDetails())
+            foreach (var resource in _resourceManager.GetResourceDetails())
             {
                 CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
             }
@@ -79,84 +78,14 @@ namespace VSIXTest
 
         private void CoreWebView2_WebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
-            var rd = GetResourceDetails();
-            var matching = rd.Where(x => e.Request.Uri == x.Uri).ToList();
-
-
-            GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
-        }
-
-        private static List<VsixResourceDetails> GetResourceDetails()
-        {
-
-            // create a new resourcedetail for each resource in namespace AiTool3.JavaScript.Components
-            var resources = new List<VsixResourceDetails>();
-            foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            if (_resourceManager.IsResourceRequested(e.Request.Uri))
             {
-                if (resourceName.StartsWith("VSIXTest.Html"))
-                {
-                    // find the index of the penultimate dot in resource name
-                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
-                    // get the filename using that
-                    var filename = resourceName.Substring(penultimateDotIndex + 1);
-
-                    resources.Add(new VsixResourceDetails
-                    {
-                        Uri = $"http://localhost/{filename}",
-                        ResourceName = resourceName,
-                        MimeType = "text/html"
-                    });
-                }
-            }
-
-            resources.AddRange(CreateResourceDetailsList());
-
-            return resources;
-        }
-
-        private static List<VsixResourceDetails> CreateResourceDetailsList()
-        {
-            return new List<(string Uri, string ResourceName, string MimeType)>
-            {
-                ("https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js", "mermaid.min.js", "application/javascript"),
-                ("https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js", "svg-pan-zoom.min.js", "application/javascript"),
-                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js", "jsoneditor.min.js", "application/javascript"),
-                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.css", "jsoneditor.min.css", "text/css"),
-                ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor-icons.svg", "jsoneditor-icons.svg", "image/svg+xml"),
-                ("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js", "cytoscape.min.js", "application/javascript"),
-                ("https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js", "dagre.min.js", "application/javascript"),
-                ("https://unpkg.com/viz.js@2.1.2/viz.js", "viz.js", "application/javascript"),
-                ("https://cdn.jsdelivr.net/npm/cytoscape-cxtmenu@3.4.0/cytoscape-cxtmenu.min.js", "cytoscape-cxtmenu.min.js", "application/javascript"),
-                ("https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js", "cytoscape-dagre.min.js", "application/javascript")
-            }.Select(item => new VsixResourceDetails
-            {
-                Uri = item.Uri,
-                ResourceName = $"AiTool3.ThirdPartyJavascript.{item.ResourceName}",
-                MimeType = item.MimeType
-            }).ToList();
-        }
-
-        private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream != null)
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        string content = reader.ReadToEnd();
-                        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-                        var response = CoreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {mimeType}");
-                        e.Response = response;
-                        e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
-                        return;
-                    }
-                }
-                throw new Exception("Probably forgot to embed the resource :(");
+                var resourceDetail = _resourceManager.GetResourceDetailByUri(e.Request.Uri);
+                _resourceManager.ReturnResourceToWebView(e, resourceDetail.ResourceName, resourceDetail.MimeType, CoreWebView2);
             }
         }
+
+     
 
         private static readonly MessagePrompt[] MessagePrompts = new[]
         {
@@ -578,30 +507,6 @@ namespace VSIXTest
         }
 
     }
-    internal class VsixResourceDetails
-    {
-        public string Uri { get; set; }
-        public string ResourceName { get; set; }
-        public string MimeType { get; set; }
-    }
-
-    public static class VsixAssemblyHelper
-    {
-        public static string GetEmbeddedAssembly(string resourceName)
-        {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                    return null;
-
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            } 
-        }
-    }
 
     public static class MessageFormatter
     {
@@ -610,13 +515,7 @@ namespace VSIXTest
             return message.Replace(BacktickHelper.PrependHash(":selection:"), $"{BacktickHelper.ThreeTicks}{documentFilename}{Environment.NewLine}{selection}{Environment.NewLine}{BacktickHelper.ThreeTicksAndNewline}");
         }
     }
-    public class MessagePrompt
-    {
-        public string MessageType { get; set; }
-        public string Prompt { get; set; }
-        public string ButtonLabel { get; set; }
-        public string Category { get; set; }
-    }
+
 }
 
 
