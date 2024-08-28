@@ -301,7 +301,7 @@ namespace VSIXTest
 
         private static void SendNewConversationMessage()
         {
-            VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixOutgoingMessage { MessageType = "new" }));
+            VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
         }
 
         private string ReplaceFileNameWithContent(string message, string file)
@@ -417,7 +417,7 @@ namespace VSIXTest
                     message = message.Replace(BacktickHelper.PrependHash(":diff:"), diff);
                 }
 
-                var vsixOutgoingMessage = new VsixOutgoingMessage { Content = message, MessageType = "prompt" };
+                var vsixOutgoingMessage = new VsixMessage { Content = message, MessageType = "prompt" };
                 string jsonMessage = JsonConvert.SerializeObject(vsixOutgoingMessage);
 
                 VSIXTestPackage.Instance.SendMessageThroughPipe(jsonMessage); // messagetype is p (for prompt)
@@ -466,24 +466,18 @@ namespace VSIXTest
             await ExecuteScriptAsync(script);
         }
 
-        public async void ReceiveMessage(string message)
+        public async void ReceiveMessage(VsixMessage message)
         {
-            if (message.Length < 1)
-                return;
-
-            char messageType = message[0];
-            message = message.Substring(1);
-
-            string escapedMessage = HttpUtility.JavaScriptStringEncode(message);
+            string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            switch (messageType)
+            switch (message.MessageType)
             {
-                case 's':
-                    await ExecuteScriptAsync($"chatHistory.innerHTML += '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
-                    break;
-                case 'e':
+                //case 's':
+                //    await ExecuteScriptAsync($"chatHistory.innerHTML += '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
+                //    break;
+                case "response":
                     await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
 
                     await ExecuteScriptAsync(@"

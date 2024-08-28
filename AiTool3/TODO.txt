@@ -112,11 +112,26 @@ DONE: Template tool, to help AI generate new templates which we then install eas
 DONE: covn manager doesn't unlock when chat returns?
 DONE: better model selection generally
 
+VSIXDONE: all open files
 
 VSIX:
+ 
+  - make the inter-process comms much more stable (with a debug mode?)
+    - kill the current output to debug!
+
+ - not using system prompts at this stage :/
+
+ - copy button is buggy, others don't work at all :/
+
+ - flipping tabs in vs causes it to reset somehow
+ 
+ - add proper completion support for autocomplete
+
+ - right-click menu options? on pop-on-select?
+
  - all files in solution 
  - all files in project
- - all open files
+
  - could define filegroups and then reference those, a bit like a much-better project helper
 
 * Refactor other AI providers like Claude (somtewhat - c == '\n' is used by groq, claude, localai)

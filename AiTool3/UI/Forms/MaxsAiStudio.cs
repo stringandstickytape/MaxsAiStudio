@@ -32,7 +32,7 @@ namespace AiTool3
         private TemplateManager _templateManager;
         private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
-
+        private NamedPipeManager _namedPipeManager;
         public static readonly decimal Version = 0.3m;
 
         public static readonly string ThreeTicks = new string('`', 3);
@@ -67,6 +67,13 @@ namespace AiTool3
 
             try
             {
+                FormClosed += (s, e) =>
+                     _namedPipeManager.Dispose();
+
+                _namedPipeManager = new NamedPipeManager(isVsix: false);
+                
+                _namedPipeManager.ReceiveMessage += NamedPipeListener_NamedPipeMessageReceived;
+                
 
                 DirectoryHelper.CreateSubdirectories();
 
@@ -132,18 +139,35 @@ namespace AiTool3
             }
         }
 
-        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, VsixOutgoingMessage e)
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, object e)
         {
-            switch(e.MessageType)
+            // deser e as string to VsixMessage
+            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>((string)(e));
+
+            switch (vsixMessage.MessageType)
             {
                 case "prompt":
-                    chatWebView.SetUserPrompt(e.Content);
-                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+                    chatWebView.SetUserPrompt(vsixMessage.Content);
+                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = vsixMessage.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
                     break;
                 case "new":
                     await this.InvokeIfNeeded(async () => await Clear());
                     break;
             }
+        }
+
+        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, VsixMessage e)
+        {
+            //switch(e.MessageType)
+            //{
+            //    case "prompt":
+            //        chatWebView.SetUserPrompt(e.Content);
+            //        this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+            //        break;
+            //    case "new":
+            //        await this.InvokeIfNeeded(async () => await Clear());
+            //        break;
+            //}
             // set the input box to e
             
 
@@ -378,6 +402,8 @@ namespace AiTool3
 
             this.BringToFront();
 
+            _namedPipeManager.ConnectAsync();
+
             // Create things in Ready instead...
 
         }
@@ -515,8 +541,8 @@ namespace AiTool3
                         // get the entire messages pane div from the chatwebview
                         var messagesPane = await chatWebView.GetMessagesPaneContent();
 
-
-                        await _namedPipeListener.SendResponseAsync('e', messagesPane);
+                        _namedPipeManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                        //await _namedPipeListener.SendResponseAsync('e', messagesPane);
                     }
 
                 });

@@ -2,7 +2,7 @@
 
 namespace SharedClasses
 {
-    public class VsixOutgoingMessage
+    public class VsixMessage
     {
         public string Content { get; set; }
         public string MessageType { get; set; }

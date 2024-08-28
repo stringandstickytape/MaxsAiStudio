@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
+using SharedClasses;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -44,6 +45,7 @@ namespace VSIXTest
         private NamedPipeClientStream pipeClient;
         private StreamWriter writer;
         private StreamReader reader;
+        private NamedPipeManager namedPipeManager;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -54,75 +56,46 @@ namespace VSIXTest
             //await GetSurroundingLinesCommand.InitializeAsync(this);
             await OpenChatWindowCommand.InitializeAsync(this);
 
-            InitializePipeClient();
+            namedPipeManager = new NamedPipeManager(isVsix: true);
+            namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
+            await namedPipeManager.ConnectAsync();
+
+            
         }
 
-        private void InitializePipeClient()
+        protected override void Dispose(bool disposing)
         {
-            pipeClient = new NamedPipeClientStream(".", "MaxsAIStudioVSIX", PipeDirection.InOut, PipeOptions.Asynchronous);
-            pipeClient.Connect(3000);
-            writer = new StreamWriter(pipeClient) { AutoFlush = true };
-            reader = new StreamReader(pipeClient);
-
-            // Start listening for messages
-            Task.Run(ListenForMessages);
+            namedPipeManager.Dispose();
+            base.Dispose(disposing);
         }
+
+        private async void NamedPipeManager_ReceiveMessage(object sender, object e)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var chatWindowPane = GetChatWindowPane();
+            if (chatWindowPane != null)
+            {
+                var chatWindowControl = chatWindowPane.Content as ChatWindowControl;
+                if (chatWindowControl != null && chatWindowControl.WebView != null)
+                {
+                    // Convert e (jobject) to VsixMessage obj
+                    var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
+                    chatWindowControl.WebView.ReceiveMessage(vsixMessage);
+
+
+                }
+            }
+        }
+
         private ChatWindowPane GetChatWindowPane()
         {
             return this.FindToolWindow(typeof(ChatWindowPane), 0, true) as ChatWindowPane;
         }
-        private async Task ListenForMessages()
-        {
-            while (true)
-            {
-                string jsonMessage = await reader.ReadLineAsync();
-                if (jsonMessage == null) break; // End of stream
-
-                messageQueue.Enqueue(jsonMessage);
-                ProcessQueueAsync().FireAndForget();
-            }
-        }
-
-
-        private async Task ProcessQueueAsync()
-        {
-            if (!await processingSemaphore.WaitAsync(0))
-            {
-                return; // Another processing task is already running
-            }
-
-            try
-            {
-                while (messageQueue.TryDequeue(out string jsonMessage))
-                {
-                    await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    var chatWindowPane = GetChatWindowPane();
-                    if (chatWindowPane != null)
-                    {
-                        var chatWindowControl = chatWindowPane.Content as ChatWindowControl;
-                        if (chatWindowControl != null && chatWindowControl.WebView != null)
-                        {
-                            // Deserialize the message if needed
-                            var message = JsonConvert.DeserializeObject<string>(jsonMessage);
-                            chatWindowControl.WebView.ReceiveMessage(message);
-                        }
-                    }
-
-                    // Add a small delay to prevent UI freezing
-                    await Task.Delay(10);
-                }
-            }
-            finally
-            {
-                processingSemaphore.Release();
-            }
-        }
 
         public async Task SendMessageThroughPipe(string message)
         {
-            await writer.WriteLineAsync(message);
-            await writer.FlushAsync();
+            namedPipeManager.EnqueueMessage(message);
         }
     }
 }
