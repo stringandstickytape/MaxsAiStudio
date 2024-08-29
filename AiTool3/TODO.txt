@@ -117,8 +117,7 @@ serenw
 
 VSIX:
  
-  - make the inter-process comms much more stable (with a debug mode?)
-    - kill the current output to debug!
+  DONE: make the inter-process comms much more stable
 
  - not using system prompts at this stage :/
 
@@ -126,7 +125,7 @@ VSIX:
 
  - flipping tabs in vs causes it to reset somehow
  
- - add proper completion support for autocomplete
+ - add proper completion support for autocomplete, which will require the use of a tool
 
  - right-click menu options? on pop-on-select?
 

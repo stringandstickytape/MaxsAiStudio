@@ -102,6 +102,7 @@
     <None Remove="Tools\chat-template.json" />
     <None Remove="Tools\color-scheme-spec.json" />
     <None Remove="Tools\find-and-replace.json" />
+    <None Remove="Tools\insertion.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
     <None Remove="UI\Licenses.txt" />
   </ItemGroup>
@@ -152,6 +153,7 @@
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\array-find-and-replace.json" />
     <EmbeddedResource Include="Tools\chat-template.json" />
+    <EmbeddedResource Include="Tools\insertion.json" />
     <EmbeddedResource Include="Tools\find-and-replace.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>
