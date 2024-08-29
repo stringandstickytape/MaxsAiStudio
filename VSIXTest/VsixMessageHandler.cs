@@ -205,24 +205,26 @@ namespace VSIXTest
 
             if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
             {
-                foreach (ProjectItem item in project.ProjectItems)
-                {
-                    if (item.SubProject != null)
+                if (project.ProjectItems != null)
+                    foreach (ProjectItem item in project.ProjectItems)
                     {
-                        GetProjectFiles(item.SubProject, files);
+                        if (item.SubProject != null)
+                        {
+                            GetProjectFiles(item.SubProject, files);
+                        }
+                        else
+                        {
+                            ProcessProjectItem(item, files);
+                        }
                     }
-                    else
-                    {
-                        ProcessProjectItem(item, files);
-                    }
-                }
             }
             else
             {
-                foreach (ProjectItem item in project.ProjectItems)
-                {
-                    ProcessProjectItem(item, files);
-                }
+                if (project.ProjectItems != null)
+                    foreach (ProjectItem item in project.ProjectItems)
+                    {
+                        ProcessProjectItem(item, files);
+                    }
             }
         }
 
