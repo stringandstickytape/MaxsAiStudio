@@ -221,7 +221,18 @@ namespace AiTool3.Providers
                 var content2 = await response.Content.ReadAsStringAsync();
             }
 
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch ( Exception e )
+            {
+                // get the error response stream and text and so on
+                var errorResponse = await response.Content.ReadAsStringAsync();
+                
+
+                throw;
+            }
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var streamProcessor = new StreamProcessor(currentSettings.UsePromptCaching);

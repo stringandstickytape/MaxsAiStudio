@@ -82,8 +82,9 @@ namespace VSIXTest
 
             switch (messageType)
             {
+
                 case "sendMessage":
-                    _messageHandler.SendMessage((string)message.message);
+                    _messageHandler.SendPrompt((string)message.message);
                     break;
                 case "getShortcuts":
                     GetShortcuts((string)message.token);
@@ -108,26 +109,27 @@ namespace VSIXTest
 
         public async Task ReceiveMessage(VsixMessage message)
         {
-            string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
+            
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             switch (message.MessageType)
             {
                 case "response":
+                    string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
                     await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
 
                     await ExecuteScriptAsync(@"
-                document.addEventListener('click', function(e) {
-                    if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
-                        const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
-                        if (codeBlock) {
-                            const codeText = codeBlock.textContent;
-                            navigator.clipboard.writeText(codeText);
-                        }
-                    }
-                });
-            ");
+                        document.addEventListener('click', function(e) {
+                            if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
+                                const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
+                                if (codeBlock) {
+                                    const codeText = codeBlock.textContent;
+                                    navigator.clipboard.writeText(codeText);
+                                }
+                            }
+                        });
+                    ");
 
                     break;
             }

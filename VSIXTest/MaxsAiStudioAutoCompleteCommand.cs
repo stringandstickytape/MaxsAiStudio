@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Windows.Forms;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -64,7 +65,14 @@ namespace VSIXTest
         {
             var messageHandler = new VsixMessageHandler(_dte);
             messageHandler.SendNewConversationMessage();
-            messageHandler.SendMessage($"{BacktickHelper.ThreeTicks}\n{surroundingCode}\n{BacktickHelper.ThreeTicks}\n\nAutocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after.");
+
+                var vsixMessage = new VsixMessage
+                {
+                    MessageType = "autocomplete",
+                    Content = $"{BacktickHelper.ThreeTicks}\n{surroundingCode}\n{BacktickHelper.ThreeTicks}\n\nAutocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after."
+                };
+
+                messageHandler.SendVsixMessage(vsixMessage);
         }
     }
 }

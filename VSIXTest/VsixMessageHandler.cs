@@ -20,7 +20,7 @@ namespace VSIXTest
             _dte = dte;
         }
 
-        public void SendMessage(string message)
+        public void SendPrompt(string message)
         {
             if (!string.IsNullOrEmpty(message))
             {
@@ -77,6 +77,11 @@ namespace VSIXTest
             }
         }
 
+        public void SendVsixMessage(VsixMessage vsixMessage)
+        {
+            VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(vsixMessage));
+        }
+
         public void SendNewConversationMessage()
         {
             VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
@@ -92,7 +97,7 @@ namespace VSIXTest
             {
                 string prompt = $"{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}{matchingPrompt.Prompt}";
                 SendNewConversationMessage();
-                SendMessage(prompt);
+                SendPrompt(prompt);
             }
         }
 

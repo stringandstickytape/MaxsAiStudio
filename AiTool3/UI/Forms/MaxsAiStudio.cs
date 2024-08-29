@@ -141,33 +141,18 @@ namespace AiTool3
             switch (vsixMessage.MessageType)
             {
                 case "prompt":
-                    chatWebView.SetUserPrompt(vsixMessage.Content);
+                    await chatWebView.SetUserPrompt(vsixMessage.Content);
                     this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = vsixMessage.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+                    break;
+                case "autocomplete":
+                    var toolID = _toolManager.Tools.IndexOf(_toolManager.GetToolByLabel("Insertions"));
+                    await chatWebView.SetUserPrompt(vsixMessage.Content);
+                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = vsixMessage.Content, SelectedTools = new List<string> { toolID.ToString() }, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
                     break;
                 case "new":
                     await this.InvokeIfNeeded(async () => await Clear());
                     break;
             }
-        }
-
-        private async void NamedPipeListener_NamedPipeMessageReceived(object? sender, VsixMessage e)
-        {
-            //switch(e.MessageType)
-            //{
-            //    case "prompt":
-            //        chatWebView.SetUserPrompt(e.Content);
-            //        this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = e.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
-            //        break;
-            //    case "new":
-            //        await this.InvokeIfNeeded(async () => await Clear());
-            //        break;
-            //}
-            // set the input box to e
-            
-
-            
-
-            //_namedPipeListener.RunCodeAssistant(CurrentSettings, _toolManager, e);
         }
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
