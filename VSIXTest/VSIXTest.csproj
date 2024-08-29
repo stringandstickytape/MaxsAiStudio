@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ButtonManager.cs" />
     <Compile Include="ChatControl.xaml.cs">
       <DependentUpon>ChatControl.xaml</DependentUpon>
     </Compile>
@@ -56,11 +57,14 @@
     <Compile Include="GitDiffHelper.cs" />
     <Compile Include="InlineChatAdornment.cs" />
     <Compile Include="InlineChatAdornmentFactory.cs" />
+    <Compile Include="MessageFormatter.cs" />
     <Compile Include="OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceManager.cs" />
+    <Compile Include="ShortcutManager.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="VsixChat.cs" />
+    <Compile Include="VsixMessageHandler.cs" />
     <Compile Include="VSIXTestPackage.cs" />
   </ItemGroup>
   <ItemGroup>
