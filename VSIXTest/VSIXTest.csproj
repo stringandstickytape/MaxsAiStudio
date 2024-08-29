@@ -57,6 +57,7 @@
     <Compile Include="GitDiffHelper.cs" />
     <Compile Include="InlineChatAdornment.cs" />
     <Compile Include="InlineChatAdornmentFactory.cs" />
+    <Compile Include="MaxsAiStudioAutoCompleteCommand.cs" />
     <Compile Include="MessageFormatter.cs" />
     <Compile Include="OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

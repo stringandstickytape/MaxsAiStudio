@@ -21,6 +21,12 @@
 				<ButtonText>Open AI Chat</ButtonText>
 			</Strings>
 		</Button>
+		<Button guid="guidVSIXTestPackageCmdSet" id="MaxsAiStudioAutoCompleteCommandId" priority="0x0100" type="Button">
+			<Parent guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" />
+			<Strings>
+				<ButtonText>MaxsAiStudio AutoComplete</ButtonText>
+			</Strings>
+		</Button>
     </Buttons>
   </Commands>
 
@@ -33,6 +39,7 @@
     <GuidSymbol name="guidVSIXTestPackage" value="{743967b7-4ad8-4103-8a28-bf2933a5bdf2}" />
     <GuidSymbol name="guidVSIXTestPackageCmdSet" value="{743967b7-4ad8-4103-8a28-bf2933a5bdf3}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
+		<IDSymbol name="MaxsAiStudioAutoCompleteCommandId" value="0x0102" />
       <IDSymbol name="GetSurroundingLinesCommandId" value="0x0100" />
 		<IDSymbol name="OpenChatWindowCommandId" value="0x0101" />
     </GuidSymbol>

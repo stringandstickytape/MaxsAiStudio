@@ -60,7 +60,9 @@ namespace VSIXTest
             namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
             await namedPipeManager.ConnectAsync();
 
-            
+            await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
+
+
         }
 
         protected override void Dispose(bool disposing)

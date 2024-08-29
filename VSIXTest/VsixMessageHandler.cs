@@ -80,6 +80,7 @@ namespace VSIXTest
         public void SendNewConversationMessage()
         {
             VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
+
         }
 
         public void HandleDefaultMessage(string messageType)

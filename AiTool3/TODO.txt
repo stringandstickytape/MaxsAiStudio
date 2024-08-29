@@ -113,6 +113,7 @@ DONE: covn manager doesn't unlock when chat returns?
 DONE: better model selection generally
 
 VSIXDONE: all open files
+serenw
 
 VSIX:
  
