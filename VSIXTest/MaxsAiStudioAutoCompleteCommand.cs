@@ -49,23 +49,31 @@ namespace VSIXTest
 
             EditPoint startPoint = textDocument.Selection.ActivePoint.CreateEditPoint();
             EditPoint endPoint = textDocument.Selection.ActivePoint.CreateEditPoint();
-            startPoint.CharLeft(500);
+            //startPoint.CharLeft(500);
+            startPoint.StartOfDocument();
             string textBefore = startPoint.GetText(endPoint);
 
             startPoint = textDocument.Selection.ActivePoint.CreateEditPoint();
-            endPoint.CharRight(500);
+
+            //endPoint.CharRight(500);
+            endPoint.EndOfDocument();
+
             string textAfter = startPoint.GetText(endPoint);
 
             string output = $"{textBefore}\n//!\n{textAfter}";
 
             SendAutoCompleteRequest(output);
+
+            //log what just happened
+            
         }
 
+        // a high-quality logging method
         private void SendAutoCompleteRequest(string surroundingCode)
         {
             var messageHandler = new VsixMessageHandler(_dte);
             messageHandler.SendNewConversationMessage();
-
+            
                 var vsixMessage = new VsixMessage
                 {
                     MessageType = "autocomplete",

@@ -1,4 +1,12 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Newtonsoft.Json;
 using SharedClasses;
 using System;
@@ -41,29 +49,13 @@ namespace VSIXTest
 
         public const string PackageGuidString = "743967b7-4ad8-4103-8a28-bf2933a5bdf2";
         public static VSIXTestPackage Instance { get; private set; }
+        public DTE2 DTE { get; private set; }
 
         private NamedPipeClientStream pipeClient;
         private StreamWriter writer;
         private StreamReader reader;
         private TcpCommsManager namedPipeManager;
 
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
-        {
-            await base.InitializeAsync(cancellationToken, progress);
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            Instance = this;
-            //await GetSurroundingLinesCommand.InitializeAsync(this);
-            await OpenChatWindowCommand.InitializeAsync(this);
-
-            namedPipeManager = new TcpCommsManager(isVsix: true);
-            namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
-            await namedPipeManager.ConnectAsync();
-
-            await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
-
-
-        }
 
         protected override void Dispose(bool disposing)
         {

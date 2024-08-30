@@ -10,6 +10,16 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 using SharedClasses;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System;
 
 namespace VSIXTest
 {
@@ -107,6 +117,81 @@ namespace VSIXTest
             await ExecuteScriptAsync(script);
         }
 
+
+
+        private async Task ShowCompletionAsync(string completionText)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var package = VSIXTestPackage.Instance;
+            var dte = package.DTE;
+
+            if (dte?.ActiveDocument?.Object("TextDocument") is TextDocument textDocument)
+            {
+                var selection = textDocument.Selection as TextSelection;
+                if (selection != null)
+                {
+                    // Store the starting point
+                    var startPoint = selection.ActivePoint.CreateEditPoint();
+
+                    // Insert a carriage return and then the completion text
+                    selection.Insert(Environment.NewLine + completionText);
+
+                    // Move the cursor to the start of the inserted text (after the carriage return)
+                    var afterCarriageReturn = startPoint.CreateEditPoint();
+                    afterCarriageReturn.LineDown(1);
+                    afterCarriageReturn.StartOfLine();
+
+                    // Calculate the end point based on the length of the inserted text
+                    var endPoint = afterCarriageReturn.CreateEditPoint();
+                    endPoint.CharRight(completionText.Length);
+
+                    try
+                    {
+                        // Attempt to format the inserted text
+                        selection.MoveToPoint(afterCarriageReturn);
+                        selection.MoveToPoint(endPoint, true);
+                        dte.ExecuteCommand("Edit.FormatSelection");
+                    }
+                    catch (Exception ex)
+                    {
+                        // If formatting fails, just continue without formatting
+                        System.Diagnostics.Debug.WriteLine($"Formatting failed: {ex.Message}");
+                    }
+
+                    // Ensure the inserted text is selected after formatting
+                    selection.MoveToPoint(afterCarriageReturn);
+                    selection.MoveToPoint(endPoint, true);
+                }
+            }
+        }
+
+
+        private async Task HandleAutocompleteResponse(string content)
+        {
+            if(content.StartsWith("{\"code="))
+            {
+                var firstIndex = content.IndexOf("{\"code=");
+                if(firstIndex > -1)
+                    content = content.Substring(0, firstIndex) + "{\"Code" + content.Substring(firstIndex + 7);
+                firstIndex = content.IndexOf("{\"Code=");
+                if (firstIndex > -1)
+                    content = content.Substring(0, firstIndex) + "{\"Code" + content.Substring(firstIndex + 7);
+            }
+            var response = JsonConvert.DeserializeObject<AutocompleteResponse>(content);
+            if (response != null && !string.IsNullOrEmpty(response.Code))
+            {
+                await ShowCompletionAsync(response.Code);
+            }
+        }
+
+        private class AutocompleteResponse
+        {
+            public string Code { get; set; }
+            public string Explanation { get; set; }
+        }
+
+
         public async Task ReceiveMessage(VsixMessage message)
         {
             
@@ -115,6 +200,9 @@ namespace VSIXTest
 
             switch (message.MessageType)
             {
+                case "autocompleteResponse":
+                    await HandleAutocompleteResponse(message.Content);
+                    break;
                 case "response":
                     string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
                     await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
@@ -135,4 +223,5 @@ namespace VSIXTest
             }
         }
     }
+
 }

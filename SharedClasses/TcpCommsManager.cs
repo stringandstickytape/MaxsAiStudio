@@ -62,7 +62,7 @@ namespace SharedClasses
 
         private async Task ConnectClientAsync()
         {
-            int maxAttempts = 30;
+            int maxAttempts = 5;
             int attempt = 0;
             while (!cts.Token.IsCancellationRequested && attempt < maxAttempts)
             {
@@ -72,6 +72,8 @@ namespace SharedClasses
                     stream = client.GetStream();
                     Debug.WriteLine($"Connected to server on port {Port}");
                     _ = ListenForMessagesAsync();
+
+
                     return;
                 }
                 catch (Exception ex)
@@ -149,15 +151,28 @@ namespace SharedClasses
 
         private async Task ReconnectAsync()
         {
-            stream?.Dispose();
+            if (stream != null)
+            {
+                stream.Dispose();
+            }
+
             if (isVsix)
             {
-                client.Dispose();
-                InitializeTcp();
-                await ConnectClientAsync();
+                if (client != null)
+                {
+                    if (client.Connected)
+                    {
+                        client.Close(); // Properly close the existing connection
+                    }
+                    client.Dispose(); // Dispose the existing client
+                }
+
+                client = new TcpClient(); // Initialize a new TcpClient instance
+                await ConnectClientAsync(); // Attempt to connect again
             }
             else
             {
+                // Server side logic (if needed)
                 await StartServerAsync();
             }
         }
@@ -190,6 +205,7 @@ namespace SharedClasses
                     }
                     else
                     {
+                        //Thread.Sleep(1);
                         await ReconnectAsync();
                     }
                 }

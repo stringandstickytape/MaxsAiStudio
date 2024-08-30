@@ -34,7 +34,7 @@ namespace AiTool3.Conversations
             {
                 var model = sendSecondary ? await _chatWebView.GetDropdownModel("summaryAI", currentSettings) : await _chatWebView.GetDropdownModel("mainAI", currentSettings);
 
-                var userPrompt = await _chatWebView.GetUserPrompt();
+                var userPrompt = overrideUserPrompt == null ? await _chatWebView.GetUserPrompt() : overrideUserPrompt;
 
                 if (currentSettings.AllowUserPromptUrlPulls && userPrompt != null)
                 {
@@ -70,10 +70,10 @@ namespace AiTool3.Conversations
                     {
                         await _chatWebView.SetUserPrompt(response.SuggestedNextPrompt);
                     }
+                }
 
                     updateUiMethod?.Invoke(response);
                     await _conversationManager.UpdateConversationSummary(currentSettings);
-                }
             }
             catch (Exception ex)
             {

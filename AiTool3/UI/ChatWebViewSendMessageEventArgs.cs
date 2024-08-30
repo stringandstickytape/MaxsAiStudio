@@ -10,5 +10,7 @@
         public bool AddEmbeddings { get; internal set; }
 
         public bool SendResponseToVsix { get; set; } = false;
+
+        public string OverrideUserPrompt { get; set; } = null;
     }
 }

@@ -175,6 +175,7 @@ namespace AiTool3.Providers
 
             StreamingComplete?.Invoke(this, null);
 
+            
             return new AiResponse
             {
                 ResponseText = responseBuilder.ToString(),
@@ -188,7 +189,7 @@ namespace AiTool3.Providers
             if (line.Length < 6)
                 return line;
 
-            Debug.WriteLine(line);
+            //Debug.WriteLine(line);
             if (line.StartsWith("data: "))
             {
                 string jsonData = line.Substring("data: ".Length).Trim();
@@ -204,7 +205,7 @@ namespace AiTool3.Providers
                         // Attempt to parse the JSON string
                         using (JsonDocument doc = JsonDocument.Parse(jsonData))
                         {
-                            Debug.WriteLine("JSON valid.");
+                            //Debug.WriteLine("JSON valid.");
                         }
                     }
                     catch (System.Text.Json.JsonException ex)
@@ -224,7 +225,7 @@ namespace AiTool3.Providers
 
                         if (!string.IsNullOrEmpty(content))
                         {
-                            Debug.Write(content);
+                            //Debug.Write(content);
                             responseBuilder.Append(content);
                             StreamingTextReceived?.Invoke(this, content);
                         }
@@ -261,6 +262,7 @@ namespace AiTool3.Providers
             var responseContent = await response.Content.ReadAsStringAsync(cts);
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
+            response.EnsureSuccessStatusCode();
             var responseText = "";
             // if message has an array of tool_calls
             if (jsonResponse["choices"]?[0]?["message"]?["tool_calls"] != null)

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using SharedClasses;
 using System.Data;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
 
@@ -147,7 +148,7 @@ namespace AiTool3
                 case "autocomplete":
                     var toolID = _toolManager.Tools.IndexOf(_toolManager.GetToolByLabel("Insertions"));
                     await chatWebView.SetUserPrompt(vsixMessage.Content);
-                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = vsixMessage.Content, SelectedTools = new List<string> { toolID.ToString() }, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
+                    this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { OverrideUserPrompt = vsixMessage.Content,  Content = vsixMessage.Content, SelectedTools = new List<string> { toolID.ToString() }, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
                     break;
                 case "new":
                     await this.InvokeIfNeeded(async () => await Clear());
@@ -509,7 +510,7 @@ namespace AiTool3
             dgvConversations.Enabled = false;
             webViewManager.Disable();
 
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
+            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, overrideUserPrompt: e.OverrideUserPrompt, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings,
                 updateUiMethod: async (response) =>
                 {
                     updateTimer.Stop();
@@ -520,10 +521,32 @@ namespace AiTool3
                         // get the entire messages pane div from the chatwebview
                         var messagesPane = await chatWebView.GetMessagesPaneContent();
 
-                        _namedPipeManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
-                        //await _namedPipeListener.SendResponseAsync('e', messagesPane);
-                    }
+                        // does the last message's content include any three-backticks-demarcated code blocks?
+                        if (messagesPane != null)
+                        {
+                            
+                            var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
+                            var matches = Regex.Matches(ConversationManager.Conversation.Messages.Last().Content, codeBlockPattern, RegexOptions.Multiline);
 
+                            // does the last one begin {ThreeTicks}insertions.json ?
+                            if (matches.Count > 0 && matches.Last().Value.Contains($"{ThreeTicks}insertions.json"))
+                            {
+                                var lastCodeBlock = matches.Last().Value;
+                                var lines = lastCodeBlock.Split('\n');
+                                lastCodeBlock = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
+
+                                // if lastCodeBlock starts with {"code= then remove the equals sign but only for the first instance of {"code=, using indexes
+                                if (lastCodeBlock.StartsWith("{\"code="))
+                                {
+                                    var firstIndex = lastCodeBlock.IndexOf("{\"code=");
+                                    lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
+                                }
+
+                                _namedPipeManager.EnqueueMessage(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
+                            }
+                            else _namedPipeManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                        }
+                    }
                 });
             
             EnableConversationsAndWebView();
