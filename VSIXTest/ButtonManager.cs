@@ -7,6 +7,13 @@ namespace VSIXTest
 {
     public class ButtonManager
     {
+        /// <summary>
+        /// Represents a collection of predefined message prompts for various code-related tasks.
+        /// </summary>
+        /// <remarks>
+        /// This array contains <see cref="MessagePrompt"/> objects categorized by different aspects of code analysis, 
+        /// refactoring, enhancement, and documentation. Each prompt is associated with a specific button label and message type.
+        /// </remarks>
         public static readonly MessagePrompt[] MessagePrompts = new[]
         {
             // Code Analysis and Explanation
@@ -45,6 +52,29 @@ namespace VSIXTest
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Generate README", MessageType = "generateReadme", Prompt = "Generate a comprehensive README.md file for this project based on the code provided:" },
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Create User Guide", MessageType = "createUserGuide", Prompt = "Create a user guide explaining how to use the functionality implemented in this code:" },
             new MessagePrompt { Category = "Documentation", ButtonLabel = "API Documentation", MessageType = "generateApiDocs", Prompt = "Generate API documentation for the public methods and classes in this code:" },
+
+            new MessagePrompt
+{
+    Category = "Documentation",
+    ButtonLabel = "C# XML Comments",
+    MessageType = "generateCSharpXmlComments",
+    Prompt = @"You are an AI assistant specialized in creating standards-compliant XML documentation comments for C# code. Analyze the given C# code and generate appropriate XML comments for classes, methods, properties, and other code elements.
+
+Follow these guidelines:
+1. Use XML documentation comments starting with ///.
+2. Include a <summary> tag for each element, providing a brief description.
+3. Use <param> tags for method parameters, describing each parameter.
+4. Use <returns> tags for methods that return a value, describing the return value.
+5. Use <exception> tags to document exceptions that may be thrown.
+6. Use <remarks> tags for additional information when necessary.
+7. Use <example> tags to provide usage examples for complex methods or classes.
+8. Use <see> and <seealso> tags to reference related code elements.
+9. Follow Microsoft's C# documentation style guide for consistency.
+10. Ensure that comments are clear, concise, and add value to the code.
+
+Analyze the above C# code and provide appropriate XML documentation comments for the code elements. Do not modify or repeat the original code; give only the comments to go above the relevant method or class. "
+},
+
         };
 
         public string GenerateButtonScript()

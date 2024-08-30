@@ -124,7 +124,7 @@ namespace VSIXTest
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var package = VSIXTestPackage.Instance;
-            var dte = package.DTE;
+            var dte = _dte;
 
             if (dte?.ActiveDocument?.Object("TextDocument") is TextDocument textDocument)
             {

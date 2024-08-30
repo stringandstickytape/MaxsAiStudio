@@ -25,6 +25,15 @@ namespace SharedClasses
         public event EventHandler<object> ReceiveMessage;
         public event EventHandler<Exception> ErrorOccurred;
 
+        /// <summary>
+        /// Manages TCP communications with configurable options for concurrent sends.
+        /// </summary>
+        /// <param name="isVsix">Indicates whether the instance is part of a VSIX package.</param>
+        /// <param name="maxConcurrentSends">The maximum number of concurrent sends allowed. Default is 5.</param>
+        /// <remarks>
+        /// This class initializes the TCP communication settings and defines a queue for message management.
+        /// It employs a semaphore to control the maximum number of concurrent send operations.
+        /// </remarks>
         public TcpCommsManager(bool isVsix, int maxConcurrentSends = 5)
         {
             this.isVsix = isVsix;
@@ -60,21 +69,24 @@ namespace SharedClasses
             _ = ProcessMessageQueueAsync();
         }
 
-        private async Task ConnectClientAsync()
+        private async Task ConnectClientAsync(bool startMessageLoop = true)
         {
             int maxAttempts = 5;
             int attempt = 0;
-            while (!cts.Token.IsCancellationRequested && attempt < maxAttempts)
+            while (!cts.Token.IsCancellationRequested)
             {
                 try
                 {
                     await client.ConnectAsync(IPAddress.Loopback, Port);
                     stream = client.GetStream();
                     Debug.WriteLine($"Connected to server on port {Port}");
-                    _ = ListenForMessagesAsync();
+                    if (startMessageLoop)
+                    {
+                        _ = ListenForMessagesAsync();
+                    }
 
 
-                    return;
+                        return;
                 }
                 catch (Exception ex)
                 {
@@ -82,7 +94,7 @@ namespace SharedClasses
                     if (attempt >= maxAttempts)
                     {
                         ErrorOccurred?.Invoke(this, ex);
-                        throw new Exception($"Unable to connect to server on port {Port} after {maxAttempts} attempts", ex);
+                        break;
                     }
                     await Task.Delay(1000, cts.Token);
                 }
@@ -168,7 +180,7 @@ namespace SharedClasses
                 }
 
                 client = new TcpClient(); // Initialize a new TcpClient instance
-                await ConnectClientAsync(); // Attempt to connect again
+                await ConnectClientAsync(false); // Attempt to connect again
             }
             else
             {

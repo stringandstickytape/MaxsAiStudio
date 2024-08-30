@@ -55,6 +55,9 @@ namespace VSIXTest
         private StreamWriter writer;
         private StreamReader reader;
         private TcpCommsManager namedPipeManager;
+        private bool isClientInitialized = false;
+        private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
+
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -62,17 +65,29 @@ namespace VSIXTest
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             Instance = this;
-            //await GetSurroundingLinesCommand.InitializeAsync(this);
             await OpenChatWindowCommand.InitializeAsync(this);
-
-            namedPipeManager = new TcpCommsManager(isVsix: true);
-            namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
-            await namedPipeManager.ConnectAsync();
-
             await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
-
-
         }
+
+        private async Task InitializeClientAsync()
+        {
+            await clientInitSemaphore.WaitAsync();
+            try
+            {
+                if (!isClientInitialized)
+                {
+                    namedPipeManager = new TcpCommsManager(isVsix: true);
+                    namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
+                    await namedPipeManager.ConnectAsync();
+                    isClientInitialized = true;
+                }
+            }
+            finally
+            {
+                clientInitSemaphore.Release();
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             namedPipeManager.Dispose();
@@ -105,6 +120,10 @@ namespace VSIXTest
 
         public async Task SendMessageThroughPipe(string message)
         {
+            if (!isClientInitialized)
+            {
+                await InitializeClientAsync();
+            }
             namedPipeManager.EnqueueMessage(message);
         }
     }
