@@ -56,7 +56,23 @@ namespace VSIXTest
         private StreamReader reader;
         private TcpCommsManager namedPipeManager;
 
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        {
+            await base.InitializeAsync(cancellationToken, progress);
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            Instance = this;
+            //await GetSurroundingLinesCommand.InitializeAsync(this);
+            await OpenChatWindowCommand.InitializeAsync(this);
+
+            namedPipeManager = new TcpCommsManager(isVsix: true);
+            namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
+            await namedPipeManager.ConnectAsync();
+
+            await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
+
+
+        }
         protected override void Dispose(bool disposing)
         {
             namedPipeManager.Dispose();

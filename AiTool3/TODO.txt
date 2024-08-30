@@ -113,32 +113,31 @@ DONE: covn manager doesn't unlock when chat returns?
 DONE: better model selection generally
 
 VSIXDONE: all open files
-serenw
+VSIXDONE: make the inter-process comms much more stable
+VSIXDONE (sort of): add proper completion support for autocomplete, which will require the use of a tool
+
+""serene"" bug
 
 VSIX:
  
-  DONE: make the inter-process comms much more stable
+ autocomplete should probably be hard-wired to the summary engine
 
  - not using system prompts at this stage :/
 
  - copy button is buggy, others don't work at all :/
 
  - flipping tabs in vs causes it to reset somehow
- 
- - add proper completion support for autocomplete, which will require the use of a tool
-
+  
  - right-click menu options? on pop-on-select?
 
- - all files in solution 
- - all files in project
+ - all files in solution?
+ - all files in project?
 
  - could define filegroups and then reference those, a bit like a much-better project helper
 
-* Refactor other AI providers like Claude (somtewhat - c == '\n' is used by groq, claude, localai)
 * There's a bug when installing a new theme (and it shouldn't crash the whole app :) if it has no id? I think?
 * rename arrayfindandreplace
-* is it using toolds for summaries
-* should be able to tell which LLMs support tools
+* should be able to tell which LLMs/APIs support tools
 * check which provider classes implement temperature correctly :/
 File explorer needs a clear-all button and possibly a next-search-result button
 
