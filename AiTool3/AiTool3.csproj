@@ -58,39 +58,11 @@
     <None Remove="Defaults\themes.json" />
     <None Remove="Icon\icon.ico" />
     <None Remove="JavaScript\AiStudioButton.js" />
-    <None Remove="JavaScript\Components\AiStudioButton.js" />
-    <None Remove="JavaScript\Components\App.jsx" />
-    <None Remove="JavaScript\Components\ColorSchemeProvider.jsx" />
-    <None Remove="JavaScript\Components\DropDown.jsx" />
-    <None Remove="JavaScript\Components\FormattedContent.jsx" />
-    <None Remove="JavaScript\Components\LiveStream.jsx" />
-    <None Remove="JavaScript\Components\Message.jsx" />
-    <None Remove="JavaScript\Components\MessagesPane.jsx" />
-    <None Remove="JavaScript\Components\ScratchPad.jsx" />
-    <None Remove="JavaScript\Components\SplitButton.jsx" />
-    <None Remove="JavaScript\Components\UserInputBar.jsx" />
     <None Remove="JavaScript\HeaderBar.js" />
     <None Remove="JavaScript\InputBox.js" />
-    <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
-    <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
-    <None Remove="JavaScript\WorkingOverlay-dull.html" />
-    <None Remove="JavaScript\WorkingOverlay.html" />
-    <None Remove="JavaScript\WorkingOverlay2.html" />
-    <None Remove="JavaScript\WorkingOverlay3.html" />
     <None Remove="OllamaEmbeddings.embeddings.json" />
     <None Remove="OpenAIEmbedFragged2.embeddings.json" />
-    <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
-    <None Remove="ThirdPartyJavascript\cytoscape-dagre.min.js" />
-    <None Remove="ThirdPartyJavascript\cytoscape.min.js" />
-    <None Remove="ThirdPartyJavascript\d3.v7.min.js" />
-    <None Remove="ThirdPartyJavascript\dagre.min.js" />
-    <None Remove="ThirdPartyJavascript\jsoneditor-icons.svg" />
-    <None Remove="ThirdPartyJavascript\jsoneditor.min.css" />
-    <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
-    <None Remove="ThirdPartyJavascript\mermaid.min.js" />
-    <None Remove="ThirdPartyJavascript\svg-pan-zoom.min.js" />
-    <None Remove="ThirdPartyJavascript\viz.js" />
     <None Remove="Tools\array-find-and-replace.json" />
     <None Remove="Tools\chat-template.json" />
     <None Remove="Tools\color-scheme-spec.json" />
@@ -107,35 +79,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Defaults\templates.json" />
     <EmbeddedResource Include="Defaults\themes.json" />
-    <EmbeddedResource Include="JavaScript\Components\App.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\ColorSchemeProvider.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\DropDown.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\FormattedContent.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\LiveStream.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\Message.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\ScratchPad.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\SplitButton.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\UserInputBar.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\HeaderBar.jsx" />
-    <EmbeddedResource Include="JavaScript\Components\InputBox.jsx" />
-    <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
-    <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
-    <EmbeddedResource Include="JavaScript\Components\MessagesPane.jsx" />
-    <EmbeddedResource Include="JavaScript\WorkingOverlay-dull.html" />
-    <EmbeddedResource Include="JavaScript\WorkingOverlay3.html" />
-    <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />
-    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-dagre.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\cytoscape.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\d3.v7.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\dagre.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor-icons.svg" />
-    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.css" />
-    <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\mermaid.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\svg-pan-zoom.min.js" />
-    <EmbeddedResource Include="ThirdPartyJavascript\viz.js" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\array-find-and-replace.json" />
     <EmbeddedResource Include="Tools\chat-template.json" />
@@ -173,10 +117,6 @@
   
   <ItemGroup>
     <None Remove="C:\Users\maxhe\.nuget\packages\naudio.lame\2.1.0\build\libmp3lame.64.dll" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Include="JavaScript\WorkingOverlay.html" />
   </ItemGroup>
   
   <ItemGroup>

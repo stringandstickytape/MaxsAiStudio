@@ -413,6 +413,24 @@ namespace AiTool3.UI
                     });
                 }
             }
+            var assembly = Assembly.Load("SharedClasses");
+            foreach (var resourceName in assembly.GetManifestResourceNames())
+            {
+                if (resourceName.StartsWith("SharedClasses.JSX"))
+                {
+                    // find the index of the penultimate dot in resource name
+                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
+                    // get the filename using that
+                    var filename = resourceName.Substring(penultimateDotIndex + 1);
+
+                    resources.Add(new ResourceDetails
+                    {
+                        Uri = $"http://localhost/{filename}",
+                        ResourceName = resourceName,
+                        MimeType = "text/babel"
+                    });
+                }
+            }
 
             resources.AddRange(CreateResourceDetailsList());
 
@@ -436,7 +454,7 @@ namespace AiTool3.UI
             }.Select(item => new ResourceDetails
             {
                 Uri = item.Uri,
-                ResourceName = $"AiTool3.ThirdPartyJavascript.{item.ResourceName}",
+                ResourceName = $"SharedClasses.ThirdPartyJavascript.{item.ResourceName}",
                 MimeType = item.MimeType
             }).ToList();
         }
@@ -444,6 +462,14 @@ namespace AiTool3.UI
         private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
         {
             var assembly = Assembly.GetExecutingAssembly();
+
+            // if resourcename doesn't exist in that assembly...
+            if (!assembly.GetManifestResourceNames().Contains(resourceName))
+            {
+                assembly = Assembly.Load("SharedClasses");
+            }
+
+            
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
@@ -516,7 +542,7 @@ namespace AiTool3.UI
             }
             else
             {
-                var themesJson = AssemblyHelper.GetEmbeddedAssembly("AiTool3.Defaults.themes.json");
+                var themesJson = AssemblyHelper.GetEmbeddedResource("AiTool3.Defaults.themes.json");
                 await SetThemes(themesJson);
                 File.WriteAllText(themesPath, themesJson);
                 settings.SelectedTheme = "Serene";

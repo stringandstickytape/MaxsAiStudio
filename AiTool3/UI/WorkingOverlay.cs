@@ -87,9 +87,9 @@ namespace AiTool3.UI
         {
             msg = msg.ToUpper();
 
-            var overlayName = softwareToysMode ? "AiTool3.JavaScript.WorkingOverlay.html" : "AiTool3.JavaScript.WorkingOverlay-dull.html";
+            var overlayName = softwareToysMode ? "SharedClasses.WorkingOverlays.WorkingOverlay.html" : "SharedClasses.WorkingOverlays.WorkingOverlay-dull.html";
 
-            var myRes = AssemblyHelper.GetEmbeddedAssembly(overlayName);
+            var myRes = AssemblyHelper.GetEmbeddedResource("SharedClasses", overlayName);
             myRes = myRes.Replace("ABCDEFGHIJKLMNOPQRSTUVWXYZ", msg);
             if (softwareToysMode)
             {

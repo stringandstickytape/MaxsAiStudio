@@ -120,17 +120,17 @@ namespace AiTool3.UI
 
         public async Task CreateNewWebNdc(bool showDevTools, EventHandler<WebNdcContextMenuOptionSelectedEventArgs> webViewNdc_WebNdcContextMenuOptionSelected, EventHandler<WebNdcNodeClickedEventArgs> webViewNdc_WebNdcNodeClicked)
         {
-            string js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramJavascriptControl.js");
-            var css = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramCssControl.css");
+            string js = AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.JavaScript.NetworkDiagramJavascriptControl.js");
+            var css = AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.CSS.NetworkDiagramCssControl.css");
 
 
-            string html = AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.NetworkDiagramHtmlControl.html");
+            string html = AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.HTML.NetworkDiagramHtmlControl.html");
             string htmlAndCss = html.Replace("{magiccsstoken}", css);
             string result = htmlAndCss.Replace("<insertscripthere />", js);
 
             await OpenWebViewWithJs("", showDevTools);
 
-            string d3js = AssemblyHelper.GetEmbeddedAssembly("AiTool3.ThirdPartyJavascript.d3.v7.min.js");
+            string d3js = AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.ThirdPartyJavascript.d3.v7.min.js");
 
             // how to replace Script tags
             await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(d3js);

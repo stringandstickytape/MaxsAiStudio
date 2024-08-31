@@ -24,7 +24,7 @@ namespace AiTool3.Tools
 
             foreach (string resourceName in resourceNames)
             {
-                string json = AssemblyHelper.GetEmbeddedAssembly(resourceName);
+                string json = AssemblyHelper.GetEmbeddedResource(resourceName);
                 if (!string.IsNullOrEmpty(json))
                 {
                     try
@@ -81,7 +81,7 @@ namespace AiTool3.Tools
 
     public static class AssemblyHelper
     {
-        public static string GetEmbeddedAssembly(string resourceName)
+        public static string GetEmbeddedResource(string resourceName)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
@@ -98,11 +98,15 @@ namespace AiTool3.Tools
 
         public static string GetEmbeddedResource(string assemblyName, string resourceName)
         {
+            Assembly assembly = Assembly.Load(assemblyName);
+
+            return GetEmbeddedResource(assembly, resourceName);
+        }
+
+        private static string GetEmbeddedResource(Assembly assembly, string resourceName)
+        {
             try
             {
-                // Load the specified assembly
-                Assembly assembly = Assembly.Load(assemblyName);
-
                 // Get the resource stream
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
