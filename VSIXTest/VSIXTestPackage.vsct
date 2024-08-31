@@ -18,7 +18,7 @@
 		<Button guid="guidVSIXTestPackageCmdSet" id="OpenChatWindowCommandId" priority="0x0100" type="Button">
 			<Parent guid="guidVSIXTestPackageCmdSet" id="MyMenuGroup" />
 			<Strings>
-				<ButtonText>Open AI Chat</ButtonText>
+				<ButtonText>Open Max's AI Studio Chat</ButtonText>
 			</Strings>
 		</Button>
 		<Button guid="guidVSIXTestPackageCmdSet" id="MaxsAiStudioAutoCompleteCommandId" priority="0x0100" type="Button">

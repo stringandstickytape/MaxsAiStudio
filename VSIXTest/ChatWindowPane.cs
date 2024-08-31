@@ -10,7 +10,7 @@ public class ChatWindowPane : ToolWindowPane, IVsWindowFrameNotify3
 
     public ChatWindowPane() : base(null)
     {
-        this.Caption = "AI Chat";
+        this.Caption = "Max's AI Studio";
         _webView = VsixChat.Instance;
         this.Content = new ChatWindowControl(_webView);
     }

@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
 using SharedClasses.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace AiTool3.Tools
@@ -19,53 +22,49 @@ namespace AiTool3.Tools
             Assembly assembly = Assembly.GetExecutingAssembly();
             string namespacePrefix = "AiTool3.Tools.";
 
-            string[] resourceNames = assembly.GetManifestResourceNames()
-                .Where(name => name.StartsWith(namespacePrefix) && name.EndsWith(".json"))
-                .ToArray();
+            var resourceNames = assembly.GetManifestResourceNames()
+                .Where(name => name.StartsWith(namespacePrefix) && name.EndsWith(".json"));
 
             foreach (string resourceName in resourceNames)
             {
                 string json = AssemblyHelper.GetEmbeddedResource(assembly, resourceName);
-                if (!string.IsNullOrEmpty(json))
-                {
-                    try
-                    {
-                        // get first and second lines of json file
-                        string[] lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-                        string firstLine = lines[0].Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
-                        string secondLine = lines[1].Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
-
-                        Tool tool = JsonConvert.DeserializeObject<Tool>(json);
-
-                        tool.InternalName = firstLine;
-                        tool.OutputFilename = secondLine;
-
-                        if (tool != null)
-                        {
-                            tool.FullText = json;
-                            if (tool != null)
-                            {
-                                Tools.Add(tool);
-                                Console.WriteLine($"Loaded tool: {tool.Name}");
-                            }
-                        }
-                    }
-                    catch (JsonException ex)
-                    {
-                        Console.WriteLine($"Error parsing JSON for {resourceName}: {ex.Message}");
-                    }
-                }
-                else
+                if (string.IsNullOrEmpty(json))
                 {
                     Console.WriteLine($"Failed to load resource: {resourceName}");
+                    continue;
+                }
+
+                try
+                {
+                    var lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                    string firstLine = CleanLine(lines[0]);
+                    string secondLine = CleanLine(lines[1]);
+
+                    Tool tool = JsonConvert.DeserializeObject<Tool>(json);
+                    if (tool == null) continue;
+
+                    tool.InternalName = firstLine;
+                    tool.OutputFilename = secondLine;
+                    tool.FullText = json;
+
+                    Tools.Add(tool);
+                    Console.WriteLine($"Loaded tool: {tool.Name}");
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Error parsing JSON for {resourceName}: {ex.Message}");
                 }
             }
         }
 
-        internal Tool GetToolByLabel(string v)
+        private string CleanLine(string line)
         {
-            return Tools.FirstOrDefault(t => t.Name == v);
+            return line.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "").Trim();
+        }
+
+        public Tool GetToolByLabel(string label)
+        {
+            return Tools.FirstOrDefault(t => t.Name == label);
         }
     }
 
@@ -74,7 +73,6 @@ namespace AiTool3.Tools
         public string Name { get; set; }
         public string Description { get; set; }
         public string FullText { get; set; }
-
         public string InternalName { get; set; }
         public string OutputFilename { get; set; }
         // Add other properties as needed
