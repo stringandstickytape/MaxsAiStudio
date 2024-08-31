@@ -95,5 +95,33 @@ namespace AiTool3.Tools
                 }
             }
         }
+
+        public static string GetEmbeddedResource(string assemblyName, string resourceName)
+        {
+            try
+            {
+                // Load the specified assembly
+                Assembly assembly = Assembly.Load(assemblyName);
+
+                // Get the resource stream
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                {
+                    if (stream == null)
+                        return null;
+
+                    // Read the stream content
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions (e.g., assembly not found, resource not found)
+                Console.WriteLine($"Error loading resource: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

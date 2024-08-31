@@ -58,7 +58,6 @@
     <None Remove="Defaults\themes.json" />
     <None Remove="Icon\icon.ico" />
     <None Remove="JavaScript\AiStudioButton.js" />
-    <None Remove="JavaScript\ChatWebView2.html" />
     <None Remove="JavaScript\Components\AiStudioButton.js" />
     <None Remove="JavaScript\Components\App.jsx" />
     <None Remove="JavaScript\Components\ColorSchemeProvider.jsx" />
@@ -70,17 +69,11 @@
     <None Remove="JavaScript\Components\ScratchPad.jsx" />
     <None Remove="JavaScript\Components\SplitButton.jsx" />
     <None Remove="JavaScript\Components\UserInputBar.jsx" />
-    <None Remove="JavaScript\DotViewer.js" />
-    <None Remove="JavaScript\FindAndReplacer.js" />
     <None Remove="JavaScript\HeaderBar.js" />
     <None Remove="JavaScript\InputBox.js" />
-    <None Remove="JavaScript\JsonViewer.js" />
-    <None Remove="JavaScript\MermaidViewer.js" />
     <None Remove="JavaScript\NetworkDiagramCssControl.css" />
     <None Remove="JavaScript\NetworkDiagramHtmlControl.html" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
-    <None Remove="JavaScript\SvgViewer.js" />
-    <None Remove="JavaScript\ThemeEditor.js" />
     <None Remove="JavaScript\WorkingOverlay-dull.html" />
     <None Remove="JavaScript\WorkingOverlay.html" />
     <None Remove="JavaScript\WorkingOverlay2.html" />
@@ -114,7 +107,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Defaults\templates.json" />
     <EmbeddedResource Include="Defaults\themes.json" />
-    <EmbeddedResource Include="JavaScript\ChatWebView2.html" />
     <EmbeddedResource Include="JavaScript\Components\App.jsx" />
     <EmbeddedResource Include="JavaScript\Components\ColorSchemeProvider.jsx" />
     <EmbeddedResource Include="JavaScript\Components\DropDown.jsx" />
@@ -124,18 +116,12 @@
     <EmbeddedResource Include="JavaScript\Components\ScratchPad.jsx" />
     <EmbeddedResource Include="JavaScript\Components\SplitButton.jsx" />
     <EmbeddedResource Include="JavaScript\Components\UserInputBar.jsx" />
-    <EmbeddedResource Include="JavaScript\DotViewer.js" />
-    <EmbeddedResource Include="JavaScript\FindAndReplacer.js" />
     <EmbeddedResource Include="JavaScript\Components\HeaderBar.jsx" />
     <EmbeddedResource Include="JavaScript\Components\InputBox.jsx" />
-    <EmbeddedResource Include="JavaScript\MermaidViewer.js" />
-    <EmbeddedResource Include="JavaScript\JsonViewer.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramCssControl.css" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JavaScript\Components\MessagesPane.jsx" />
-    <EmbeddedResource Include="JavaScript\SvgViewer.js" />
-    <EmbeddedResource Include="JavaScript\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay-dull.html" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay3.html" />
     <EmbeddedResource Include="JavaScript\WorkingOverlay2.html" />

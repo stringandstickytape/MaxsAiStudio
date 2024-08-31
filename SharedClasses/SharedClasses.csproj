@@ -5,6 +5,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="HTML\ChatWebView2.html" />
+    <None Remove="JavaScriptViewers\DotViewer.js" />
+    <None Remove="JavaScriptViewers\FindAndReplacer.js" />
+    <None Remove="JavaScriptViewers\JsonViewer.js" />
+    <None Remove="JavaScriptViewers\MermaidViewer.js" />
+    <None Remove="JavaScriptViewers\SvgViewer.js" />
+    <None Remove="JavaScriptViewers\ThemeEditor.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="HTML\ChatWebView2.html" />
+    <EmbeddedResource Include="JavaScriptViewers\DotViewer.js" />
+    <EmbeddedResource Include="JavaScriptViewers\FindAndReplacer.js" />
+    <EmbeddedResource Include="JavaScriptViewers\JsonViewer.js" />
+    <EmbeddedResource Include="JavaScriptViewers\MermaidViewer.js" />
+    <EmbeddedResource Include="JavaScriptViewers\SvgViewer.js" />
+    <EmbeddedResource Include="JavaScriptViewers\ThemeEditor.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 

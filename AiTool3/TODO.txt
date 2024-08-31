@@ -119,7 +119,15 @@ VSIXDONE (sort of): add proper completion support for autocomplete, which will r
 ""serene"" bug
 
 VSIX:
- 
+
+ Make full web UI visible in VS:
+  - move resources to shared dll
+  - path app to fetch resources from dll
+  - patch calls received in vsix webview via postmessage
+
+
+ plugin status should be visible from within VSTS and the app
+  
  autocomplete should probably be hard-wired to the summary engine
 
  - not using system prompts at this stage :/

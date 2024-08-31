@@ -5,6 +5,7 @@ using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.Topics;
+using FFmpeg.AutoGen;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
@@ -237,22 +238,21 @@ namespace AiTool3.UI
             {
                 CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
             }
-
-            NavigateToString(AssemblyHelper.GetEmbeddedAssembly("AiTool3.JavaScript.ChatWebView2.html"));
+            NavigateToString(AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.HTML.ChatWebView2.html"));
 
             string[] scriptResources = new[]
                     {
-                "AiTool3.JavaScript.JsonViewer.js",
-                "AiTool3.JavaScript.ThemeEditor.js",
-                "AiTool3.JavaScript.SvgViewer.js",
-                "AiTool3.JavaScript.MermaidViewer.js",
-                "AiTool3.JavaScript.DotViewer.js",
-                "AiTool3.JavaScript.FindAndReplacer.js"
+                "SharedClasses.JavaScriptViewers.JsonViewer.js",
+                "SharedClasses.JavaScriptViewers.ThemeEditor.js",
+                "SharedClasses.JavaScriptViewers.SvgViewer.js",
+                "SharedClasses.JavaScriptViewers.MermaidViewer.js",
+                "SharedClasses.JavaScriptViewers.DotViewer.js",
+                "SharedClasses.JavaScriptViewers.FindAndReplacer.js"
             };
 
             foreach (var resource in scriptResources)
             {
-                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedAssembly(resource));
+                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
             }
         }
 
