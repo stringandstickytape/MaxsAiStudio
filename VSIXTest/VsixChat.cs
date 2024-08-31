@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System;
 using SharedClasses.Helpers;
+using System.Linq;
+using System.IO;
 
 namespace VSIXTest
 {
@@ -50,31 +52,10 @@ namespace VSIXTest
 
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
-            await Initialise();
+            await InitialiseAsync();
         }
 
-        public async Task Initialise()
-        {
-            var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
-            if (this.CoreWebView2 == null)
-            {
-                await EnsureCoreWebView2Async(env);
-            }
-            WebMessageReceived += WebView_WebMessageReceived;
-
-            CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
-            CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
-
-            foreach (var resource in _resourceManager.GetResourceDetails())
-            {
-                CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
-            }
-
-            CoreWebView2.Navigate("http://localhost/Home.html");
-        }
-
-
-        public async Task InitializeAsync()
+        public async Task InitialiseAsync()
         {
             var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
             if (this.CoreWebView2 == null)
@@ -110,11 +91,47 @@ namespace VSIXTest
 
         private void CoreWebView2_WebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
-            if (_resourceManager.IsResourceRequested(e.Request.Uri))
-            {
-                var resourceDetail = _resourceManager.GetResourceDetailByUri(e.Request.Uri);
-                _resourceManager.ReturnResourceToWebView(e, resourceDetail.ResourceName, resourceDetail.MimeType, CoreWebView2);
-            }
+            ReturnCoreWebView2Request(e, CoreWebView2);
+        }
+
+        private static void ReturnCoreWebView2Request(CoreWebView2WebResourceRequestedEventArgs e, CoreWebView2 coreWebView2)
+        {
+            var rd = AssemblyHelper.GetResourceDetails();
+            var matching = rd.Where(x => e.Request.Uri == x.Uri).ToList();
+
+
+            AssemblyHelper.GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach
+                // (x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
+                (x =>
+                {
+                    var assembly = Assembly.GetExecutingAssembly();
+
+                    // if resourcename doesn't exist in that assembly...
+                    if (!assembly.GetManifestResourceNames().Contains(x.ResourceName))
+                    {
+                        assembly = Assembly.Load("SharedClasses");
+                    }
+
+
+
+                    using (Stream stream = assembly.GetManifestResourceStream(x.ResourceName))
+                    {
+                        if (stream != null)
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                string content = reader.ReadToEnd();
+                                var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+                                var response = coreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {x.MimeType}");
+                                e.Response = response;
+                                e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
+                                return;
+                            }
+                        }
+                        throw new Exception("Probably forgot to embed the resource :(");
+                    }
+                }
+                );
         }
 
 

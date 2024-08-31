@@ -386,45 +386,47 @@ namespace AiTool3.UI
 
         private void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
+            ReturnCoreWebView2Request(e, CoreWebView2);
+        }
+
+        private static void ReturnCoreWebView2Request(CoreWebView2WebResourceRequestedEventArgs e, CoreWebView2 coreWebView2)
+        {
             var rd = AssemblyHelper.GetResourceDetails();
             var matching = rd.Where(x => e.Request.Uri == x.Uri).ToList();
 
 
-            AssemblyHelper.GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach(x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
-        }
-
-
-
-
-
-        private void ReturnResourceToWebView(CoreWebView2WebResourceRequestedEventArgs e, string resourceName, string mimeType)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            // if resourcename doesn't exist in that assembly...
-            if (!assembly.GetManifestResourceNames().Contains(resourceName))
-            {
-                assembly = Assembly.Load("SharedClasses");
-            }
-
-            
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream != null)
+            AssemblyHelper.GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach
+                // (x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
+                (x =>
                 {
-                    using (var reader = new StreamReader(stream))
+                    var assembly = Assembly.GetExecutingAssembly();
+
+                    // if resourcename doesn't exist in that assembly...
+                    if (!assembly.GetManifestResourceNames().Contains(x.ResourceName))
                     {
-                        string content = reader.ReadToEnd();
-                        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-                        var response = CoreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {mimeType}");
-                        e.Response = response;
-                        e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
-                        return;
+                        assembly = Assembly.Load("SharedClasses");
+                    }
+
+
+
+                    using (Stream stream = assembly.GetManifestResourceStream(x.ResourceName))
+                    {
+                        if (stream != null)
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                string content = reader.ReadToEnd();
+                                var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+                                var response = coreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {x.MimeType}");
+                                e.Response = response;
+                                e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
+                                return;
+                            }
+                        }
+                        throw new Exception("Probably forgot to embed the resource :(");
                     }
                 }
-                throw new Exception("Probably forgot to embed the resource :(");
-            }
+                );
         }
 
         internal async Task SetThemes(string themesJson) => await ExecuteScriptAsync($"window.setAllColorSchemes({themesJson})");
