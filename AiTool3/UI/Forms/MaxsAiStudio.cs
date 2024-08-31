@@ -127,34 +127,6 @@ namespace AiTool3
             }
         }
 
-        private async void TcpCommsManager_MessageReceived(object? sender, object e)
-        {
-            // deser e as string to VsixMessage
-            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>((string)(e.ToString()));
-
-            if(vsixMessage.MessageType == "setUserPrompt")
-            {
-                await chatWebView.SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
-                return;
-            }
-            else await chatWebView.HandleWebReceivedJsonMessageAsync(vsixMessage.Content);
-            //switch (vsixMessage.MessageType)
-            //{
-            //    case "prompt":
-            //        await chatWebView.SetUserPrompt(vsixMessage.Content);
-            //        this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { Content = vsixMessage.Content, SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
-            //        break;
-            //    case "autocomplete":
-            //        var toolID = _toolManager.Tools.IndexOf(_toolManager.GetToolByLabel("Insertions"));
-            //        await chatWebView.SetUserPrompt(vsixMessage.Content);
-            //        this.InvokeIfNeeded(() => ChatWebView_ChatWebViewSendMessageEvent(this, new ChatWebViewSendMessageEventArgs { OverrideUserPrompt = vsixMessage.Content,  Content = vsixMessage.Content, SelectedTools = new List<string> { toolID.ToString() }, SendViaSecondaryAI = false, AddEmbeddings = false, SendResponseToVsix = true }));
-            //        break;
-            //    case "new":
-            //        await this.InvokeIfNeeded(async () => await Clear());
-            //        break;
-            //}
-        }
-
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             await chatWebView.Initialise(CurrentSettings, _scratchpadManager);

@@ -17,6 +17,7 @@
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="JSX\App.jsx" />
     <None Remove="JSX\ColorSchemeProvider.jsx" />
+    <None Remove="JSX\CustomContextMenu.jsx" />
     <None Remove="JSX\DropDown.jsx" />
     <None Remove="JSX\FormattedContent.jsx" />
     <None Remove="JSX\HeaderBar.jsx" />
@@ -57,6 +58,7 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JSX\App.jsx" />
     <EmbeddedResource Include="JSX\ColorSchemeProvider.jsx" />
+    <EmbeddedResource Include="JSX\CustomContextMenu.jsx" />
     <EmbeddedResource Include="JSX\DropDown.jsx" />
     <EmbeddedResource Include="JSX\FormattedContent.jsx" />
     <EmbeddedResource Include="JSX\HeaderBar.jsx" />

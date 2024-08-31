@@ -2,6 +2,31 @@
 
 function App() {
     const { colorScheme } = useColorScheme();
+    const [contextMenu, setContextMenu] = React.useState(null);
+
+    React.useEffect(() => {
+        const handleContextMenu = (event) => {
+            if (!event.ctrlKey) {
+                event.preventDefault();
+                setContextMenu({
+                    x: event.clientX,
+                    y: event.clientY,
+                    items: [
+                        { label: 'Custom Option 1', onClick: () => console.log('Custom Option 1 clicked') },
+                        { label: 'Custom Option 2', onClick: () => console.log('Custom Option 2 clicked') },
+                        // Add more custom options as needed
+                    ],
+                });
+            }
+            // If CTRL is held, do nothing, allowing the default context menu to appear
+        };
+
+        document.addEventListener('contextmenu', handleContextMenu);
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+        };
+    }, []);
 
     useEffect(() => {
         window.chrome.webview.postMessage({
@@ -55,6 +80,15 @@ function App() {
                 <UserInputBar />
                 <ScratchPad />
             </div>
+            {contextMenu && (
+                <CustomContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={contextMenu.items}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
+
         </>
     );
 }
