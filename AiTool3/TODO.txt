@@ -121,10 +121,17 @@ VSIXDONE (sort of): add proper completion support for autocomplete, which will r
 VSIX:
 
  Make full web UI visible in VS:
-  - move resources to shared dll
-  - path app to fetch resources from dll
-  - patch calls received in vsix webview via postmessage
+  DONE: move resources to shared dll
+  DONE: path app to fetch resources from dll
 
+  When a VSXIUI message is received by VSIX, pass it via TCP to the app and process it as if it was a message from the main webview
+
+  When the main app sends a message to the main web view, also send it via TCP to the app.
+    - 
+  
+  rebuild all the vs functionality from MessagePrompts
+
+  
 
  plugin status should be visible from within VSTS and the app
   

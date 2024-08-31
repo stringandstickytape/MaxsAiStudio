@@ -9,6 +9,7 @@ using FFmpeg.AutoGen;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
+using SharedClasses;
 using SharedClasses.Helpers;
 using SharedClasses.Models;
 using System.ComponentModel;
@@ -36,6 +37,8 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
         private ToolManager _toolManager;
+        private TcpCommsManager _tcpCommsManager;
+
         public event EventHandler<string> FileDropped;
 
         public ChatWebView() : base()
@@ -50,9 +53,10 @@ namespace AiTool3.UI
 
         }
 
-        public void InjectDependencies(ToolManager toolManager)
+        public void InjectDependencies(ToolManager toolManager, TcpCommsManager tcpCommsManager)
         {
             _toolManager = toolManager;
+            _tcpCommsManager = tcpCommsManager;
         }
 
         protected virtual void OnFileDropped(string filename)
@@ -60,10 +64,15 @@ namespace AiTool3.UI
             FileDropped?.Invoke(this, filename);
         }
 
-        private async void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        public async void WebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
 
             string jsonMessage = e.WebMessageAsJson;
+            await HandleWebReceivedJsonMessageAsync(jsonMessage);
+        }
+
+        public async Task HandleWebReceivedJsonMessageAsync(string jsonMessage)
+        {
             var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
             var content = message.ContainsKey("content") ? message["content"] : null;
             var type = message?["type"];

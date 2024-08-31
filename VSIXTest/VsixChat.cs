@@ -140,25 +140,36 @@ namespace VSIXTest
 
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
-            var message = JsonConvert.DeserializeObject<dynamic>(e.WebMessageAsJson);
-            string messageType = (string)message.type;
+            // vsixui click handler
+            // deser to VsixUiMessage
+            var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
 
-            switch (messageType)
+            if(message.type == "send")
             {
-
-                case "sendMessage":
-                    _messageHandler.SendPrompt((string)message.message);
-                    break;
-                case "getShortcuts":
-                    await ShowShortcuts((string)message.token);
-                    break;
-                case "newChat":
-                    _messageHandler.SendNewConversationMessage();
-                    break;
-                default:
-                    _messageHandler.HandleDefaultMessage(messageType);
-                    break;
+                // get the current user prompt
+                var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
+                _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt });
             }
+            _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson });
+            //var message = JsonConvert.DeserializeObject<dynamic>(e.WebMessageAsJson);
+            //string messageType = (string)message.type;
+            //
+            //switch (messageType)
+            //{
+            //
+            //    case "sendMessage":
+            //        _messageHandler.SendPrompt((string)message.message);
+            //        break;
+            //    case "getShortcuts":
+            //        await ShowShortcuts((string)message.token);
+            //        break;
+            //    case "newChat":
+            //        _messageHandler.SendNewConversationMessage();
+            //        break;
+            //    default:
+            //        _messageHandler.HandleDefaultMessage(messageType);
+            //        break;
+            //}
         }
 
         private async Task ShowShortcuts(string token)
@@ -181,24 +192,32 @@ namespace VSIXTest
                     await _autocompleteManager.HandleAutocompleteResponse(message.Content);
                     break;
                 case "response":
-        //           string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
-        //           await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
-        //
-        //           await ExecuteScriptAsync(@"
-        //       document.addEventListener('click', function(e) {
-        //           if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
-        //               const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
-        //               if (codeBlock) {
-        //                   const codeText = codeBlock.textContent;
-        //                   navigator.clipboard.writeText(codeText);
-        //               }
-        //           }
-        //       });
-        //   ");
+                    //           string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
+                    //           await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
+                    //
+                    //           await ExecuteScriptAsync(@"
+                    //       document.addEventListener('click', function(e) {
+                    //           if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
+                    //               const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
+                    //               if (codeBlock) {
+                    //                   const codeText = codeBlock.textContent;
+                    //                   navigator.clipboard.writeText(codeText);
+                    //               }
+                    //           }
+                    //       });
+                    //   ");
 
                     break;
             }
         }
+    }
+
+    public class VsixUiMessage
+    {
+        public string type { get; set; }
+        public string content { get; set; }
+        public string selectedTools { get; set; }
+        public string addEmbeddings { get; set; }
     }
 
 }

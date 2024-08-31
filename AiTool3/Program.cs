@@ -6,6 +6,7 @@ using AiTool3.Templates;
 using AiTool3.Tools;
 using AiTool3.UI.Forms;
 using Microsoft.Extensions.DependencyInjection;
+using SharedClasses;
 
 internal static class Program
 {
@@ -47,6 +48,7 @@ internal static class Program
     {
         services.AddSingleton<AiResponseHandler>();
         services.AddSingleton<ToolManager>();
+        services.AddSingleton<TcpCommsManager>();
         services.AddTransient<SnippetManager>();
         services.AddTransient<ScratchpadManager>();
         services.AddSingleton<SearchManager>();

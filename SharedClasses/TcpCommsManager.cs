@@ -34,7 +34,7 @@ namespace SharedClasses
         /// This class initializes the TCP communication settings and defines a queue for message management.
         /// It employs a semaphore to control the maximum number of concurrent send operations.
         /// </remarks>
-        public TcpCommsManager(bool isVsix, int maxConcurrentSends = 5)
+        public TcpCommsManager(bool isVsix = false, int maxConcurrentSends = 5)
         {
             this.isVsix = isVsix;
             this.maxConcurrentSends = maxConcurrentSends;
