@@ -3,6 +3,7 @@ using AiTool3.DataModels;
 using AiTool3.Tools;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
+using SharedClasses.Helpers;
 
 namespace AiTool3.UI
 {

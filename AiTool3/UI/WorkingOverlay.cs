@@ -1,5 +1,6 @@
 ﻿using AiTool3.Tools;
 using Microsoft.Web.WebView2.WinForms;
+using SharedClasses.Helpers;
 
 namespace AiTool3.UI
 {

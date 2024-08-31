@@ -13,6 +13,7 @@ using AiTool3.UI.Forms;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using SharedClasses;
+using SharedClasses.Helpers;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;

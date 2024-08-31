@@ -1,6 +1,6 @@
-﻿namespace AiTool3.DataModels
+﻿namespace SharedClasses.Models
 {
-    internal class ResourceDetails
+    public class ResourceDetails
     {
         public ResourceDetails()
         {

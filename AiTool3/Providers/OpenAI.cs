@@ -5,6 +5,7 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SharedClasses.Helpers;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;

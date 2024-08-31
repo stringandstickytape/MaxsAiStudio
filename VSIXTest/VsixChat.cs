@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System;
+using SharedClasses.Helpers;
 
 namespace VSIXTest
 {
@@ -72,6 +73,39 @@ namespace VSIXTest
             CoreWebView2.Navigate("http://localhost/Home.html");
         }
 
+
+        public async Task InitializeAsync()
+        {
+            var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
+            if (this.CoreWebView2 == null)
+            {
+                await EnsureCoreWebView2Async(env);
+            }
+            WebMessageReceived += WebView_WebMessageReceived;
+            CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+
+            foreach (var resource in AssemblyHelper.GetResourceDetails())
+            {
+                CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
+            }
+            NavigateToString(AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.HTML.ChatWebView2.html"));
+
+            string[] scriptResources = new[]
+                    {
+                "SharedClasses.JavaScriptViewers.JsonViewer.js",
+                "SharedClasses.JavaScriptViewers.ThemeEditor.js",
+                "SharedClasses.JavaScriptViewers.SvgViewer.js",
+                "SharedClasses.JavaScriptViewers.MermaidViewer.js",
+                "SharedClasses.JavaScriptViewers.DotViewer.js",
+                "SharedClasses.JavaScriptViewers.FindAndReplacer.js"
+            };
+
+            foreach (var resource in scriptResources)
+            {
+                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
+            }
+        }
 
 
         private void CoreWebView2_WebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)

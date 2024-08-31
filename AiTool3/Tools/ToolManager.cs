@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SharedClasses.Helpers;
 using System.Reflection;
 
 namespace AiTool3.Tools
@@ -77,55 +78,5 @@ namespace AiTool3.Tools
         public string InternalName { get; set; }
         public string OutputFilename { get; set; }
         // Add other properties as needed
-    }
-
-    public static class AssemblyHelper
-    {
-        public static string GetEmbeddedResource(string resourceName)
-        {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                    return null;
-
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-        }
-
-        public static string GetEmbeddedResource(string assemblyName, string resourceName)
-        {
-            Assembly assembly = Assembly.Load(assemblyName);
-
-            return GetEmbeddedResource(assembly, resourceName);
-        }
-
-        private static string GetEmbeddedResource(Assembly assembly, string resourceName)
-        {
-            try
-            {
-                // Get the resource stream
-                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-                {
-                    if (stream == null)
-                        return null;
-
-                    // Read the stream content
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        return reader.ReadToEnd();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions (e.g., assembly not found, resource not found)
-                Console.WriteLine($"Error loading resource: {ex.Message}");
-                return null;
-            }
-        }
     }
 }
