@@ -87,7 +87,7 @@ namespace VSIXTest
                 {
                     if (messageQueue.TryDequeue(out string message))
                     {
-                        _ = Task.Run(() => OnLineReceived(message));
+                       OnLineReceived(message);
                     }
                     else
                     {

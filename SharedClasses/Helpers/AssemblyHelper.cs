@@ -34,7 +34,7 @@ namespace SharedClasses.Helpers
             return GetEmbeddedResource(assembly, resourceName);
         }
 
-        private static string GetEmbeddedResource(Assembly assembly, string resourceName)
+        public static string GetEmbeddedResource(Assembly assembly, string resourceName)
         {
             try
             {

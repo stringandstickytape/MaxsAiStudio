@@ -25,7 +25,7 @@ namespace AiTool3.Tools
 
             foreach (string resourceName in resourceNames)
             {
-                string json = AssemblyHelper.GetEmbeddedResource(resourceName);
+                string json = AssemblyHelper.GetEmbeddedResource(assembly, resourceName);
                 if (!string.IsNullOrEmpty(json))
                 {
                     try
