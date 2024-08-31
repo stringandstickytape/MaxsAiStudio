@@ -157,7 +157,7 @@ namespace SharedClasses
             {
                 ErrorOccurred?.Invoke(this, ex);
                 await ReconnectAsync();
-                messageQueue.Enqueue(message);
+                //messageQueue.Enqueue(message);
             }
         }
 

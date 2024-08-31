@@ -106,16 +106,25 @@ namespace VSIXTest
                 {
                     // Convert e (jobject) to VsixMessage obj
                     var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
-                    chatWindowControl.WebView.ReceiveMessage(vsixMessage);
+                    await chatWindowControl.WebView.ReceiveMessage(vsixMessage);
 
 
                 }
+            }
+            else
+            {
+
             }
         }
 
         private ChatWindowPane GetChatWindowPane()
         {
-            return this.FindToolWindow(typeof(ChatWindowPane), 0, true) as ChatWindowPane;
+            ChatWindowPane window = this.FindToolWindow(typeof(ChatWindowPane), 0, false) as ChatWindowPane;
+            if (window == null)
+            {
+                window = this.CreateToolWindow(typeof(ChatWindowPane), 0) as ChatWindowPane;
+            }
+            return window;
         }
 
         public async Task SendMessageThroughPipe(string message)

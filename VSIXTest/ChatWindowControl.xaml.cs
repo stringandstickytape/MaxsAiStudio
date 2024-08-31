@@ -15,16 +15,15 @@ namespace VSIXTest
 {
     public partial class ChatWindowControl : UserControl
     {
-        private DTE2 _dte;
+        public VsixChat VsixChatInstance { get; private set; }
 
-        public ChatWindowControl()
+        public ChatWindowControl(VsixChat vsixChat)
         {
-            _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
-            InitializeComponent();
-            //WebView.Initialise();
-            //InitializeWebView();
+            VsixChatInstance = vsixChat;
+            Content = VsixChatInstance;
+            //InitializeComponent();
+            
+            
         }
-
-
     }
 }

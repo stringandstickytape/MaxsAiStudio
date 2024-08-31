@@ -28,6 +28,19 @@ namespace VSIXTest
 {
     public class VsixChat : WebView2
     {
+        private static VsixChat _instance;
+        public static VsixChat Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new VsixChat();
+                }
+                return _instance;
+            }
+        }
+
         private DTE2 _dte;
         private readonly ResourceManager _resourceManager;
         private readonly VsixMessageHandler _messageHandler;
@@ -52,9 +65,15 @@ namespace VSIXTest
             await CoreWebView2.ExecuteScriptAsync(script);
         }
 
+        private bool vsixInitialised = false;
+
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
-            await InitialiseAsync();
+            // this refires on tab change!
+            if(!vsixInitialised)
+                await InitialiseAsync();
+
+            vsixInitialised = true;
         }
 
         public async Task InitialiseAsync()
