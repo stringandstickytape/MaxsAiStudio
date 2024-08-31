@@ -33,22 +33,6 @@ namespace VSIXTest
         private bool isClientInitialized = false;
         private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
 
-        private async Task InitializeClientAsync()
-        {
-            await clientInitSemaphore.WaitAsync();
-            try
-            {
-                if (!isClientInitialized)
-                {
-                    await simpleClient.StartClient();
-                }
-            }
-            finally
-            {
-                clientInitSemaphore.Release();
-            }
-        }
-
         private SimpleClient simpleClient = new SimpleClient();
 
         private static VsixChat _instance;
@@ -76,18 +60,18 @@ namespace VSIXTest
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded += VsixChat_Loaded;
             _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
-            _messageHandler = new VsixMessageHandler(_dte);
+            _messageHandler = new VsixMessageHandler(_dte, ExecuteScriptAsync);
             _shortcutManager = new ShortcutManager(_dte);
             _autocompleteManager = new AutocompleteManager(_dte);
 
             simpleClient.LineReceived += SimpleClient_LineReceived;
             simpleClient.StartClient();
         }
- 
+
         private async void SimpleClient_LineReceived(object sender, string e)
         {
-            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
-            await ReceiveMessageAsync(vsixMessage);
+            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
+            await _messageHandler.HandleReceivedMessage(vsixMessage);
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
@@ -188,46 +172,37 @@ namespace VSIXTest
                 );
         }
 
-
-
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
 
-            if(message.type == "send")
+            if (message.type == "send")
             {
-                // get the current user prompt
+                // when the user clicks send in the VSIX, we need to copy their prompt into the user prompt in the app, from where the send will pick it up...
                 var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
             }
-            _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
-        }
 
-        private async Task ShowShortcuts(string token)
-        {
-            var shortcuts = _shortcutManager.GetShortcuts(token);
-            string shortcutsJson = JsonConvert.SerializeObject(shortcuts);
-            string script = $"showShortcuts({shortcutsJson});";
+            if (message.type == "ready")
+            {
+                // any vsix-specific webview setup can go here
+                await ExecuteScriptAsync(@"window.addCustomContextMenuItem({
+    label:'Insert Selection',
+    onClick: () =>    window.chrome.webview.postMessage({
+                                type: 'vsInsertSelection'
+                            })
+});");
+            }
 
-            await ExecuteScriptAsync(script);
-        }
+            if(message.type == "vsInsertSelection")
+            {
+                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                var selection = textDocument.Selection as TextSelection;
+                var selectedText = selection.Text;
+                //await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsInsertSelection", Content = selectedText }, simpleClient);
+            }
 
-
-        // Instructions from the main app to the vsix browser are passed through here
-        public async Task ReceiveMessageAsync(VsixMessage message)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            // assume message type is webviewJsCall
-            await ExecuteScriptAsync(message.Content);
+            await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
     }
-
-    public class VsixUiMessage
-    {
-        public string type { get; set; }
-        public string content { get; set; }
-        public string selectedTools { get; set; }
-        public string addEmbeddings { get; set; }
-    }
-
 }

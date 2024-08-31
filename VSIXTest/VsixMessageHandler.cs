@@ -8,98 +8,65 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SharedClasses;
+using System.Threading.Tasks;
 
 namespace VSIXTest
 {
     public class VsixMessageHandler
     {
         private readonly DTE2 _dte;
-
-        public VsixMessageHandler(DTE2 dte)
+        private readonly Func<string, Task> _executeScriptAsync;
+        public VsixMessageHandler(DTE2 dte, Func<string, Task> executeScriptAsync)
         {
             _dte = dte;
+            _executeScriptAsync = executeScriptAsync;
         }
 
-        public void SendPrompt(string message, SimpleClient client)
+        public async Task HandleReceivedMessage(VsixMessage message)
         {
-            if (!string.IsNullOrEmpty(message))
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            switch (message.MessageType)
             {
-                // Handle filename hashtags and other processing
-                var files = GetAllFilesInSolution();
-
-                foreach (var file in files)
-                {
-                    message = ReplaceFileNameWithContent(message, file);
-                }
-
-                // Replace #:all-open: with contents of all open code windows
-                if (message.Contains(BacktickHelper.PrependHash(":all-open:")))
-                {
-                    message = ReplaceAllOpenContents(message);
-                }
-
-                // replace any '<hash>:selection:' with the selected text
-                if (message.Contains(BacktickHelper.PrependHash(":selection:")) && _dte.ActiveDocument != null)
-                {
-                    ThreadHelper.ThrowIfNotOnUIThread();
-                    var selection = (TextSelection)_dte.ActiveDocument.Selection;
-                    var documentFilename = _dte.ActiveDocument.Name;
-                    string textToInsert = "";
-
-                    if (selection.IsEmpty)
-                    {
-                        // If selection is empty, get the entire text of the document
-                        TextDocument textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                        EditPoint startPoint = textDocument.StartPoint.CreateEditPoint();
-                        textToInsert = startPoint.GetText(textDocument.EndPoint);
-                    }
-                    else
-                    {
-                        // If there's a selection, use the selected text
-                        textToInsert = selection.Text;
-                    }
-
-                    message = MessageFormatter.InsertFilenamedSelection(message, documentFilename, textToInsert);
-                }
-
-                if (message.Contains(BacktickHelper.PrependHash(":diff:")))
-                {
-                    ThreadHelper.ThrowIfNotOnUIThread();
-                    var gitDiffHelper = new GitDiffHelper();
-                    var diff = gitDiffHelper.GetGitDiff();
-                    message = message.Replace(BacktickHelper.PrependHash(":diff:"), diff);
-                }
-
-                var vsixOutgoingMessage = new VsixMessage { Content = message, MessageType = "prompt" };
-                string jsonMessage = JsonConvert.SerializeObject(vsixOutgoingMessage);
-
-                
-                client.SendLine(jsonMessage); // messagetype is p (for prompt)
+                case "setUserPrompt":
+                    await HandleSetUserPrompt(message.Content);
+                    break;
+                case "vsixui":
+                    await HandleVsixUi(message.Content);
+                    break;
+                case "webviewJsCall":
+                    await HandleWebviewJsCall(message.Content);
+                    break;
+                // Add more cases as needed
+                default:
+                    System.Diagnostics.Debug.WriteLine($"Unknown message type: {message.MessageType}");
+                    break;
             }
         }
 
-        public void SendVsixMessage(VsixMessage vsixMessage, SimpleClient client)
+        private async Task HandleSetUserPrompt(string content)
         {
-            client.SendLine(JsonConvert.SerializeObject(vsixMessage));
+            // Handle setting user prompt
+            await _executeScriptAsync($"setUserPrompt('{content}')");
         }
 
-        public void SendNewConversationMessage(SimpleClient client)
+        private async Task HandleVsixUi(string content)
         {
-            client.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
-
+            // Handle UI-related messages
+            var uiMessage = JsonConvert.DeserializeObject<VsixUiMessage>(content);
+            // Process UI message as needed
+            await _executeScriptAsync($"handleUiMessage({JsonConvert.SerializeObject(uiMessage)})");
         }
 
-        public void HandleDefaultMessage(string messageType, SimpleClient client)
+        private async Task HandleWebviewJsCall(string content)
         {
-            var insertionType = messageType == "commitMsg" ? BacktickHelper.PrependHash(":diff:") : BacktickHelper.PrependHash(":selection:");
+            // Execute JavaScript in WebView2
+            await _executeScriptAsync(content);
+        }
 
-            var matchingPrompt = ButtonManager.MessagePrompts.FirstOrDefault(mp => mp.MessageType == messageType);
-            if (matchingPrompt != null)
-            {
-                string prompt = $"{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}{matchingPrompt.Prompt}";
-                SendNewConversationMessage(client);
-                SendPrompt(prompt, client);
-            }
+        public async Task SendVsixMessage(VsixMessage vsixMessage, SimpleClient client)
+        {
+            await client.SendLine(JsonConvert.SerializeObject(vsixMessage));
         }
 
         private string ReplaceFileNameWithContent(string message, string file)

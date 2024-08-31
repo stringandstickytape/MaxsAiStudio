@@ -69,6 +69,7 @@
     <Compile Include="VsixChat.cs" />
     <Compile Include="VsixMessageHandler.cs" />
     <Compile Include="VSIXTestPackage.cs" />
+    <Compile Include="VsixUiMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
