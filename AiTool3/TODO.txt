@@ -115,22 +115,33 @@ DONE: better model selection generally
 VSIXDONE: all open files
 VSIXDONE: make the inter-process comms much more stable
 VSIXDONE (sort of): add proper completion support for autocomplete, which will require the use of a tool
+DONE: Tool dropdown is now broken
+DONE: Make full web UI visible in VS:
+DONE: move resources to shared dll
+DONE: path app to fetch resources from dll
+DONE: When a VSXIUI message is received by VSIX, pass it via TCP to the app and process it as if it was a message from the main webview
+DONE:   When the main app sends a message to the main web view, also send it via TCP to the app.
+
 
 ""serene"" bug
 
 VSIX:
 
-Tool dropdown is now broken
+Add a VSIX Settings page.  It lets you maintain and add MessagePrompts, I guess.
+MessagePrompts should dlet you define whether to use the primary or secondary AI.
+Project Helper that lets you pick files, define filesets and so on.
+UI for this will need to be HTML/JS.
 
- Make full web UI visible in VS:
-  DONE: move resources to shared dll
-  DONE: path app to fetch resources from dll
+"Insert Related Code" function:
+ * selection
+ * file
+ * class
+ * method
+ * line
+ * block
 
-  When a VSXIUI message is received by VSIX, pass it via TCP to the app and process it as if it was a message from the main webview
 
-  When the main app sends a message to the main web view, also send it via TCP to the app.
-    - 
-  
+
   rebuild all the vs functionality from MessagePrompts
 
   

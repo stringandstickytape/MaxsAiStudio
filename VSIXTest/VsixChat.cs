@@ -27,6 +27,9 @@ using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
+using System.Web.UI.WebControls;
+using System.Windows.Controls;
+using System.Windows.Media.Media3D;
 
 
 namespace VSIXTest
@@ -229,6 +232,13 @@ namespace VSIXTest
                                 type: 'vsInsertSelection'
                             })
 });");
+
+                await ExecuteScriptAsync(@"window.addCustomContextMenuItem({
+    label:'Pop Window',
+    onClick: () =>    window.chrome.webview.postMessage({
+                                type: 'vsPopWindow'
+                            })
+});");
             }
 
             if(message.type == "vsInsertSelection")
@@ -243,6 +253,30 @@ namespace VSIXTest
                 var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
                 await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
                 //await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsInsertSelection", Content = selectedText }, simpleClient);
+            }
+            if(message.type == "vsPopWindow")
+            {
+                var window = new TreeViewWindow();
+
+                // Create your TreeViewItems
+                var items = new List<TreeViewItem>
+    {
+        new TreeViewItem { Header = "Node 1" },
+        new TreeViewItem { Header = "Node 2" },
+        new TreeViewItem { Header = "Node 3" }
+    };
+
+                // Create a hierarchical structure (optional)
+                var parentNode = new TreeViewItem { Header = "Parent Node" };
+                parentNode.Items.Add(new TreeViewItem { Header = "Child Node 1" });
+                parentNode.Items.Add(new TreeViewItem { Header = "Child Node 2" });
+                items.Add(parentNode);
+
+                // Populate the TreeView
+                window.PopulateTreeView(items);
+
+                // Show the window
+                window.Show();
             }
 
             await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
@@ -264,6 +298,4 @@ namespace VSIXTest
             keybd_event(VK_END, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
     }
-
-
 }

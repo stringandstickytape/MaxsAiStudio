@@ -82,7 +82,7 @@
                     },
                 }}
             >
-                Show Default Menu
+                Show Browser Context Menu
             </div>
         </div>
     );
