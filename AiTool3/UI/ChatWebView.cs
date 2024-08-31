@@ -263,8 +263,14 @@ namespace AiTool3.UI
 
             foreach (var resource in scriptResources)
             {
-                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
+                await ExecuteScriptAndSendToVsixAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
             }
+        }
+
+        public Task<string> ExecuteScriptAndSendToVsixAsync(string script)
+        {
+            _tcpCommsManager.EnqueueMessage(new VsixMessage { MessageType = "webviewJsCall", Content = script });
+            return base.ExecuteScriptAsync(script);
         }
 
         // begin webview interface methods
@@ -273,8 +279,8 @@ namespace AiTool3.UI
         internal async Task AddMessages(List<CompletionMessage> parents)
         {
             // run "addMessages" js function
-            await ExecuteScriptAsync($"ClearMessages()");
-            await ExecuteScriptAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
+            await ExecuteScriptAndSendToVsixAsync($"ClearMessages()");
+            await ExecuteScriptAndSendToVsixAsync($"AddInitialMessages({JsonConvert.SerializeObject(parents)})");
         }
 
         public async Task<Model> GetDropdownModel(string str, SettingsSet settings)
@@ -288,11 +294,11 @@ namespace AiTool3.UI
 
         internal async Task SetDropdownValue(string v1, string v2)
         {
-            ExecuteScriptAsync($"setDropdownValue('{v1}', '{v2}')");
+            ExecuteScriptAndSendToVsixAsync($"setDropdownValue('{v1}', '{v2}')");
         }
         internal async Task<string> GetDropdownValue(string v)
         {
-            return await ExecuteScriptAsync($"getDropdownValue('{v}')");
+            return await ExecuteScriptAndSendToVsixAsync($"getDropdownValue('{v}')");
         }
 
 
@@ -305,7 +311,7 @@ namespace AiTool3.UI
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
-                ExecuteScriptAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)}, {JsonConvert.SerializeObject(columnData)});");
+                ExecuteScriptAndSendToVsixAsync($"setDropdownOptions('{dropdown}', {JsonConvert.SerializeObject(modelStrings)}, {JsonConvert.SerializeObject(columnData)});");
             }
         }
         internal async Task SetTools()
@@ -313,22 +319,22 @@ namespace AiTool3.UI
             var toolStrings = _toolManager.Tools.Select(x => x.Name.ToString()).ToArray();
             var toolStringsJson = JsonConvert.SerializeObject(toolStrings);
 
-            await ExecuteScriptAsync($"window.setTools({toolStringsJson})");
+            await ExecuteScriptAndSendToVsixAsync($"window.setTools({toolStringsJson})");
         }
-        internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
+        internal async Task UpdateSystemPrompt(string systemPrompt) => await ExecuteScriptAndSendToVsixAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
 
         internal async Task AddMessage(CompletionMessage message) =>
-            await ExecuteScriptAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
+            await ExecuteScriptAndSendToVsixAsync($"AddMessage({JsonConvert.SerializeObject(message)})");
 
-        internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getSystemPrompt()"));
+        internal async Task<string> GetSystemPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAndSendToVsixAsync("getSystemPrompt()"));
 
-        internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
+        internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAndSendToVsixAsync("getUserPrompt()"));
 
         internal async Task SetUserPrompt(string content)
         {
             await this.InvokeIfNeeded(async () =>
             {
-                await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");
+                await ExecuteScriptAndSendToVsixAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");
             });
 
         }
@@ -337,14 +343,14 @@ namespace AiTool3.UI
         {
             await this.InvokeIfNeeded(async () =>
             {
-                await ExecuteScriptAsync($"setUserPrompt(getUserPrompt()+ ' ' + {JsonConvert.SerializeObject(content)})");
+                await ExecuteScriptAndSendToVsixAsync($"setUserPrompt(getUserPrompt()+ ' ' + {JsonConvert.SerializeObject(content)})");
             });
 
         }
 
         internal async Task Clear()
         {
-                await ExecuteScriptAsync($"ClearMessages()");
+                await ExecuteScriptAndSendToVsixAsync($"ClearMessages()");
                 await DisableCancelButton();
                 await EnableSendButton();
 
@@ -356,37 +362,37 @@ namespace AiTool3.UI
         internal async Task DisableCancelButton()
         {
 
-            await ExecuteScriptAsync("disableButton('cancelButton')");
-            await ExecuteScriptAsync("disableCancelButton()");
+            await ExecuteScriptAndSendToVsixAsync("disableButton('cancelButton')");
+            await ExecuteScriptAndSendToVsixAsync("disableCancelButton()");
         }
         internal async Task EnableCancelButton()
         {
-            await ExecuteScriptAsync("enableButton('cancelButton')");
-            await ExecuteScriptAsync("enableCancelButton()");
+            await ExecuteScriptAndSendToVsixAsync("enableButton('cancelButton')");
+            await ExecuteScriptAndSendToVsixAsync("enableCancelButton()");
         }
         internal async Task DisableSendButton()
         {
-            await ExecuteScriptAsync("disableButton('sendButton')");
-            await ExecuteScriptAsync("disableSendButton()");
+            await ExecuteScriptAndSendToVsixAsync("disableButton('sendButton')");
+            await ExecuteScriptAndSendToVsixAsync("disableSendButton()");
         }
         internal async Task EnableSendButton()
         {
-            await ExecuteScriptAsync("enableButton('sendButton')");
-            await ExecuteScriptAsync("enableSendButton()");
+            await ExecuteScriptAndSendToVsixAsync("enableButton('sendButton')");
+            await ExecuteScriptAndSendToVsixAsync("enableSendButton()");
         }
 
         internal async Task UpdateSendButtonColor(bool embeddingsEnabled)
         {
             // an orange version of #4a7c4c would be not #8a5c8c, but #8a7c4c
             var js = embeddingsEnabled ? "window.setSendButtonAlternate(\"Send with Embeddings\", \"#ca8611\");" : "window.setSendButtonAlternate(\"Send\", \"#4a7c4c\");";
-            await ExecuteScriptAsync(js);
+            await ExecuteScriptAndSendToVsixAsync(js);
         }
 
-        internal async void UpdateTemp(string e) => await ExecuteScriptAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(e)}, 1)");
+        internal async void UpdateTemp(string e) => await ExecuteScriptAndSendToVsixAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(e)}, 1)");
 
-        internal async void ClearTemp() => await ExecuteScriptAsync($"removeMessageByGuid(\"temp-ai-msg\");");
+        internal async void ClearTemp() => await ExecuteScriptAndSendToVsixAsync($"removeMessageByGuid(\"temp-ai-msg\");");
 
-        internal async Task ChangeChatHeaderLabel(string content) => await ExecuteScriptAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
+        internal async Task ChangeChatHeaderLabel(string content) => await ExecuteScriptAndSendToVsixAsync($"changeChatHeaderLabel({JsonConvert.SerializeObject(content)})");
 
         // end webview interface methods
 
@@ -438,13 +444,13 @@ namespace AiTool3.UI
                 );
         }
 
-        internal async Task SetThemes(string themesJson) => await ExecuteScriptAsync($"window.setAllColorSchemes({themesJson})");
+        internal async Task SetThemes(string themesJson) => await ExecuteScriptAndSendToVsixAsync($"window.setAllColorSchemes({themesJson})");
 
-        internal async Task SetTheme(string selectedTheme) => await ExecuteScriptAsync($"window.selectColorScheme({selectedTheme})");
+        internal async Task SetTheme(string selectedTheme) => await ExecuteScriptAndSendToVsixAsync($"window.selectColorScheme({selectedTheme})");
 
-        internal async void SetIndicator(string Label, string Colour) => await ExecuteScriptAsync($"addIndicator('{Label}','{Colour}')");
+        internal async void SetIndicator(string Label, string Colour) => await ExecuteScriptAndSendToVsixAsync($"addIndicator('{Label}','{Colour}')");
 
-        internal async void ClearIndicator(string Label) => await ExecuteScriptAsync($"clearIndicator('{Label}')");
+        internal async void ClearIndicator(string Label) => await ExecuteScriptAndSendToVsixAsync($"clearIndicator('{Label}')");
 
         internal async Task OpenTemplate(ConversationTemplate template)
         {
@@ -501,7 +507,7 @@ namespace AiTool3.UI
             var scratchpadContent = scratchpadManager.LoadScratchpad();
             if (!string.IsNullOrEmpty(scratchpadContent))
             {
-                await ExecuteScriptAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
+                await ExecuteScriptAndSendToVsixAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
             }
 
             await SetTools();
@@ -511,7 +517,7 @@ namespace AiTool3.UI
 
         internal async Task<string> GetMessagesPaneContent()
         {
-            var content = await ExecuteScriptAsync("document.querySelector('.main-content').outerHTML;");
+            var content = await ExecuteScriptAndSendToVsixAsync("document.querySelector('.main-content').outerHTML;");
 
             // decode \u003 etc
             content = System.Text.RegularExpressions.Regex.Unescape(content);

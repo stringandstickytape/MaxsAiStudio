@@ -120,6 +120,8 @@ VSIXDONE (sort of): add proper completion support for autocomplete, which will r
 
 VSIX:
 
+Tool dropdown is now broken
+
  Make full web UI visible in VS:
   DONE: move resources to shared dll
   DONE: path app to fetch resources from dll

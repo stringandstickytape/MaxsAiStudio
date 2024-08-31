@@ -188,6 +188,9 @@ namespace VSIXTest
 
             switch (message.MessageType)
             {
+                case "webviewJsCall":
+                    ExecuteScriptAsync(message.Content);
+                    break;
                 case "autocompleteResponse":
                     await _autocompleteManager.HandleAutocompleteResponse(message.Content);
                     break;
