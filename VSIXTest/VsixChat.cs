@@ -40,18 +40,6 @@ namespace VSIXTest
             {
                 if (!isClientInitialized)
                 {
-                    // replace this with dedicated client class
-
-                    //namedPipeManager = new TcpCommsManager(isVsix: true);
-                    //namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
-                    //
-                    //await JoinableTaskFactory.RunAsync(async () =>
-                    //{
-                    //    await namedPipeManager.ConnectAsync();
-                    //});
-                    //
-                    //
-                    //isClientInitialized = true;
                     await simpleClient.StartClient();
                 }
             }
@@ -98,27 +86,27 @@ namespace VSIXTest
  
         private async void SimpleClient_LineReceived(object sender, string e)
         {
-                    var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
-                    await ReceiveMessage(vsixMessage);
+            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
+            await ReceiveMessageAsync(vsixMessage);
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
 
         private async void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            string script = _buttonManager.GenerateButtonScript();
-            await CoreWebView2.ExecuteScriptAsync(script);
+            await CoreWebView2.ExecuteScriptAsync(_buttonManager.GenerateButtonScript());
         }
 
         private bool vsixInitialised = false;
 
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
-            // this refires on tab change!
-            if(!vsixInitialised)
+            if (!vsixInitialised)
+            {
                 await InitialiseAsync();
-
-            vsixInitialised = true;
+                vsixInitialised = true;
+            }
+            
         }
 
         public async Task InitialiseAsync()
@@ -204,8 +192,6 @@ namespace VSIXTest
 
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
-            // vsixui click handler
-            // deser to VsixUiMessage
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
 
             if(message.type == "send")
@@ -215,25 +201,6 @@ namespace VSIXTest
                 _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
             }
             _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
-            //var message = JsonConvert.DeserializeObject<dynamic>(e.WebMessageAsJson);
-            //string messageType = (string)message.type;
-            //
-            //switch (messageType)
-            //{
-            //
-            //    case "sendMessage":
-            //        _messageHandler.SendPrompt((string)message.message);
-            //        break;
-            //    case "getShortcuts":
-            //        await ShowShortcuts((string)message.token);
-            //        break;
-            //    case "newChat":
-            //        _messageHandler.SendNewConversationMessage();
-            //        break;
-            //    default:
-            //        _messageHandler.HandleDefaultMessage(messageType);
-            //        break;
-            //}
         }
 
         private async Task ShowShortcuts(string token)
@@ -246,36 +213,12 @@ namespace VSIXTest
         }
 
 
-        public async Task ReceiveMessage(VsixMessage message)
+        // Instructions from the main app to the vsix browser are passed through here
+        public async Task ReceiveMessageAsync(VsixMessage message)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            switch (message.MessageType)
-            {
-                case "webviewJsCall":
-                    ExecuteScriptAsync(message.Content);
-                    break;
-                case "autocompleteResponse":
-                    await _autocompleteManager.HandleAutocompleteResponse(message.Content);
-                    break;
-                case "response":
-                    //           string escapedMessage = HttpUtility.JavaScriptStringEncode(message.Content);
-                    //           await ExecuteScriptAsync($"chatHistory.innerHTML = '{escapedMessage}';document.querySelector('#ChatHistory').scrollTop = document.querySelector('#ChatHistory').scrollHeight;");
-                    //
-                    //           await ExecuteScriptAsync(@"
-                    //       document.addEventListener('click', function(e) {
-                    //           if (e.target && e.target.textContent === 'Copy' && e.target.closest('.message-content')) {
-                    //               const codeBlock = e.target.closest('.message-content').querySelector('div[style*=""font-family: monospace""]');
-                    //               if (codeBlock) {
-                    //                   const codeText = codeBlock.textContent;
-                    //                   navigator.clipboard.writeText(codeText);
-                    //               }
-                    //           }
-                    //       });
-                    //   ");
-
-                    break;
-            }
+            // assume message type is webviewJsCall
+            await ExecuteScriptAsync(message.Content);
         }
     }
 
