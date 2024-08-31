@@ -71,16 +71,16 @@ namespace VSIXTest
         // a high-quality logging method
         private void SendAutoCompleteRequest(string surroundingCode)
         {
-            var messageHandler = new VsixMessageHandler(_dte);
-            messageHandler.SendNewConversationMessage();
-            
-                var vsixMessage = new VsixMessage
-                {
-                    MessageType = "autocomplete",
-                    Content = $"{BacktickHelper.ThreeTicks}\n{surroundingCode}\n{BacktickHelper.ThreeTicks}\n\nAutocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after."
-                };
-
-                messageHandler.SendVsixMessage(vsixMessage);
+            //var messageHandler = new VsixMessageHandler(_dte);
+            //messageHandler.SendNewConversationMessage();
+            //
+            //    var vsixMessage = new VsixMessage
+            //    {
+            //        MessageType = "autocomplete",
+            //        Content = $"{BacktickHelper.ThreeTicks}\n{surroundingCode}\n{BacktickHelper.ThreeTicks}\n\nAutocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after."
+            //    };
+            //
+            //    messageHandler.SendVsixMessage(vsixMessage);
         }
     }
 }

@@ -48,7 +48,7 @@ internal static class Program
     {
         services.AddSingleton<AiResponseHandler>();
         services.AddSingleton<ToolManager>();
-        services.AddSingleton<TcpCommsManager>();
+        //services.AddSingleton<TcpCommsManager>();
         services.AddTransient<SnippetManager>();
         services.AddTransient<ScratchpadManager>();
         services.AddSingleton<SearchManager>();

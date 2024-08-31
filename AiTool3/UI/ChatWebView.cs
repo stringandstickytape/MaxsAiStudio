@@ -5,6 +5,7 @@ using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.Topics;
+using AITool3;
 using FFmpeg.AutoGen;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
@@ -37,7 +38,8 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
         private ToolManager _toolManager;
-        private TcpCommsManager _tcpCommsManager;
+        private SimpleServer _simpleServer;
+        //private TcpCommsManager _tcpCommsManager;
 
         public event EventHandler<string> FileDropped;
 
@@ -53,10 +55,24 @@ namespace AiTool3.UI
 
         }
 
-        public void InjectDependencies(ToolManager toolManager, TcpCommsManager tcpCommsManager)
+        public void InjectDependencies(ToolManager toolManager)
         {
             _toolManager = toolManager;
-            _tcpCommsManager = tcpCommsManager;
+            _simpleServer = new SimpleServer();
+            _simpleServer.LineReceived += SimpleServer_LineReceived;
+            _simpleServer.StartServer();
+        }
+
+        private async void SimpleServer_LineReceived(object? sender, string e)
+        {
+            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
+
+            if (vsixMessage.MessageType == "setUserPrompt")
+            {
+                await SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
+                return;
+            }
+            else await HandleWebReceivedJsonMessageAsync(vsixMessage.Content);
         }
 
         protected virtual void OnFileDropped(string filename)
@@ -267,10 +283,13 @@ namespace AiTool3.UI
             }
         }
 
-        public Task<string> ExecuteScriptAndSendToVsixAsync(string script)
+        public async Task<string> ExecuteScriptAndSendToVsixAsync(string script)
         {
-            _tcpCommsManager.EnqueueMessage(new VsixMessage { MessageType = "webviewJsCall", Content = script });
-            return base.ExecuteScriptAsync(script);
+            var obj  = new VsixMessage { MessageType = "webviewJsCall", Content = script };
+            // serialize obj
+            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(obj));
+            //_tcpCommsManager.EnqueueMessage(new VsixMessage { MessageType = "webviewJsCall", Content = script });
+            return await base.ExecuteScriptAsync(script);
         }
 
         // begin webview interface methods
@@ -523,6 +542,11 @@ namespace AiTool3.UI
             content = System.Text.RegularExpressions.Regex.Unescape(content);
 
             return content;
+        }
+
+        internal async Task SendToVsixAsync(VsixMessage vsixMessage)
+        {
+            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(vsixMessage));
         }
     }
 }

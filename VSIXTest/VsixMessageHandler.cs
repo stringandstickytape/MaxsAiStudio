@@ -20,7 +20,7 @@ namespace VSIXTest
             _dte = dte;
         }
 
-        public void SendPrompt(string message)
+        public void SendPrompt(string message, SimpleClient client)
         {
             if (!string.IsNullOrEmpty(message))
             {
@@ -73,22 +73,23 @@ namespace VSIXTest
                 var vsixOutgoingMessage = new VsixMessage { Content = message, MessageType = "prompt" };
                 string jsonMessage = JsonConvert.SerializeObject(vsixOutgoingMessage);
 
-                VSIXTestPackage.Instance.SendMessageThroughPipe(jsonMessage); // messagetype is p (for prompt)
+                
+                client.SendLine(jsonMessage); // messagetype is p (for prompt)
             }
         }
 
-        public void SendVsixMessage(VsixMessage vsixMessage)
+        public void SendVsixMessage(VsixMessage vsixMessage, SimpleClient client)
         {
-            VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(vsixMessage));
+            client.SendLine(JsonConvert.SerializeObject(vsixMessage));
         }
 
-        public void SendNewConversationMessage()
+        public void SendNewConversationMessage(SimpleClient client)
         {
-            VSIXTestPackage.Instance.SendMessageThroughPipe(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
+            client.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "new" }));
 
         }
 
-        public void HandleDefaultMessage(string messageType)
+        public void HandleDefaultMessage(string messageType, SimpleClient client)
         {
             var insertionType = messageType == "commitMsg" ? BacktickHelper.PrependHash(":diff:") : BacktickHelper.PrependHash(":selection:");
 
@@ -96,8 +97,8 @@ namespace VSIXTest
             if (matchingPrompt != null)
             {
                 string prompt = $"{Environment.NewLine}{Environment.NewLine}{insertionType}{Environment.NewLine}{matchingPrompt.Prompt}";
-                SendNewConversationMessage();
-                SendPrompt(prompt);
+                SendNewConversationMessage(client);
+                SendPrompt(prompt, client);
             }
         }
 

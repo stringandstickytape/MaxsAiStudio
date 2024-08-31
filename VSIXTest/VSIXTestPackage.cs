@@ -54,7 +54,8 @@ namespace VSIXTest
         private NamedPipeClientStream pipeClient;
         private StreamWriter writer;
         private StreamReader reader;
-        private TcpCommsManager namedPipeManager;
+        //private TcpCommsManager namedPipeManager;
+        
         private bool isClientInitialized = false;
         private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
 
@@ -69,6 +70,11 @@ namespace VSIXTest
             await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
         }
 
+        private async void SimpleClient_LineReceived(object sender, string e)
+        {
+
+        }
+
         private async Task InitializeClientAsync()
         {
             await clientInitSemaphore.WaitAsync();
@@ -76,10 +82,18 @@ namespace VSIXTest
             {
                 if (!isClientInitialized)
                 {
-                    namedPipeManager = new TcpCommsManager(isVsix: true);
-                    namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
-                    await namedPipeManager.ConnectAsync();
-                    isClientInitialized = true;
+                    // replace this with dedicated client class
+
+                    //namedPipeManager = new TcpCommsManager(isVsix: true);
+                    //namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
+                    //
+                    //await JoinableTaskFactory.RunAsync(async () =>
+                    //{
+                    //    await namedPipeManager.ConnectAsync();
+                    //});
+                    //
+                    //
+                    //isClientInitialized = true;
                 }
             }
             finally
@@ -88,44 +102,7 @@ namespace VSIXTest
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            namedPipeManager.Dispose();
-            base.Dispose(disposing);
-        }
 
-        private async void NamedPipeManager_ReceiveMessage(object sender, object e)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            var chatWindowPane = GetChatWindowPane();
-            if (chatWindowPane != null)
-            {
-                var chatWindowControl = chatWindowPane.Content as ChatWindowControl;
-                if (chatWindowControl != null && chatWindowControl.WebView != null)
-                {
-                    // Convert e (jobject) to VsixMessage obj
-                    var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
-                    await chatWindowControl.WebView.ReceiveMessage(vsixMessage);
-
-
-                }
-            }
-            else
-            {
-
-            }
-        }
-
-        private ChatWindowPane GetChatWindowPane()
-        {
-            ChatWindowPane window = this.FindToolWindow(typeof(ChatWindowPane), 0, false) as ChatWindowPane;
-            if (window == null)
-            {
-                window = this.CreateToolWindow(typeof(ChatWindowPane), 0) as ChatWindowPane;
-            }
-            return window;
-        }
 
         public async Task SendMessageThroughPipe(string message)
         {
@@ -133,7 +110,7 @@ namespace VSIXTest
             {
                 await InitializeClientAsync();
             }
-            namedPipeManager.EnqueueMessage(message);
+            //namedPipeManager.EnqueueMessage(message);
         }
     }
 }

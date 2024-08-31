@@ -31,7 +31,6 @@ namespace AiTool3
         private TemplateManager _templateManager;
         private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
-        private TcpCommsManager _tcpCommsManager;
         public static readonly decimal Version = 0.3m;
 
         public static readonly string ThreeTicks = new string('`', 3);
@@ -54,7 +53,6 @@ namespace AiTool3
         public MaxsAiStudio(ToolManager toolManager,
                             SnippetManager snippetManager,
                             SearchManager searchManager,
-                            TcpCommsManager tcpCommsManager,
                             FileAttachmentManager fileAttachmentManager,
                             ConversationManager conversationManager,
                             TemplateManager templateManager,
@@ -66,13 +64,6 @@ namespace AiTool3
 
             try
             {
-                FormClosed += (s, e) =>
-                     _tcpCommsManager.Dispose();
-
-                _tcpCommsManager = tcpCommsManager;
-
-                _tcpCommsManager.ReceiveMessage += TcpCommsManager_MessageReceived;
-                
 
                 DirectoryHelper.CreateSubdirectories();
 
@@ -90,7 +81,7 @@ namespace AiTool3
                 _fileAttachmentManager.InjectDependencies(chatWebView);
                 ConversationManager = conversationManager;
                 ConversationManager.InjectDepencencies(dgvConversations);
-                chatWebView.InjectDependencies(toolManager, tcpCommsManager);
+                chatWebView.InjectDependencies(toolManager);
                 _scratchpadManager = scratchpadManager;
                 _aiResponseHandler = aiResponseHandler;
                 webViewManager = new WebViewManager(ndcWeb);
@@ -139,7 +130,7 @@ namespace AiTool3
         private async void TcpCommsManager_MessageReceived(object? sender, object e)
         {
             // deser e as string to VsixMessage
-            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>((string)(e));
+            var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>((string)(e.ToString()));
 
             if(vsixMessage.MessageType == "setUserPrompt")
             {
@@ -390,8 +381,6 @@ namespace AiTool3
 
             this.BringToFront();
 
-            _tcpCommsManager.ConnectAsync();
-
             // Create things in Ready instead...
 
         }
@@ -550,9 +539,11 @@ namespace AiTool3
                                     lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
                                 }
 
-                                _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
+                                await chatWebView.SendToVsixAsync(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
+                                //_tcpCommsManager.EnqueueMessage();
                             }
-                            else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                            else await chatWebView.SendToVsixAsync(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                            //else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
                         }
                     }
                 });

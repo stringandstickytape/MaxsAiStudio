@@ -82,6 +82,7 @@ namespace SharedClasses
                     Debug.WriteLine($"Connected to server on port {Port}");
                     if (startMessageLoop)
                     {
+
                         _ = ListenForMessagesAsync();
                     }
 

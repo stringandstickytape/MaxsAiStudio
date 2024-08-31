@@ -23,11 +23,56 @@ using System;
 using SharedClasses.Helpers;
 using System.Linq;
 using System.IO;
+using System.Threading;
+using Microsoft.VisualStudio.Threading;
 
 namespace VSIXTest
 {
     public class VsixChat : WebView2
     {
+        private bool isClientInitialized = false;
+        private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
+
+        private async Task InitializeClientAsync()
+        {
+            await clientInitSemaphore.WaitAsync();
+            try
+            {
+                if (!isClientInitialized)
+                {
+                    // replace this with dedicated client class
+
+                    //namedPipeManager = new TcpCommsManager(isVsix: true);
+                    //namedPipeManager.ReceiveMessage += NamedPipeManager_ReceiveMessage;
+                    //
+                    //await JoinableTaskFactory.RunAsync(async () =>
+                    //{
+                    //    await namedPipeManager.ConnectAsync();
+                    //});
+                    //
+                    //
+                    //isClientInitialized = true;
+                    await simpleClient.StartClient();
+                }
+            }
+            finally
+            {
+                clientInitSemaphore.Release();
+            }
+        }
+
+        public async Task SendMessageThroughPipe(string message)
+        {
+            if (!isClientInitialized)
+            {
+                await InitializeClientAsync();
+            }
+            simpleClient.SendLine(message);
+            //namedPipeManager.EnqueueMessage(message);
+        }
+
+        private SimpleClient simpleClient = new SimpleClient();
+
         private static VsixChat _instance;
         public static VsixChat Instance
         {
@@ -49,12 +94,22 @@ namespace VSIXTest
 
         public VsixChat() : base()
         {
+            
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded += VsixChat_Loaded;
             _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
             _messageHandler = new VsixMessageHandler(_dte);
             _shortcutManager = new ShortcutManager(_dte);
             _autocompleteManager = new AutocompleteManager(_dte);
+
+            simpleClient.LineReceived += SimpleClient_LineReceived;
+            simpleClient.StartClient();
+        }
+ 
+        private async void SimpleClient_LineReceived(object sender, string e)
+        {
+                    var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e.ToString());
+                    await ReceiveMessage(vsixMessage);
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
@@ -167,9 +222,9 @@ namespace VSIXTest
             {
                 // get the current user prompt
                 var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt });
+                _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
             }
-            _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson });
+            _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
             //var message = JsonConvert.DeserializeObject<dynamic>(e.WebMessageAsJson);
             //string messageType = (string)message.type;
             //
