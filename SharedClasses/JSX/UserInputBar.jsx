@@ -18,6 +18,31 @@
 
     window.setSendButtonLabel = setSendButtonLabel;
 
+    const inputBoxRef = React.useRef(null);
+
+    const insertTextAtCaret = (text) => {
+        if (inputBoxRef.current) {
+            const textarea = inputBoxRef.current;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const newContent = inputContent.substring(0, start) + text + inputContent.substring(end);
+            setInputContent(newContent);
+
+            // Set the cursor position after the inserted text
+            setTimeout(() => {
+                textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                textarea.focus();
+            }, 0);
+        }
+    };
+
+    // Expose the insertTextAtCaret function to the window object
+    React.useEffect(() => {
+        window.insertTextAtCaret = insertTextAtCaret;
+        return () => {
+            delete window.insertTextAtCaret;
+        };
+    }, [inputContent]);
     function getTrueIndices(obj) {
         return Object.keys(obj)
             .filter(key => obj[key] === true)
@@ -244,6 +269,8 @@
             <div className="user-input-bar">
                 <div className="input-box-wrapper">
                     <InputBox
+                        ref={inputBoxRef}
+                        id="user-input-textarea"
                         onSend={handleSend}
                         value={inputContent}
                         onChange={handleInputChange}

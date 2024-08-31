@@ -1,7 +1,7 @@
 ﻿const { useState, useCallback } = React;
 const { useColorScheme } = React;
 
-const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
+const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeholderText }, ref) => {
     const [content, setContent] = useState('');
     const [placeholder, setPlaceholder] = useState(placeholderText);
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -103,6 +103,7 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
 
             <div className={`input-box-container ${isFullScreen ? 'fullscreen' : ''}`}>
                 <textarea
+                    ref={ref}
                     className={`input-box ${className}`}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
@@ -127,4 +128,4 @@ const InputBox = ({ onSend, value, onChange, className, placeholderText }) => {
             </div>
         </>
     )
-};
+});
