@@ -36,11 +36,48 @@
         }
     };
 
+    const moveCaretToStart = (shiftHeld) => {
+        if (inputBoxRef.current) {
+            const textarea = inputBoxRef.current;
+
+            if (shiftHeld) {
+                // If SHIFT is held, extend the selection to the start
+                textarea.setSelectionRange(0, textarea.selectionEnd);
+            } else {
+                // If SHIFT is not held, move the caret to the start
+                textarea.setSelectionRange(0, 0);
+            }
+
+            textarea.focus();
+        }
+    }
+
+    const moveCaretToEnd = (shiftHeld) => {
+        if (inputBoxRef.current) {
+            const textarea = inputBoxRef.current;
+            const length = textarea.value.length;
+
+            if (shiftHeld) {
+                // If SHIFT is held, extend the selection to the end
+                textarea.setSelectionRange(textarea.selectionStart, length);
+            } else {
+                // If SHIFT is not held, move the caret to the end
+                textarea.setSelectionRange(length, length);
+            }
+
+            textarea.focus();
+        }
+    }
+
     // Expose the insertTextAtCaret function to the window object
     React.useEffect(() => {
         window.insertTextAtCaret = insertTextAtCaret;
+        window.moveCaretToEnd = moveCaretToEnd;
+        window.moveCaretToStart = moveCaretToStart;
         return () => {
             delete window.insertTextAtCaret;
+            delete window.moveCaretToEnd;
+            delete window.moveCaretToStart;
         };
     }, [inputContent]);
     function getTrueIndices(obj) {

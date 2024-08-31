@@ -25,6 +25,9 @@ using System.Linq;
 using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
+using System.Windows.Input;
+using System.Runtime.InteropServices;
+
 
 namespace VSIXTest
 {
@@ -54,9 +57,43 @@ namespace VSIXTest
         private readonly ShortcutManager _shortcutManager;
         private readonly AutocompleteManager _autocompleteManager;
 
+        private async void VsixChat_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.End)
+            {
+               e.Handled = true;
+                bool shiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+                await ExecuteScriptAsync($"window.moveCaretToEnd({(shiftHeld ? "true" :"false")})");
+            }
+            else if (e.Key == Key.Home)
+            {
+                e.Handled = true;
+                bool shiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+                await ExecuteScriptAsync($"window.moveCaretToStart({(shiftHeld ? "true" : "false")})");
+            }
+        }
+
+        private async Task SendEndKeyPress()
+        {
+            // Ensure the WebView2 is fully initialized
+
+        }
+
+        private string ConvertKeyToJsKey(Key key)
+        {
+            switch (key)
+            {
+                case Key.End:
+                    return "End";
+                // Add more cases as needed for other keys
+                default:
+                    return key.ToString();}
+        }
+
+
         public VsixChat() : base()
         {
-            
+            this.KeyDown += VsixChat_KeyDown;
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded += VsixChat_Loaded;
             _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
@@ -198,11 +235,35 @@ namespace VSIXTest
             {
                 var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
                 var selection = textDocument.Selection as TextSelection;
+                var activeDocumentFilename = _dte.ActiveDocument.Name;
+                
                 var selectedText = selection.Text;
+                var formattedAsFile = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}";
+
+                var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
+                await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
                 //await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsInsertSelection", Content = selectedText }, simpleClient);
             }
 
             await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
     }
+
+    public class KeyboardSend
+    {
+        [DllImport("user32.dll")]
+        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        private const int KEYEVENTF_EXTENDEDKEY = 0x1;
+        private const int KEYEVENTF_KEYUP = 0x2;
+        private const byte VK_END = 0x23;
+
+        public static void SendEnd()
+        {
+            keybd_event(VK_END, 0, KEYEVENTF_EXTENDEDKEY, 0);
+            keybd_event(VK_END, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+        }
+    }
+
+
 }
