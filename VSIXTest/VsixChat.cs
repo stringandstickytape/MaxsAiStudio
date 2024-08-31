@@ -61,16 +61,6 @@ namespace VSIXTest
             }
         }
 
-        public async Task SendMessageThroughPipe(string message)
-        {
-            if (!isClientInitialized)
-            {
-                await InitializeClientAsync();
-            }
-            simpleClient.SendLine(message);
-            //namedPipeManager.EnqueueMessage(message);
-        }
-
         private SimpleClient simpleClient = new SimpleClient();
 
         private static VsixChat _instance;

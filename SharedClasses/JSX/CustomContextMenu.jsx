@@ -1,6 +1,7 @@
-﻿const CustomContextMenu = ({ x, y, items, onClose }) => {
+﻿const CustomContextMenu = ({ x, y, onClose }) => {
     const { colorScheme } = React.useColorScheme();
     const menuRef = React.useRef(null);
+    const [items, setItems] = React.useState([]);
 
     React.useEffect(() => {
         const handleClickOutside = (event) => {
@@ -14,6 +15,21 @@
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [onClose]);
+
+    React.useEffect(() => {
+        // Initialize the menu items
+        setItems(window.customContextMenuItems || []);
+
+        // Set up a method to add new items
+        window.addCustomContextMenuItem = (newItem) => {
+            setItems(prevItems => [...prevItems, newItem]);
+        };
+
+        // Clean up
+        return () => {
+            delete window.addCustomContextMenuItem;
+        };
+    }, []);
 
     return (
         <div
@@ -70,4 +86,10 @@
             </div>
         </div>
     );
+};
+console.log("CCM!!");
+// Export the component and the add method
+window.CustomContextMenu = CustomContextMenu;
+window.addCustomContextMenuItem = (newItem) => {
+    window.customContextMenuItems = [...(window.customContextMenuItems || []), newItem];
 };
