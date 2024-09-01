@@ -6,6 +6,8 @@ using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Topics;
 using AiTool3.UI;
+using Newtonsoft.Json;
+using SharedClasses;
 
 namespace AiTool3.Helpers
 {
@@ -262,6 +264,15 @@ namespace AiTool3.Helpers
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
                         var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, true);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
+                    }),
+
+                    new LabelAndEventHander("Edit Visual Studio Plugin Buttons", async (s, e) =>
+                    {
+                        var form = new MessagePromptEditorForm(chatWebView.MessagePrompts);
+                        form.ShowDialog();
+
+                        chatWebView.MessagePrompts = form.GetUpdatedPrompts();
+                        await chatWebView.SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(chatWebView.MessagePrompts) });
                     }),
 
                     new LabelAndEventHander("Autosuggest (User-Specified)", async (s, e) =>

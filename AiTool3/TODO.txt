@@ -122,6 +122,7 @@ DONE: path app to fetch resources from dll
 DONE: When a VSXIUI message is received by VSIX, pass it via TCP to the app and process it as if it was a message from the main webview
 DONE:   When the main app sends a message to the main web view, also send it via TCP to the app.
 
+Default system prompt should be editable, not just empty.
 
 ""serene"" bug
 

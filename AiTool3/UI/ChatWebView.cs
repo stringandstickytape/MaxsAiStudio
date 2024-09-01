@@ -21,6 +21,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AiTool3.UI
 {
@@ -58,7 +59,7 @@ namespace AiTool3.UI
 
         }
 
-        public static readonly MessagePrompt[] MessagePrompts = new[]
+        public MessagePrompt[] MessagePrompts = new[]
 {
             // Code Analysis and Explanation
             new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Explain Code", MessageType = "explainCode", Prompt = "Provide a detailed explanation of what this code does:" },
@@ -134,14 +135,23 @@ Analyze the above C# code and provide appropriate XML documentation comments for
         private async void SimpleServer_LineReceived(object? sender, string e)
         {
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
-
-            if(vsixMessage.MessageType == "vsRequestButtons")
+            if(vsixMessage.Content == "send")
+            {
+                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false });
+                return;
+            } else if(vsixMessage.MessageType == "vsRequestButtons")
             {
                 await SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(MessagePrompts) });
                 return;
             } else if (vsixMessage.MessageType == "setUserPrompt")
             {
                 await SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
+                return;
+            } else if (vsixMessage.MessageType == "vsQuickButtonRun")
+            {
+                await Clear();
+                await SetUserPrompt(vsixMessage.Content);
+                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false });
                 return;
             }
             else if (vsixMessage.MessageType == "vsShowFileSelector")

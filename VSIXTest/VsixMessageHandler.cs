@@ -23,7 +23,7 @@ namespace VSIXTest
             _executeScriptAsync = executeScriptAsync;
         }
 
-        private List<SharedClasses.Models.MessagePrompt> _buttons;
+        public List<SharedClasses.Models.MessagePrompt> Buttons;
 
         public async Task HandleReceivedMessage(VsixMessage message)
         {
@@ -33,10 +33,12 @@ namespace VSIXTest
             {
                 case "vsButtons":
                     //deser message.Content to list of strings
-                    _buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);
+                    Buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);
 
                     // group buttons by category
-                    var groupedButtons = _buttons.GroupBy(b => b.Category).ToList();
+                    var groupedButtons = Buttons.GroupBy(b => b.Category).ToList();
+
+                    await _executeScriptAsync($@"window.clearAllButtons();");
 
                     //foreach cat
                     foreach (var cat in groupedButtons)
@@ -63,7 +65,7 @@ namespace VSIXTest
 
                     }
 
-                    foreach(var button in _buttons)
+                    foreach(var button in Buttons)
                     {
 
                     }

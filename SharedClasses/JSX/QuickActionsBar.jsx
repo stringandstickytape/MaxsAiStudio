@@ -16,9 +16,14 @@ const QuickActionsBar = () => {
             setButtons(prevButtons => prevButtons.filter(button => button.label !== label));
         };
 
+        window.clearAllButtons = () => {
+            setButtons([]);
+        };
+
         return () => {
             delete window.addQuickActionButton;
             delete window.removeQuickActionButton;
+            delete window.clearAllButtons;
         };
     }, []);
 
@@ -51,5 +56,6 @@ const QuickActionsBar = () => {
         </div>
     );
 };
-// Export the component
+
+// Export the component and functions
 window.QuickActionsBar = QuickActionsBar;

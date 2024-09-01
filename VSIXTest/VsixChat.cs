@@ -226,13 +226,6 @@ namespace VSIXTest
                             })
 });");
 
-                await ExecuteScriptAsync(@"window.addQuickActionButton(
-    'My Action',
-    () =>    window.chrome.webview.postMessage({
-                                type: 'vsPopWindow'
-                            }),
-    []
-);");
             }
 
             if (message.type == "vsInsertSelection")
@@ -261,12 +254,25 @@ namespace VSIXTest
             if(message.type == "vsQuickButton")
             {
 
+                
+                var matchingButton = _messageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == message.content);
+                var prompt = matchingButton?.Prompt;
+
+                //get currently selected text in active document
+                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                var selection = textDocument.Selection as TextSelection;
+                var activeDocumentFilename = _dte.ActiveDocument.Name;
+                var selectedText = selection.Text;
+
+                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
+                var jsonFormatted = JsonConvert.SerializeObject(formatted);
+                await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
+
+                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
+
             }
 
             await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
-
- 
     }
-
 }
