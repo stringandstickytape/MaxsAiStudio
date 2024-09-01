@@ -73,6 +73,7 @@ function App() {
             </style>
             <div className="app-container">
                 <HeaderBar />
+                <QuickActionsBar />
                 <div className="main-content">
                     <MessagesPane />
                     <LiveStream />

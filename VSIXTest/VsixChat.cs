@@ -7,31 +7,14 @@ using Newtonsoft.Json;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using System.Windows;
 using SharedClasses;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System;
 using SharedClasses.Helpers;
 using System.Linq;
 using System.IO;
 using System.Threading;
-using Microsoft.VisualStudio.Threading;
 using System.Windows.Input;
-using System.Runtime.InteropServices;
-using System.Web.UI.WebControls;
-using System.Windows.Controls;
-using System.Windows.Media.Media3D;
-using System.Diagnostics;
-
 
 namespace VSIXTest
 {
@@ -132,7 +115,6 @@ namespace VSIXTest
                 await InitialiseAsync();
                 vsixInitialised = true;
             }
-
         }
 
         public async Task InitialiseAsync()
@@ -227,6 +209,8 @@ namespace VSIXTest
 
             if (message.type == "ready")
             {
+                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
+
                 // any vsix-specific webview setup can go here
                 await ExecuteScriptAsync(@"window.addCustomContextMenuItem({
     label:'Insert Selection',
@@ -241,6 +225,14 @@ namespace VSIXTest
                                 type: 'vsPopWindow'
                             })
 });");
+
+                await ExecuteScriptAsync(@"window.addQuickActionButton(
+    'My Action',
+    () =>    window.chrome.webview.postMessage({
+                                type: 'vsPopWindow'
+                            }),
+    []
+);");
             }
 
             if (message.type == "vsInsertSelection")
@@ -263,116 +255,18 @@ namespace VSIXTest
 
                 files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
 
-                simpleClient.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
+                await simpleClient.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
 
-               // var window = new TreeViewWindow();
-               // window.OnClose += (sender2, args) =>
-               // {
-               //     List<string> checkedItems = window.GetCheckedItems();
-               //     
-               //     Debug.WriteLine("TreeViewWindow is closing. Selected items:");
-               //     foreach (string item in checkedItems)
-               //     {
-               //         Debug.WriteLine($"- {item}");
-               //     }
-               //
-               //     // Perform any cleanup or save operations here
-               //     Console.WriteLine("TreeViewWindow is closing!");
-               // };
-               //
-               //
-               //
-               // List<TreeViewItem> treeViewItems = ConvertPathsToTreeViewItems(files);
-               //
-               // // Populate the TreeView
-               // window.PopulateTreeView(treeViewItems);
-               //
-               // // Show the window
-               // window.Show();
+            }
+            if(message.type == "vsQuickButton")
+            {
+
             }
 
             await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
-        public static List<TreeViewItem> ConvertPathsToTreeViewItems(List<string> files)
-        {
-            var rootItems = new List<TreeViewItem>();
-            var itemsDictionary = new Dictionary<string, TreeViewItem>();
-            string commonRoot = FindCommonRoot(files);
-
-            foreach (var file in files)
-            {
-                var parts = file.Substring(commonRoot.Length).Split(Path.DirectorySeparatorChar);
-                var currentPath = commonRoot;
-
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    var part = parts[i];
-                    currentPath = Path.Combine(currentPath, part);
-
-                    if (!itemsDictionary.TryGetValue(currentPath, out var item))
-                    {
-                        item = new TreeViewItem { Header = part, Tag = currentPath };
-                        itemsDictionary[currentPath] = item;
-
-                        if (i == 0 && rootItems.Count == 0)
-                        {
-                            rootItems.Add(item);
-                        }
-                        else
-                        {
-                            var parentPath = Path.GetDirectoryName(currentPath);
-                            if (itemsDictionary.TryGetValue(parentPath, out var parentItem))
-                            {
-                                parentItem.Items.Add(item);
-                            }
-                            else
-                            {
-                                rootItems.Add(item);
-                            }
-                        }
-                    }
-
-                    if (i == parts.Length - 1)
-                    {
-                        // This is a file, so we can set an icon or change its style here if needed
-                        // For example: item.Icon = new BitmapImage(new Uri("path_to_file_icon.png"));
-                    }
-                }
-            }
-
-            return rootItems;
-        }
-
-        private static string FindCommonRoot(List<string> paths)
-        {
-            if (paths == null || paths.Count == 0)
-                return string.Empty;
-
-            var firstPath = paths[0];
-            var commonRoot = firstPath;
-
-            for (int i = 1; i < paths.Count; i++)
-            {
-                var path = paths[i];
-                int j;
-                for (j = 0; j < commonRoot.Length && j < path.Length; j++)
-                {
-                    if (char.ToLower(commonRoot[j]) != char.ToLower(path[j]))
-                        break;
-                }
-                commonRoot = commonRoot.Substring(0, j);
-            }
-
-            // Ensure the common root ends at a directory separator
-            int lastSeparatorIndex = commonRoot.LastIndexOf(Path.DirectorySeparatorChar);
-            if (lastSeparatorIndex >= 0)
-                commonRoot = commonRoot.Substring(0, lastSeparatorIndex + 1);
-            else
-                commonRoot = string.Empty;
-
-            return commonRoot;
-        }
+ 
     }
 
 }

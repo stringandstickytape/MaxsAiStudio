@@ -70,10 +70,6 @@ namespace VSIXTest
             await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
         }
 
-        private async void SimpleClient_LineReceived(object sender, string e)
-        {
-
-        }
 
         private async Task InitializeClientAsync()
         {

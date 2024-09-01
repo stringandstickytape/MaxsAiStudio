@@ -485,39 +485,39 @@ namespace AiTool3
                     updateTimer.Stop();
                     await UpdateUi(response);
 
-                    if (e.SendResponseToVsix)
-                    { 
-                        // get the entire messages pane div from the chatwebview
-                        var messagesPane = await chatWebView.GetMessagesPaneContent();
-
-                        // does the last message's content include any three-backticks-demarcated code blocks?
-                        if (messagesPane != null)
-                        {
-                            
-                            var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
-                            var matches = Regex.Matches(ConversationManager.Conversation.Messages.Last().Content, codeBlockPattern, RegexOptions.Multiline);
-
-                            // does the last one begin {ThreeTicks}insertions.json ?
-                            if (matches.Count > 0 && matches.Last().Value.Contains($"{ThreeTicks}insertions.json"))
-                            {
-                                var lastCodeBlock = matches.Last().Value;
-                                var lines = lastCodeBlock.Split('\n');
-                                lastCodeBlock = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
-
-                                // if lastCodeBlock starts with {"code= then remove the equals sign but only for the first instance of {"code=, using indexes
-                                if (lastCodeBlock.StartsWith("{\"code="))
-                                {
-                                    var firstIndex = lastCodeBlock.IndexOf("{\"code=");
-                                    lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
-                                }
-
-                                await chatWebView.SendToVsixAsync(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
-                                //_tcpCommsManager.EnqueueMessage();
-                            }
-                            else await chatWebView.SendToVsixAsync(new VsixMessage { Content = messagesPane, MessageType = "response" });
-                            //else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
-                        }
-                    }
+                    //if (e.SendResponseToVsix)
+                    //{ 
+                    //    // get the entire messages pane div from the chatwebview
+                    //    var messagesPane = await chatWebView.GetMessagesPaneContent();
+                    //
+                    //    // does the last message's content include any three-backticks-demarcated code blocks?
+                    //    if (messagesPane != null)
+                    //    {
+                    //        
+                    //        var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
+                    //        var matches = Regex.Matches(ConversationManager.Conversation.Messages.Last().Content, codeBlockPattern, RegexOptions.Multiline);
+                    //
+                    //        // does the last one begin {ThreeTicks}insertions.json ?
+                    //        if (matches.Count > 0 && matches.Last().Value.Contains($"{ThreeTicks}insertions.json"))
+                    //        {
+                    //            var lastCodeBlock = matches.Last().Value;
+                    //            var lines = lastCodeBlock.Split('\n');
+                    //            lastCodeBlock = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
+                    //
+                    //            // if lastCodeBlock starts with {"code= then remove the equals sign but only for the first instance of {"code=, using indexes
+                    //            if (lastCodeBlock.StartsWith("{\"code="))
+                    //            {
+                    //                var firstIndex = lastCodeBlock.IndexOf("{\"code=");
+                    //                lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
+                    //            }
+                    //
+                    //            await chatWebView.SendToVsixAsync(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
+                    //            //_tcpCommsManager.EnqueueMessage();
+                    //        }
+                    //        else await chatWebView.SendToVsixAsync(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                    //        //else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                    //    }
+                    //}
                 });
             
             EnableConversationsAndWebView();

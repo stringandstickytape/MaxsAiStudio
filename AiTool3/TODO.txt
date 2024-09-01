@@ -425,3 +425,26 @@ I apologize for the misunderstanding. Thank you for clarifying. Here's a revised
     - Save conversations as TXT or HTML
    
 
+
+
+
+VSIX <- WebView : WebView_WebMessageReceived is called
+VSIX -> WebView : VsixChat.ExecuteScriptAsync
+
+VSIX <- app : SimpleClient_LineReceived is called, and that calls to VsixMessageHandler.HandleReceivedMessage
+VSIX -> app : _messageHandler.SendVsixMessage
+
+app <- WebView : WebView_WebMessageReceived is called.  When this receives "ready", it's a good time to initialise VSIX-specific bits of the UI.
+app -> WebView : ChatWebView.ExecuteScriptAsync
+
+app <- VSIX : SimpleServer_LineReceived is called
+app -> VSIX : ChatWebView.SendToVsixAsync (or with ExecuteScriptAndSendToVsixAsync if it's being sent to the VSIX webview and the chat webview).
+
+
+
+
+On VSIX ready, send req to app for message prompts.
+
+App sends message prompts to VSIX.
+
+VSIX creates buttons.

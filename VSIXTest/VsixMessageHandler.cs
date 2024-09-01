@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using SharedClasses;
 using System.Threading.Tasks;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 namespace VSIXTest
 {
@@ -22,12 +23,51 @@ namespace VSIXTest
             _executeScriptAsync = executeScriptAsync;
         }
 
+        private List<SharedClasses.Models.MessagePrompt> _buttons;
+
         public async Task HandleReceivedMessage(VsixMessage message)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             switch (message.MessageType)
             {
+                case "vsButtons":
+                    //deser message.Content to list of strings
+                    _buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);
+
+                    // group buttons by category
+                    var groupedButtons = _buttons.GroupBy(b => b.Category).ToList();
+
+                    //foreach cat
+                    foreach (var cat in groupedButtons)
+                    {
+                        var catButtons = cat.ToList();
+
+                        var catButtonObjs = catButtons.Select(b => new { label = b.ButtonLabel, onClick = "console.log(\"Sub action clicked\")" }).ToList();
+
+                        //var catButtonJson = "["+string.Join(",", catButtonObjs.Select(x => $"{{ label: \"{x.label}\", onClick: () => console.log(\"{x.label} clicked\") }}"))+"]";
+
+                        var catButtonJson = "[" + string.Join(",", catButtonObjs.Select(x => $"{{ label: \"{x.label}\", onClick: () => window.chrome.webview.postMessage({{type: 'vsQuickButton', content: '{x.label}'}}) }}")) + "]";
+
+
+                        //                 window.chrome.webview.postMessage({type: '')
+
+                    var catButtonJson2 = "[{ label: \"Sub Action\", onClick: () => console.log(\"Sub action clicked\") }]";
+
+                        await _executeScriptAsync($@"window.addQuickActionButton(
+    ""{cat.Key}"", 
+    () => console.log(""Action clicked""), 
+    {catButtonJson},
+    null
+);");
+
+                    }
+
+                    foreach(var button in _buttons)
+                    {
+
+                    }
+                    break;
                 case "setUserPrompt":
                     await HandleSetUserPrompt(message.Content);
                     break;

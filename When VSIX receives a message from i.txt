@@ -1,0 +1,15 @@
+When VSIX receives a message from its WebView, WebView_WebMessageReceived is called.
+
+When VSIX sends to the WebView, it does it with VsixChat.ExecuteScriptAsync.
+
+When VSIX receives a message from the app, SimpleClient_LineReceived is called, and that calls to VsixMessageHandler.HandleReceivedMessage.
+
+When VSIX sends a message to the app, it does it with _messageHandler.SendVsixMessage.
+
+When the app receives a message from it WebView, WebView_WebMessageReceived is called.
+
+When the app sends to the WebView, it does it with ChatWebView.ExecuteScriptAsync.
+
+When the app sends a message to VSIX, it does it with ChatWebView.SendToVsixAsync (or with ExecuteScriptAndSendToVsixAsync if it's being sent to the VSIX webview and the chat webview).
+
+When the app receives a message from VSIX, it does it with SimpleServer_LineReceived.
