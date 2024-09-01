@@ -53,6 +53,100 @@ namespace AiTool3.UI.Forms
             };
         }
 
+        public FileSearchForm(List<string> filePaths)
+        {
+            fileExtensions = new string[1] { "*" };
+
+
+            InitializeComponent();
+
+            List<string> checkedFiles = new List<string>();
+
+            if (File.Exists("Settings\\ProjectHelperSelection.json"))
+            {
+                var json = File.ReadAllText("Settings\\ProjectHelperSelection.json");
+                checkedFiles = JsonConvert.DeserializeObject<List<string>>(json);
+            }
+
+            PopulateTreeViewFromPaths(filePaths, checkedFiles);
+
+            Load += (sender, e) =>
+            {
+                if (GetCheckedFiles().Any())
+                {
+                    FindLastNode(treeView.Nodes)?.EnsureVisible();
+                    FindFirstCheckedNode(treeView.Nodes)?.EnsureVisible();
+                }
+            };
+        }
+
+        private static string FindCommonRoot(List<string> paths)
+        {
+            if (paths == null || paths.Count == 0)
+                return string.Empty;
+
+            var firstPath = paths[0];
+            var commonRoot = firstPath;
+
+            for (int i = 1; i < paths.Count; i++)
+            {
+                var path = paths[i];
+                int j;
+                for (j = 0; j < commonRoot.Length && j < path.Length; j++)
+                {
+                    if (char.ToLower(commonRoot[j]) != char.ToLower(path[j]))
+                        break;
+                }
+                commonRoot = commonRoot.Substring(0, j);
+            }
+
+            // Ensure the common root ends at a directory separator
+            int lastSeparatorIndex = commonRoot.LastIndexOf(Path.DirectorySeparatorChar);
+            if (lastSeparatorIndex >= 0)
+                commonRoot = commonRoot.Substring(0, lastSeparatorIndex + 1);
+            else
+                commonRoot = string.Empty;
+
+            return commonRoot;
+        }
+
+        private void PopulateTreeViewFromPaths(List<string> filePaths, List<string> checkedFiles)
+        {
+            var commonRoot = FindCommonRoot(filePaths);
+            treeView.Nodes.Clear();
+            var rootNode = new TreeNode("Files");
+            treeView.Nodes.Add(rootNode);
+
+            foreach (var filePath in filePaths)
+            {
+                if (fileExtensions.Contains("*") || fileExtensions.Contains(Path.GetExtension(filePath).ToLower()))
+                {
+                    var pathParts = filePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    var currentNode = rootNode;
+
+                    for (int i = 0; i < pathParts.Length; i++)
+                    {
+                        var part = pathParts[i];
+                        var existingNode = currentNode.Nodes.Cast<TreeNode>().FirstOrDefault(n => n.Text == part);
+
+                        if (existingNode == null)
+                        {
+                            existingNode = new TreeNode(part);
+                            currentNode.Nodes.Add(existingNode);
+                        }
+
+                        if (i == pathParts.Length - 1) // This is a file
+                        {
+                            existingNode.Checked = checkedFiles.Contains(filePath);
+                        }
+
+                        currentNode = existingNode;
+                    }
+                }
+            }
+
+            treeView.ExpandAll();
+        }
         private TreeNode FindLastNode(TreeNodeCollection nodes)
         {
             TreeNode lastNode = null;

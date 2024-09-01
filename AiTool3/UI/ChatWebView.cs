@@ -1,10 +1,12 @@
 using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
+using AiTool3.FileAttachments;
 using AiTool3.Helpers;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.Topics;
+using AiTool3.UI.Forms;
 using AITool3;
 using FFmpeg.AutoGen;
 using Microsoft.Web.WebView2.Core;
@@ -38,6 +40,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
         private ToolManager _toolManager;
+        private FileAttachmentManager _fileAttachmentManager;
         private SimpleServer _simpleServer;
         //private TcpCommsManager _tcpCommsManager;
 
@@ -55,9 +58,10 @@ namespace AiTool3.UI
 
         }
 
-        public void InjectDependencies(ToolManager toolManager)
+        public void InjectDependencies(ToolManager toolManager, FileAttachmentManager fileAttachmentManager)
         {
             _toolManager = toolManager;
+            _fileAttachmentManager = fileAttachmentManager;
             _simpleServer = new SimpleServer();
             _simpleServer.LineReceived += SimpleServer_LineReceived;
             _simpleServer.StartServer();
@@ -71,6 +75,31 @@ namespace AiTool3.UI
             {
                 await SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
                 return;
+            }
+            else if (vsixMessage.MessageType == "vsShowFileSelector")
+            {
+                // in maxsaistudio we can do form = new FileSearchForm
+                var files = JsonConvert.DeserializeObject<List<string>>(vsixMessage.Content);
+                FileSearchForm form = null;
+
+                await Task.Run(async () =>
+                {
+                    try
+                    {
+                        form = new FileSearchForm(files);
+                        form.AddFilesToInput += async (s, e) =>
+                        {
+                            // attach files as txt
+                            await _fileAttachmentManager.AttachTextFiles(e.ToArray());
+                        };
+                    }
+                    finally
+                    {
+
+                    }
+                });
+                form.Show();
+
             }
             else await HandleWebReceivedJsonMessageAsync(vsixMessage.Content);
         }

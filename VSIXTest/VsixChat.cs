@@ -30,6 +30,7 @@ using System.Runtime.InteropServices;
 using System.Web.UI.WebControls;
 using System.Windows.Controls;
 using System.Windows.Media.Media3D;
+using System.Diagnostics;
 
 
 namespace VSIXTest
@@ -64,9 +65,9 @@ namespace VSIXTest
         {
             if (e.Key == Key.End)
             {
-               e.Handled = true;
+                e.Handled = true;
                 bool shiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-                await ExecuteScriptAsync($"window.moveCaretToEnd({(shiftHeld ? "true" :"false")})");
+                await ExecuteScriptAsync($"window.moveCaretToEnd({(shiftHeld ? "true" : "false")})");
             }
             else if (e.Key == Key.Home)
             {
@@ -90,7 +91,8 @@ namespace VSIXTest
                     return "End";
                 // Add more cases as needed for other keys
                 default:
-                    return key.ToString();}
+                    return key.ToString();
+            }
         }
 
 
@@ -130,7 +132,7 @@ namespace VSIXTest
                 await InitialiseAsync();
                 vsixInitialised = true;
             }
-            
+
         }
 
         public async Task InitialiseAsync()
@@ -241,12 +243,12 @@ namespace VSIXTest
 });");
             }
 
-            if(message.type == "vsInsertSelection")
+            if (message.type == "vsInsertSelection")
             {
                 var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
                 var selection = textDocument.Selection as TextSelection;
                 var activeDocumentFilename = _dte.ActiveDocument.Name;
-                
+
                 var selectedText = selection.Text;
                 var formattedAsFile = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}";
 
@@ -254,48 +256,123 @@ namespace VSIXTest
                 await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
                 //await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsInsertSelection", Content = selectedText }, simpleClient);
             }
-            if(message.type == "vsPopWindow")
+            if (message.type == "vsPopWindow")
             {
-                var window = new TreeViewWindow();
 
-                // Create your TreeViewItems
-                var items = new List<TreeViewItem>
-    {
-        new TreeViewItem { Header = "Node 1" },
-        new TreeViewItem { Header = "Node 2" },
-        new TreeViewItem { Header = "Node 3" }
-    };
+                var files = _shortcutManager.GetAllFilesInSolution();
 
-                // Create a hierarchical structure (optional)
-                var parentNode = new TreeViewItem { Header = "Parent Node" };
-                parentNode.Items.Add(new TreeViewItem { Header = "Child Node 1" });
-                parentNode.Items.Add(new TreeViewItem { Header = "Child Node 2" });
-                items.Add(parentNode);
+                files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
 
-                // Populate the TreeView
-                window.PopulateTreeView(items);
+                simpleClient.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
 
-                // Show the window
-                window.Show();
+               // var window = new TreeViewWindow();
+               // window.OnClose += (sender2, args) =>
+               // {
+               //     List<string> checkedItems = window.GetCheckedItems();
+               //     
+               //     Debug.WriteLine("TreeViewWindow is closing. Selected items:");
+               //     foreach (string item in checkedItems)
+               //     {
+               //         Debug.WriteLine($"- {item}");
+               //     }
+               //
+               //     // Perform any cleanup or save operations here
+               //     Console.WriteLine("TreeViewWindow is closing!");
+               // };
+               //
+               //
+               //
+               // List<TreeViewItem> treeViewItems = ConvertPathsToTreeViewItems(files);
+               //
+               // // Populate the TreeView
+               // window.PopulateTreeView(treeViewItems);
+               //
+               // // Show the window
+               // window.Show();
             }
 
             await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
-    }
 
-    public class KeyboardSend
-    {
-        [DllImport("user32.dll")]
-        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
-
-        private const int KEYEVENTF_EXTENDEDKEY = 0x1;
-        private const int KEYEVENTF_KEYUP = 0x2;
-        private const byte VK_END = 0x23;
-
-        public static void SendEnd()
+        public static List<TreeViewItem> ConvertPathsToTreeViewItems(List<string> files)
         {
-            keybd_event(VK_END, 0, KEYEVENTF_EXTENDEDKEY, 0);
-            keybd_event(VK_END, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+            var rootItems = new List<TreeViewItem>();
+            var itemsDictionary = new Dictionary<string, TreeViewItem>();
+            string commonRoot = FindCommonRoot(files);
+
+            foreach (var file in files)
+            {
+                var parts = file.Substring(commonRoot.Length).Split(Path.DirectorySeparatorChar);
+                var currentPath = commonRoot;
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    var part = parts[i];
+                    currentPath = Path.Combine(currentPath, part);
+
+                    if (!itemsDictionary.TryGetValue(currentPath, out var item))
+                    {
+                        item = new TreeViewItem { Header = part, Tag = currentPath };
+                        itemsDictionary[currentPath] = item;
+
+                        if (i == 0 && rootItems.Count == 0)
+                        {
+                            rootItems.Add(item);
+                        }
+                        else
+                        {
+                            var parentPath = Path.GetDirectoryName(currentPath);
+                            if (itemsDictionary.TryGetValue(parentPath, out var parentItem))
+                            {
+                                parentItem.Items.Add(item);
+                            }
+                            else
+                            {
+                                rootItems.Add(item);
+                            }
+                        }
+                    }
+
+                    if (i == parts.Length - 1)
+                    {
+                        // This is a file, so we can set an icon or change its style here if needed
+                        // For example: item.Icon = new BitmapImage(new Uri("path_to_file_icon.png"));
+                    }
+                }
+            }
+
+            return rootItems;
+        }
+
+        private static string FindCommonRoot(List<string> paths)
+        {
+            if (paths == null || paths.Count == 0)
+                return string.Empty;
+
+            var firstPath = paths[0];
+            var commonRoot = firstPath;
+
+            for (int i = 1; i < paths.Count; i++)
+            {
+                var path = paths[i];
+                int j;
+                for (j = 0; j < commonRoot.Length && j < path.Length; j++)
+                {
+                    if (char.ToLower(commonRoot[j]) != char.ToLower(path[j]))
+                        break;
+                }
+                commonRoot = commonRoot.Substring(0, j);
+            }
+
+            // Ensure the common root ends at a directory separator
+            int lastSeparatorIndex = commonRoot.LastIndexOf(Path.DirectorySeparatorChar);
+            if (lastSeparatorIndex >= 0)
+                commonRoot = commonRoot.Substring(0, lastSeparatorIndex + 1);
+            else
+                commonRoot = string.Empty;
+
+            return commonRoot;
         }
     }
+
 }

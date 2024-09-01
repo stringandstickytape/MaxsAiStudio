@@ -56,8 +56,6 @@
     <Compile Include="ChatWindowPane.cs" />
     <Compile Include="GetSurroundingLinesCommand.cs" />
     <Compile Include="GitDiffHelper.cs" />
-    <Compile Include="InlineChatAdornment.cs" />
-    <Compile Include="InlineChatAdornmentFactory.cs" />
     <Compile Include="MaxsAiStudioAutoCompleteCommand.cs" />
     <Compile Include="MessageFormatter.cs" />
     <Compile Include="OpenChatWindow.cs" />
@@ -66,6 +64,7 @@
     <Compile Include="ShortcutManager.cs" />
     <Compile Include="SimpleClient.cs" />
     <Compile Include="TaskExtensions.cs" />
+    <Compile Include="TreeViewWindow.cs" />
     <Compile Include="VsixChat.cs" />
     <Compile Include="VsixMessageHandler.cs" />
     <Compile Include="VSIXTestPackage.cs" />

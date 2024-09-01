@@ -81,7 +81,7 @@ namespace AiTool3
                 _fileAttachmentManager.InjectDependencies(chatWebView);
                 ConversationManager = conversationManager;
                 ConversationManager.InjectDepencencies(dgvConversations);
-                chatWebView.InjectDependencies(toolManager);
+                chatWebView.InjectDependencies(toolManager, fileAttachmentManager);
                 _scratchpadManager = scratchpadManager;
                 _aiResponseHandler = aiResponseHandler;
                 webViewManager = new WebViewManager(ndcWeb);
