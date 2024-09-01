@@ -170,6 +170,9 @@ namespace AiTool3
         {
             switch (e.EventType)
             {
+                case "vsButtons":
+                    await chatWebView.SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(CurrentSettings.MessagePrompts) });
+                    break;
                 case "toggleModelStar":
                     // deser e.Json to dynamic
                     var json = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(e.Json);

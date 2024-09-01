@@ -268,11 +268,12 @@ namespace AiTool3.Helpers
 
                     new LabelAndEventHander("Edit Visual Studio Plugin Buttons", async (s, e) =>
                     {
-                        var form = new MessagePromptEditorForm(chatWebView.MessagePrompts);
+                        var form = new MessagePromptEditorForm(currentSettings.MessagePrompts);
                         form.ShowDialog();
 
-                        chatWebView.MessagePrompts = form.GetUpdatedPrompts();
-                        await chatWebView.SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(chatWebView.MessagePrompts) });
+                        currentSettings.MessagePrompts = form.GetUpdatedPrompts();
+                        SettingsSet.Save(currentSettings);
+                        await chatWebView.SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(currentSettings.MessagePrompts) });
                     }),
 
                     new LabelAndEventHander("Autosuggest (User-Specified)", async (s, e) =>
