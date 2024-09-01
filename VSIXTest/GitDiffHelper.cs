@@ -24,7 +24,7 @@ namespace VSIXTest
                 return "Could not find solution directory.";
             }
 
-            string gitCommand = "diff HEAD";
+            string gitCommand = "diff --unified=10 HEAD";
             string gitOutput = ExecuteGitCommand(solutionDirectory, gitCommand);
 
             string gitLsFilesCommand = "ls-files --others --exclude-standard";

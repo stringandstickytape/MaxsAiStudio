@@ -571,10 +571,6 @@ namespace AiTool3.UI
             }
 
             var scratchpadContent = scratchpadManager.LoadScratchpad();
-            if (!string.IsNullOrEmpty(scratchpadContent))
-            {
-                await ExecuteScriptAndSendToVsixAsync($"window.setScratchpadContentAndOpen({scratchpadContent})");
-            }
 
             await SetTools();
 

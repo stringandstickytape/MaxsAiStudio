@@ -196,6 +196,20 @@ namespace VSIXTest
                 );
         }
 
+        private async Task AddContextMenuItem(string label, string messageType)
+        {
+            string script = $@"
+        window.addCustomContextMenuItem({{
+            label: `{label}`,
+            onClick: () => window.chrome.webview.postMessage({{
+                type: `{messageType}`
+            }})
+        }});
+    ";
+            await ExecuteScriptAsync(script);
+        }
+
+
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
@@ -211,20 +225,8 @@ namespace VSIXTest
             {
                 await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
 
-                // any vsix-specific webview setup can go here
-                await ExecuteScriptAsync(@"window.addCustomContextMenuItem({
-    label:'Insert Selection',
-    onClick: () =>    window.chrome.webview.postMessage({
-                                type: 'vsInsertSelection'
-                            })
-});");
-
-                await ExecuteScriptAsync(@"window.addCustomContextMenuItem({
-    label:'Pop Window',
-    onClick: () =>    window.chrome.webview.postMessage({
-                                type: 'vsPopWindow'
-                            })
-});");
+                await AddContextMenuItem("Insert Selection", "vsInsertSelection");
+                await AddContextMenuItem("Pop Window", "vsPopWindow");
 
             }
 
@@ -264,11 +266,22 @@ namespace VSIXTest
                 var activeDocumentFilename = _dte.ActiveDocument.Name;
                 var selectedText = selection.Text;
 
-                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
-                var jsonFormatted = JsonConvert.SerializeObject(formatted);
-                await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
-
-                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
+                if (message.content == "Commit Message")
+                {
+                    var diff = new GitDiffHelper().GetGitDiff();
+                    var formatteddiff = $"\n{MessageFormatter.FormatFile("diff", diff)}\n\n{prompt}";
+                    var jsonFormatteddiff = JsonConvert.SerializeObject(formatteddiff);
+                    await ExecuteScriptAsync($"setUserPrompt({jsonFormatteddiff})");
+                    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatteddiff }, simpleClient);
+                }
+                else
+                {
+                    var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
+                    var jsonFormatted = JsonConvert.SerializeObject(formatted);
+                    await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
+                    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
+                }
+                
 
             }
 

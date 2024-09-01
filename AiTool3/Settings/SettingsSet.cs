@@ -67,17 +67,18 @@ namespace AiTool3
             // Code Analysis and Explanation
             new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Explain Code", MessageType = "explainCode", Prompt = "Provide a detailed explanation of what this code does:" },
             new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Identify Potential Bugs", MessageType = "identifyBugs", Prompt = "Analyze this code for potential bugs or edge cases that might cause issues:" },
+            new MessagePrompt { Category = "Code Analysis", ButtonLabel = "Identify Tech Debt", MessageType = "identifyTechDebt", Prompt = "Analyze this code to identify areas of technical debt and suggest improvements:" },
 
             // Code Improvement and Refactoring
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "Extract Method", MessageType = "extractMethod", Prompt = "Perform an extract method on this:" },
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "Extract Static Method", MessageType = "extractStaticMethod", Prompt = "Perform an extract static method on this:" },
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "DRY This", MessageType = "dryThis", Prompt = "Suggest some clever ways, with examples, to DRY this code:" },
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "General Refactor", MessageType = "generalRefactor", Prompt = "Suggest some clever ways, with examples, to generally refactor this code:" },
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "Improve Performance", MessageType = "improvePerformance", Prompt = "Analyse and, if possible, suggest some clever ways with examples, to improve the performance of this code:" },
-            new MessagePrompt { Category = "Refactoring 1", ButtonLabel = "Simplify Logic", MessageType = "simplifyLogic", Prompt = "Analyze and suggest ways to simplify the logic in this code without changing its functionality:" },
-            new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
-            new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "Extract Best Class", MessageType = "extractBestClass", Prompt = "Analyze this code and identify the single best class that could be extracted to improve general Object-Oriented Programming (OOP) principles. Describe the proposed class, its properties, methods, and how it would enhance the overall design:" },
-            new MessagePrompt { Category = "Refactoring 2", ButtonLabel = "String Interpolation", MessageType = "stringInterpolation", Prompt = "Rewrite this to use string interpolation:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Extract Method", MessageType = "extractMethod", Prompt = "Perform an extract method on this:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Extract Static Method", MessageType = "extractStaticMethod", Prompt = "Perform an extract static method on this:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "DRY This", MessageType = "dryThis", Prompt = "Suggest some clever ways, with examples, to DRY this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "General Refactor", MessageType = "generalRefactor", Prompt = "Suggest some clever ways, with examples, to generally refactor this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Improve Performance", MessageType = "improvePerformance", Prompt = "Analyse and, if possible, suggest some clever ways with examples, to improve the performance of this code:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Simplify Logic", MessageType = "simplifyLogic", Prompt = "Analyze and suggest ways to simplify the logic in this code without changing its functionality:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Convert to LINQ", MessageType = "convertToLinq", Prompt = "Convert this code to use LINQ expressions where appropriate:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "Extract Best Class", MessageType = "extractBestClass", Prompt = "Analyze this code and identify the single best class that could be extracted to improve general Object-Oriented Programming (OOP) principles. Describe the proposed class, its properties, methods, and how it would enhance the overall design:" },
+            new MessagePrompt { Category = "Refactoring", ButtonLabel = "String Interpolation", MessageType = "stringInterpolation", Prompt = "Rewrite this to use string interpolation:" },
             
             // Code Enhancement
             new MessagePrompt { Category = "Enhancement", ButtonLabel = "Add Error Handling", MessageType = "addErrorHandling", Prompt = "Suggest appropriate error handling mechanisms for this code:" },
@@ -86,6 +87,7 @@ namespace AiTool3
             // Naming and Documentation
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Suggest Name", MessageType = "suggestName", Prompt = "Suggest a concise and descriptive name for this code element:" },
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Commit Message", MessageType = "commitMsg", Prompt = "Give me a short, high-quality, bulleted, tersely-phrased summary for this diff.  Break the changes down by project and category.  Demarcate the summary as a single code block. Do not mention unused categories or insignficiant changes." },
+            new MessagePrompt { Category = "Documentation", ButtonLabel = "Generate Code Map", MessageType = "generateCodeMap", Prompt = "Create a DOT diagram file for a high-level code map or diagram representing the structure and relationships in this code:" },
 
             // Code Generation and Extension
             new MessagePrompt { Category = "Generation", ButtonLabel = "Autocomplete at //! marker", MessageType = "autocompleteThis", Prompt = "Autocomplete this code where you see the marker //! . Give only the inserted text and no other output, demarcated with three ticks before and after." },
