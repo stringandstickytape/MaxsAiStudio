@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -11,6 +12,7 @@ using Newtonsoft.Json;
 using SharedClasses;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -41,6 +43,7 @@ namespace VSIXTest
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(VSIXTestPackage.PackageGuidString)]
     [ProvideToolWindow(typeof(ChatWindowPane))]
+    [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
     public sealed class VSIXTestPackage : AsyncPackage
     {
         private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -59,9 +62,12 @@ namespace VSIXTest
         private bool isClientInitialized = false;
         private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
 
+        // VSIXTestPackage.cs
+ 
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            VsixChat.VsixPackage = this;
             await base.InitializeAsync(cancellationToken, progress);
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -15,6 +15,9 @@ using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Windows.Input;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Windows.Documents;
+using System.Collections.Generic;
 
 namespace VSIXTest
 {
@@ -38,9 +41,11 @@ namespace VSIXTest
             }
         }
 
+        public static VSIXTestPackage VsixPackage { get; set; }
+
         private DTE2 _dte;
         private readonly ResourceManager _resourceManager;
-        private readonly VsixMessageHandler _messageHandler;
+        public readonly VsixMessageHandler MessageHandler;
         private readonly ShortcutManager _shortcutManager;
         private readonly AutocompleteManager _autocompleteManager;
 
@@ -85,7 +90,7 @@ namespace VSIXTest
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded += VsixChat_Loaded;
             _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
-            _messageHandler = new VsixMessageHandler(_dte, ExecuteScriptAsync);
+            MessageHandler = new VsixMessageHandler(_dte, ExecuteScriptAsync);
             _shortcutManager = new ShortcutManager(_dte);
             _autocompleteManager = new AutocompleteManager(_dte);
 
@@ -96,7 +101,7 @@ namespace VSIXTest
         private async void SimpleClient_LineReceived(object sender, string e)
         {
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
-            await _messageHandler.HandleReceivedMessage(vsixMessage);
+            await MessageHandler.HandleReceivedMessage(vsixMessage);
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
@@ -218,12 +223,12 @@ namespace VSIXTest
             {
                 // when the user clicks send in the VSIX, we need to copy their prompt into the user prompt in the app, from where the send will pick it up...
                 var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+                await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
             }
 
             if (message.type == "ready")
             {
-                await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
+                await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
 
                 await AddContextMenuItem("Insert Selection", "vsInsertSelection");
                 await AddContextMenuItem("Pop Window", "vsPopWindow");
@@ -233,7 +238,7 @@ namespace VSIXTest
             if (message.type == "vsInsertSelection")
             {
                 var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                var selection = textDocument.Selection as TextSelection;
+                var selection = textDocument.Selection as EnvDTE.TextSelection;
                 var activeDocumentFilename = _dte.ActiveDocument.Name;
 
                 var selectedText = selection.Text;
@@ -256,36 +261,147 @@ namespace VSIXTest
             if(message.type == "vsQuickButton")
             {
 
-                
-                var matchingButton = _messageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == message.content);
-                var prompt = matchingButton?.Prompt;
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                ShowQuickButtonOptionsWindow(message);
+                //var matchingButton = _messageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == message.content);
+                //var prompt = matchingButton?.Prompt;
+                //
+                ////get currently selected text in active document
+                //var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                //var selection = textDocument.Selection as TextSelection;
+                //var activeDocumentFilename = _dte.ActiveDocument.Name;
+                //var selectedText = selection.Text;
+                //
+                //if (message.content == "Commit Message")
+                //{
+                //    var diff = new GitDiffHelper().GetGitDiff();
+                //    var formatteddiff = $"\n{MessageFormatter.FormatFile("diff", diff)}\n\n{prompt}";
+                //    var jsonFormatteddiff = JsonConvert.SerializeObject(formatteddiff);
+                //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatteddiff})");
+                //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatteddiff }, simpleClient);
+                //}
+                //else
+                //{
+                //    var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
+                //    var jsonFormatted = JsonConvert.SerializeObject(formatted);
+                //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
+                //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
+                //}
 
-                //get currently selected text in active document
-                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                var selection = textDocument.Selection as TextSelection;
-                var activeDocumentFilename = _dte.ActiveDocument.Name;
-                var selectedText = selection.Text;
-
-                if (message.content == "Commit Message")
-                {
-                    var diff = new GitDiffHelper().GetGitDiff();
-                    var formatteddiff = $"\n{MessageFormatter.FormatFile("diff", diff)}\n\n{prompt}";
-                    var jsonFormatteddiff = JsonConvert.SerializeObject(formatteddiff);
-                    await ExecuteScriptAsync($"setUserPrompt({jsonFormatteddiff})");
-                    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatteddiff }, simpleClient);
-                }
-                else
-                {
-                    var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
-                    var jsonFormatted = JsonConvert.SerializeObject(formatted);
-                    await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
-                    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
-                }
-                
 
             }
 
-            await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
+
+
+            await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
+        }
+
+        public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
+        {
+            ToolWindowPane window = VsixPackage.FindToolWindow(typeof(QuickButtonOptionsWindow), 0, true);
+            if ((null == window) || (null == window.Frame))
+            {
+                throw new NotSupportedException("Cannot create tool window");
+            }
+
+            var quickButtonOptionsWindow = window as QuickButtonOptionsWindow;
+            quickButtonOptionsWindow.SetMessage(message);
+
+            quickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
+
+            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+        }
+
+        private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
+        {
+            // need to call to messagehandler here...
+            var buttonLabel = e.OriginalVsixMessage.content;
+            var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
+            var prompt = matchingButton?.Prompt;
+
+            List<string> inclusions = new List<string>();
+
+            var activeDocumentFilename = _dte.ActiveDocument.Name;
+
+            if (e.SelectedOptions.Contains("CurrentSelection"))
+            {
+                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                var selection = textDocument.Selection as EnvDTE.TextSelection;
+                var selectedText = selection.Text;
+
+                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
+
+                inclusions.Add(formatted);
+            }
+
+            if (e.SelectedOptions.Contains("Clipboard"))
+            {
+                var clipboardText = Clipboard.GetText();
+                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, clipboardText)}\n";
+
+                inclusions.Add(formatted);
+            }
+
+            if (e.SelectedOptions.Contains("CurrentFile"))
+            {
+                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                var selection = textDocument.Selection as EnvDTE.TextSelection;
+                
+                var selectedText = selection.Text;
+
+                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
+
+                inclusions.Add(formatted);
+            }
+
+            if (e.SelectedOptions.Contains("GitDiff"))
+            {
+                var diff = new GitDiffHelper().GetGitDiff();
+
+                var formatted = $"\n{MessageFormatter.FormatFile("diff", diff)}\n";
+
+                inclusions.Add(formatted);
+            }
+
+            var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
+            var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
+
+            await ExecuteScriptAsync($"setUserPrompt({jsonFormattedAll})");
+            await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
+
+            //
+            ////get currently selected text in active document
+            //var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+            //var selection = textDocument.Selection as TextSelection;
+            //var activeDocumentFilename = _dte.ActiveDocument.Name;
+            //var selectedText = selection.Text;
+            //
+            //if (message.content == "Commit Message")
+            //{
+            //    var diff = new GitDiffHelper().GetGitDiff();
+            //    var formatteddiff = $"\n{MessageFormatter.FormatFile("diff", diff)}\n\n{prompt}";
+            //    var jsonFormatteddiff = JsonConvert.SerializeObject(formatteddiff);
+            //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatteddiff})");
+            //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatteddiff }, simpleClient);
+            //}
+            //else
+            //{
+            //    var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
+            //    var jsonFormatted = JsonConvert.SerializeObject(formatted);
+            //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
+            //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
+            //}
+
+
+
+            //await VsixChat.Instance.MessageHandler
+            // Dump the contents of SelectedOptions to debug
+            System.Diagnostics.Debug.WriteLine("Selected Options:");
+            foreach (var option in e.SelectedOptions)
+            {
+                System.Diagnostics.Debug.WriteLine(option);
+            }
         }
     }
 }

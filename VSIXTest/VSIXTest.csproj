@@ -61,6 +61,10 @@
     <Compile Include="MessagePrompt.cs" />
     <Compile Include="OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuickButtonOptionsControl.xaml.cs">
+      <DependentUpon>QuickButtonOptionsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="QuickButtonOptionsWindow.cs" />
     <Compile Include="ResourceManager.cs" />
     <Compile Include="ShortcutManager.cs" />
     <Compile Include="SimpleClient.cs" />
@@ -109,6 +113,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ChatWindowControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="QuickButtonOptionsControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
