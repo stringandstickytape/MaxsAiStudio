@@ -5,19 +5,45 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300"
+             d:DesignHeight="300" d:DesignWidth="400"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
-	<StackPanel>
-		<CheckBox Content="Current Selection" IsChecked="True" Margin="0,5,0,0" Name="cbCurrentSelection"
-                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-		<CheckBox Content="Clipboard Contents" Margin="0,5,0,0" Name="cbClipboard"
-                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-		<CheckBox Content="Current File" Margin="0,5,0,0" Name="cbCurrentFile"
-                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-		<CheckBox Content="Git Diff" Margin="0,5,0,0" Name="cbGitDiff"
-			 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-		<!-- Add more options as needed -->
+	<StackPanel Margin="10">
+		<DockPanel Margin="0,5,0,0">
+			<CheckBox Content="Current Selection" IsChecked="True" Name="cbCurrentSelection"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+			<TextBox Name="txtCurrentSelection" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+		</DockPanel>
+		<DockPanel Margin="0,5,0,0">
+			<CheckBox Content="Clipboard Contents" Name="cbClipboard"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+			<TextBox Name="txtClipboard" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+		</DockPanel>
+		<DockPanel Margin="0,5,0,0">
+			<CheckBox Content="Current File" Name="cbCurrentFile"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+			<TextBox Name="txtCurrentFile" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+		</DockPanel>
+		<DockPanel Margin="0,5,0,0">
+			<CheckBox Content="Git Diff" Name="cbGitDiff"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+			<TextBox Name="txtGitDiff" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+		</DockPanel>
+		<DockPanel Margin="0,5,0,0">
+			<CheckBox Content="Methods with XML doc reference to" Name="cbXmlDoc"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+			<TextBox Name="txtXmlDoc" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+		</DockPanel>
 		<Button Content="OK" Click="OkButton_Click" Margin="0,10,0,0"
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.ButtonFaceKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ButtonTextKey}}"/>
