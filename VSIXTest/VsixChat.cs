@@ -324,44 +324,43 @@ namespace VSIXTest
 
             var activeDocumentFilename = _dte.ActiveDocument.Name;
 
-            if (e.SelectedOptions.Contains("CurrentSelection"))
+            foreach (var option in e.SelectedOptions)
             {
-                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                var selection = textDocument.Selection as EnvDTE.TextSelection;
-                var selectedText = selection.Text;
+                switch (option.Option)
+                {
+                    case "CurrentSelection":
+                        var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                        var selection = textDocument.Selection as EnvDTE.TextSelection;
+                        var selectedText = selection.Text;
+                        var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
+                        inclusions.Add(formatted);
+                        break;
+                    case "Clipboard":
+                        var clipboardText = Clipboard.GetText();
+                        formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, clipboardText)}\n";
+                        inclusions.Add(formatted);
+                        break;
+                    case "CurrentFile":
+                        textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                        selection = textDocument.Selection as EnvDTE.TextSelection;
+                        selectedText = selection.Text;
+                        formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
+                        inclusions.Add(formatted);
+                        break;
+                    case "GitDiff":
+                        var diff = new GitDiffHelper().GetGitDiff();
+                        formatted = $"\n{MessageFormatter.FormatFile("diff", diff)}\n";
+                        inclusions.Add(formatted);
+                        break;
+                    case "XmlDoc":
 
-                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
+                        break;
+                }
 
-                inclusions.Add(formatted);
-            }
-
-            if (e.SelectedOptions.Contains("Clipboard"))
-            {
-                var clipboardText = Clipboard.GetText();
-                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, clipboardText)}\n";
-
-                inclusions.Add(formatted);
-            }
-
-            if (e.SelectedOptions.Contains("CurrentFile"))
-            {
-                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                var selection = textDocument.Selection as EnvDTE.TextSelection;
-                
-                var selectedText = selection.Text;
-
-                var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
-
-                inclusions.Add(formatted);
-            }
-
-            if (e.SelectedOptions.Contains("GitDiff"))
-            {
-                var diff = new GitDiffHelper().GetGitDiff();
-
-                var formatted = $"\n{MessageFormatter.FormatFile("diff", diff)}\n";
-
-                inclusions.Add(formatted);
+                if (!string.IsNullOrEmpty(option.Parameter))
+                {
+                    inclusions.Add($"Parameter for {option.Option}: {option.Parameter}");
+                }
             }
 
             var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
