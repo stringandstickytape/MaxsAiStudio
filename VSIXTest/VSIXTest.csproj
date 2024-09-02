@@ -59,6 +59,7 @@
     <Compile Include="MaxsAiStudioAutoCompleteCommand.cs" />
     <Compile Include="MessageFormatter.cs" />
     <Compile Include="MessagePrompt.cs" />
+    <Compile Include="MethodFinder.cs" />
     <Compile Include="OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickButtonOptionsControl.xaml.cs">

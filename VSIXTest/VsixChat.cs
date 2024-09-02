@@ -296,6 +296,20 @@ namespace VSIXTest
             await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
+        /// <summary>
+        /// Displays the Quick Button Options window and sets up the message and event handling.
+        /// </summary>
+        /// <param name="message">The message to be displayed in the Quick Button Options window.</param>
+        /// <exception cref="NotSupportedException">Thrown when the tool window cannot be created.</exception>
+        /// <remarks>
+        /// This method performs the following actions:
+        /// 1. Finds or creates the QuickButtonOptionsWindow.
+        /// 2. Sets the message in the window.
+        /// 3. Subscribes to the OptionsSelected event.
+        /// 4. Shows the window.
+        /// </remarks>
+        /// <seealso cref="QuickButtonOptionsWindow"/>
+        /// <seealso cref="VsixUiMessage"/>
         public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
         {
             ToolWindowPane window = VsixPackage.FindToolWindow(typeof(QuickButtonOptionsWindow), 0, true);
@@ -353,13 +367,10 @@ namespace VSIXTest
                         inclusions.Add(formatted);
                         break;
                     case "XmlDoc":
-
+                        var matchingMethods = new MethodFinder().FindMethods(option.Parameter);
+                        var formattedMethods = matchingMethods.Select(x => MessageFormatter.FormatFile(x.FileName, x.SourceCode)).ToList();
+                        inclusions.AddRange(formattedMethods);
                         break;
-                }
-
-                if (!string.IsNullOrEmpty(option.Parameter))
-                {
-                    inclusions.Add($"Parameter for {option.Option}: {option.Parameter}");
                 }
             }
 
@@ -401,6 +412,10 @@ namespace VSIXTest
             {
                 System.Diagnostics.Debug.WriteLine(option);
             }
+
+
         }
     }
+
+
 }
