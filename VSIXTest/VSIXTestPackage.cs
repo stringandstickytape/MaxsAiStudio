@@ -13,14 +13,13 @@ namespace VSIXTest
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(VSIXTestPackage.PackageGuidString)]
     [ProvideToolWindow(typeof(ChatWindowPane))]
-    [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
+    [ProvideToolWindow(typeof(QuickButtonOptionsWindow))] 
     public sealed class VSIXTestPackage : AsyncPackage
     {
         private readonly ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
 
         public const string PackageGuidString = "743967b7-4ad8-4103-8a28-bf2933a5bdf2";
         public static VSIXTestPackage Instance { get; private set; }
-        public DTE2 DTE { get; private set; }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -32,18 +31,8 @@ namespace VSIXTest
             await OpenChatWindowCommand.InitializeAsync(this);
             await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
 
-            // Add this line to register tool windows asynchronously
-            await RegisterToolWindowsAsync(cancellationToken);
-        }
-
-        private async Task RegisterToolWindowsAsync(CancellationToken cancellationToken)
-        {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // Register ChatWindowPane
             await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
-
-            // Register QuickButtonOptionsWindow
             await ShowToolWindowAsync(typeof(QuickButtonOptionsWindow), 0, true, cancellationToken);
         }
 
