@@ -18,6 +18,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows.Documents;
 using System.Collections.Generic;
+using VSIXTest.FileGroups;
 
 namespace VSIXTest
 {
@@ -48,6 +49,7 @@ namespace VSIXTest
         public readonly VsixMessageHandler MessageHandler;
         private readonly ShortcutManager _shortcutManager;
         private readonly AutocompleteManager _autocompleteManager;
+        private readonly FileGroupManager _fileGroupManager;
 
         private async void VsixChat_KeyDown(object sender, KeyEventArgs e)
         {
@@ -94,6 +96,12 @@ namespace VSIXTest
             _shortcutManager = new ShortcutManager(_dte);
             _autocompleteManager = new AutocompleteManager(_dte);
 
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string extensionDataPath = Path.Combine(appDataPath, "MaxsAiStudio", "Vsix");
+            Directory.CreateDirectory(extensionDataPath); // Ensure the directory exists
+
+            _fileGroupManager = new FileGroupManager(extensionDataPath);
+
             simpleClient.LineReceived += SimpleClient_LineReceived;
             simpleClient.StartClient();
         }
@@ -115,10 +123,12 @@ namespace VSIXTest
 
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!vsixInitialised)
+            if (!vsixInitialised) 
             {
-                await InitialiseAsync();
+                await InitialiseAsync(); 
                 vsixInitialised = true;
+                _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
+                
             }
         }
 

@@ -126,7 +126,11 @@ Default system prompt should be editable, not just empty.
 
 ""serene"" bug
 
+
+
 VSIX:
+
+exceptioon explainer
 
 Add a VSIX Settings page.  It lets you maintain and add MessagePrompts, I guess.
 MessagePrompts should dlet you define whether to use the primary or secondary AI.
