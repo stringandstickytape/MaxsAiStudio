@@ -142,7 +142,7 @@ namespace VSIXTest
             {
                 await InitialiseAsync(); 
                 vsixInitialised = true;
-                //_fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
+                _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
 
 
 
@@ -358,22 +358,24 @@ namespace VSIXTest
         private void OptionsControl_FileGroupsEditorInvoked(object sender, string e)
         {
             var availableFiles = _shortcutManager.GetAllFilesInSolution();
-            // Create and show the FileGroupEditWindow
-            var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups()[0], availableFiles);
+            
+            var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups(), availableFiles);
 
             bool? result = editWindow.ShowDialog();
 
             if (result == true)
             {
-                // User clicked Save, update the file group
-                FileGroup editedFileGroup = editWindow.EditedFileGroup;
+                var editedFileGroups = editWindow.EditedFileGroups;
 
-                // Update the file group in your FileGroupManager
-                _fileGroupManager.UpdateFileGroup(
-                    editedFileGroup.Id,
-                    editedFileGroup.Name,
-                    editedFileGroup.FilePaths
-                );
+                // User clicked Save, update the file group
+                //FileGroup editedFileGroup = editWindow.EditedFileGroup;
+                //
+                //// Update the file group in your FileGroupManager
+                //_fileGroupManager.UpdateFileGroup(
+                //    editedFileGroup.Id,
+                //    editedFileGroup.Name,
+                //    editedFileGroup.FilePaths
+                //);
 
             }
             else
