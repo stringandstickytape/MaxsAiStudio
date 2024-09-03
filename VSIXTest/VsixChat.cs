@@ -67,23 +67,6 @@ namespace VSIXTest
             }
         }
 
-        private async Task SendEndKeyPress()
-        {
-            // Ensure the WebView2 is fully initialized
-
-        }
-
-        private string ConvertKeyToJsKey(Key key)
-        {
-            switch (key)
-            {
-                case Key.End:
-                    return "End";
-                // Add more cases as needed for other keys
-                default:
-                    return key.ToString();
-            }
-        }
 
 
         public VsixChat() : base()
@@ -105,21 +88,6 @@ namespace VSIXTest
             simpleClient.LineReceived += SimpleClient_LineReceived;
             simpleClient.StartClient();
         }
-
-        private List<string> GetAvailableFiles()
-        {
-            // Implement this method to return a list of all available files
-            // This could be all files in the current solution, project, or any other source
-            // For example:
-            return new List<string>
-            {
-                "File1.cs",
-                "File2.cs",
-                "File3.cs",
-                // ... add more files as needed
-            };
-        }
-
 
         private async void SimpleClient_LineReceived(object sender, string e)
         {
@@ -290,32 +258,6 @@ namespace VSIXTest
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 ShowQuickButtonOptionsWindow(message);
-                //var matchingButton = _messageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == message.content);
-                //var prompt = matchingButton?.Prompt;
-                //
-                ////get currently selected text in active document
-                //var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                //var selection = textDocument.Selection as TextSelection;
-                //var activeDocumentFilename = _dte.ActiveDocument.Name;
-                //var selectedText = selection.Text;
-                //
-                //if (message.content == "Commit Message")
-                //{
-                //    var diff = new GitDiffHelper().GetGitDiff();
-                //    var formatteddiff = $"\n{MessageFormatter.FormatFile("diff", diff)}\n\n{prompt}";
-                //    var jsonFormatteddiff = JsonConvert.SerializeObject(formatteddiff);
-                //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatteddiff})");
-                //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatteddiff }, simpleClient);
-                //}
-                //else
-                //{
-                //    var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n\n{prompt}";
-                //    var jsonFormatted = JsonConvert.SerializeObject(formatted);
-                //    await ExecuteScriptAsync($"setUserPrompt({jsonFormatted})");
-                //    await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formatted }, simpleClient);
-                //}
-
-
             }
 
 
@@ -325,20 +267,6 @@ namespace VSIXTest
 
         QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
 
-        /// <summary>
-        /// Displays the Quick Button Options window and sets up the message and event handling.
-        /// </summary>
-        /// <param name="message">The message to be displayed in the Quick Button Options window.</param>
-        /// <exception cref="NotSupportedException">Thrown when the tool window cannot be created.</exception>
-        /// <remarks>
-        /// This method performs the following actions:
-        /// 1. Finds or creates the QuickButtonOptionsWindow.
-        /// 2. Sets the message in the window.
-        /// 3. Subscribes to the OptionsSelected event.
-        /// 4. Shows the window.
-        /// </remarks>
-        /// <seealso cref="QuickButtonOptionsWindow"/>
-        /// <seealso cref="VsixUiMessage"/>
         public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
         {
             ToolWindowPane window;
@@ -350,7 +278,6 @@ namespace VSIXTest
 
             QuickButtonOptionsWindow = window as QuickButtonOptionsWindow;
             QuickButtonOptionsWindow.SetMessage(message);
-
             QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
             QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
 
@@ -379,23 +306,6 @@ namespace VSIXTest
                 // get the txtFileGroups control from the options control
                 QuickButtonOptionsWindow.OptionsControl.txtFileGroups.Text = selectedFileGroups;
 
-
-                // User clicked Save, update the file group
-                //FileGroup editedFileGroup = editWindow.EditedFileGroup;
-                //
-                //// Update the file group in your FileGroupManager
-                //_fileGroupManager.UpdateFileGroup(
-                //    editedFileGroup.Id,
-                //    editedFileGroup.Name,
-                //    editedFileGroup.FilePaths
-                //);
-
-                
-
-            }
-            else
-            {
-                // User clicked Cancel or closed the window, do nothing or handle as needed
             }
         }
 
@@ -478,10 +388,6 @@ namespace VSIXTest
             {
                 System.Diagnostics.Debug.WriteLine(option);
             }
-
-
         }
     }
-
-
 }
