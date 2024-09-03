@@ -1,23 +1,10 @@
-﻿using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Language.Intellisense;
+﻿using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Newtonsoft.Json;
-using SharedClasses;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace VSIXTest
@@ -44,6 +31,34 @@ namespace VSIXTest
             Instance = this;
             await OpenChatWindowCommand.InitializeAsync(this);
             await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
+
+            // Add this line to register tool windows asynchronously
+            await RegisterToolWindowsAsync(cancellationToken);
+        }
+
+        private async Task RegisterToolWindowsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Register ChatWindowPane
+            await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
+
+            // Register QuickButtonOptionsWindow
+            await ShowToolWindowAsync(typeof(QuickButtonOptionsWindow), 0, true, cancellationToken);
+        }
+
+        private async Task ShowToolWindowAsync(Type toolWindowType, int id, bool create, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ToolWindowPane window = await FindToolWindowAsync(toolWindowType, id, create, cancellationToken);
+            if ((window == null) || (window.Frame == null))
+            {
+                throw new NotSupportedException($"Cannot create tool window of type {toolWindowType.Name}");
+            }
+
+            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
     }
 }

@@ -78,6 +78,8 @@ namespace VSIXTest
 
         private string GetMethodSourceCode(CodeFunction function)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             // Get the method signature
             TextPoint signatureStart = function.GetStartPoint(vsCMPart.vsCMPartHeader);
             TextPoint signatureEnd = function.GetStartPoint(vsCMPart.vsCMPartBody);
