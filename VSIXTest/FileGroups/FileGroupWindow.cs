@@ -55,9 +55,21 @@ namespace VSIXTest
             Grid.SetRowSpan(_groupListBox, 2);
             grid.Children.Add(_groupListBox);
 
+            // Add and Delete buttons for groups
+           var groupButtonPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
+           var addGroupButton = new Button { Content = "Add Group", Width = 75, Margin = new Thickness(5) };
+           var deleteGroupButton = new Button { Content = "Delete Group", Width = 75, Margin = new Thickness(5) };
+           addGroupButton.Click += AddGroupButton_Click;
+           deleteGroupButton.Click += DeleteGroupButton_Click;
+           groupButtonPanel.Children.Add(addGroupButton);
+           groupButtonPanel.Children.Add(deleteGroupButton);
+           Grid.SetRow(groupButtonPanel, 2);
+           grid.Children.Add(groupButtonPanel);
+
             // Name input
             var nameLabel = new Label { Content = "Group Name:" };
             _nameTextBox = new TextBox { Margin = new Thickness(5) };
+            _nameTextBox.TextChanged += NameTextBox_TextChanged;
             var namePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
             namePanel.Children.Add(nameLabel);
             namePanel.Children.Add(_nameTextBox);
@@ -115,6 +127,7 @@ namespace VSIXTest
 
         private void PopulateGroupListBox()
         {
+            _groupListBox.ItemsSource = null;
             _groupListBox.ItemsSource = _fileGroups;
         }
 
@@ -139,6 +152,7 @@ namespace VSIXTest
                 previousGroupId = selectedGroup.Id;
             }
         }
+
         private string FindCommonPath(IEnumerable<string> paths)
         {
             if (!paths.Any()) return string.Empty;
@@ -350,6 +364,54 @@ namespace VSIXTest
         {
             DialogResult = false;
             Close();
+        }
+
+        private void AddGroupButton_Click(object sender, RoutedEventArgs e)
+        {
+            var newGroupName = "New Group";
+            int counter = 1;
+            while (_fileGroups.Any(g => g.Name == newGroupName))
+            {
+                newGroupName = $"New Group {counter++}";
+            }
+
+            var newGroup = new FileGroup(newGroupName, new List<string>());
+            _fileGroups.Add(newGroup);
+            _editedGroups[newGroup.Id] = new List<string>();
+
+            PopulateGroupListBox();
+            _groupListBox.SelectedItem = newGroup;
+        }
+
+        private void DeleteGroupButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedGroup = _groupListBox.SelectedItem as FileGroup;
+            if (selectedGroup != null)
+            {
+                _fileGroups.Remove(selectedGroup);
+                _editedGroups.Remove(selectedGroup.Id);
+
+                PopulateGroupListBox();
+                if (_fileGroups.Any())
+                {
+                    _groupListBox.SelectedItem = _fileGroups[0];
+                }
+                else
+                {
+                    _nameTextBox.Text = string.Empty;
+                    _fileTreeView.Items.Clear();
+                }
+            }
+        }
+
+        private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var selectedGroup = _groupListBox.SelectedItem as FileGroup;
+            if (selectedGroup != null)
+            {
+                selectedGroup.Name = _nameTextBox.Text;
+                PopulateGroupListBox();
+            }
         }
     }
 }

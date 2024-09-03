@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
 namespace VSIXTest.FileGroups
 {
-
-
     public class FileGroupManager
     {
         private List<FileGroup> _fileGroups;
@@ -43,7 +36,6 @@ namespace VSIXTest.FileGroups
             return new List<FileGroup>(_fileGroups);
         }
 
-        
         public FileGroup GetFileGroupByGuid(Guid guid)
         {
             return _fileGroups.FirstOrDefault(fg => fg.Id == guid);
@@ -142,7 +134,8 @@ namespace VSIXTest.FileGroups
                 }
                 catch (Exception e)
                 {
-
+                    // Handle deserialization error
+                    _fileGroups = new List<FileGroup>();
                 }
             }
         }
@@ -154,8 +147,6 @@ namespace VSIXTest.FileGroups
 
         private bool ValidateFilePaths(List<string> filePaths)
         {
-            // Implement validation logic here
-            // For example, check if files exist and are within the solution
             return filePaths.All(File.Exists);
         }
 
