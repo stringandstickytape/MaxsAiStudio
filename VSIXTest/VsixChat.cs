@@ -311,83 +311,90 @@ namespace VSIXTest
 
         private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
         {
-            // need to call to messagehandler here...
             var buttonLabel = e.OriginalVsixMessage.content;
             var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
             var prompt = matchingButton?.Prompt;
 
-            List<string> inclusions = new List<string>();
-
+            var inclusions = new List<string>();
             var activeDocumentFilename = _dte?.ActiveDocument?.Name;
 
             foreach (var option in e.SelectedOptions)
             {
-                switch (option.Option)
+                string content = GetContentForOption(option, activeDocumentFilename);
+                if (!string.IsNullOrEmpty(content))
                 {
-                    case "CurrentSelection":
-                        var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                        var selection = textDocument.Selection as EnvDTE.TextSelection;
-                        var selectedText = selection.Text;
-                        var formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
-                        inclusions.Add(formatted);
-                        break;
-                    case "Clipboard":
-                        var clipboardText = Clipboard.GetText();
-                        formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, clipboardText)}\n";
-                        inclusions.Add(formatted);
-                        break;
-                    case "CurrentFile":
-                        textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                        selection = textDocument.Selection as EnvDTE.TextSelection;
-                        selectedText = selection.Text;
-                        formatted = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}\n";
-                        inclusions.Add(formatted);
-                        break;
-                    case "GitDiff":
-                        var diff = new GitDiffHelper().GetGitDiff();
-                        formatted = $"\n{MessageFormatter.FormatFile("diff", diff)}\n";
-                        inclusions.Add(formatted);
-                        break;
-                    case "XmlDoc":
-                        var matchingMethods = new MethodFinder().FindMethods(option.Parameter);
-                        var formattedMethods = matchingMethods.Select(x => MessageFormatter.FormatFile(x.FileName, x.SourceCode)).ToList();
-                        inclusions.AddRange(formattedMethods);
-                        break;
-                    case "FileGroups":
-                        var selectedFileGroups = _fileGroupManager.GetSelectedFileGroups();
-
-                        var filesIncluded = new List<string>();
-                        foreach (var selectedFileGroup in selectedFileGroups)
-                        {
-                            foreach(var file in selectedFileGroup.FilePaths)
-                            {
-                                if(filesIncluded.Contains(file))
-                                {
-                                    continue;
-                                }
-
-                                var fileContent = File.ReadAllText(file);
-                                var formattedFile = $"\n{MessageFormatter.FormatFile(file, fileContent)}\n";
-                                inclusions.Add(formattedFile);
-                                filesIncluded.Add(file);
-                            }
-
-                        }
-                        break;
+                    inclusions.Add(content);
                 }
-            }
+            } 
 
             var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
             await ExecuteScriptAsync($"setUserPrompt({jsonFormattedAll})");
             await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
+        }
 
-            System.Diagnostics.Debug.WriteLine("Selected Options:");
-            foreach (var option in e.SelectedOptions)
+        private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)
+        {
+            switch (option.Option)
             {
-                System.Diagnostics.Debug.WriteLine(option);
+                case "CurrentSelection":
+                    return FormatContent(activeDocumentFilename, GetCurrentSelection());
+                case "Clipboard":
+                    return FormatContent(activeDocumentFilename, Clipboard.GetText());
+                case "CurrentFile":
+                    return FormatContent(activeDocumentFilename, GetCurrentFileContent());
+                case "GitDiff":
+                    return FormatContent("diff", new GitDiffHelper().GetGitDiff());
+                case "XmlDoc":
+                    return FormatXmlDocContent(option.Parameter);
+                case "FileGroups":
+                    return FormatFileGroupsContent();
+                default:
+                    return null;
             }
+        }
+
+        private string FormatContent(string filename, string content)
+        {
+            return $"\n{MessageFormatter.FormatFile(filename, content)}\n";
+        }
+
+        private string GetCurrentSelection()
+        {
+            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+            var selection = textDocument.Selection as EnvDTE.TextSelection;
+            return selection.Text;
+        }
+
+        private string GetCurrentFileContent()
+        {
+            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+            return textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+        }
+
+        private string FormatXmlDocContent(string parameter)
+        {
+            var matchingMethods = new MethodFinder().FindMethods(parameter);
+            return string.Join("\n\n", matchingMethods.Select(x => MessageFormatter.FormatFile(x.FileName, x.SourceCode)));
+        }
+
+        private string FormatFileGroupsContent()
+        {
+            var selectedFileGroups = _fileGroupManager.GetSelectedFileGroups();
+            var filesIncluded = new HashSet<string>();
+            var formattedFiles = new List<string>();
+
+            foreach (var file in selectedFileGroups.SelectMany(group => group.FilePaths))
+            {
+                if (filesIncluded.Add(file))
+                {
+                    var fileContent = File.ReadAllText(file);
+                    formattedFiles.Add(FormatContent(file, fileContent));
+                }
+            }
+
+            return string.Join("\n", formattedFiles);
         }
     }
 }
