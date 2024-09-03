@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 
 
 namespace VSIXTest
@@ -16,6 +17,7 @@ namespace VSIXTest
         {
             _searchString = searchString;
             List<MethodInfo> result = new List<MethodInfo>();
+            ThreadHelper.ThrowIfNotOnUIThread();
             DTE2 dte = (DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject("VisualStudio.DTE");
 
             foreach (Project project in dte.Solution.Projects)

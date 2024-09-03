@@ -19,12 +19,12 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows.Documents;
 using System.Collections.Generic;
 using VSIXTest.FileGroups;
+using Microsoft.VisualStudio.Threading;
 
 namespace VSIXTest
 {
     public class VsixChat : WebView2
     {
-        private bool isClientInitialized = false;
         private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
 
         private SimpleClient simpleClient = new SimpleClient();
@@ -67,15 +67,16 @@ namespace VSIXTest
             }
         }
 
-
+        private IAsyncServiceProvider _asyncServiceProvider;
 
         public VsixChat() : base()
         {
             this.KeyDown += VsixChat_KeyDown;
+            ThreadHelper.ThrowIfNotOnUIThread();
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Loaded += VsixChat_Loaded;
             _resourceManager = new ResourceManager(Assembly.GetExecutingAssembly());
-            MessageHandler = new VsixMessageHandler(_dte, ExecuteScriptAsync);
+            MessageHandler = new VsixMessageHandler(ExecuteScriptAsync);
             _shortcutManager = new ShortcutManager(_dte);
             _autocompleteManager = new AutocompleteManager(_dte);
 
@@ -86,13 +87,18 @@ namespace VSIXTest
             _fileGroupManager = new FileGroupManager(extensionDataPath);
 
             simpleClient.LineReceived += SimpleClient_LineReceived;
-            simpleClient.StartClient();
+            
         }
 
-        private async void SimpleClient_LineReceived(object sender, string e)
+        private void SimpleClient_LineReceived(object sender, string e)
         {
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
-            await MessageHandler.HandleReceivedMessage(vsixMessage);
+
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await TaskScheduler.Default;
+                await MessageHandler.HandleReceivedMessage(vsixMessage);
+            });
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
@@ -108,12 +114,10 @@ namespace VSIXTest
         {
             if (!vsixInitialised) 
             {
+                await simpleClient.StartClient();
                 await InitialiseAsync(); 
                 vsixInitialised = true;
                 _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
-
-
-
             }
         }
 
@@ -212,6 +216,7 @@ namespace VSIXTest
 
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
 
             if (message.type == "send")
@@ -281,6 +286,8 @@ namespace VSIXTest
             QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
             QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
 
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
@@ -324,8 +331,8 @@ namespace VSIXTest
                 if (!string.IsNullOrEmpty(content))
                 {
                     inclusions.Add(content);
-                }
-            } 
+                } 
+            }  
 
             var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
@@ -362,6 +369,7 @@ namespace VSIXTest
 
         private string GetCurrentSelection()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
             var selection = textDocument.Selection as EnvDTE.TextSelection;
             return selection.Text;
@@ -369,6 +377,7 @@ namespace VSIXTest
 
         private string GetCurrentFileContent()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
             return textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
         }

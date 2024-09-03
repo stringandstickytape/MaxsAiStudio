@@ -36,85 +36,11 @@ namespace VSIXTest.FileGroups
             return new List<FileGroup>(_fileGroups);
         }
 
-        public FileGroup GetFileGroupByGuid(Guid guid)
-        {
-            return _fileGroups.FirstOrDefault(fg => fg.Id == guid);
-        }
-
-        public FileGroup GetFileGroupByName(string name)
-        {
-            return _fileGroups.FirstOrDefault(fg => fg.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public bool UpdateFileGroup(Guid guid, string newName, List<string> newFilePaths)
-        {
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return false;
-
-            if (!string.IsNullOrEmpty(newName) && newName != group.Name)
-            {
-                if (FileGroupNameExists(newName))
-                    throw new ArgumentException($"A file group with the name '{newName}' already exists.");
-                group.Name = newName;
-            }
-
-            if (newFilePaths != null)
-            {
-                group.FilePaths = newFilePaths;
-            }
-
-            group.LastModifiedAt = DateTime.UtcNow;
-            SaveFileGroups();
-            return true;
-        }
-
         public bool UpdateAllFileGroups(List<FileGroup> updatedGroups)
         {
             _fileGroups = updatedGroups;
             SaveFileGroups();
             return true;
-        }
-
-        public bool DeleteFileGroup(Guid guid)
-        {
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return false;
-
-            _fileGroups.Remove(group);
-            SaveFileGroups();
-            return true;
-        }
-
-        public bool AddFilesToGroup(Guid guid, List<string> filePaths)
-        {
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return false;
-
-            foreach (var path in filePaths)
-            {
-                group.AddFile(path);
-            }
-
-            SaveFileGroups();
-            return true;
-        }
-
-        public bool RemoveFilesFromGroup(Guid guid, List<string> filePaths)
-        {
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return false;
-
-            bool anyRemoved = false;
-            foreach (var path in filePaths)
-            {
-                if (group.RemoveFile(path))
-                    anyRemoved = true;
-            }
-
-            if (anyRemoved)
-                SaveFileGroups();
-
-            return anyRemoved;
         }
 
         private void SaveFileGroups()
@@ -132,7 +58,7 @@ namespace VSIXTest.FileGroups
                 {
                     _fileGroups = JsonConvert.DeserializeObject<List<FileGroup>>(json);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // Handle deserialization error
                     _fileGroups = new List<FileGroup>();
@@ -145,91 +71,9 @@ namespace VSIXTest.FileGroups
             return _fileGroups.Any(fg => fg.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
-        private bool ValidateFilePaths(List<string> filePaths)
-        {
-            return filePaths.All(File.Exists);
-        }
-
-        public Dictionary<string, string> GetFileContents(Guid guid)
-        {
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return null;
-
-            var contents = new Dictionary<string, string>();
-            foreach (var path in group.FilePaths)
-            {
-                if (File.Exists(path))
-                {
-                    contents[path] = File.ReadAllText(path);
-                }
-            }
-            return contents;
-        }
-
-        public bool RenameFileGroup(Guid guid, string newName)
-        {
-            if (FileGroupNameExists(newName))
-                throw new ArgumentException($"A file group with the name '{newName}' already exists.");
-
-            var group = GetFileGroupByGuid(guid);
-            if (group == null) return false;
-
-            group.Name = newName;
-            group.LastModifiedAt = DateTime.UtcNow;
-            SaveFileGroups();
-            return true;
-        }
-
-        public HashSet<string> GetAllUniquePaths()
+                public HashSet<string> GetAllUniquePaths()
         {
             return new HashSet<string>(_fileGroups.SelectMany(fg => fg.FilePaths));
-        }
-
-        public FileGroup MergeFileGroups(Guid guid1, Guid guid2, string newName)
-        {
-            var group1 = GetFileGroupByGuid(guid1);
-            var group2 = GetFileGroupByGuid(guid2);
-            if (group1 == null || group2 == null) return null;
-
-            var mergedPaths = new HashSet<string>(group1.FilePaths);
-            mergedPaths.UnionWith(group2.FilePaths);
-
-            var newGroup = CreateFileGroup(newName, mergedPaths.ToList());
-            DeleteFileGroup(guid1);
-            DeleteFileGroup(guid2);
-
-            return newGroup;
-        }
-
-        public FileGroup CloneFileGroup(Guid sourceGuid, string newName)
-        {
-            var sourceGroup = GetFileGroupByGuid(sourceGuid);
-            if (sourceGroup == null) return null;
-
-            return CreateFileGroup(newName, new List<string>(sourceGroup.FilePaths));
-        }
-
-        public List<FileGroup> GetFileGroupsContainingFile(string filePath)
-        {
-            return _fileGroups.Where(fg => fg.ContainsFile(filePath)).ToList();
-        }
-
-        public string ExportToJson()
-        {
-            return JsonConvert.SerializeObject(_fileGroups, Formatting.Indented);
-        }
-
-        public void ImportFromJson(string json)
-        {
-            var importedGroups = JsonConvert.DeserializeObject<List<FileGroup>>(json);
-            foreach (var group in importedGroups)
-            {
-                if (!FileGroupNameExists(group.Name))
-                {
-                    _fileGroups.Add(group);
-                }
-            }
-            SaveFileGroups();
         }
 
         internal List<FileGroup> GetSelectedFileGroups()

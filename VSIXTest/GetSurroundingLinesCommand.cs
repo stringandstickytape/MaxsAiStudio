@@ -57,9 +57,8 @@ namespace VSIXTest
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var dte = Package.GetGlobalService(typeof(SDTE)) as EnvDTE80.DTE2;
-            var textDocument = dte.ActiveDocument.Object("TextDocument") as EnvDTE.TextDocument;
 
-            if (textDocument != null)
+            if (dte.ActiveDocument.Object("TextDocument") is EnvDTE.TextDocument textDocument)
             {
                 var selection = textDocument.Selection;
                 string entireFileContent = textDocument.CreateEditPoint(textDocument.StartPoint).GetText(textDocument.EndPoint);

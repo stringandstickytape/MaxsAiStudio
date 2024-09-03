@@ -40,8 +40,7 @@ namespace VSIXTest
 
             if (_dte?.ActiveDocument?.Object("TextDocument") is TextDocument textDocument)
             {
-                var selection = textDocument.Selection as TextSelection;
-                if (selection != null)
+                if (textDocument.Selection is TextSelection selection)
                 {
                     // Store the starting point
                     var startPoint = selection.ActivePoint.CreateEditPoint();

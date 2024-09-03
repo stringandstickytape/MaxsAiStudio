@@ -21,6 +21,7 @@ namespace VSIXTest
         private MaxsAiStudioAutoCompleteCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
+            ThreadHelper.ThrowIfNotOnUIThread();
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
 
             var menuCommandID = new CommandID(CommandSet, CommandId);

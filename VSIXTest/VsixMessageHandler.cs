@@ -15,11 +15,9 @@ namespace VSIXTest
 {
     public class VsixMessageHandler
     {
-        private readonly DTE2 _dte;
         private readonly Func<string, Task> _executeScriptAsync;
-        public VsixMessageHandler(DTE2 dte, Func<string, Task> executeScriptAsync)
+        public VsixMessageHandler(Func<string, Task> executeScriptAsync)
         {
-            _dte = dte;
             _executeScriptAsync = executeScriptAsync;
         }
 
@@ -47,14 +45,7 @@ namespace VSIXTest
 
                         var catButtonObjs = catButtons.Select(b => new { label = b.ButtonLabel, onClick = "console.log(\"Sub action clicked\")" }).ToList();
 
-                        //var catButtonJson = "["+string.Join(",", catButtonObjs.Select(x => $"{{ label: \"{x.label}\", onClick: () => console.log(\"{x.label} clicked\") }}"))+"]";
-
                         var catButtonJson = "[" + string.Join(",", catButtonObjs.Select(x => $"{{ label: \"{x.label}\", onClick: () => window.chrome.webview.postMessage({{type: 'vsQuickButton', content: '{x.label}'}}) }}")) + "]";
-
-
-                        //                 window.chrome.webview.postMessage({type: '')
-
-                    var catButtonJson2 = "[{ label: \"Sub Action\", onClick: () => console.log(\"Sub action clicked\") }]";
 
                         await _executeScriptAsync($@"window.addQuickActionButton(
     ""{cat.Key}"", 
@@ -62,11 +53,6 @@ namespace VSIXTest
     {catButtonJson},
     null
 );");
-
-                    }
-
-                    foreach(var button in Buttons)
-                    {
 
                     }
                     break;
@@ -111,105 +97,7 @@ namespace VSIXTest
             await client.SendLine(JsonConvert.SerializeObject(vsixMessage));
         }
 
-        private string ReplaceFileNameWithContent(string message, string file)
-        {
-            string fileName = $"#{Path.GetFileName(file)}";
-            if (message.IndexOf(fileName, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-                ProjectItem projectItem = _dte.Solution.FindProjectItem(file);
-                if (projectItem != null)
-                {
-                    EnvDTE.Window window = projectItem.Open();
-                    if (window != null)
-                    {
-                        try
-                        {
-                            message = ReplaceFileNameWithContentHelper(message, fileName, window);
-                        }
-                        finally
-                        {
-                            window.Close();
-                        }
-                    }
-                }
-            }
-            return message;
-        }
 
-        private static string ReplaceFileNameWithContentHelper(string message, string fileName, EnvDTE.Window window)
-        {
-            TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
-            if (textDoc != null)
-            {
-                string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
-                string backticks = new string('`', 3);
-                string replacement = $"\n{backticks}\n{fileContent}\n{backticks}\n";
-                return ReplaceIgnoreCase(message, fileName, replacement);
-            }
-            return message;
-        }
-
-        private static string ReplaceIgnoreCase(string source, string oldValue, string newValue)
-        {
-            int index = source.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
-                return source;
-
-            StringBuilder result = new StringBuilder();
-            int previousIndex = 0;
-
-            while (index >= 0)
-            {
-                result.Append(source, previousIndex, index - previousIndex);
-                result.Append(newValue);
-                index += oldValue.Length;
-                previousIndex = index;
-                index = source.IndexOf(oldValue, index, StringComparison.OrdinalIgnoreCase);
-            }
-
-            result.Append(source, previousIndex, source.Length - previousIndex);
-
-            return result.ToString();
-        }
-
-        private string ReplaceAllOpenContents(string message)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            StringBuilder allOpenContents = new StringBuilder();
-
-            foreach (EnvDTE.Window window in _dte.Windows)
-            {
-                if (window.Kind == "Document" && window.Document != null)
-                {
-                    TextDocument textDoc = window.Document.Object("TextDocument") as TextDocument;
-                    if (textDoc != null)
-                    {
-                        string fileName = window.Document.Name;
-                        string fileContent = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
-                        allOpenContents.AppendLine($"File: {fileName}\n{BacktickHelper.ThreeTicks}\n{fileContent}\n{BacktickHelper.ThreeTicks}\n");
-                    }
-                }
-            }
-
-            return message.Replace(BacktickHelper.PrependHash(":all-open:"), allOpenContents.ToString().TrimEnd());
-        }
-
-        private List<string> GetAllFilesInSolution()
-        {
-            var files = new List<string>();
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (_dte.Solution != null)
-            {
-                foreach (Project project in _dte.Solution.Projects)
-                {
-                    GetProjectFiles(project, files);
-                }
-            }
-
-            return files;
-        }
 
         private void GetProjectFiles(Project project, List<string> files)
         {

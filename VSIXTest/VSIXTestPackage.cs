@@ -54,16 +54,8 @@ namespace VSIXTest
         public static VSIXTestPackage Instance { get; private set; }
         public DTE2 DTE { get; private set; }
 
-        private NamedPipeClientStream pipeClient;
-        private StreamWriter writer;
-        private StreamReader reader;
-        //private TcpCommsManager namedPipeManager;
-        
         private bool isClientInitialized = false;
         private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
-
-        // VSIXTestPackage.cs
- 
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
