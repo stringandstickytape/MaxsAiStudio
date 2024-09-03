@@ -409,8 +409,15 @@ namespace VSIXTest
             var selectedGroup = _groupListBox.SelectedItem as FileGroup;
             if (selectedGroup != null)
             {
-                selectedGroup.Name = _nameTextBox.Text;
-                PopulateGroupListBox();
+                string newName = _nameTextBox.Text;
+                if (_fileGroups.Any(g => g != selectedGroup && g.Name == newName))
+                {
+                    // Name already exists, maybe show an error message
+                    MessageBox.Show("A group with this name already exists. Please choose a different name.", "Duplicate Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                selectedGroup.Name = newName;
+                _groupListBox.Items.Refresh();
             }
         }
     }

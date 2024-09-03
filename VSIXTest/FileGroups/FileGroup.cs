@@ -5,18 +5,39 @@ using System.Text;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-
+using System.ComponentModel;
 
 namespace VSIXTest.FileGroups
 {
 
-    public class FileGroup
+    public class FileGroup : INotifyPropertyChanged // Implement INotifyPropertyChanged
     {
+        private string _name;
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (_name != value)
+                {
+                    _name = value;
+                    OnPropertyChanged(nameof(Name));
+                }
+            }
+        }
+
+        // Add this event
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // Add this method
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         // Unique identifier for the file group
         public Guid Id { get; set; }
 
-        // Name of the file group
-        public string Name { get; set; }
 
         // List of file paths included in this group
         public List<string> FilePaths { get; set; }
