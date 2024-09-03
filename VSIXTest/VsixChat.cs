@@ -323,6 +323,8 @@ namespace VSIXTest
             await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
+        QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
+
         /// <summary>
         /// Displays the Quick Button Options window and sets up the message and event handling.
         /// </summary>
@@ -339,17 +341,18 @@ namespace VSIXTest
         /// <seealso cref="VsixUiMessage"/>
         public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
         {
-            ToolWindowPane window = VsixPackage.FindToolWindow(typeof(QuickButtonOptionsWindow), 0, true);
+            ToolWindowPane window;
+            window = VsixPackage.FindToolWindow(typeof(QuickButtonOptionsWindow), 0, true);
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            var quickButtonOptionsWindow = window as QuickButtonOptionsWindow;
-            quickButtonOptionsWindow.SetMessage(message);
+            QuickButtonOptionsWindow = window as QuickButtonOptionsWindow;
+            QuickButtonOptionsWindow.SetMessage(message);
 
-            quickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
-            quickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
+            QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
+            QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -368,6 +371,15 @@ namespace VSIXTest
             {
                 var editedFileGroups = editWindow.EditedFileGroups;
 
+                _fileGroupManager.UpdateAllFileGroups(editedFileGroups);
+
+                // get the names of all the selected filegroups
+                var selectedFileGroups =string.Join(", ",  editedFileGroups.Where(x => x.Selected).Select(x => x.Name));
+
+                // get the txtFileGroups control from the options control
+                QuickButtonOptionsWindow.OptionsControl.txtFileGroups.Text = selectedFileGroups;
+
+
                 // User clicked Save, update the file group
                 //FileGroup editedFileGroup = editWindow.EditedFileGroup;
                 //
@@ -377,6 +389,8 @@ namespace VSIXTest
                 //    editedFileGroup.Name,
                 //    editedFileGroup.FilePaths
                 //);
+
+                
 
             }
             else
@@ -430,8 +444,25 @@ namespace VSIXTest
                         inclusions.AddRange(formattedMethods);
                         break;
                     case "FileGroups":
+                        var selectedFileGroups = _fileGroupManager.GetSelectedFileGroups();
 
+                        var filesIncluded = new List<string>();
+                        foreach (var selectedFileGroup in selectedFileGroups)
+                        {
+                            foreach(var file in selectedFileGroup.FilePaths)
+                            {
+                                if(filesIncluded.Contains(file))
+                                {
+                                    continue;
+                                }
 
+                                var fileContent = File.ReadAllText(file);
+                                var formattedFile = $"\n{MessageFormatter.FormatFile(file, fileContent)}\n";
+                                inclusions.Add(formattedFile);
+                                filesIncluded.Add(file);
+                            }
+
+                        }
                         break;
                 }
             }

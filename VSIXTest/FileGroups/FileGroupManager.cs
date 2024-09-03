@@ -43,6 +43,7 @@ namespace VSIXTest.FileGroups
             return new List<FileGroup>(_fileGroups);
         }
 
+        
         public FileGroup GetFileGroupByGuid(Guid guid)
         {
             return _fileGroups.FirstOrDefault(fg => fg.Id == guid);
@@ -71,6 +72,13 @@ namespace VSIXTest.FileGroups
             }
 
             group.LastModifiedAt = DateTime.UtcNow;
+            SaveFileGroups();
+            return true;
+        }
+
+        public bool UpdateAllFileGroups(List<FileGroup> updatedGroups)
+        {
+            _fileGroups = updatedGroups;
             SaveFileGroups();
             return true;
         }
@@ -231,6 +239,11 @@ namespace VSIXTest.FileGroups
                 }
             }
             SaveFileGroups();
+        }
+
+        internal List<FileGroup> GetSelectedFileGroups()
+        {
+            return _fileGroups.Where(fg => fg.Selected).ToList();
         }
     }
 }

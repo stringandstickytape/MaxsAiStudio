@@ -28,8 +28,11 @@ namespace VSIXTest.FileGroups
         public DateTime LastModifiedAt { get; set; }
 
         // Empty constructor for JSON deserialization
+        public bool Selected { get; set; }
+
         public FileGroup()
         {
+            Selected = false;
         }
 
         // Constructor for creating a new file group
@@ -40,6 +43,7 @@ namespace VSIXTest.FileGroups
             FilePaths = filePaths ?? new List<string>();
             CreatedAt = DateTime.UtcNow;
             LastModifiedAt = CreatedAt;
+            Selected = false;
         }
 
         // Constructor for loading an existing file group (e.g., from storage)
@@ -50,6 +54,7 @@ namespace VSIXTest.FileGroups
             FilePaths = filePaths ?? new List<string>();
             CreatedAt = createdAt;
             LastModifiedAt = lastModifiedAt;
+            Selected = false;
         }
 
         // Method to add a file to the group

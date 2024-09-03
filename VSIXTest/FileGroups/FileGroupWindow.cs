@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.IO;
 using VSIXTest.FileGroups;
 
@@ -15,7 +16,8 @@ namespace VSIXTest
         private ListBox _groupListBox;
         private TextBox _nameTextBox;
         private TreeView _fileTreeView;
-        private Dictionary<string, List<string>> _editedGroups;
+        private Dictionary<Guid, List<string>> _editedGroups;
+        private Guid? previousGroupId = null;
 
         public List<FileGroup> EditedFileGroups { get; private set; }
 
@@ -23,7 +25,7 @@ namespace VSIXTest
         {
             _fileGroups = new List<FileGroup>(fileGroups);
             _availableFiles = availableFiles;
-            _editedGroups = new Dictionary<string, List<string>>();
+            _editedGroups = new Dictionary<Guid, List<string>>();
             InitializeComponent();
         }
 
@@ -46,7 +48,9 @@ namespace VSIXTest
 
             // Group ListBox
             _groupListBox = new ListBox { Margin = new Thickness(5) };
+            _groupListBox.ItemTemplate = CreateGroupItemTemplate();
             PopulateGroupListBox();
+            InitializeEditedGroups();
             _groupListBox.SelectionChanged += GroupListBox_SelectionChanged;
             Grid.SetRowSpan(_groupListBox, 2);
             grid.Children.Add(_groupListBox);
@@ -80,37 +84,61 @@ namespace VSIXTest
             grid.Children.Add(buttonPanel);
         }
 
-        private void PopulateGroupListBox()
+        private DataTemplate CreateGroupItemTemplate()
+        {
+            var template = new DataTemplate();
+            var stackPanel = new FrameworkElementFactory(typeof(StackPanel));
+            stackPanel.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+
+            var checkBox = new FrameworkElementFactory(typeof(CheckBox));
+            checkBox.SetBinding(CheckBox.IsCheckedProperty, new Binding("Selected"));
+            checkBox.AddHandler(CheckBox.ClickEvent, new RoutedEventHandler(GroupCheckBox_Click));
+
+            var textBlock = new FrameworkElementFactory(typeof(TextBlock));
+            textBlock.SetBinding(TextBlock.TextProperty, new Binding("Name"));
+            textBlock.SetValue(TextBlock.MarginProperty, new Thickness(5, 0, 0, 0));
+
+            stackPanel.AppendChild(checkBox);
+            stackPanel.AppendChild(textBlock);
+
+            template.VisualTree = stackPanel;
+            return template;
+        }
+
+        private void InitializeEditedGroups()
         {
             foreach (var group in _fileGroups)
             {
-                _groupListBox.Items.Add(group.Name);
-                _editedGroups[group.Name] = new List<string>(group.FilePaths);
+                _editedGroups[group.Id] = new List<string>(group.FilePaths);
             }
         }
 
-        private string previousGroupName = null;
+        private void PopulateGroupListBox()
+        {
+            _groupListBox.ItemsSource = _fileGroups;
+        }
+
+        private void GroupCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            var checkBox = sender as CheckBox;
+            var fileGroup = checkBox.DataContext as FileGroup;
+            fileGroup.Selected = checkBox.IsChecked ?? false;
+            e.Handled = true; // Prevent the selection from changing
+        }
+
         private void GroupListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (previousGroupName != null)
-            {
-                SaveCurrentGroupState();
-            }
+            SavePreviousGroupState();
 
-            if (_groupListBox.SelectedIndex != -1)
+            var selectedGroup = _groupListBox.SelectedItem as FileGroup;
+            if (selectedGroup != null)
             {
-                
-                var selectedGroup = _fileGroups[_groupListBox.SelectedIndex];
-
                 _nameTextBox.Text = selectedGroup.Name;
-                PopulateTreeView(selectedGroup.Name);
+                PopulateTreeView(selectedGroup.Id);
 
-                previousGroupName = selectedGroup.Name;
+                previousGroupId = selectedGroup.Id;
             }
         }
-
-
-
         private string FindCommonPath(IEnumerable<string> paths)
         {
             if (!paths.Any()) return string.Empty;
@@ -133,7 +161,7 @@ namespace VSIXTest
             return string.Join(Path.DirectorySeparatorChar.ToString(), commonPath);
         }
 
-        private void PopulateTreeView(string groupName)
+        private void PopulateTreeView(Guid groupId)
         {
             _fileTreeView.Items.Clear();
             var rootNode = CreateTreeViewItem("Root", isFolder: true);
@@ -144,10 +172,9 @@ namespace VSIXTest
 
             foreach (var file in _availableFiles)
             {
-                AddFileToTree(rootNode, file, _editedGroups[groupName].Contains(file), commonPathLength);
+                AddFileToTree(rootNode, file, _editedGroups[groupId].Contains(file), commonPathLength);
             }
 
-            // Expand all nodes after populating the tree
             ExpandAllNodes(_fileTreeView);
         }
 
@@ -190,6 +217,7 @@ namespace VSIXTest
             var fileNode = CreateTreeViewItem(fileName, isFolder: false, filePath: filePath, isChecked: isChecked);
             currentNode.Items.Add(fileNode);
         }
+
         private TreeViewItem FindOrCreateChildNode(TreeViewItem parentNode, string name, bool isFolder)
         {
             foreach (TreeViewItem childNode in parentNode.Items)
@@ -255,11 +283,15 @@ namespace VSIXTest
             }
         }
 
-        private void SaveCurrentGroupState()
+        private void SavePreviousGroupState()
         {
-            if (previousGroupName != null)
+            if (previousGroupId.HasValue)
             {
-                _editedGroups[previousGroupName] = GetCheckedFiles(_fileTreeView.Items[0] as TreeViewItem);
+                var previousGroup = _fileGroups.FirstOrDefault(g => g.Id == previousGroupId.Value);
+                if (previousGroup != null)
+                {
+                    _editedGroups[previousGroupId.Value] = GetCheckedFiles(_fileTreeView.Items[0] as TreeViewItem);
+                }
             }
         }
 
@@ -275,17 +307,12 @@ namespace VSIXTest
                     {
                         checkedFiles.Add(checkBox.Tag.ToString());
                     }
-                    else
-                    {
-
-                    }
                 }
 
                 foreach (TreeViewItem childNode in node.Items)
                 {
                     checkedFiles.AddRange(GetCheckedFiles(childNode));
                 }
-
             }
             else
             {
@@ -300,26 +327,24 @@ namespace VSIXTest
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            SaveCurrentGroupState();
+            SavePreviousGroupState(); // Save the state of the last selected group
             EditedFileGroups = new List<FileGroup>();
 
-            for (int i = 0; i < _fileGroups.Count; i++)
+            foreach (var group in _fileGroups)
             {
-                var originalGroup = _fileGroups[i];
                 EditedFileGroups.Add(new FileGroup(
-                    originalGroup.Id,
-                    originalGroup.Name,
-                    _editedGroups[originalGroup.Name],
-                    originalGroup.CreatedAt,
+                    group.Id,
+                    group.Name,
+                    _editedGroups[group.Id],
+                    group.CreatedAt,
                     DateTime.UtcNow
-                ));
+                )
+                { Selected = group.Selected });
             }
 
             DialogResult = true;
             Close();
         }
-
-
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
