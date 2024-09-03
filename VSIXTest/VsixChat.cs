@@ -357,7 +357,8 @@ namespace VSIXTest
 
         private void OptionsControl_FileGroupsEditorInvoked(object sender, string e)
         {
-            var availableFiles = _shortcutManager.GetAllFilesInSolution();
+            // bodged for now
+            var availableFiles = _shortcutManager.GetAllFilesInSolution().Where(x => !x.Contains("\\.nuget\\")).ToList();
             
             var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups(), availableFiles);
 
