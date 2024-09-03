@@ -42,8 +42,6 @@ namespace VSIXTest
 
         public static GetSurroundingLinesCommand Instance { get; private set; }
 
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider => this.package;
-
         public static async Task InitializeAsync(AsyncPackage package)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);

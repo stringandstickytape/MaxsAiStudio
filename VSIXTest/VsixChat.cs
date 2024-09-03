@@ -25,9 +25,7 @@ namespace VSIXTest
 {
     public class VsixChat : WebView2
     {
-        private SemaphoreSlim clientInitSemaphore = new SemaphoreSlim(1, 1);
-
-        private SimpleClient simpleClient = new SimpleClient();
+        private readonly SimpleClient simpleClient = new SimpleClient();
 
         private static VsixChat _instance;
         public static VsixChat Instance
@@ -44,7 +42,7 @@ namespace VSIXTest
 
         public static VSIXTestPackage VsixPackage { get; set; }
 
-        private DTE2 _dte;
+        private readonly DTE2 _dte;
         private readonly ResourceManager _resourceManager;
         public readonly VsixMessageHandler MessageHandler;
         private readonly ShortcutManager _shortcutManager;
@@ -67,8 +65,6 @@ namespace VSIXTest
             }
         }
 
-        private IAsyncServiceProvider _asyncServiceProvider;
-
         public VsixChat() : base()
         {
             this.KeyDown += VsixChat_KeyDown;
@@ -90,15 +86,10 @@ namespace VSIXTest
             
         }
 
-        private void SimpleClient_LineReceived(object sender, string e)
+        private async void SimpleClient_LineReceived(object sender, string e)
         {
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
-
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await TaskScheduler.Default;
-                await MessageHandler.HandleReceivedMessage(vsixMessage);
-            });
+            await MessageHandler.HandleReceivedMessageAsync(vsixMessage);
         }
 
         private readonly ButtonManager _buttonManager = new ButtonManager();
@@ -114,7 +105,7 @@ namespace VSIXTest
         {
             if (!vsixInitialised) 
             {
-                await simpleClient.StartClient();
+                await simpleClient.StartClientAsync();
                 await InitialiseAsync(); 
                 vsixInitialised = true;
                 _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
@@ -200,7 +191,7 @@ namespace VSIXTest
                 );
         }
 
-        private async Task AddContextMenuItem(string label, string messageType)
+        private async Task AddContextMenuItemAsync(string label, string messageType)
         {
             string script = $@"
         window.addCustomContextMenuItem({{
@@ -223,15 +214,15 @@ namespace VSIXTest
             {
                 // when the user clicks send in the VSIX, we need to copy their prompt into the user prompt in the app, from where the send will pick it up...
                 var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
             }
 
             if (message.type == "ready")
             {
-                await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
+                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
 
-                await AddContextMenuItem("Insert Selection", "vsInsertSelection");
-                await AddContextMenuItem("Pop Window", "vsPopWindow");
+                await AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
+                await AddContextMenuItemAsync("Pop Window", "vsPopWindow");
 
             }
 
@@ -255,7 +246,7 @@ namespace VSIXTest
 
                 files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
 
-                await simpleClient.SendLine(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
+                await simpleClient.SendLineAsync(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
 
             }
             if(message.type == "vsQuickButton")
@@ -267,7 +258,7 @@ namespace VSIXTest
 
 
 
-            await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
         QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
@@ -338,7 +329,7 @@ namespace VSIXTest
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
             await ExecuteScriptAsync($"setUserPrompt({jsonFormattedAll})");
-            await MessageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
         }
 
         private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)

@@ -16,7 +16,7 @@ namespace VSIXTest
             _dte = dte;
         }
 
-        public async Task HandleAutocompleteResponse(string content)
+        public async Task HandleAutocompleteResponseAsync(string content)
         {
             if (content.StartsWith("{\"code="))
             {

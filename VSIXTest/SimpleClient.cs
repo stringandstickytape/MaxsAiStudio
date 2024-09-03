@@ -11,8 +11,8 @@ namespace VSIXTest
     {
         private TcpClient client;
         private NetworkStream stream;
-        private ConcurrentQueue<string> messageQueue;
-        private SemaphoreSlim semaphore;
+        private readonly ConcurrentQueue<string> messageQueue;
+        private readonly SemaphoreSlim semaphore;
         private const int MaxConcurrentProcessing = 5; // Adjust this value as needed
         private const int ReconnectionDelayMs = 5000; // 5 seconds delay between reconnection attempts
 
@@ -24,19 +24,19 @@ namespace VSIXTest
             semaphore = new SemaphoreSlim(MaxConcurrentProcessing, MaxConcurrentProcessing);
         }
 
-        public async Task StartClient()
+        public async Task StartClientAsync()
         {
             while (true)
             {
                 try
                 {
-                    await ConnectClient();
+                    await ConnectClientAsync();
 
                     // Start listening for incoming messages
-                    _ = Task.Run(ReceiveMessages);
+                    _ = Task.Run(ReceiveMessagesAsync);
 
                     // Start processing messages
-                    _ = Task.Run(ProcessMessages);
+                    _ = Task.Run(ProcessMessagesAsync);
 
                     return; // Exit the method if connection is successful
                 }
@@ -49,32 +49,32 @@ namespace VSIXTest
             }
         }
 
-        private async Task ConnectClient()
+        private async Task ConnectClientAsync()
         {
             client = new TcpClient();
             await client.ConnectAsync("localhost", 35000);
             stream = client.GetStream();
         }
 
-        public async Task SendLine(string message)
+        public async Task SendLineAsync(string message)
         {
             if (client == null || !client.Connected)
             {
-                await ReconnectIfNeeded();
+                await ReconnectIfNeededAsync();
             }
 
             byte[] data = Encoding.ASCII.GetBytes(message + "\n");
             await stream.WriteAsync(data, 0, data.Length);
         }
 
-        private async Task ReconnectIfNeeded()
+        private async Task ReconnectIfNeededAsync()
         {
             while (client == null || !client.Connected)
             {
                 try
                 {
                     Console.WriteLine("Client is not connected. Attempting to reconnect...");
-                    await ConnectClient();
+                    await ConnectClientAsync();
                     Console.WriteLine("Reconnection successful.");
                 }
                 catch (Exception ex)
@@ -86,7 +86,7 @@ namespace VSIXTest
             }
         }
 
-        private async Task ReceiveMessages()
+        private async Task ReceiveMessagesAsync()
         {
             byte[] buffer = new byte[1024];
             StringBuilder messageBuilder = new StringBuilder();
@@ -112,12 +112,12 @@ namespace VSIXTest
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error receiving messages: {ex.Message}");
-                    await ReconnectIfNeeded();
+                    await ReconnectIfNeededAsync();
                 }
             }
         }
 
-        private async Task ProcessMessages()
+        private async Task ProcessMessagesAsync()
         {
             while (true)
             {

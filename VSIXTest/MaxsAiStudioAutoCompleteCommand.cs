@@ -15,12 +15,10 @@ namespace VSIXTest
         public const int CommandId = 0x0102;
         public static readonly Guid CommandSet = new Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf3");
 
-        private readonly AsyncPackage package;
         private readonly DTE2 _dte;
 
-        private MaxsAiStudioAutoCompleteCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private MaxsAiStudioAutoCompleteCommand(OleMenuCommandService commandService)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
             ThreadHelper.ThrowIfNotOnUIThread();
             _dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
 
@@ -31,22 +29,19 @@ namespace VSIXTest
 
         public static MaxsAiStudioAutoCompleteCommand Instance { get; private set; }
 
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider => package;
-
         public static async Task InitializeAsync(AsyncPackage package)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new MaxsAiStudioAutoCompleteCommand(package, commandService);
+            Instance = new MaxsAiStudioAutoCompleteCommand(commandService);
         }
 
         private void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            TextDocument textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-            if (textDocument == null) return;
+            if (!(_dte.ActiveDocument.Object("TextDocument") is TextDocument textDocument)) return;
 
             EditPoint startPoint = textDocument.Selection.ActivePoint.CreateEditPoint();
             EditPoint endPoint = textDocument.Selection.ActivePoint.CreateEditPoint();
@@ -64,12 +59,8 @@ namespace VSIXTest
             string output = $"{textBefore}\n//!\n{textAfter}";
 
             SendAutoCompleteRequest(output);
-
-            //log what just happened
-            
         }
 
-        // a high-quality logging method
         private void SendAutoCompleteRequest(string surroundingCode)
         {
             //var messageHandler = new VsixMessageHandler(_dte);

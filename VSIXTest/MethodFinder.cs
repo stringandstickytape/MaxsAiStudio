@@ -31,6 +31,8 @@ namespace VSIXTest
 
         private void SearchProjectItems(ProjectItems projectItems, List<MethodInfo> result)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             foreach (ProjectItem item in projectItems)
             {
                 if (item.FileCodeModel != null)
@@ -47,6 +49,8 @@ namespace VSIXTest
 
         private void SearchCodeElements(CodeElements elements, List<MethodInfo> result)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             foreach (CodeElement element in elements)
             {
                 if (element.Kind == vsCMElement.vsCMElementFunction)

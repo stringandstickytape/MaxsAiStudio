@@ -23,7 +23,7 @@ namespace VSIXTest
 
         public List<SharedClasses.Models.MessagePrompt> Buttons;
 
-        public async Task HandleReceivedMessage(VsixMessage message)
+        public async Task HandleReceivedMessageAsync(VsixMessage message)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -57,13 +57,13 @@ namespace VSIXTest
                     }
                     break;
                 case "setUserPrompt":
-                    await HandleSetUserPrompt(message.Content);
+                    await HandleSetUserPromptAsync(message.Content);
                     break;
                 case "vsixui":
-                    await HandleVsixUi(message.Content);
+                    await HandleVsixUiAsync(message.Content);
                     break;
                 case "webviewJsCall":
-                    await HandleWebviewJsCall(message.Content);
+                    await HandleWebviewJsCallAsync(message.Content);
                     break;
                 // Add more cases as needed
                 default:
@@ -72,13 +72,13 @@ namespace VSIXTest
             }
         }
 
-        private async Task HandleSetUserPrompt(string content)
+        private async Task HandleSetUserPromptAsync(string content)
         {
             // Handle setting user prompt
             await _executeScriptAsync($"setUserPrompt('{content}')");
         }
 
-        private async Task HandleVsixUi(string content)
+        private async Task HandleVsixUiAsync(string content)
         {
             // Handle UI-related messages
             var uiMessage = JsonConvert.DeserializeObject<VsixUiMessage>(content);
@@ -86,15 +86,15 @@ namespace VSIXTest
             await _executeScriptAsync($"handleUiMessage({JsonConvert.SerializeObject(uiMessage)})");
         }
 
-        private async Task HandleWebviewJsCall(string content)
+        private async Task HandleWebviewJsCallAsync(string content)
         {
             // Execute JavaScript in WebView2
             await _executeScriptAsync(content);
         }
 
-        public async Task SendVsixMessage(VsixMessage vsixMessage, SimpleClient client)
+        public async Task SendVsixMessageAsync(VsixMessage vsixMessage, SimpleClient client)
         {
-            await client.SendLine(JsonConvert.SerializeObject(vsixMessage));
+            await client.SendLineAsync(JsonConvert.SerializeObject(vsixMessage));
         }
 
 
