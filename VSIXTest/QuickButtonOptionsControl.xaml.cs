@@ -9,6 +9,7 @@ namespace VSIXTest
     public partial class QuickButtonOptionsControl : UserControl
     {
         public event EventHandler<QuickButtonMessageAndOptions> OptionsSelected;
+        public event EventHandler<string> FileGroupsEditorInvoked;
 
         public QuickButtonOptionsControl()
         {
@@ -23,6 +24,7 @@ namespace VSIXTest
             txtCurrentFile.Visibility = Visibility.Collapsed;
             txtGitDiff.Visibility = Visibility.Collapsed;
             txtXmlDoc.Visibility = Visibility.Visible;
+            txtFileGroups.Visibility = Visibility.Visible;
 
         }
 
@@ -33,15 +35,17 @@ namespace VSIXTest
                 var selectedOptions = new List<OptionWithParameter>();
 
                 if (cbCurrentSelection.IsChecked == true)
-                    selectedOptions.Add(new OptionWithParameter("CurrentSelection", txtCurrentSelection.Text, cbCurrentSelection.IsChecked == true));
+                    selectedOptions.Add(new OptionWithParameter("CurrentSelection", txtCurrentSelection.Text, false));
                 if (cbClipboard.IsChecked == true)
-                    selectedOptions.Add(new OptionWithParameter("Clipboard", txtClipboard.Text, cbClipboard.IsChecked == true));
+                    selectedOptions.Add(new OptionWithParameter("Clipboard", txtClipboard.Text, false));
                 if (cbCurrentFile.IsChecked == true)
-                    selectedOptions.Add(new OptionWithParameter("CurrentFile", txtCurrentFile.Text, cbCurrentFile.IsChecked == true));
+                    selectedOptions.Add(new OptionWithParameter("CurrentFile", txtCurrentFile.Text, false));
                 if (cbGitDiff.IsChecked == true)
-                    selectedOptions.Add(new OptionWithParameter("GitDiff", txtGitDiff.Text, cbGitDiff.IsChecked == true));
+                    selectedOptions.Add(new OptionWithParameter("GitDiff", txtGitDiff.Text, false));
                 if (cbXmlDoc.IsChecked == true)
-                    selectedOptions.Add(new OptionWithParameter("XmlDoc", txtXmlDoc.Text, cbXmlDoc.IsChecked == true));
+                    selectedOptions.Add(new OptionWithParameter("XmlDoc", txtXmlDoc.Text, true));
+                if (cbFileGroups.IsChecked == true)
+                    selectedOptions.Add(new OptionWithParameter("FileGroups", txtFileGroups.Text, true));
                 return selectedOptions;
             }
         }
@@ -53,6 +57,11 @@ namespace VSIXTest
             OptionsSelected?.Invoke(this, new QuickButtonMessageAndOptions { SelectedOptions = SelectedOptions, OriginalVsixMessage = OriginalMessage });
             var window = Window.GetWindow(this);
             window?.Close();
+        }
+
+        private void btnFileGroups_Click(object sender, RoutedEventArgs e)
+        {
+            FileGroupsEditorInvoked?.Invoke(this, txtFileGroups.Text);
         }
     }
 
@@ -74,5 +83,11 @@ namespace VSIXTest
             Parameter = parameter;
             ShowParameter = showParameter;
         }
+    }
+
+    public class OptionTemplate
+    {
+        public string Option { get; set; }
+        public bool ShowParameter { get; set; }
     }
 }

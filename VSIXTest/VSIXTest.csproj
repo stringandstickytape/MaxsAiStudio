@@ -56,6 +56,7 @@
     <Compile Include="ChatWindowPane.cs" />
     <Compile Include="FileGroups\FileGroup.cs" />
     <Compile Include="FileGroups\FileGroupManager.cs" />
+    <Compile Include="FileGroups\FileGroupWindow.cs" />
     <Compile Include="GetSurroundingLinesCommand.cs" />
     <Compile Include="GitDiffHelper.cs" />
     <Compile Include="MaxsAiStudioAutoCompleteCommand.cs" />

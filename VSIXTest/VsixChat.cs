@@ -106,6 +106,21 @@ namespace VSIXTest
             simpleClient.StartClient();
         }
 
+        private List<string> GetAvailableFiles()
+        {
+            // Implement this method to return a list of all available files
+            // This could be all files in the current solution, project, or any other source
+            // For example:
+            return new List<string>
+            {
+                "File1.cs",
+                "File2.cs",
+                "File3.cs",
+                // ... add more files as needed
+            };
+        }
+
+
         private async void SimpleClient_LineReceived(object sender, string e)
         {
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
@@ -127,8 +142,10 @@ namespace VSIXTest
             {
                 await InitialiseAsync(); 
                 vsixInitialised = true;
-                _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
-                
+                //_fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
+
+
+
             }
         }
 
@@ -332,9 +349,37 @@ namespace VSIXTest
             quickButtonOptionsWindow.SetMessage(message);
 
             quickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
+            quickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+        }
+
+        private void OptionsControl_FileGroupsEditorInvoked(object sender, string e)
+        {
+            var availableFiles = _shortcutManager.GetAllFilesInSolution();
+            // Create and show the FileGroupEditWindow
+            var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups()[0], availableFiles);
+
+            bool? result = editWindow.ShowDialog();
+
+            if (result == true)
+            {
+                // User clicked Save, update the file group
+                FileGroup editedFileGroup = editWindow.EditedFileGroup;
+
+                // Update the file group in your FileGroupManager
+                _fileGroupManager.UpdateFileGroup(
+                    editedFileGroup.Id,
+                    editedFileGroup.Name,
+                    editedFileGroup.FilePaths
+                );
+
+            }
+            else
+            {
+                // User clicked Cancel or closed the window, do nothing or handle as needed
+            }
         }
 
         private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
@@ -346,7 +391,7 @@ namespace VSIXTest
 
             List<string> inclusions = new List<string>();
 
-            var activeDocumentFilename = _dte.ActiveDocument.Name;
+            var activeDocumentFilename = _dte?.ActiveDocument?.Name;
 
             foreach (var option in e.SelectedOptions)
             {
@@ -380,6 +425,10 @@ namespace VSIXTest
                         var matchingMethods = new MethodFinder().FindMethods(option.Parameter);
                         var formattedMethods = matchingMethods.Select(x => MessageFormatter.FormatFile(x.FileName, x.SourceCode)).ToList();
                         inclusions.AddRange(formattedMethods);
+                        break;
+                    case "FileGroups":
+
+
                         break;
                 }
             }
