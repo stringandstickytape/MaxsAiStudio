@@ -45,39 +45,42 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AutocompleteManager.cs" />
-    <Compile Include="ButtonManager.cs" />
-    <Compile Include="ChatControl.xaml.cs">
+    <Compile Include="Models\VsixResourceDetails.cs" />
+    <Compile Include="Models\MethodInfo.cs" />
+    <Compile Include="Managers\AutocompleteManager.cs" />
+    <Compile Include="Managers\ButtonManager.cs" />
+    <Compile Include="UI\ChatControl.xaml.cs">
       <DependentUpon>ChatControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ChatWindowControl.xaml.cs">
+    <Compile Include="UI\ChatWindowControl.xaml.cs">
       <DependentUpon>ChatWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ChatWindowPane.cs" />
+    <Compile Include="UI\ChatWindowPane.cs" />
     <Compile Include="FileGroups\FileGroup.cs" />
     <Compile Include="FileGroups\FileGroupManager.cs" />
     <Compile Include="FileGroups\FileGroupWindow.cs" />
-    <Compile Include="GetSurroundingLinesCommand.cs" />
-    <Compile Include="GitDiffHelper.cs" />
-    <Compile Include="MaxsAiStudioAutoCompleteCommand.cs" />
-    <Compile Include="MessageFormatter.cs" />
-    <Compile Include="MessagePrompt.cs" />
-    <Compile Include="MethodFinder.cs" />
-    <Compile Include="OpenChatWindow.cs" />
+    <Compile Include="UI\GetSurroundingLinesCommand.cs" />
+    <Compile Include="Helpers\GitDiffHelper.cs" />
+    <Compile Include="UI\MaxsAiStudioAutoCompleteCommand.cs" />
+    <Compile Include="Helpers\MessageFormatHelper.cs" />
+    <Compile Include="Models\MessagePrompt.cs" />
+    <Compile Include="CodeAnalysis\MethodFinder.cs" />
+    <Compile Include="UI\OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuickButtonOptionsControl.xaml.cs">
+    <Compile Include="Models\OptionTemplate.cs" />
+    <Compile Include="Models\OptionWithParameter.cs" />
+    <Compile Include="UI\QuickButtonOptionsControl.xaml.cs">
       <DependentUpon>QuickButtonOptionsControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="QuickButtonOptionsWindow.cs" />
-    <Compile Include="ResourceManager.cs" />
-    <Compile Include="ShortcutManager.cs" />
-    <Compile Include="SimpleClient.cs" />
-    <Compile Include="TaskExtensions.cs" />
-    <Compile Include="TreeViewWindow.cs" />
+    <Compile Include="UI\QuickButtonOptionsWindow.cs" />
+    <Compile Include="Managers\ResourceManager.cs" />
+    <Compile Include="Managers\ShortcutManager.cs" />
+    <Compile Include="Communications\SimpleClient.cs" />
+    <Compile Include="UI\TreeViewWindow.cs" />
     <Compile Include="VsixChat.cs" />
-    <Compile Include="VsixMessageHandler.cs" />
+    <Compile Include="Communications\VsixMessageHandler.cs" />
     <Compile Include="VSIXTestPackage.cs" />
-    <Compile Include="VsixUiMessage.cs" />
+    <Compile Include="Models\VsixUiMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -113,13 +116,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ChatControl.xaml">
+    <Page Include="UI\ChatControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ChatWindowControl.xaml">
+    <Page Include="UI\ChatWindowControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="QuickButtonOptionsControl.xaml">
+    <Page Include="UI\QuickButtonOptionsControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

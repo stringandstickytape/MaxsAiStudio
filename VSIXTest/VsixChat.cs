@@ -233,7 +233,7 @@ namespace VSIXTest
                 var activeDocumentFilename = _dte.ActiveDocument.Name;
 
                 var selectedText = selection.Text;
-                var formattedAsFile = $"\n{MessageFormatter.FormatFile(activeDocumentFilename, selectedText)}";
+                var formattedAsFile = $"\n{MessageFormatHelper.FormatFile(activeDocumentFilename, selectedText)}";
 
                 var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
                 await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
@@ -355,7 +355,7 @@ namespace VSIXTest
 
         private string FormatContent(string filename, string content)
         {
-            return $"\n{MessageFormatter.FormatFile(filename, content)}\n";
+            return $"\n{MessageFormatHelper.FormatFile(filename, content)}\n";
         }
 
         private string GetCurrentSelection()
@@ -376,7 +376,7 @@ namespace VSIXTest
         private string FormatXmlDocContent(string parameter)
         {
             var matchingMethods = new MethodFinder().FindMethods(parameter);
-            return string.Join("\n\n", matchingMethods.Select(x => MessageFormatter.FormatFile(x.FileName, x.SourceCode)));
+            return string.Join("\n\n", matchingMethods.Select(x => MessageFormatHelper.FormatFile(x.FileName, x.SourceCode)));
         }
 
         private string FormatFileGroupsContent()

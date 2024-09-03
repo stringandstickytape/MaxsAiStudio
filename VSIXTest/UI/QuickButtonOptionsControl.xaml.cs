@@ -70,24 +70,4 @@ namespace VSIXTest
         public List<OptionWithParameter> SelectedOptions { get; internal set; }
         public VsixUiMessage OriginalVsixMessage { get; internal set; }
     }
-
-    public class OptionWithParameter
-    {
-        public string Option { get; set; }
-        public string Parameter { get; set; }
-        public bool ShowParameter { get; set; }
-
-        public OptionWithParameter(string option, string parameter, bool showParameter)
-        {
-            Option = option;
-            Parameter = parameter;
-            ShowParameter = showParameter;
-        }
-    }
-
-    public class OptionTemplate
-    {
-        public string Option { get; set; }
-        public bool ShowParameter { get; set; }
-    }
 }

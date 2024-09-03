@@ -96,12 +96,4 @@ namespace VSIXTest
             return signature + Environment.NewLine + Environment.NewLine + body + Environment.NewLine + "}";
         }
     }
-
-
-    public class MethodInfo
-    {
-        public string Name { get; set; }
-        public string FileName { get; set; }
-        public string SourceCode { get; set; }
-    }
 }

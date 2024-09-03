@@ -3,7 +3,7 @@ using SharedClasses;
 
 namespace VSIXTest
 {
-    public static class MessageFormatter
+    public static class MessageFormatHelper
     {
         public static string InsertFilenamedSelection(string message, string documentFilename, string selection)
         {
