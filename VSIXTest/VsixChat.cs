@@ -241,7 +241,7 @@ namespace VSIXTest
             }
             if (message.type == "vsPopWindow")
             {
-
+                var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
                 var files = _shortcutManager.GetAllFilesInSolution();
 
                 files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
@@ -286,6 +286,7 @@ namespace VSIXTest
         private void OptionsControl_FileGroupsEditorInvoked(object sender, string e)
         {
             // bodged for now
+            var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
             var availableFiles = _shortcutManager.GetAllFilesInSolution().Where(x => !x.Contains("\\.nuget\\")).ToList();
             
             var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups(), availableFiles);
