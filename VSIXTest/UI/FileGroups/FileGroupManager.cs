@@ -39,6 +39,19 @@ namespace VSIXTest.FileGroups
         public bool UpdateAllFileGroups(List<FileGroup> updatedGroups)
         {
             _fileGroups = updatedGroups;
+
+            foreach(var fileGroup in _fileGroups)
+            {
+                var newFilePaths = new List<string>();
+                foreach (var x in fileGroup.FilePaths)
+                {
+                    if (File.Exists(x))
+                        newFilePaths.Add(x);
+
+                }
+                fileGroup.FilePaths = newFilePaths;
+            }
+
             SaveFileGroups();
             return true;
         }

@@ -108,7 +108,6 @@ namespace VSIXTest
                 await simpleClient.StartClientAsync();
                 await InitialiseAsync(); 
                 vsixInitialised = true;
-                _fileGroupManager.CreateFileGroup("TestGroup"+DateTime.Now.ToShortTimeString(), new List<string> { "file1.txt", "file2.txt" });
             }
         }
 

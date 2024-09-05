@@ -29,7 +29,6 @@ namespace VSIXTest
 
             Instance = this;
             await OpenChatWindowCommand.InitializeAsync(this);
-            await MaxsAiStudioAutoCompleteCommand.InitializeAsync(this);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);

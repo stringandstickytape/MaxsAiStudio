@@ -59,12 +59,10 @@
       <DependentUpon>ChatWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\ChatWindowPane.cs" />
-    <Compile Include="FileGroups\FileGroup.cs" />
-    <Compile Include="FileGroups\FileGroupManager.cs" />
-    <Compile Include="FileGroups\FileGroupWindow.cs" />
-    <Compile Include="UI\GetSurroundingLinesCommand.cs" />
+    <Compile Include="UI\FileGroups\FileGroup.cs" />
+    <Compile Include="UI\FileGroups\FileGroupManager.cs" />
+    <Compile Include="UI\FileGroups\FileGroupWindow.cs" />
     <Compile Include="Helpers\GitDiffHelper.cs" />
-    <Compile Include="UI\MaxsAiStudioAutoCompleteCommand.cs" />
     <Compile Include="Helpers\MessageFormatHelper.cs" />
     <Compile Include="Models\MessagePrompt.cs" />
     <Compile Include="CodeAnalysis\MethodFinder.cs" />
