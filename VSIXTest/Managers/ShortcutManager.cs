@@ -124,9 +124,9 @@ namespace VSIXTest
                             string sourceCode = File.ReadAllText(filePath);
                             string fileName = Path.GetFileName(filePath);
 
-                            List<MethodDetail> methods = RoslynHelper.ExtractMethodsUsingRoslyn(sourceCode, fileName);
-
-                            List<Member> members = methods.Select(m => new Member(m.ClassName, m.Namespace)).ToList();
+                            List<MemberDetail> methods = RoslynHelper.ExtractMembersUsingRoslyn(sourceCode, fileName);
+                             
+                            List<Member> members = methods.Select(m => new Member(m.ItemName, m.MemberType, m.SourceCode)).ToList();
 
                             filesWithMembers.Add(new FileWithMembers(filePath, members));
                         }
@@ -242,10 +242,13 @@ namespace VSIXTest
         public string Name { get; set; }
         public string Kind { get; set; }
 
-        public Member(string name, string kind)
+        public string SourceCode { get; set; }
+
+        public Member(string name, string kind, string sourceCode)
         {
             Name = name;
             Kind = kind;
+            SourceCode = sourceCode;
         }
     }
 }
