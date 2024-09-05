@@ -307,16 +307,24 @@ namespace VSIXTest
 
             }
         }
-
+         
         private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
-        {
+        { 
             var buttonLabel = e.OriginalVsixMessage.content;
             var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
-            var prompt = matchingButton?.Prompt;
+
+            var prompt = "";
+
+            if(buttonLabel == "User Prompt")
+            {
+                prompt = JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
+            }
+            else 
+            prompt = matchingButton?.Prompt;
 
             var inclusions = new List<string>();
             var activeDocumentFilename = _dte?.ActiveDocument?.Name;
-
+             
             foreach (var option in e.SelectedOptions)
             {
                 string content = GetContentForOption(option, activeDocumentFilename);

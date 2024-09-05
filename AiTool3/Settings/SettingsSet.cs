@@ -103,6 +103,8 @@ namespace AiTool3
             new MessagePrompt { Category = "Documentation", ButtonLabel = "Create User Guide", MessageType = "createUserGuide", Prompt = "Create a user guide explaining how to use the functionality implemented in this code:" },
             new MessagePrompt { Category = "Documentation", ButtonLabel = "API Documentation", MessageType = "generateApiDocs", Prompt = "Generate API documentation for the public methods and classes in this code:" },
 
+            new MessagePrompt { Category = "Miscellaneous", ButtonLabel = "Send User Prompt with Code Attachments", MessageType = "userPromptWithAttchments", Prompt = "" },
+            new MessagePrompt { Category = "Miscellaneous", ButtonLabel = "Cache This", MessageType = "replyWithDot", Prompt = "Reply with a ." },
             new MessagePrompt
 {
     Category = "Documentation",
