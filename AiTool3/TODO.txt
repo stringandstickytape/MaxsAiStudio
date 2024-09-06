@@ -127,6 +127,19 @@ Default system prompt should be editable, not just empty.
 ""serene"" bug
 
 
+!!!
+
+Example with a partially-filled response from Claude (appears to be claude only)
+
+[
+  {"role": "user", "content": "What's the Greek name for Sun? (A) Sol (B) Helios (C) Sun"},
+  {"role": "assistant", "content": "The best answer is ("},
+]
+Eac
+
+!!!!!!
+
+
 
 VSIX:
 

@@ -363,7 +363,7 @@ namespace AiTool3.UI.Forms
                 if (gitIgnoreFilterManager == null || !gitIgnoreFilterManager.PathIsIgnored(file))
                 {
                     string extension = Path.GetExtension(file).ToLower();
-                    if (fileExtensions.Contains(extension))
+                    if (fileExtensions.Contains("") || fileExtensions.Contains(extension))
                     {
                         TreeNode fileNode = new TreeNode(Path.GetFileName(file));
                         if (checkedFiles != null && checkedFiles.Contains(file))

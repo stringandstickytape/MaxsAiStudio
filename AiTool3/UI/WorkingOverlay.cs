@@ -63,14 +63,21 @@ namespace AiTool3.UI
 
         private async void UpdateWebView(string msg, bool softwareToysMode)
         {
-            if (_isWorking)
+            try
             {
-                await _webView.EnsureCoreWebView2Async();
-                ResizeWebView();
-                InjectHtmlAndJs(msg, softwareToysMode);
-                _webView.Visible = true;
+                if (_isWorking)
+                {
+                    await _webView.EnsureCoreWebView2Async();
+                    ResizeWebView();
+                    InjectHtmlAndJs(msg, softwareToysMode);
+                    _webView.Visible = true;
+                }
+                else
+                {
+                    _webView.Visible = false;
+                }
             }
-            else
+            catch (Exception ex)
             {
                 _webView.Visible = false;
             }

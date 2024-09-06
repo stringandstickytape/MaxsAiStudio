@@ -255,10 +255,56 @@ namespace VSIXTest
                 ShowQuickButtonOptionsWindow(message);
             }
 
-
+            if (message.type == "vsSelectFilesWithMembers")
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                ShowFileWithMembersSelectionWindow();
+            }
 
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
+
+        private void ShowFileWithMembersSelectionWindow()
+        {
+            var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
+
+            var selectionWindow = new FileWithMembersSelectionWindow(solutionDetails);
+            selectionWindow.Show();
+        }
+
+        private async void FileWithMembersSelectionWindow_SelectionComplete(object sender, FileSelectionEventArgs e)
+        {   //
+            //if (e.SelectedFiles != null)
+            //{
+            //    string formattedContent = FormatSelectedFilesWithMembers(e.SelectedFiles);
+            //    var jsonFormattedContent = JsonConvert.SerializeObject(formattedContent);
+            //
+            //    await ExecuteScriptAsync($"setUserPrompt({jsonFormattedContent})");
+            //    await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsFilesWithMembersSelected", Content = formattedContent }, simpleClient);
+            //}
+            //
+            //((Window)sender).Close();
+        }
+
+        private string FormatSelectedFilesWithMembers(List<FileWithMembers> selectedFiles)
+        {
+            var formattedContent = new StringBuilder();
+
+            foreach (var file in selectedFiles)
+            {
+                formattedContent.AppendLine($"File: {file.FilePath}");
+                foreach (var member in file.Members)
+                {
+                    formattedContent.AppendLine($"  {member.Kind} {member.Name}:");
+                    formattedContent.AppendLine(member.SourceCode);
+                    formattedContent.AppendLine();
+                }
+                formattedContent.AppendLine();
+            }
+
+            return formattedContent.ToString();
+        }
+
 
         QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
 

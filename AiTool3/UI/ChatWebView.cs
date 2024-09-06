@@ -93,7 +93,7 @@ namespace AiTool3.UI
                 await SetUserPrompt(vsixMessage.Content);
                 ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false });
                 return;
-            }
+            }  
             else if (vsixMessage.MessageType == "vsShowFileSelector")
             {
                 // in maxsaistudio we can do form = new FileSearchForm

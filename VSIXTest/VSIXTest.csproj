@@ -66,6 +66,10 @@
     <Compile Include="Helpers\MessageFormatHelper.cs" />
     <Compile Include="Models\MessagePrompt.cs" />
     <Compile Include="CodeAnalysis\MethodFinder.cs" />
+    <Compile Include="UI\FileGroups\FileWithMembersSelectionWindow.cs" />
+    <Compile Include="UI\FileWithMembersSelectionControl.xaml.cs">
+      <DependentUpon>FileWithMembersSelectionControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\OpenChatWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\OptionTemplate.cs" />
@@ -140,6 +144,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ChatWindowControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\FileWithMembersSelectionControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\QuickButtonOptionsControl.xaml">

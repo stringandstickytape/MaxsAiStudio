@@ -225,8 +225,6 @@ namespace AiTool3
 
                     FileSearchForm form = null;
 
-                    await Task.Run(async () =>
-                    {
                         try
                         {
                             form = new FileSearchForm(CurrentSettings.DefaultPath, CurrentSettings.ProjectHelperFileExtensions);
@@ -234,15 +232,16 @@ namespace AiTool3
                             {
                                 // attach files as txt
                                 await _fileAttachmentManager.AttachTextFiles(e.ToArray());
+                                
                             };
+                            form.Show();
                         }
                         finally
                         {
 
                         }
-                    });
                     this.HideWorking();
-                    form.Show();
+                    
                     break;
             }
         }
