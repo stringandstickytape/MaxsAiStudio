@@ -137,15 +137,19 @@ Example with a partially-filled response from Claude (appears to be claude only)
 ]
 Eac
 
+For each VSIX MessagePrompt, it should be possible to pick which ai should run it.
+
+Would it be useful to add partially-filled responses to the main app?
+
+
 !!!!!!
 
 
 
 VSIX:
 
-exceptioon explainer
+exception explainer!
 
-Add a VSIX Settings page.  It lets you maintain and add MessagePrompts, I guess.
 MessagePrompts should dlet you define whether to use the primary or secondary AI.
 Project Helper that lets you pick files, define filesets and so on.
 UI for this will need to be HTML/JS.

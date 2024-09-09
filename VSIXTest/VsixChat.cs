@@ -319,8 +319,12 @@ namespace VSIXTest
 
             QuickButtonOptionsWindow = window as QuickButtonOptionsWindow;
             QuickButtonOptionsWindow.SetMessage(message);
-            QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
-            QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
+            if (!QuickButtonOptionsWindow.EventsAttached)
+            {
+                QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
+                QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
+                QuickButtonOptionsWindow.EventsAttached = true;
+            }
 
             ThreadHelper.ThrowIfNotOnUIThread();
 

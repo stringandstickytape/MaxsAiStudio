@@ -26,6 +26,13 @@ namespace AiTool3.Providers
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
+        private string oneOffPreFill { get; set; }
+
+        public void SetOneOffPreFill(string prefill)
+        {
+            oneOffPreFill = prefill;
+        }
+
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
             if (!clientInitialised)
@@ -126,15 +133,38 @@ namespace AiTool3.Providers
                 }
 
                 messagesArray.Add(messageObject);
+
+                // prefill response test
+
             }
 
+            // successful pre-fill test
+
+            if(oneOffPreFill != null)
+            {
+                messagesArray.Add(new JObject
+                {
+                    ["role"] = "assistant",
+                    ["content"] = new JArray
+                      {
+                          new JObject
+                          {
+                              ["type"] = "text",
+                              ["text"] = oneOffPreFill // must not end with whitespace
+                          }
+                      }
+                });
+                
+                
+            }
+            
             req["messages"] = messagesArray;
 
-            //if (addEmbeddings)
-            //{
-            //    var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-            //    req["messages"].Last["content"].Last["text"] = newInput;
-            //}
+            if (addEmbeddings)
+            {
+                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
+                req["messages"].Last["content"].Last["text"] = newInput;
+            }
 
             var json = JsonConvert.SerializeObject(req);
 
@@ -244,9 +274,11 @@ namespace AiTool3.Providers
             // call streaming complete
             StreamingComplete?.Invoke(this, null);
 
+            var responseText = oneOffPreFill == null ? result.ResponseText : $"{oneOffPreFill}{result.ResponseText}";
+            oneOffPreFill = null;
             return new AiResponse
             {
-                ResponseText = result.ResponseText,
+                ResponseText = responseText,
                 Success = true,
                 TokenUsage = new TokenUsage(result.InputTokens?.ToString(), result.OutputTokens?.ToString(), result.CacheCreationInputTokens?.ToString(), result.CacheReadInputTokens?.ToString())
             };
@@ -296,8 +328,10 @@ namespace AiTool3.Providers
             {
                 responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
             }
+            var responseTextPrefilled = oneOffPreFill == null ? responseText : $"{oneOffPreFill}{responseText}";
+            oneOffPreFill = null;
 
-            return new AiResponse { ResponseText = responseText, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens) };
+            return new AiResponse { ResponseText = responseTextPrefilled, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens) };
         }
     }
 

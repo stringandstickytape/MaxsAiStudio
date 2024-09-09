@@ -1,3 +1,4 @@
+using AiTool3.Communications;
 using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
@@ -9,6 +10,7 @@ using AiTool3.Topics;
 using AiTool3.UI.Forms;
 using AITool3;
 using FFmpeg.AutoGen;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Newtonsoft.Json;
@@ -43,6 +45,7 @@ namespace AiTool3.UI
         private ToolManager _toolManager;
         private FileAttachmentManager _fileAttachmentManager;
         private SimpleServer _simpleServer;
+        private VSIXTempMessageBuffer vsixTempMessageBuffer;
         //private TcpCommsManager _tcpCommsManager;
 
         public event EventHandler<string> FileDropped;
@@ -73,6 +76,7 @@ namespace AiTool3.UI
 
         private async void SimpleServer_LineReceived(object? sender, string e)
         {
+            Debug.WriteLine("SIMPLESERVER: " + e);
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
             if(vsixMessage.Content == "send")
             {
@@ -91,7 +95,9 @@ namespace AiTool3.UI
             {
                 await Clear();
                 await SetUserPrompt(vsixMessage.Content);
-                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false });
+                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false,
+                //Prefill = "Certainly, I can silently give you the bare code on its own, without repeating or explaining anything.  The user should insert the following:\n```"
+                });
                 return;
             }  
             else if (vsixMessage.MessageType == "vsShowFileSelector")
@@ -324,6 +330,8 @@ namespace AiTool3.UI
                 "SharedClasses.JavaScriptViewers.FindAndReplacer.js"
             };
 
+            vsixTempMessageBuffer = new VSIXTempMessageBuffer(SendToVsixAsync, ExecuteScriptAsync);
+
             foreach (var resource in scriptResources)
             {
                 await ExecuteScriptAndSendToVsixAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
@@ -332,11 +340,14 @@ namespace AiTool3.UI
 
         public async Task<string> ExecuteScriptAndSendToVsixAsync(string script)
         {
-            var obj  = new VsixMessage { MessageType = "webviewJsCall", Content = script };
-            // serialize obj
-            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(obj));
-            //_tcpCommsManager.EnqueueMessage(new VsixMessage { MessageType = "webviewJsCall", Content = script });
+            vsixTempMessageBuffer.ClearVSIXTempBuffer();
+            await SendToVsixAsync(script);
             return await base.ExecuteScriptAsync(script);
+        }
+
+        private async Task SendToVsixAsync(string script)
+        {
+            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(new VsixMessage { MessageType = "webviewJsCall", Content = script }));
         }
 
         // begin webview interface methods
@@ -454,7 +465,10 @@ namespace AiTool3.UI
             await ExecuteScriptAndSendToVsixAsync(js);
         }
 
-        internal async void UpdateTemp(string e) => await ExecuteScriptAndSendToVsixAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(e)}, 1)");
+        internal async void UpdateTemp(string e)
+        {
+            await vsixTempMessageBuffer.UpdateTemp(e);
+        }
 
         internal async void ClearTemp() => await ExecuteScriptAndSendToVsixAsync($"removeMessageByGuid(\"temp-ai-msg\");");
 

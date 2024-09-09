@@ -12,5 +12,7 @@
         public bool SendResponseToVsix { get; set; } = false;
 
         public string OverrideUserPrompt { get; set; } = null;
+
+        public string Prefill { get; set; } = null;
     }
 }
