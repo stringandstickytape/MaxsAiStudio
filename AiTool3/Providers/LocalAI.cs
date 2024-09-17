@@ -77,7 +77,7 @@ namespace AiTool3.Providers
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Content = content;
-
+            client.Timeout = TimeSpan.FromSeconds(1800);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 

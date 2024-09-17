@@ -8,9 +8,9 @@ internal partial class ModelUsageManager
     private Model model;
     public TokenUsage TokensUsed { get; set; }
 
-    public string Filename => $"TokenUsage\\TokenUsage-{model.ToString()}.json";
+    public string Filename => $"TokenUsage\\TokenUsage-{model.ToString().Replace("\\","").Replace("/", "").Replace(":", "")}.json";
 
-    public static string GetTokenUsageFilenameFromModel(Model model) => $"TokenUsage\\TokenUsage-{model.ToString()}.json";
+    public static string GetTokenUsageFilenameFromModel(Model model) => $"TokenUsage\\TokenUsage-{model.ToString().Replace("\\", "").Replace(":", "")}.json";
     public ModelUsageManager(Model model)
     {
         this.model = model;

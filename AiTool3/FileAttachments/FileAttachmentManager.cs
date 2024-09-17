@@ -47,7 +47,7 @@ namespace AiTool3.FileAttachments
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*"
+                Filter = "All supported files|*.mp4;*.m4a;*.mov;*.avi;*.mkv;*.flv;*.webm;*.wmv;*.asf;*.3gp;*.3g2;*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.vob;*.ogv;*.mxf;*.wav;*.aac;*.mp3;*.ogg;*.flac;*.wma;*.aiff;*.alac|MP4 files (*.mp4)|*.mp4|M4A files (*.m4a)|*.m4a|MOV files (*.mov)|*.mov|AVI files (*.avi)|*.avi|MKV files (*.mkv)|*.mkv|FLV files (*.flv)|*.flv|WebM files (*.webm)|*.webm|WMV files (*.wmv)|*.wmv|ASF files (*.asf)|*.asf|3GP files (*.3gp)|*.3gp|3G2 files (*.3g2)|*.3g2|MPEG files (*.mpg;*.mpeg)|*.mpg;*.mpeg|TS files (*.ts;*.mts;*.m2ts)|*.ts;*.mts;*.m2ts|VOB files (*.vob)|*.vob|OGV files (*.ogv)|*.ogv|MXF files (*.mxf)|*.mxf|WAV files (*.wav)|*.wav|AAC files (*.aac)|*.aac|MP3 files (*.mp3)|*.mp3|OGG files (*.ogg)|*.ogg|FLAC files (*.flac)|*.flac|WMA files (*.wma)|*.wma|AIFF files (*.aiff)|*.aiff|ALAC files (*.alac)|*.alac|All files (*.*)|*.*"
             };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -154,7 +154,7 @@ namespace AiTool3.FileAttachments
             }
 
             // Command to activate the WhisperX environment and run Whisper
-            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\" --output_format json";
+            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{Path.GetDirectoryName(filename)}\"";
 
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
@@ -179,7 +179,6 @@ namespace AiTool3.FileAttachments
 
                 if (process.ExitCode == 0)
                 {
-                    // stip filename from path
                     var filenameOnly = filename.Split('\\').Last();
 
                     if (filenameOnly.Contains("."))
@@ -190,12 +189,9 @@ namespace AiTool3.FileAttachments
                     {
                         filenameOnly += ".json";
                     }
-                    // add path back in
+                    var fullFilename = Path.Combine(Path.GetDirectoryName(filename)!, filenameOnly);
 
-                    var json = File.ReadAllText(filenameOnly);
-
-
-                    // deserz to dynamic, and get the object's segments array
+                    var json = File.ReadAllText(fullFilename);
 
                     List<string> result = new List<string>();
 
