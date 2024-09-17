@@ -33,22 +33,21 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming
             };
 
-            var x = conversation.messages.Select(m => new LocalAIMessage
+            var x = conversation.messages.Select(m => new JObject
             {
-                Role = m.role,
-                Content = m.content,
-                Base64Image = m.base64image,
-                Base64Type = m.base64type
+                ["role"] = m.role,
+                ["content"] = m.content,
+                ["base64Image"] = m.base64image,
+                ["base64Type"] = m.base64type
             });
-
 
             // copy the messages in, with base 64 images
             foreach (var m in x)
             {
-                req["messages"].Last.AddAfterSelf(JObject.FromObject(m));
-                if (m.Base64Image != null)
+                req["messages"].Last.AddAfterSelf(m);
+                if (m["base64Image"] != null && m["base64Image"].ToString() != "")
                 {
-                    req["messages"].Last["images"] = new JArray { m.Base64Image };
+                    req["messages"].Last["images"] = new JArray { m["base64Image"] };
                 }
             }
 
@@ -131,19 +130,19 @@ namespace AiTool3.Providers
 
             try
             {
-                var chunkResponse = JsonConvert.DeserializeObject<LocalAIStreamResponse>(line);
+                var chunkResponse = JObject.Parse(line);
 
-                if (chunkResponse?.Message != null && !string.IsNullOrEmpty(chunkResponse.Message.Content))
+                if (chunkResponse["message"] != null && !string.IsNullOrEmpty(chunkResponse["message"]["content"]?.ToString()))
                 {
-                    fullResponse.Append(chunkResponse.Message.Content);
-                    Debug.WriteLine(chunkResponse.Message.Content);
-                    StreamingTextReceived?.Invoke(this, chunkResponse.Message.Content);
+                    fullResponse.Append(chunkResponse["message"]["content"]);
+                    Debug.WriteLine(chunkResponse["message"]["content"]);
+                    StreamingTextReceived?.Invoke(this, chunkResponse["message"]["content"].ToString());
                 }
 
-                if (chunkResponse?.Done == true)
+                if (chunkResponse["done"]?.Value<bool>() == true)
                 {
-                    promptEvalCount = chunkResponse.PromptEvalCount;
-                    evalCount = chunkResponse.EvalCount;
+                    promptEvalCount = chunkResponse["prompt_eval_count"]?.Value<int>() ?? 0;
+                    evalCount = chunkResponse["eval_count"]?.Value<int>() ?? 0;
                 }
             }
             catch (JsonException)
@@ -152,18 +151,20 @@ namespace AiTool3.Providers
             }
         }
 
-
         private async Task<AiResponse> HandleNonStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
         {
             var response = await client.PostAsync(url, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<LocalAINonStreamingResponse>(responseContent);
+            var result = JObject.Parse(responseContent);
 
             return new AiResponse
             {
-                ResponseText = result!.Message?.Content,
+                ResponseText = result["message"]?["content"]?.ToString(),
                 Success = true,
-                TokenUsage = new TokenUsage(result.PromptEvalCount.ToString(), result.EvalCount.ToString())
+                TokenUsage = new TokenUsage(
+                    result["prompt_eval_count"]?.ToString() ?? "0",
+                    result["eval_count"]?.ToString() ?? "0"
+                )
             };
         }
 
@@ -208,95 +209,5 @@ namespace AiTool3.Providers
             }
             return originalUrl;
         }
-    }
-
-    public class LocalAINonStreamingResponse
-    {
-        [JsonProperty("model")]
-        public string Model { get; set; }
-
-        [JsonProperty("created_at")]
-        public string CreatedAt { get; set; }
-
-        [JsonProperty("message")]
-        public LocalAIMessage Message { get; set; }
-
-        [JsonProperty("done")]
-        public bool Done { get; set; }
-
-        [JsonProperty("total_duration")]
-        public long TotalDuration { get; set; }
-
-        [JsonProperty("load_duration")]
-        public long LoadDuration { get; set; }
-
-        [JsonProperty("prompt_eval_count")]
-        public int PromptEvalCount { get; set; }
-
-        [JsonProperty("prompt_eval_duration")]
-        public long PromptEvalDuration { get; set; }
-
-        [JsonProperty("eval_count")]
-        public int EvalCount { get; set; }
-
-        [JsonProperty("eval_duration")]
-        public long EvalDuration { get; set; }
-    }
-
-
-    public class LocalAIRequest
-    {
-        [JsonProperty("model")]
-        public string model { get; set; }
-
-        [JsonProperty("messages")]
-        public List<LocalAIMessage> messages { get; set; }
-
-        [JsonProperty("stream")]
-        public bool stream { get; set; }
-    }
-
-    public class LocalAIMessage
-    {
-        [JsonProperty("role")]
-        public string Role { get; set; }
-
-        [JsonProperty("content")]
-        public string Content { get; set; }
-        public string? Base64Image { get; set; }
-        public string? Base64Type { get; set; }
-    }
-
-    public class LocalAIStreamResponse
-    {
-        [JsonProperty("model")]
-        public string Model { get; set; }
-
-        [JsonProperty("created_at")]
-        public string CreatedAt { get; set; }
-
-        [JsonProperty("message")]
-        public LocalAIMessage Message { get; set; }
-
-        [JsonProperty("done")]
-        public bool Done { get; set; }
-
-        [JsonProperty("total_duration")]
-        public long TotalDuration { get; set; }
-
-        [JsonProperty("load_duration")]
-        public long LoadDuration { get; set; }
-
-        [JsonProperty("prompt_eval_count")]
-        public int PromptEvalCount { get; set; }
-
-        [JsonProperty("prompt_eval_duration")]
-        public long PromptEvalDuration { get; set; }
-
-        [JsonProperty("eval_count")]
-        public int EvalCount { get; set; }
-
-        [JsonProperty("eval_duration")]
-        public long EvalDuration { get; set; }
     }
 }
