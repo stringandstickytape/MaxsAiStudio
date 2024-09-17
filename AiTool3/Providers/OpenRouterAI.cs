@@ -5,6 +5,7 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 using System.Text;
 
 namespace AiTool3.Providers
@@ -15,26 +16,34 @@ namespace AiTool3.Providers
         private readonly HttpClient client = new HttpClient();
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
+        bool clientInitialised = false;
 
-        private const string API_URL = "https://openrouter.ai/api/v1/chat/completions";
-        private readonly string SITE_URL;
-        private readonly string SITE_NAME;
+        private readonly string apiKey;
+        private readonly string baseUrl = "https://openrouter.ai/api/v1/chat/completions";
 
         public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
+            if (!clientInitialised)
+            {
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiModel.Key}");
+                client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
+                client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
+                clientInitialised = true;
+            }
+
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
-                ["messages"] = new JArray()
-                {
-                    (new JObject
-                    {
-                        ["role"] = "system",
-                        ["content"] = conversation.SystemPromptWithDateTime()
-                    })
-                },
+                ["messages"] = new JArray(),
                 ["stream"] = useStreaming
             };
+
+            // Add system message
+            ((JArray)req["messages"]).Add(new JObject
+            {
+                ["role"] = "system",
+                ["content"] = conversation.SystemPromptWithDateTime()
+            });
 
             // Add conversation messages
             foreach (var m in conversation.messages)
@@ -45,120 +54,126 @@ namespace AiTool3.Providers
                     ["content"] = m.content
                 };
 
-                if (!string.IsNullOrEmpty(m.base64image))
+                if (!string.IsNullOrEmpty(m.base64image) && !string.IsNullOrEmpty(m.base64type))
                 {
-                    messageObj["images"] = new JArray { m.base64image };
+                    messageObj["content"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["type"] = "text",
+                            ["text"] = m.content
+                        },
+                        new JObject
+                        {
+                            ["type"] = "image_url",
+                            ["image_url"] = new JObject
+                            {
+                                ["url"] = $"data:{m.base64type};base64,{m.base64image}"
+                            }
+                        }
+                    };
                 }
 
-                req["messages"].Last.AddAfterSelf(messageObj);
+                ((JArray)req["messages"]).Add(messageObj);
             }
 
             if (addEmbeddings)
             {
                 var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last()["content"] = newInput;
+                ((JObject)((JArray)req["messages"]).Last)["content"] = newInput;
             }
 
             var json = JsonConvert.SerializeObject(req);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiModel.Key}");
-            client.DefaultRequestHeaders.Add("HTTP-Referer", SITE_URL);
-            client.DefaultRequestHeaders.Add("X-Title", SITE_NAME);
+            var requestContent = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (useStreaming)
             {
-                return await HandleStreamingResponse(content, cancellationToken);
+                return await HandleStreamingResponse(requestContent, cancellationToken);
             }
             else
             {
-                return await HandleNonStreamingResponse(content, cancellationToken);
+                return await HandleNonStreamingResponse(requestContent, cancellationToken);
             }
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(StringContent content, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingResponse(StringContent requestContent, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, API_URL);
-            request.Content = content;
-            client.Timeout = TimeSpan.FromSeconds(1800);
+            using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
+            request.Content = requestContent;
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             StringBuilder fullResponse = new StringBuilder();
-            StringBuilder lineBuilder = new StringBuilder();
+            using var reader = new StreamReader(stream);
 
-            byte[] buffer = new byte[1024];
-            var decoder = Encoding.UTF8.GetDecoder();
+            TokenUsage tokenUsage = null;
 
-            while (true)
-            {
-                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                if (bytesRead == 0) break;
+            var context = UIThreadHelper.IsOnUIThread();
 
-                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
-                int charsDecodedCount = decoder.GetChars(buffer, 0, bytesRead, chars, 0);
 
-                for (int i = 0; i < charsDecodedCount; i++)
+                while (!reader.EndOfStream)
                 {
-                    char c = chars[i];
-                    lineBuilder.Append(c);
+                    await Task.Yield();
+                    var line = await reader.ReadLineAsync();
+                    Debug.WriteLine(line);
 
-                    if (c == '\n')
+
+                    if (string.IsNullOrEmpty(line) || line.StartsWith(": OPENROUTER PROCESSING"))
                     {
-                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse);
-                        lineBuilder.Clear();
+                        StreamingTextReceived?.Invoke(this, "");
+
+                        continue;
+                    }
+
+                    if (line.StartsWith("data: "))
+                    {
+                        var data = line.Substring(6);
+                        if (data == "[DONE]")
+                        {
+
+                            break;
+                        }
+
+                        try
+                        {
+                            var jsonData = JObject.Parse(data);
+                            var content = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
+                            if (!string.IsNullOrEmpty(content))
+                            {
+                                fullResponse.Append(content);
+                                StreamingTextReceived?.Invoke(this, content);
+                            }
+
+                            // Check for usage information
+                            var usage = jsonData["usage"];
+                            if (usage != null)
+                            {
+                                tokenUsage = new TokenUsage(
+                                    usage["prompt_tokens"]?.ToString() ?? "N/A",
+                                    usage["completion_tokens"]?.ToString() ?? "N/A"
+                                );
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // Handle or log JSON parsing errors
+                        }
                     }
                 }
-            }
 
-            // Process any remaining content
-            if (lineBuilder.Length > 0)
-            {
-                ProcessLine(lineBuilder.ToString().Trim(), fullResponse);
-            }
+                StreamingComplete?.Invoke(this, null);
 
-            StreamingComplete?.Invoke(this, null);
             return new AiResponse
             {
                 ResponseText = fullResponse.ToString(),
                 Success = true,
-                TokenUsage = new TokenUsage("0", "0") // OpenRouter doesn't provide token usage in the same way
+                TokenUsage = tokenUsage ?? new TokenUsage("N/A", "N/A")
             };
         }
 
-        private void ProcessLine(string line, StringBuilder fullResponse)
+        private async Task<AiResponse> HandleNonStreamingResponse(StringContent requestContent, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(line) || line == "data: [DONE]") return;
-
-            try
-            {
-                if (line.StartsWith("data: "))
-                {
-                    line = line.Substring(6);
-                }
-
-                var chunkResponse = JObject.Parse(line);
-
-                if (chunkResponse["choices"] != null && chunkResponse["choices"].Any())
-                {
-                    var content = chunkResponse["choices"][0]["delta"]["content"]?.ToString();
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        fullResponse.Append(content);
-                        StreamingTextReceived?.Invoke(this, content);
-                    }
-                }
-            }
-            catch (JsonException)
-            {
-                // Handle or log JSON parsing errors
-            }
-        }
-
-        private async Task<AiResponse> HandleNonStreamingResponse(StringContent content, CancellationToken cancellationToken)
-        {
-            var response = await client.PostAsync(API_URL, content, cancellationToken);
+            var response = await client.PostAsync(baseUrl, requestContent, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JObject.Parse(responseContent);
 
@@ -167,8 +182,8 @@ namespace AiTool3.Providers
                 ResponseText = result["choices"]?[0]?["message"]?["content"]?.ToString(),
                 Success = true,
                 TokenUsage = new TokenUsage(
-                    result["usage"]?["prompt_tokens"]?.ToString() ?? "0",
-                    result["usage"]?["completion_tokens"]?.ToString() ?? "0"
+                    result["usage"]?["prompt_tokens"]?.ToString() ?? "N/A",
+                    result["usage"]?["completion_tokens"]?.ToString() ?? "N/A"
                 )
             };
         }

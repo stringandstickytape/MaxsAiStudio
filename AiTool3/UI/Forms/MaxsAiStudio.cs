@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using SharedClasses;
 using SharedClasses.Helpers;
 using System.Data;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
@@ -64,6 +65,7 @@ namespace AiTool3
 
             try
             {
+                
 
                 DirectoryHelper.CreateSubdirectories();
 
@@ -72,6 +74,8 @@ namespace AiTool3
                 CurrentSettings = AiTool3.SettingsSet.LoadOrPromptOnFirstRun();
 
                 InitializeComponent();
+
+                UIThreadHelper.Initialize();
 
                 _toolManager = toolManager;
                 _snippetManager = snippetManager;
@@ -416,14 +420,19 @@ namespace AiTool3
         }
 
 
-        private void UpdateTimer_Tick(object sender, EventArgs e)
+        private async void UpdateTimer_Tick(object sender, EventArgs e)
         {
             if (stopwatch.IsRunning)
             {
-                TimeSpan ts = stopwatch.Elapsed;
-                tokenUsageLabel.Text = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                    ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                UpdateStatusBarTimer();
             }
+        }
+
+        private void UpdateStatusBarTimer()
+        {
+            TimeSpan ts = stopwatch.Elapsed;
+            tokenUsageLabel.Text = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
         }
 
         private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.ConcatenateUserPrompt(e);
@@ -465,6 +474,7 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSendMessageEvent(object? sender, ChatWebViewSendMessageEventArgs e)
         {
+
             _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             stopwatch.Restart();
             updateTimer.Start();
@@ -481,48 +491,55 @@ namespace AiTool3
             dgvConversations.Enabled = false;
             webViewManager.Disable();
 
-            await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, overrideUserPrompt: e.OverrideUserPrompt, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings, prefill: e.Prefill,
-                updateUiMethod: async (response) =>
-                {
-                    updateTimer.Stop();
-                    await UpdateUi(response);
 
-                    //if (e.SendResponseToVsix)
-                    //{ 
-                    //    // get the entire messages pane div from the chatwebview
-                    //    var messagesPane = await chatWebView.GetMessagesPaneContent();
-                    //
-                    //    // does the last message's content include any three-backticks-demarcated code blocks?
-                    //    if (messagesPane != null)
-                    //    {
-                    //        
-                    //        var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
-                    //        var matches = Regex.Matches(ConversationManager.Conversation.Messages.Last().Content, codeBlockPattern, RegexOptions.Multiline);
-                    //
-                    //        // does the last one begin {ThreeTicks}insertions.json ?
-                    //        if (matches.Count > 0 && matches.Last().Value.Contains($"{ThreeTicks}insertions.json"))
-                    //        {
-                    //            var lastCodeBlock = matches.Last().Value;
-                    //            var lines = lastCodeBlock.Split('\n');
-                    //            lastCodeBlock = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
-                    //
-                    //            // if lastCodeBlock starts with {"code= then remove the equals sign but only for the first instance of {"code=, using indexes
-                    //            if (lastCodeBlock.StartsWith("{\"code="))
-                    //            {
-                    //                var firstIndex = lastCodeBlock.IndexOf("{\"code=");
-                    //                lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
-                    //            }
-                    //
-                    //            await chatWebView.SendToVsixAsync(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
-                    //            //_tcpCommsManager.EnqueueMessage();
-                    //        }
-                    //        else await chatWebView.SendToVsixAsync(new VsixMessage { Content = messagesPane, MessageType = "response" });
-                    //        //else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
-                    //    }
-                    //}
-                });
-            
+                await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, overrideUserPrompt: e.OverrideUserPrompt, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings, prefill: e.Prefill,
+                    updateTimerMethod: async () =>
+                    {
+                        UpdateStatusBarTimer();
+                    },
+                    updateUiMethod: async (response) =>
+                    {
+                    
+                        await UpdateUi(response);
+                        updateTimer.Stop();
+
+                        //if (e.SendResponseToVsix)
+                        //{ 
+                        //    // get the entire messages pane div from the chatwebview
+                        //    var messagesPane = await chatWebView.GetMessagesPaneContent();
+                        //
+                        //    // does the last message's content include any three-backticks-demarcated code blocks?
+                        //    if (messagesPane != null)
+                        //    {
+                        //        
+                        //        var codeBlockPattern = @$"{ThreeTicks}[\s\S]*?{ThreeTicks}";
+                        //        var matches = Regex.Matches(ConversationManager.Conversation.Messages.Last().Content, codeBlockPattern, RegexOptions.Multiline);
+                        //
+                        //        // does the last one begin {ThreeTicks}insertions.json ?
+                        //        if (matches.Count > 0 && matches.Last().Value.Contains($"{ThreeTicks}insertions.json"))
+                        //        {
+                        //            var lastCodeBlock = matches.Last().Value;
+                        //            var lines = lastCodeBlock.Split('\n');
+                        //            lastCodeBlock = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
+                        //
+                        //            // if lastCodeBlock starts with {"code= then remove the equals sign but only for the first instance of {"code=, using indexes
+                        //            if (lastCodeBlock.StartsWith("{\"code="))
+                        //            {
+                        //                var firstIndex = lastCodeBlock.IndexOf("{\"code=");
+                        //                lastCodeBlock = lastCodeBlock.Substring(0, firstIndex) + "{\"code" + lastCodeBlock.Substring(firstIndex + 6);
+                        //            }
+                        //
+                        //            await chatWebView.SendToVsixAsync(new VsixMessage { Content = lastCodeBlock, MessageType = "autocompleteResponse" });
+                        //            //_tcpCommsManager.EnqueueMessage();
+                        //        }
+                        //        else await chatWebView.SendToVsixAsync(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                        //        //else _tcpCommsManager.EnqueueMessage(new VsixMessage { Content = messagesPane, MessageType = "response" });
+                        //    }
+                        //}
+                    });
+
             EnableConversationsAndWebView();
+            
         }
 
         private async Task UpdateUi(AiResponse response)

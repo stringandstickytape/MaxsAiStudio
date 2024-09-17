@@ -132,8 +132,13 @@ namespace AiTool3.Conversations
             {
                 (aiService as Claude).SetOneOffPreFill(prefill);
             }
+            AiResponse response = null;
 
-            var response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, cancellationToken, currentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: currentSettings.StreamResponses, addEmbeddings: currentSettings.UseEmbeddings);
+            // await this as a separate task, as it's sufficiently-tightly-bound that the UI won't update otherwise.
+            await Task.Run(async () =>
+            {
+                response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, cancellationToken, currentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: currentSettings.StreamResponses, addEmbeddings: currentSettings.UseEmbeddings);
+            });
 
             if (_toolManager != null && toolIDs.Any())
             {
