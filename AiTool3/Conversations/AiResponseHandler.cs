@@ -77,29 +77,32 @@ namespace AiTool3.Conversations
                     }
                 }
 
-                    updateUiMethod?.Invoke(response);
-                    await _conversationManager.UpdateConversationSummary(currentSettings);
+                updateUiMethod?.Invoke(response);
+
+                await EnableUI();
+
+                await _conversationManager.UpdateConversationSummary(currentSettings);
             }
             catch (Exception ex)
             {
-                // stopwatch.Stop();
-                // updateTimer.Stop();
-
                 MessageBox.Show(ex is OperationCanceledException ? "Operation was cancelled." : $"An error occurred: {ex.Message}");
 
                 _chatWebView.ClearTemp();
-                // _cts = MaxsAiStudio.ResetCancellationtoken(_cts);
             }
             finally
             {
-                await _chatWebView.DisableCancelButton();
-
-                // dgvConversations.Enabled = true;
-                _webViewManager.Enable();
-
-                await _chatWebView.EnableSendButton();
+                await EnableUI();
             }
             return retVal;
+        }
+
+        private async Task EnableUI()
+        {
+            await _chatWebView.DisableCancelButton();
+
+            _webViewManager.Enable();
+
+            await _chatWebView.EnableSendButton();
         }
 
         private async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation,
