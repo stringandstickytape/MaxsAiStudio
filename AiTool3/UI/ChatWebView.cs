@@ -381,10 +381,8 @@ namespace AiTool3.UI
 
         internal async Task SetModels(List<Model> models)
         {
-            var modelStrings = models.Select(x => x.ToString());
+            var modelStrings = models.Select(x => x.FriendlyName);
             var columnData = models.Select(x => new { inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred });
-
-            // window.setDropdownOptions('mainAI',
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
@@ -551,18 +549,24 @@ namespace AiTool3.UI
         {
             if (!string.IsNullOrEmpty(selectedModel))
             {
-                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ModelName == selectedModel.Split(' ')[0]);
-                await SetDropdownValue(dropdownId, matchingModel.ToString());
+                var matchingModel = settings.ModelList.FirstOrDefault(m => m.ToString() == selectedModel);
+                if (matchingModel != null)
+                {
+                    await SetDropdownValue(dropdownId, matchingModel.ToString());
+                }
             }
             else
             {
                 var defaultModel = settings.ModelList.FirstOrDefault(m => m.ModelName.Contains("llama3"));
-                await SetDropdownValue(dropdownId, defaultModel.ToString());
+                if (defaultModel != null)
+                {
+                    await SetDropdownValue(dropdownId, defaultModel.ToString());
 
-                var property = (PropertyInfo)((MemberExpression)propertySelector.Body).Member;
-                property.SetValue(settings, defaultModel.ToString());
+                    var property = (PropertyInfo)((MemberExpression)propertySelector.Body).Member;
+                    property.SetValue(settings, defaultModel.ToString());
 
-                SettingsSet.Save(settings);
+                    SettingsSet.Save(settings);
+                }
             }
         }
 

@@ -13,6 +13,7 @@ namespace AiTool3.DataModels
         public Color Color { get; set; }
         public bool Starred { get; set; }
 
+        public string FriendlyName { get; set; }
         public Model() { }
 
         public Model(string modelName, string serviceName, string key, string url, decimal inputPrice, decimal outputPrice, Color color)
@@ -27,7 +28,7 @@ namespace AiTool3.DataModels
         }
         public override string ToString()
         {
-            return $"{ModelName} [{ServiceName} API]";
+            return $"{FriendlyName}";
         }
 
         public string GetCost(TokenUsage tokenUsage)

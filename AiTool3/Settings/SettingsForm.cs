@@ -231,6 +231,7 @@ namespace AiTool3.Settings
             var columns = new[]
             {
             //new { Name = "ApiName", HeaderText = "API Name", ReadOnly = false },
+            new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
             new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
             new { Name = "ServiceName", HeaderText = "Protocol", ReadOnly = false },
             new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
@@ -252,6 +253,9 @@ namespace AiTool3.Settings
 
                 switch (newCol.Name)
                 {
+                    case "FriendlyName":
+                        newCol.Width = 200;
+                        break;
                     case "ModelName":
                         newCol.Width = 200;
                         break;
@@ -287,7 +291,7 @@ namespace AiTool3.Settings
             dgvModels.Rows.Clear();
             foreach (var model in settings.ModelList)
             {
-                var index = dgvModels.Rows.Add(model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
+                var index = dgvModels.Rows.Add(model.FriendlyName, model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
                 dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
             }
         }
@@ -316,12 +320,12 @@ namespace AiTool3.Settings
 
             var row = dgvModels.Rows[e.RowIndex];
             var modelName = row.Cells["ModelName"].Value?.ToString();
-
+            var friendlyName = row.Cells["FriendlyName"].Value?.ToString();
             if (string.IsNullOrEmpty(modelName)) return;
 
 
 
-            var model = NewSettings.ModelList.FirstOrDefault(m => m.ModelName == modelName);
+            var model = NewSettings.ModelList.FirstOrDefault(m => m.FriendlyName == friendlyName);
             if (model == null)
             {
                 model = new Model();
@@ -329,6 +333,7 @@ namespace AiTool3.Settings
             }
 
             model.ModelName = modelName;
+            model.FriendlyName = row.Cells["FriendlyName"].Value?.ToString() ?? "";
             model.ServiceName = row.Cells["ServiceName"].Value?.ToString() ?? "";
             model.Url = row.Cells["ModelUrl"].Value?.ToString() ?? "";
             model.Key = row.Cells["ModelKey"].Value?.ToString() ?? "";
@@ -344,6 +349,7 @@ namespace AiTool3.Settings
             // Set default values for the new row
             var row = e.Row;
             //row.Cells["ApiName"].Value = "New API";
+            row.Cells["FriendlyName"].Value = "New Model";
             row.Cells["ModelName"].Value = "New Model";
             row.Cells["ServiceName"].Value = "NewService";
             row.Cells["ModelUrl"].Value = "https://api.example.com";
