@@ -32,7 +32,7 @@ namespace VSIXTest
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
-            await ShowToolWindowAsync(typeof(QuickButtonOptionsWindow), 0, true, cancellationToken);
+            //await ShowToolWindowAsync(typeof(QuickButtonOptionsWindow), 0, true, cancellationToken);
         }
 
         private async Task ShowToolWindowAsync(Type toolWindowType, int id, bool create, CancellationToken cancellationToken)
