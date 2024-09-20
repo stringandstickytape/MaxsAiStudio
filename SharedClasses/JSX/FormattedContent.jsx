@@ -75,220 +75,246 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
 
     const formatContent = (text) => {
         const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
+        const quotedStringRegex = /\u0060([^\u0060\n]+)\u0060/g;
         const parts = [];
         let lastIndex = 0;
 
-        // Handle code blocks first
-        text.replace(codeBlockRegex, (match, fileType, code, offset) => {
+        // Handle code blocks and inline code
+        text.replace(new RegExp(codeBlockRegex.source + '|' + quotedStringRegex.source, 'g'), (match, fileType, code, quotedString, offset) => {
             if (offset > lastIndex) {
-                // Process text before the code block for URLs
+                // Process text before the code block or inline code for URLs
                 const beforeCodeBlock = text.slice(lastIndex, offset);
                 parts.push(...formatUrls(beforeCodeBlock));
             }
 
-            // Add the code block as is, without URL formatting
-            parts.push(
-                <div key={offset}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontWeight: 'bold',
-                        backgroundColor: colorScheme.codeBlockHeaderBackgroundColor,
-                        color: colorScheme.codeBlockHeaderTextColor,
-                        padding: '5px 10px',
-                        borderTopLeftRadius: '5px',
-                        borderTopRightRadius: '5px',
-                        overflowWrap: 'anywhere'
-                    }}>
-                        <span>{fileType.trim()}</span>
-                        <div>
-                            {addMessageButton("Copy", () => {
-                                window.chrome.webview.postMessage({
-                                    type: 'Copy',
-                                    content: code.trim()
-                                });
-                            })}
-                            {addMessageButton("Save As", () => {
-                                window.chrome.webview.postMessage({
-                                    type: 'Save As',
-                                    dataType: fileType.trim().toLowerCase(),
-                                    content: code.trim()
-                                });
-                            })}
-                            {/* Additional buttons for different file types */}
-                            {fileTypes.webView.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("WebView", () => {
+            if (fileType && code) {
+                // This is a code block
+                parts.push(
+                    <div key={offset}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontWeight: 'bold',
+                            backgroundColor: colorScheme.codeBlockHeaderBackgroundColor,
+                            color: colorScheme.codeBlockHeaderTextColor,
+                            padding: '5px 10px',
+                            borderTopLeftRadius: '5px',
+                            borderTopRightRadius: '5px',
+                            overflowWrap: 'anywhere'
+                        }}>
+                            <span>{fileType.trim()}</span>
+                            <div>
+                                {addMessageButton("Copy", () => {
                                     window.chrome.webview.postMessage({
-                                        type: 'WebView',
+                                        type: 'Copy',
                                         content: code.trim()
                                     });
-                                })
-                            }
-                            {fileTypes.viewSvg.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("View SVG", () => {
-                                    createSvgViewer(code.trim());
-                                })
-                            }
-                            {fileTypes.viewJsonStringArray.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("View JSON String Array", () => {
+                                })}
+                                {addMessageButton("Save As", () => {
                                     window.chrome.webview.postMessage({
-                                        type: 'View JSON String Array',
+                                        type: 'Save As',
+                                        dataType: fileType.trim().toLowerCase(),
                                         content: code.trim()
                                     });
-                                })
-                            }
-                            {fileTypes.importTemplate.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Import Template", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'importTemplate',
-                                        content: code.trim()
+                                })}
+                                {/* Additional buttons for different file types */}
+                                {fileTypes.webView.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("WebView", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'WebView',
+                                            content: code.trim()
+                                        });
                                     })
-                                })
-                            }
-                            {fileTypes.installTheme.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Install Theme", debounce(() => {
-                                    if (isInstallingTheme) return;
-                                    setIsInstallingTheme(true);
-
-                                    try {
-                                        var obj = JSON.parse(code.trim());
-                                    }
-                                    catch (error) {
-                                        setUserPrompt("That JSON isn't valid: " + error);
-                                        setIsInstallingTheme(false);
-                                        return;
-                                    }
-                                    var themeName = Object.keys(obj)[0];
-                                    window.addColorScheme(themeName, Object.values(obj)[0]);
-
-                                    Promise.all([
+                                }
+                                {fileTypes.viewSvg.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("View SVG", () => {
+                                        createSvgViewer(code.trim());
+                                    })
+                                }
+                                {fileTypes.viewJsonStringArray.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("View JSON String Array", () => {
                                         window.chrome.webview.postMessage({
-                                            type: 'allThemes',
-                                            content: JSON.stringify(window.getAllColorSchemes())
-                                        }),
+                                            type: 'View JSON String Array',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.importTemplate.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Import Template", () => {
                                         window.chrome.webview.postMessage({
-                                            type: 'selectTheme',
-                                            content: JSON.stringify(obj.colorScheme.id)
+                                            type: 'importTemplate',
+                                            content: code.trim()
                                         })
-                                    ]).then(() => {
-                                        setIsInstallingTheme(false);
-                                    });
-                                }, 300))
-                            }
-                            {fileTypes.browseJsonObject.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Browse JSON Object", () => {
-                                    createJsonViewer(code.trim());
-                                })
-                            }
-                            {fileTypes.viewMermaidDiagram.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("View Mermaid Diagram", () => {
-                                    createMermaidViewer(code.trim());
-                                })
-                            }
-                            {fileTypes.viewPlantUMLDiagram.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("View PlantUML Diagram", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'View PlantUML Diagram',
-                                        content: code.trim()
-                                    });
-                                })
-                            }
-                            {fileTypes.viewDOTDiagram.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("View DOT Diagram", () => {
-                                    renderDotString(code.trim());
-                                })
-                            }
-                            {fileTypes.runPythonScript.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Run Python Script", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'Run Python Script',
-                                        content: code.trim()
-                                    });
-                                })
-                            }
-                            {fileTypes.launchSTL.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Launch STL", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'Launch STL',
-                                        content: code.trim()
-                                    });
-                                })
-                            }
-                            {fileTypes.runPowerShellScript.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Run PowerShell Script", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'Run PowerShell Script',
-                                        content: code.trim()
-                                    });
-                                })
-                            }
-                            {fileTypes.selectFindAndReplaceScript2.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Apply", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'ApplyFaRArray',
-                                        content: code.trim()
-                                    });
-                                })
-                            }
-                            {fileTypes.selectFindAndReplaceScript.includes(fileType.trim().toLowerCase()) &&
-                                addMessageButton("Select Find-And-Replace Script", () => {
-                                    try {
-                                        const fixedJsonString = fixNewlinesInStrings(code.trim());
-                                        const parsedJson = JSON.parse(fixedJsonString);
-                                        window.currentlySelectedFindAndReplaceSet = parsedJson;
-                                        window.selectedMessageGuid = guid;
+                                    })
+                                }
+                                {fileTypes.installTheme.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Install Theme", debounce(() => {
+                                        if (isInstallingTheme) return;
+                                        setIsInstallingTheme(true);
+
+                                        try {
+                                            var obj = JSON.parse(code.trim());
+                                        }
+                                        catch (error) {
+                                            setUserPrompt("That JSON isn't valid: " + error);
+                                            setIsInstallingTheme(false);
+                                            return;
+                                        }
+                                        var themeName = Object.keys(obj)[0];
+                                        window.addColorScheme(themeName, Object.values(obj)[0]);
+
+                                        Promise.all([
+                                            window.chrome.webview.postMessage({
+                                                type: 'allThemes',
+                                                content: JSON.stringify(window.getAllColorSchemes())
+                                            }),
+                                            window.chrome.webview.postMessage({
+                                                type: 'selectTheme',
+                                                content: JSON.stringify(obj.colorScheme.id)
+                                            })
+                                        ]).then(() => {
+                                            setIsInstallingTheme(false);
+                                        });
+                                    }, 300))
+                                }
+                                {fileTypes.browseJsonObject.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Browse JSON Object", () => {
+                                        createJsonViewer(code.trim());
+                                    })
+                                }
+                                {fileTypes.viewMermaidDiagram.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("View Mermaid Diagram", () => {
+                                        createMermaidViewer(code.trim());
+                                    })
+                                }
+                                {fileTypes.viewPlantUMLDiagram.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("View PlantUML Diagram", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'View PlantUML Diagram',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.viewDOTDiagram.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("View DOT Diagram", () => {
+                                        renderDotString(code.trim());
+                                    })
+                                }
+                                {fileTypes.runPythonScript.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Run Python Script", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'Run Python Script',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.launchSTL.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Launch STL", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'Launch STL',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.runPowerShellScript.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Run PowerShell Script", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'Run PowerShell Script',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.selectFindAndReplaceScript2.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Apply", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'ApplyFaRArray',
+                                            content: code.trim()
+                                        });
+                                    })
+                                }
+                                {fileTypes.selectFindAndReplaceScript.includes(fileType.trim().toLowerCase()) &&
+                                    addMessageButton("Select Find-And-Replace Script", () => {
+                                        try {
+                                            const fixedJsonString = fixNewlinesInStrings(code.trim());
+                                            const parsedJson = JSON.parse(fixedJsonString);
+                                            window.currentlySelectedFindAndReplaceSet = parsedJson;
+                                            window.selectedMessageGuid = guid;
+                                            window.dispatchEvent(new Event('findAndReplaceUpdate'));
+                                        } catch (error) {
+                                            alert('Error parsing Find-And-Replace script: ' + error);
+                                        }
+                                    })
+                                }
+                                {currentlySelectedFindAndReplaceSet && selectedMessageGuid &&
+                                    addMessageButton("Apply Find-And-Replace Script", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'applyFindAndReplace',
+                                            content: code.trim(),
+                                            guid: guid,
+                                            dataType: fileType.trim(),
+                                            codeBlockIndex: codeBlockCounter.toString(),
+                                            findAndReplaces: JSON.stringify(currentlySelectedFindAndReplaceSet),
+                                            selectedMessageGuid: selectedMessageGuid
+                                        });
+                                        // Reset currentlySelectedFindAndReplaceSet and hide 'Apply...' buttons
+                                        window.currentlySelectedFindAndReplaceSet = null;
+                                        window.selectedMessageGuid = null;
                                         window.dispatchEvent(new Event('findAndReplaceUpdate'));
-                                    } catch (error) {
-                                        alert('Error parsing Find-And-Replace script: ' + error);
-                                    }
-                                })
-                            }
-                            {currentlySelectedFindAndReplaceSet && selectedMessageGuid &&
-                                addMessageButton("Apply Find-And-Replace Script", () => {
-                                    window.chrome.webview.postMessage({
-                                        type: 'applyFindAndReplace',
-                                        content: code.trim(),
-                                        guid: guid,
-                                        dataType: fileType.trim(),
-                                        codeBlockIndex: codeBlockCounter.toString(),
-                                        findAndReplaces: JSON.stringify(currentlySelectedFindAndReplaceSet),
-                                        selectedMessageGuid: selectedMessageGuid
-                                    });
-                                    // Reset currentlySelectedFindAndReplaceSet and hide 'Apply...' buttons
-                                    window.currentlySelectedFindAndReplaceSet = null;
-                                    window.selectedMessageGuid = null;
-                                    window.dispatchEvent(new Event('findAndReplaceUpdate'));
-                                })
-                            }
+                                    })
+                                }
+                            </div>
                         </div>
-                    </div>
                     <div style={{
                         fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
                         whiteSpace: 'pre-wrap',
                         backgroundColor: colorScheme.codeBlockBackgroundColor,
                         color: colorScheme.codeBlockTextColor,
                         padding: '10px',
-                        //borderBottomLeftRadius: '5px',
-                        //borderBottomRightRadius: '5px',
                         marginBottom: '10px'
                     }}>
                         {code.trim()}
                     </div>
-                </div>
-            );
-            lastIndex = offset + match.length;
-            onCodeBlockRendered(); // Increment the counter after rendering a code block
-        });
+                                </div >
+                            );
+                onCodeBlockRendered(); // Increment the counter after rendering a code block
+            } else if (quotedString) {
+                // This is a filename or other quoted string
+                parts.push(
+                    <span
+                        key={offset}
+                        style={{
+                            fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
+                            backgroundColor: colorScheme.codeBlockBackgroundColor,
+                            color: colorScheme.linkColor,
+                            padding: '2px 4px',
+                            borderRadius: '3px',
+                            fontSize: '0.9em',
+                            cursor: 'pointer'  // Add cursor style to indicate clickable
+                        }}
+                        onClick={() => {
+                            window.chrome.webview.postMessage({
+                                type: 'QuotedStringClicked',
+                                content: quotedString
+                            });
+                        }}
+                    >
+                        {quotedString}
+                    </span>
+                );
+            }
 
-        // Process any remaining text after the last code block
-        if (lastIndex < text.length) {
-            const remainingText = text.slice(lastIndex);
-            parts.push(...formatUrls(remainingText));
-        }
+                lastIndex = offset + match.length;
+                    });
 
-        return parts;
-    };
+                // Process any remaining text after the last code block or quoted string
+                if (lastIndex < text.length) {
+                    const remainingText = text.slice(lastIndex);
+                    parts.push(...formatUrls(remainingText));
+                }
+
+                return parts;
+                };
 
     // New helper function to format URLs in non-code text
     const formatUrls = (text) => {

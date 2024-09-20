@@ -200,7 +200,7 @@ namespace VSIXTest
             }})
         }});
     ";
-            await ExecuteScriptAsync(script);
+            await ExecuteScriptAsync(script); 
         }
 
 
@@ -208,6 +208,64 @@ namespace VSIXTest
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
+
+            if (message.type == "QuotedStringClicked")
+            {
+                // get the quoted string, which oculd be a filename in the vs solution:
+                var quotedString = message.content;
+
+                // check if it is a filename
+                if (File.Exists(quotedString))
+                {
+                    // if it is a filename, open the file in the vs editor
+                    _dte.ItemOperations.OpenFile(quotedString);
+                }
+                else
+                {
+                    // get the content of the current document
+                    var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+
+                    // get its text
+                    var text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+
+                    // search for the quoted string in the text
+                    var index = text.IndexOf(quotedString);
+
+                    // if found, jump to it
+                    if (index != -1)
+                    {
+                        var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                        textSelection.MoveToAbsoluteOffset(index);
+                        textSelection.SelectLine();
+                    }
+                    else
+                    {
+
+                        // get a list of all open documents, loop around it checking them for the quoted string
+                        foreach (Document doc in _dte.Documents)
+                        {
+                            textDocument = doc.Object("TextDocument") as TextDocument;
+                            text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+                            index = text.IndexOf(quotedString);
+                            if (index != -1)
+                            {
+                                // activate doc
+                                doc.Activate();
+
+                                
+                                var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                                textSelection.MoveToAbsoluteOffset(index);
+                                textSelection.SelectLine();
+                                break;
+                            }
+                        }
+
+
+                    }
+
+                }
+
+            };
 
             if (message.type == "send")
             {
