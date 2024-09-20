@@ -493,10 +493,7 @@ namespace AiTool3
 
 
                 await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, overrideUserPrompt: e.OverrideUserPrompt, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings, prefill: e.Prefill,
-                    updateTimerMethod: async () =>
-                    {
-                        UpdateStatusBarTimer();
-                    },
+                    
                     updateUiMethod: async (response) =>
                     {
                     
