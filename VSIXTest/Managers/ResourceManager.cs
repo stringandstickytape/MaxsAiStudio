@@ -82,16 +82,6 @@ namespace VSIXTest
             MimeType = item.MimeType
         }).ToList();
         }
-
-        public bool IsResourceRequested(string requestUri)
-        {
-            return GetResourceDetails().Any(x => requestUri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public VsixResourceDetails GetResourceDetailByUri(string uri)
-        {
-            return GetResourceDetails().FirstOrDefault(x => uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase));
-        }
     }
 
 }
