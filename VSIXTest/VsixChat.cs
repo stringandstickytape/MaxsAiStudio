@@ -259,12 +259,8 @@ namespace VSIXTest
                                 break;
                             }
                         }
-
-
                     }
-
                 }
-
             };
 
             if (message.type == "send")
