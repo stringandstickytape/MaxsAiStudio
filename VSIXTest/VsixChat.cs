@@ -235,16 +235,23 @@ namespace VSIXTest
                             {
                                 foreach (Document doc in _dte.Documents)
                                 {
-                                    textDocument = doc.Object("TextDocument") as TextDocument;
-                                    text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-                                    index = text.IndexOf(quotedString);
-                                    if (index != -1)
+                                    try
                                     {
-                                        doc.Activate();
-                                        var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                                        textSelection.MoveToAbsoluteOffset(index);
-                                        textSelection.SelectLine();
-                                        break;
+                                        textDocument = doc.Object("TextDocument") as TextDocument;
+                                        text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+                                        index = text.IndexOf(quotedString);
+                                        if (index != -1)
+                                        {
+                                            doc.Activate();
+                                            var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                                            textSelection.MoveToAbsoluteOffset(index);
+                                            textSelection.SelectLine();
+                                            break;
+                                        }
+                                    }
+                                    catch(Exception)
+                                    {
+                                        // oh well...
                                     }
                                 }
                             }
@@ -254,8 +261,12 @@ namespace VSIXTest
 
                 case "send":
                     {
-                        var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                        await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+                        //var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
+                        //await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        ShowQuickButtonOptionsWindow(message);
+
                     }
                     break;
 
@@ -307,7 +318,8 @@ namespace VSIXTest
                     break;
             }
 
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
+            if(message.type != "send")
+                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
         private void ShowFileWithMembersSelectionWindow()
@@ -377,7 +389,7 @@ namespace VSIXTest
 
             var prompt = "";
 
-            if(buttonLabel == "User Prompt")
+            if(buttonLabel == "User Prompt"  || e.OriginalVsixMessage.type == "send" )
             {
                 prompt = JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
             }
