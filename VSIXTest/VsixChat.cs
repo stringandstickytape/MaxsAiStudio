@@ -209,110 +209,102 @@ namespace VSIXTest
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
 
-            if (message.type == "QuotedStringClicked")
+            switch (message.type)
             {
-                // get the quoted string, which oculd be a filename in the vs solution:
-                var quotedString = message.content;
-
-                // check if it is a filename
-                if (File.Exists(quotedString))
-                {
-                    // if it is a filename, open the file in the vs editor
-                    _dte.ItemOperations.OpenFile(quotedString);
-                }
-                else
-                {
-                    // get the content of the current document
-                    var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-
-                    // get its text
-                    var text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-
-                    // search for the quoted string in the text
-                    var index = text.IndexOf(quotedString);
-
-                    // if found, jump to it
-                    if (index != -1)
+                case "QuotedStringClicked":
                     {
-                        var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                        textSelection.MoveToAbsoluteOffset(index);
-                        textSelection.SelectLine();
-                    }
-                    else
-                    {
+                        var quotedString = message.content;
 
-                        // get a list of all open documents, loop around it checking them for the quoted string
-                        foreach (Document doc in _dte.Documents)
+                        if (File.Exists(quotedString))
                         {
-                            textDocument = doc.Object("TextDocument") as TextDocument;
-                            text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-                            index = text.IndexOf(quotedString);
+                            _dte.ItemOperations.OpenFile(quotedString);
+                        }
+                        else
+                        {
+                            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                            var text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+                            var index = text.IndexOf(quotedString);
+
                             if (index != -1)
                             {
-                                // activate doc
-                                doc.Activate();
-
-                                
                                 var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
                                 textSelection.MoveToAbsoluteOffset(index);
                                 textSelection.SelectLine();
-                                break;
+                            }
+                            else
+                            {
+                                foreach (Document doc in _dte.Documents)
+                                {
+                                    textDocument = doc.Object("TextDocument") as TextDocument;
+                                    text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+                                    index = text.IndexOf(quotedString);
+                                    if (index != -1)
+                                    {
+                                        doc.Activate();
+                                        var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                                        textSelection.MoveToAbsoluteOffset(index);
+                                        textSelection.SelectLine();
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            };
+                    break;
 
-            if (message.type == "send")
-            {
-                // when the user clicks send in the VSIX, we need to copy their prompt into the user prompt in the app, from where the send will pick it up...
-                var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
-            }
+                case "send":
+                    {
+                        var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
+                        await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
+                    }
+                    break;
 
-            if (message.type == "ready")
-            {
-                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
+                case "ready":
+                    {
+                        await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
+                        await AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
+                        await AddContextMenuItemAsync("Pop Window", "vsPopWindow");
+                    }
+                    break;
 
-                await AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
-                await AddContextMenuItemAsync("Pop Window", "vsPopWindow");
+                case "vsInsertSelection":
+                    {
+                        var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
+                        var selection = textDocument.Selection as EnvDTE.TextSelection;
+                        var activeDocumentFilename = _dte.ActiveDocument.Name;
 
-            }
+                        var selectedText = selection.Text;
+                        var formattedAsFile = $"\n{MessageFormatHelper.FormatFile(activeDocumentFilename, selectedText)}";
 
-            if (message.type == "vsInsertSelection")
-            {
-                var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                var selection = textDocument.Selection as EnvDTE.TextSelection;
-                var activeDocumentFilename = _dte.ActiveDocument.Name;
+                        var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
+                        await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
+                    }
+                    break;
 
-                var selectedText = selection.Text;
-                var formattedAsFile = $"\n{MessageFormatHelper.FormatFile(activeDocumentFilename, selectedText)}";
+                case "vsPopWindow":
+                    {
+                        var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
+                        var files = _shortcutManager.GetAllFilesInSolution();
 
-                var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
-                await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
-                //await _messageHandler.SendVsixMessage(new VsixMessage { MessageType = "vsInsertSelection", Content = selectedText }, simpleClient);
-            }
-            if (message.type == "vsPopWindow")
-            {
-                var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
-                var files = _shortcutManager.GetAllFilesInSolution();
+                        files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
 
-                files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
+                        await simpleClient.SendLineAsync(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
+                    }
+                    break;
 
-                await simpleClient.SendLineAsync(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
+                case "vsQuickButton":
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        ShowQuickButtonOptionsWindow(message);
+                    }
+                    break;
 
-            }
-            if(message.type == "vsQuickButton")
-            {
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                ShowQuickButtonOptionsWindow(message);
-            }
-
-            if (message.type == "vsSelectFilesWithMembers")
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                ShowFileWithMembersSelectionWindow();
+                case "vsSelectFilesWithMembers":
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        ShowFileWithMembersSelectionWindow();
+                    }
+                    break;
             }
 
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
