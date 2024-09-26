@@ -412,6 +412,11 @@ namespace VSIXTest
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
             await ExecuteScriptAsync($"setUserPrompt({jsonFormattedAll})");
+
+            var systemPrompt = await ExecuteScriptAsync($"getSystemPrompt()");
+
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setSystemPrompt", Content = systemPrompt }, simpleClient);
+
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
         }
 
@@ -424,7 +429,7 @@ namespace VSIXTest
                 case "Clipboard":
                     return FormatContent(activeDocumentFilename, Clipboard.GetText());
                 case "CurrentFile":
-                    return FormatContent(activeDocumentFilename, GetCurrentFileContent());
+                    return FormatContent(activeDocumentFilename, AddLineNumbers(GetCurrentFileContent()));
                 case "GitDiff":
                     return FormatContent("diff", new GitDiffHelper().GetGitDiff());
                 case "XmlDoc":
@@ -434,6 +439,21 @@ namespace VSIXTest
                 default:
                     return null;
             }
+        }
+
+        public static string AddLineNumbers(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            string[] lines = input.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            int digitCount = lines.Length.ToString().Length;
+
+            return string.Join(Environment.NewLine,
+                lines.Select((line, index) =>
+                    $"{(index + 1).ToString().PadLeft(digitCount)} | {line}"));
         }
 
         private string FormatContent(string filename, string content)
@@ -472,7 +492,7 @@ namespace VSIXTest
             {
                 if (filesIncluded.Add(file))
                 {
-                    var fileContent = File.ReadAllText(file);
+                    var fileContent = AddLineNumbers(File.ReadAllText(file));
                     formattedFiles.Add(FormatContent(file, fileContent));
                 }
             }

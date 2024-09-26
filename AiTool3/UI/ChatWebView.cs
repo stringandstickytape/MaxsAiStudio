@@ -91,7 +91,13 @@ namespace AiTool3.UI
             {
                 await SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
                 return;
-            } else if (vsixMessage.MessageType == "vsQuickButtonRun")
+            }
+            else if (vsixMessage.MessageType == "setSystemPrompt")
+            {
+                await UpdateSystemPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
+                return;
+            }
+            else if (vsixMessage.MessageType == "vsQuickButtonRun")
             {
                 await Clear();
                 await SetUserPrompt(vsixMessage.Content);
