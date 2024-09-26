@@ -1,4 +1,6 @@
-const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
+﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
+    const [filterText, setFilterText] = React.useState('');
+
     React.useEffect(() => {
         if (columnData && columnData.length > 0) {
             const initialStarredModels = {};
@@ -10,6 +12,7 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
             onStarToggle(initialStarredModels);
         }
     }, [columnData]);
+
     const [sortedOptions, sortedColumnData] = React.useMemo(() => {
         const optionsWithIndex = options.map((option, index) => ({ option, index }));
         const sorted = optionsWithIndex.sort((a, b) => {
@@ -21,6 +24,19 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
         const sortedColumnData = sorted.map(item => columnData[item.index]);
         return [sortedOptions, sortedColumnData];
     }, [options, starredModels, columnData]);
+
+    const filteredAndSortedOptions = React.useMemo(() => {
+        return sortedOptions.filter(option =>
+            option.toLowerCase().includes(filterText.toLowerCase())
+        );
+    }, [sortedOptions, filterText]);
+
+    const filteredAndSortedColumnData = React.useMemo(() => {
+        return sortedColumnData.filter((_, index) =>
+            sortedOptions[index].toLowerCase().includes(filterText.toLowerCase())
+        );
+    }, [sortedColumnData, sortedOptions, filterText]);
+
     const { colorScheme } = React.useColorScheme();
     const [isOpen, setIsOpen] = React.useState(false);
     const dropdownRef = React.useRef(null);
@@ -118,7 +134,16 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
         cursor: 'pointer',
         fontSize: '20px',
         color: 'goldenrod',
+    };
 
+    const filterInputStyle = {
+        width: '100%',
+        padding: '5px',
+        marginBottom: '5px',
+        border: `1px solid ${colorScheme.borderColor}`,
+        borderRadius: '4px',
+        backgroundColor: colorScheme.dropdownBackgroundColor,
+        color: colorScheme.dropdownTextColor,
     };
 
     return (
@@ -137,6 +162,14 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
                 </div>
                 {isOpen && (
                     <div style={optionsStyle}>
+                        <input
+                            type="text"
+                            placeholder="Filter options..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            style={filterInputStyle}
+                            onClick={(e) => e.stopPropagation()}
+                        />
                         <table style={tableStyle}>
                             <thead>
                                 <tr>
@@ -147,7 +180,7 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
                                 </tr>
                             </thead>
                             <tbody>
-                                {sortedOptions.map((option, index) => (
+                                {filteredAndSortedOptions.map((option, index) => (
                                     <tr
                                         key={index}
                                         style={optionStyle}
@@ -162,8 +195,8 @@ const DropDown = ({ id, label, options, value, onChange, helpText, columnData, s
                                             </span>
                                         </td>
                                         <td style={cellStyle}>{option}</td>
-                                        <td style={costStyle}>{sortedColumnData && sortedColumnData[index] ? sortedColumnData[index].inputCost : ''}</td>
-                                        <td style={costStyle}>{sortedColumnData && sortedColumnData[index] ? sortedColumnData[index].outputCost : ''}</td>
+                                        <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].inputCost : ''}</td>
+                                        <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].outputCost : ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
