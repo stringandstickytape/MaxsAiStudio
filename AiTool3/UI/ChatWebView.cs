@@ -206,11 +206,14 @@ namespace AiTool3.UI
                     break;
                 case "send":
                     var selectedTools = message?["selectedTools"];
-                    ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools.Split(',').ToList(), SendViaSecondaryAI = false, AddEmbeddings = bool.Parse(message?["addEmbeddings"]) });
+                    ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools.Split(',').ToList(), SendViaSecondaryAI = false, AddEmbeddings = bool.Parse(message?["addEmbeddings"])});
                     break;
                 case "sendSecondary":
                     var selectedTools2 = message?["selectedTools"];
                     ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = selectedTools2.Split(',').ToList(), SendViaSecondaryAI = true, AddEmbeddings = bool.Parse(message?["addEmbeddings"]) });
+                    break;
+                case "sendWithPrefill":
+                    ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = content, SelectedTools = message?["selectedTools"].Split(',').ToList(), SendViaSecondaryAI = false, AddEmbeddings = bool.Parse(message?["addEmbeddings"]) , Prefill = message?["prefillText"] });
                     break;
                 case "applyFindAndReplace":
                     ChatWebViewAddBranchEvent?.Invoke(this, new ChatWebViewAddBranchEventArgs

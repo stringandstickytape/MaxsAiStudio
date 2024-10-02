@@ -12,9 +12,9 @@
     const [newAlternateLabel, setNewAlternateLabel] = React.useState('');
     const [newAlternateColor, setNewAlternateColor] = React.useState('');
     const [sendButtonLabel, setSendButtonLabel] = React.useState('Send');
-
-    // New checkbox state
     const [addEmbeddings, setAddEmbeddings] = React.useState(false);
+    const [showSendWithPrefill, setShowSendWithPrefill] = React.useState(false);
+    const [isPrefillModalOpen, setIsPrefillModalOpen] = React.useState(false);
 
     window.setSendButtonLabel = setSendButtonLabel;
 
@@ -28,7 +28,6 @@
             const newContent = inputContent.substring(0, start) + text + inputContent.substring(end);
             setInputContent(newContent);
 
-            // Set the cursor position after the inserted text
             setTimeout(() => {
                 textarea.selectionStart = textarea.selectionEnd = start + text.length;
                 textarea.focus();
@@ -41,10 +40,8 @@
             const textarea = inputBoxRef.current;
 
             if (shiftHeld) {
-                // If SHIFT is held, extend the selection to the start
                 textarea.setSelectionRange(0, textarea.selectionEnd);
             } else {
-                // If SHIFT is not held, move the caret to the start
                 textarea.setSelectionRange(0, 0);
             }
 
@@ -58,10 +55,8 @@
             const length = textarea.value.length;
 
             if (shiftHeld) {
-                // If SHIFT is held, extend the selection to the end
                 textarea.setSelectionRange(textarea.selectionStart, length);
             } else {
-                // If SHIFT is not held, move the caret to the end
                 textarea.setSelectionRange(length, length);
             }
 
@@ -69,7 +64,6 @@
         }
     }
 
-    // Expose the insertTextAtCaret function to the window object
     React.useEffect(() => {
         window.insertTextAtCaret = insertTextAtCaret;
         window.moveCaretToEnd = moveCaretToEnd;
@@ -80,6 +74,7 @@
             delete window.moveCaretToStart;
         };
     }, [inputContent]);
+
     function getTrueIndices(obj) {
         return Object.keys(obj)
             .filter(key => obj[key] === true)
@@ -87,10 +82,8 @@
     }
 
     const handleSend = () => {
-        var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
 
-        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
             type: window.event.shiftKey ? 'sendSecondary' : 'send',
             content: inputContent,
@@ -100,14 +93,27 @@
     };
 
     const handleSendSecondary = () => {
-        var toolsEnabled = window.splitButtonState_Tools.itemStates.join(',');
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
 
-        const selectedTools = window.getSelectedTools ? window.getSelectedTools() : "";
         window.chrome.webview.postMessage({
             type: 'sendSecondary',
             content: inputContent,
             selectedTools: toolsEnabledIndices,
+            addEmbeddings: addEmbeddings.toString()
+        });
+    };
+
+    const handleSendWithPrefill = () => {
+        setIsPrefillModalOpen(true);
+    };
+
+    const handlePrefillSubmit = (prefillText) => {
+        setIsPrefillModalOpen(false);
+        window.chrome.webview.postMessage({
+            type: 'sendWithPrefill',
+            content: inputContent,
+            prefillText: prefillText,
+            selectedTools: getTrueIndices(window.splitButtonState_Tools.itemStates),
             addEmbeddings: addEmbeddings.toString()
         });
     };
@@ -151,8 +157,6 @@
 
     const setUserPrompt = (string) => {
         setInputContent(string);
-
-        // only set if not whitespace
         if (string.trim().length > 0) window.setMessageText("temp-user-msg", string);
     };
     window.setUserPrompt = setUserPrompt;
@@ -169,7 +173,6 @@
     const disableNewButton = () => setNewDisabled(true);
     const enableNewButton = () => setNewDisabled(false);
 
-    // Expose these methods to the window object for external access
     React.useEffect(() => {
         window.disableSendButton = disableSendButton;
         window.enableSendButton = enableSendButton;
@@ -180,6 +183,9 @@
         window.setSendButtonAlternate = setSendButtonAlternate;
         window.setCancelButtonAlternate = setCancelButtonAlternate;
         window.setNewButtonAlternate = setNewButtonAlternate;
+        window.toggleSendWithPrefill = () => {
+            setShowSendWithPrefill(prev => !prev);
+        };
 
         return () => {
             delete window.disableSendButton;
@@ -191,6 +197,7 @@
             delete window.setSendButtonAlternate;
             delete window.setCancelButtonAlternate;
             delete window.setNewButtonAlternate;
+            delete window.toggleSendWithPrefill;
         };
     }, []);
 
@@ -336,7 +343,8 @@
                         alternateLabel={sendAlternateLabel}
                         alternateColor={sendAlternateColor}
                         dropdownItems={[
-                            { label: "Send via Secondary AI", onClick: handleSendSecondary }
+                            { label: "Send via Secondary AI", onClick: handleSendSecondary },
+                            ...(showSendWithPrefill ? [{ label: "Send with Prefill", onClick: handleSendWithPrefill }] : [])
                         ]}
                         title="CTRL+Enter to send, CTRL+SHIFT+Enter to send via Secondary AI"
                     />
@@ -369,6 +377,13 @@
                     />
                 </div>
             </div>
+            {isPrefillModalOpen && (
+                <PrefillModal
+                    isOpen={isPrefillModalOpen}
+                    onClose={() => setIsPrefillModalOpen(false)}
+                    onSubmit={handlePrefillSubmit}
+                />
+            )}
         </>
     );
 };
