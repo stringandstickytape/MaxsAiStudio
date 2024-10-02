@@ -49,7 +49,9 @@ namespace AiTool3.Providers
                 ["stream_options"] = useStreaming ? new JObject
                 {
                     ["include_usage"] = true
-                } : null
+                } : null,
+                ["logprobs"] = true,
+                ["top_logprobs"] = 5
             };
 
             foreach (var m in conversation.messages)
@@ -216,9 +218,16 @@ namespace AiTool3.Providers
 
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
 
+
+
                     if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
-
+                        if (chunk["choices"]?[0]?["logprobs"] != null)
+                        {
+                            var x = chunk["choices"]?[0]?["logprobs"];
+                            Debug.WriteLine(x.ToString());
+                            //Debugger.Break();
+                        }
                         var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
 
                         if (string.IsNullOrEmpty(content))
