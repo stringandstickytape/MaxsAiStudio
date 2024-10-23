@@ -151,7 +151,7 @@ namespace AiTool3.Providers
                           new JObject
                           {
                               ["type"] = "text",
-                              ["text"] = oneOffPreFill // must not end with whitespace
+                              ["text"] = oneOffPreFill.Trim() // must not end with whitespace
                           }
                       }
                 });
