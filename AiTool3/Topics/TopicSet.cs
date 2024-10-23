@@ -43,7 +43,7 @@ namespace AiTool3.Topics
 
                 jsonText = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Templates\\templates.json"));
             }
-            else jsonText = AssemblyHelper.GetEmbeddedResource("AiTool3.Defaults.templates.json");
+            else jsonText = AssemblyHelper.GetEmbeddedResource("SharedClasses.Defaults.templates.json");
 
             t = JsonSerializer.Deserialize<TopicSet>(jsonText, new JsonSerializerOptions
             {

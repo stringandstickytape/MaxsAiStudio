@@ -35,6 +35,8 @@
     <None Remove="ThirdPartyJavascript\cytoscape.min.js" />
     <None Remove="ThirdPartyJavascript\d3.v7.min.js" />
     <None Remove="ThirdPartyJavascript\dagre.min.js" />
+    <None Remove="Defaults\templates.json" />
+    <None Remove="Defaults\themes.json" />
     <None Remove="ThirdPartyJavascript\jsoneditor-icons.svg" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.css" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
@@ -78,6 +80,8 @@
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\d3.v7.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\dagre.min.js" />
+    <EmbeddedResource Include="Defaults\templates.json" />
+    <EmbeddedResource Include="Defaults\themes.json" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor-icons.svg" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.css" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />

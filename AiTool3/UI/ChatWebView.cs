@@ -590,7 +590,7 @@ namespace AiTool3.UI
             }
             else
             {
-                var themesJson = AssemblyHelper.GetEmbeddedResource("AiTool3.Defaults.themes.json");
+                var themesJson = AssemblyHelper.GetEmbeddedResource("SharedClasses.Defaults.themes.json");
                 await SetThemes(themesJson);
                 File.WriteAllText(themesPath, themesJson);
                 settings.SelectedTheme = "Serene";
