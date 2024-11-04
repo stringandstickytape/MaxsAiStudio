@@ -88,7 +88,7 @@ namespace VSIXTest
 
         }
 
-        private async Task SetSolutionSystemPrompt()
+        public async Task SetSolutionSystemPrompt()
         {
             var solutionPath = _dte.Solution.FullName;
 
