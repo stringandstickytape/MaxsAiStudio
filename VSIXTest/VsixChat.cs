@@ -20,6 +20,7 @@ using System.Windows.Documents;
 using System.Collections.Generic;
 using VSIXTest.FileGroups;
 using Microsoft.VisualStudio.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace VSIXTest
 {
@@ -83,7 +84,24 @@ namespace VSIXTest
             _fileGroupManager = new FileGroupManager(extensionDataPath);
 
             simpleClient.LineReceived += SimpleClient_LineReceived;
-            
+
+
+        }
+
+        private async Task SetSolutionSystemPrompt()
+        {
+            var solutionPath = _dte.Solution.FullName;
+
+            if (!string.IsNullOrWhiteSpace(solutionPath))
+            {
+                var systemPromptFilePath = Path.Combine(Path.GetDirectoryName(solutionPath), "systemprompt.txt");
+                if (systemPromptFilePath != null)
+                {
+                    // set the system prompt in the webview
+                    var systemPrompt = File.ReadAllText(systemPromptFilePath);
+                    var x = await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");//0 window.buttonControls['Set System Prompt from Solution'].show()
+                }
+            }
         }
 
         private async void SimpleClient_LineReceived(object sender, string e)
@@ -211,6 +229,9 @@ namespace VSIXTest
 
             switch (message.type)
             {
+                case "setSystemPromptFromSolution":
+                    await SetSolutionSystemPrompt();
+                    break;
                 case "QuotedStringClicked":
                     {
                         var quotedString = message.content;
@@ -275,6 +296,8 @@ namespace VSIXTest
                         await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
                         await AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
                         await AddContextMenuItemAsync("Pop Window", "vsPopWindow");
+                        // look for a systemprompt.txt file in the root of the solution
+                        await ExecuteScriptAsync("window.buttonControls['Set System Prompt from Solution'].show()");
                     }
                     break;
 

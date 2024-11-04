@@ -602,6 +602,13 @@ namespace AiTool3.UI
             await SetTools();
 
             await InitialiseApiList(settings);
+
+            await UpdatePrefillUI(settings.GetModel().SupportsPrefill);
+        }
+
+        public async Task UpdatePrefillUI(bool supportsPrefill)
+        {
+            await SetPrefill(supportsPrefill);
         }
 
         internal async Task<string> GetMessagesPaneContent()
@@ -617,6 +624,11 @@ namespace AiTool3.UI
         internal async Task SendToVsixAsync(VsixMessage vsixMessage)
         {
             await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(vsixMessage));
+        }
+
+        internal async Task SetPrefill(bool value)
+        {
+            await ExecuteScriptAndSendToVsixAsync($"{(value ? "en" : "dis")}ablePrefill();");
         }
     }
 }

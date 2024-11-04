@@ -16,6 +16,7 @@ namespace AiTool3.DataModels
         public string FriendlyName { get; set; }
         public Model() { }
 
+        public bool SupportsPrefill { get; set; }
         public Model(string modelName, string serviceName, string key, string url, decimal inputPrice, decimal outputPrice, Color color)
         {
             ModelName = modelName;

@@ -681,7 +681,18 @@ namespace AiTool3
 <";
         }
 
-        private void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e) => CurrentSettings.SetModelFromDropdownValue(e.Dropdown, e.ModelString);
+        private async void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e)
+        {
+            CurrentSettings.SetModelFromDropdownValue(e.Dropdown, e.ModelString);
+
+            if(e.Dropdown == "mainAI")
+            {
+                await chatWebView.UpdatePrefillUI(CurrentSettings.GetModel().SupportsPrefill);
+            }
+
+        }
+
+
 
         private void chatWebView_DragDrop(object sender, DragEventArgs e)
         {

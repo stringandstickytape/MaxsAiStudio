@@ -2,11 +2,15 @@
 
 if (typeof window !== 'undefined') {
     window.buttonIndicators = {};
+    window.buttonControls = {};
+    window.toggleButtonControls = {};
 }
 
-const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor, title }) => {
+const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#007bff', svgString, alternateLabel, alternateColor, title, hidden = false }) => {
     const { colorScheme } = window.useColorScheme();
     const [isOpen, setIsOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(!hidden);
+    const [isEnabled, setIsEnabled] = useState(!disabled);
     const dropdownRef = useRef(null);
     const hasSplit = dropdownItems.length > 0;
     const uniqueId = useRef(`split-button-${Math.random().toString(36).substr(2, 9)}`).current;
@@ -81,6 +85,25 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         }
     }, [isOpen, dropdownItems.length]);
 
+    useEffect(() => {
+        // Expose enable/disable methods to window
+        if (typeof window !== 'undefined') {
+            window.buttonControls[label] = {
+                enable: () => setIsEnabled(true),
+                disable: () => setIsEnabled(false),
+                show: () => setIsVisible(true),
+                hide: () => setIsVisible(false)
+            };
+        }
+
+        return () => {
+            if (typeof window !== 'undefined' && window.buttonControls) {
+                delete window.buttonControls[label];
+            }
+        };
+    }, [label]);
+
+
     const buttonStyle = {
         backgroundColor: currentColor,
         color: colorScheme.buttonTextColor,
@@ -154,13 +177,16 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
         border: '1px solid black'
     };
 
+    // If button is not visible, don't render anything
+    if (!isVisible) return null;
+
     return (
         <div style={{ display: 'inline-flex', position: 'relative', padding: '4px' }} id={uniqueId} ref={buttonRef}>
             <button
                 style={mainButtonStyle}
                 onClick={onClick}
-                disabled={disabled}
-                title={title} // Added title prop here
+                disabled={!isEnabled}
+                title={title}
             >
                 {svgString && (
                     <div
@@ -176,8 +202,8 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
                     <button
                         style={arrowButtonStyle}
                         onClick={() => setIsOpen(!isOpen)}
-                        disabled={disabled}
-                        title={title} // Added title prop here
+                        disabled={!isEnabled}
+                        title={title}
                     >
                         ▼
                     </button>
@@ -209,13 +235,34 @@ function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
 }
 
-const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, color = '#007bff', svgString, title }) => {
+const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, color = '#007bff', svgString, title, hidden = false }) => {
     const hasSplit = dropdownItems.length > 0;
     const [mainState, setMainState] = useState(false);
     const [itemStates, setItemStates] = useState(dropdownItems.map(() => false));
+    const [isVisible, setIsVisible] = useState(!hidden);
+    const [isEnabled, setIsEnabled] = useState(!disabled);
 
     // Add this line to make the states accessible globally
     window[`splitButtonState_${label}`] = { mainState, itemStates };
+
+    useEffect(() => {
+        // Expose enable/disable methods to window for ToggleSplitButton
+        if (typeof window !== 'undefined') {
+            window.toggleButtonControls[label] = {
+                enable: () => setIsEnabled(true),
+                disable: () => setIsEnabled(false),
+                show: () => setIsVisible(true),
+                hide: () => setIsVisible(false)
+            };
+        }
+
+        return () => {
+            if (typeof window !== 'undefined' && window.toggleButtonControls) {
+                delete window.toggleButtonControls[label];
+            }
+        };
+    }, [label]);
+
 
     const handleMainToggle = () => {
         setMainState(prevState => !prevState);
@@ -236,8 +283,8 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
             // are any items checked?
             const anyChecked = newStates.some(state => state);
             if (anyChecked) {
-                window.setSendButtonLabel("Send Using Tools");
-            } else window.setSendButtonLabel("Send");
+                window.setSendButtonLabel && window.setSendButtonLabel("Send Using Tools");
+            } else window.setSendButtonLabel && window.setSendButtonLabel("Send");
 
             return newStates;
         });
@@ -255,15 +302,19 @@ const ToggleSplitButton = ({ label, onToggle, dropdownItems = [], disabled, colo
         ? label
         : `${mainState ? '☑' : '☐'} ${label}`;
 
+    // If button is not visible, don't render anything
+    if (!isVisible) return null;
+
     return (
         <SplitButton
             label={mainLabel}
             onClick={hasSplit ? undefined : handleMainToggle}
             dropdownItems={modifiedDropdownItems}
-            disabled={disabled}
+            disabled={!isEnabled}
             color={color}
             svgString={svgString}
-            title={title} // Pass title prop here
+            title={title}
+            hidden={hidden}
         />
     );
 };

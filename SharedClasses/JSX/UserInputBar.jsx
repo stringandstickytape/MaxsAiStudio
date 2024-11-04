@@ -187,6 +187,14 @@
             setShowSendWithPrefill(prev => !prev);
         };
 
+        window.enablePrefill = () => {
+            setShowSendWithPrefill(true);
+        };
+
+        window.disablePrefill = () => {
+            setShowSendWithPrefill(false);
+        };
+
         return () => {
             delete window.disableSendButton;
             delete window.enableSendButton;

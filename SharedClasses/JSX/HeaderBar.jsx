@@ -82,6 +82,9 @@ const HeaderBar = () => {
     };
 
     const handleAttach = () => { window.chrome.webview.postMessage({ type: 'attach' }); };
+
+    const handleSetSystemPromptFromSolution = () => { window.chrome.webview.postMessage({ type: 'setSystemPromptFromSolution' }); };
+
     const handleVoice = () => { window.chrome.webview.postMessage({ type: 'voice' }); };
     const handleProject = () => { window.chrome.webview.postMessage({ type: 'project' }); };
     const handleTheme = () => { createThemeEditor(); };
@@ -202,7 +205,16 @@ const HeaderBar = () => {
                                     }
                                 }))}
                             />
-                        </div>
+                            <SplitButton
+                                color={colorScheme.buttonBackgroundColor}
+                                background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+                                label="Set System Prompt from Solution"
+                                onClick={handleSetSystemPromptFromSolution}
+                                hidden={true}
+                            />
+                            </div>
                         <div height="24px" width="24px">
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}

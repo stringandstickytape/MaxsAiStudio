@@ -261,7 +261,18 @@ namespace AiTool3.Providers
             {
                 // get the error response stream and text and so on
                 var errorResponse = await response.Content.ReadAsStringAsync();
-                
+
+                JObject jsonObject = JObject.Parse(errorResponse);
+
+                if (jsonObject["type"]?.ToString() == "error")
+                {
+                    string errorMessage = jsonObject["error"]?["message"]?.ToString();
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
 
                 throw;
             }
