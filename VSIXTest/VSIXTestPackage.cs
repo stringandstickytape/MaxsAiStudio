@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
+using System.IO;
 
 namespace VSIXTest
 {
@@ -13,11 +14,13 @@ namespace VSIXTest
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(VSIXTestPackage.PackageGuidString)]
     [ProvideToolWindow(typeof(ChatWindowPane))]
-    [ProvideToolWindow(typeof(QuickButtonOptionsWindow))] 
-    public sealed class VSIXTestPackage : AsyncPackage, IVsSolutionEvents
+    [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
+    public sealed class VSIXTestPackage : AsyncPackage, IVsSolutionEvents, IVsFileChangeEvents
     {
         private uint _solutionEventsCookie;
         private IVsSolution _solution;
+        private IVsFileChangeEx _fileChangeService;
+        private uint _fileChangeCookie;
 
         private readonly ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
 
@@ -35,10 +38,9 @@ namespace VSIXTest
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
-            //await ShowToolWindowAsync(typeof(QuickButtonOptionsWindow), 0, true, cancellationToken);
 
-            // Add this after the existing initialization:
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Get the file change service
+            _fileChangeService = await GetServiceAsync(typeof(SVsFileChangeEx)) as IVsFileChangeEx;
 
             // Get the solution service and register for events
             _solution = await GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
@@ -48,24 +50,69 @@ namespace VSIXTest
             }
         }
 
+        private void StartWatchingSystemPrompt(string solutionPath)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Stop watching previous file if any
+            StopWatchingSystemPrompt();
+
+            if (string.IsNullOrEmpty(solutionPath))
+                return;
+
+            string systemPromptPath = Path.Combine(Path.GetDirectoryName(solutionPath), "systemprompt.txt");
+
+            if (_fileChangeService != null)
+            {
+                // Watch for file changes
+                _fileChangeService.AdviseFileChange(
+                    systemPromptPath,
+                    (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size),
+                    this,
+                    out _fileChangeCookie);
+            }
+        }
+
+        private void StopWatchingSystemPrompt()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_fileChangeService != null && _fileChangeCookie != 0)
+            {
+                _fileChangeService.UnadviseFileChange(_fileChangeCookie);
+                _fileChangeCookie = 0;
+            }
+        }
+
+        #region IVsSolutionEvents Implementation
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Instead of calling VsixChat.Instance.OnSolutionOpened(), 
-            // call the existing SetSolutionSystemPrompt method:
+            var solution = (IVsSolution)Package.GetGlobalService(typeof(SVsSolution));
+            solution.GetSolutionInfo(out string solutionDir, out string solutionFile, out string userOptsFile);
+
+            // Start watching the system prompt file
+            StartWatchingSystemPrompt(solutionFile);
+
+            // Load initial system prompt
             _ = VsixChat.Instance.SetSolutionSystemPrompt();
 
             return Microsoft.VisualStudio.VSConstants.S_OK;
         }
-        // You need to implement other IVsSolutionEvents methods, but can leave them empty if not needed
+
         public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
         {
             return Microsoft.VisualStudio.VSConstants.S_OK;
         }
         public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) { return Microsoft.VisualStudio.VSConstants.S_OK; }
         public int OnBeforeCloseSolution(object pUnkReserved) { return Microsoft.VisualStudio.VSConstants.S_OK; }
-        public int OnAfterCloseSolution(object pUnkReserved) { return Microsoft.VisualStudio.VSConstants.S_OK; }
+        public int OnAfterCloseSolution(object pUnkReserved)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            StopWatchingSystemPrompt();
+            return Microsoft.VisualStudio.VSConstants.S_OK;
+        }
         public int OnBeforeOpenSolution(string pszSolutionFilename) { return Microsoft.VisualStudio.VSConstants.S_OK; }
         public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) { return Microsoft.VisualStudio.VSConstants.S_OK; }
         public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) { return Microsoft.VisualStudio.VSConstants.S_OK; }
@@ -73,11 +120,42 @@ namespace VSIXTest
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) { return Microsoft.VisualStudio.VSConstants.S_OK; }
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) { return Microsoft.VisualStudio.VSConstants.S_OK; }
         public int OnAfterCloseProject(IVsHierarchy pHierarchy, int fRemoved) { return Microsoft.VisualStudio.VSConstants.S_OK; }
+        #endregion
+
+        #region IVsFileChangeEx Implementation
+
+        public int FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Check if our systemprompt.txt was changed
+            for (int i = 0; i < cChanges; i++)
+            {
+                if (Path.GetFileName(rgpszFile[i]).Equals("systemprompt.txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    _ = VsixChat.Instance.SetSolutionSystemPrompt();
+                    break;
+                }
+            }
+            return Microsoft.VisualStudio.VSConstants.S_OK;
+        }
+
+        public int DirectoryChanged(string pszDirectory)
+        {
+            return Microsoft.VisualStudio.VSConstants.S_OK;
+        }
+
+        #endregion
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                // Stop watching file changes
+                StopWatchingSystemPrompt();
+
                 // Unregister from solution events
                 if (_solution != null && _solutionEventsCookie != 0)
                 {
@@ -103,4 +181,3 @@ namespace VSIXTest
         }
     }
 }
-
