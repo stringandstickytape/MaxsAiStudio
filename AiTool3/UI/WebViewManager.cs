@@ -154,7 +154,11 @@ namespace AiTool3.UI
 
             var nodes = messages
                 .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
+                .Select(m => new D3Node { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine(), 
+                tooltip = m.Role == CompletionRole.Assistant ? 
+                $"{m.Engine}\n{m.TimeTaken.TotalSeconds.ToString("F2")} seconds{(m.OutputTokens > 0 ? $"\n@ {(m.OutputTokens * 1000 / m.TimeTaken.TotalMilliseconds).ToString("F2")} t/s" : "")}"
+                : ""
+                }).ToList();
 
             var links2 = messages
                 .Where(x => x.Parent != null)

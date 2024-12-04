@@ -11,6 +11,15 @@
     height: 100%;
 }
 
+.tooltip {
+    font-size: 10px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    line-height: 1.4;
+    white-space: pre; /* Preserve whitespace and line breaks, but no wrapping */
+    padding: 8px;
+}
+
 .node rect {
     rx: 5;
     ry: 5;

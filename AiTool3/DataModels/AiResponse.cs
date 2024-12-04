@@ -9,6 +9,7 @@ namespace AiTool3.DataModels
 
         public TokenUsage TokenUsage { get; set; }
         public string? SuggestedNextPrompt { get; set; }
+        public TimeSpan Duration { get; internal set; }
 
         public AiResponse()
         {

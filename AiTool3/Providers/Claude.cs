@@ -206,41 +206,50 @@ namespace AiTool3.Providers
         }
 
         private string RemoveCachingFromJson(string json)
-    {
-        var jObject = JObject.Parse(json);
-        var messages = jObject["messages"] as JArray;
-        if (messages != null)
         {
-            foreach (var message in messages)
+            var jObject = JObject.Parse(json);
+            var messages = jObject["messages"] as JArray;
+            if (messages != null)
             {
-                var content = message["content"] as JArray;
-                if (content != null)
+                foreach (var message in messages)
                 {
-                    foreach (var item in content)
+                    var content = message["content"] as JArray;
+                    if (content != null)
                     {
-                        item["cache_control"]?.Parent.Remove();
+                        foreach (var item in content)
+                        {
+                            item["cache_control"]?.Parent.Remove();
+                        }
                     }
                 }
             }
+            return jObject.ToString();
         }
-        return jObject.ToString();
-    }
 
-    private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
-    {
-        while (true)
+        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
         {
-            try
+            while (true)
             {
-                return await ProcessStreamingResponse(apiModel, json, cancellationToken, currentSettings);
-            }
-            catch (NotEnoughTokensForCachingException)
-            {
-                // Remove caching and retry
-                json = RemoveCachingFromJson(json);
+                try
+                {
+                    var retVal =  await ProcessStreamingResponse(apiModel, json, cancellationToken, currentSettings);
+
+                    if(retVal.ResponseText.EndsWith("Overloaded"))
+                    {
+                        var r = MessageBox.Show("Overloaded. Retry?", "", MessageBoxButtons.YesNo);
+                        if (r == DialogResult.No)
+                            return retVal;
+
+                    } else return retVal;
+
+                }
+                catch (NotEnoughTokensForCachingException)
+                {
+                    // Remove caching and retry
+                    json = RemoveCachingFromJson(json);
+                }
             }
         }
-    }
 
     private async Task<AiResponse> ProcessStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
         {
@@ -288,6 +297,8 @@ namespace AiTool3.Providers
 
             var responseText = oneOffPreFill == null ? result.ResponseText : $"{oneOffPreFill}{result.ResponseText}";
             oneOffPreFill = null;
+
+
             return new AiResponse
             {
                 ResponseText = responseText,

@@ -164,7 +164,7 @@ namespace AiTool3.Conversations
             });
         }
 
-        public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt, TimeSpan elapsed, out CompletionMessage completionInput, out CompletionMessage completionResponse)
+        public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt,  out CompletionMessage completionInput, out CompletionMessage completionResponse)
         {
             var previousCompletionGuidBeforeAwait = MostRecentCompletion?.Guid;
 
@@ -195,7 +195,7 @@ namespace AiTool3.Conversations
                 SystemPrompt = systemPrompt,
                 InputTokens = 0,
                 OutputTokens = response.TokenUsage.OutputTokens,
-                TimeTaken = elapsed,
+                TimeTaken = response.Duration,
                 CreatedAt = DateTime.Now,
             };
             Conversation.Messages.Add(completionResponse);

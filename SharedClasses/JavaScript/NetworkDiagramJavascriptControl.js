@@ -6,6 +6,18 @@ const nodeWidth = 300;
 const nodeHeight = 80;
 const spacing = 60;
 
+const tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('position', 'absolute')
+    .style('visibility', 'hidden')
+    .style('background-color', 'white')
+    .style('padding', '5px')
+    .style('border', '1px solid #ddd')
+    .style('border-radius', '3px')
+    .style('pointer-events', 'none');
+let tooltipTimeout;
+
 function initializeGraph() {
     const svgContainer = document.createElement('div');
     svgContainer.id = 'svg-container';
@@ -72,6 +84,10 @@ function createContextMenu() {
             });
     });
 
+
+
+
+
     return menu;
 }
 
@@ -103,6 +119,7 @@ function addNodes(nodes) {
             label: node.label.length > 160 ? node.label.substring(0, 157) + '...' : node.label,
             role: node.role,
             color: node.colour,
+            tooltip: node.tooltip, // Add this line
             children: []
         });
     });
@@ -134,6 +151,8 @@ function findNode(node, id) {
 }
 
 function updateGraph() {
+
+
     function positionNode(node, x, y, level) {
         node.x = x;
         node.y = y;
@@ -222,6 +241,28 @@ function updateGraph() {
         .attr('class', 'node')
         .attr('id', d => d.id)
         .attr('opacity', 0);
+
+    nodeEnter
+        .on('mouseover', function (event, d) {
+            // Only show tooltip if the node has a tooltip property
+            if (d.tooltip) {
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(() => {
+                    tooltip
+                        .style('visibility', 'visible')
+                        .text(d.tooltip);
+                }, 500);
+            }
+        })
+        .on('mousemove', function (event) {
+            tooltip
+                .style('top', (event.pageY - 10) + 'px')
+                .style('left', (event.pageX + 10) + 'px');
+        })
+        .on('mouseout', function () {
+            clearTimeout(tooltipTimeout);
+            tooltip.style('visibility', 'hidden');
+        });
 
     nodeEnter.on('click', function (event, d) {
         selectedNode = d.id;

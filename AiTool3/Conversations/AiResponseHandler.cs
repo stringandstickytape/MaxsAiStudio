@@ -6,6 +6,7 @@ using AiTool3.Providers;
 using AiTool3.Tools;
 using AiTool3.UI;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -134,11 +135,26 @@ namespace AiTool3.Conversations
             }
             AiResponse response = null;
 
-            // await this as a separate task, as it's sufficiently-tightly-bound that the UI won't update otherwise.
+            var stopwatch = Stopwatch.StartNew();
+
             await Task.Run(async () =>
             {
-                response = await aiService!.FetchResponse(model, conversation, _fileAttachmentManager.Base64Image!, _fileAttachmentManager.Base64ImageType!, cancellationToken, currentSettings, mustNotUseEmbedding: false, toolNames: toolLabels, useStreaming: currentSettings.StreamResponses, addEmbeddings: currentSettings.UseEmbeddings);
+                response = await aiService!.FetchResponse(
+                    model,
+                    conversation,
+                    _fileAttachmentManager.Base64Image!,
+                    _fileAttachmentManager.Base64ImageType!,
+                    cancellationToken,
+                    currentSettings,
+                    mustNotUseEmbedding: false,
+                    toolNames: toolLabels,
+                    useStreaming: currentSettings.StreamResponses,
+                    addEmbeddings: currentSettings.UseEmbeddings
+                );
             });
+
+            stopwatch.Stop();
+            response.Duration = stopwatch.Elapsed;
 
             if (_toolManager != null && toolIDs.Any())
             {
@@ -185,10 +201,9 @@ namespace AiTool3.Conversations
         {
             var inputText = conversation.messages.Last().content;
             var systemPrompt = await _chatWebView.GetSystemPrompt();
-            var elapsed = TimeSpan.Zero; // Replace with actual elapsed time
 
             CompletionMessage completionInput, completionResponse;
-            _conversationManager.AddInputAndResponseToConversation(response, model, conversation, overrideUserPrompt == null ? inputText : overrideUserPrompt, systemPrompt, elapsed, out completionInput, out completionResponse);
+            _conversationManager.AddInputAndResponseToConversation(response, model, conversation, overrideUserPrompt == null ? inputText : overrideUserPrompt, systemPrompt, out completionInput, out completionResponse);
 
             _fileAttachmentManager.ClearBase64();
 
@@ -216,7 +231,7 @@ namespace AiTool3.Conversations
 
             var nodes = _conversationManager.Conversation!.Messages
                 .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new IdNodeRole { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
+                .Select(m => new D3Node { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
 
             var links2 = _conversationManager.Conversation.Messages
                 .Where(x => x.Parent != null)

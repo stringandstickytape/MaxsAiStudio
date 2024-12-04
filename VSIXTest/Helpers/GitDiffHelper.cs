@@ -77,7 +77,7 @@ namespace VSIXTest
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-                if (!string.IsNullOrEmpty(error))
+                if (string.IsNullOrWhiteSpace(output) && !string.IsNullOrEmpty(error))
                 {
                     return $"Error: {error}";
                 }
