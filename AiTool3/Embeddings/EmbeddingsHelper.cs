@@ -11,7 +11,7 @@ namespace AiTool3.Embeddings
         {
             // get a directory to open from the user
             var folderBrowserDialog = new FolderBrowserDialog();
-            folderBrowserDialog.Description = "Select a root directory to generate embeddings from.  Respects .gitignore; accepts only .json, .cs, .html, .js, .xml, .jsx for now.";
+            folderBrowserDialog.Description = "Select a root directory to generate embeddings from.  Respects .gitignore; accepts only .json, .cs, .html, .js, .xml, .jsx, .msg for now.";
             folderBrowserDialog.UseDescriptionForTitle = true;
             folderBrowserDialog.ShowDialog();
             if (folderBrowserDialog.SelectedPath == "")
@@ -59,6 +59,7 @@ namespace AiTool3.Embeddings
 
             var htmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.html", SearchOption.AllDirectories).ToList());
             var xmlFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.xml", SearchOption.AllDirectories).ToList());
+            var msgFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.msg", SearchOption.AllDirectories).ToList());
 
             var x = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.json", SearchOption.AllDirectories).ToList();
             var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);
@@ -84,6 +85,10 @@ namespace AiTool3.Embeddings
             foreach (var file in htmlFiles)
             {
                 fragments.AddRange(webCodeFragmenter.FragmentCode(File.ReadAllText(file), file));
+            }
+            foreach (var file in msgFiles)
+            {
+                fragments.AddRange(lineFragmenter.FragmentCode(File.ReadAllText(file), file));
             }
             foreach (var file in files)
             {

@@ -57,7 +57,7 @@ namespace AiTool3.Conversations
                 }
 
                 var conversation = await _conversationManager.PrepareConversationData(model, await _chatWebView.GetSystemPrompt(), overrideUserPrompt != null ? overrideUserPrompt : userPrompt, _fileAttachmentManager);
-                var response = await FetchAndProcessAiResponse(currentSettings, conversation, model, toolIDs, overrideUserPrompt, cancellationToken, prefill);
+                var response = await FetchAndProcessAiResponse(currentSettings, conversation, model, toolIDs, overrideUserPrompt, cancellationToken, prefill, addEmbeddings);
                 retVal = response.ResponseText;
                 await _chatWebView.SetUserPrompt("");
                 await _chatWebView.DisableCancelButton();

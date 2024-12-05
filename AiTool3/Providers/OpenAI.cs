@@ -192,6 +192,9 @@ namespace AiTool3.Providers
             if (line.Length < 6)
                 return line;
 
+            if (line.StartsWith("\r"))
+                line = line.Substring(1);
+
             //Debug.WriteLine(line);
             if (line.StartsWith("data: "))
             {
@@ -231,7 +234,13 @@ namespace AiTool3.Providers
                         var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
 
                         if (string.IsNullOrEmpty(content))
-                            content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
+                        {
+
+                           if(chunk["choices"]?[0]?["delta"]?["tool_calls"] != null && chunk["choices"]?[0]?["delta"]?["tool_calls"].Count() > 0)
+                           {
+                                content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
+                           }
+                        }
 
                         if (!string.IsNullOrEmpty(content))
                         {
@@ -275,7 +284,7 @@ namespace AiTool3.Providers
             response.EnsureSuccessStatusCode();
             var responseText = "";
             // if message has an array of tool_calls
-            if (jsonResponse["choices"]?[0]?["message"]?["tool_calls"] != null)
+            if ((jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray) != null)
             {
                 var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
 

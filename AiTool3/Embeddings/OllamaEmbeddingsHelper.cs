@@ -195,7 +195,7 @@ namespace AiTool3.Embeddings
             return result;
         }
 
-        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string embeddingsModelName, string apiUrl = "http://localhost:11434/api/embeddings")
+        public static async Task<List<Embedding>> CreateEmbeddingsAsync(List<string> texts, string apiKey, string embeddingsModelName, string apiUrl = "http://localhost:11434/api/embed")
         {
             using var client = new HttpClient();
 
@@ -207,7 +207,7 @@ namespace AiTool3.Embeddings
                 var request = new
                 {
                     model = embeddingsModelName,
-                    prompt = text
+                    input = text
                 };
 
                 var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
@@ -228,11 +228,11 @@ namespace AiTool3.Embeddings
                 using JsonDocument doc = JsonDocument.Parse(responseBody);
                 JsonElement root = doc.RootElement;
 
-                if (root.TryGetProperty("embedding", out JsonElement embeddingArray))
+                if (root.TryGetProperty("embeddings", out JsonElement embeddingsArray) &&
+                    embeddingsArray.GetArrayLength() > 0)
                 {
                     var embedding = new List<float>();
-
-                    foreach (JsonElement value in embeddingArray.EnumerateArray())
+                    foreach (JsonElement value in embeddingsArray[0].EnumerateArray())
                     {
                         embedding.Add(value.GetSingle());
                     }
