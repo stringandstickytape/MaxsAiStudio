@@ -19,6 +19,15 @@ namespace AiTool3.Tools
 
         private void LoadTools()
         {
+            // Load embedded resources
+            LoadEmbeddedTools();
+
+            // Load tools from files
+            LoadFileTools();
+        }
+
+        private void LoadEmbeddedTools()
+        {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string namespacePrefix = "AiTool3.Tools.";
 
@@ -28,32 +37,60 @@ namespace AiTool3.Tools
             foreach (string resourceName in resourceNames)
             {
                 string json = AssemblyHelper.GetEmbeddedResource(assembly, resourceName);
-                if (string.IsNullOrEmpty(json))
-                {
-                    Console.WriteLine($"Failed to load resource: {resourceName}");
-                    continue;
-                }
+                LoadToolFromJson(json, resourceName);
+            }
+        }
 
+        private void LoadFileTools()
+        {
+            string toolsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
+
+            if (!Directory.Exists(toolsDirectory))
+            {
+                return;
+            }
+
+            foreach (string filePath in Directory.GetFiles(toolsDirectory, "*.json"))
+            {
                 try
                 {
-                    var lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                    string firstLine = CleanLine(lines[0]);
-                    string secondLine = CleanLine(lines[1]);
-
-                    Tool tool = JsonConvert.DeserializeObject<Tool>(json);
-                    if (tool == null) continue;
-
-                    tool.InternalName = firstLine;
-                    tool.OutputFilename = secondLine;
-                    tool.FullText = json;
-
-                    Tools.Add(tool);
-                    Console.WriteLine($"Loaded tool: {tool.Name}");
+                    string json = File.ReadAllText(filePath);
+                    LoadToolFromJson(json, Path.GetFileName(filePath));
                 }
-                catch (JsonException ex)
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"Error parsing JSON for {resourceName}: {ex.Message}");
+                    Console.WriteLine($"Error reading file {filePath}: {ex.Message}");
                 }
+            }
+        }
+
+        private void LoadToolFromJson(string json, string sourceName)
+        {
+            if (string.IsNullOrEmpty(json))
+            {
+                Console.WriteLine($"Failed to load resource: {sourceName}");
+                return;
+            }
+
+            try
+            {
+                var lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                string firstLine = CleanLine(lines[0]);
+                string secondLine = CleanLine(lines[1]);
+
+                Tool tool = JsonConvert.DeserializeObject<Tool>(json);
+                if (tool == null) return;
+
+                tool.InternalName = firstLine;
+                tool.OutputFilename = secondLine;
+                tool.FullText = json;
+
+                Tools.Add(tool);
+                Console.WriteLine($"Loaded tool: {tool.Name}");
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error parsing JSON for {sourceName}: {ex.Message}");
             }
         }
 

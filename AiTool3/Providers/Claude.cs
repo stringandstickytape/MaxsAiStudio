@@ -66,11 +66,13 @@ namespace AiTool3.Providers
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
-                var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
+                var toolManager = new ToolManager();
 
-                colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
+                var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
 
-                var toolx = JObject.Parse(colorSchemeTool);
+                var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
+
+                var toolx = JObject.Parse(colorSchemeToolText);
 
                 req["tools"] = new JArray { toolx };
                 req["tool_choice"] = new JObject

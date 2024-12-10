@@ -101,6 +101,8 @@ namespace AiTool3.Providers
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
+                var toolManager = new ToolManager();
+
                 var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
 
                 colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
