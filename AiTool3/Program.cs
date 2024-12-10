@@ -24,7 +24,7 @@ internal static class Program
 
         try
         {
-            Application.Run(serviceProvider.GetRequiredService<MaxsAiStudio>());
+            /**/Application.Run(serviceProvider.GetRequiredService<MaxsAiStudio>());
         }
         catch (Exception ex)
         {

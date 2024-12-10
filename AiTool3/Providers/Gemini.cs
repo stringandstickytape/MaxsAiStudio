@@ -139,11 +139,13 @@ namespace AiTool3.Providers
                         StringBuilder jsonBuffer = new StringBuilder();
                         bool isFirstLine = true;
 
-
-
-                        while (!reader.EndOfStream)
+                        while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
                         {
-                            string line = await reader.ReadLineAsync();
+                            string line = await reader.ReadLineAsync(cancellationToken);
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                break;
+                            }
                             Debug.WriteLine(line);
                             // :-/
                             if (isFirstLine)
@@ -154,21 +156,29 @@ namespace AiTool3.Providers
                             }
 
                             jsonBuffer.Append(line);
-                            if(line == "," || line == "]") {
-
-                                    // We have a complete JSON object
-                                    string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
-                                    await ProcessJsonObject(jsonObject, fullResponse);
-                                    jsonBuffer.Clear();
+                            if (line == "," || line == "]")
+                            {
+                                // We have a complete JSON object
+                                string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
+                                await ProcessJsonObject(jsonObject, fullResponse);
+                                jsonBuffer.Clear();
                             }
                         }
 
-                        StreamingComplete?.Invoke(this, null);
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            reader.Dispose();
+                            await stream.DisposeAsync();
+                        }
+                        else
+                        {
+                            StreamingComplete?.Invoke(this, null);
+                        }
 
                         return new AiResponse
                         {
                             ResponseText = fullResponse.ToString(),
-                            Success = true,
+                            Success = !cancellationToken.IsCancellationRequested,
                             TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
                         };
                     }

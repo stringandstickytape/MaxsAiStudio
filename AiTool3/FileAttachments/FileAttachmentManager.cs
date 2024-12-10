@@ -26,7 +26,7 @@ namespace AiTool3.FileAttachments
             switch (result)
             {
                 case DialogResult.Retry:
-                    await AttachAndTranscribeMP4(chatWebView, maxsAiStudio, settings.SoftwareToyMode);
+                    await AttachAndTranscribeMP4(chatWebView, maxsAiStudio, settings.SoftwareToyMode, settings.HuggingFaceToken);
                     break;
                 case DialogResult.Yes:
                     DialogAndAttachImage(settings);
@@ -43,7 +43,7 @@ namespace AiTool3.FileAttachments
             }
         }
 
-        private async Task AttachAndTranscribeMP4(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode)
+        private async Task AttachAndTranscribeMP4(ChatWebView chatWebView, MaxsAiStudio maxsAiStudio, bool softwareToyMode, string hfToken)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -55,7 +55,7 @@ namespace AiTool3.FileAttachments
                 maxsAiStudio.ShowWorking("Attaching file", softwareToyMode);
                 await Task.Run(async () =>
                 {
-                    var output = await TranscribeMP4(openFileDialog.FileName, maxsAiStudio.CurrentSettings.PathToCondaActivateScript);
+                    var output = await TranscribeMP4(openFileDialog.FileName, maxsAiStudio.CurrentSettings.PathToCondaActivateScript, hfToken);
                     chatWebView.SetUserPrompt(output);
                 });
                 maxsAiStudio.HideWorking();
@@ -142,7 +142,7 @@ namespace AiTool3.FileAttachments
             await _chatWebView.SetUserPrompt($"{sb}{existingPrompt}");
         }
 
-        public async Task<string> TranscribeMP4(string filename, string condaActivateScriptPath)
+        public async Task<string> TranscribeMP4(string filename, string condaActivateScriptPath, string hfToken)
         {
             // Path to the Miniconda installation
             string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat");
@@ -154,8 +154,12 @@ namespace AiTool3.FileAttachments
             }
 
             // Command to activate the WhisperX environment and run Whisper
-            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{Path.GetDirectoryName(filename)}\"";
+            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{Path.GetDirectoryName(filename)}\" ";
 
+            if(!string.IsNullOrEmpty(hfToken))
+            {
+                arguments += $"--hf_token {hfToken} --diarize ";
+            }
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
@@ -183,7 +187,7 @@ namespace AiTool3.FileAttachments
 
                     if (filenameOnly.Contains("."))
                     {
-                        filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".json";
+                        filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".vtt";
                     }
                     else
                     {
@@ -193,21 +197,21 @@ namespace AiTool3.FileAttachments
 
                     var json = File.ReadAllText(fullFilename);
 
-                    List<string> result = new List<string>();
+                    //List<string> result = new List<string>();
+                    //
+                    //dynamic jsonObj = JObject.Parse(json);
+                    //
+                    //foreach (var segment in jsonObj.segments)
+                    //{
+                    //    double start = segment.start;
+                    //    double end = segment.end;
+                    //    string text = segment.text;
+                    //    string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
+                    //    result.Add(formattedText);
+                    //}
+                    //string output = NewMethod(filename, result);
 
-                    dynamic jsonObj = JObject.Parse(json);
-
-                    foreach (var segment in jsonObj.segments)
-                    {
-                        double start = segment.start;
-                        double end = segment.end;
-                        string text = segment.text;
-                        string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
-                        result.Add(formattedText);
-                    }
-                    string output = NewMethod(filename, result);
-
-                    return output;
+                    return json;
 
                 }
                 else
@@ -256,7 +260,7 @@ namespace AiTool3.FileAttachments
                 {
                     case FileTypeClassifier.FileClassification.Video:
                     case FileTypeClassifier.FileClassification.Audio:
-                        var output = await TranscribeMP4(filename, settings.PathToCondaActivateScript);
+                        var output = await TranscribeMP4(filename, settings.PathToCondaActivateScript, settings.HuggingFaceToken);
                         _chatWebView.SetUserPrompt(output);
                         break;
                     case FileTypeClassifier.FileClassification.Image:

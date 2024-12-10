@@ -58,6 +58,10 @@ namespace AiTool3
         [MyDisplayNameAttr("File extensions to display in the Project Helper")]
         public string ProjectHelperFileExtensions { get; set; } = "*.cs, *.html, *.css, *.js";
 
+        [IsPathAttribute]
+        [MyDisplayNameAttr("HuggingFace Token for Diarization")]
+        public string HuggingFaceToken { get; set; } = "";
+
         [MyDisplayNameAttr("Collapse conversation pane at startup")]
         public bool CollapseConversationPane { get; set; } = false;
 
@@ -158,7 +162,7 @@ Analyze the above C# code and provide appropriate XML documentation comments for
             ModelList = new List<Model>()
             {
  new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o", FriendlyName = "GPT-4", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 5, output1MTokenPrice = 15},
-new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-2024-08-06", FriendlyName = "GPT-4 (August 2024)", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 2.5m, output1MTokenPrice = 10},
+new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-2024-11-20", FriendlyName = "GPT-4 2024-11-20", Color = Color.FromArgb(255, 179, 186), input1MTokenPrice = 2.5m, output1MTokenPrice = 10},
 new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4o-mini-2024-07-18", FriendlyName = "GPT-4 Mini (July 2024)", Color = Color.FromArgb(186, 201, 255), input1MTokenPrice = 0.15m, output1MTokenPrice = .6m},
 new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-4-turbo", FriendlyName = "GPT-4 Turbo", Color = Color.FromArgb(186, 255, 201), input1MTokenPrice = 10, output1MTokenPrice = 30},
 new Model { Url = "https://api.openai.com/v1/chat/completions", ServiceName = typeof(OpenAI).Name, ModelName = "gpt-3.5-turbo", FriendlyName = "GPT-3.5 Turbo", Color = Color.FromArgb(186, 225, 255), input1MTokenPrice = 0.5m, output1MTokenPrice = 1.5m},
@@ -174,6 +178,7 @@ new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(Local
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.2:3b-instruct-fp16", FriendlyName = "LLaMA 3.2 (3B-instruct-fp16)", Color = Color.FromArgb(255, 255, 186)},
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.2:3b-instruct-fp16", FriendlyName = "LLaMA 3.2 (3B-instruct-fp16)", Color = Color.FromArgb(255, 255, 186)},
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.2-vision:11b-instruct-fp16", FriendlyName = "LLaMA 3.2 Vision (11b-instruct-fp16)", Color = Color.FromArgb(255, 255, 186)},
+new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "llama3.3", FriendlyName = "llama3.3 70b", Color = Color.FromArgb(255, 255, 186)},
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "codestral", FriendlyName = "Codestral", Color = Color.FromArgb(255, 255, 186)},
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2", FriendlyName = "Gemma 2", Color = Color.FromArgb(255, 255, 186)},
 new Model { Url = "http://localhost:11434/api/chat/", ServiceName = typeof(LocalAI).Name, ModelName = "gemma2:2b", FriendlyName = "Gemma 2 (2B)", Color = Color.FromArgb(255, 255, 186)},
@@ -206,6 +211,8 @@ new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName
 new Model { Url = "https://api.groq.com/openai/v1/chat/completions", ServiceName = typeof(Groq).Name, ModelName = "llama3-70b-8192", FriendlyName = "LLaMA 3 (70B) 8K", Color = Color.FromArgb(224, 186, 255)},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro", FriendlyName = "Gemini 1.5 Pro", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 7m, output1MTokenPrice = 21m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro-exp-0801", FriendlyName = "Gemini 1.5 Pro (Exp 0801)", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 7m, output1MTokenPrice = 21m},
+new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-exp-1206", FriendlyName = "Gemini Exp 1206", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},
+new Model { Url = "https://generativelanguage.googleapis.com/v1beta/openai/", ServiceName = typeof(OpenAI).Name, ModelName = "gemini-exp-1206", FriendlyName = "Gemini Exp 1206 via OpenAI API", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash", FriendlyName = "Gemini 1.5 Flash", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-pro-002", FriendlyName = "Gemini 1.5 Pro 002", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 7m, output1MTokenPrice = 21m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash-002", FriendlyName = "Gemini 1.5 Flash 002", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},

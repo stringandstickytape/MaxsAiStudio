@@ -80,11 +80,11 @@
     <EmbeddedResource Include="Defaults\templates.json" />
     <EmbeddedResource Include="Defaults\themes.json" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
-    <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\array-find-and-replace.json" />
     <EmbeddedResource Include="Tools\chat-template.json" />
-    <EmbeddedResource Include="Tools\insertion.json" />
+    <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\find-and-replace.json" />
+    <EmbeddedResource Include="Tools\insertion.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>
   

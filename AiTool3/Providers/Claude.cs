@@ -387,7 +387,7 @@ namespace AiTool3.Providers
 
             while (true)
             {
-                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken); // throws if cancelled...
                 if (bytesRead == 0) break;
 
                 char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];

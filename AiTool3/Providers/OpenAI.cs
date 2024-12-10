@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using SharedClasses.Helpers;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -25,7 +26,7 @@ namespace AiTool3.Providers
         {
             if (client.DefaultRequestHeaders.Authorization == null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
-
+            
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
@@ -45,14 +46,21 @@ namespace AiTool3.Providers
                     }
                 },
                 ["stream"] = useStreaming,
-                
+
                 ["stream_options"] = useStreaming ? new JObject
                 {
                     ["include_usage"] = true
-                } : null,
-                ["logprobs"] = true,
-                ["top_logprobs"] = 5
+                } : null
             };
+
+            var supportsLogprobs = !apiModel.Url.Contains("generativelanguage.googleapis.com");
+
+            if (supportsLogprobs)
+            {
+                req["logprobs"] = true;
+                req["top_logprobs"] = 5;
+            }
+
 
             foreach (var m in conversation.messages)
             {
@@ -93,7 +101,7 @@ namespace AiTool3.Providers
                 var firstLine = toolObj.FullText.Split("\n")[0];
                 firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
-                var colorSchemeTool = AssemblyHelper.GetEmbeddedResource($"AiTool3.Tools.{firstLine}");
+                var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
 
                 colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
 
@@ -290,8 +298,11 @@ namespace AiTool3.Providers
 
                 // first tool call only for now... :/
 
-                responseText = toolCallArray?[0]["function"]["arguments"].ToString();
-
+                if (toolCallArray.Any())
+                {
+                    responseText = toolCallArray?[0]["function"]["arguments"].ToString();
+                }
+                else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
             }
             else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
 
