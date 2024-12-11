@@ -16,6 +16,7 @@
     <None Remove="JavaScriptViewers\ThemeEditor.js" />
     <None Remove="JavaScript\NetworkDiagramJavascriptControl.js" />
     <None Remove="JSX\App.jsx" />
+    <None Remove="JSX\CheckboxBar.jsx" />
     <None Remove="JSX\ColorSchemeProvider.jsx" />
     <None Remove="JSX\CustomContextMenu.jsx" />
     <None Remove="JSX\DropDown.jsx" />
@@ -23,6 +24,7 @@
     <None Remove="JSX\HeaderBar.jsx" />
     <None Remove="JSX\InputBox.jsx" />
     <None Remove="JSX\LiveStream.jsx" />
+    <None Remove="JSX\MainContent.jsx" />
     <None Remove="JSX\Message.jsx" />
     <None Remove="JSX\MessagesPane.jsx" />
     <None Remove="JSX\PrefillModal.jsx" />
@@ -61,6 +63,7 @@
     <EmbeddedResource Include="JavaScriptViewers\ThemeEditor.js" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramJavascriptControl.js" />
     <EmbeddedResource Include="JSX\App.jsx" />
+    <EmbeddedResource Include="JSX\CheckboxBar.jsx" />
     <EmbeddedResource Include="JSX\ColorSchemeProvider.jsx" />
     <EmbeddedResource Include="JSX\CustomContextMenu.jsx" />
     <EmbeddedResource Include="JSX\DropDown.jsx" />

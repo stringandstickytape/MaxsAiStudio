@@ -80,7 +80,7 @@ const MessagesPane = () => {
     window.removeMessageByGuid = removeMessageByGuid;
 
     useEffect(() => {
-        if (messages.length > 0) {
+        if (messages.length > 0 && window.getLiveScroll()) { // Add check for getLiveScroll
             const mainContent = document.getElementsByClassName('main-content')[0];
             const messagesContainer = document.getElementById('messages-container');
 

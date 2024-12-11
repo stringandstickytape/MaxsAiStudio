@@ -78,6 +78,7 @@ function App() {
                     <MessagesPane />
                     <LiveStream />
                 </div>
+                <CheckboxBar /> 
                 <UserInputBar />
                 <ScratchPad />
             </div>
