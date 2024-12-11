@@ -97,9 +97,14 @@
         backgroundColor: colorScheme.dropdownBackgroundColor,
         borderRadius: '4px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-        maxHeight: '200px',
-        overflowY: 'auto',
+        fontSize: '10px',
         zIndex: 1000,
+        padding: '10px',
+    };
+
+    const scrollableContainerStyle = {
+        maxHeight: '400px',
+        overflowY: 'auto',
     };
 
     const optionStyle = {
@@ -120,7 +125,7 @@
     };
 
     const cellStyle = {
-        padding: '3px 3px',
+        padding: '3px 0px 0px 3px',
         borderBottom: `1px solid ${colorScheme.borderColor}`,
     };
 
@@ -138,8 +143,6 @@
 
     const filterInputStyle = {
         width: '100%',
-        padding: '5px',
-        marginBottom: '5px',
         border: `1px solid ${colorScheme.borderColor}`,
         borderRadius: '4px',
         backgroundColor: colorScheme.dropdownBackgroundColor,
@@ -170,37 +173,39 @@
                             style={filterInputStyle}
                             onClick={(e) => e.stopPropagation()}
                         />
-                        <table style={tableStyle}>
-                            <thead>
-                                <tr>
-                                    <th style={cellStyle}></th>
-                                    <th style={cellStyle}>Model</th>
-                                    <th style={costStyle}>Input Cost</th>
-                                    <th style={costStyle}>Output Cost</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAndSortedOptions.map((option, index) => (
-                                    <tr
-                                        key={index}
-                                        style={optionStyle}
-                                        onClick={() => handleSelect(option, option)}
-                                    >
-                                        <td style={cellStyle}>
-                                            <span
-                                                style={starStyle}
-                                                onClick={(e) => toggleStar(e, option)}
-                                            >
-                                                {starredModels[option] ? '★' : '☆'}
-                                            </span>
-                                        </td>
-                                        <td style={cellStyle}>{option}</td>
-                                        <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].inputCost : ''}</td>
-                                        <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].outputCost : ''}</td>
+                        <div style={scrollableContainerStyle}>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={cellStyle}></th>
+                                        <th style={cellStyle}>Model</th>
+                                        <th style={costStyle}>Input Cost</th>
+                                        <th style={costStyle}>Output Cost</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredAndSortedOptions.map((option, index) => (
+                                        <tr
+                                            key={index}
+                                            style={optionStyle}
+                                            onClick={() => handleSelect(option, option)}
+                                        >
+                                            <td style={cellStyle}>
+                                                <span
+                                                    style={starStyle}
+                                                    onClick={(e) => toggleStar(e, option)}
+                                                >
+                                                    {starredModels[option] ? '★' : '☆'}
+                                                </span>
+                                            </td>
+                                            <td style={cellStyle}>{option}</td>
+                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].inputCost : ''}</td>
+                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].outputCost : ''}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

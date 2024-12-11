@@ -134,6 +134,9 @@ namespace AiTool3
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             await chatWebView.Initialise(CurrentSettings, _scratchpadManager);
+
+            this.Activate();
+            this.BringToFront();
         }
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
