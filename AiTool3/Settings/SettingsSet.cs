@@ -5,6 +5,7 @@ using AiTool3.UI;
 using SharedClasses.Models;
 using System.Diagnostics;
 using System.Security.Policy;
+using static System.Net.WebRequestMethods;
 
 namespace AiTool3
 {
@@ -218,7 +219,7 @@ new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", Se
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash-002", FriendlyName = "Gemini 1.5 Flash 002", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash-8b", FriendlyName = "Gemini 1.5 Flash 8b", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
-new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(OpenAI).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp via OpenAI API", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
+new Model { Url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions/", ServiceName = typeof(OpenAI).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp via OpenAI API", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-5-sonnet-20241022", FriendlyName = "Claude 3.5 Sonnet New (Oct 2024)", Color = Color.FromArgb(255, 219, 186), input1MTokenPrice = 3, output1MTokenPrice = 15},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-5-haiku-20241022", FriendlyName = "Claude 3.5 Haiku (Oct 2024)", Color = Color.FromArgb(255, 219, 186), input1MTokenPrice = .8m, output1MTokenPrice = 4},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-5-sonnet-20240620", FriendlyName = "Claude 3.5 Sonnet (June 2024)", Color = Color.FromArgb(255, 219, 186), input1MTokenPrice = 3, output1MTokenPrice = 15},
