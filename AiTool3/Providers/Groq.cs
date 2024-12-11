@@ -1,93 +1,90 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
-using AiTool3.Embeddings;
 using AiTool3.Interfaces;
-using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.Net.Http.Headers;
+using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AiTool3.Providers
 {
-    internal class Groq : IAiService
+    internal class Groq : AiServiceBase
     {
-        public ToolManager ToolManager { get; set; }
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
-
-
-        HttpClient client = new HttpClient();
         public Groq()
         {
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(
+            Model apiModel,
+            Conversation conversation,
+            string base64image,
+            string base64ImageType,
+            CancellationToken cancellationToken,
+            SettingsSet currentSettings,
+            bool mustNotUseEmbedding,
+            List<string> toolIDs,
+            bool useStreaming = false,
+            bool addEmbeddings = false)
         {
+            InitializeHttpClient(apiModel, currentSettings);
+
+            // Force streaming for Groq
             useStreaming = true;
-            if (client.DefaultRequestHeaders.Authorization == null)
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
 
-            var req = new JObject
+            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+
+            // Add messages to request
+            var messagesArray = new JArray();
+            foreach (var message in conversation.messages)
             {
-                ["model"] = apiModel.ModelName,
-                ["max_tokens"] = 4000,
-                ["messages"] = new JArray(
-                    conversation.messages.Select(m => new JObject
-                    {
-                        ["role"] = m.role,
-                        ["content"] = m.content
-                    })
-                )
-            };
+                messagesArray.Add(new JObject
+                {
+                    ["role"] = message.role,
+                    ["content"] = message.content
+                });
+            }
+            requestPayload["messages"] = messagesArray;
 
-            ((JArray)req["messages"]).Insert(0, new JObject
+            // Add system prompt
+            ((JArray)requestPayload["messages"]).Insert(0, new JObject
             {
                 ["role"] = "system",
                 ["content"] = conversation.SystemPromptWithDateTime()
             });
 
-            if (useStreaming)
-            {
-                req["stream"] = true;
-            }
 
             if (addEmbeddings)
             {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last["content"] = newInput;
+                var lastMessage = conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                requestPayload["messages"].Last["content"] = newInput;
             }
 
-            var json = JsonConvert.SerializeObject(req);
+            requestPayload["stream"] = useStreaming; // set stream as true regardless
+
+            var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response;
-            if (useStreaming)
-            {
-                response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, apiModel.Url)
-                {
-                    Content = content
-                }, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                response = await client.PostAsync(apiModel.Url, content, cancellationToken).ConfigureAwait(false);
-            }
-
-            response.EnsureSuccessStatusCode();
-
-            if (useStreaming)
-            {
-                return await HandleStreamingResponse(response, cancellationToken);
-            }
-            else
-            {
-                return await HandleNonStreamingResponse(response, cancellationToken);
-            }
+            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
         }
-        private async Task<AiResponse> HandleStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
+
+        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
+            return new JObject
+            {
+                ["model"] = apiModel.ModelName,
+                ["max_tokens"] = 4000,
+            };
+        }
+
+        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            var response = await SendRequest(apiModel, content, cancellationToken, streamingRequest: true);
+
+            ValidateResponse(response);
+
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var buffer = new byte[48];
             var decoder = Encoding.UTF8.GetDecoder();
@@ -109,7 +106,6 @@ namespace AiTool3.Providers
 
                     if (c == '\n')
                     {
-
                         ProcessLine(lineSb.ToString(), sb);
                         lineSb.Clear();
                     }
@@ -121,9 +117,11 @@ namespace AiTool3.Providers
             {
                 ProcessLine(lineSb.ToString(), sb);
             }
-            StreamingComplete?.Invoke(this, null);
+
+            OnStreamingComplete();
             return new AiResponse { ResponseText = sb.ToString(), Success = true };
         }
+
 
         private void ProcessLine(string line, StringBuilder sb)
         {
@@ -139,8 +137,9 @@ namespace AiTool3.Providers
 
                     if (!string.IsNullOrEmpty(content))
                     {
-                        Debug.WriteLine(content);
+                        System.Diagnostics.Debug.WriteLine(content);
                         sb.Append(content);
+                        OnStreamingDataReceived(content);
                     }
                 }
                 catch (Exception ex)
@@ -151,8 +150,9 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
+            var response = await SendRequest(apiModel, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
 
@@ -170,6 +170,13 @@ namespace AiTool3.Providers
                 Success = true,
                 TokenUsage = new TokenUsage(inputTokens, outputTokens)
             };
+        }
+
+        protected override TokenUsage ExtractTokenUsage(JObject response)
+        {
+            var inputTokens = response["usage"]?["prompt_tokens"]?.ToString();
+            var outputTokens = response["usage"]?["completion_tokens"]?.ToString();
+            return new TokenUsage(inputTokens, outputTokens);
         }
     }
 }

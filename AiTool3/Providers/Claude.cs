@@ -14,19 +14,8 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace AiTool3.Providers
 {
-    internal class Claude : IAiService
+    internal class Claude : AiServiceBase
     {
-        public ToolManager ToolManager { get; set; }
-        public bool UseTool { get; set; } = true;
-
-        HttpClient client = new HttpClient();
-        bool clientInitialised = false;
-
-
-        // streaming text received callback event
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
-
         private string oneOffPreFill { get; set; }
 
         public void SetOneOffPreFill(string prefill)
@@ -34,23 +23,20 @@ namespace AiTool3.Providers
             oneOffPreFill = prefill;
         }
 
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
-            if (!clientInitialised)
+            base.ConfigureHttpClientHeaders(apiModel, currentSettings);
+            client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
+            client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+
+            if (currentSettings.UsePromptCaching)
             {
-                client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
-                client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-
-                // Prompt Caching
-                //anthropic-beta: prompt-caching-2024-07-31
-                if (currentSettings.UsePromptCaching)
-                {
-                    client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
-                }
-
-                clientInitialised = true;
+                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
             }
+        }
 
+        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        {
             var req = new JObject
             {
                 ["model"] = apiModel.ModelName,
@@ -59,44 +45,12 @@ namespace AiTool3.Providers
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
             };
-            if (toolIDs != null && toolIDs.Any())
-            {
-                var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-                
-                var firstLine = toolObj.FullText.Split("\n")[0];
-                firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
-
-                var toolManager = new ToolManager();
-
-                var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
-
-                var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
-
-                var toolx = JObject.Parse(colorSchemeToolText);
-
-                req["tools"] = new JArray { toolx };
-                req["tool_choice"] = new JObject
-                {
-                    ["type"] = "tool",
-                    ["name"] = toolx["name"].ToString()
-                };
-            }
-
-
-
-            if (addEmbeddings)
-            {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                conversation.messages.Last().content = newInput;
-            }
 
             var messagesArray = new JArray();
             int userMessageCount = 0;
 
-            for (int i = 0; i < conversation.messages.Count; i++)
+            foreach (var message in conversation.messages)
             {
-                var message = conversation.messages[i];
-
                 var contentArray = new JArray();
 
                 if (message.base64image != null)
@@ -116,7 +70,7 @@ namespace AiTool3.Providers
                 contentArray.Add(new JObject
                 {
                     ["type"] = "text",
-                    ["text"] = message.content.Replace("\r","")
+                    ["text"] = message.content.Replace("\r", "")
                 });
 
                 var messageObject = new JObject
@@ -125,7 +79,6 @@ namespace AiTool3.Providers
                     ["content"] = contentArray
                 };
 
-                // Mark the content up to each of the first four USER messages as ephemeral.  It's a strategy...
                 if (currentSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
                 {
                     messageObject["content"][0]["cache_control"] = new JObject
@@ -136,75 +89,133 @@ namespace AiTool3.Providers
                 }
 
                 messagesArray.Add(messageObject);
-
-                // prefill response test
-
             }
 
-            // successful pre-fill test
-
-            if(oneOffPreFill != null)
+            if (oneOffPreFill != null)
             {
                 messagesArray.Add(new JObject
                 {
                     ["role"] = "assistant",
                     ["content"] = new JArray
-                      {
-                          new JObject
-                          {
-                              ["type"] = "text",
-                              ["text"] = oneOffPreFill.Trim() // must not end with whitespace
-                          }
-                      }
+                {
+                    new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = oneOffPreFill.Trim()
+                    }
+                }
                 });
-                
-                
             }
-            
+
             req["messages"] = messagesArray;
+            return req;
+        }
+
+        public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        {
+            InitializeHttpClient(apiModel, currentSettings);
+
+            var req = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+
+            if (toolIDs?.Any() == true)
+            {
+                AddToolsToRequest(req, toolIDs);
+            }
 
             if (addEmbeddings)
             {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last["content"].Last["text"] = newInput;
+                await AddEmbeddingsToRequest(req, conversation, currentSettings, mustNotUseEmbedding);
             }
 
             var json = JsonConvert.SerializeObject(req);
-
-            // serialise to file w datetimestamp in filename and write to working dir
-            var filename = $"request_{DateTime.Now:yyyyMMddHHmmss}.json";
-            File.WriteAllText(filename, json);
+            File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (useStreaming)
+            while (true)
             {
-                return await HandleStreamingResponse(apiModel, json, cancellationToken, currentSettings);
-            }
-            else
-            {
-                while (true)
+                try
                 {
-                    try
+                    var response = await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+                    if (oneOffPreFill != null)
                     {
-                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken, currentSettings);
+                        response.ResponseText = $"{oneOffPreFill}{response.ResponseText}";
+                        oneOffPreFill = null;
                     }
-                    catch (NotEnoughTokensForCachingException)
+                    return response;
+                }
+                catch (NotEnoughTokensForCachingException)
+                {
+                    if (currentSettings.UsePromptCaching)
                     {
-                        if (currentSettings.UsePromptCaching)
-                        {
-                            // Remove caching and retry
-                            json = RemoveCachingFromJson(json);
-                            currentSettings.UsePromptCaching = false;
-                        }
-                        else
-                        {
-                            // If we're not using caching and still get this exception, something else is wrong
-                            throw;
-                        }
+                        json = RemoveCachingFromJson(json);
+                        currentSettings.UsePromptCaching = false;
+                        content = new StringContent(json, Encoding.UTF8, "application/json");
+                    }
+                    else
+                    {
+                        throw;
                     }
                 }
             }
+        }
+
+        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            using var response = await SendRequest(apiModel, content, cancellationToken, true);
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            var streamProcessor = new StreamProcessor(true);
+            streamProcessor.StreamingTextReceived += (s, e) => OnStreamingDataReceived(e);
+
+            var result = await streamProcessor.ProcessStream(stream, cancellationToken);
+            OnStreamingComplete();
+
+            return new AiResponse
+            {
+                ResponseText = result.ResponseText,
+                Success = true,
+                TokenUsage = new TokenUsage(
+                    result.InputTokens?.ToString(),
+                    result.OutputTokens?.ToString(),
+                    result.CacheCreationInputTokens?.ToString(),
+                    result.CacheReadInputTokens?.ToString()
+                )
+            };
+        }
+
+        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            using var response = await SendRequest(apiModel, content, cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+            var completion = JsonConvert.DeserializeObject<JObject>(responseString);
+
+            if (completion["type"]?.ToString() == "error")
+            {
+                if (completion["error"]["message"].ToString().Contains("at least 1024 tokens"))
+                {
+                    throw new NotEnoughTokensForCachingException(completion["error"]["message"].ToString());
+                }
+                else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
+                {
+                    var result = MessageBox.Show("Claude reports that it's overloaded. Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                        return await HandleNonStreamingResponse(apiModel, content, cancellationToken);
+                    }
+                }
+                return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
+            }
+
+            var responseText = ExtractResponseTextFromCompletion(completion);
+            var tokenUsage = ExtractTokenUsageFromCompletion(completion);
+
+            return new AiResponse
+            {
+                ResponseText = responseText,
+                Success = true,
+                TokenUsage = tokenUsage
+            };
         }
 
         private string RemoveCachingFromJson(string json)
@@ -228,138 +239,66 @@ namespace AiTool3.Providers
             return jObject.ToString();
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
+        private string ExtractResponseTextFromCompletion(JObject completion)
         {
-            while (true)
-            {
-                try
-                {
-                    var retVal =  await ProcessStreamingResponse(apiModel, json, cancellationToken, currentSettings);
-
-                    if(retVal.ResponseText.EndsWith("Overloaded"))
-                    {
-                        var r = MessageBox.Show("Overloaded. Retry?", "", MessageBoxButtons.YesNo);
-                        if (r == DialogResult.No)
-                            return retVal;
-
-                    } else return retVal;
-
-                }
-                catch (NotEnoughTokensForCachingException)
-                {
-                    // Remove caching and retry
-                    json = RemoveCachingFromJson(json);
-                }
-            }
-        }
-
-    private async Task<AiResponse> ProcessStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
-        {
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-            //if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-            //{
-            //    var content2 = await response.Content.ReadAsStringAsync();
-            //}
-
-            try
-            {
-                response.EnsureSuccessStatusCode();
-            }
-            catch ( Exception e )
-            {
-                // get the error response stream and text and so on
-                var errorResponse = await response.Content.ReadAsStringAsync();
-
-                JObject jsonObject = JObject.Parse(errorResponse);
-
-                if (jsonObject["type"]?.ToString() == "error")
-                {
-                    string errorMessage = jsonObject["error"]?["message"]?.ToString();
-                    if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-
-
-                throw;
-            }
-
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var streamProcessor = new StreamProcessor(currentSettings.UsePromptCaching);
-            streamProcessor.StreamingTextReceived += (s, e) => StreamingTextReceived?.Invoke(this, e);
-
-            var result = await streamProcessor.ProcessStream(stream, cancellationToken);
-
-            // call streaming complete
-            StreamingComplete?.Invoke(this, null);
-
-            var responseText = oneOffPreFill == null ? result.ResponseText : $"{oneOffPreFill}{result.ResponseText}";
-            oneOffPreFill = null;
-
-
-            return new AiResponse
-            {
-                ResponseText = responseText,
-                Success = true,
-                TokenUsage = new TokenUsage(result.InputTokens?.ToString(), result.OutputTokens?.ToString(), result.CacheCreationInputTokens?.ToString(), result.CacheReadInputTokens?.ToString())
-            };
-        }
-
-
-        private async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, string json, CancellationToken cancellationToken, SettingsSet currentSettings)
-        {
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-            var completion = JsonConvert.DeserializeObject<JObject>(responseString);
-
-            if (completion["type"]?.ToString() == "error")
-            {
-                if (completion["error"]["message"].ToString().Contains("at least 1024 tokens"))
-                {
-                    throw new NotEnoughTokensForCachingException(completion["error"]["message"].ToString());
-                }
-                else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
-                {
-                    // ask the user if they want to retry, using a messagebox
-                    var result = MessageBox.Show("Claude reports that it's overloaded.  Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
-                    if (result == DialogResult.Yes)
-                    {
-                        return await HandleNonStreamingResponse(apiModel, json, cancellationToken, currentSettings);
-                    }
-                }
-
-                return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };
-            }
-            var inputTokens = completion["usage"]?["input_tokens"]?.ToString();
-            var outputTokens = completion["usage"]?["output_tokens"]?.ToString();
-            var cacheCreationInputTokens = completion["usage"]?["cache_creation_input_tokens"]?.ToString();
-            var cacheReadInputTokens = completion["usage"]?["cache_read_input_tokens"]?.ToString();
-            var responseText = "";
             if (completion["content"] != null)
             {
-                // is the content type tooL?
-                if (completion["content"][0]["type"].ToString() == "tool_use")
-                {
-                    responseText = completion["content"][0]["input"].First().ToString();
-                }
-                else responseText = completion["content"][0]["text"].ToString();
+                return completion["content"][0]["type"].ToString() == "tool_use"
+                    ? completion["content"][0]["input"].First().ToString()
+                    : completion["content"][0]["text"].ToString();
             }
             else if (completion["tool_calls"] != null && completion["tool_calls"][0]["function"]["name"].ToString() == "Find-and-replaces")
             {
-                responseText = completion["tool_calls"][0]["function"]["arguments"].ToString();
+                return completion["tool_calls"][0]["function"]["arguments"].ToString();
             }
-            var responseTextPrefilled = oneOffPreFill == null ? responseText : $"{oneOffPreFill}{responseText}";
-            oneOffPreFill = null;
+            return string.Empty;
+        }
 
-            return new AiResponse { ResponseText = responseTextPrefilled, Success = true, TokenUsage = new TokenUsage(inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens) };
+        private TokenUsage ExtractTokenUsageFromCompletion(JObject completion)
+        {
+            return new TokenUsage(
+                completion["usage"]?["input_tokens"]?.ToString(),
+                completion["usage"]?["output_tokens"]?.ToString(),
+                completion["usage"]?["cache_creation_input_tokens"]?.ToString(),
+                completion["usage"]?["cache_read_input_tokens"]?.ToString()
+            );
+        }
+
+        private async Task AddEmbeddingsToRequest(JObject req, Conversation conversation, SettingsSet currentSettings, bool mustNotUseEmbedding)
+        {
+            var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
+                conversation,
+                currentSettings,
+                conversation.messages.Last().content,
+                mustNotUseEmbedding
+            );
+            req["messages"].Last["content"].Last["text"] = newInput;
+        }
+
+        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        {
+            if (!toolIDs.Any()) return;
+
+            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
+            var firstLine = toolObj.FullText.Split("\n")[0]
+                .Replace("//", "")
+                .Replace(" ", "")
+                .Replace("\r", "")
+                .Replace("\n", "");
+
+            var toolManager = new ToolManager();
+            var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
+            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
+            var toolx = JObject.Parse(colorSchemeToolText);
+
+            request["tools"] = new JArray { toolx };
+            request["tool_choice"] = new JObject
+            {
+                ["type"] = "tool",
+                ["name"] = toolx["name"].ToString()
+            };
         }
     }
-
     internal class NotEnoughTokensForCachingException : Exception
     {
         public NotEnoughTokensForCachingException(string message) : base(message) { }

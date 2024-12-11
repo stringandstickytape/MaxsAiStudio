@@ -1,50 +1,91 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
-using AiTool3.Embeddings;
 using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SharedClasses.Helpers;
-using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Linq;
+using SharedClasses.Helpers;
 
 namespace AiTool3.Providers
 {
-    internal class OpenAI : IAiService
+    internal class OpenAI : AiServiceBase
     {
-        public ToolManager ToolManager { get; set; }
-        HttpClient client = new HttpClient();
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
-
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public OpenAI()
         {
-            if (client.DefaultRequestHeaders.Authorization == null)
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
-            
-            var req = new JObject
+        }
+
+        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
+        }
+
+
+        public override async Task<AiResponse> FetchResponse(
+            Model apiModel,
+            Conversation conversation,
+            string base64image,
+            string base64ImageType,
+            CancellationToken cancellationToken,
+            SettingsSet currentSettings,
+            bool mustNotUseEmbedding,
+            List<string> toolIDs,
+            bool useStreaming = false,
+            bool addEmbeddings = false)
+        {
+            InitializeHttpClient(apiModel, currentSettings);
+            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+
+            var messagesArray = new JArray();
+
+            messagesArray.Add(new JObject
             {
-                ["model"] = apiModel.ModelName,
-                ["messages"] = new JArray
+                ["role"] = "system",
+                ["content"] = new JArray
                 {
                     new JObject
                     {
-                        ["role"] = "system",
-                        ["content"] = new JArray
-                        {
-                            new JObject
-                            {
-                                ["type"] = "text",
-                                ["text"] = conversation.SystemPromptWithDateTime()
-                            }
-                        }
+                        ["type"] = "text",
+                        ["text"] = conversation.SystemPromptWithDateTime()
                     }
-                },
+                }
+            });
+
+            foreach (var m in conversation.messages)
+            {
+                messagesArray.Add(CreateMessageObject(m));
+            }
+
+            requestPayload["messages"] = messagesArray;
+
+            AddToolsToRequest(requestPayload, toolIDs);
+
+
+            if (addEmbeddings)
+            {
+                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
+                ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
+            }
+            var json = JsonConvert.SerializeObject(requestPayload, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+        }
+
+        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        {
+            var supportsLogprobs = !apiModel.Url.Contains("generativelanguage.googleapis.com");
+
+            var payload = new JObject
+            {
+                ["model"] = apiModel.ModelName,
                 ["stream"] = useStreaming,
 
                 ["stream_options"] = useStreaming ? new JObject
@@ -53,112 +94,86 @@ namespace AiTool3.Providers
                 } : null
             };
 
-            var supportsLogprobs = !apiModel.Url.Contains("generativelanguage.googleapis.com");
-
             if (supportsLogprobs)
             {
-                req["logprobs"] = true;
-                req["top_logprobs"] = 5;
+                payload["logprobs"] = true;
+                payload["top_logprobs"] = 5;
             }
 
+            return payload;
+        }
 
-            foreach (var m in conversation.messages)
+        protected override JObject CreateMessageObject(ConversationMessage message)
+        {
+            var messageContent = new JArray();
+
+            if (!string.IsNullOrWhiteSpace(message.base64image))
             {
-                var messageContent = new JArray
-                {
-
-                };
-
-                if (!string.IsNullOrWhiteSpace(m.base64image))
-                {
-                    messageContent.Add(new JObject
-                    {
-                        ["type"] = "image_url",
-                        ["image_url"] = new JObject
-                        {
-                            ["url"] = $"data:{m.base64type};base64,{m.base64image}"
-                        }
-                    });
-                }
-
-
                 messageContent.Add(new JObject
                 {
-                    ["type"] = "text",
-                    ["text"] = m.content
-                });
-
-                req["messages"].Last.AddAfterSelf(new JObject
-                {
-                    ["role"] = m.role,
-                    ["content"] = messageContent
+                    ["type"] = "image_url",
+                    ["image_url"] = new JObject
+                    {
+                        ["url"] = $"data:{message.base64type};base64,{message.base64image}"
+                    }
                 });
             }
-            if (toolIDs != null && toolIDs.Any())
+
+
+            messageContent.Add(new JObject
             {
-                var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-                // get first line of toolObj.FullText
-                var firstLine = toolObj.FullText.Split("\n")[0];
-                firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
-
-                var toolManager = new ToolManager();
-
-                var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
-
-                colorSchemeTool = Regex.Replace(colorSchemeTool, @"^//.*\n", "", RegexOptions.Multiline);
-
-                var toolx = JObject.Parse(colorSchemeTool);
-
-                var wrappedtool = new JObject
-                {
-                    ["type"] = "function",
-                    ["function"] = toolx
-                };
-
-                wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
-                // neow remove input_schema
-                wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
-                { if (((JProperty)c).Name == "input_schema") c.Remove(); }
-                );
-
-                req["tools"] = new JArray { wrappedtool };
-                req["tool_choice"] = wrappedtool;
-            }
-
-            if (addEmbeddings)
-            {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last["content"].Last()["text"] = newInput;
-            }
-
-
-            var json = JsonConvert.SerializeObject(req, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
+                ["type"] = "text",
+                ["text"] = message.content
             });
 
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (useStreaming)
+            return new JObject
             {
-                return await HandleStreamingResponse(apiModel, content, cancellationToken);
-            }
-            else
+                ["role"] = message.role,
+                ["content"] = messageContent
+            };
+        }
+
+        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        {
+            if (toolIDs == null || !toolIDs.Any()) return;
+
+            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
+            // get first line of toolObj.FullText
+            var firstLine = toolObj.FullText.Split("\n")[0];
+            firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
+
+            var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(System.Reflection.Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
+
+            colorSchemeTool = System.Text.RegularExpressions.Regex.Replace(colorSchemeTool, @"^//.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            var toolx = JObject.Parse(colorSchemeTool);
+
+            var wrappedtool = new JObject
             {
-                var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
-                return await HandleNonStreamingResponse(response, cancellationToken);
-            }
+                ["type"] = "function",
+                ["function"] = toolx
+            };
+
+            wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
+
+            wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
+            { if (((JProperty)c).Name == "input_schema") c.Remove(); }
+            );
+
+            request["tools"] = new JArray { wrappedtool };
+            request["tool_choice"] = wrappedtool;
         }
 
 
-        private async Task<AiResponse> HandleStreamingResponse(Model apiModel, StringContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url) { Content = content };
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var response = await SendRequest(apiModel, content, cancellationToken, true);
 
+            ValidateResponse(response);
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var reader = new StreamReader(stream);
+            using var reader = new StreamReader(stream);
 
             var responseBuilder = new StringBuilder();
             var buffer = new char[1024];
@@ -167,7 +182,7 @@ namespace AiTool3.Providers
             int inputTokens = 0;
             int outputTokens = 0;
 
-            string leftovers = null; ;
+            string leftovers = null;
 
             while ((charsRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
@@ -180,15 +195,11 @@ namespace AiTool3.Providers
 
                 foreach (var line in lines)
                 {
-                    response.EnsureSuccessStatusCode();
-
                     leftovers = ProcessLine($"{leftovers}{line}", responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
+            OnStreamingComplete();
 
-            StreamingComplete?.Invoke(this, null);
-
-            
             return new AiResponse
             {
                 ResponseText = responseBuilder.ToString(),
@@ -205,7 +216,6 @@ namespace AiTool3.Providers
             if (line.StartsWith("\r"))
                 line = line.Substring(1);
 
-            //Debug.WriteLine(line);
             if (line.StartsWith("data: "))
             {
                 string jsonData = line.Substring("data: ".Length).Trim();
@@ -221,7 +231,7 @@ namespace AiTool3.Providers
                         // Attempt to parse the JSON string
                         using (JsonDocument doc = JsonDocument.Parse(jsonData))
                         {
-                            //Debug.WriteLine("JSON valid.");
+                            //System.Diagnostics.Debug.WriteLine("JSON valid.");
                         }
                     }
                     catch (System.Text.Json.JsonException ex)
@@ -229,40 +239,36 @@ namespace AiTool3.Providers
                         return line;
                     }
 
+
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
-
-
 
                     if (chunk["choices"] != null && chunk["choices"].Count() > 0)
                     {
                         if (chunk["choices"]?[0]?["logprobs"] != null)
                         {
                             var x = chunk["choices"]?[0]?["logprobs"];
-                            Debug.WriteLine(x.ToString());
-                            //Debugger.Break();
+                            System.Diagnostics.Debug.WriteLine(x.ToString());
+                            // Debugger.Break();
                         }
                         var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
 
                         if (string.IsNullOrEmpty(content))
                         {
-
-                           if(chunk["choices"]?[0]?["delta"]?["tool_calls"] != null && chunk["choices"]?[0]?["delta"]?["tool_calls"].Count() > 0)
-                           {
+                            if (chunk["choices"]?[0]?["delta"]?["tool_calls"] != null && chunk["choices"]?[0]?["delta"]?["tool_calls"].Count() > 0)
+                            {
                                 content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
-                           }
+                            }
                         }
 
                         if (!string.IsNullOrEmpty(content))
                         {
-                            //Debug.Write(content);
                             responseBuilder.Append(content);
-                            StreamingTextReceived?.Invoke(this, content);
+                            OnStreamingDataReceived(content);
                         }
                         return "";
                     }
                     else
                     {
-
                         // Update token counts if available
                         var usage = chunk["usage"];
                         if (usage != null && usage.HasValues)
@@ -286,12 +292,14 @@ namespace AiTool3.Providers
             }
             return line;
         }
-        private async Task<AiResponse> HandleNonStreamingResponse(HttpResponseMessage response, CancellationToken cts)
+
+        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            var responseContent = await response.Content.ReadAsStringAsync(cts);
+            var response = await SendRequest(apiModel, content, cancellationToken);
+            ValidateResponse(response);
+            var responseContent = await response.Content.ReadAsStringAsync();
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
-            response.EnsureSuccessStatusCode();
             var responseText = "";
             // if message has an array of tool_calls
             if ((jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray) != null)
@@ -308,16 +316,21 @@ namespace AiTool3.Providers
             }
             else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
 
-            var usage = jsonResponse["usage"];
-            var inputTokens = usage?["prompt_tokens"]?.Value<int>() ?? 0;
-            var outputTokens = usage?["completion_tokens"]?.Value<int>() ?? 0;
 
             return new AiResponse
             {
                 ResponseText = responseText,
                 Success = true,
-                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+                TokenUsage = ExtractTokenUsage(jsonResponse)
             };
+        }
+
+        protected override TokenUsage ExtractTokenUsage(JObject response)
+        {
+            var usage = response["usage"];
+            var inputTokens = usage?["prompt_tokens"]?.Value<int>() ?? 0;
+            var outputTokens = usage?["completion_tokens"]?.Value<int>() ?? 0;
+            return new TokenUsage(inputTokens.ToString(), outputTokens.ToString());
         }
     }
 }

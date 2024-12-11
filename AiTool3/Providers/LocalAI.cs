@@ -1,80 +1,84 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
-using AiTool3.Embeddings;
 using AiTool3.Interfaces;
-using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AiTool3.Providers
 {
-    internal class LocalAI : IAiService
+    internal class LocalAI : AiServiceBase
     {
-        public ToolManager ToolManager { get; set; }
-        HttpClient client = new HttpClient();
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
-        public async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public LocalAI()
         {
-            var req = new JObject
-            {
-                ["model"] = apiModel.ModelName,
-                ["messages"] = new JArray
-                {
-                    new JObject
-                    {
-                        ["role"] = "system",
-                        ["content"] = conversation.SystemPromptWithDateTime()
-                    }
-                },
-                ["stream"] = useStreaming
-            };
+        }
+        public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        {
+            InitializeHttpClient(apiModel, currentSettings);
+            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
-            var x = conversation.messages.Select(m => new JObject
+            var messagesArray = new JArray();
+            //Add system prompt
+            messagesArray.Add(new JObject
             {
-                ["role"] = m.role,
-                ["content"] = m.content,
-                ["base64Image"] = m.base64image,
-                ["base64Type"] = m.base64type
+                ["role"] = "system",
+                ["content"] = conversation.SystemPromptWithDateTime()
             });
-
-            // copy the messages in, with base 64 images
-            foreach (var m in x)
+            //Add user messages
+            foreach (var m in conversation.messages)
             {
-                req["messages"].Last.AddAfterSelf(m);
-                if (m["base64Image"] != null && m["base64Image"].ToString() != "")
-                {
-                    req["messages"].Last["images"] = new JArray { m["base64Image"] };
-                }
+                var messageObj = CreateMessageObject(m);
+                messagesArray.Add(messageObj);
             }
+
+            requestPayload["messages"] = messagesArray;
 
             if (addEmbeddings)
             {
-                var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(conversation, currentSettings, conversation.messages.Last().content, mustNotUseEmbedding);
-                req["messages"].Last()["content"] = newInput;
+                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
+                ((JObject)((JArray)requestPayload["messages"]).Last)["content"] = newInput;
             }
 
-            var json = JsonConvert.SerializeObject(req);
+            var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             StartOllama(apiModel.ModelName);
-
-            if (useStreaming)
-            {
-                return await HandleStreamingResponse(apiModel.Url, content, cancellationToken);
-            }
-            else
-            {
-                return await HandleNonStreamingResponse(apiModel.Url, content, cancellationToken);
-            }
+            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
         }
 
-        private async Task<AiResponse> HandleStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
+
+        protected override JObject CreateMessageObject(ConversationMessage message)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            var messageObj = new JObject
+            {
+                ["role"] = message.role,
+                ["content"] = message.content
+            };
+
+            if (!string.IsNullOrEmpty(message.base64image))
+            {
+                messageObj["images"] = new JArray { message.base64image };
+            }
+
+            return messageObj;
+        }
+
+        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        {
+            return new JObject
+            {
+                ["model"] = apiModel.ModelName,
+                ["stream"] = useStreaming
+            };
+        }
+
+        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url);
             request.Content = content;
             client.Timeout = TimeSpan.FromSeconds(1800);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -115,7 +119,7 @@ namespace AiTool3.Providers
             {
                 ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
             }
-            StreamingComplete?.Invoke(this, null);
+            OnStreamingComplete();
             return new AiResponse
             {
                 ResponseText = fullResponse.ToString(),
@@ -136,7 +140,7 @@ namespace AiTool3.Providers
                 {
                     fullResponse.Append(chunkResponse["message"]["content"]);
                     Debug.WriteLine(chunkResponse["message"]["content"]);
-                    StreamingTextReceived?.Invoke(this, chunkResponse["message"]["content"].ToString());
+                    OnStreamingDataReceived(chunkResponse["message"]["content"].ToString());
                 }
 
                 if (chunkResponse["done"]?.Value<bool>() == true)
@@ -151,9 +155,9 @@ namespace AiTool3.Providers
             }
         }
 
-        private async Task<AiResponse> HandleNonStreamingResponse(string url, StringContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await client.PostAsync(url, content, cancellationToken);
+            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JObject.Parse(responseContent);
 
@@ -163,11 +167,17 @@ namespace AiTool3.Providers
                 Success = true,
                 TokenUsage = new TokenUsage(
                     result["prompt_eval_count"]?.ToString() ?? "0",
-                    result["eval_count"]?.ToString() ?? "0"
-                )
+                  result["eval_count"]?.ToString() ?? "0"
+               )
             };
         }
-
+        protected override TokenUsage ExtractTokenUsage(JObject response)
+        {
+            return new TokenUsage(
+                   response["prompt_eval_count"]?.ToString() ?? "0",
+                   response["eval_count"]?.ToString() ?? "0"
+               );
+        }
         private bool IsPortOpen(int port)
         {
             try
