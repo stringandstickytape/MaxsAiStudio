@@ -24,6 +24,7 @@ function debounce(func, wait) {
 
 const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered }) => {
     const { colorScheme } = React.useColorScheme();
+    const [, forceUpdate] = React.useState({});
     const [currentlySelectedFindAndReplaceSet, setCurrentlySelectedFindAndReplaceSet] = useState(window.currentlySelectedFindAndReplaceSet);
     const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
     const [isInstallingTheme, setIsInstallingTheme] = useState(false);
@@ -55,6 +56,17 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         selectFindAndReplaceScript2: ["findandreplace2.json"],
     };
 
+    React.useEffect(() => {
+        const handleFormattingChange = () => {
+            forceUpdate({});  // Force a re-render when formatting changes
+        };
+
+        window.addEventListener('formattingChanged', handleFormattingChange);
+        return () => {
+            window.removeEventListener('formattingChanged', handleFormattingChange);
+        };
+    }, []);
+
     const addMessageButton = (label, action, dataType) => (
         <button
             onClick={action}
@@ -74,7 +86,11 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     );
 
     const formatContent = (text) => {
-        //const codeBlockRegex = /\u0060\u0060\u0060(.*?)\n([\s\S]*?)\u0060\u0060\u0060/g;
+        console.log("!!!!!!!!!!!!!!!");
+        if (!window.getFormatting?.()) {
+            return <span>{text}</span>;
+        }
+        console.log('$$$$$$$$$$$$$$$$$$$');
         const codeBlockRegex = /\u0060\u0060\u0060([^\n]*\n)?([\s\S]*?)\u0060\u0060\u0060/g;
         const quotedStringRegex = /\u0060(?=[^\u0060])([^\u0060\n]+)\u0060/g;
         const parts = [];
