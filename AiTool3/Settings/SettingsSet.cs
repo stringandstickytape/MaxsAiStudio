@@ -234,7 +234,7 @@ new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, 
         {
             // write this object to json
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(mgr, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText("Settings\\settings.json", json);
+            System.IO.File.WriteAllText("Settings\\settings.json", json);
 
         }
 
@@ -242,7 +242,7 @@ new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, 
         {
             try
             {
-                var text = File.ReadAllText("Settings\\settings.json");
+                var text = System.IO.File.ReadAllText("Settings\\settings.json");
                 var retVal = Newtonsoft.Json.JsonConvert.DeserializeObject<SettingsSet>(text);
                 retVal.Migrate();
                 return retVal;
@@ -316,7 +316,7 @@ new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, 
         internal static SettingsSet? LoadOrPromptOnFirstRun()
         {
             SettingsSet settings = null;
-            if (!File.Exists("Settings\\settings.json"))
+            if (!System.IO.File.Exists("Settings\\settings.json"))
             {
                 settings = Load()!;
                 // show the settings dialog first up

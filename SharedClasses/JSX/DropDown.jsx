@@ -179,6 +179,7 @@
                                     <tr>
                                         <th style={cellStyle}></th>
                                         <th style={cellStyle}>Model</th>
+                                        <th style={costStyle}>Protocol</th>
                                         <th style={costStyle}>Input Cost</th>
                                         <th style={costStyle}>Output Cost</th>
                                     </tr>
@@ -199,6 +200,7 @@
                                                 </span>
                                             </td>
                                             <td style={cellStyle}>{option}</td>
+                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].protocol : ''}</td>
                                             <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].inputCost : ''}</td>
                                             <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].outputCost : ''}</td>
                                         </tr>
