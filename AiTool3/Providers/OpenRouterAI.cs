@@ -114,7 +114,7 @@ namespace AiTool3.Providers
                 while (!reader.EndOfStream)
                 {
                     await Task.Yield();
-                    var line = await reader.ReadLineAsync();
+                    var line = await reader.ReadLineAsync(cancellationToken);
                     Debug.WriteLine(line);
 
 

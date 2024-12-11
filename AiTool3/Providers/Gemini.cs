@@ -139,7 +139,7 @@ namespace AiTool3.Providers
                         StringBuilder jsonBuffer = new StringBuilder();
                         bool isFirstLine = true;
 
-                        while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+                        while (!reader.EndOfStream/* && !cancellationToken.IsCancellationRequested*/)
                         {
                             string line = await reader.ReadLineAsync(cancellationToken);
                             if (cancellationToken.IsCancellationRequested)
