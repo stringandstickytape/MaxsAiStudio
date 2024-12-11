@@ -8,7 +8,30 @@ const MessagesPane = () => {
 
     const clearMessages = () => {
         setMessages([]);
+        // Check Live Scroll when messages are cleared
+        window.setLiveScroll(true);
     };
+
+    React.useEffect(() => {
+        const mainContent = document.getElementsByClassName('main-content')[0];
+
+        const handleWheel = (event) => {
+            // Only uncheck Live Scroll if it's currently checked
+            if (window.getLiveScroll()) {
+                window.setLiveScroll(false);
+            }
+        };
+
+        if (mainContent) {
+            mainContent.addEventListener('wheel', handleWheel);
+        }
+
+        return () => {
+            if (mainContent) {
+                mainContent.removeEventListener('wheel', handleWheel);
+            }
+        };
+    }, []);
 
     const findMessageByGuid = (guid) => {
         return messages.find(message => message.guid === guid);
@@ -80,19 +103,25 @@ const MessagesPane = () => {
     window.removeMessageByGuid = removeMessageByGuid;
 
     useEffect(() => {
-        if (messages.length > 0 && window.getLiveScroll()) { // Add check for getLiveScroll
+        if (messages.length > 0 ) { // Add check for getLiveScroll
             const mainContent = document.getElementsByClassName('main-content')[0];
             const messagesContainer = document.getElementById('messages-container');
+
+            const liveScroll = window.getLiveScroll();
 
             if (mainContent && messagesContainer) {
                 const lastMessage = messages[messages.length - 1];
                 if (lastMessage) {
                     if (lastMessage.guid === "temp-ai-msg" || lastMessage.guid === "temp-user-msg") {
-                        mainContent.scrollTop = mainContent.scrollHeight;
+                        if (liveScroll) {
+                            mainContent.scrollTop = mainContent.scrollHeight;
+                        }
                     } else {
-                        const lastMessageElement = messagesContainer.lastElementChild;
-                        if (lastMessageElement) {
-                            mainContent.scrollTop = lastMessageElement.offsetTop - mainContent.offsetTop;
+                        if (liveScroll) {
+                            const lastMessageElement = messagesContainer.lastElementChild;
+                            if (lastMessageElement) {
+                                mainContent.scrollTop = lastMessageElement.offsetTop - mainContent.offsetTop;
+                            }
                         }
                     }
                 }

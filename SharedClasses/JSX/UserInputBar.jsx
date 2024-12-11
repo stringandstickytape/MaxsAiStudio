@@ -82,6 +82,11 @@
     }
 
     const handleSend = () => {
+        // Check Live Scroll if it's not already checked
+        if (!window.getLiveScroll()) {
+            window.setLiveScroll(true);
+        }
+
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
 
         window.chrome.webview.postMessage({
@@ -93,6 +98,11 @@
     };
 
     const handleSendSecondary = () => {
+        // Check Live Scroll if it's not already checked
+        if (!window.getLiveScroll()) {
+            window.setLiveScroll(true);
+        }
+
         var toolsEnabledIndices = getTrueIndices(window.splitButtonState_Tools.itemStates);
 
         window.chrome.webview.postMessage({
@@ -103,11 +113,12 @@
         });
     };
 
-    const handleSendWithPrefill = () => {
-        setIsPrefillModalOpen(true);
-    };
-
     const handlePrefillSubmit = (prefillText) => {
+        // Check Live Scroll if it's not already checked
+        if (!window.getLiveScroll()) {
+            window.setLiveScroll(true);
+        }
+
         setIsPrefillModalOpen(false);
         window.chrome.webview.postMessage({
             type: 'sendWithPrefill',
@@ -117,6 +128,11 @@
             addEmbeddings: addEmbeddings.toString()
         });
     };
+
+    const handleSendWithPrefill = () => {
+        setIsPrefillModalOpen(true);
+    };
+
 
     const handleNew = () => {
         window.chrome.webview.postMessage({ type: 'new' });
