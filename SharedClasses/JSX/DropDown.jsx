@@ -25,17 +25,19 @@
         return [sortedOptions, sortedColumnData];
     }, [options, starredModels, columnData]);
 
-    const filteredAndSortedOptions = React.useMemo(() => {
-        return sortedOptions.filter(option =>
-            option.toLowerCase().includes(filterText.toLowerCase())
-        );
-    }, [sortedOptions, filterText]);
-
-    const filteredAndSortedColumnData = React.useMemo(() => {
-        return sortedColumnData.filter((_, index) =>
-            sortedOptions[index].toLowerCase().includes(filterText.toLowerCase())
-        );
-    }, [sortedColumnData, sortedOptions, filterText]);
+    const filteredOptionsAndData = React.useMemo(() => {
+        return sortedOptions.reduce((acc, option, index) => {
+            const protocol = sortedColumnData[index]?.protocol || '';
+            if (
+                option.toLowerCase().includes(filterText.toLowerCase()) ||
+                protocol.toLowerCase().includes(filterText.toLowerCase())
+            ) {
+                acc.options.push(option);
+                acc.columnData.push(sortedColumnData[index]);
+            }
+            return acc;
+        }, { options: [], columnData: [] });
+    }, [sortedOptions, sortedColumnData, filterText]);
 
     const { colorScheme } = React.useColorScheme();
     const [isOpen, setIsOpen] = React.useState(false);
@@ -185,7 +187,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredAndSortedOptions.map((option, index) => (
+                                    {filteredOptionsAndData.options.map((option, index) => (
                                         <tr
                                             key={index}
                                             style={optionStyle}
@@ -200,9 +202,9 @@
                                                 </span>
                                             </td>
                                             <td style={cellStyle}>{option}</td>
-                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].protocol : ''}</td>
-                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].inputCost : ''}</td>
-                                            <td style={costStyle}>{filteredAndSortedColumnData && filteredAndSortedColumnData[index] ? filteredAndSortedColumnData[index].outputCost : ''}</td>
+                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].protocol : ''}</td>
+                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].inputCost : ''}</td>
+                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].outputCost : ''}</td>
                                         </tr>
                                     ))}
                                 </tbody>
