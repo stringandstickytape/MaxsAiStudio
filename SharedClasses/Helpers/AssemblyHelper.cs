@@ -109,6 +109,8 @@ namespace SharedClasses.Helpers
         {
             return new List<(string Uri, string ResourceName, string MimeType)>
             {
+                ("https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js", "katex.min.js", "application/javascript"),
+                ("https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css", "katex.min.css", "text/css"),
                 ("https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js", "mermaid.min.js", "application/javascript"),
                 ("https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js", "svg-pan-zoom.min.js", "application/javascript"),
                 ("https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.9.2/jsoneditor.min.js", "jsoneditor.min.js", "application/javascript"),

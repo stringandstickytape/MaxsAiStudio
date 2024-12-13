@@ -42,6 +42,8 @@
     <None Remove="ThirdPartyJavascript\jsoneditor-icons.svg" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.css" />
     <None Remove="ThirdPartyJavascript\jsoneditor.min.js" />
+    <None Remove="ThirdPartyJavascript\katex.min.css" />
+    <None Remove="ThirdPartyJavascript\katex.min.js" />
     <None Remove="ThirdPartyJavascript\mermaid.min.js" />
     <None Remove="ThirdPartyJavascript\svg-pan-zoom.min.js" />
     <None Remove="ThirdPartyJavascript\viz.js" />
@@ -88,6 +90,8 @@
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor-icons.svg" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.css" />
     <EmbeddedResource Include="ThirdPartyJavascript\jsoneditor.min.js" />
+    <EmbeddedResource Include="ThirdPartyJavascript\katex.min.css" />
+    <EmbeddedResource Include="ThirdPartyJavascript\katex.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\mermaid.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\svg-pan-zoom.min.js" />
     <EmbeddedResource Include="ThirdPartyJavascript\viz.js" />
