@@ -8,6 +8,7 @@ using AiTool3.Topics;
 using AiTool3.UI;
 using Newtonsoft.Json;
 using SharedClasses;
+using System.Diagnostics;
 
 namespace AiTool3.Helpers
 {
@@ -303,11 +304,92 @@ namespace AiTool3.Helpers
                         ModelUsageManager.ShowUsageStatistics(currentSettings);
                     }),
 
+                    new LabelAndEventHander("install Node/NPM", async (s, e) =>
+                    {
+                        await InstallNodeAndNpm();
+                    }),
+
+                                        new LabelAndEventHander("test py server", async (s, e) =>
+                    {
+                            using var serverManager = new NodeServerManager();
+                            await serverManager.StartServerFromScript(@"import sys
+import json
+import time
+
+def main():
+    print(""Server starting..."", file=sys.stderr)
+    
+    while True:
+        try:
+            # Read input line
+            line = sys.stdin.readline()
+            if not line:
+                break
+                
+            # Parse input as JSON
+            try:
+                data = json.loads(line)
+                # Echo back with timestamp
+                response = {
+                    ""received"": data,
+                    ""timestamp"": time.time(),
+                    ""status"": ""ok""
+                }
+                print(json.dumps(response), flush=True)
+                
+            except json.JSONDecodeError:
+                error_response = {
+                    ""error"": ""Invalid JSON"",
+                    ""received"": line.strip(),
+                    ""status"": ""error""
+                }
+                print(json.dumps(error_response), flush=True)
+                
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f""Error: {str(e)}"", file=sys.stderr)
+            break
+
+    print(""Server shutting down..."", file=sys.stderr)
+
+if __name__ == ""__main__"":
+    main()
+");
+                    }),
 
                 }
             );
 
             menuBar.Items.Add(specialsMenu);
+        }
+
+        public static async Task InstallNodeAndNpm()
+        {
+            string installerUrl = "https://nodejs.org/dist/v20.10.0/node-v20.10.0-x64.msi";  // Update URL as needed
+            string installerPath = Path.Combine(Path.GetTempPath(), "node_installer.msi");
+
+            // Download installer
+            using (var client = new HttpClient())
+            {
+                byte[] installerData = await client.GetByteArrayAsync(installerUrl);
+                await File.WriteAllBytesAsync(installerPath, installerData);
+            }
+
+            // Run installer silently
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "msiexec",
+                    Arguments = $"/i \"{installerPath}\" /norestart",
+                    UseShellExecute = true,
+                    Verb = "runas"  // Requires admin rights
+                }
+            };
+
+            process.Start();
+            await process.WaitForExitAsync();
         }
 
         internal static async Task CreateEmbeddingsMenu(MaxsAiStudio maxsAiStudio, MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager fileAttachmentManager)
@@ -352,7 +434,6 @@ namespace AiTool3.Helpers
 
         }
     }
-
     public class LabelAndEventHander
     {
         public string Label { get; set; }
