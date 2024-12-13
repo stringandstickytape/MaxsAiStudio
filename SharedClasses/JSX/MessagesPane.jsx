@@ -115,12 +115,14 @@ const MessagesPane = () => {
                     if (lastMessage.guid === "temp-ai-msg" || lastMessage.guid === "temp-user-msg") {
                         if (liveScroll) {
                             mainContent.scrollTop = mainContent.scrollHeight;
+                            console.log("Scroll3");
                         }
                     } else {
                         if (liveScroll) {
                             const lastMessageElement = messagesContainer.lastElementChild;
                             if (lastMessageElement) {
                                 mainContent.scrollTop = lastMessageElement.offsetTop - mainContent.offsetTop;
+                                console.log("Scroll4");
                             }
                         }
                     }

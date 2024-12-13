@@ -13,6 +13,7 @@ const LiveStream = () => {
         const mainContent = document.getElementsByClassName('main-content')[0];
         //mainContent.setAttribute("style", "scroll-behavior: auto");
         mainContent.scrollTop = mainContent.scrollHeight;
+        console.log("Scroll1");
         //mainContent.setAttribute("style", "scroll-behavior: smooth");
     };
 
@@ -46,6 +47,7 @@ const LiveStream = () => {
     useEffect(() => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            console.log("Scroll2");
         }
     }, [liveStreamData]);
 
