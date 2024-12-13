@@ -1,4 +1,3 @@
-// FormattedContent.jsx
 function loadScript(url) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -49,6 +48,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
     const [isInstallingTheme, setIsInstallingTheme] = useState(false);
     const [katexLoaded, setKatexLoaded] = useState(false);
+    const [latexRenderingPreferences, setLatexRenderingPreferences] = useState({});
+
 
     useEffect(() => {
         const loadKaTeX = async () => {
@@ -175,6 +176,9 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                 const trimmedFileType = fileType.trim().toLowerCase();
                 // Special handling for LaTeX
                 if (fileTypes.latex.includes(trimmedFileType)) {
+                    const blockId = `${guid}-${offset}`;
+                    const shouldRenderLatex = latexRenderingPreferences[blockId] !== false; // Default to true
+
                     parts.push(
                         <div key={offset}>
                             <div style={{
@@ -189,7 +193,22 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                 borderTopRightRadius: '5px',
                                 overflowWrap: 'anywhere'
                             }}>
-                                <span>{fileType.trim()}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span>{fileType.trim()}</span>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={shouldRenderLatex}
+                                            onChange={(e) => {
+                                                setLatexRenderingPreferences(prev => ({
+                                                    ...prev,
+                                                    [blockId]: e.target.checked
+                                                }));
+                                            }}
+                                        />
+                                        <span style={{ fontSize: '0.9em' }}>Render LaTeX</span>
+                                    </label>
+                                </div>
                                 <div>
                                     {addMessageButton("Copy", () => {
                                         window.chrome.webview.postMessage({
@@ -199,7 +218,20 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     })}
                                 </div>
                             </div>
-                            {renderLatex(code.trim())}
+                            {shouldRenderLatex ? (
+                                renderLatex(code.trim())
+                            ) : (
+                                <div style={{
+                                    fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    backgroundColor: colorScheme.codeBlockBackgroundColor,
+                                    color: colorScheme.codeBlockTextColor,
+                                    padding: '10px',
+                                    marginBottom: '10px'
+                                }}>
+                                    {code.trim()}
+                                </div>
+                            )}
                         </div>
                     );
                     onCodeBlockRendered(); // Increment the counter after rendering a code block
