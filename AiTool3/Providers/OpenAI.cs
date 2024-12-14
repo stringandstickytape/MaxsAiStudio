@@ -1,4 +1,6 @@
-﻿using AiTool3.Conversations;
+﻿#define USE_STRUCTURED_OUTPUTS
+
+using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.Interfaces;
 using AiTool3.Tools;
@@ -134,37 +136,74 @@ namespace AiTool3.Providers
             };
         }
 
+
+
+#if USE_STRUCTURED_OUTPUTS
+
         protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
             if (toolIDs == null || !toolIDs.Any()) return;
-
+        
             var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
             // get first line of toolObj.FullText
             var firstLine = toolObj.FullText.Split("\n")[0];
             firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
-
+        
             var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(System.Reflection.Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
-
+        
             colorSchemeTool = System.Text.RegularExpressions.Regex.Replace(colorSchemeTool, @"^//.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-
+        
             var toolx = JObject.Parse(colorSchemeTool);
-
+        
             var wrappedtool = new JObject
             {
                 ["type"] = "function",
                 ["function"] = toolx
             };
-
+        
             wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
-
+        
             wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
             { if (((JProperty)c).Name == "input_schema") c.Remove(); }
             );
-
+        
             request["tools"] = new JArray { wrappedtool };
             request["tool_choice"] = wrappedtool;
         }
 
+#else
+        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        {
+            if (toolIDs == null || !toolIDs.Any()) return;
+
+            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
+            var firstLine = toolObj.FullText.Split("\n")[0];
+            firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
+
+            var schemaJson = AssemblyHelper.GetEmbeddedResource(System.Reflection.Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
+
+            // Remove comment lines from the schema
+            schemaJson = System.Text.RegularExpressions.Regex.Replace(schemaJson, @"^//.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            var schema = JObject.Parse(schemaJson);
+            schema["schema"] = schema["input_schema"];
+            schema.Remove("input_schema");
+
+            // Create the response_format structure
+            var responseFormat = new JObject
+            {
+                ["type"] = "json_schema",
+                ["json_schema"] = schema, // Assuming the schema is in input_schema
+            };
+
+            // Add to the request
+            request["response_format"] = responseFormat;
+            
+            // Remove any existing tools or tool_choice if they exist
+            if (request["tools"] != null) request.Remove("tools");
+            if (request["tool_choice"] != null) request.Remove("tool_choice");
+        }
+#endif
 
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
