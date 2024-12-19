@@ -1,4 +1,4 @@
-﻿#define USE_STRUCTURED_OUTPUTS
+﻿//#define USE_OLD_STYLE_TOOLS
 
 using AiTool3.Conversations;
 using AiTool3.DataModels;
@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Linq;
 using SharedClasses.Helpers;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Providers
 {
@@ -138,22 +139,26 @@ namespace AiTool3.Providers
 
 
 
-#if USE_STRUCTURED_OUTPUTS
+#if USE_OLD_STYLE_TOOLS
 
         protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
             if (toolIDs == null || !toolIDs.Any()) return;
         
+           
             var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            // get first line of toolObj.FullText
-            var firstLine = toolObj.FullText.Split("\n")[0];
-            firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
-        
-            var colorSchemeTool = AssemblyHelper.GetEmbeddedResource(System.Reflection.Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
-        
-            colorSchemeTool = System.Text.RegularExpressions.Regex.Replace(colorSchemeTool, @"^//.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-        
-            var toolx = JObject.Parse(colorSchemeTool);
+            var firstLine = toolObj.FullText.Split("\n")[0]
+                .Replace("//", "")
+                .Replace(" ", "")
+                .Replace("\r", "")
+                .Replace("\n", "");
+
+            var toolManager = new ToolManager();
+            var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
+            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
+            var toolx = JObject.Parse(colorSchemeToolText);
+
+
         
             var wrappedtool = new JObject
             {
@@ -176,16 +181,19 @@ namespace AiTool3.Providers
         {
             if (toolIDs == null || !toolIDs.Any()) return;
 
+
             var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            var firstLine = toolObj.FullText.Split("\n")[0];
-            firstLine = firstLine.Replace("//", "").Replace(" ", "").Replace("\r", "").Replace("\n", "");
+            var firstLine = toolObj.FullText.Split("\n")[0]
+                .Replace("//", "")
+                .Replace(" ", "")
+                .Replace("\r", "")
+                .Replace("\n", "");
 
-            var schemaJson = AssemblyHelper.GetEmbeddedResource(System.Reflection.Assembly.GetExecutingAssembly(), $"AiTool3.Tools.{firstLine}");
+            var toolManager = new ToolManager();
+            var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
+            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
 
-            // Remove comment lines from the schema
-            schemaJson = System.Text.RegularExpressions.Regex.Replace(schemaJson, @"^//.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-
-            var schema = JObject.Parse(schemaJson);
+            var schema = JObject.Parse(colorSchemeToolText);
             schema["schema"] = schema["input_schema"];
             schema.Remove("input_schema");
 
@@ -209,7 +217,7 @@ namespace AiTool3.Providers
         {
             using var response = await SendRequest(apiModel, content, cancellationToken, true);
 
-            ValidateResponse(response);
+            //ValidateResponse(response);
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var reader = new StreamReader(stream);
@@ -237,6 +245,20 @@ namespace AiTool3.Providers
                     leftovers = ProcessLine($"{leftovers}{line}", responseBuilder, ref inputTokens, ref outputTokens);
                 }
             }
+
+            // does leftovers deserialize like this? {  "error": {    "message": "Invalid schema for function 'Expression-Model-5-1': [{'type': 'object', 'properties': {'type': {'enum': ['vstring']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}, {'type': 'object', 'properties': {'type': {'enum': ['vint']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}, {'type': 'object', 'properties': {'type': {'enum': ['vint']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}] is not of type 'object', 'boolean'.",    "type": "invalid_request_error",    "param": "tools[0].function.parameters",    "code": "invalid_function_parameters"  }}
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                responseBuilder.Append($"Error : {leftovers}");
+            }
+
+            
+
             OnStreamingComplete();
 
             return new AiResponse
