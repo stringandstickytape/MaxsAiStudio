@@ -195,7 +195,7 @@ namespace AiTool3.Providers
 
         public static void StartOllama(string modelName)
         {
-            var psi = new ProcessStartInfo("ollama", $"run {modelName}")
+            var psi = new ProcessStartInfo("ollama", $"run {modelName} /set parameter num_ctx 16384")
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

@@ -17,6 +17,8 @@ namespace AiTool3.Providers
 {
     internal class OpenAI : AiServiceBase
     {
+        private bool deepseekBodge = false;
+
         public OpenAI()
         {
         }
@@ -40,6 +42,10 @@ namespace AiTool3.Providers
             bool addEmbeddings = false)
         {
             InitializeHttpClient(apiModel, currentSettings);
+
+            if (apiModel.Url.Contains("deepseek"))
+                deepseekBodge = true;
+
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
             var messagesArray = new JArray();
@@ -47,7 +53,9 @@ namespace AiTool3.Providers
             messagesArray.Add(new JObject
             {
                 ["role"] = "system",
-                ["content"] = new JArray
+                ["content"] = deepseekBodge ?
+                    conversation.SystemPromptWithDateTime()
+                : new JArray
                 {
                     new JObject
                     {
@@ -133,7 +141,7 @@ namespace AiTool3.Providers
             return new JObject
             {
                 ["role"] = message.role,
-                ["content"] = messageContent
+                ["content"] = deepseekBodge ? message.content : messageContent
             };
         }
 

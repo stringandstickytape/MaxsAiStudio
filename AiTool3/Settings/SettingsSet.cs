@@ -220,6 +220,7 @@ new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", Se
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash-002", FriendlyName = "Gemini 1.5 Flash 002", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .15m, output1MTokenPrice = .6m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-1.5-flash-8b", FriendlyName = "Gemini 1.5 Flash 8b", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
+new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-2.0-flash-thinking-exp-1219", FriendlyName = "Gemini 2.0 Flash Thinking Experimental", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/models/", ServiceName = typeof(Gemini).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = 0m, output1MTokenPrice = 0m},
 new Model { Url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions/", ServiceName = typeof(OpenAI).Name, ModelName = "gemini-2.0-flash-exp", FriendlyName = "Gemini 2.0 Flash Exp via OpenAI API", Color = Color.FromArgb(186, 255, 216), input1MTokenPrice = .075m, output1MTokenPrice = .3m},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-5-sonnet-20241022", FriendlyName = "Claude 3.5 Sonnet New (Oct 2024)", Color = Color.FromArgb(255, 219, 186), input1MTokenPrice = 3, output1MTokenPrice = 15},
@@ -228,6 +229,9 @@ new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-opus-20240229", FriendlyName = "Claude 3 Opus (Feb 2024)", Color = Color.FromArgb(186, 207, 255), input1MTokenPrice = 15, output1MTokenPrice = 75},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-sonnet-20240229", FriendlyName = "Claude 3 Sonnet (Feb 2024)", Color = Color.FromArgb(186, 255, 237), input1MTokenPrice = 3, output1MTokenPrice = 15},
 new Model { Url = "https://api.anthropic.com/v1/messages", ServiceName = typeof(Claude).Name, SupportsPrefill = true, ModelName = "claude-3-haiku-20240307", FriendlyName = "Claude 3 Haiku (March 2024)", Color = Color.FromArgb(216, 186, 255), input1MTokenPrice = .25m, output1MTokenPrice = 1.25m},
+
+new Model { Url = "https://api.deepseek.com/chat/completions", ServiceName = typeof(OpenAI).Name, SupportsPrefill = true, ModelName = "deepseek-chat", FriendlyName = "Deepseek-chat", Color = Color.Goldenrod, input1MTokenPrice = .07m, output1MTokenPrice = .28m},
+
 new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, ModelName = "lorem-ipsum-1", FriendlyName = "Lorem Ipsum 1", Color = Color.FromArgb(255, 186, 186) }
             };
         }
