@@ -154,11 +154,9 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     );
 
     const formatContent = (text) => {
-        console.log("!!!!!!!!!!!!!!!");
         if (!window.getFormatting?.()) {
             return <span>{text}</span>;
         }
-        console.log('$$$$$$$$$$$$$$$$$$$');
         const codeBlockRegex = /\u0060\u0060\u0060([^\n]*\n)?([\s\S]*?)\u0060\u0060\u0060/g;
         const quotedStringRegex = /\u0060(?=[^\u0060])([^\u0060\n]+)\u0060/g;
         const parts = [];
@@ -465,6 +463,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         return parts;
     };
 
+    let uniqueKeyCounter = 0;
+
     // New helper function to format URLs in non-code text
     const formatUrls = (text) => {
         const urlRegex = /(?:https?|ftp):\/\/[^\s/$.?#].[^\s]*/g;
@@ -474,12 +474,13 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
 
         textParts.forEach((part, index) => {
             if (part) {
-                parts.push(<span key={`text-${index}`}>{part}</span>);
+                parts.push(<span key={`text-${index}-${uniqueKeyCounter}`}>{part}</span>);
+                uniqueKeyCounter++;
             }
             if (index < urlMatches.length) {
                 parts.push(
                     <span
-                        key={`url-${index}`}
+                        key={`url-${index}-${uniqueKeyCounter}`}
                         onClick={() => {
                             window.chrome.webview.postMessage({
                                 type: 'openUrl',
@@ -495,6 +496,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                         {urlMatches[index]}
                     </span>
                 );
+                uniqueKeyCounter++;
             }
         });
 
