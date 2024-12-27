@@ -81,7 +81,7 @@ namespace AITool3
 
         public async Task BroadcastLineAsync(string message)
         {
-            byte[] data = Encoding.ASCII.GetBytes(message + "\n");
+            byte[] data = Encoding.UTF8.GetBytes(message + "\n");
             foreach (var client in clients)
             {
                 try
