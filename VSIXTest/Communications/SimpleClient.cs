@@ -63,7 +63,7 @@ namespace VSIXTest
                 await ReconnectIfNeededAsync();
             }
 
-            byte[] data = Encoding.ASCII.GetBytes(message + "\n");
+            byte[] data = Encoding.UTF8.GetBytes(message + "\n");
             await stream.WriteAsync(data, 0, data.Length);
         }
 
@@ -98,7 +98,7 @@ namespace VSIXTest
                     int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0) continue;
 
-                    string chunk = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    string chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     messageBuilder.Append(chunk);
 
                     int newlineIndex;
