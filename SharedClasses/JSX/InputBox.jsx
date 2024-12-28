@@ -20,8 +20,19 @@ const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeho
         event.preventDefault();
         const pastedText = event.clipboardData.getData('text');
         const cleanedText = pastedText.replace(/\r/g, '');
-        const newContent = value.slice(0, event.target.selectionStart) + cleanedText + value.slice(event.target.selectionEnd);
+
+        const selectionStart = event.target.selectionStart;
+        const selectionEnd = event.target.selectionEnd;
+
+        const newContent = value.slice(0, selectionStart) + cleanedText + value.slice(selectionEnd);
         onChange(newContent);
+
+        // Set the caret position after the pasted content
+        // We need to use setTimeout to ensure the state has been updated before we set the selection
+        setTimeout(() => {
+            event.target.selectionStart = selectionStart + cleanedText.length;
+            event.target.selectionEnd = selectionStart + cleanedText.length;
+        }, 0);
     };
 
     const setInputContent = (newContent) => {
