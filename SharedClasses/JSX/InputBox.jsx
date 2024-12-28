@@ -27,14 +27,16 @@ const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeho
         const newContent = value.slice(0, selectionStart) + cleanedText + value.slice(selectionEnd);
         onChange(newContent);
 
-        // Set the caret position after the pasted content
+        // Set the caret position after the pasted content and scroll it into view
         // We need to use setTimeout to ensure the state has been updated before we set the selection
         setTimeout(() => {
             event.target.selectionStart = selectionStart + cleanedText.length;
             event.target.selectionEnd = selectionStart + cleanedText.length;
+
+            // Scroll the caret into view
+            event.target.scrollIntoView({ block: 'nearest' });
         }, 0);
     };
-
     const setInputContent = (newContent) => {
         setContent(newContent);
     };
