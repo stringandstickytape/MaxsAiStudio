@@ -38,14 +38,18 @@ const MessagesPane = () => {
     };
 
     const addInitialMessages = (messageList) => {
+        debugger;
         setMessages(messageList.map(msg => ({
             role: msg.Role,
             content: msg.Content,
-            guid: msg.Guid
+            guid: msg.Guid,
+            base64Image: msg.Base64Image,
+            base64Type: msg.Base64Type
         })));
     };
 
-    const setMessageText = (guid, newContent, role = 0) => {
+    const setMessageText = (guid, newContent, role = 0, base64image = null, base64type = null) => {
+        debugger;
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
@@ -56,13 +60,16 @@ const MessagesPane = () => {
                 return [...prevMessages, {
                     role: role,
                     content: newContent,
-                    guid: guid
+                    guid: guid,
+                    base64Image: base64image,
+                    base64Type: base64type                    
                 }];
             }
         });
     };
 
     const appendMessageText = (guid, additionalContent, role = 0) => {
+        debugger;
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
@@ -80,10 +87,16 @@ const MessagesPane = () => {
     };
 
     const addMessage = (msg) => {
+        debugger;
+        // msg.Base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAF0AAAB2CAYAAACqGp82AAA(and so on)'
+        // msg.Base64Type = 'image/png' (for instance)
+
         setMessages(prevMessages => [...prevMessages, {
             role: msg.Role,
             content: msg.Content,
-            guid: msg.Guid
+            guid: msg.Guid,
+            base64Image: msg.Base64Image,
+            base64Type: msg.Base64Type
         }]);
         window.removeMessageByGuid("temp-user-msg");
     };
@@ -230,6 +243,8 @@ const MessagesPane = () => {
                         content={message.content}
                         guid={message.guid}
                         previousAssistantUnbalanced={isPreviousAssistantMessageUnbalanced(index)}
+                        base64Image = { message.base64Image }
+                        base64Type = { message.base64Type }   
                     />
                 ))}
             </div>

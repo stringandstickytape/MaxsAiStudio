@@ -384,6 +384,7 @@ namespace AiTool3.Conversations
             Conversation = new BranchedConversation { ConvGuid = Guid.NewGuid().ToString() };
             Conversation.AddNewRoot();
             MostRecentCompletion = Conversation.Messages.First();
+            
         }
 
         internal void AddMessagePair(CompletionMessage userMessage, CompletionMessage assistantMessage)

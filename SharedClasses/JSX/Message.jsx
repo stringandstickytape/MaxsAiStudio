@@ -1,5 +1,5 @@
 ﻿// Message.js
-const Message = ({ role, content: initialContent, guid, previousAssistantUnbalanced }) => {
+const Message = ({ role, content: initialContent, guid, previousAssistantUnbalanced, base64Image, base64Type }) => {
     const { colorScheme } = window.useColorScheme();
     const [showContinueButton, setShowContinueButton] = useState(false);
     const [content, setContent] = useState(initialContent);
@@ -91,6 +91,15 @@ const Message = ({ role, content: initialContent, guid, previousAssistantUnbalan
                 )}
                 <button className="top-button" onClick={scrollToTop}>↑ Top</button>
             </div>
+            {base64Image && base64Type && (
+                <div className="message-image">
+                    <img
+                        src={`data:${base64Type};base64,${base64Image}`}
+                        alt="Attached content"
+                        style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                </div>
+            )}
         </div>
     );
 }

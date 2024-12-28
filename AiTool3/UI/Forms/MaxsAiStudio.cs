@@ -464,7 +464,13 @@ namespace AiTool3
 
             if (ConversationManager.MostRecentCompletion.Role == CompletionRole.User)
             {
-                await chatWebView.SetUserPrompt(ConversationManager.MostRecentCompletion.Content!);
+                if (ConversationManager.MostRecentCompletion.Base64Type != null)
+                {
+                    _fileAttachmentManager.SetBase64(ConversationManager.MostRecentCompletion.Base64Image, ConversationManager.MostRecentCompletion.Base64Type);
+                }
+
+                await chatWebView.SetUserPrompt(ConversationManager.MostRecentCompletion.Content!, ConversationManager.MostRecentCompletion.Base64Image, ConversationManager.MostRecentCompletion.Base64Type);
+
                 ConversationManager.MostRecentCompletion = ConversationManager.Conversation.FindByGuid(ConversationManager.MostRecentCompletion.Parent!);
             }
             else
@@ -590,7 +596,7 @@ namespace AiTool3
         {
             await chatWebView.Clear();
             webViewManager.Enable();
-
+            _fileAttachmentManager.ClearBase64();
             ConversationManager.BeginNewConversation();
 
             await WebNdcDrawNetworkDiagram();

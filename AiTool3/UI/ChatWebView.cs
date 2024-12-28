@@ -414,11 +414,11 @@ namespace AiTool3.UI
 
         internal async Task<string> GetUserPrompt() => JsonConvert.DeserializeObject<string>(await ExecuteScriptAndSendToVsixAsync("getUserPrompt()"));
 
-        internal async Task SetUserPrompt(string content)
+        internal async Task SetUserPrompt(string content, string? base64Image = null, string? base64Type = null)
         {
             await this.InvokeIfNeeded(async () =>
             {
-                await ExecuteScriptAndSendToVsixAsync($"setUserPrompt({JsonConvert.SerializeObject(content)})");
+                await ExecuteScriptAndSendToVsixAsync($"setUserPrompt({JsonConvert.SerializeObject(content)}, {JsonConvert.SerializeObject(base64Image)}, {JsonConvert.SerializeObject(base64Type)})");
             });
 
         }

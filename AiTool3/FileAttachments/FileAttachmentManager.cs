@@ -233,6 +233,12 @@ namespace AiTool3.FileAttachments
             Base64ImageType = null;
         }
 
+        public void SetBase64(string image, string type)
+        {
+            Base64Image = image;
+            Base64ImageType = type;
+        }
+
         internal async Task FileDropped(string filename, SettingsSet settings)
         {
             if (filename.StartsWith("http"))
