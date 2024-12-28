@@ -49,7 +49,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     const [isInstallingTheme, setIsInstallingTheme] = useState(false);
     const [katexLoaded, setKatexLoaded] = useState(false);
     const [latexRenderingPreferences, setLatexRenderingPreferences] = useState({});
-
+    const [visibleBlocks, setVisibleBlocks] = useState({});
 
     useEffect(() => {
         const loadKaTeX = async () => {
@@ -135,6 +135,20 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         }
     };
 
+    window.hideAllFormattedContent = () => {
+        const elements = document.querySelectorAll('.code-block-content');
+        elements.forEach(el => el.style.display = 'none');
+        const togglers = document.querySelectorAll('.code-block-toggler');
+        togglers.forEach(el => el.textContent = '[+]');
+    };
+
+    window.showAllFormattedContent = () => {
+        const elements = document.querySelectorAll('.code-block-content');
+        elements.forEach(el => el.style.display = 'block');
+        const togglers = document.querySelectorAll('.code-block-toggler');
+        togglers.forEach(el => el.textContent = '[-]');
+    };
+
     const addMessageButton = (label, action, dataType) => (
         <button
             onClick={action}
@@ -192,6 +206,24 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                 overflowWrap: 'anywhere'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span
+                                        className="code-block-toggler"
+                                        onClick={() => {
+                                            const blockId = `block-${offset}`;
+                                            const currentState = visibleBlocks[blockId] !== false; // if undefined or true, consider it visible
+                                            setVisibleBlocks(prev => ({
+                                                ...prev,
+                                                [blockId]: !currentState
+                                            }));
+                                        }}
+                                        style={{
+                                            cursor: 'pointer',
+                                            marginRight: '10px',
+                                            userSelect: 'none'
+                                        }}
+                                    >
+                                        {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
+                                    </span>
                                     <span>{fileType.trim()}</span>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <input
@@ -219,14 +251,18 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                             {shouldRenderLatex ? (
                                 renderLatex(code.trim())
                             ) : (
-                                <div style={{
-                                    fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
-                                    whiteSpace: 'pre-wrap',
-                                    backgroundColor: colorScheme.codeBlockBackgroundColor,
-                                    color: colorScheme.codeBlockTextColor,
-                                    padding: '10px',
-                                    marginBottom: '10px'
-                                }}>
+                                    <div
+                                        className="code-block-content"
+                                        style={{
+                                            display: visibleBlocks[`block-${offset}`] === false ? 'none' : 'block',
+                                            fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
+                                            whiteSpace: 'pre-wrap',
+                                            backgroundColor: colorScheme.codeBlockBackgroundColor,
+                                            color: colorScheme.codeBlockTextColor,
+                                            padding: '10px',
+                                            marginBottom: '10px'
+                                        }}
+                                    >
                                     {code.trim()}
                                 </div>
                             )}
@@ -237,6 +273,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                     // This is a code block
                     parts.push(
                         <div key={offset}>
+
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -249,6 +286,24 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                 borderTopRightRadius: '5px',
                                 overflowWrap: 'anywhere'
                             }}>
+                                <span
+                                    className="code-block-toggler"
+                                    onClick={() => {
+                                        const blockId = `block-${offset}`;
+                                        const currentState = visibleBlocks[blockId] !== false; // if undefined or true, consider it visible
+                                        setVisibleBlocks(prev => ({
+                                            ...prev,
+                                            [blockId]: !currentState
+                                        }));
+                                    }}
+                                    style={{
+                                        cursor: 'pointer',
+                                        marginRight: '10px',
+                                        userSelect: 'none'
+                                    }}
+                                >
+                                    {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
+                                </span>
                                 <span>{fileType.trim()}</span>
                                 <div>
                                     {addMessageButton("Copy", () => {
@@ -411,14 +466,18 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                     }
                                 </div>
                             </div>
-                            <div style={{
-                                fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
-                                whiteSpace: 'pre-wrap',
-                                backgroundColor: colorScheme.codeBlockBackgroundColor,
-                                color: colorScheme.codeBlockTextColor,
-                                padding: '10px',
-                                marginBottom: '10px'
-                            }}>
+                            <div
+                                className="code-block-content"
+                                style={{
+                                    display: visibleBlocks[`block-${offset}`] === false ? 'none' : 'block',
+                                    fontFamily: colorScheme.fixedWidthFontFamily || 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    backgroundColor: colorScheme.codeBlockBackgroundColor,
+                                    color: colorScheme.codeBlockTextColor,
+                                    padding: '10px',
+                                    marginBottom: '10px'
+                                }}
+                            >
                                 {code.trim()}
                             </div>
                         </div >
