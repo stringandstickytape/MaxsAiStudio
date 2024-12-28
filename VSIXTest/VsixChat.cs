@@ -55,8 +55,13 @@ namespace VSIXTest
             if (e.Key == Key.End)
             {
                 e.Handled = true;
+
                 bool shiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-                await ExecuteScriptAsync($"window.moveCaretToEnd({(shiftHeld ? "true" : "false")})");
+                bool ctrlHeld = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
+                bool altHeld = Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+
+                // Call the JavaScript function, passing modifier key states
+                await ExecuteScriptAsync($"window.moveCaretToEnd({shiftHeld.ToString().ToLower()}, {ctrlHeld.ToString().ToLower()}, {altHeld.ToString().ToLower()})");
             }
             else if (e.Key == Key.Home)
             {

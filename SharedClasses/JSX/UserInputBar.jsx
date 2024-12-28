@@ -49,20 +49,49 @@
         }
     }
 
-    const moveCaretToEnd = (shiftHeld) => {
+    const moveCaretToEnd = async (shiftHeld, ctrlHeld, altHeld) => {
         if (inputBoxRef.current) {
             const textarea = inputBoxRef.current;
-            const length = textarea.value.length;
 
-            if (shiftHeld) {
-                textarea.setSelectionRange(textarea.selectionStart, length);
-            } else {
-                textarea.setSelectionRange(length, length);
-            }
+            // Dispatch the "End" key event (still useful for consistency and potential side effects)
+            const endKeyEvent = new KeyboardEvent('keydown', {
+                key: 'End',
+                code: 'End',
+                keyCode: 35,
+                bubbles: true,
+                cancelable: true,
+                shiftKey: shiftHeld,
+                ctrlKey: ctrlHeld,
+                altKey: altHeld
+            });
+            textarea.dispatchEvent(endKeyEvent);
 
-            textarea.focus();
+            // Use setTimeout to ensure our manual adjustments happen after the event is processed
+            setTimeout(() => {
+                if (ctrlHeld) {
+                    // Ctrl+End: Move caret to the very end
+                    textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                } else {
+                    // End (without Ctrl): Manually move the caret to the end of the current line
+
+                    const textAfterCaret = textarea.value.substring(textarea.selectionEnd);
+
+                    const endOfCurrentLineIndex = textAfterCaret.indexOf('\n'); // Get the last line (current line)
+
+                    const newCaretPosition = textarea.selectionEnd + (endOfCurrentLineIndex === -1 ? textAfterCaret.length : endOfCurrentLineIndex);
+
+                    // Update selection, handling Shift if necessary
+                    if (shiftHeld) {
+                        textarea.selectionEnd = newCaretPosition;
+                    } else {
+                        textarea.setSelectionRange(newCaretPosition, newCaretPosition);
+                    }
+                }
+
+                textarea.focus();
+            }, 0);
         }
-    }
+    };
 
     React.useEffect(() => {
         window.insertTextAtCaret = insertTextAtCaret;

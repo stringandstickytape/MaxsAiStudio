@@ -38,7 +38,6 @@ const MessagesPane = () => {
     };
 
     const addInitialMessages = (messageList) => {
-        debugger;
         setMessages(messageList.map(msg => ({
             role: msg.Role,
             content: msg.Content,
@@ -49,7 +48,6 @@ const MessagesPane = () => {
     };
 
     const setMessageText = (guid, newContent, role = 0, base64image = null, base64type = null) => {
-        debugger;
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
@@ -69,7 +67,6 @@ const MessagesPane = () => {
     };
 
     const appendMessageText = (guid, additionalContent, role = 0) => {
-        debugger;
         setMessages(prevMessages => {
             const existingMessageIndex = prevMessages.findIndex(msg => msg.guid === guid);
             if (existingMessageIndex !== -1) {
@@ -87,7 +84,6 @@ const MessagesPane = () => {
     };
 
     const addMessage = (msg) => {
-        debugger;
         // msg.Base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAF0AAAB2CAYAAACqGp82AAA(and so on)'
         // msg.Base64Type = 'image/png' (for instance)
 
