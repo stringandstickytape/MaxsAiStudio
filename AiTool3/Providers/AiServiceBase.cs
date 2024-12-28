@@ -22,10 +22,13 @@ namespace AiTool3.Providers
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;
 
-        protected virtual void InitializeHttpClient(Model apiModel, SettingsSet currentSettings)
+        protected virtual void InitializeHttpClient(Model apiModel, SettingsSet currentSettings, int timeout = 100)
         {
             if (clientInitialised) return;
             ConfigureHttpClientHeaders(apiModel, currentSettings);
+
+            client.Timeout = TimeSpan.FromSeconds(timeout);
+
             clientInitialised = true;
         }
 

@@ -1,4 +1,5 @@
 ﻿using AiTool3.DataModels;
+using AiTool3.Providers;
 using System.Data;
 using System.Reflection;
 
@@ -130,7 +131,6 @@ namespace AiTool3.Settings
                     panelToggles.Controls.Add(btn);
                 }
 
-
                 ypos += yInc;
             }
 
@@ -139,7 +139,6 @@ namespace AiTool3.Settings
             {
                 var displayNameAttr = prop.GetCustomAttribute<MyDisplayNameAttrAttribute>();
                 if (displayNameAttr == null) continue;
-
 
                 // create a new numeric up down control
                 var nud = new NumericUpDown
@@ -168,7 +167,6 @@ namespace AiTool3.Settings
                     Location = new Point(nud.Width + 5, ypos)
                 };
                 panelToggles.Controls.Add(lbl);
-
 
                 ypos += yInc;
             }
@@ -208,7 +206,6 @@ namespace AiTool3.Settings
                 ypos += yInc;
             }
 
-
         }
 
         private SettingsSet CloneSettings(SettingsSet settings)
@@ -226,23 +223,47 @@ namespace AiTool3.Settings
             dgvModels.CellClick += DgvModels_CellClick;
         }
 
+        private List<string> GetAiServiceNames()
+        {
+            return Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(AiServiceBase)))
+                .Select(t => t.Name)
+                .OrderBy(x=>x)
+                .ToList();
+        }
+
         private void CreateDgvColumns()
         {
             var columns = new[]
             {
-            //new { Name = "ApiName", HeaderText = "API Name", ReadOnly = false },
-            new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
-            new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
-            new { Name = "ServiceName", HeaderText = "Protocol", ReadOnly = false },
-            new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
-            new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
-            new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
-            new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false },
-            new { Name = "ModelColor", HeaderText = "Color", ReadOnly = false }
-        };
+                new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
+                new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
+                //new { Name = "ServiceName", HeaderText = "Protocol", ReadOnly = false },
+                new { Name = "AiServ", HeaderText = "AI Service", ReadOnly = false },
+                new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
+                new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
+                new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
+                new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false },
+                new { Name = "ModelColor", HeaderText = "Color", ReadOnly = false }
+            };
 
             foreach (var col in columns)
             {
+                if (col.Name == "AiServ")
+                {
+                    var comboBoxColumn = new DataGridViewComboBoxColumn
+                    {
+                        Name = col.Name,
+                        HeaderText = col.HeaderText,
+                        DataPropertyName = col.Name,
+                        ReadOnly = col.ReadOnly,
+                        DataSource = GetAiServiceNames()
+                    };
+                    dgvModels.Columns.Add(comboBoxColumn);
+                    continue;
+                }
+
                 var newCol = new DataGridViewTextBoxColumn
                 {
                     Name = col.Name,
@@ -259,9 +280,9 @@ namespace AiTool3.Settings
                     case "ModelName":
                         newCol.Width = 200;
                         break;
-                    case "ServiceName":
-                        newCol.Width = 100;
-                        break;
+                    //case "ServiceName":
+                    //    newCol.Width = 100;
+                    //    break;
                     case "ModelUrl":
                         newCol.Width = 300;
                         break;
@@ -291,7 +312,16 @@ namespace AiTool3.Settings
             dgvModels.Rows.Clear();
             foreach (var model in settings.ModelList)
             {
-                var index = dgvModels.Rows.Add(model.FriendlyName, model.ModelName, model.ServiceName, model.Url, model.Key, model.input1MTokenPrice, model.output1MTokenPrice, ColorTranslator.ToHtml(model.Color));
+                var index = dgvModels.Rows.Add(
+                    model.FriendlyName,
+                    model.ModelName,
+                    //model.ServiceName,
+                    model.ServiceName,
+                    model.Url,
+                    model.Key,
+                    model.input1MTokenPrice,
+                    model.output1MTokenPrice,
+                    ColorTranslator.ToHtml(model.Color));
                 dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
             }
         }
@@ -334,7 +364,8 @@ namespace AiTool3.Settings
 
             model.ModelName = modelName;
             model.FriendlyName = row.Cells["FriendlyName"].Value?.ToString() ?? "";
-            model.ServiceName = row.Cells["ServiceName"].Value?.ToString() ?? "";
+            //model.ServiceName = row.Cells["ServiceName"].Value?.ToString() ?? "";
+            model.ServiceName = row.Cells["AiServ"].Value?.ToString() ?? "";
             model.Url = row.Cells["ModelUrl"].Value?.ToString() ?? "";
             model.Key = row.Cells["ModelKey"].Value?.ToString() ?? "";
             decimal.TryParse(row.Cells["ModelInputPrice"].Value?.ToString(), out decimal inputPrice);
@@ -351,7 +382,8 @@ namespace AiTool3.Settings
             //row.Cells["ApiName"].Value = "New API";
             row.Cells["FriendlyName"].Value = "New Model";
             row.Cells["ModelName"].Value = "New Model";
-            row.Cells["ServiceName"].Value = "NewService";
+            //row.Cells["ServiceName"].Value = "NewService";
+            row.Cells["AiServ"].Value = GetAiServiceNames().FirstOrDefault() ?? "";
             row.Cells["ModelUrl"].Value = "https://api.example.com";
             row.Cells["ModelKey"].Value = "";
             row.Cells["ModelInputPrice"].Value = 0;

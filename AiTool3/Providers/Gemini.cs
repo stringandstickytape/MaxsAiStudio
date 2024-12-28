@@ -29,7 +29,7 @@ namespace AiTool3.Providers
                 bool useStreaming = false,
                 bool addEmbeddings = false)
             {
-                InitializeHttpClient(apiModel, currentSettings);
+                InitializeHttpClient(apiModel, currentSettings, 300 /* debug timeout */);
                 var url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
 
                 var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
