@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Providers
 {
@@ -17,31 +18,36 @@ namespace AiTool3.Providers
             {
             }
 
-            public override async Task<AiResponse> FetchResponse(
-                Model apiModel,
-                Conversation conversation,
-                string base64image,
-                string base64ImageType,
-                CancellationToken cancellationToken,
-                SettingsSet currentSettings,
-                bool mustNotUseEmbedding,
-                List<string> toolIDs,
-                bool useStreaming = false,
-                bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(
+            Model apiModel,
+            Conversation conversation,
+            string base64image,
+            string base64ImageType,
+            CancellationToken cancellationToken,
+            SettingsSet currentSettings,
+            bool mustNotUseEmbedding,
+            List<string> toolIDs,
+            bool useStreaming = false,
+            bool addEmbeddings = false)
+        {
+            InitializeHttpClient(apiModel, currentSettings, 300);
+            var url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
+
+            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+
+            // Add tools if specified
+            if (toolIDs?.Any() == true)
             {
-                InitializeHttpClient(apiModel, currentSettings, 300 /* debug timeout */);
-                var url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
+                AddToolsToRequest(requestPayload, toolIDs);
+            }
 
-                var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
-
-                // Construct the messages array from the conversation
-                var contentsArray = new JArray();
-                foreach (var message in conversation.messages)
-                {
-                    var messageObj = CreateMessageObject(message);
-                    contentsArray.Add(messageObj);
-                }
-
+            // Construct the messages array
+            var contentsArray = new JArray();
+            foreach (var message in conversation.messages)
+            {
+                var messageObj = CreateMessageObject(message);
+                contentsArray.Add(messageObj);
+            }
 
 
             requestPayload["contents"] = contentsArray;
@@ -182,79 +188,142 @@ namespace AiTool3.Providers
                     }
                 }
             }
-            private string inputTokenCount = "";
-            private string outputTokenCount = "";
 
-            private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
+        private string ExtractResponseText(JObject completion)
+        {
+            if (completion["candidates"]?[0]?["content"]?["parts"] != null)
             {
-                if (!string.IsNullOrWhiteSpace(jsonString))
+                var content = completion["candidates"][0]["content"]["parts"][0];
+
+                // Check if this is a tool response
+                if (content["functionCall"] != null)
                 {
-                    System.Diagnostics.Debug.WriteLine(jsonString);
-                    try
+                    return JsonConvert.SerializeObject(content["functionCall"]);
+                }
+
+                return content["text"]?.ToString() ?? "";
+            }
+            return "";
+        }
+
+        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            HttpResponseMessage response = await client.PostAsync($"{apiModel.Url}{apiModel.ModelName}:generateContent?key={apiModel.Key}", content, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
+
+                var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
+                var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+
+                return new AiResponse
+                {
+                    ResponseText = ExtractResponseText(completion),
+                    Success = true,
+                    TokenUsage = new TokenUsage(inputTokens, outputTokens)
+                };
+            }
+            else
+            {
+                string errorContent = await response.Content.ReadAsStringAsync();
+                return new AiResponse { ResponseText = errorContent, Success = false };
+            }
+        }
+
+        private string inputTokenCount = "";
+            private string outputTokenCount = "";
+        private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
+        {
+            if (!string.IsNullOrWhiteSpace(jsonString))
+            {
+                try
+                {
+                    var streamData = JObject.Parse(jsonString);
+                    if (streamData["candidates"] != null)
                     {
-                        var streamData = JObject.Parse(jsonString);
-                        if (streamData["candidates"] != null)
+                        var content = streamData["candidates"][0]["content"]["parts"][0];
+
+                        // Handle tool responses
+                        if (content["functionCall"] != null)
                         {
-                            var textChunk = streamData["candidates"][0]["content"]["parts"][0]["text"]?.ToString();
+                            var toolResponse = JsonConvert.SerializeObject(content["functionCall"]);
+                            fullResponse.Append(toolResponse);
+                            OnStreamingDataReceived(toolResponse);
+                        }
+                        else
+                        {
+                            var textChunk = content["text"]?.ToString();
                             if (!string.IsNullOrEmpty(textChunk))
                             {
-                                System.Diagnostics.Debug.WriteLine(textChunk);
                                 fullResponse.Append(textChunk);
-
                                 OnStreamingDataReceived(textChunk);
                             }
                         }
-
-                        if (streamData["usageMetadata"] != null)
-                        {
-                            inputTokenCount = streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
-                            outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                        }
                     }
-                    catch (JsonReaderException ex)
+
+                    if (streamData["usageMetadata"] != null)
                     {
-                        return jsonString;
+                        inputTokenCount = streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
+                        outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                     }
                 }
-                return "";
-            }
-            protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
-            {
-                HttpResponseMessage response = await client.PostAsync($"{apiModel.Url}{apiModel.ModelName}:generateContent?key={apiModel.Key}", content, cancellationToken);
-
-                if (response.IsSuccessStatusCode)
+                catch (JsonReaderException ex)
                 {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine(responseContent);
-
-                    var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
-
-                    var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
-                    var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-
-                    return new AiResponse
-                    {
-                        ResponseText = completion["candidates"][0]["content"]["parts"][0]["text"].ToString(),
-                        Success = true,
-                        TokenUsage = new TokenUsage(inputTokens, outputTokens)
-                    };
-                }
-                else
-                {
-                    System.Console.WriteLine($"Error: {response.StatusCode}");
-                    string errorContent = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine(errorContent);
-                    return new AiResponse { ResponseText = errorContent, Success = false };
+                    return jsonString;
                 }
             }
+            return "";
+        }
 
-            protected override TokenUsage ExtractTokenUsage(JObject response)
+        protected override TokenUsage ExtractTokenUsage(JObject response)
             {
                 var inputTokens = response["usageMetadata"]?["promptTokenCount"]?.ToString();
                 var outputTokens = response["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                 return new TokenUsage(inputTokens, outputTokens);
             }
+
+        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        {
+            if (!toolIDs?.Any() == true) return;
+
+            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
+            var firstLine = toolObj.FullText.Split("\n")[0]
+                .Replace("//", "")
+                .Replace(" ", "")
+                .Replace("\r", "")
+                .Replace("\n", "");
+
+            var toolManager = new ToolManager();
+            var tool = toolManager.Tools.First(x => x.InternalName == firstLine);
+            var toolText = Regex.Replace(tool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
+            var toolConfig = JObject.Parse(toolText);
+
+            toolConfig["parameters"] = toolConfig["input_schema"];
+            toolConfig.Remove("input_schema");
+            //toolConfig["required"] = toolConfig["parameters"]["required"];
+            //((JObject)toolConfig["parameters"]).Remove("required");
+
+            request["tools"] = new JArray
+            {
+                new JObject
+                {
+                    ["function_declarations"] = new JArray
+                    {
+                        toolConfig
+                    }
+                }
+            }; // toolConfig;
+            request["tool_config"] = new JObject
+            {
+                ["function_calling_config"] = new JObject
+                {
+                    ["mode"] = "ANY"
+                }
+            };
         }
+    }
 
 
 }
