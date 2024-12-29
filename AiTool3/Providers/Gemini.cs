@@ -42,11 +42,19 @@ namespace AiTool3.Providers
                     contentsArray.Add(messageObj);
                 }
 
-                AddFakeSystemPrompt(conversation, contentsArray);
 
-                requestPayload["contents"] = contentsArray;
 
-                if (addEmbeddings)
+            requestPayload["contents"] = contentsArray;
+            requestPayload["system_instruction"] = new JObject
+            {
+                ["parts"] = new JObject
+                {
+                    ["text"] = conversation.SystemPromptWithDateTime()
+                }
+            };
+
+
+            if (addEmbeddings)
                 {
                     var lastMessage = conversation.messages.Last().content;
                     var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
@@ -107,26 +115,7 @@ namespace AiTool3.Providers
                 };
             }
 
-            private static void AddFakeSystemPrompt(Conversation conversation, JArray contentsArray)
-            {
-                contentsArray.Insert(0, new JObject
-                {
-                    ["role"] = "model",
-                    ["parts"] = new JArray(new JObject
-                    {
-                        ["text"] = "Understood."
-                    })
-                });
 
-                contentsArray.Insert(0, new JObject
-                {
-                    ["role"] = "user",
-                    ["parts"] = new JArray(new JObject
-                    {
-                        ["text"] = conversation.SystemPromptWithDateTime()
-                    })
-                });
-            }
 
         protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
