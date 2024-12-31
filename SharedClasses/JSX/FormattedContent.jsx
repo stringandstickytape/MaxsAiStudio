@@ -79,6 +79,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         viewJsonStringArray: ["json"],
         viewSvg: ["svg", "xml", "html"],
         installTheme: ["maxtheme.json"],
+        applyNewDiff: ["newdiff.json"],
         importTemplate: ["maxchattemplate.json"],
         browseJsonObject: ["json"],
         viewMermaidDiagram: ["mermaid"],
@@ -345,6 +346,14 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                         addMessageButton("Import Template", () => {
                                             window.chrome.webview.postMessage({
                                                 type: 'importTemplate',
+                                                content: code.trim()
+                                            })
+                                        })
+                                    }
+                                    {fileTypes.applyNewDiff.includes(fileType.trim().toLowerCase()) &&
+                                        addMessageButton("Apply Diff", () => {
+                                            window.chrome.webview.postMessage({
+                                                type: 'applyNewDiff',
                                                 content: code.trim()
                                             })
                                         })

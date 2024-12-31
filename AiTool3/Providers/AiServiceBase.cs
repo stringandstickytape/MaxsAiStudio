@@ -154,7 +154,7 @@ namespace AiTool3.Providers
 
         protected virtual void ValidateResponse(HttpResponseMessage response)
         {
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
         }
 
         protected virtual async Task<string> ExtractResponseText(JObject response)

@@ -154,9 +154,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Html\Home.html" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj">
       <Project>{edbb3825-66b7-4f2b-9968-e83a213e59c6}</Project>
       <Name>SharedClasses</Name>

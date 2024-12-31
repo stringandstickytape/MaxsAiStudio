@@ -147,13 +147,10 @@ namespace AiTool3.Providers
 
 
 
-#if USE_OLD_STYLE_TOOLS
-
         protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
             if (toolIDs == null || !toolIDs.Any()) return;
-        
-           
+
             var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
             var firstLine = toolObj.FullText.Split("\n")[0]
                 .Replace("//", "")
@@ -164,63 +161,35 @@ namespace AiTool3.Providers
             var toolManager = new ToolManager();
             var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
             var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
-            var toolx = JObject.Parse(colorSchemeToolText);
+            var schema = JObject.Parse(colorSchemeToolText);
 
-
-        
-            var wrappedtool = new JObject
+#if USE_OLD_STYLE_TOOLS
+            var wrappedTool = new JObject
             {
                 ["type"] = "function",
-                ["function"] = toolx
+                ["function"] = schema
             };
-        
-            wrappedtool["function"]["parameters"] = wrappedtool["function"]["input_schema"];
-        
-            wrappedtool["function"].Children().Reverse().ToList().ForEach(c =>
-            { if (((JProperty)c).Name == "input_schema") c.Remove(); }
-            );
-        
-            request["tools"] = new JArray { wrappedtool };
-            request["tool_choice"] = wrappedtool;
-        }
 
+            wrappedTool["function"]["parameters"] = wrappedTool["function"]["input_schema"];
+            wrappedTool["function"].Children().Reverse().ToList().ForEach(c =>
+            { if (((JProperty)c).Name == "input_schema") c.Remove(); });
+
+            request["tools"] = new JArray { wrappedTool };
+            request["tool_choice"] = wrappedTool;
 #else
-        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
-        {
-            if (toolIDs == null || !toolIDs.Any()) return;
-
-
-            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            var firstLine = toolObj.FullText.Split("\n")[0]
-                .Replace("//", "")
-                .Replace(" ", "")
-                .Replace("\r", "")
-                .Replace("\n", "");
-
-            var toolManager = new ToolManager();
-            var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
-            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
-
-            var schema = JObject.Parse(colorSchemeToolText);
             schema["schema"] = schema["input_schema"];
             schema.Remove("input_schema");
 
-            // Create the response_format structure
-            var responseFormat = new JObject
+            request["response_format"] = new JObject
             {
                 ["type"] = "json_schema",
-                ["json_schema"] = schema, // Assuming the schema is in input_schema
+                ["json_schema"] = schema
             };
 
-            // Add to the request
-            request["response_format"] = responseFormat;
-            
-            // Remove any existing tools or tool_choice if they exist
-            if (request["tools"] != null) request.Remove("tools");
-            if (request["tool_choice"] != null) request.Remove("tool_choice");
-        }
+            request.Remove("tools");
+            request.Remove("tool_choice");
 #endif
-
+        }
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
             using var response = await SendRequest(apiModel, content, cancellationToken, true);

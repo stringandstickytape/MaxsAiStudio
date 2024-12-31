@@ -128,55 +128,74 @@ namespace AiTool3.Providers
             // Gemini uses key as URL parameter, not as Authorization header
         }
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{apiModel.Url}{apiModel.ModelName}:streamGenerateContent?key={apiModel.Key}"))
             {
-                using (var request = new HttpRequestMessage(HttpMethod.Post, $"{apiModel.Url}{apiModel.ModelName}:streamGenerateContent?key={apiModel.Key}"))
+                request.Content = content;
+                using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
-                    request.Content = content;
-                    using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                    response.EnsureSuccessStatusCode();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var reader = new StreamReader(stream))
                     {
-                        response.EnsureSuccessStatusCode();
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        using (var reader = new StreamReader(stream))
+                        StringBuilder fullResponse = new StringBuilder();
+                        StringBuilder jsonBuffer = new StringBuilder();
+                        bool isFirstLine = true;
+
+                        while (!reader.EndOfStream)
                         {
-                            StringBuilder fullResponse = new StringBuilder();
-                            StringBuilder jsonBuffer = new StringBuilder();
-                            bool isFirstLine = true;
-
-                            while (!reader.EndOfStream)
-                            {
-                                string line = await reader.ReadLineAsync(cancellationToken);
-                                if (cancellationToken.IsCancellationRequested)
-                                {
-                                    break;
-                                }
-                                System.Diagnostics.Debug.WriteLine(line);
-                                // :-/
-                                if (isFirstLine)
-                                {
-                                    // Remove leading '[' from the first line
-                                    line = line.TrimStart('[');
-                                    isFirstLine = false;
-                                }
-
-                                jsonBuffer.Append(line);
-                                if (line == "," || line == "]")
-                                {
-                                    // We have a complete JSON object
-                                    string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
-                                    await ProcessJsonObject(jsonObject, fullResponse);
-                                    jsonBuffer.Clear();
-                                }
-                            }
-
+                            string line = await reader.ReadLineAsync(cancellationToken);
                             if (cancellationToken.IsCancellationRequested)
                             {
-                                reader.Dispose();
-                                await stream.DisposeAsync();
+                                break;
                             }
-                            else
+                            System.Diagnostics.Debug.WriteLine(line);
+                            // :-/
+                            if (isFirstLine)
                             {
-                                OnStreamingComplete();
+                                // Remove leading '[' from the first line
+                                line = line.TrimStart('[');
+                                isFirstLine = false;
                             }
+
+                            jsonBuffer.Append(line);
+                            if (line == "," || line == "]")
+                            {
+                                // We have a complete JSON object
+                                string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
+                                await ProcessJsonObject(jsonObject, fullResponse);
+                                jsonBuffer.Clear();
+                            }
+                        }
+
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            reader.Dispose();
+                            await stream.DisposeAsync();
+                        }
+                        else
+                        {
+                            OnStreamingComplete();
+                        }
+
+                        try
+                        {
+                            var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString()); 
+
+                            if (jsonResponse["args"] != null)
+                            {
+                                //var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
+
+                                return new AiResponse
+                                {
+                                    ResponseText = jsonResponse["args"].ToString(),
+                                    Success = !cancellationToken.IsCancellationRequested,
+                                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
+                                };
+                            }
+                        }
+                        catch(Exception e)
+                        {
 
                             return new AiResponse
                             {
@@ -185,9 +204,17 @@ namespace AiTool3.Providers
                                 TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
                             };
                         }
-                    }
+
+                    return new AiResponse
+                    {
+                        ResponseText = fullResponse.ToString(),
+                        Success = !cancellationToken.IsCancellationRequested,
+                        TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
+                    };
+                }
                 }
             }
+        }
 
         private string ExtractResponseText(JObject completion)
         {
@@ -302,8 +329,10 @@ namespace AiTool3.Providers
 
             toolConfig["parameters"] = toolConfig["input_schema"];
             toolConfig.Remove("input_schema");
-            //toolConfig["required"] = toolConfig["parameters"]["required"];
-            //((JObject)toolConfig["parameters"]).Remove("required");
+
+
+            RemoveAllOfAnyOfOneOf(toolConfig);
+
 
             request["tools"] = new JArray
             {
@@ -314,7 +343,7 @@ namespace AiTool3.Providers
                         toolConfig
                     }
                 }
-            }; // toolConfig;
+            };
             request["tool_config"] = new JObject
             {
                 ["function_calling_config"] = new JObject
@@ -322,6 +351,39 @@ namespace AiTool3.Providers
                     ["mode"] = "ANY"
                 }
             };
+        }
+
+        private void RemoveAllOfAnyOfOneOf(JObject obj)
+        {
+            if (obj == null) return;
+
+            var propertiesToRemove = new List<string>();
+            foreach (var property in obj.Properties())
+            {
+                if (property.Name == "allOf" || property.Name == "anyOf" || property.Name == "oneOf")
+                {
+                    propertiesToRemove.Add(property.Name);
+                }
+                else if (property.Value is JObject)
+                {
+                    RemoveAllOfAnyOfOneOf((JObject)property.Value);
+                }
+                else if (property.Value is JArray)
+                {
+                    foreach (var item in (JArray)property.Value)
+                    {
+                        if (item is JObject)
+                        {
+                            RemoveAllOfAnyOfOneOf((JObject)item);
+                        }
+                    }
+                }
+            }
+
+            foreach (var prop in propertiesToRemove)
+            {
+                obj.Remove(prop);
+            }
         }
     }
 

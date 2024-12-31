@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using VSIXTest.FileGroups;
 using Microsoft.VisualStudio.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Newtonsoft.Json.Linq;
 
 namespace VSIXTest
 {
@@ -234,6 +235,139 @@ namespace VSIXTest
 
             switch (message.type)
             {
+                case "applyNewDiff":
+                    {
+                        var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
+                        var changes = changesetObj["changes"].ToObject<JArray>();
+
+                        foreach (var change in changes)
+                        {
+                            var changeType = change["change_type"].ToString();
+                            var path = change["path"].ToString();
+
+                            switch (changeType)
+                            {
+                                case "createnewFile":
+                                    {
+                                        var newContent = change["newContent"].ToString();
+                                        var directoryPath = Path.GetDirectoryName(path);
+                                        if (!Directory.Exists(directoryPath))
+                                        {
+                                            Directory.CreateDirectory(directoryPath);
+                                        }
+                                        File.WriteAllText(path, newContent);
+                                        _dte.ItemOperations.OpenFile(path);
+                                    }
+                                    break;
+
+                                case "addToFile":
+                                case "deleteFromFile":
+                                case "modifyFile":
+                                    {
+                                        var lineNumber = change["lineNumber"].Value<int>();
+                                        var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
+
+                                        // Open or activate the file
+                                        var window = _dte.ItemOperations.OpenFile(path);
+                                        window.Activate();
+                                        var document = window.Document;
+
+                                        var textDocument = document.Object() as TextDocument;
+                                        var editPoint = textDocument.StartPoint.CreateEditPoint();
+
+                                        // Move to the specified line
+                                        editPoint.MoveToLineAndOffset(lineNumber, 1);
+
+                                        if (changeType == "deleteFromFile")
+                                        {
+                                            // For delete, get the number of lines to delete from hunkHeader
+                                            var oldCount = change["hunkHeader"]["oldCount"].Value<int>();
+                                            var deletePoint = editPoint.CreateEditPoint();
+                                            deletePoint.LineDown(oldCount);
+                                            editPoint.Delete(deletePoint);
+                                        }
+                                        else if (changeType == "modifyFile")
+                                        {
+                                            string decodedOldText = "";
+
+                                            try
+
+                                            {
+                                                string decodedOldText2 = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                            }
+                                            catch
+                                            {
+                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                            }
+
+                                            // count the newlines
+                                            var oldTextNewLines = decodedOldText.Count(c => c == '\n');
+                                            // For modify, first delete the old content then insert new
+                                            //var oldCount = change["hunkHeader"]["oldHunkLineCount"].Value<int>();
+                                            var deletePoint = editPoint.CreateEditPoint();
+                                            deletePoint.LineDown(oldTextNewLines+1);
+                                            editPoint.Delete(deletePoint);
+
+                                            string decodedText = "";
+
+                                            try
+
+                                            {
+                                                string decodedText2 = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                            }
+                                            catch
+                                            {
+                                                decodedText = change["newContent"]?.ToString() ?? "";
+                                            }
+
+
+                                            var newTextNewLines = decodedText.Count(c => c == '\n');
+                                            editPoint.Insert(decodedText);
+
+                                            var insertedOrDeletedCt = newTextNewLines- oldTextNewLines;
+
+                                            // eg we have inserted seven lines at line number = 204
+
+
+                                            // now fix up any remaining modifyFiles for the same file, whose line numebrs are affected
+
+                                            // Fix up any remaining modifyFiles for the same file, whose line numbers are affected
+                                            if (insertedOrDeletedCt != 0)
+                                            {
+                                                // Look ahead in the changes array for any modifications to the same file
+                                                for (int i = changes.IndexOf(change) + 1; i < changes.Count; i++)
+                                                {
+                                                    var laterChange = changes[i];
+                                                    var laterPath = laterChange["path"].ToString();
+
+                                                    // Only adjust line numbers for the same file
+                                                    if (laterPath == path)
+                                                    {
+                                                        var laterLineNumber = laterChange["lineNumber"].Value<int>();
+
+                                                        // If the later change is after our current modification
+                                                        if (laterLineNumber > lineNumber)
+                                                        {
+                                                            // Adjust the line number by the number of lines inserted/deleted
+                                                            laterChange["lineNumber"] = laterLineNumber + insertedOrDeletedCt;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else // addToFile
+                                        {
+                                            editPoint.Insert(newContent);
+                                        }
+
+                                        // Save the document
+                                        //document.Save();
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    break;
                 case "setSystemPromptFromSolution":
                     await SetSolutionSystemPrompt();
                     break;
