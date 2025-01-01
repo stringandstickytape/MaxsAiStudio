@@ -179,7 +179,14 @@ namespace AiTool3.Providers
 
         protected virtual void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
-            // Override in derived classes to implement specific tool handling
+            if (toolIDs?.Any() != true) return;
+            var toolRequestBuilder = new ToolRequestBuilder(ToolManager);
+            toolRequestBuilder.AddToolToRequest(request, toolIDs[0], GetToolFormat());
+        }
+
+        protected virtual ToolFormat GetToolFormat()
+        {
+            return ToolFormat.OpenAI; // Default format
         }
     }
 }

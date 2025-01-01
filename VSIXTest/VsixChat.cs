@@ -319,9 +319,16 @@ namespace VSIXTest
                                                 }
                                             }
                                             decodedNewText = decodedNewText.Trim();
-                                            decodedOldText = decodedOldText.Replace("\n", "\r\n").Trim();
+                                            decodedOldText = decodedOldText.Trim();
+                                                
                                             // Find the position of the old text
                                             int startIndex = fullText.IndexOf(decodedOldText);
+                                            if(startIndex < 0)
+                                            {
+                                                decodedOldText = decodedOldText.Replace("\n", "\r\n");
+                                                startIndex = fullText.IndexOf(decodedOldText);
+                                            }
+
                                             if (startIndex >= 0)
                                             {
                                                 // Clear the document

@@ -311,46 +311,9 @@ namespace AiTool3.Providers
                 return new TokenUsage(inputTokens, outputTokens);
             }
 
-        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        protected override ToolFormat GetToolFormat()
         {
-            if (!toolIDs?.Any() == true) return;
-
-            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            var firstLine = toolObj.FullText.Split("\n")[0]
-                .Replace("//", "")
-                .Replace(" ", "")
-                .Replace("\r", "")
-                .Replace("\n", "");
-
-            var toolManager = new ToolManager();
-            var tool = toolManager.Tools.First(x => x.InternalName == firstLine);
-            var toolText = Regex.Replace(tool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
-            var toolConfig = JObject.Parse(toolText);
-
-            toolConfig["parameters"] = toolConfig["input_schema"];
-            toolConfig.Remove("input_schema");
-
-
-            RemoveAllOfAnyOfOneOf(toolConfig);
-
-
-            request["tools"] = new JArray
-            {
-                new JObject
-                {
-                    ["function_declarations"] = new JArray
-                    {
-                        toolConfig
-                    }
-                }
-            };
-            request["tool_config"] = new JObject
-            {
-                ["function_calling_config"] = new JObject
-                {
-                    ["mode"] = "ANY"
-                }
-            };
+            return ToolFormat.Gemini;
         }
 
         private void RemoveAllOfAnyOfOneOf(JObject obj)

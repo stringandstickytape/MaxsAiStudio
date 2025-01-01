@@ -176,22 +176,9 @@ namespace AiTool3.Providers
             );
         }
 
-        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        protected override ToolFormat GetToolFormat()
         {
-            if (!toolIDs.Any()) return;
-
-            var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            var firstLine = toolObj.FullText.Split("\n")[0]
-                .Replace("//", "")
-                .Replace(" ", "")
-                .Replace("\r", "")
-                .Replace("\n", "");
-
-            var toolManager = new ToolManager();
-            var tool = toolManager.Tools.First(x => x.InternalName == firstLine);
-            var toolText = Regex.Replace(tool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
-
-            request["format"] = JObject.Parse(toolText);
+            return ToolFormat.Ollama;
         }
     }
 }
