@@ -1,0 +1,94 @@
+// diff-specifier.json
+// newdiff.json
+{
+	"name": "DiffChange11",
+	"description": "Specifies an array of changes to make up a complete diff, and includes a description of those changes.",
+	"input_schema": {
+		"type": "object",
+		"properties": {
+			"changeset": {
+				"type": "object",
+				"properties": {
+					"description": {
+						"type": "string",
+						"description": "A description of this changeset"
+					},
+					"changes": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"description": {
+									"type": "string",
+									"description": "A human-readable explanation of this specific change"
+								},
+								"change_type": {
+									"type": "string",
+									"enum": [
+										"addToFile",
+										"deleteFromFile",
+										"modifyFile",
+										"createnewFile"
+									],
+									"description": "The type of change that occurred"
+								},
+								"path": {
+									"type": "string",
+									"description": "The original filename and path where the change is to occur"
+								},
+								"lineNumber": {
+									"type": "integer",
+									"minimum": 1,
+									"description": "The original line number where the change starts, unadjusted for previous changes in this changeset (not used for file creation)"
+								},
+								"oldContent": {
+									"type": "string",
+									"description": "The content that was removed or modified (null for additions and creation)"
+								},
+								"newContent": {
+									"type": "string",
+									"description": "The content that was added, modified, or created (null for deletions)"
+								},
+								"hunkHeader": {
+									"type": "object",
+									"description": "Information about the change context (not used for file creation)",
+									"properties": {
+										"oldStart": {
+											"type": "integer",
+											"minimum": 0,
+											"description": "Starting line number in the original file"
+										},
+										"linesToReplace": {
+											"type": "integer",
+											"minimum": 0,
+											"description": "Count of lines to replace"
+										}
+									},
+									"required": [
+										"oldStart",
+										"linesToReplace",
+									]
+								}
+							},
+							"required": [
+								"change_type",
+								"path",
+								"lineNumber",
+																			"oldContent",
+											"hunkHeader",
+											"newContent"
+							]
+						}
+					}
+				},
+				"required": [
+					"description",
+					"changes"
+				]
+			}
+		},
+		"required": [
+			"changeset"
+		]
+	}
+}

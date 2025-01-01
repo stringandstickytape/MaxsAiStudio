@@ -66,6 +66,7 @@
     <None Remove="Tools\array-find-and-replace.json" />
     <None Remove="Tools\chat-template.json" />
     <None Remove="Tools\color-scheme-spec.json" />
+    <None Remove="Tools\diff-specifier.json" />
     <None Remove="Tools\find-and-replace.json" />
     <None Remove="Tools\insertion.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
@@ -83,6 +84,7 @@
     <EmbeddedResource Include="Tools\array-find-and-replace.json" />
     <EmbeddedResource Include="Tools\chat-template.json" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
+    <EmbeddedResource Include="Tools\diff-specifier.json" />
     <EmbeddedResource Include="Tools\find-and-replace.json" />
     <EmbeddedResource Include="Tools\insertion.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />

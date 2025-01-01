@@ -1,6 +1,4 @@
-﻿//#define USE_OLD_STYLE_TOOLS
-
-using AiTool3.Conversations;
+﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.Interfaces;
 using AiTool3.Tools;
@@ -163,32 +161,34 @@ namespace AiTool3.Providers
             var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
             var schema = JObject.Parse(colorSchemeToolText);
 
-#if USE_OLD_STYLE_TOOLS
-            var wrappedTool = new JObject
+            if (deepseekBodge)
             {
-                ["type"] = "function",
-                ["function"] = schema
-            };
+                var wrappedTool = new JObject
+                {
+                    ["type"] = "function",
+                    ["function"] = schema
+                };
 
-            wrappedTool["function"]["parameters"] = wrappedTool["function"]["input_schema"];
-            wrappedTool["function"].Children().Reverse().ToList().ForEach(c =>
-            { if (((JProperty)c).Name == "input_schema") c.Remove(); });
+                wrappedTool["function"]["parameters"] = wrappedTool["function"]["input_schema"];
+                wrappedTool["function"].Children().Reverse().ToList().ForEach(c =>
+                { if (((JProperty)c).Name == "input_schema") c.Remove(); });
 
-            request["tools"] = new JArray { wrappedTool };
-            request["tool_choice"] = wrappedTool;
-#else
-            schema["schema"] = schema["input_schema"];
-            schema.Remove("input_schema");
+                request["tools"] = new JArray { wrappedTool };
+                request["tool_choice"] = wrappedTool;
+            }
+            else {
+                schema["schema"] = schema["input_schema"];
+                schema.Remove("input_schema");
 
-            request["response_format"] = new JObject
-            {
-                ["type"] = "json_schema",
-                ["json_schema"] = schema
-            };
+                request["response_format"] = new JObject
+                {
+                    ["type"] = "json_schema",
+                    ["json_schema"] = schema
+                };
 
-            request.Remove("tools");
-            request.Remove("tool_choice");
-#endif
+                request.Remove("tools");
+                request.Remove("tool_choice");
+            }
         }
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {

@@ -268,7 +268,7 @@ namespace AiTool3.Providers
                 try
                 {
                     var streamData = JObject.Parse(jsonString);
-                    if (streamData["candidates"] != null)
+                    if (streamData["candidates"] != null && streamData["candidates"][0]["content"]["parts"] != null)
                     {
                         var content = streamData["candidates"][0]["content"]["parts"][0];
 
