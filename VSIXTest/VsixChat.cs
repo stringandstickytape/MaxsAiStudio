@@ -22,7 +22,6 @@ using VSIXTest.FileGroups;
 using Microsoft.VisualStudio.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Newtonsoft.Json.Linq;
-using System.Text.RegularExpressions;
 
 namespace VSIXTest
 {
@@ -293,79 +292,7 @@ namespace VSIXTest
                                         }
                                         else if (changeType == "modifyFile")
                                         {
-                                            //string decodedOldText = "";
-                                            //
-                                            //try
-                                            //
-                                            //{
-                                            //    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
-                                            //}
-                                            //catch
-                                            //{
-                                            //    decodedOldText = change["oldContent"]?.ToString() ?? "";
-                                            //}
-                                            //
-                                            //string decodedText = "";
-                                            //try
-                                            //
-                                            //{
-                                            //    decodedText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                            //}
-                                            //catch
-                                            //{
-                                            //    decodedText = change["newContent"]?.ToString() ?? "";
-                                            //}
-                                            //
-                                            //
-                                            //// count the newlines
-                                            //var oldTextNewLines = decodedOldText.Count(c => c == '\n');
-                                            //// For modify, first delete the old content then insert new
-                                            ////var oldCount = change["hunkHeader"]["oldHunkLineCount"].Value<int>();
-                                            //var deletePoint = editPoint.CreateEditPoint();
-                                            //deletePoint.LineDown(oldTextNewLines+1);
-                                            //editPoint.Delete(deletePoint);
-                                            //
-                                            //
-                                            //
-                                            //
-                                            //
-                                            //
-                                            //var newTextNewLines = decodedText.Count(c => c == '\n');
-                                            //
-                                            //decodedText = $"{decodedText}\n";
-                                            //editPoint.Insert(decodedText);
-                                            //
-                                            //var insertedOrDeletedCt = newTextNewLines- oldTextNewLines;
-                                            //
-                                            //// eg we have inserted seven lines at line number = 204
-                                            //
-                                            //
-                                            //// now fix up any remaining modifyFiles for the same file, whose line numebrs are affected
-                                            //
-                                            //// Fix up any remaining modifyFiles for the same file, whose line numbers are affected
-                                            ////if (insertedOrDeletedCt != 0)
-                                            ////{
-                                            ////    // Look ahead in the changes array for any modifications to the same file
-                                            ////    for (int i = changes.IndexOf(change) + 1; i < changes.Count; i++)
-                                            ////    {
-                                            ////        var laterChange = changes[i];
-                                            ////        var laterPath = laterChange["path"].ToString();
-                                            ////
-                                            ////        // Only adjust line numbers for the same file
-                                            ////        if (laterPath == path)
-                                            ////        {
-                                            ////            var laterLineNumber = laterChange["lineNumber"].Value<int>();
-                                            ////
-                                            ////            // If the later change is after our current modification
-                                            ////            if (laterLineNumber > lineNumber)
-                                            ////            {
-                                            ////                // Adjust the line number by the number of lines inserted/deleted
-                                            ////                laterChange["lineNumber"] = laterLineNumber + insertedOrDeletedCt;
-                                            ////            }
-                                            ////        }
-                                            ////    }
-                                            ////}
-                                            ///
+
 
                                             var fullText = editPoint.GetText(textDocument.EndPoint);
 
@@ -391,64 +318,26 @@ namespace VSIXTest
                                                     decodedNewText = change["newContent"]?.ToString() ?? "";
                                                 }
                                             }
-                                            decodedOldText = decodedOldText.Replace("\n", "\r\n");
-
-                                            // Normalize whitespace in both texts while preserving newlines
-                                            string normalizedFullText = Regex.Replace(fullText, @"[ \t]+", " ");
-                                            string normalizedOldText = Regex.Replace(decodedOldText, @"[ \t]+", " ");
-
+                                            decodedNewText = decodedNewText.Trim();
+                                            decodedOldText = decodedOldText.Replace("\n", "\r\n").Trim();
                                             // Find the position of the old text
-                                            int startIndex = -1;
-                                            int actualStartIndex = -1;
-
-                                            // Find the normalized position
-                                            int normalizedIndex = normalizedFullText.IndexOf(normalizedOldText);
-                                            if (normalizedIndex >= 0)
+                                            int startIndex = fullText.IndexOf(decodedOldText);
+                                            if (startIndex >= 0)
                                             {
-                                                // Count characters up to the normalized position to find the actual position
-                                                int normalizedCount = 0;
-                                                actualStartIndex = 0;
+                                                // Clear the document
+                                                editPoint.Delete(textDocument.EndPoint);
 
-                                                for (int i = 0; i < fullText.Length && normalizedCount < normalizedIndex; i++)
+                                                // Split the text and insert with modifications
+                                                string beforeText = fullText.Substring(0, startIndex);
+                                                string afterText = fullText.Substring(startIndex + decodedOldText.Length);
+
+                                                // Insert the modified text
+                                                editPoint.Insert(beforeText);
+                                                if (changeType == "modifyFile")
                                                 {
-                                                    if (!char.IsWhiteSpace(fullText[i]) || fullText[i] == '\n' || fullText[i] == '\r')
-                                                    {
-                                                        normalizedCount++;
-                                                    }
-                                                    actualStartIndex = i;
+                                                    editPoint.Insert(decodedNewText);
                                                 }
-
-                                                // Find the end of the matching section
-                                                int matchLength = 0;
-                                                int normalizedMatchCount = 0;
-                                                for (int i = actualStartIndex; i < fullText.Length && normalizedMatchCount < normalizedOldText.Length; i++)
-                                                {
-                                                    if (!char.IsWhiteSpace(fullText[i]) || fullText[i] == '\n' || fullText[i] == '\r')
-                                                    {
-                                                        normalizedMatchCount++;
-                                                    }
-                                                    matchLength = i - actualStartIndex + 1;
-                                                }
-
-                                                startIndex = actualStartIndex;
-
-                                                if (startIndex >= 0)
-                                                {
-                                                    // Clear the document
-                                                    editPoint.Delete(textDocument.EndPoint);
-
-                                                    // Split the text and insert with modifications
-                                                    string beforeText = fullText.Substring(0, startIndex);
-                                                    string afterText = fullText.Substring(startIndex + matchLength);
-
-                                                    // Insert the modified text
-                                                    editPoint.Insert(beforeText);
-                                                    if (changeType == "modifyFile")
-                                                    {
-                                                        editPoint.Insert(decodedNewText);
-                                                    }
-                                                    editPoint.Insert(afterText);
-                                                }
+                                                editPoint.Insert(afterText);
                                             }
                                         }
                                         else // addToFile
