@@ -14,24 +14,14 @@ namespace SharedClasses.Helpers
     {
         public static string GetEmbeddedResource(string resourceName)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                    return null;
-
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
+            return GetEmbeddedResource(Assembly.GetExecutingAssembly(), resourceName, false);
         }
 
         public static string GetEmbeddedResource(string assemblyName, string resourceName)
         {
             Assembly assembly = Assembly.Load(assemblyName);
 
-            return GetEmbeddedResource(assembly, resourceName);
+            return GetEmbeddedResource(assembly, resourceName, false);
         }
 
         public static string GetEmbeddedResource(Assembly assembly, string resourceName)
@@ -59,48 +49,28 @@ namespace SharedClasses.Helpers
             }
         }
 
+        private static string GetEmbeddedResource(Assembly assembly, string resourceName, bool ignoreErrors)
+        {
+            // Get the resource stream
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    return null;
+
+                // Read the stream content
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+
         public static List<ResourceDetails> GetResourceDetails(string rootUrl = "http://localhost/")
         {
-
-            // create a new resourcedetail for each resource in namespace AiTool3.JavaScript.Components
-            var resources = new List<ResourceDetails>();
-            foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames().Where(x=>x.StartsWith("AiTool3.JavaScript.Components")))
-            {
-                {
-                    // find the index of the penultimate dot in resource name
-                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
-                    // get the filename using that
-                    var filename = resourceName.Substring(penultimateDotIndex + 1);
-
-                    resources.Add(new ResourceDetails
-                    {
-                        Uri = $"{rootUrl}{filename}",
-                        ResourceName = resourceName,
-                        MimeType = "text/babel"
-                    });
-                }
-            }
-            var assembly = Assembly.Load("SharedClasses");
-            foreach (var resourceName in assembly.GetManifestResourceNames().Where(x=>x.StartsWith("SharedClasses.JSX")))
-            {
-                {
-                    // find the index of the penultimate dot in resource name
-                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
-                    // get the filename using that
-                    var filename = resourceName.Substring(penultimateDotIndex + 1);
-
-                    resources.Add(new ResourceDetails
-                    {
-                        Uri = $"{rootUrl}{filename}",
-                        ResourceName = resourceName,
-                        MimeType = "text/babel"
-                    });
-                }
-            }
-
-            resources.AddRange(CreateResourceDetailsList(rootUrl));
-
-            return resources;
+            return GetResourceDetails(rootUrl, Assembly.GetExecutingAssembly(), "AiTool3.JavaScript.Components", "text/babel")
+            .Concat(GetResourceDetails(rootUrl, Assembly.Load("SharedClasses"), "SharedClasses.JSX", "text/babel"))
+            .Concat(CreateResourceDetailsList(rootUrl))
+            .ToList();
         }
 
         private static List<ResourceDetails> CreateResourceDetailsList(string rootUrl)
@@ -125,6 +95,28 @@ namespace SharedClasses.Helpers
                 ResourceName = $"SharedClasses.ThirdPartyJavascript.{item.ResourceName}",
                 MimeType = item.MimeType
             }).ToList();
+        }
+
+        private static List<ResourceDetails> GetResourceDetails(string rootUrl, Assembly assembly, string nameSpace, string mimeType)
+        {
+            var resources = new List<ResourceDetails>();
+            foreach (var resourceName in assembly.GetManifestResourceNames().Where(x => x.StartsWith(nameSpace)))
+            {
+                {
+                    // find the index of the penultimate dot in resource name
+                    var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
+                    // get the filename using that
+                    var filename = resourceName.Substring(penultimateDotIndex + 1);
+
+                    resources.Add(new ResourceDetails
+                    {
+                        Uri = $"{rootUrl}{filename}",
+                        ResourceName = resourceName,
+                        MimeType = mimeType
+                    });
+                }
+            }
+            return resources;
         }
     }
 }
