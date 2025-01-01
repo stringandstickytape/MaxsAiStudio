@@ -59,6 +59,7 @@
       <DependentUpon>ChatWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\ChatWindowPane.cs" />
+    <Compile Include="UI\ContentFormatter.cs" />
     <Compile Include="UI\FileGroups\FileGroup.cs" />
     <Compile Include="UI\FileGroups\FileGroupManager.cs" />
     <Compile Include="UI\FileGroups\FileGroupWindow.cs" />

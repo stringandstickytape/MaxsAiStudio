@@ -28,6 +28,7 @@ namespace VSIXTest
     public class VsixChat : WebView2
     {
         private readonly SimpleClient simpleClient = new SimpleClient();
+        private readonly ContentFormatter _contentFormatter;
 
         private static VsixChat _instance;
         public static VsixChat Instance
@@ -88,6 +89,7 @@ namespace VSIXTest
             Directory.CreateDirectory(extensionDataPath); // Ensure the directory exists
 
             _fileGroupManager = new FileGroupManager(extensionDataPath);
+            _contentFormatter = new ContentFormatter(_dte, _fileGroupManager);
 
             simpleClient.LineReceived += SimpleClient_LineReceived;
 
@@ -240,8 +242,10 @@ namespace VSIXTest
                         var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
                         var changes = changesetObj["changes"].ToObject<JArray>();
 
+                        var ctr = 0;
                         foreach (var change in changes)
                         {
+                            ctr++;
                             var changeType = change["change_type"].ToString();
                             var path = change["path"].ToString();
 
@@ -264,7 +268,7 @@ namespace VSIXTest
                                 case "deleteFromFile":
                                 case "modifyFile":
                                     {
-                                        var lineNumber = change["lineNumber"].Value<int>();
+                                        //var lineNumber = change["lineNumber"].Value<int>();
                                         var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
 
                                         // Open or activate the file
@@ -276,7 +280,7 @@ namespace VSIXTest
                                         var editPoint = textDocument.StartPoint.CreateEditPoint();
 
                                         // Move to the specified line
-                                        editPoint.MoveToLineAndOffset(lineNumber, 1);
+                                        //editPoint.MoveToLineAndOffset(lineNumber, 1);
 
                                         if (changeType == "deleteFromFile")
                                         {
@@ -288,72 +292,124 @@ namespace VSIXTest
                                         }
                                         else if (changeType == "modifyFile")
                                         {
-                                            string decodedOldText = "";
+                                            //string decodedOldText = "";
+                                            //
+                                            //try
+                                            //
+                                            //{
+                                            //    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                            //}
+                                            //catch
+                                            //{
+                                            //    decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                            //}
+                                            //
+                                            //string decodedText = "";
+                                            //try
+                                            //
+                                            //{
+                                            //    decodedText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                            //}
+                                            //catch
+                                            //{
+                                            //    decodedText = change["newContent"]?.ToString() ?? "";
+                                            //}
+                                            //
+                                            //
+                                            //// count the newlines
+                                            //var oldTextNewLines = decodedOldText.Count(c => c == '\n');
+                                            //// For modify, first delete the old content then insert new
+                                            ////var oldCount = change["hunkHeader"]["oldHunkLineCount"].Value<int>();
+                                            //var deletePoint = editPoint.CreateEditPoint();
+                                            //deletePoint.LineDown(oldTextNewLines+1);
+                                            //editPoint.Delete(deletePoint);
+                                            //
+                                            //
+                                            //
+                                            //
+                                            //
+                                            //
+                                            //var newTextNewLines = decodedText.Count(c => c == '\n');
+                                            //
+                                            //decodedText = $"{decodedText}\n";
+                                            //editPoint.Insert(decodedText);
+                                            //
+                                            //var insertedOrDeletedCt = newTextNewLines- oldTextNewLines;
+                                            //
+                                            //// eg we have inserted seven lines at line number = 204
+                                            //
+                                            //
+                                            //// now fix up any remaining modifyFiles for the same file, whose line numebrs are affected
+                                            //
+                                            //// Fix up any remaining modifyFiles for the same file, whose line numbers are affected
+                                            ////if (insertedOrDeletedCt != 0)
+                                            ////{
+                                            ////    // Look ahead in the changes array for any modifications to the same file
+                                            ////    for (int i = changes.IndexOf(change) + 1; i < changes.Count; i++)
+                                            ////    {
+                                            ////        var laterChange = changes[i];
+                                            ////        var laterPath = laterChange["path"].ToString();
+                                            ////
+                                            ////        // Only adjust line numbers for the same file
+                                            ////        if (laterPath == path)
+                                            ////        {
+                                            ////            var laterLineNumber = laterChange["lineNumber"].Value<int>();
+                                            ////
+                                            ////            // If the later change is after our current modification
+                                            ////            if (laterLineNumber > lineNumber)
+                                            ////            {
+                                            ////                // Adjust the line number by the number of lines inserted/deleted
+                                            ////                laterChange["lineNumber"] = laterLineNumber + insertedOrDeletedCt;
+                                            ////            }
+                                            ////        }
+                                            ////    }
+                                            ////}
+                                            ///
 
-                                            try
+                                            var fullText = editPoint.GetText(textDocument.EndPoint);
 
-                                            {
-                                                string decodedOldText2 = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
-                                            }
-                                            catch
-                                            {
-                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
-                                            }
-
-                                            // count the newlines
-                                            var oldTextNewLines = decodedOldText.Count(c => c == '\n');
-                                            // For modify, first delete the old content then insert new
-                                            //var oldCount = change["hunkHeader"]["oldHunkLineCount"].Value<int>();
-                                            var deletePoint = editPoint.CreateEditPoint();
-                                            deletePoint.LineDown(oldTextNewLines+1);
-                                            editPoint.Delete(deletePoint);
-
-                                            string decodedText = "";
-
-                                            try
-
-                                            {
-                                                string decodedText2 = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                            }
-                                            catch
-                                            {
-                                                decodedText = change["newContent"]?.ToString() ?? "";
-                                            }
-
-
-                                            var newTextNewLines = decodedText.Count(c => c == '\n');
-                                            editPoint.Insert(decodedText);
-
-                                            var insertedOrDeletedCt = newTextNewLines- oldTextNewLines;
-
-                                            // eg we have inserted seven lines at line number = 204
-
-
-                                            // now fix up any remaining modifyFiles for the same file, whose line numebrs are affected
-
-                                            // Fix up any remaining modifyFiles for the same file, whose line numbers are affected
-                                            if (insertedOrDeletedCt != 0)
-                                            {
-                                                // Look ahead in the changes array for any modifications to the same file
-                                                for (int i = changes.IndexOf(change) + 1; i < changes.Count; i++)
+                                                string decodedOldText = "";
+                                                try
                                                 {
-                                                    var laterChange = changes[i];
-                                                    var laterPath = laterChange["path"].ToString();
+                                                    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                                }
+                                                catch
+                                                {
+                                                    decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                                }
 
-                                                    // Only adjust line numbers for the same file
-                                                    if (laterPath == path)
+                                                string decodedNewText = "";
+                                                if (changeType == "modifyFile")
+                                                {
+                                                    try
                                                     {
-                                                        var laterLineNumber = laterChange["lineNumber"].Value<int>();
-
-                                                        // If the later change is after our current modification
-                                                        if (laterLineNumber > lineNumber)
-                                                        {
-                                                            // Adjust the line number by the number of lines inserted/deleted
-                                                            laterChange["lineNumber"] = laterLineNumber + insertedOrDeletedCt;
-                                                        }
+                                                        decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                                    }
+                                                    catch
+                                                    {
+                                                        decodedNewText = change["newContent"]?.ToString() ?? "";
                                                     }
                                                 }
-                                            }
+                                            decodedOldText = decodedOldText.Replace("\n", "\r\n");
+                                                // Find the position of the old text
+                                                int startIndex = fullText.IndexOf(decodedOldText);
+                                                if (startIndex >= 0)
+                                                {
+                                                    // Clear the document
+                                                    editPoint.Delete(textDocument.EndPoint);
+
+                                                    // Split the text and insert with modifications
+                                                    string beforeText = fullText.Substring(0, startIndex);
+                                                    string afterText = fullText.Substring(startIndex + decodedOldText.Length);
+
+                                                    // Insert the modified text
+                                                    editPoint.Insert(beforeText);
+                                                    if (changeType == "modifyFile")
+                                                    {
+                                                        editPoint.Insert(decodedNewText);
+                                                    }
+                                                    editPoint.Insert(afterText);
+                                                }
                                         }
                                         else // addToFile
                                         {
@@ -443,11 +499,9 @@ namespace VSIXTest
                 case "vsInsertSelection":
                     {
                         var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                        var selection = textDocument.Selection as EnvDTE.TextSelection;
                         var activeDocumentFilename = _dte.ActiveDocument.Name;
-
-                        var selectedText = selection.Text;
-                        var formattedAsFile = $"\n{MessageFormatHelper.FormatFile(activeDocumentFilename, selectedText)}";
+                        var selectedText = _contentFormatter.GetCurrentSelection();
+                        var formattedAsFile = _contentFormatter.FormatContent(activeDocumentFilename, selectedText);
 
                         var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
                         await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
@@ -584,82 +638,9 @@ namespace VSIXTest
 
         private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)
         {
-            switch (option.Option)
-            {
-                case "CurrentSelection":
-                    return FormatContent(activeDocumentFilename, GetCurrentSelection());
-                case "Clipboard":
-                    return FormatContent(activeDocumentFilename, Clipboard.GetText());
-                case "CurrentFile":
-                    return FormatContent(activeDocumentFilename, AddLineNumbers(GetCurrentFileContent()));
-                case "GitDiff":
-                    return FormatContent("diff", new GitDiffHelper().GetGitDiff());
-                case "XmlDoc":
-                    return FormatXmlDocContent(option.Parameter);
-                case "FileGroups":
-                    return FormatFileGroupsContent();
-                default:
-                    return null;
-            }
+            return _contentFormatter.GetContentForOption(option, activeDocumentFilename);
         }
 
-        public static string AddLineNumbers(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return string.Empty;
-            }
 
-            string[] lines = input.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            int digitCount = lines.Length.ToString().Length;
-
-            return string.Join(Environment.NewLine,
-                lines.Select((line, index) =>
-                    $"{(index + 1).ToString().PadLeft(digitCount)} | {line}"));
-        }
-
-        private string FormatContent(string filename, string content)
-        {
-            return $"\n{MessageFormatHelper.FormatFile(filename, content)}\n";
-        }
-
-        private string GetCurrentSelection()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-            var selection = textDocument.Selection as EnvDTE.TextSelection;
-            return selection.Text;
-        }
-
-        private string GetCurrentFileContent()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-            return textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-        }
-
-        private string FormatXmlDocContent(string parameter)
-        {
-            var matchingMethods = new MethodFinder().FindMethods(parameter);
-            return string.Join("\n\n", matchingMethods.Select(x => MessageFormatHelper.FormatFile(x.FileName, x.SourceCode)));
-        }
-
-        private string FormatFileGroupsContent()
-        {
-            var selectedFileGroups = _fileGroupManager.GetSelectedFileGroups();
-            var filesIncluded = new HashSet<string>();
-            var formattedFiles = new List<string>();
-
-            foreach (var file in selectedFileGroups.SelectMany(group => group.FilePaths))
-            {
-                if (filesIncluded.Add(file))
-                {
-                    var fileContent = AddLineNumbers(File.ReadAllText(file));
-                    formattedFiles.Add(FormatContent(file, fileContent));
-                }
-            }
-
-            return string.Join("\n", formattedFiles);
-        }
     }
 }
