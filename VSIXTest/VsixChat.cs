@@ -22,6 +22,7 @@ using VSIXTest.FileGroups;
 using Microsoft.VisualStudio.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace VSIXTest
 {
@@ -368,31 +369,69 @@ namespace VSIXTest
 
                                             var fullText = editPoint.GetText(textDocument.EndPoint);
 
-                                                string decodedOldText = "";
+                                            string decodedOldText = "";
+                                            try
+                                            {
+                                                decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                            }
+                                            catch
+                                            {
+                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                            }
+
+                                            string decodedNewText = "";
+                                            if (changeType == "modifyFile")
+                                            {
                                                 try
                                                 {
-                                                    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                                    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
                                                 }
                                                 catch
                                                 {
-                                                    decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                                    decodedNewText = change["newContent"]?.ToString() ?? "";
+                                                }
+                                            }
+                                            decodedOldText = decodedOldText.Replace("\n", "\r\n");
+
+                                            // Normalize whitespace in both texts while preserving newlines
+                                            string normalizedFullText = Regex.Replace(fullText, @"[ \t]+", " ");
+                                            string normalizedOldText = Regex.Replace(decodedOldText, @"[ \t]+", " ");
+
+                                            // Find the position of the old text
+                                            int startIndex = -1;
+                                            int actualStartIndex = -1;
+
+                                            // Find the normalized position
+                                            int normalizedIndex = normalizedFullText.IndexOf(normalizedOldText);
+                                            if (normalizedIndex >= 0)
+                                            {
+                                                // Count characters up to the normalized position to find the actual position
+                                                int normalizedCount = 0;
+                                                actualStartIndex = 0;
+
+                                                for (int i = 0; i < fullText.Length && normalizedCount < normalizedIndex; i++)
+                                                {
+                                                    if (!char.IsWhiteSpace(fullText[i]) || fullText[i] == '\n' || fullText[i] == '\r')
+                                                    {
+                                                        normalizedCount++;
+                                                    }
+                                                    actualStartIndex = i;
                                                 }
 
-                                                string decodedNewText = "";
-                                                if (changeType == "modifyFile")
+                                                // Find the end of the matching section
+                                                int matchLength = 0;
+                                                int normalizedMatchCount = 0;
+                                                for (int i = actualStartIndex; i < fullText.Length && normalizedMatchCount < normalizedOldText.Length; i++)
                                                 {
-                                                    try
+                                                    if (!char.IsWhiteSpace(fullText[i]) || fullText[i] == '\n' || fullText[i] == '\r')
                                                     {
-                                                        decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                                        normalizedMatchCount++;
                                                     }
-                                                    catch
-                                                    {
-                                                        decodedNewText = change["newContent"]?.ToString() ?? "";
-                                                    }
+                                                    matchLength = i - actualStartIndex + 1;
                                                 }
-                                            decodedOldText = decodedOldText.Replace("\n", "\r\n");
-                                                // Find the position of the old text
-                                                int startIndex = fullText.IndexOf(decodedOldText);
+
+                                                startIndex = actualStartIndex;
+
                                                 if (startIndex >= 0)
                                                 {
                                                     // Clear the document
@@ -400,7 +439,7 @@ namespace VSIXTest
 
                                                     // Split the text and insert with modifications
                                                     string beforeText = fullText.Substring(0, startIndex);
-                                                    string afterText = fullText.Substring(startIndex + decodedOldText.Length);
+                                                    string afterText = fullText.Substring(startIndex + matchLength);
 
                                                     // Insert the modified text
                                                     editPoint.Insert(beforeText);
@@ -410,6 +449,7 @@ namespace VSIXTest
                                                     }
                                                     editPoint.Insert(afterText);
                                                 }
+                                            }
                                         }
                                         else // addToFile
                                         {
