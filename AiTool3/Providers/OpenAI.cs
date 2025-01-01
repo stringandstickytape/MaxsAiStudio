@@ -231,7 +231,7 @@ namespace AiTool3.Providers
             }
             catch (Exception e)
             {
-                responseBuilder.Append($"Error : {leftovers}");
+                return HandleError(e, $"Response leftovers: {leftovers}");
             }
 
             

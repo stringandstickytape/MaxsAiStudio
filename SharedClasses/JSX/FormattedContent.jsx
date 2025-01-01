@@ -81,7 +81,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         installTheme: ["maxtheme.json"],
         applyNewDiff: ["newdiff.json"],
         importTemplate: ["maxchattemplate.json"],
-        browseJsonObject: ["json"],
+        browseJsonObject: ["json","newdiff.json"],
         viewMermaidDiagram: ["mermaid"],
         viewPlantUMLDiagram: ["plantuml"],
         viewDOTDiagram: ["dot"],

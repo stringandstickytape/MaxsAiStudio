@@ -290,7 +290,7 @@ namespace VSIXTest
                                             deletePoint.LineDown(oldCount);
                                             editPoint.Delete(deletePoint);
                                         }
-                                        else if (changeType == "modifyFile")
+                                        else 
                                         {
 
 
@@ -307,8 +307,6 @@ namespace VSIXTest
                                             }
 
                                             string decodedNewText = "";
-                                            if (changeType == "modifyFile")
-                                            {
                                                 try
                                                 {
                                                     decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
@@ -317,7 +315,6 @@ namespace VSIXTest
                                                 {
                                                     decodedNewText = change["newContent"]?.ToString() ?? "";
                                                 }
-                                            }
                                             decodedNewText = decodedNewText.Trim();
                                             decodedOldText = decodedOldText.Trim();
                                                 
@@ -340,17 +337,11 @@ namespace VSIXTest
 
                                                 // Insert the modified text
                                                 editPoint.Insert(beforeText);
-                                                if (changeType == "modifyFile")
-                                                {
-                                                    editPoint.Insert(decodedNewText);
-                                                }
+                                                editPoint.Insert(decodedNewText);
                                                 editPoint.Insert(afterText);
                                             }
                                         }
-                                        else // addToFile
-                                        {
-                                            editPoint.Insert(newContent);
-                                        }
+
 
                                         // Save the document
                                         //document.Save();
@@ -549,7 +540,7 @@ namespace VSIXTest
             prompt = matchingButton?.Prompt;
 
             var inclusions = new List<string>();
-            var activeDocumentFilename = _dte?.ActiveDocument?.Name;
+            var activeDocumentFilename = _dte?.ActiveDocument?.FullName;
              
             foreach (var option in e.SelectedOptions)
             {

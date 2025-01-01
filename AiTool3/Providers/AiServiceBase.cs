@@ -120,12 +120,24 @@ namespace AiTool3.Providers
             StreamingComplete?.Invoke(this, null);
         }
 
-        protected virtual AiResponse HandleError(Exception ex)
+        protected virtual AiResponse HandleError(Exception ex, string additionalContext = null)
         {
+            var errorMessage = new StringBuilder(ex.Message);
+            if (!string.IsNullOrEmpty(additionalContext))
+            {
+                errorMessage.Append("\nContext: ").Append(additionalContext);
+            }
+
+            if (ex is HttpRequestException httpEx)
+            {
+                errorMessage.Append("\nHTTP Status: ").Append(httpEx.StatusCode);
+            }
+
             return new AiResponse
             {
                 Success = false,
-                ResponseText = ex.Message
+                ResponseText = errorMessage.ToString(),
+                TokenUsage = new TokenUsage("0", "0")
             };
         }
 
