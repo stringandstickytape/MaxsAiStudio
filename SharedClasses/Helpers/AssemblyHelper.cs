@@ -59,7 +59,7 @@ namespace SharedClasses.Helpers
             }
         }
 
-        public static List<ResourceDetails> GetResourceDetails()
+        public static List<ResourceDetails> GetResourceDetails(string rootUrl = "http://localhost/")
         {
 
             // create a new resourcedetail for each resource in namespace AiTool3.JavaScript.Components
@@ -75,7 +75,7 @@ namespace SharedClasses.Helpers
 
                     resources.Add(new ResourceDetails
                     {
-                        Uri = $"http://localhost/{filename}",
+                        Uri = $"{rootUrl}{filename}",
                         ResourceName = resourceName,
                         MimeType = "text/babel"
                     });
@@ -93,19 +93,19 @@ namespace SharedClasses.Helpers
 
                     resources.Add(new ResourceDetails
                     {
-                        Uri = $"http://localhost/{filename}",
+                        Uri = $"{rootUrl}{filename}",
                         ResourceName = resourceName,
                         MimeType = "text/babel"
                     });
                 }
             }
 
-            resources.AddRange(CreateResourceDetailsList());
+            resources.AddRange(CreateResourceDetailsList(rootUrl));
 
             return resources;
         }
 
-        private static List<ResourceDetails> CreateResourceDetailsList()
+        private static List<ResourceDetails> CreateResourceDetailsList(string rootUrl)
         {
             return new List<(string Uri, string ResourceName, string MimeType)>
             {
