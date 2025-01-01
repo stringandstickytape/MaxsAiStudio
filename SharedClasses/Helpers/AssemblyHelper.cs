@@ -64,9 +64,8 @@ namespace SharedClasses.Helpers
 
             // create a new resourcedetail for each resource in namespace AiTool3.JavaScript.Components
             var resources = new List<ResourceDetails>();
-            foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames().Where(x=>x.StartsWith("AiTool3.JavaScript.Components")))
             {
-                if (resourceName.StartsWith("AiTool3.JavaScript.Components"))
                 {
                     // find the index of the penultimate dot in resource name
                     var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
@@ -82,9 +81,8 @@ namespace SharedClasses.Helpers
                 }
             }
             var assembly = Assembly.Load("SharedClasses");
-            foreach (var resourceName in assembly.GetManifestResourceNames())
+            foreach (var resourceName in assembly.GetManifestResourceNames().Where(x=>x.StartsWith("SharedClasses.JSX")))
             {
-                if (resourceName.StartsWith("SharedClasses.JSX"))
                 {
                     // find the index of the penultimate dot in resource name
                     var penultimateDotIndex = resourceName.LastIndexOf(".", resourceName.LastIndexOf(".") - 1);
