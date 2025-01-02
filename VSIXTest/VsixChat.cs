@@ -1,4 +1,6 @@
-﻿using EnvDTE;
+﻿using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
@@ -247,9 +249,18 @@ namespace VSIXTest
                         foreach (var change in changes)
                         {
                             ctr++;
+                            //if (ctr > 7) continue;
                             var changeType = change["change_type"].ToString();
                             var path = change["path"].ToString();
+                            try
+                            {
+                                var deserPath = JsonConvert.DeserializeObject<string>(path);
 
+                            }
+                            catch (Exception e9)
+                            {
+
+                            }
                             switch (changeType)
                             {
                                 case "createnewFile":
@@ -257,6 +268,7 @@ namespace VSIXTest
                                         var newContent = change["newContent"].ToString();
                                         newContent = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
                                         var directoryPath = Path.GetDirectoryName(path);
+
                                         if (!Directory.Exists(directoryPath))
                                         {
                                             Directory.CreateDirectory(directoryPath);
@@ -357,7 +369,7 @@ namespace VSIXTest
                                         var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
 
                                         // Open or activate the file
-                                        var window = _dte.ItemOperations.OpenFile(path);
+                                        var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
 
                                         if (window == null)
                                         {
@@ -365,7 +377,6 @@ namespace VSIXTest
                                             Debug.WriteLine($"Path not found: {path}");
                                             break;
                                         }
-
 
 
                                         window.Activate();
@@ -385,92 +396,94 @@ namespace VSIXTest
                                         else
                                         {
                                             var fullText = editPoint.GetText(textDocument.EndPoint);
-                                            var lines = fullText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-                                            string decodedOldText = "";
-                                            try
-                                            {
-                                                decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
-                                            }
-                                            catch
-                                            {
-                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
-                                            }
+                                            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change["oldContent"].ToString(), change["newContent"].ToString(), lineNumber);
 
-                                            string decodedNewText = "";
-                                            try
-                                            {
-                                                decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                            }
-                                            catch
-                                            {
-                                                decodedNewText = change["newContent"]?.ToString() ?? "";
-                                            }
-                                            decodedNewText = decodedNewText.Trim();
-                                            decodedOldText = decodedOldText.Trim();
+                                            editPoint.StartOfDocument();
+                                            editPoint.Delete(textDocument.EndPoint);
+                                            editPoint.Insert(outp);
 
-                                            // Convert line number to 0-based index
-                                            int targetLine = lineNumber - 1;
-                                            int startIndex = -1;
-                                            int searchRadius = 0;
-
-                                            // Search for match, expanding outward from the target line
-                                            while (startIndex < 0 &&
-                                                   (targetLine - searchRadius >= 0 || targetLine + searchRadius < lines.Length))
-                                            {
-                                                // Check line before
-                                                if (targetLine - searchRadius >= 0)
-                                                {
-                                                    int lineStartIndex = string.Join("\n", lines.Take(targetLine - searchRadius)).Length;
-                                                    if (targetLine - searchRadius > 0) lineStartIndex += targetLine - searchRadius; // Add newlines
-                                                    string lineText = lines[targetLine - searchRadius];
-                                                    int matchIndex = lineText.IndexOf(decodedOldText);
-                                                    if (matchIndex >= 0)
-                                                    {
-                                                        startIndex = lineStartIndex + matchIndex;
-                                                        break;
-                                                    }
-                                                }
-
-                                                // Check line after
-                                                if (targetLine + searchRadius < lines.Length && searchRadius > 0) // searchRadius > 0 to avoid checking target line twice
-                                                {
-                                                    int lineStartIndex = string.Join("\n", lines.Take(targetLine + searchRadius)).Length;
-                                                    if (targetLine + searchRadius > 0) lineStartIndex += targetLine + searchRadius; // Add newlines
-                                                    string lineText = lines[targetLine + searchRadius];
-                                                    int matchIndex = lineText.IndexOf(decodedOldText);
-                                                    if (matchIndex >= 0)
-                                                    {
-                                                        startIndex = lineStartIndex + matchIndex;
-                                                        break;
-                                                    }
-                                                }
-
-                                                searchRadius++;
-                                            }
-
-                                            // If still not found, try with Windows-style line endings
-                                            if (startIndex < 0)
-                                            {
-                                                decodedOldText = decodedOldText.Replace("\n", "\r\n");
-                                                startIndex = fullText.IndexOf(decodedOldText);
-                                            }
-
-                                            if (startIndex >= 0)
-                                            {
-                                                // Clear the document
-                                                editPoint.Delete(textDocument.EndPoint);
-
-                                                // Split the text and insert with modifications
-                                                string beforeText = fullText.Substring(0, startIndex);
-                                                string afterText = fullText.Substring(startIndex + decodedOldText.Length);
-
-                                                // Insert the modified text
-                                                editPoint.Insert(beforeText);
-                                                editPoint.Insert(decodedNewText);
-                                                editPoint.Insert("\r\n");
-                                                editPoint.Insert(afterText);
-                                            }
+                                            //var lines = fullText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                                            //
+                                            //string decodedOldText = "";
+                                            //try
+                                            //{
+                                            //    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                            //}
+                                            //catch
+                                            //{
+                                            //    decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                            //}
+                                            //
+                                            //string decodedNewText = "";
+                                            //try
+                                            //{
+                                            //    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                            //}
+                                            //catch
+                                            //{
+                                            //    decodedNewText = change["newContent"]?.ToString() ?? "";
+                                            //}
+                                            //decodedNewText = decodedNewText.Trim();
+                                            //decodedOldText = decodedOldText.Trim();
+                                            //
+                                            //// Convert line number to 0-based index
+                                            //int targetLine = lineNumber - 1;
+                                            //int startIndex = -1;
+                                            //int searchRadius = 0;
+                                            //
+                                            //// Search for match, expanding outward from the target line
+                                            //while (startIndex < 0 &&
+                                            //       (targetLine - searchRadius >= 0 || targetLine + searchRadius < lines.Length))
+                                            //{
+                                            //    // Check line before
+                                            //    if (targetLine - searchRadius >= 0)
+                                            //    {
+                                            //        int lineStartIndex = string.Join("\n", lines.Take(targetLine - searchRadius)).Length;
+                                            //        if (targetLine - searchRadius > 0) lineStartIndex += targetLine - searchRadius; // Add newlines
+                                            //        string lineText = lines[targetLine - searchRadius];
+                                            //        int matchIndex = lineText.IndexOf(decodedOldText);
+                                            //        if (matchIndex >= 0)
+                                            //        {
+                                            //            startIndex = lineStartIndex;
+                                            //            break;
+                                            //        }
+                                            //    }
+                                            //
+                                            //    // Check line after
+                                            //    if (targetLine + searchRadius < lines.Length && searchRadius > 0) // searchRadius > 0 to avoid checking target line twice
+                                            //    {
+                                            //        int lineStartIndex = string.Join("\n", lines.Take(targetLine + searchRadius)).Length;
+                                            //        if (targetLine + searchRadius > 0) lineStartIndex += targetLine + searchRadius; // Add newlines
+                                            //        string lineText = lines[targetLine + searchRadius];
+                                            //        int matchIndex = lineText.IndexOf(decodedOldText);
+                                            //        if (matchIndex >= 0)
+                                            //        {
+                                            //            startIndex = lineStartIndex;
+                                            //            break;
+                                            //        }
+                                            //    }
+                                            //
+                                            //    searchRadius++;
+                                            //}
+                                            //
+                                            //
+                                            //if (startIndex >= 0)
+                                            //{
+                                            //    // Clear the document
+                                            //    editPoint.Delete(textDocument.EndPoint);
+                                            //
+                                            //    // Split the text and insert with modifications
+                                            //    string beforeText = fullText.Substring(0, startIndex);
+                                            //    string afterText = fullText.Substring(startIndex + decodedOldText.Length);
+                                            //    afterText = afterText.Substring(afterText.IndexOf("\n"));
+                                            //
+                                            //    // Insert the modified text
+                                            //    editPoint.Insert(beforeText);
+                                            //    editPoint.Insert(decodedNewText);
+                                            //    editPoint.Insert("\r\n");
+                                            //    editPoint.Insert(afterText);
+                                            //}
                                         }
 
                                         // Save the document

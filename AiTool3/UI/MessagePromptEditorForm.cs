@@ -11,7 +11,7 @@ namespace AiTool3.UI
     {
         private List<MessagePrompt> messagePrompts;
         private ListBox listBox;
-        private TextBox categoryTextBox, buttonLabelTextBox, messageTypeTextBox, promptTextBox;
+        private TextBox categoryTextBox, buttonLabelTextBox, messageTypeTextBox, toolTextBox, promptTextBox;
         private Button addButton, removeButton, saveButton;
 
         public MessagePromptEditorForm(MessagePrompt[] initialPrompts)
@@ -53,11 +53,17 @@ namespace AiTool3.UI
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 6,
+                RowCount = 7,
                 Padding = new Padding(10, 0, 0, 0)
             };
             rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Category
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Button Label
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Message Type
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Tool
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 37));  // Prompt
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10));  // Spacing
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));  // Buttons
             rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
             rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 40));
             rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10));
@@ -67,7 +73,8 @@ namespace AiTool3.UI
             categoryTextBox = CreateTextBox("Category", rightPanel, 0);
             buttonLabelTextBox = CreateTextBox("Button Label", rightPanel, 1);
             messageTypeTextBox = CreateTextBox("Message Type", rightPanel, 2);
-            promptTextBox = CreateTextBox("Prompt", rightPanel, 3, true);
+            toolTextBox = CreateTextBox("Tool", rightPanel, 3);
+            promptTextBox = CreateTextBox("Prompt", rightPanel, 4, true);
 
             // Button panel
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel
@@ -77,7 +84,7 @@ namespace AiTool3.UI
                 WrapContents = false,
                 AutoSize = true
             };
-            rightPanel.Controls.Add(buttonPanel, 0, 5);
+            rightPanel.Controls.Add(buttonPanel, 0, 6);
 
             addButton = CreateButton("Add", AddButton_Click);
             removeButton = CreateButton("Remove", RemoveButton_Click);
@@ -133,6 +140,7 @@ namespace AiTool3.UI
                 categoryTextBox.Text = selectedPrompt.Category;
                 buttonLabelTextBox.Text = selectedPrompt.ButtonLabel;
                 messageTypeTextBox.Text = selectedPrompt.MessageType;
+                toolTextBox.Text = selectedPrompt.Tool;
                 promptTextBox.Text = selectedPrompt.Prompt;
             }
         }
@@ -144,6 +152,7 @@ namespace AiTool3.UI
                 Category = categoryTextBox.Text,
                 ButtonLabel = buttonLabelTextBox.Text,
                 MessageType = messageTypeTextBox.Text,
+                Tool = toolTextBox.Text,
                 Prompt = promptTextBox.Text
             };
             messagePrompts.Add(newPrompt);
@@ -167,6 +176,7 @@ namespace AiTool3.UI
                 selectedPrompt.Category = categoryTextBox.Text;
                 selectedPrompt.ButtonLabel = buttonLabelTextBox.Text;
                 selectedPrompt.MessageType = messageTypeTextBox.Text;
+                selectedPrompt.Tool = toolTextBox.Text;
                 selectedPrompt.Prompt = promptTextBox.Text;
                 RefreshListBox();
             }

@@ -43,11 +43,11 @@
 								},
 								"oldContent": {
 									"type": "string",
-									"description": "The content that was removed or modified (null for additions and creation)"
+									"description": "The lines that were removed or modified"
 								},
 								"newContent": {
 									"type": "string",
-									"description": "The content that was added, modified, or created (null for deletions)"
+									"description": "The lines that were added, modified, or created"
 								},
 								"hunkHeader": {
 									"type": "object",
