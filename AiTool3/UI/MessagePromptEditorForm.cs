@@ -22,54 +22,101 @@ namespace AiTool3.UI
 
         private void InitializeComponents()
         {
-            this.Size = new Size(600, 500);
+            this.MinimumSize = new Size(800, 600);
+            this.Size = new Size(800, 600);
             this.Text = "Message Prompt Editor";
 
+            TableLayoutPanel mainLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Padding = new Padding(10),
+            };
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 70));
+            this.Controls.Add(mainLayout);
+
+            // Left panel with ListBox
+            Panel leftPanel = new Panel { Dock = DockStyle.Fill };
             listBox = new ListBox
             {
-                Location = new Point(10, 10),
-                Size = new Size(200, 400),
+                Dock = DockStyle.Fill,
                 SelectionMode = SelectionMode.One
             };
             listBox.SelectedIndexChanged += ListBox_SelectedIndexChanged;
-            this.Controls.Add(listBox);
+            leftPanel.Controls.Add(listBox);
+            mainLayout.Controls.Add(leftPanel, 0, 0);
 
-            categoryTextBox = CreateTextBox("Category", 220, 10);
-            buttonLabelTextBox = CreateTextBox("Button Label", 220, 70);
-            messageTypeTextBox = CreateTextBox("Message Type", 220, 130);
-            promptTextBox = CreateTextBox("Prompt", 220, 190, 150);
+            // Right panel with input fields and buttons
+            TableLayoutPanel rightPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 6,
+                Padding = new Padding(10, 0, 0, 0)
+            };
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 40));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+            mainLayout.Controls.Add(rightPanel, 1, 0);
 
-            addButton = CreateButton("Add", 220, 380, AddButton_Click);
-            removeButton = CreateButton("Remove", 330, 380, RemoveButton_Click);
-            saveButton = CreateButton("Save", 440, 380, SaveButton_Click);
+            categoryTextBox = CreateTextBox("Category", rightPanel, 0);
+            buttonLabelTextBox = CreateTextBox("Button Label", rightPanel, 1);
+            messageTypeTextBox = CreateTextBox("Message Type", rightPanel, 2);
+            promptTextBox = CreateTextBox("Prompt", rightPanel, 3, true);
+
+            // Button panel
+            FlowLayoutPanel buttonPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true
+            };
+            rightPanel.Controls.Add(buttonPanel, 0, 5);
+
+            addButton = CreateButton("Add", AddButton_Click);
+            removeButton = CreateButton("Remove", RemoveButton_Click);
+            saveButton = CreateButton("Save", SaveButton_Click);
+            buttonPanel.Controls.AddRange(new Control[] { addButton, removeButton, saveButton });
 
             RefreshListBox();
+
         }
 
-        private TextBox CreateTextBox(string label, int x, int y, int height = 60)
+        private TextBox CreateTextBox(string label, TableLayoutPanel parent, int row, bool large = false)
         {
-            this.Controls.Add(new Label { Text = label, Location = new Point(x, y), AutoSize = true });
+            Panel container = new Panel { Dock = DockStyle.Fill };
+            Label labelControl = new Label { Text = label, AutoSize = true, Dock = DockStyle.Top };
             TextBox textBox = new TextBox
             {
-                Location = new Point(x, y + 20),
-                Size = new Size(350, height),
+                Dock = DockStyle.Fill,
                 Multiline = true
             };
-            this.Controls.Add(textBox);
+            container.Controls.Add(textBox);
+            container.Controls.Add(labelControl);
+            parent.Controls.Add(container, 0, row);
             return textBox;
+
         }
 
-        private Button CreateButton(string text, int x, int y, EventHandler clickHandler)
+        private Button CreateButton(string text, EventHandler clickHandler)
         {
             Button button = new Button
             {
                 Text = text,
-                Location = new Point(x, y),
-                Size = new Size(100, 30)
+                AutoSize = true,
+                Margin = new Padding(0, 0, 10, 0),
+                Padding = new Padding(10, 5, 10, 5),
+                MinimumSize = new Size(100, 30)
             };
             button.Click += clickHandler;
-            this.Controls.Add(button);
             return button;
+
         }
 
         private void RefreshListBox()
