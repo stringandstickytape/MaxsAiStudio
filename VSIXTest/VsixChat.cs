@@ -468,6 +468,7 @@ namespace VSIXTest
                                                 // Insert the modified text
                                                 editPoint.Insert(beforeText);
                                                 editPoint.Insert(decodedNewText);
+                                                editPoint.Insert("\r\n");
                                                 editPoint.Insert(afterText);
                                             }
                                         }

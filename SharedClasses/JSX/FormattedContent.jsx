@@ -73,6 +73,16 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         window.addEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
         return () => window.removeEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
     }, []);
+const matchesFileType = (fileType, allowedTypes) => {
+        const normalizedFileType = fileType.trim().toLowerCase();
+        return allowedTypes.some(type => {
+            if (type.startsWith('*.')) {
+                const extension = type.split('.')[1];
+                return normalizedFileType.endsWith('.' + extension);
+            }
+            return type === normalizedFileType;
+        });
+    };
 
     const fileTypes = {
         webView: ["html", "js"],
@@ -81,8 +91,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         installTheme: ["maxtheme.json"],
         applyNewDiff: ["newdiff.json"],
         importTemplate: ["maxchattemplate.json"],
-        browseJsonObject: ["json","newdiff.json"],
-        viewMermaidDiagram: ["mermaid"],
+        browseJsonObject: ["json", "newdiff.json", "*.json"],
+ viewMermaidDiagram: ["mermaid"],
         viewPlantUMLDiagram: ["plantuml"],
         viewDOTDiagram: ["dot"],
         runPythonScript: ["python"],
@@ -334,14 +344,6 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                             createSvgViewer(code.trim());
                                         })
                                     }
-                                    {fileTypes.viewJsonStringArray.includes(fileType.trim().toLowerCase()) &&
-                                        addMessageButton("View JSON String Array", () => {
-                                            window.chrome.webview.postMessage({
-                                                type: 'View JSON String Array',
-                                                content: code.trim()
-                                            });
-                                        })
-                                    }
                                     {fileTypes.importTemplate.includes(fileType.trim().toLowerCase()) &&
                                         addMessageButton("Import Template", () => {
                                             window.chrome.webview.postMessage({
@@ -388,8 +390,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
                                             });
                                         }, 300))
                                     }
-                                    {fileTypes.browseJsonObject.includes(fileType.trim().toLowerCase()) &&
-                                        addMessageButton("Browse JSON Object", () => {
+                                    {matchesFileType(fileType, fileTypes.browseJsonObject) &&
+                                 addMessageButton("Browse JSON Object", () => {
                                             createJsonViewer(code.trim());
                                         })
                                     }
