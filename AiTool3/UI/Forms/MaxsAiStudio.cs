@@ -93,17 +93,7 @@ namespace AiTool3
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
-                chatWebView.ChatWebViewSendMessageEvent += ChatWebView_ChatWebViewSendMessageEvent;
-                chatWebView.ChatWebViewCancelEvent += ChatWebView_ChatWebViewCancelEvent;
-                chatWebView.ChatWebViewCopyEvent += ChatWebView_ChatWebViewCopyEvent;
-                chatWebView.ChatWebViewNewEvent += ChatWebView_ChatWebViewNewEvent;
-                chatWebView.ChatWebViewAddBranchEvent += ChatWebView_ChatWebViewAddBranchEvent;
-                chatWebView.ChatWebViewJoinWithPreviousEvent += ChatWebView_ChatWebViewJoinWithPreviousEvent;
-                chatWebView.ChatWebDropdownChangedEvent += ChatWebView_ChatWebDropdownChangedEvent;
-                chatWebView.ChatWebViewSimpleEvent += ChatWebView_ChatWebViewSimpleEvent;
-                chatWebView.ChatWebViewContinueEvent += ChatWebView_ChatWebViewContinueEvent;
-                chatWebView.ChatWebViewReadyEvent += ChatWebView_ChatWebViewReadyEvent;
-                chatWebView.FileDropped += ChatWebView_FileDropped;
+                RegisterChatWebViewEvents();
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -138,6 +128,34 @@ namespace AiTool3
             this.Activate();
             this.BringToFront();
         }
+
+
+        private void RegisterChatWebViewEvents()
+        {
+            var eventMappings = new Dictionary<string, Delegate>
+            {
+                {"SendMessage", new EventHandler<ChatWebViewSendMessageEventArgs>(ChatWebView_ChatWebViewSendMessageEvent)},
+                {"Cancel", new EventHandler<ChatWebViewCancelEventArgs>(ChatWebView_ChatWebViewCancelEvent)},
+                {"Copy", new EventHandler<ChatWebViewCopyEventArgs>(ChatWebView_ChatWebViewCopyEvent)},
+                {"New", new EventHandler<ChatWebViewNewEventArgs>(ChatWebView_ChatWebViewNewEvent)},
+                {"AddBranch", new EventHandler<ChatWebViewAddBranchEventArgs>(ChatWebView_ChatWebViewAddBranchEvent)},
+                {"JoinWithPrevious", new EventHandler<ChatWebViewJoinWithPreviousEventArgs>(ChatWebView_ChatWebViewJoinWithPreviousEvent)},
+                {"DropdownChanged", new EventHandler<ChatWebDropdownChangedEventArgs>(ChatWebView_ChatWebDropdownChangedEvent)},
+                {"Simple", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewSimpleEvent)},
+                {"Continue", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewContinueEvent)},
+                {"Ready", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewReadyEvent)}
+            };
+            
+            foreach(var mapping in eventMappings)
+            {
+                typeof(ChatWebView).GetEvent($"ChatWebView{mapping.Key}Event")
+                    .AddEventHandler(chatWebView, mapping.Value);
+            }
+
+            // Handle FileDropped separately since it doesn't follow the same naming pattern
+            chatWebView.FileDropped += ChatWebView_FileDropped;
+        }
+
 
         private async void ChatWebView_ChatWebViewContinueEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
