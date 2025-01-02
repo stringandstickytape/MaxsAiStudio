@@ -38,7 +38,7 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewNewEventArgs>? ChatWebViewNewEvent;
         public event EventHandler<ChatWebViewAddBranchEventArgs>? ChatWebViewAddBranchEvent;
         public event EventHandler<ChatWebViewJoinWithPreviousEventArgs>? ChatWebViewJoinWithPreviousEvent;
-        public event EventHandler<ChatWebDropdownChangedEventArgs>? ChatWebDropdownChangedEvent;
+        public event EventHandler<ChatWebViewDropdownChangedEventArgs>? ChatWebViewDropdownChangedEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewContinueEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
@@ -171,7 +171,7 @@ namespace AiTool3.UI
                     ChatWebViewContinueEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("continue", guid));
                     break;
                 case "dropdownChanged":
-                    ChatWebDropdownChangedEvent?.Invoke(this, new ChatWebDropdownChangedEventArgs() { Dropdown = message["id"], ModelString = content });
+                    ChatWebViewDropdownChangedEvent?.Invoke(this, new ChatWebViewDropdownChangedEventArgs() { Dropdown = message["id"], ModelString = content });
                     break;
                 case "joinWithPrevious":
                     ChatWebViewJoinWithPreviousEvent?.Invoke(this, new ChatWebViewJoinWithPreviousEventArgs(GuidValue = message["guid"]));

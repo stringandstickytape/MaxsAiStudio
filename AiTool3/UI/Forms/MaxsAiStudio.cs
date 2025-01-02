@@ -134,13 +134,13 @@ namespace AiTool3
         {
             var eventMappings = new Dictionary<string, Delegate>
             {
-                {"SendMessage", new EventHandler<ChatWebViewSendMessageEventArgs>(ChatWebView_ChatWebViewSendMessageEvent)},
+                {"SendMessage", new EventHandler<ChatWebViewSendMessageEventArgs>(ChatWebView_ChatWebViewSendMessageEvent)}, 
                 {"Cancel", new EventHandler<ChatWebViewCancelEventArgs>(ChatWebView_ChatWebViewCancelEvent)},
                 {"Copy", new EventHandler<ChatWebViewCopyEventArgs>(ChatWebView_ChatWebViewCopyEvent)},
                 {"New", new EventHandler<ChatWebViewNewEventArgs>(ChatWebView_ChatWebViewNewEvent)},
                 {"AddBranch", new EventHandler<ChatWebViewAddBranchEventArgs>(ChatWebView_ChatWebViewAddBranchEvent)},
                 {"JoinWithPrevious", new EventHandler<ChatWebViewJoinWithPreviousEventArgs>(ChatWebView_ChatWebViewJoinWithPreviousEvent)},
-                {"DropdownChanged", new EventHandler<ChatWebDropdownChangedEventArgs>(ChatWebView_ChatWebDropdownChangedEvent)},
+                {"DropdownChanged", new EventHandler<ChatWebViewDropdownChangedEventArgs>(ChatWebView_ChatWebDropdownChangedEvent)},
                 {"Simple", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewSimpleEvent)},
                 {"Continue", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewContinueEvent)},
                 {"Ready", new EventHandler<ChatWebViewSimpleEventArgs>(ChatWebView_ChatWebViewReadyEvent)}
@@ -678,7 +678,7 @@ namespace AiTool3
 <";
         }
 
-        private async void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebDropdownChangedEventArgs e)
+        private async void ChatWebView_ChatWebDropdownChangedEvent(object? sender, ChatWebViewDropdownChangedEventArgs e)
         {
             CurrentSettings.SetModelFromDropdownValue(e.Dropdown, e.ModelString);
 
