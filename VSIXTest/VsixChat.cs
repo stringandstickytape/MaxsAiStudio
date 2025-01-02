@@ -22,6 +22,7 @@ using VSIXTest.FileGroups;
 using Microsoft.VisualStudio.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace VSIXTest
 {
@@ -264,23 +265,113 @@ namespace VSIXTest
                                     }
                                     break;
 
+                                /*                                case "addToFile":
+                                                                case "deleteFromFile":
+                                                                case "modifyFile":
+                                                                    {
+                                                                        var lineNumber = change["lineNumber"].Value<int>();
+                                                                        var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
+
+                                                                        // Open or activate the file
+                                                                        var window = _dte.ItemOperations.OpenFile(path);
+                                                                        window.Activate();
+                                                                        var document = window.Document;
+
+                                                                        var textDocument = document.Object() as TextDocument;
+                                                                        var editPoint = textDocument.StartPoint.CreateEditPoint();
+
+                                                                        // Move to the specified line
+                                                                        //editPoint.MoveToLineAndOffset(lineNumber, 1);
+
+                                                                        if (changeType == "deleteFromFile")
+                                                                        {
+                                                                            // For delete, get the number of lines to delete from hunkHeader
+                                                                            var oldCount = change["hunkHeader"]["oldCount"].Value<int>();
+                                                                            var deletePoint = editPoint.CreateEditPoint();
+                                                                            deletePoint.LineDown(oldCount);
+                                                                            editPoint.Delete(deletePoint);
+                                                                        }
+                                                                        else 
+                                                                        {
+
+
+                                                                            var fullText = editPoint.GetText(textDocument.EndPoint);
+
+                                                                            string decodedOldText = "";
+                                                                            try
+                                                                            {
+                                                                                decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
+                                                                            }
+                                                                            catch
+                                                                            {
+                                                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
+                                                                            }
+
+                                                                            string decodedNewText = "";
+                                                                                try
+                                                                                {
+                                                                                    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                                                                }
+                                                                                catch
+                                                                                {
+                                                                                    decodedNewText = change["newContent"]?.ToString() ?? "";
+                                                                                }
+                                                                            decodedNewText = decodedNewText.Trim();
+                                                                            decodedOldText = decodedOldText.Trim();
+
+                                                                            // Find the position of the old text
+                                                                            int startIndex = fullText.IndexOf(decodedOldText);
+                                                                            if(startIndex < 0)
+                                                                            {
+                                                                                decodedOldText = decodedOldText.Replace("\n", "\r\n");
+                                                                                startIndex = fullText.IndexOf(decodedOldText);
+                                                                            }
+
+                                                                            if (startIndex >= 0)
+                                                                            {
+                                                                                // Clear the document
+                                                                                editPoint.Delete(textDocument.EndPoint);
+
+                                                                                // Split the text and insert with modifications
+                                                                                string beforeText = fullText.Substring(0, startIndex);
+                                                                                string afterText = fullText.Substring(startIndex + decodedOldText.Length);
+
+                                                                                // Insert the modified text
+                                                                                editPoint.Insert(beforeText);
+                                                                                editPoint.Insert(decodedNewText);
+                                                                                editPoint.Insert(afterText);
+                                                                            }
+                                                                        }
+
+
+                                                                        // Save the document
+                                                                        //document.Save();
+                                                                    }
+                                                                    break;*/
                                 case "addToFile":
                                 case "deleteFromFile":
                                 case "modifyFile":
                                     {
-                                        //var lineNumber = change["lineNumber"].Value<int>();
+                                        var lineNumber = change["lineNumber"].Value<int>();
                                         var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
 
                                         // Open or activate the file
                                         var window = _dte.ItemOperations.OpenFile(path);
+
+                                        if (window == null)
+                                        {
+                                            
+                                            Debug.WriteLine($"Path not found: {path}");
+                                            break;
+                                        }
+
+
+
                                         window.Activate();
                                         var document = window.Document;
 
                                         var textDocument = document.Object() as TextDocument;
                                         var editPoint = textDocument.StartPoint.CreateEditPoint();
-
-                                        // Move to the specified line
-                                        //editPoint.MoveToLineAndOffset(lineNumber, 1);
 
                                         if (changeType == "deleteFromFile")
                                         {
@@ -290,11 +381,10 @@ namespace VSIXTest
                                             deletePoint.LineDown(oldCount);
                                             editPoint.Delete(deletePoint);
                                         }
-                                        else 
+                                        else
                                         {
-
-
                                             var fullText = editPoint.GetText(textDocument.EndPoint);
+                                            var lines = fullText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
                                             string decodedOldText = "";
                                             try
@@ -307,20 +397,59 @@ namespace VSIXTest
                                             }
 
                                             string decodedNewText = "";
-                                                try
-                                                {
-                                                    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                                }
-                                                catch
-                                                {
-                                                    decodedNewText = change["newContent"]?.ToString() ?? "";
-                                                }
+                                            try
+                                            {
+                                                decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
+                                            }
+                                            catch
+                                            {
+                                                decodedNewText = change["newContent"]?.ToString() ?? "";
+                                            }
                                             decodedNewText = decodedNewText.Trim();
                                             decodedOldText = decodedOldText.Trim();
-                                                
-                                            // Find the position of the old text
-                                            int startIndex = fullText.IndexOf(decodedOldText);
-                                            if(startIndex < 0)
+
+                                            // Convert line number to 0-based index
+                                            int targetLine = lineNumber - 1;
+                                            int startIndex = -1;
+                                            int searchRadius = 0;
+
+                                            // Search for match, expanding outward from the target line
+                                            while (startIndex < 0 &&
+                                                   (targetLine - searchRadius >= 0 || targetLine + searchRadius < lines.Length))
+                                            {
+                                                // Check line before
+                                                if (targetLine - searchRadius >= 0)
+                                                {
+                                                    int lineStartIndex = string.Join("\n", lines.Take(targetLine - searchRadius)).Length;
+                                                    if (targetLine - searchRadius > 0) lineStartIndex += targetLine - searchRadius; // Add newlines
+                                                    string lineText = lines[targetLine - searchRadius];
+                                                    int matchIndex = lineText.IndexOf(decodedOldText);
+                                                    if (matchIndex >= 0)
+                                                    {
+                                                        startIndex = lineStartIndex + matchIndex;
+                                                        break;
+                                                    }
+                                                }
+
+                                                // Check line after
+                                                if (targetLine + searchRadius < lines.Length && searchRadius > 0) // searchRadius > 0 to avoid checking target line twice
+                                                {
+                                                    int lineStartIndex = string.Join("\n", lines.Take(targetLine + searchRadius)).Length;
+                                                    if (targetLine + searchRadius > 0) lineStartIndex += targetLine + searchRadius; // Add newlines
+                                                    string lineText = lines[targetLine + searchRadius];
+                                                    int matchIndex = lineText.IndexOf(decodedOldText);
+                                                    if (matchIndex >= 0)
+                                                    {
+                                                        startIndex = lineStartIndex + matchIndex;
+                                                        break;
+                                                    }
+                                                }
+
+                                                searchRadius++;
+                                            }
+
+                                            // If still not found, try with Windows-style line endings
+                                            if (startIndex < 0)
                                             {
                                                 decodedOldText = decodedOldText.Replace("\n", "\r\n");
                                                 startIndex = fullText.IndexOf(decodedOldText);
@@ -341,7 +470,6 @@ namespace VSIXTest
                                                 editPoint.Insert(afterText);
                                             }
                                         }
-
 
                                         // Save the document
                                         //document.Save();
