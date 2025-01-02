@@ -61,8 +61,8 @@
     <Compile Include="UI\ChatWindowPane.cs" />
     <Compile Include="UI\ContentFormatter.cs" />
     <Compile Include="UI\FileGroups\FileGroup.cs" />
+    <Compile Include="UI\FileGroups\FileGroupEditWindow.cs" />
     <Compile Include="UI\FileGroups\FileGroupManager.cs" />
-    <Compile Include="UI\FileGroups\FileGroupWindow.cs" />
     <Compile Include="Helpers\GitDiffHelper.cs" />
     <Compile Include="Helpers\MessageFormatHelper.cs" />
     <Compile Include="Models\MessagePrompt.cs" />

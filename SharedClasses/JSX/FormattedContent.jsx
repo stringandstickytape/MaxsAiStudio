@@ -73,7 +73,8 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
         window.addEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
         return () => window.removeEventListener('findAndReplaceUpdate', handleFindAndReplaceUpdate);
     }, []);
-const matchesFileType = (fileType, allowedTypes) => {
+
+const matchesFileType = (fileType, allowedTypes) => {
         const normalizedFileType = fileType.trim().toLowerCase();
         return allowedTypes.some(type => {
             if (type.startsWith('*.')) {

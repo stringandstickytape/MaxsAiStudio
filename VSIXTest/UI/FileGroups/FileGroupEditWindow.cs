@@ -31,23 +31,30 @@ namespace VSIXTest
 
         private void InitializeComponent()
         {
-            Title = "Edit File Groups";
+           Title = "Edit File Groups";
+            FontFamily = new System.Windows.Media.FontFamily("Segoe UI");
+            FontSize = 12;
+;
             Width = 700;
             Height = 600;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-            var grid = new Grid();
+           var grid = new Grid { Margin = new Thickness(10) };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
+
+;
             Content = grid;
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            //grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
+           grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             // Group ListBox
-            _groupListBox = new ListBox { Margin = new Thickness(5) };
+           _groupListBox = new ListBox { Margin = new Thickness(5), Background = System.Windows.Media.Brushes.White };
+
             _groupListBox.ItemTemplate = CreateGroupItemTemplate();
             PopulateGroupListBox();
             InitializeEditedGroups();
@@ -56,9 +63,11 @@ namespace VSIXTest
             grid.Children.Add(_groupListBox);
 
             // Add and Delete buttons for groups
-           var groupButtonPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
-           var addGroupButton = new Button { Content = "Add Group", Width = 75, Margin = new Thickness(5) };
-           var deleteGroupButton = new Button { Content = "Delete Group", Width = 75, Margin = new Thickness(5) };
+          var groupButtonPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
+         var addGroupButton = new Button { Content = "+", Width = 30, Margin = new Thickness(5), Padding = new Thickness(5), ToolTip = "Add a new file group", FontWeight = FontWeights.Bold };
+
+         var deleteGroupButton = new Button { Content = "-", Width = 30, Margin = new Thickness(5), Padding = new Thickness(5), ToolTip = "Delete the selected file group", FontWeight = FontWeights.Bold };
+
            addGroupButton.Click += AddGroupButton_Click;
            deleteGroupButton.Click += DeleteGroupButton_Click;
            groupButtonPanel.Children.Add(addGroupButton);
@@ -67,26 +76,28 @@ namespace VSIXTest
            grid.Children.Add(groupButtonPanel);
 
             // Name input
-            var nameLabel = new Label { Content = "Group Name:" };
-            _nameTextBox = new TextBox { Margin = new Thickness(5) };
+             var nameLabel = new Label { Content = "Group Name:", FontWeight = FontWeights.Bold };
+         _nameTextBox = new TextBox { Margin = new Thickness(5), Padding = new Thickness(5), VerticalContentAlignment = VerticalAlignment.Center };
             _nameTextBox.TextChanged += NameTextBox_TextChanged;
             var namePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
             namePanel.Children.Add(nameLabel);
-            namePanel.Children.Add(_nameTextBox);
+          namePanel.Children.Add(_nameTextBox);
             Grid.SetRow(namePanel, 0);
             Grid.SetColumn(namePanel, 1);
             grid.Children.Add(namePanel);
 
             // File TreeView
-            _fileTreeView = new TreeView { Margin = new Thickness(5) };
+           _fileTreeView = new TreeView { Margin = new Thickness(5), Background = System.Windows.Media.Brushes.White };
             Grid.SetRow(_fileTreeView, 1);
             Grid.SetColumn(_fileTreeView, 1);
             grid.Children.Add(_fileTreeView);
 
             // Buttons
-            var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(5) };
-            var saveButton = new Button { Content = "Save All", Width = 75, Margin = new Thickness(5) };
-            var cancelButton = new Button { Content = "Cancel", Width = 75, Margin = new Thickness(5) };
+           var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(10) };;
+          var saveButton = new Button { Content = "Save", Width = 80, Margin = new Thickness(5), Padding = new Thickness(5), ToolTip = "Save all changes" };
+
+          var cancelButton = new Button { Content = "Cancel", Width = 80, Margin = new Thickness(5), Padding = new Thickness(5), ToolTip = "Cancel and close the window" };
+
             saveButton.Click += SaveButton_Click;
             cancelButton.Click += CancelButton_Click;
             buttonPanel.Children.Add(saveButton);
@@ -100,7 +111,8 @@ namespace VSIXTest
         {
             var template = new DataTemplate();
             var stackPanel = new FrameworkElementFactory(typeof(StackPanel));
-            stackPanel.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+            stackPanel.SetValue(StackPanel.BackgroundProperty, System.Windows.Media.Brushes.White);
+          stackPanel.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
 
             var checkBox = new FrameworkElementFactory(typeof(CheckBox));
             checkBox.SetBinding(CheckBox.IsCheckedProperty, new Binding("Selected"));
@@ -108,7 +120,8 @@ namespace VSIXTest
 
             var textBlock = new FrameworkElementFactory(typeof(TextBlock));
             textBlock.SetBinding(TextBlock.TextProperty, new Binding("Name"));
-            textBlock.SetValue(TextBlock.MarginProperty, new Thickness(5, 0, 0, 0));
+            textBlock.SetValue(TextBlock.ForegroundProperty, System.Windows.Media.Brushes.Black);
+         textBlock.SetValue(TextBlock.MarginProperty, new Thickness(5, 0, 0, 0));
 
             stackPanel.AppendChild(checkBox);
             stackPanel.AppendChild(textBlock);
@@ -251,6 +264,8 @@ namespace VSIXTest
         {
             var checkBox = new CheckBox
             {
+                Foreground = System.Windows.Media.Brushes.Black,
+                Background = System.Windows.Media.Brushes.White,
                 Content = name,
                 IsChecked = isChecked,
                 Tag = filePath ?? name
@@ -410,8 +425,13 @@ namespace VSIXTest
             if (selectedGroup != null)
             {
                 string newName = _nameTextBox.Text;
-                if (_fileGroups.Any(g => g != selectedGroup && g.Name == newName))
+                if (newName.Length > 50)
                 {
+                    MessageBox.Show("The group name cannot be longer than 50 characters.", "Name Too Long", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                else if (_fileGroups.Any(g => g != selectedGroup && g.Name == newName))
+        {
                     // Name already exists, maybe show an error message
                     MessageBox.Show("A group with this name already exists. Please choose a different name.", "Duplicate Name", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
