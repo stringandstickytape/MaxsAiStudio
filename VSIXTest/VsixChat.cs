@@ -255,6 +255,7 @@ namespace VSIXTest
                                 case "createnewFile":
                                     {
                                         var newContent = change["newContent"].ToString();
+                                        newContent = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
                                         var directoryPath = Path.GetDirectoryName(path);
                                         if (!Directory.Exists(directoryPath))
                                         {
