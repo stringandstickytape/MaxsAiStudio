@@ -31,9 +31,9 @@ namespace AiTool3.UI.Forms
             Columns[1].ReadOnly = true;
             Columns[2].Visible = false;
             Columns[2].ReadOnly = true;
-            // make the last column fill the parent
             Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             Columns[3].ReadOnly = true;
+            Columns[3].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
 
             AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             RowHeadersWidth = 10;
@@ -46,7 +46,8 @@ namespace AiTool3.UI.Forms
             {
                 var fileSummary = conversationCacheManager.GetSummary(file);
 
-                int rowIndex = Rows.Add(fileSummary.ConvGuid, "", "", fileSummary.Summary);
+                var summary = fileSummary.Summary.Length > 200 ? fileSummary.Summary.Substring(0, 200) + "..." : fileSummary.Summary;
+                int rowIndex = Rows.Add(fileSummary.ConvGuid, "", "", summary);
 
                 if (fileSummary.HighlightColour.HasValue)
                 {
@@ -57,7 +58,7 @@ namespace AiTool3.UI.Forms
             }
 
 
-            ContextMenuStrip contextMenu = new ContextMenuStrip();
+            ContextMenuStrip contextMenu = new ContextMenuStrip { Renderer = new CustomToolStripRenderer(new CustomProfessionalColorTable()) };
 
             contextMenu.Items.Add("Regenerate Summary", null, RegenerateSummary);
 
@@ -66,7 +67,7 @@ namespace AiTool3.UI.Forms
 
             foreach (var colour in new Color[] { Color.LightBlue, Color.LightGreen, Color.LightPink, Color.LightYellow, Color.LightCoral, Color.LightCyan })
             {
-                var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "Highlight in ").Replace("]", ""));
+                var item = new ToolStripMenuItem(colour.ToString().Replace("Color [", "").Replace("]", ""));
 
                 // add a colour swatch to the item (!)
                 var bmp = new System.Drawing.Bitmap(16, 16);
@@ -82,6 +83,7 @@ namespace AiTool3.UI.Forms
                 item.Image = bmp;
 
 
+                item.ToolTipText = "Change the highlight color of this conversation";
 
                 item.Click += (s, e) =>
                 {
@@ -169,6 +171,17 @@ namespace AiTool3.UI.Forms
                     }
                     catch { }
                 }
+            }
+        }
+        
+        // this method needed to ensure that the selected row is also the CurrentRow.
+        // otherwise, the clicked row will not be the same as the selected one.
+        protected override void OnCellMouseDown(DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                CurrentCell = this[e.ColumnIndex, e.RowIndex];
+                base.OnCellMouseDown(e);
             }
         }
     }

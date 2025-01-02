@@ -19,7 +19,7 @@
         // measure "text" using that font
         var size = TextRenderer.MeasureText(text, parentFont);
 
-        Width = size.Width + 48;
+        Width = size.Width + 64;
 
         dropDownItems.DropDownItems.Add(this);
     }
@@ -66,6 +66,7 @@
 
         // Draw the edit button
         Rectangle buttonRect = new Rectangle(0, 0, 32, 32);
+            e.Graphics.FillRectangle(Brushes.LightGray, buttonRect);
 
         using (Bitmap bmp2 = new Bitmap(32, 32))
         using (Graphics g = Graphics.FromImage(bmp2))
@@ -76,7 +77,7 @@
             using (StringFormat sf = new StringFormat())
             {
                 sf.Alignment = StringAlignment.Center;
-                g.DrawString("Edit", new Font("Segoe UI", 8), Brushes.Black, 0, 4);
+                g.DrawString("Edit", new Font("Segoe UI", 8), Brushes.Black, -4, 8);
             }
             e.Graphics.DrawImage(bmp2, buttonRect);
         }

@@ -10,7 +10,7 @@ namespace AiTool3.Conversations
     {
         public List<CompletionMessage> Messages = new List<CompletionMessage>();
         public string ConvGuid { get; set; }
-        public string Summary { get; set; }
+        public string Summary { get; set; } = "";
         public Color? HighlightColour { get; set; } = null;
 
         public event StringSelectedEventHandler StringSelected;
@@ -54,7 +54,7 @@ namespace AiTool3.Conversations
         internal async Task<string> GenerateSummary(SettingsSet currentSettings)
         {
 
-            var apiModel = currentSettings.GetSummaryModel();
+            var apiModel = currentSettings.GetSummaryModel() ?? currentSettings.GetModel();
 
             string responseText = "";
             Debug.WriteLine(Summary);
