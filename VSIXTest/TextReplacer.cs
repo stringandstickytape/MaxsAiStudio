@@ -3,17 +3,29 @@ using System.Linq;
 
 namespace VSIXTest
 {
+    /// <summary>
+    /// Provides functionality to replace text in a source file with new text, using a line number hint for efficient matching.
+    /// </summary>
     public class TextReplacer
     {
+        /// <summary>
+        /// Replaces a specified text in a source file with new text, searching for matches around a given line number hint.
+        /// </summary>
+        /// <param name="sourceFile">The complete content of the source file to modify.</param>
+        /// <param name="oldText">The text to be replaced.</param>
+        /// <param name="newText">The text to replace with.</param>
+        /// <param name="lineNumberHint">The approximate line number where the replacement should occur.</param>
+        /// <returns>The modified file content if a match is found, or the original content if no match is found.</returns>
         public string ReplaceTextAtHint(string sourceFile, string oldText, string newText, int lineNumberHint)
         {
+            // our index here is zero, but LLMs will typically number lines from 1
+            lineNumberHint--;
+
             // Determine dominant newlines and split texts
             var (sourceLines, sourceNewline) = SplitWithNewlineDetection(sourceFile);
             var (oldLines, _) = SplitWithNewlineDetection(oldText);
             var (newLines, _) = SplitWithNewlineDetection(newText);
 
-            if (sourceLines.Length == 0 || oldLines.Length == 0)
-                return sourceFile;
 
             // Search outward from hint
             int maxOffset = Math.Max(sourceLines.Length - lineNumberHint, lineNumberHint);
@@ -35,7 +47,7 @@ namespace VSIXTest
                 if (lowerLine >= 0 && offset > 0) // offset > 0 to avoid checking hint twice
                 {
                     if (MatchesAtPosition(sourceLines, oldLines, lowerLine))
-                    {
+                    { // - 1 is a fail
                         return BuildResult(sourceLines, newLines, lowerLine, sourceNewline, oldLines.Length);
                     }
                 }
@@ -53,8 +65,13 @@ namespace VSIXTest
 
             string dominantNewline = crlfCount >= lfCount ? "\r\n" : "\n";
 
+            var split = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            if (string.IsNullOrEmpty(split.Last()))
+                split = split.Take(split.Length - 1).ToArray();
+
             // Split the text
-            return (text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None), dominantNewline);
+            return (split, dominantNewline);
         }
 
         private bool MatchesAtPosition(string[] sourceLines, string[] oldLines, int startLine)

@@ -385,15 +385,6 @@ namespace VSIXTest
                                         var textDocument = document.Object() as TextDocument;
                                         var editPoint = textDocument.StartPoint.CreateEditPoint();
 
-                                        if (changeType == "deleteFromFile")
-                                        {
-                                            // For delete, get the number of lines to delete from hunkHeader
-                                            var oldCount = change["hunkHeader"]["oldCount"].Value<int>();
-                                            var deletePoint = editPoint.CreateEditPoint();
-                                            deletePoint.LineDown(oldCount);
-                                            editPoint.Delete(deletePoint);
-                                        }
-                                        else
                                         {
                                             var fullText = editPoint.GetText(textDocument.EndPoint);
 
@@ -703,7 +694,7 @@ namespace VSIXTest
 
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setSystemPrompt", Content = systemPrompt }, simpleClient);
 
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll }, simpleClient);
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = matchingButton.Tool }, simpleClient);
         }
 
         private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)

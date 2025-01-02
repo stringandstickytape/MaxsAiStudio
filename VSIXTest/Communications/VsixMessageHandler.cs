@@ -30,15 +30,15 @@ namespace VSIXTest
             switch (message.MessageType)
             {
                 case "vsButtons":
-                    //deser message.Content to list of strings
+
                     Buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);
 
-                    // group buttons by category
+
                     var groupedButtons = Buttons.GroupBy(b => b.Category).ToList();
 
                     await _executeScriptAsync($@"window.clearAllButtons();");
 
-                    //foreach cat
+
                     foreach (var cat in groupedButtons)
                     {
                         var catButtons = cat.ToList();
@@ -65,7 +65,7 @@ namespace VSIXTest
                 case "webviewJsCall":
                     await HandleWebviewJsCallAsync(message.Content);
                     break;
-                // Add more cases as needed
+
                 default:
                     System.Diagnostics.Debug.WriteLine($"Unknown message type: {message.MessageType}");
                     break;
@@ -74,21 +74,21 @@ namespace VSIXTest
 
         private async Task HandleSetUserPromptAsync(string content)
         {
-            // Handle setting user prompt
+
             await _executeScriptAsync($"setUserPrompt('{content}')");
         }
 
         private async Task HandleVsixUiAsync(string content)
         {
-            // Handle UI-related messages
+
             var uiMessage = JsonConvert.DeserializeObject<VsixUiMessage>(content);
-            // Process UI message as needed
+
             await _executeScriptAsync($"handleUiMessage({JsonConvert.SerializeObject(uiMessage)})");
         }
 
         private async Task HandleWebviewJsCallAsync(string content)
         {
-            // Execute JavaScript in WebView2
+
             await _executeScriptAsync(content);
         }
 
@@ -159,7 +159,7 @@ namespace VSIXTest
                     }
                     catch (Exception ex)
                     {
-                        // Handle or log the exception
+
                         System.Diagnostics.Debug.WriteLine($"Error processing item: {ex.Message}");
                     }
                 }

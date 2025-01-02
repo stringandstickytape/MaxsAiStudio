@@ -22,8 +22,8 @@ namespace AiTool3.UI
 
         private void InitializeComponents()
         {
-            this.MinimumSize = new Size(800, 600);
-            this.Size = new Size(800, 600);
+            this.MinimumSize = new Size(800, 800);
+            //this.Size = new Size(800, 800);
             this.Text = "Message Prompt Editor";
 
             TableLayoutPanel mainLayout = new TableLayoutPanel
@@ -56,24 +56,20 @@ namespace AiTool3.UI
                 RowCount = 7,
                 Padding = new Padding(10, 0, 0, 0)
             };
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Category
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Button Label
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Message Type
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));  // Tool
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 37));  // Prompt
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10));  // Spacing
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));  // Buttons
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15));
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 40));
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10));
-            rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12)); // Category
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12)); // Button Label 
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12)); // Message Type 
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12)); // Tool 
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 12));// Prompt 
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 5));  // Buttons 
+            rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 20)); 
+
             mainLayout.Controls.Add(rightPanel, 1, 0);
 
             categoryTextBox = CreateTextBox("Category", rightPanel, 0);
             buttonLabelTextBox = CreateTextBox("Button Label", rightPanel, 1);
             messageTypeTextBox = CreateTextBox("Message Type", rightPanel, 2);
-            toolTextBox = CreateTextBox("Tool", rightPanel, 3);
+            toolTextBox = CreateTextBox("Name of Tool to use (if any)", rightPanel, 3);
             promptTextBox = CreateTextBox("Prompt", rightPanel, 4, true);
 
             // Button panel

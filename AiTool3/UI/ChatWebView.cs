@@ -101,9 +101,16 @@ namespace AiTool3.UI
             {
                 await Clear();
                 await SetUserPrompt(vsixMessage.Content);
-                var tool = _toolManager.GetToolByLabel("DiffChange11");
-                var idx = _toolManager.Tools.IndexOf(tool);
-                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = new List<string> {idx.ToString() }, SendViaSecondaryAI = false, AddEmbeddings = false,
+
+                List<string> selectedTools = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(vsixMessage.Tool))
+                {
+                    var tool = _toolManager.GetToolByLabel("DiffChange11");
+                    selectedTools = new List<string> { _toolManager.Tools.IndexOf(tool).ToString() };
+                }
+
+                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = selectedTools,  SendViaSecondaryAI = false, AddEmbeddings = false,
                 //Prefill = "Certainly, I can silently give you the bare code on its own, without repeating or explaining anything.  The user should insert the following:\n```"
                 });
                 return;
