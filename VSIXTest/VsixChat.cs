@@ -365,35 +365,30 @@ namespace VSIXTest
 
 
  
-        ChangesetReviewWindow changesetReviewWindow = null;
-
         private async void ShowChangesetPopup(List<Change> changes)
         {
-            if (changesetReviewWindow != null)
-                return;
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             try
             {
-                changesetReviewWindow = new ChangesetReviewWindow(changes);
-                changesetReviewWindow.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
-                changesetReviewWindow.Closed += (s, e) =>
-                {
-                    changesetReviewWindow.ChangeApplied -= ChangesetReviewWindow_ChangeApplied;
-                    changesetReviewWindow = null;
-                };
+                var window = await VSIXTestPackage.Instance.FindToolWindowAsync(
+                    typeof(ChangesetReviewPane), 
+                    0, 
+                    true, 
+                    VSIXTestPackage.Instance.DisposalToken) as ChangesetReviewPane;
 
-                changesetReviewWindow.Show(); // Use Show() instead of ShowDialog() to prevent blocking
+                if (window?.Frame == null)
+                    throw new NotSupportedException("Cannot create changeset review window");
+
+                window.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
+                window.Initialize(changes);
+
+                IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error showing changeset window: {ex}");
-                if (changesetReviewWindow != null)
-                {
-                    changesetReviewWindow.ChangeApplied -= ChangesetReviewWindow_ChangeApplied;
-                    changesetReviewWindow = null;
-                }
             }
         }
 

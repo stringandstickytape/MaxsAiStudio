@@ -15,6 +15,7 @@ namespace VSIXTest
     [Guid(VSIXTestPackage.PackageGuidString)]
     [ProvideToolWindow(typeof(ChatWindowPane))]
     [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
+    [ProvideToolWindow(typeof(ChangesetReviewPane))]
     public sealed class VSIXTestPackage : AsyncPackage, IVsSolutionEvents, IVsFileChangeEvents
     {
         private uint _solutionEventsCookie;
