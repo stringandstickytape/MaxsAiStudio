@@ -169,6 +169,8 @@ public class ChangesetReviewPane : ToolWindowPane
         _undoButton.IsEnabled = true;
     }
 
+    // AI merge: Apply this changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
+
     private void UndoButton_Click(object sender, RoutedEventArgs e)
     {
         var change = _changes[_currentChangeIndex];
