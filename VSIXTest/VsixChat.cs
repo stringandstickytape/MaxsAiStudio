@@ -363,6 +363,7 @@ namespace VSIXTest
                 await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
+        private bool _changesetPaneInitted = false;
 
  
         private async void ShowChangesetPopup(List<Change> changes)
@@ -380,7 +381,11 @@ namespace VSIXTest
                 if (window?.Frame == null)
                     throw new NotSupportedException("Cannot create changeset review window");
 
-                window.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
+                if (!_changesetPaneInitted)
+                {
+                    _changesetPaneInitted = true;
+                    window.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
+                }
                 window.Initialize(changes);
 
                 IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
@@ -414,7 +419,7 @@ namespace VSIXTest
 
             var changeType = change.ChangeType;
             var path = change.Path;
-
+             
             try
             {
                 switch (changeType)
@@ -482,6 +487,10 @@ namespace VSIXTest
                             editPoint.StartOfDocument();
                             editPoint.Delete(textDocument.EndPoint);
                             editPoint.Insert(outp);
+
+                            var line = textDocument.StartPoint.CreateEditPoint();
+                            line.LineDown(lineNumber - 1);
+                            textDocument.Selection.MoveToPoint(line);
 
                             await Task.Yield(); // Give VS a chance to process the edit
                         }
