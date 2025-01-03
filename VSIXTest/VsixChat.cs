@@ -55,6 +55,8 @@ namespace VSIXTest
         private readonly AutocompleteManager _autocompleteManager;
         private readonly FileGroupManager _fileGroupManager;
 
+        private Changeset CurrentChangeset { get; set; }
+
         private async void VsixChat_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.End)
@@ -243,246 +245,8 @@ namespace VSIXTest
                 case "applyNewDiff":
                     {
                         var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
-                        var changes = changesetObj["changes"].ToObject<JArray>();
-
-                        var ctr = 0;
-                        foreach (var change in changes)
-                        {
-                            ctr++;
-                            //if (ctr > 7) continue;
-                            var changeType = change["change_type"].ToString();
-                            var path = change["path"].ToString();
-                            try
-                            {
-                                var deserPath = JsonConvert.DeserializeObject<string>(path);
-
-                            }
-                            catch (Exception e9)
-                            {
-
-                            }
-                            switch (changeType)
-                            {
-                                case "createnewFile":
-                                    {
-                                        var newContent = change["newContent"].ToString();
-                                        newContent = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                        var directoryPath = Path.GetDirectoryName(path);
-
-                                        if (!Directory.Exists(directoryPath))
-                                        {
-                                            Directory.CreateDirectory(directoryPath);
-                                        }
-                                        File.WriteAllText(path, newContent);
-                                        _dte.ItemOperations.OpenFile(path);
-                                    }
-                                    break;
-
-                                /*                                case "addToFile":
-                                                                case "deleteFromFile":
-                                                                case "modifyFile":
-                                                                    {
-                                                                        var lineNumber = change["lineNumber"].Value<int>();
-                                                                        var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
-
-                                                                        // Open or activate the file
-                                                                        var window = _dte.ItemOperations.OpenFile(path);
-                                                                        window.Activate();
-                                                                        var document = window.Document;
-
-                                                                        var textDocument = document.Object() as TextDocument;
-                                                                        var editPoint = textDocument.StartPoint.CreateEditPoint();
-
-                                                                        // Move to the specified line
-                                                                        //editPoint.MoveToLineAndOffset(lineNumber, 1);
-
-                                                                        if (changeType == "deleteFromFile")
-                                                                        {
-                                                                            // For delete, get the number of lines to delete from hunkHeader
-                                                                            var oldCount = change["hunkHeader"]["oldCount"].Value<int>();
-                                                                            var deletePoint = editPoint.CreateEditPoint();
-                                                                            deletePoint.LineDown(oldCount);
-                                                                            editPoint.Delete(deletePoint);
-                                                                        }
-                                                                        else 
-                                                                        {
-
-
-                                                                            var fullText = editPoint.GetText(textDocument.EndPoint);
-
-                                                                            string decodedOldText = "";
-                                                                            try
-                                                                            {
-                                                                                decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
-                                                                            }
-                                                                            catch
-                                                                            {
-                                                                                decodedOldText = change["oldContent"]?.ToString() ?? "";
-                                                                            }
-
-                                                                            string decodedNewText = "";
-                                                                                try
-                                                                                {
-                                                                                    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                                                                }
-                                                                                catch
-                                                                                {
-                                                                                    decodedNewText = change["newContent"]?.ToString() ?? "";
-                                                                                }
-                                                                            decodedNewText = decodedNewText.Trim();
-                                                                            decodedOldText = decodedOldText.Trim();
-
-                                                                            // Find the position of the old text
-                                                                            int startIndex = fullText.IndexOf(decodedOldText);
-                                                                            if(startIndex < 0)
-                                                                            {
-                                                                                decodedOldText = decodedOldText.Replace("\n", "\r\n");
-                                                                                startIndex = fullText.IndexOf(decodedOldText);
-                                                                            }
-
-                                                                            if (startIndex >= 0)
-                                                                            {
-                                                                                // Clear the document
-                                                                                editPoint.Delete(textDocument.EndPoint);
-
-                                                                                // Split the text and insert with modifications
-                                                                                string beforeText = fullText.Substring(0, startIndex);
-                                                                                string afterText = fullText.Substring(startIndex + decodedOldText.Length);
-
-                                                                                // Insert the modified text
-                                                                                editPoint.Insert(beforeText);
-                                                                                editPoint.Insert(decodedNewText);
-                                                                                editPoint.Insert(afterText);
-                                                                            }
-                                                                        }
-
-
-                                                                        // Save the document
-                                                                        //document.Save();
-                                                                    }
-                                                                    break;*/
-                                case "addToFile":
-                                case "deleteFromFile":
-                                case "modifyFile":
-                                    {
-                                        var lineNumber = change["lineNumber"].Value<int>();
-                                        var newContent = changeType != "deleteFromFile" ? change["newContent"]?.ToString() : "";
-
-                                        // Open or activate the file
-                                        var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
-
-                                        if (window == null)
-                                        {
-                                            
-                                            Debug.WriteLine($"Path not found: {path}");
-                                            break;
-                                        }
-
-
-                                        window.Activate();
-                                        var document = window.Document;
-
-                                        var textDocument = document.Object() as TextDocument;
-                                        var editPoint = textDocument.StartPoint.CreateEditPoint();
-
-                                        {
-                                            var fullText = editPoint.GetText(textDocument.EndPoint);
-
-                                            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change["oldContent"].ToString(), change["newContent"].ToString(), lineNumber);
-
-                                            editPoint.StartOfDocument();
-                                            editPoint.Delete(textDocument.EndPoint);
-                                            editPoint.Insert(outp);
-
-                                            //var lines = fullText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-                                            //
-                                            //string decodedOldText = "";
-                                            //try
-                                            //{
-                                            //    decodedOldText = JsonConvert.DeserializeObject<string>($"\"{(change["oldContent"]?.ToString() ?? "")}\"");
-                                            //}
-                                            //catch
-                                            //{
-                                            //    decodedOldText = change["oldContent"]?.ToString() ?? "";
-                                            //}
-                                            //
-                                            //string decodedNewText = "";
-                                            //try
-                                            //{
-                                            //    decodedNewText = JsonConvert.DeserializeObject<string>($"\"{(change["newContent"]?.ToString() ?? "")}\"");
-                                            //}
-                                            //catch
-                                            //{
-                                            //    decodedNewText = change["newContent"]?.ToString() ?? "";
-                                            //}
-                                            //decodedNewText = decodedNewText.Trim();
-                                            //decodedOldText = decodedOldText.Trim();
-                                            //
-                                            //// Convert line number to 0-based index
-                                            //int targetLine = lineNumber - 1;
-                                            //int startIndex = -1;
-                                            //int searchRadius = 0;
-                                            //
-                                            //// Search for match, expanding outward from the target line
-                                            //while (startIndex < 0 &&
-                                            //       (targetLine - searchRadius >= 0 || targetLine + searchRadius < lines.Length))
-                                            //{
-                                            //    // Check line before
-                                            //    if (targetLine - searchRadius >= 0)
-                                            //    {
-                                            //        int lineStartIndex = string.Join("\n", lines.Take(targetLine - searchRadius)).Length;
-                                            //        if (targetLine - searchRadius > 0) lineStartIndex += targetLine - searchRadius; // Add newlines
-                                            //        string lineText = lines[targetLine - searchRadius];
-                                            //        int matchIndex = lineText.IndexOf(decodedOldText);
-                                            //        if (matchIndex >= 0)
-                                            //        {
-                                            //            startIndex = lineStartIndex;
-                                            //            break;
-                                            //        }
-                                            //    }
-                                            //
-                                            //    // Check line after
-                                            //    if (targetLine + searchRadius < lines.Length && searchRadius > 0) // searchRadius > 0 to avoid checking target line twice
-                                            //    {
-                                            //        int lineStartIndex = string.Join("\n", lines.Take(targetLine + searchRadius)).Length;
-                                            //        if (targetLine + searchRadius > 0) lineStartIndex += targetLine + searchRadius; // Add newlines
-                                            //        string lineText = lines[targetLine + searchRadius];
-                                            //        int matchIndex = lineText.IndexOf(decodedOldText);
-                                            //        if (matchIndex >= 0)
-                                            //        {
-                                            //            startIndex = lineStartIndex;
-                                            //            break;
-                                            //        }
-                                            //    }
-                                            //
-                                            //    searchRadius++;
-                                            //}
-                                            //
-                                            //
-                                            //if (startIndex >= 0)
-                                            //{
-                                            //    // Clear the document
-                                            //    editPoint.Delete(textDocument.EndPoint);
-                                            //
-                                            //    // Split the text and insert with modifications
-                                            //    string beforeText = fullText.Substring(0, startIndex);
-                                            //    string afterText = fullText.Substring(startIndex + decodedOldText.Length);
-                                            //    afterText = afterText.Substring(afterText.IndexOf("\n"));
-                                            //
-                                            //    // Insert the modified text
-                                            //    editPoint.Insert(beforeText);
-                                            //    editPoint.Insert(decodedNewText);
-                                            //    editPoint.Insert("\r\n");
-                                            //    editPoint.Insert(afterText);
-                                            //}
-                                        }
-
-                                        // Save the document
-                                        //document.Save();
-                                    }
-                                    break;
-                            }
-                        }
+                        CurrentChangeset = changesetObj.ToObject<Changeset>();
+                        ShowChangesetPopup(CurrentChangeset.Changes); // <-- Call to ShowChangesetPopup is here
                     }
                     break;
                 case "setSystemPromptFromSolution":
@@ -599,6 +363,132 @@ namespace VSIXTest
                 await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
         }
 
+
+ 
+        ChangesetReviewWindow changesetReviewWindow = null;
+
+        private async void ShowChangesetPopup(List<Change> changes)
+        {
+            if (changesetReviewWindow != null)
+                return;
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            try
+            {
+                changesetReviewWindow = new ChangesetReviewWindow(changes);
+                changesetReviewWindow.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
+                changesetReviewWindow.Closed += (s, e) =>
+                {
+                    changesetReviewWindow.ChangeApplied -= ChangesetReviewWindow_ChangeApplied;
+                    changesetReviewWindow = null;
+                };
+
+                changesetReviewWindow.ShowDialog(); // Use Show() instead of ShowDialog() to prevent blocking
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error showing changeset window: {ex}");
+                if (changesetReviewWindow != null)
+                {
+                    changesetReviewWindow.ChangeApplied -= ChangesetReviewWindow_ChangeApplied;
+                    changesetReviewWindow = null;
+                }
+            }
+        }
+
+        private async void ChangesetReviewWindow_ChangeApplied(object sender, ChangeAppliedEventArgs e)
+        {
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if (e.Change != null)
+                {
+                    await ApplyChangeAsync(e.Change);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error applying change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task ApplyChangeAsync(Change change)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var changeType = change.ChangeType;
+            var path = change.Path;
+
+            try
+            {
+                switch (changeType)
+                {
+                    case "createnewFile":
+                        {
+                            var newContent = JsonConvert.DeserializeObject<string>($"\"{(change.NewContent ?? "")}\"");
+                            var directoryPath = Path.GetDirectoryName(path);
+
+                            if (!Directory.Exists(directoryPath))
+                            {
+                                Directory.CreateDirectory(directoryPath);
+                            }
+                            await Task.Run(() => File.WriteAllText(path, newContent));
+                            _dte.ItemOperations.OpenFile(path);
+                        }
+                        break;
+
+                    case "addToFile":
+                    case "deleteFromFile":
+                    case "modifyFile":
+                        {
+                            var lineNumber = change.LineNumber;
+                            var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
+
+                            if (window == null)
+                            {
+                                Debug.WriteLine($"Path not found: {path}");
+                                return;
+                            }
+
+                            await Task.Yield(); // Give VS a chance to complete the file opening
+
+                            window.Activate();
+                            var document = window.Document;
+
+                            if (document == null)
+                            {
+                                Debug.WriteLine("Document is null");
+                                return;
+                            }
+
+                            var textDocument = document.Object() as TextDocument;
+                            if (textDocument == null)
+                            {
+                                Debug.WriteLine("TextDocument is null");
+                                return;
+                            }
+
+                            var editPoint = textDocument.StartPoint.CreateEditPoint();
+                            var fullText = editPoint.GetText(textDocument.EndPoint);
+
+                            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change.OldContent, change.NewContent, lineNumber);
+
+                            editPoint.StartOfDocument();
+                            editPoint.Delete(textDocument.EndPoint);
+                            editPoint.Insert(outp);
+
+                            await Task.Yield(); // Give VS a chance to process the edit
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error applying change: {ex}");
+                MessageBox.Show($"Error applying change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void ShowFileWithMembersSelectionWindow()
         {
             var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
@@ -694,7 +584,7 @@ namespace VSIXTest
 
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setSystemPrompt", Content = systemPrompt }, simpleClient);
 
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = matchingButton.Tool }, simpleClient);
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = matchingButton?.Tool }, simpleClient);
         }
 
         private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)

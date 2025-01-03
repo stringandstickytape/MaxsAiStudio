@@ -53,6 +53,7 @@
     <Compile Include="Managers\AutocompleteManager.cs" />
     <Compile Include="Managers\ButtonManager.cs" />
     <Compile Include="TextReplacer.cs" />
+    <Compile Include="UI\ChangesetReviewWindow.cs" />
     <Compile Include="UI\ChatControl.xaml.cs">
       <DependentUpon>ChatControl.xaml</DependentUpon>
     </Compile>
