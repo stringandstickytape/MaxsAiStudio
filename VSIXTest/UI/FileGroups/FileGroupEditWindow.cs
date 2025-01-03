@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.IO;
 using VSIXTest.FileGroups;
+using System.Windows.Media;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace VSIXTest
 {
@@ -163,6 +165,69 @@ namespace VSIXTest
                 PopulateTreeView(selectedGroup.Id);
 
                 previousGroupId = selectedGroup.Id;
+
+                // Add this new code to scroll to the first checked file
+                if (_editedGroups[selectedGroup.Id].Any())
+                {
+                    string firstCheckedFile = _editedGroups[selectedGroup.Id].First();
+                    ScrollToCheckedFile(_fileTreeView.Items[0] as TreeViewItem, firstCheckedFile);
+                }
+            }
+        }
+
+        private ScrollViewer FindParentScrollViewer(DependencyObject child)
+        {
+            DependencyObject parent = child.GetVisualOrLogicalParent();
+            while (parent != null && !(parent is ScrollViewer))
+            {
+                parent = parent.GetVisualOrLogicalParent();
+            }
+            return parent as ScrollViewer;
+        }
+
+        private void ScrollToCheckedFile(TreeViewItem rootNode, string targetFilePath)
+        {
+            if (rootNode == null) return;
+
+            // Queue to store nodes to process
+            var nodesToProcess = new Queue<TreeViewItem>();
+            nodesToProcess.Enqueue(rootNode);
+
+            while (nodesToProcess.Count > 0)
+            {
+                var currentNode = nodesToProcess.Dequeue();
+
+                // Check if this is the file we're looking for
+                if (currentNode.Header is CheckBox checkBox &&
+                    checkBox.Tag.ToString() == targetFilePath)
+                {
+                    // Expand all parent nodes
+                    var parent = currentNode;
+                    while (parent != null)
+                    {
+                        parent.IsExpanded = true;
+                        parent = parent.Parent as TreeViewItem;
+                    }
+
+                    // Find the ScrollViewer parent
+                    ScrollViewer scrollViewer = FindParentScrollViewer(currentNode);
+                    if (scrollViewer != null)
+                    {
+                        scrollViewer.ScrollToEnd();
+                    }
+
+
+                    // Bring the item into view
+                    currentNode.BringIntoView();
+                    currentNode.Focus();
+                    return;
+                }
+
+                // Add all child nodes to the queue
+                foreach (TreeViewItem childNode in currentNode.Items)
+                {
+                    nodesToProcess.Enqueue(childNode);
+                }
             }
         }
 
