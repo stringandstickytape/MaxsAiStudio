@@ -180,8 +180,8 @@ namespace VSIXTest
                     _changeDetailsTextBox.Text =
                         $"Path: {change.Path}\n" +
                         $"Line Number: {change.LineNumber}\n" +
-                        $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "[redacted]" : change.OldContent)}\n" +
-                        $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "[redacted]" : change.NewContent)}";
+                        $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "" : change.OldContent)}\n" +
+                        $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "" : change.NewContent)}";
 
                     // Add these lines
                     Topmost = true;  // Makes the window appear on top
@@ -213,7 +213,7 @@ namespace VSIXTest
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error applying change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error applying change 1: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

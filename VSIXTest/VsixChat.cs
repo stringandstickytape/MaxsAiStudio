@@ -409,7 +409,7 @@ namespace VSIXTest
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error applying change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error applying change 2: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -426,14 +426,23 @@ namespace VSIXTest
                 {
                     case "createnewFile":
                         {
-                            var newContent = JsonConvert.DeserializeObject<string>($"\"{(change.NewContent ?? "")}\"");
+                            string deserNewContent = change.NewContent;
+
+                            try
+                            {
+                                deserNewContent = JsonConvert.DeserializeObject<string>($"\"{(change.NewContent ?? "")}\"");
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
                             var directoryPath = Path.GetDirectoryName(path);
 
                             if (!Directory.Exists(directoryPath))
                             {
                                 Directory.CreateDirectory(directoryPath);
                             }
-                            await Task.Run(() => File.WriteAllText(path, newContent));
+                            await Task.Run(() => File.WriteAllText(path, deserNewContent));
                             _dte.ItemOperations.OpenFile(path);
                         }
                         break;
@@ -485,8 +494,8 @@ namespace VSIXTest
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error applying change: {ex}");
-                MessageBox.Show($"Error applying change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Error applying change 3: {ex}");
+                MessageBox.Show($"Error applying change 4: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void ShowFileWithMembersSelectionWindow()
