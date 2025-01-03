@@ -64,7 +64,7 @@ namespace VSIXTest
                 Close();
             }
         }
-
+        private System.Windows.Threading.DispatcherTimer _topMostTimer;
         private void InitializeWindow()
         {
             Title = "Review Changes";
@@ -72,6 +72,28 @@ namespace VSIXTest
             Height = 300;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             Background = System.Windows.Media.Brushes.White;
+
+            Topmost = true;
+
+            // Initialize and start the timer
+            _topMostTimer = new System.Windows.Threading.DispatcherTimer();
+            _topMostTimer.Tick += (s, e) =>
+            {
+                if (!IsActive)
+                {
+                    Topmost = false;
+                    Topmost = true;
+                    Activate();
+                }
+            };
+            _topMostTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _topMostTimer.Start();
+
+            // Stop the timer when the window closes
+            Closed += (s, e) =>
+            {
+                _topMostTimer.Stop();
+            };
         }
 
         private void InitializeComponent()
@@ -160,6 +182,12 @@ namespace VSIXTest
                         $"Line Number: {change.LineNumber}\n" +
                         $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "[redacted]" : change.OldContent)}\n" +
                         $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "[redacted]" : change.NewContent)}";
+
+                    // Add these lines
+                    Topmost = true;  // Makes the window appear on top
+                    Activate();      // Activates the window
+                    Topmost = false; // Removes the always-on-top behavior after activation
+                    
                 }
                 else
                 {
@@ -181,6 +209,7 @@ namespace VSIXTest
                 ChangeApplied?.Invoke(this, new ChangeAppliedEventArgs(_changes[_currentChangeIndex]));
                 _currentChangeIndex++;
                 await ShowNextChangeAsync();
+                
             }
             catch (Exception ex)
             {
@@ -195,6 +224,7 @@ namespace VSIXTest
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentChangeIndex++;
                 await ShowNextChangeAsync();
+                BringIntoView();
             }
             catch (Exception ex)
             {

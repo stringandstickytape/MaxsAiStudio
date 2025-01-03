@@ -384,7 +384,7 @@ namespace VSIXTest
                     changesetReviewWindow = null;
                 };
 
-                changesetReviewWindow.ShowDialog(); // Use Show() instead of ShowDialog() to prevent blocking
+                changesetReviewWindow.Show(); // Use Show() instead of ShowDialog() to prevent blocking
             }
             catch (Exception ex)
             {
