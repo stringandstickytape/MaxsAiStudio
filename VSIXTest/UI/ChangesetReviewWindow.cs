@@ -42,6 +42,7 @@ namespace VSIXTest
         private int _currentChangeIndex = 0;
         private Label _changeTypeLabel;
         private TextBox _changeDetailsTextBox;
+        private Button _openFileButton;
         private Button _applyButton;
         private Button _skipButton;
         private Button _cancelButton;
@@ -140,6 +141,16 @@ namespace VSIXTest
             };
             Grid.SetRow(buttonPanel, 2);
             grid.Children.Add(buttonPanel);
+
+            _openFileButton = new Button
+            {
+                Content = "Open File",
+                Width = 75,
+                Height = 25,
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+            _openFileButton.Click += OpenFileButton_Click;
+            buttonPanel.Children.Add(_openFileButton);
 
             _applyButton = new Button
             {
@@ -247,6 +258,35 @@ namespace VSIXTest
             catch (Exception ex)
             {
                 MessageBox.Show($"Error canceling: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if (_currentChangeIndex < _changes.Count)
+                {
+                    var change = _changes[_currentChangeIndex];
+                    var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+                    if (dte != null)
+                    {
+                        try
+                        {
+                            dte.ItemOperations.OpenFile(change.Path);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error opening file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

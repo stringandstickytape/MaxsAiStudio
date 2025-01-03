@@ -37,7 +37,7 @@ namespace AiTool3.Communications
             if (buffer.Length > 0)
             {
                 string bufferedContent = buffer.ToString();
-                await sendToVsixAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(bufferedContent)}, 1)");
+                //await sendToVsixAsync($"appendMessageText('temp-ai-msg', {JsonConvert.SerializeObject(bufferedContent)}, 1)");
                 buffer.Clear();
             }
         }
