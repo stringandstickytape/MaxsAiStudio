@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Controls;
 using System.Threading.Tasks;
 
@@ -23,10 +24,10 @@ namespace VSIXTest
         public List<Change> Changes { get; set; }
     }
 
+    
     public class ChangeAppliedEventArgs : EventArgs
     {
         public Change Change { get; set; }
-
         public ChangeAppliedEventArgs(Change change)
         {
             Change = change;
@@ -44,6 +45,7 @@ namespace VSIXTest
         private Button _applyButton;
         private Button _skipButton;
         private Button _cancelButton;
+        private System.Windows.Media.Brush _backgroundBrush;
 
         public ChangesetReviewWindow(List<Change> changes)
         {
@@ -65,13 +67,13 @@ namespace VSIXTest
             }
         }
         private System.Windows.Threading.DispatcherTimer _topMostTimer;
-        private void InitializeWindow()
-        {
+        private void InitializeWindow(){
+            _backgroundBrush = (System.Windows.Media.Brush)Application.Current.TryFindResource("ButtonBackgroundBrush");
             Title = "Review Changes";
             Width = 500;
             Height = 300;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            Background = System.Windows.Media.Brushes.White;
+            Background = System.Windows.Media.Brushes.Transparent;
 
             Topmost = true;
 
@@ -100,7 +102,7 @@ namespace VSIXTest
         {
             var grid = new Grid
             {
-                Margin = new Thickness(10)
+                Margin = new Thickness(10), Background = System.Windows.Media.Brushes.Transparent
             };
             Content = grid;
 
@@ -111,7 +113,8 @@ namespace VSIXTest
             _changeTypeLabel = new Label
             {
                 Margin = new Thickness(0, 0, 0, 5),
-                FontWeight = FontWeights.Bold
+                FontWeight = FontWeights.Bold,
+                Foreground = System.Windows.Media.Brushes.White
             };
             Grid.SetRow(_changeTypeLabel, 0);
             grid.Children.Add(_changeTypeLabel);
@@ -122,7 +125,9 @@ namespace VSIXTest
                 TextWrapping = TextWrapping.Wrap,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Margin = new Thickness(0, 0, 0, 10),
-                Padding = new Thickness(5)
+                Padding = new Thickness(5),
+                Background = System.Windows.Media.Brushes.Black,
+                Foreground = System.Windows.Media.Brushes.White
             };
             Grid.SetRow(_changeDetailsTextBox, 1);
             grid.Children.Add(_changeDetailsTextBox);

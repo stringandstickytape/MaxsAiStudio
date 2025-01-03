@@ -9,7 +9,7 @@ using VSIXTest;
 
 [Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf6")]
 public class ChangesetReviewPane : ToolWindowPane
-{
+{ 
     private Grid _mainGrid;
     private TextBox _changeDetailsTextBox;
     private Button _applyButton;
@@ -41,7 +41,8 @@ public class ChangesetReviewPane : ToolWindowPane
         _changeTypeLabel = new Label
         {
             Margin = new Thickness(0, 0, 0, 5),
-            FontWeight = FontWeights.Bold
+            FontWeight = FontWeights.Bold,
+            Foreground = System.Windows.Media.Brushes.White
         };
         Grid.SetRow(_changeTypeLabel, 0);
         _mainGrid.Children.Add(_changeTypeLabel);
@@ -52,7 +53,9 @@ public class ChangesetReviewPane : ToolWindowPane
             TextWrapping = TextWrapping.Wrap,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             Margin = new Thickness(0, 0, 0, 10),
-            Padding = new Thickness(5)
+            Padding = new Thickness(5),
+            Background = System.Windows.Media.Brushes.Black,
+            Foreground = System.Windows.Media.Brushes.White
         };
         Grid.SetRow(_changeDetailsTextBox, 1);
         _mainGrid.Children.Add(_changeDetailsTextBox);

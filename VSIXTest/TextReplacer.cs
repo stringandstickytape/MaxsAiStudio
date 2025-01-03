@@ -54,7 +54,7 @@ namespace VSIXTest
             }
 
             // No match found
-            return sourceFile;
+            throw new Exception($"No match found...");
         }
 
         private (string[] lines, string newline) SplitWithNewlineDetection(string text)

@@ -452,7 +452,7 @@ namespace VSIXTest
                             if (window == null)
                             {
                                 Debug.WriteLine($"Path not found: {path}");
-                                return;
+                                throw new Exception($"Path not found: {path}");
                             }
 
                             await Task.Yield(); // Give VS a chance to complete the file opening
@@ -462,15 +462,16 @@ namespace VSIXTest
 
                             if (document == null)
                             {
+                                
                                 Debug.WriteLine("Document is null");
-                                return;
+                                throw new Exception($"Document is null");
                             }
 
                             var textDocument = document.Object() as TextDocument;
                             if (textDocument == null)
                             {
                                 Debug.WriteLine("TextDocument is null");
-                                return;
+                                throw new Exception($"TextDocument is null");
                             }
 
                             var editPoint = textDocument.StartPoint.CreateEditPoint();
