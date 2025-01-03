@@ -170,6 +170,7 @@ public class ChangesetReviewPane : ToolWindowPane
     }
 
     // AI merge: Apply this changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
+    // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
 
     private void UndoButton_Click(object sender, RoutedEventArgs e)
     {
