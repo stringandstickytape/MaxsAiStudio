@@ -70,7 +70,7 @@ namespace AiTool3.UI
             buttonLabelTextBox = CreateTextBox("Button Label", rightPanel, 1);
             messageTypeTextBox = CreateTextBox("Message Type", rightPanel, 2);
             toolTextBox = CreateTextBox("Name of Tool to use (if any)", rightPanel, 3);
-            promptTextBox = CreateTextBox("Prompt", rightPanel, 4, true);
+            promptTextBox = CreateTextBox("Prompt (leave blank to use user prompt)", rightPanel, 4, true);
 
             // Button panel
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel

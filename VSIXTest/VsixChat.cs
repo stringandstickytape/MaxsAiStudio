@@ -570,7 +570,7 @@ namespace VSIXTest
 
             var prompt = "";
 
-            if(buttonLabel == "User Prompt"  || e.OriginalVsixMessage.type == "send" )
+            if(string.IsNullOrEmpty(matchingButton?.Prompt))
             {
                 prompt = JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
             }
