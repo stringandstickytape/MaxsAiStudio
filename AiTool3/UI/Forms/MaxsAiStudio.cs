@@ -223,7 +223,7 @@ namespace AiTool3
                             await chatWebView.SendMergeResultsToVsixAsync(response);
                         }
                         catch (Exception e2)
-                        {
+                        {   
                         }
 
 

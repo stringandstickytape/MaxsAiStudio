@@ -16,45 +16,46 @@ using SharedClasses.Models;
 
 
 public class ChangesetReviewPane : ToolWindowPane
-{ 
+{
+    private readonly DTE2 _dte;
+    private List<Change> _changes;
+    private int _currentChangeIndex = 0;
+    private string _originalContent;
+
+    // UI Elements
     private Grid _mainGrid;
     private ListBox _fileListBox;
     private Button _applySecondaryAiButton;
     private TextBox _changeDetailsTextBox;
     private Button _applyButton;
-    private Button _nextBUtton;
+    private Button _nextButton;
     private Button _undoButton;
     private Button _cancelButton;
     private Label _changeTypeLabel;
-    private List<Change> _changes;
-    private int _currentChangeIndex = 0;
-    private DTE2 _dte;
-    private string _originalContent;
+
+    // Events
     public event EventHandler<ChangeAppliedEventArgs> ChangeApplied;
     public event EventHandler<RunMergeEventArgs> RunMerge;
 
     public ChangesetReviewPane() : base(null)
     {
-        this.Caption = "Changeset Review";
-        _dte = ServiceProvider.GlobalProvider.GetService(typeof(SDTE)) as DTE2;
-        InitializeContent();
+        Caption = "Changeset Review";
+        _dte = (DTE2)ServiceProvider.GlobalProvider.GetService(typeof(SDTE));
+
+        InitializeUIComponents();
+        SetupEventHandlers();
     }
 
-    private void InitializeContent()
+    private void InitializeUIComponents()
     {
-        _mainGrid = new Grid
-        {
-            Margin = new Thickness(10)
-        };
+        _mainGrid = new Grid { Margin = new Thickness(10) };
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // File list
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Secondary AI button
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Separator
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Change type label
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Details
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Buttons
-
-        // File ListBox
         _fileListBox = new ListBox
         {
             Height = 100,
@@ -65,22 +66,16 @@ public class ChangesetReviewPane : ToolWindowPane
         Grid.SetRow(_fileListBox, 0);
         _mainGrid.Children.Add(_fileListBox);
 
-        // Secondary AI Button
         _applySecondaryAiButton = new Button
         {
             Content = "Apply For This File Via Secondary AI",
             Height = 25,
             Margin = new Thickness(0, 0, 0, 5)
         };
-        _applySecondaryAiButton.Click += ApplySecondaryAiButton_Click;
         Grid.SetRow(_applySecondaryAiButton, 1);
         _mainGrid.Children.Add(_applySecondaryAiButton);
 
-        // Separator
-        var separator = new Separator
-        {
-            Margin = new Thickness(0, 5, 0, 5)
-        };
+        var separator = new Separator { Margin = new Thickness(0, 5, 0, 5) };
         Grid.SetRow(separator, 2);
         _mainGrid.Children.Add(separator);
 
@@ -122,7 +117,6 @@ public class ChangesetReviewPane : ToolWindowPane
             Height = 25,
             Margin = new Thickness(5, 0, 0, 0)
         };
-        _applyButton.Click += ApplyButton_Click;
         buttonPanel.Children.Add(_applyButton);
 
         _undoButton = new Button
@@ -133,18 +127,16 @@ public class ChangesetReviewPane : ToolWindowPane
             Margin = new Thickness(5, 0, 0, 0),
             IsEnabled = false
         };
-        _undoButton.Click += UndoButton_Click;
         buttonPanel.Children.Add(_undoButton);
 
-        _nextBUtton = new Button
+        _nextButton = new Button
         {
             Content = "Next",
             Width = 75,
             Height = 25,
             Margin = new Thickness(5, 0, 0, 0)
         };
-        _nextBUtton.Click += NextButton_Click;
-        buttonPanel.Children.Add(_nextBUtton);
+        buttonPanel.Children.Add(_nextButton);
 
         _cancelButton = new Button
         {
@@ -153,134 +145,150 @@ public class ChangesetReviewPane : ToolWindowPane
             Height = 25,
             Margin = new Thickness(5, 0, 0, 0)
         };
-        _cancelButton.Click += CancelButton_Click;
         buttonPanel.Children.Add(_cancelButton);
 
-        this.Content = _mainGrid;
+        Content = _mainGrid;
+    }
+
+    private void SetupEventHandlers()
+    {
+        _applySecondaryAiButton.Click += ApplySecondaryAiButton_Click;
+        _applyButton.Click += ApplyButton_Click;
+        _undoButton.Click += UndoButton_Click;
+        _nextButton.Click += NextButton_Click;
+        _cancelButton.Click += CancelButton_Click;
     }
 
     private void ApplySecondaryAiButton_Click(object sender, RoutedEventArgs e)
     {
-        // get the selected filename
-        var fileName = _fileListBox.SelectedItem as string;
-        if (fileName != null)
+        try
         {
-            // get the changes for the selected filename
-            var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
-            if (changesForFile.Count > 0)
+            var fileName = _fileListBox.SelectedItem as string;
+            if (!string.IsNullOrEmpty(fileName))
             {
-                RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+                var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
+                if (changesForFile.Any())
+                {
+                    RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Error applying secondary AI changes", ex);
         }
     }
 
     public void Initialize(List<Change> changes)
     {
-        _changes = changes;
+        _changes = changes ?? throw new ArgumentNullException(nameof(changes));
         _currentChangeIndex = 0;
+        PopulateFileListBox();
+        ShowNextChange();
+    }
 
-        // populate the listbox with the distinct filenames of the changes
+    private void PopulateFileListBox()
+    {
         _fileListBox.Items.Clear();
-        var fileNames = changes.Select(c => c.Path).Distinct();
+        var fileNames = _changes.Select(c => c.Path).Distinct();
         foreach (var fileName in fileNames)
         {
             _fileListBox.Items.Add(fileName);
         }
-
-        ShowNextChange();
     }
 
     private void ShowNextChange()
     {
-        if (_currentChangeIndex < _changes.Count)
+        try
         {
-            var change = _changes[_currentChangeIndex];
-            _changeTypeLabel.Content = $"Change Type: {change.ChangeType}";
-            _applyButton.IsEnabled = true;
-            _undoButton.IsEnabled = false;
-            _changeDetailsTextBox.Text =
-                $"Path: {change.Path}\n" +
-                $"Line Number: {change.LineNumber}\n" +
-                $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "" : change.OldContent)}\n" +
-                $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "" : change.NewContent)}";
+            if (_currentChangeIndex < _changes.Count)
+            {
+                var change = _changes[_currentChangeIndex];
+                _changeTypeLabel.Content = $"Change Type: {change.ChangeType}";
+                _applyButton.IsEnabled = true;
+                _undoButton.IsEnabled = false;
+                _changeDetailsTextBox.Text =
+                    $"Path: {change.Path}\n" +
+                    $"Line Number: {change.LineNumber}\n" +
+                    $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "" : change.OldContent)}\n" +
+                    $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "" : change.NewContent)}";
 
-            if(change.ChangeType != "createnewFile")
-                JumpToChange();
+                if (change.ChangeType != "createnewFile")
+                    JumpToChange();
+            }
+            else
+            {
+                CloseToolWindow();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Close the tool window when all changes are processed
-            IVsWindowFrame frame = (IVsWindowFrame)this.Frame;
-            frame?.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+            HandleError("Error showing next change", ex);
         }
     }
 
     private void ApplyButton_Click(object sender, RoutedEventArgs e)
     {
-        var change = _changes[_currentChangeIndex];
-        if (change.ChangeType != "createnewFile")
+        try
         {
-            var window = _dte.ItemOperations.OpenFile(change.Path);
-            var textDocument = window.Document.Object() as EnvDTE.TextDocument;
-            var editPoint = textDocument.StartPoint.CreateEditPoint();
-            _originalContent = editPoint.GetText(textDocument.EndPoint);
+            var change = _changes[_currentChangeIndex];
+            if (change.ChangeType != "createnewFile")
+            {
+                var window = _dte.ItemOperations.OpenFile(change.Path);
+                var textDocument = window.Document.Object() as EnvDTE.TextDocument;
+                var editPoint = textDocument.StartPoint.CreateEditPoint();
+                _originalContent = editPoint.GetText(textDocument.EndPoint);
+            }
+
+            ChangeApplied?.Invoke(this, new ChangeAppliedEventArgs(change));
+            _applyButton.IsEnabled = false;
+            _undoButton.IsEnabled = true;
         }
-        
-        ChangeApplied?.Invoke(this, new ChangeAppliedEventArgs(change));
-        _applyButton.IsEnabled = false;
-        _undoButton.IsEnabled = true;
+        catch (Exception ex)
+        {
+            HandleError("Error applying change", ex);
+        }
     }
 
 
     private void UndoButton_Click(object sender, RoutedEventArgs e)
     {
-        var change = _changes[_currentChangeIndex];
-        if (change.ChangeType != "createnewFile")
+        try
         {
-            try
+            var change = _changes[_currentChangeIndex];
+            if (change.ChangeType != "createnewFile")
             {
-                var window = _dte.ItemOperations.OpenFile(change.Path);
-                var textDocument = window.Document.Object() as EnvDTE.TextDocument;
-                var editPoint = textDocument.StartPoint.CreateEditPoint();
-                editPoint.Delete(textDocument.EndPoint);
-                editPoint.Insert(_originalContent);
-
-                JumpToChange();
+                UndoChange(change);
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show($"Error undoing change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                DeleteNewFile(change);
             }
+            _applyButton.IsEnabled = true;
+            _undoButton.IsEnabled = false;
         }
-        else
+        catch (Exception ex)
         {
-            // For new files, delete the file if it exists
-            if (File.Exists(change.Path))
-            {
-                try
-                {
-                    //File.Delete(change.Path);
-                }
-                catch (Exception ex)
-                {
-                    //MessageBox.Show($"Error deleting file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+            HandleError("Error undoing change", ex);
         }
-        _applyButton.IsEnabled = true;
-        _undoButton.IsEnabled = false;
     }
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
     {
-        _currentChangeIndex++;
-        ShowNextChange();
+        try
+        {
+            _currentChangeIndex++;
+            ShowNextChange();
+        }
+        catch (Exception ex)
+        {
+            HandleError("Error moving to next change", ex);
+        }
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
-        IVsWindowFrame frame = (IVsWindowFrame)this.Frame;
-        frame?.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+        CloseToolWindow();
     }
 
     private void JumpToChange()
@@ -295,15 +303,50 @@ public class ChangesetReviewPane : ToolWindowPane
                 try
                 {
                     _dte.ItemOperations.OpenFile(change.Path);
-                    var selection =_dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                    var selection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
                     selection.GotoLine(change.LineNumber, true);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error opening file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    HandleError($"Error opening file: {ex.Message}", ex);
                 }
             }
         }
+    }
+    private void UndoChange(Change change)
+    {
+        var window = _dte.ItemOperations.OpenFile(change.Path);
+        var textDocument = window.Document.Object() as EnvDTE.TextDocument;
+        var editPoint = textDocument.StartPoint.CreateEditPoint();
+        editPoint.Delete(textDocument.EndPoint);
+        editPoint.Insert(_originalContent);
+        JumpToChange();
+    }
+
+    private void DeleteNewFile(Change change)
+    {
+        if (File.Exists(change.Path))
+        {
+            try
+            {
+                //File.Delete(change.Path);
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error deleting file: {ex.Message}", ex);
+            }
+        }
+    }
+
+    private void CloseToolWindow()
+    {
+        IVsWindowFrame frame = (IVsWindowFrame)Frame;
+        frame?.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+    }
+
+    private void HandleError(string message, Exception ex)
+    {
+        MessageBox.Show($"{message}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     internal void MergeCompleted(string content)
@@ -317,13 +360,12 @@ public class ChangesetReviewPane : ToolWindowPane
             editPoint.Delete(textDocument.EndPoint);
             editPoint.Insert(content);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            MessageBox.Show($"Merge failed: {e}");
+            HandleError($"Merge failed: {e}", e);
         }
     }
 }
-
 
 
 
