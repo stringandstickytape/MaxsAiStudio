@@ -113,8 +113,18 @@ namespace AiTool3.UI
 
                 ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunMerge") { Json = JsonConvert.SerializeObject(sbNewUserMessage.ToString()) });
             }
+            else if (vsixMessage.MessageType == "vsRunCompletion")
 
+            {
 
+                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunExternalCompletion") { });
+            }
+            else if (vsixMessage.MessageType == "vsContinueCompletion")
+
+            {
+
+                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("ContinueExternalCompletion") { Guid = JsonConvert.DeserializeObject<string>(vsixMessage.JsonObject)});
+            }
 
             else if (vsixMessage.MessageType == "vsRequestButtons")
             {
@@ -690,6 +700,19 @@ namespace AiTool3.UI
                     MessageType = "MergeResult",
                     Content = response.ResponseText
 
+                }
+
+                ));
+        }
+        internal async Task SendCompletionResultsToVsixAsync(AiResponse response, string? guid)
+        {
+            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(
+
+
+                new VsixMessage
+                {
+                    MessageType = "RunCompletionResult",
+                    Content = JsonConvert.SerializeObject(new VsixCompletionRequestResult { Guid = guid, Content = response.ResponseText })
                 }
 
                 ));

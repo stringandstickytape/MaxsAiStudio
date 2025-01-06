@@ -72,7 +72,7 @@ namespace AiTool3.Conversations
 
         }
 
-        public async Task RegenerateSummary(Model summaryModel, DataGridView dgv, string guid, SettingsSet currentSettings)
+        public async Task RegenerateSummary(DataGridView dgv, string guid, SettingsSet currentSettings, string summaryOverride = null)
         {
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), BranchedConversation.GetFilename(guid)).OrderBy(f => new FileInfo(f).LastWriteTime).ToArray();
 
@@ -88,14 +88,22 @@ namespace AiTool3.Conversations
                 LoadConversation(guid2);
 
                 // Regenerate summary
-                string newSummary = await GenerateConversationSummary(currentSettings);
-
-                Debug.WriteLine(newSummary);
+                string newSummary = summaryOverride;
+                if (newSummary == null)
+                {
+                    newSummary = await GenerateConversationSummary(currentSettings);
+                    Debug.WriteLine(newSummary);
+                }
+                else
+                {
+                    Conversation.Summary = summaryOverride;
+                }
+                
 
                 // find the dgv row where column 0 == guid
                 foreach (DataGridViewRow row in dgv.Rows)
                 {
-                    if (row.Cells[0].Value.ToString() == guid2)
+                    if (row.Cells[0].Value?.ToString() == guid2)
                     {
                         row.Cells[3].Value = Conversation.ToString();
                         break;

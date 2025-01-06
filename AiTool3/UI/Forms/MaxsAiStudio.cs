@@ -17,9 +17,11 @@ using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 using SharedClasses;
 using SharedClasses.Helpers;
+using System;
 using System.Data;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
 
@@ -196,12 +198,61 @@ namespace AiTool3
 
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
+            var apiModel = CurrentSettings.GetSummaryModel() ?? CurrentSettings.GetModel();
+
+            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
+
             switch (e.EventType)
             {
+                case "ContinueExternalCompletion":
+                    {
+
+                        var cm2 = new ConversationManager();
+                        cm2.InjectDepencencies(dgvConversations);
+                        cm2.LoadConversation(e.Guid);
+                        var inputText2 = "I don't know.";
+                        var systemPrompt2 = "";
+                        cm2.MostRecentCompletion = cm2.Conversation.Messages.Last();
+                        var conversation2 = await  cm2.PrepareConversationData(apiModel, systemPrompt2, inputText2, _fileAttachmentManager);
+                        var response2 = await aiService.FetchResponse(apiModel, conversation2, null, null, new CancellationToken(false), CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                        cm2.AddInputAndResponseToConversation(response2, apiModel, conversation2, inputText2, systemPrompt2, out var completionInput2, out var completionResponse2);
+                        cm2.SaveConversation();
+
+                        await cm2.RegenerateSummary(dgvConversations, cm2.Conversation.ConvGuid, CurrentSettings, "(from VS)");
+                        cm2.SaveConversation();
+                        await chatWebView.SendCompletionResultsToVsixAsync(response2, cm2.Conversation.ConvGuid);
+                        break;
+                    }
+                case "RunExternalCompletion":
+                    {
+
+
+                        //var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                        //await chatWebView.SendMergeResultsToVsixAsync(response);
+                        var cm = new ConversationManager();
+                        cm.InjectDepencencies(dgvConversations);
+                        var inputText = "Hello!";
+                        var systemPrompt = "";
+                        cm.BeginNewConversation();
+                        var conversation = await cm.PrepareConversationData(apiModel, "", inputText, _fileAttachmentManager);
+                        var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                        cm.AddInputAndResponseToConversation(response, apiModel, conversation, inputText, systemPrompt, out var completionInput, out var completionResponse);
+
+
+                        cm.SaveConversation();
+                        dgvConversations.Rows.Insert(0, cm.Conversation.ConvGuid, cm.Conversation.Messages[0].Content, cm.Conversation.Messages[0].Engine, "");
+
+
+                        await cm.RegenerateSummary(dgvConversations, cm.Conversation.ConvGuid, CurrentSettings, "(from VS)");
+                        cm.SaveConversation();
+                        var guid = cm.Conversation.ConvGuid;
+
+                        await chatWebView.SendCompletionResultsToVsixAsync(response, guid);
+                    }
+            break;
                 case "RunMerge":
                     {
 
-                    var apiModel = CurrentSettings.GetSummaryModel() ?? CurrentSettings.GetModel();
 
                     string responseText = "";
 
@@ -210,7 +261,6 @@ namespace AiTool3
                             // AI merge: Apply this JSON changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
                             // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
 
-                            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
                             
                             Conversation conversation = new Conversation(DateTime.Now);
                             conversation.systemprompt = "You are a coding expert who merges changes into original source files.";
@@ -427,7 +477,7 @@ namespace AiTool3
 
 
         private async void RegenerateSummary(object sender, EventArgs e) =>
-            await ConversationManager.RegenerateSummary(await chatWebView.GetDropdownModel("summaryAI", CurrentSettings), dgvConversations, selectedConversationGuid, CurrentSettings);
+            await ConversationManager.RegenerateSummary(dgvConversations, selectedConversationGuid, CurrentSettings);
 
         private async void ChatWebView_ChatWebViewCancelEvent(object? sender, ChatWebViewCancelEventArgs e)
         {

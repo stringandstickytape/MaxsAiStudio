@@ -102,6 +102,15 @@ namespace VSIXTest
 
         }
 
+        public async void RunTestCompletion()
+        {
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRunCompletion", JsonObject = JsonConvert.SerializeObject("lol"), Content = "Test" }, simpleClient);
+        }
+        public async void ContinueTestCompletion(string guid)
+        {
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsContinueCompletion", JsonObject = JsonConvert.SerializeObject(guid), Content = "Test" }, simpleClient);
+        }
+
         public async Task SetSolutionSystemPrompt()
         {
             var solutionPath = _dte.Solution.FullName;

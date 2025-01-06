@@ -8,5 +8,7 @@ namespace SharedClasses
         public string MessageType { get; set; }
 
         public string Tool { get; set; }
+
+        public string JsonObject { get; set; }
     }
 }

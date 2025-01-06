@@ -106,7 +106,7 @@ namespace AiTool3.Conversations
             await _chatWebView.EnableSendButton();
         }
 
-        private async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation,
+        public async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation,
                                                                  Model model, List<string> toolIDs,
                                                                  string? overrideUserPrompt,
                                                                  CancellationToken cancellationToken,

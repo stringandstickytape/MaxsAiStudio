@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Diagnostics;
+using SharedClasses.Models;
 
 namespace VSIXTest
 {
@@ -31,6 +32,19 @@ namespace VSIXTest
 
             switch (message.MessageType)
             {
+                case "RunCompletionResult":
+                    var v = JsonConvert.DeserializeObject<VsixCompletionRequestResult>(message.Content);
+                    var chatWindow = await VSIXTestPackage.Instance.FindToolWindowAsync(
+                        typeof(ChatWindowPane),
+                        0,
+                        true,
+                        VSIXTestPackage.Instance.DisposalToken) as ChatWindowPane;
+
+                    if (chatWindow?.Frame != null)
+                    {
+                        chatWindow.UpdateTextBox(v.Guid);
+                    }
+                    break;
                 case "MergeResult":
 
                     var content = message.Content;
