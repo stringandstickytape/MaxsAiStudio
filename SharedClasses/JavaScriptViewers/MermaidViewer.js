@@ -24,7 +24,7 @@ function createMermaidViewer(mermaidString) {
         overlay.style.left = '0';
         overlay.style.width = '100vw';
         overlay.style.height = '100vh';
-        overlay.style.backgroundColor = 'rgba(30, 30, 30, 1)';
+        overlay.style.backgroundColor = 'rgba(130, 130, 130, 1)';
         overlay.style.zIndex = '10000';
         overlay.style.display = 'flex';
         overlay.style.flexDirection = 'column';
