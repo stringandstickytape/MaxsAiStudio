@@ -4,6 +4,7 @@ using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.Helpers;
+using AiTool3.Providers;
 using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.Topics;
@@ -42,6 +43,10 @@ namespace AiTool3.UI
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewContinueEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewReadyEvent;
         public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewSimpleEvent;
+
+        public event EventHandler<ChatWebViewSimpleEventArgs>? ChatWebViewRunMergeEvent;
+
+
         private ToolManager _toolManager;
         private FileAttachmentManager _fileAttachmentManager;
         private SimpleServer _simpleServer;
@@ -78,16 +83,46 @@ namespace AiTool3.UI
         {
             Debug.WriteLine("SIMPLESERVER: " + e);
             var vsixMessage = JsonConvert.DeserializeObject<VsixMessage>(e);
-            if(vsixMessage.Content == "send")
+            if (vsixMessage.Content == "send")
             {
                 ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = null, SendViaSecondaryAI = false, AddEmbeddings = false });
                 return;
-            } else if(vsixMessage.MessageType == "vsRequestButtons")
+            }
+            else if (vsixMessage.MessageType == "vsRunMerge")
+
+            {
+                var changes = JsonConvert.DeserializeObject<List<Change>>(vsixMessage.Content);
+
+                //construct the message we'll send to AI.
+
+
+
+
+                var sbNewUserMessage = new StringBuilder();
+
+                var filename = changes.First().Path;
+
+                // get the file contents
+                var originalFile = File.ReadAllText(filename);
+
+                sbNewUserMessage.Append($"Original file:\n\n```{filename}\n{originalFile}\n```\n\n");
+
+                sbNewUserMessage.Append(vsixMessage.Content);
+
+                sbNewUserMessage.Append("\n\nApply this JSON changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER \"// ... (rest of ...) ...\" nor similar.\n");
+
+                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunMerge") { Json = JsonConvert.SerializeObject(sbNewUserMessage.ToString()) });
+            }
+
+
+
+            else if (vsixMessage.MessageType == "vsRequestButtons")
             {
                 ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("vsButtons"));
-                
+
                 return;
-            } else if (vsixMessage.MessageType == "setUserPrompt")
+            }
+            else if (vsixMessage.MessageType == "setUserPrompt")
             {
                 await SetUserPrompt(JsonConvert.DeserializeObject<string>(vsixMessage.Content));
                 return;
@@ -110,11 +145,16 @@ namespace AiTool3.UI
                     selectedTools = new List<string> { _toolManager.Tools.IndexOf(tool).ToString() };
                 }
 
-                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs { Content = "send", SelectedTools = selectedTools,  SendViaSecondaryAI = false, AddEmbeddings = false,
-                //Prefill = "Certainly, I can silently give you the bare code on its own, without repeating or explaining anything.  The user should insert the following:\n```"
+                ChatWebViewSendMessageEvent?.Invoke(this, new ChatWebViewSendMessageEventArgs
+                {
+                    Content = "send",
+                    SelectedTools = selectedTools,
+                    SendViaSecondaryAI = false,
+                    AddEmbeddings = false,
+                    //Prefill = "Certainly, I can silently give you the bare code on its own, without repeating or explaining anything.  The user should insert the following:\n```"
                 });
                 return;
-            }  
+            }
             else if (vsixMessage.MessageType == "vsShowFileSelector")
             {
                 // in maxsaistudio we can do form = new FileSearchForm
@@ -638,6 +678,21 @@ namespace AiTool3.UI
         internal async Task SetPrefill(bool value)
         {
             await ExecuteScriptAndSendToVsixAsync($"{(value ? "en" : "dis")}ablePrefill();");
+        }
+
+        internal async Task SendMergeResultsToVsixAsync(AiResponse response)
+        {
+            await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(
+                
+
+                new VsixMessage
+                {
+                    MessageType = "MergeResult",
+                    Content = response.ResponseText
+
+                }
+
+                ));
         }
     }
 }

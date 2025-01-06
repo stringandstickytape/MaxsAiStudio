@@ -9,6 +9,8 @@ using VSIXTest;
 using Newtonsoft.Json;
 using EnvDTE80;
 using System.IO;
+using System.Linq;
+using SharedClasses.Models;
 
 [Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf6")]
 
@@ -16,6 +18,8 @@ using System.IO;
 public class ChangesetReviewPane : ToolWindowPane
 { 
     private Grid _mainGrid;
+    private ListBox _fileListBox;
+    private Button _applySecondaryAiButton;
     private TextBox _changeDetailsTextBox;
     private Button _applyButton;
     private Button _nextBUtton;
@@ -27,6 +31,7 @@ public class ChangesetReviewPane : ToolWindowPane
     private DTE2 _dte;
     private string _originalContent;
     public event EventHandler<ChangeAppliedEventArgs> ChangeApplied;
+    public event EventHandler<RunMergeEventArgs> RunMerge;
 
     public ChangesetReviewPane() : base(null)
     {
@@ -42,9 +47,42 @@ public class ChangesetReviewPane : ToolWindowPane
             Margin = new Thickness(10)
         };
 
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // File list
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Secondary AI button
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Separator
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Change type label
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Details
+        _mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Buttons
+
+        // File ListBox
+        _fileListBox = new ListBox
+        {
+            Height = 100,
+            Margin = new Thickness(0, 0, 0, 5),
+            Background = System.Windows.Media.Brushes.Black,
+            Foreground = System.Windows.Media.Brushes.White
+        };
+        Grid.SetRow(_fileListBox, 0);
+        _mainGrid.Children.Add(_fileListBox);
+
+        // Secondary AI Button
+        _applySecondaryAiButton = new Button
+        {
+            Content = "Apply For This File Via Secondary AI",
+            Height = 25,
+            Margin = new Thickness(0, 0, 0, 5)
+        };
+        _applySecondaryAiButton.Click += ApplySecondaryAiButton_Click;
+        Grid.SetRow(_applySecondaryAiButton, 1);
+        _mainGrid.Children.Add(_applySecondaryAiButton);
+
+        // Separator
+        var separator = new Separator
+        {
+            Margin = new Thickness(0, 5, 0, 5)
+        };
+        Grid.SetRow(separator, 2);
+        _mainGrid.Children.Add(separator);
 
         _changeTypeLabel = new Label
         {
@@ -52,7 +90,7 @@ public class ChangesetReviewPane : ToolWindowPane
             FontWeight = FontWeights.Bold,
             Foreground = System.Windows.Media.Brushes.White
         };
-        Grid.SetRow(_changeTypeLabel, 0);
+        Grid.SetRow(_changeTypeLabel, 3);
         _mainGrid.Children.Add(_changeTypeLabel);
 
         _changeDetailsTextBox = new TextBox
@@ -65,7 +103,7 @@ public class ChangesetReviewPane : ToolWindowPane
             Background = System.Windows.Media.Brushes.Black,
             Foreground = System.Windows.Media.Brushes.White
         };
-        Grid.SetRow(_changeDetailsTextBox, 1);
+        Grid.SetRow(_changeDetailsTextBox, 4);
         _mainGrid.Children.Add(_changeDetailsTextBox);
 
         var buttonPanel = new StackPanel
@@ -74,7 +112,7 @@ public class ChangesetReviewPane : ToolWindowPane
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 10, 0, 0)
         };
-        Grid.SetRow(buttonPanel, 2);
+        Grid.SetRow(buttonPanel, 5);
         _mainGrid.Children.Add(buttonPanel);
 
         _applyButton = new Button
@@ -121,10 +159,34 @@ public class ChangesetReviewPane : ToolWindowPane
         this.Content = _mainGrid;
     }
 
+    private void ApplySecondaryAiButton_Click(object sender, RoutedEventArgs e)
+    {
+        // get the selected filename
+        var fileName = _fileListBox.SelectedItem as string;
+        if (fileName != null)
+        {
+            // get the changes for the selected filename
+            var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
+            if (changesForFile.Count > 0)
+            {
+                RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+            }
+        }
+    }
+
     public void Initialize(List<Change> changes)
     {
         _changes = changes;
         _currentChangeIndex = 0;
+
+        // populate the listbox with the distinct filenames of the changes
+        _fileListBox.Items.Clear();
+        var fileNames = changes.Select(c => c.Path).Distinct();
+        foreach (var fileName in fileNames)
+        {
+            _fileListBox.Items.Add(fileName);
+        }
+
         ShowNextChange();
     }
 
@@ -169,8 +231,6 @@ public class ChangesetReviewPane : ToolWindowPane
         _undoButton.IsEnabled = true;
     }
 
-    // AI merge: Apply this changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
-    // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
 
     private void UndoButton_Click(object sender, RoutedEventArgs e)
     {
@@ -245,22 +305,26 @@ public class ChangesetReviewPane : ToolWindowPane
             }
         }
     }
+
+    internal void MergeCompleted(string content)
+    {
+        try
+        {
+            var fileName = _fileListBox.SelectedItem as string;
+            var window = _dte.ItemOperations.OpenFile(fileName);
+            var textDocument = window.Document.Object() as EnvDTE.TextDocument;
+            var editPoint = textDocument.StartPoint.CreateEditPoint();
+            editPoint.Delete(textDocument.EndPoint);
+            editPoint.Insert(content);
+        }
+        catch(Exception e)
+        {
+            MessageBox.Show($"Merge failed: {e}");
+        }
+    }
 }
 
-public class Change
-{
-    [JsonProperty("change_type")]
-    public string ChangeType { get; set; }
-    public string Path { get; set; }
-    public int LineNumber { get; set; }
-    public string OldContent { get; set; }
-    public string NewContent { get; set; }
-}
 
-public class Changeset
-{
-    public List<Change> Changes { get; set; }
-}
 
 
 public class ChangeAppliedEventArgs : EventArgs
@@ -269,5 +333,14 @@ public class ChangeAppliedEventArgs : EventArgs
     public ChangeAppliedEventArgs(Change change)
     {
         Change = change;
+    }
+}
+
+public class RunMergeEventArgs : EventArgs
+{
+    public List<Change> Changes { get; set; }
+    public RunMergeEventArgs(List<Change> changes)
+    {
+        Changes = changes;
     }
 }

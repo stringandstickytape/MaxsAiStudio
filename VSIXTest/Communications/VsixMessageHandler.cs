@@ -10,6 +10,8 @@ using System.Text;
 using SharedClasses;
 using System.Threading.Tasks;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Diagnostics;
 
 namespace VSIXTest
 {
@@ -29,6 +31,31 @@ namespace VSIXTest
 
             switch (message.MessageType)
             {
+                case "MergeResult":
+
+                    var content = message.Content;
+
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    try
+                    {
+                        var window = await VSIXTestPackage.Instance.FindToolWindowAsync(
+                            typeof(ChangesetReviewPane),
+                            0,
+                            true,
+                            VSIXTestPackage.Instance.DisposalToken) as ChangesetReviewPane;
+
+                        if (window?.Frame == null)
+                            throw new NotSupportedException("Cannot create changeset review window");
+
+                        window.MergeCompleted(content);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error showing changeset window: {ex}");
+                    }
+
+                    break;
                 case "vsButtons":
 
                     Buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);

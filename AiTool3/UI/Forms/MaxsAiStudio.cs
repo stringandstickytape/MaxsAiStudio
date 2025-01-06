@@ -4,13 +4,16 @@ using AiTool3.DataModels;
 using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.Helpers;
+using AiTool3.Providers;
 using AiTool3.Snippets;
 using AiTool3.Templates;
 using AiTool3.Tools;
 using AiTool3.Topics;
 using AiTool3.UI;
 using AiTool3.UI.Forms;
+using AITool3;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 using SharedClasses;
 using SharedClasses.Helpers;
@@ -195,6 +198,38 @@ namespace AiTool3
         {
             switch (e.EventType)
             {
+                case "RunMerge":
+                    {
+
+                    var apiModel = CurrentSettings.GetSummaryModel() ?? CurrentSettings.GetModel();
+
+                    string responseText = "";
+
+                    try
+                    {
+                            // AI merge: Apply this JSON changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
+                            // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
+
+                            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
+                            
+                            Conversation conversation = new Conversation(DateTime.Now);
+                            conversation.systemprompt = "You are a coding expert who merges changes into original source files.";
+                            conversation.messages = new List<ConversationMessage>
+                            {
+                                new ConversationMessage { role = "user", content = JsonConvert.DeserializeObject<string>(e.Json) }
+                            }; 
+
+                            var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                            await chatWebView.SendMergeResultsToVsixAsync(response);
+                        }
+                        catch (Exception e2)
+                        {
+                        }
+
+
+            }
+
+            break;
                 case "vsButtons":
                     await chatWebView.SendToVsixAsync(new VsixMessage { MessageType = "vsButtons", Content = JsonConvert.SerializeObject(CurrentSettings.MessagePrompts) });
                     break;

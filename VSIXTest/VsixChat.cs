@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using SharedClasses.Models;
 
 namespace VSIXTest
 {
@@ -385,6 +386,7 @@ namespace VSIXTest
                 {
                     _changesetPaneInitted = true;
                     window.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
+                    window.RunMerge += ChangesetReviewWindow_RunMerge;
                 }
                 window.Initialize(changes);
 
@@ -394,6 +396,22 @@ namespace VSIXTest
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error showing changeset window: {ex}");
+            }
+        }
+
+        private async void ChangesetReviewWindow_RunMerge(object sender, RunMergeEventArgs e)
+        {
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if (e.Changes != null)
+                {
+                    await RunMergeAsync(e.Changes);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error applying change 2: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -411,6 +429,11 @@ namespace VSIXTest
             {
                 MessageBox.Show($"Error applying change 2: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private async Task RunMergeAsync(List<Change> changes)
+        {
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRunMerge", Content = JsonConvert.SerializeObject(changes) }, simpleClient);
         }
 
         private async Task ApplyChangeAsync(Change change)
