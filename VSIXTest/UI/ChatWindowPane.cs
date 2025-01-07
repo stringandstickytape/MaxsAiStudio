@@ -22,7 +22,8 @@ public class ChatWindowPane : ToolWindowPane, IVsWindowFrameNotify3
             Height = 80,
             AcceptsReturn = true,
             TextWrapping = System.Windows.TextWrapping.Wrap,
-            VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto
+            VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+            Visibility = System.Windows.Visibility.Collapsed
         };
 
         // Create a button bar
@@ -36,6 +37,7 @@ public class ChatWindowPane : ToolWindowPane, IVsWindowFrameNotify3
         testButton2.Content = "Continue completion test";
         testButton2.Click += TestButton2_Click;
         statusBar.Items.Add(testButton2);
+        statusBar.Visibility = System.Windows.Visibility.Collapsed;
 
 
         // Add all controls to the DockPanel
