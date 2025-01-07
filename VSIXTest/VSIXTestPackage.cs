@@ -16,6 +16,7 @@ namespace VSIXTest
     [ProvideToolWindow(typeof(ChatWindowPane))]
     [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
     [ProvideToolWindow(typeof(ChangesetReviewPane))]
+    [ProvideToolWindow(typeof(DebugWindowPane))]
     public sealed class VSIXTestPackage : AsyncPackage, IVsSolutionEvents, IVsFileChangeEvents
     {
         private uint _solutionEventsCookie;
@@ -36,9 +37,11 @@ namespace VSIXTest
 
             Instance = this;
             await OpenChatWindowCommand.InitializeAsync(this);
+             await OpenDebugWindowCommand.InitializeAsync(this);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
+            VsixDebugLog.Instance.Log("VSIXTestPackage initialized.");
 
             // Get the file change service
             _fileChangeService = await GetServiceAsync(typeof(SVsFileChangeEx)) as IVsFileChangeEx;

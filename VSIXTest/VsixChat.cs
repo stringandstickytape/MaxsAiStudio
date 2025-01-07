@@ -26,6 +26,8 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using SharedClasses.Models;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSIXTest
 {
@@ -257,6 +259,7 @@ namespace VSIXTest
                         var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
                         CurrentChangeset = changesetObj.ToObject<Changeset>();
                         ShowChangesetPopup(CurrentChangeset.Changes); // <-- Call to ShowChangesetPopup is here
+                        VsixDebugLog.Instance.Log("Received applyNewDiff message.");
                     }
                     break;
                 case "setSystemPromptFromSolution":
@@ -358,6 +361,7 @@ namespace VSIXTest
                     {
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                         ShowQuickButtonOptionsWindow(message);
+                        VsixDebugLog.Instance.Log($"Show quick button options window: {message}");
                     }
                     break;
 
@@ -466,16 +470,57 @@ namespace VSIXTest
                             }
                             catch (Exception e)
                             {
-
+                                // Handle exception if needed
                             }
+
                             var directoryPath = Path.GetDirectoryName(path);
 
                             if (!Directory.Exists(directoryPath))
                             {
                                 Directory.CreateDirectory(directoryPath);
                             }
-                            await Task.Run(() => File.WriteAllText(path, deserNewContent));
-                            _dte.ItemOperations.OpenFile(path);
+
+                            // Create empty file first
+                            File.WriteAllText(path, string.Empty);
+
+                            // Open the file in VS
+                            var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
+
+                            if (window == null)
+                            {
+                                Debug.WriteLine($"Path not found: {path}");
+                                throw new Exception($"Path not found: {path}");
+                            }
+
+                            await Task.Yield(); // Give VS a chance to complete the file opening
+
+                            window.Activate();
+                            var document = window.Document;
+
+                            if (document == null)
+                            {
+                                Debug.WriteLine("Document is null");
+                                throw new Exception($"Document is null");
+                            }
+
+                            var textDocument = document.Object() as TextDocument;
+                            if (textDocument == null)
+                            {
+                                Debug.WriteLine("TextDocument is null");
+                                throw new Exception($"TextDocument is null");
+                            }
+
+                            // Get the edit point and insert the content
+                            var editPoint = textDocument.StartPoint.CreateEditPoint();
+                            editPoint.Insert(deserNewContent);
+
+                            // Optionally, move to the beginning of the document
+                            textDocument.Selection.MoveToPoint(textDocument.StartPoint);
+
+                            await Task.Yield(); // Give VS a chance to process the edit
+
+                            // If you want to save the file
+                            document.Save();
                         }
                         break;
 
