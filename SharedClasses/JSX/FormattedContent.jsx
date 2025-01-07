@@ -48,6 +48,7 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
     const [selectedMessageGuid, setSelectedMessageGuid] = useState(window.selectedMessageGuid);
     const [isInstallingTheme, setIsInstallingTheme] = useState(false);
     const [katexLoaded, setKatexLoaded] = useState(false);
+    const [markedLoaded, setMarkedLoaded] = useState(false);
     const [latexRenderingPreferences, setLatexRenderingPreferences] = useState({});
     const [visibleBlocks, setVisibleBlocks] = useState({});
 
@@ -62,6 +63,18 @@ const FormattedContent = ({ content, guid, codeBlockCounter, onCodeBlockRendered
             }
         };
         loadKaTeX();
+
+        const loadMarked = async () => {
+            try {
+                await loadScript('https://cdn.jsdelivr.net/npm/marked/marked.min.js');
+                await loadStyle('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css');
+                setMarkedLoaded(true);
+                console.log('Marked loaded successfully');
+            } catch (error) {
+                console.error('Failed to load marked:', error);
+            }
+        };
+        loadMarked();
     }, []);
 
     useEffect(() => {
@@ -87,6 +100,7 @@ const matchesFileType = (fileType, allowedTypes) => {
 
     const fileTypes = {
         webView: ["html", "js"],
+        markdown: ["markdown", "md"],
         viewJsonStringArray: ["json"],
         viewSvg: ["svg", "xml", "html"],
         installTheme: ["maxtheme.json"],
@@ -281,6 +295,58 @@ const matchesFileType = (fileType, allowedTypes) => {
                         </div>
                     );
                     onCodeBlockRendered(); // Increment the counter after rendering a code block
+                } else if (fileTypes.markdown.includes(trimmedFileType)) {
+                    const blockId = `${guid}-${offset}`;
+                    const shouldRenderMarkdown = true;
+
+                    parts.push(
+                        <div key={offset}>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontWeight: 'bold',
+                                backgroundColor: colorScheme.codeBlockHeaderBackgroundColor,
+                                color: colorScheme.codeBlockHeaderTextColor,
+                                padding: '5px 10px',
+                                borderTopLeftRadius: '5px',
+                                borderTopRightRadius: '5px',
+                                overflowWrap: 'anywhere'
+                            }}>
+                                <span
+                                    className="code-block-toggler"
+                                    onClick={() => {
+                                        const blockId = `block-${offset}`;
+                                        const currentState = visibleBlocks[blockId] !== false; // if undefined or true, consider it visible
+                                        setVisibleBlocks(prev => ({
+                                            ...prev,
+                                            [blockId]: !currentState
+                                        }));
+                                    }}
+                                    style={{
+                                        cursor: 'pointer',
+                                        marginRight: '10px',
+                                        userSelect: 'none'
+                                    }}
+                                >
+                                    {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
+                                </span>
+                                <span>{fileType.trim()}</span>
+                                <div>
+                                    {addMessageButton("Copy", () => {
+                                        window.chrome.webview.postMessage({
+                                            type: 'Copy',
+                                            content: code.trim()
+                                        });
+                                    })}
+                                </div>
+                            </div>
+                            {shouldRenderMarkdown && (
+                                renderMarkdown(code.trim())
+                            )}
+                        </div>
+                    );
+                    onCodeBlockRendered();
                 } else {
                     // This is a code block
                     parts.push(
@@ -572,6 +638,30 @@ const matchesFileType = (fileType, allowedTypes) => {
         });
 
         return parts;
+    };
+
+    const renderMarkdown = (markdownCode) => {
+        if (!window.marked) {
+            return <div>Loading Markdown renderer...</div>;
+        }
+
+        try {
+            const html = window.marked.parse(markdownCode);
+            return (
+                <div
+                    dangerouslySetInnerHTML={{ __html: html }}
+                    style={{
+                        margin: '10px 0',
+                    }}
+                />
+            );
+        } catch (error) {
+            return (
+                <div style={{ color: 'red', padding: '10px' }}>
+                    Error rendering Markdown: {error.message}
+                </div>
+            );
+        }
     };
 
     return <>{formatContent(content)}</>;
