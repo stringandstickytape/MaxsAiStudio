@@ -48,15 +48,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Debug\DebugWindowControl.xaml.cs">
+    <Compile Include="PaneDebug\DebugWindowControl.xaml.cs">
       <DependentUpon>DebugWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Debug\DebugWindowPane.cs" />
+    <Compile Include="PaneDebug\DebugWindowPane.cs" />
     <Compile Include="Models\VsixResourceDetails.cs" />
     <Compile Include="Models\MethodInfo.cs" />
     <Compile Include="Managers\AutocompleteManager.cs" />
     <Compile Include="Managers\ButtonManager.cs" />
-    <Compile Include="Debug\OpenDebugWindow.cs" />
+    <Compile Include="PaneDebug\OpenDebugWindow.cs" />
     <Compile Include="TextReplacer.cs" />
     <Compile Include="UI\ChangesetReviewPane.cs" />
     <Compile Include="UI\ChatControl.xaml.cs">
@@ -92,7 +92,7 @@
     <Compile Include="UI\TreeViewWindow.cs" />
     <Compile Include="VsixChat.cs" />
     <Compile Include="Communications\VsixMessageHandler.cs" />
-    <Compile Include="Debug\VsixDebugLog.cs" />
+    <Compile Include="PaneDebug\VsixDebugLog.cs" />
     <Compile Include="VSIXTestPackage.cs" />
     <Compile Include="Models\VsixUiMessage.cs" />
   </ItemGroup>
@@ -149,7 +149,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Debug\DebugWindowControl.xaml">
+    <Page Include="PaneDebug\DebugWindowControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ChatControl.xaml">
