@@ -117,7 +117,7 @@ namespace AiTool3.UI
 
             {
 
-                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunExternalCompletion") { });
+                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunExternalCompletion") {Json = JsonConvert.SerializeObject(vsixMessage.Content) });
             }
             else if (vsixMessage.MessageType == "vsContinueCompletion")
 
@@ -661,8 +661,10 @@ namespace AiTool3.UI
             await SetTools();
 
             await InitialiseApiList(settings);
-
-            await UpdatePrefillUI(settings.GetModel().SupportsPrefill);
+            if (settings.GetModel() != null)
+            {
+                await UpdatePrefillUI(settings.GetModel().SupportsPrefill);
+            }
         }
 
         public async Task UpdatePrefillUI(bool supportsPrefill)
@@ -680,7 +682,7 @@ namespace AiTool3.UI
             return content;
         }
 
-        internal async Task SendToVsixAsync(VsixMessage vsixMessage)
+        internal async Task SendToVsixAsync(VsixMessage vsixMessage) 
         {
             await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(vsixMessage));
         }

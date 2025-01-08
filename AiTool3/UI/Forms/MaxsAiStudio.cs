@@ -231,7 +231,7 @@ namespace AiTool3
                         //await chatWebView.SendMergeResultsToVsixAsync(response);
                         var cm = new ConversationManager();
                         cm.InjectDepencencies(dgvConversations);
-                        var inputText = "Hello!";
+                        var inputText =JsonConvert.DeserializeObject<string>(e.Json);
                         var systemPrompt = "";
                         cm.BeginNewConversation();
                         var conversation = await cm.PrepareConversationData(apiModel, "", inputText, _fileAttachmentManager);

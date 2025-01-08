@@ -19,7 +19,7 @@ namespace VSIXTest
             {
                 if (_instance == null)
                 {
-                    _instance = new VsixDebugLog();
+                    _instance = new VsixDebugLog(); 
                 }
                 return _instance;
             }
