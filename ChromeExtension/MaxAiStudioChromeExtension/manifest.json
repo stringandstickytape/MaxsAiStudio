@@ -3,7 +3,16 @@
   "name": "WebSocket LLM Client",
   "version": "1.0",
   "description": "WebSocket client for LLM queries",
-  "permissions": [ "activeTab", "sidePanel" ],
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   "action": {
     "default_icon": {
       "16": "icons/icon16.png",

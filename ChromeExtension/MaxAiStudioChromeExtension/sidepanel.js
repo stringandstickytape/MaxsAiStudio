@@ -9,6 +9,70 @@ async function sendMessage(ws, message) {
     ws.send(JSON.stringify(message));
 }
 
+async function addWebContent() {
+    try {
+        console.log('Add web content clicked');
+
+        // Get the active tab
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        console.log('Found tab:', tab);
+
+        // Execute script to get page content directly from the DOM
+        const [{ result }] = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                // Get visible text content, excluding scripts and styles
+                const getVisibleText = (node) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        return node.textContent.trim();
+                    }
+
+                    if (node.nodeType !== Node.ELEMENT_NODE) {
+                        return '';
+                    }
+
+                    const style = window.getComputedStyle(node);
+                    if (style.display === 'none' || style.visibility === 'hidden') {
+                        return '';
+                    }
+
+                    if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' ||
+                        node.tagName === 'NOSCRIPT' || node.tagName === 'TEMPLATE') {
+                        return '';
+                    }
+
+                    let text = '';
+                    for (let child of node.childNodes) {
+                        text += getVisibleText(child) + ' ';
+                    }
+                    return text.trim();
+                };
+
+                return getVisibleText(document.body);
+            }
+        });
+        console.log('Got result:', result);
+
+        // Get the current prompt text
+        const promptInput = document.getElementById('promptInput');
+        const currentText = promptInput.value;
+
+        // Add the web content as a markdown code block
+        const webContent = result.split('\n')
+            .filter(line => line.trim()) // Remove empty lines
+            .join('\n');
+
+        promptInput.value = currentText +
+            (currentText ? '\n\n' : '') +
+            '```\n' + webContent + '\n```';
+
+    } catch (error) {
+        console.error('Error in addWebContent! :', error);
+        log(`Error getting web content! : ${error.message}`);
+    }
+}
+
+
 function connectWebSocket() {
     const promptInput = document.getElementById('promptInput');
     const userPrompt = promptInput.value.trim();
@@ -58,13 +122,17 @@ function connectWebSocket() {
     };
 }
 
-document.getElementById('connectButton').addEventListener('click', connectWebSocket);
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('connectButton').addEventListener('click', connectWebSocket);
+    document.getElementById('addWebContentButton').addEventListener('click', addWebContent);
 
-// Also allow sending with Ctrl+Enter
-document.getElementById('promptInput').addEventListener('keydown', (event) => {
-    if (event.ctrlKey && event.key === 'Enter') {
-        connectWebSocket();
-    }
+    // Also allow sending with Ctrl+Enter
+    document.getElementById('promptInput').addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'Enter') {
+            connectWebSocket();
+        }
+    });
 });
 
 // Clean up WebSocket when popup closes
