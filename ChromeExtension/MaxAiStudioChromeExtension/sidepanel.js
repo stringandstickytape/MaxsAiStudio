@@ -10,6 +10,14 @@ async function sendMessage(ws, message) {
 }
 
 function connectWebSocket() {
+    const promptInput = document.getElementById('promptInput');
+    const userPrompt = promptInput.value.trim();
+
+    if (!userPrompt) {
+        log('Please enter a prompt first.');
+        return;
+    }
+
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
     }
@@ -19,14 +27,16 @@ function connectWebSocket() {
     ws.onopen = async () => {
         log('WebSocket connection opened.');
 
-        // Send test message
-        const testMessage = {
-            Content: "Hello from WebSocket client!",
+        const message = {
+            Content: userPrompt,
             MessageType: "vsRunCompletion"
         };
 
-        await sendMessage(ws, testMessage);
-        log(`Sent message: ${JSON.stringify(testMessage)}`);
+        await sendMessage(ws, message);
+        log(`Sent prompt: ${userPrompt}`);
+
+        // Clear the input after sending
+        promptInput.value = '';
     };
 
     ws.onmessage = (event) => {
@@ -49,6 +59,13 @@ function connectWebSocket() {
 }
 
 document.getElementById('connectButton').addEventListener('click', connectWebSocket);
+
+// Also allow sending with Ctrl+Enter
+document.getElementById('promptInput').addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'Enter') {
+        connectWebSocket();
+    }
+});
 
 // Clean up WebSocket when popup closes
 window.addEventListener('unload', () => {
