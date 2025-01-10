@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket LLM Client</title>
+    <style>
+        body {
+            padding: 16px;
+            min-width: 300px;
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin: 10px 0;
+            padding: 8px 16px;
+            width: 100%;
+        }
+
+        #output {
+            margin-top: 10px;
+            white-space: pre-wrap;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <button id="connectButton">Connect & Send Query</button>
+    <div id="output"></div>
+    <script src="sidepanel.js"></script>
+</body>
+</html>

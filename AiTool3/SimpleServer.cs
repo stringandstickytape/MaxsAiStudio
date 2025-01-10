@@ -1,122 +1,151 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Net.Sockets;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using WebSocketSharp.Server;
+using WebSocketSharp;
 
-namespace AITool3
+public class SimpleServer
 {
-    public class SimpleServer
+    private TcpListener tcpListener;
+    private WebSocketServer wsServer;
+    private List<TcpClient> tcpClients = new List<TcpClient>();
+    private bool isRunning = false;
+
+    public event EventHandler<string> LineReceived;
+
+    public async Task StartServer(int tcpPort = 35000, int wsPort = 35001)
     {
-        private TcpListener listener;
-        private Dictionary<string, TcpClient> clients = new Dictionary<string, TcpClient>();
-        private bool isRunning = false;
-        private string clientId = "";
+        try
+        {
+            // Start TCP Server
+            tcpListener = new TcpListener(IPAddress.Any, tcpPort);
+            tcpListener.Start();
 
-        public event EventHandler<string> LineReceived;
+            // Start WebSocket Server
+            wsServer = new WebSocketServer($"ws://0.0.0.0:{wsPort}");
+            wsServer.AddWebSocketService<AiWebSocketBehavior>("/", () => new AiWebSocketBehavior(this));
+            wsServer.Start();
 
-        public async Task StartServer(int port = 35000)
+            isRunning = true;
+            Console.WriteLine($"TCP Server started on port {tcpPort}");
+            Console.WriteLine($"WebSocket Server started on port {wsPort}");
+
+            while (isRunning)
+            {
+                TcpClient client = await tcpListener.AcceptTcpClientAsync();
+                tcpClients.Add(client);
+                _ = HandleClientAsync(client);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting server: {ex.Message}");
+        }
+    }
+
+    private async Task HandleClientAsync(TcpClient client)
+    {
+        try
+        {
+            using NetworkStream stream = client.GetStream();
+            byte[] buffer = new byte[1024];
+            StringBuilder messageBuilder = new StringBuilder();
+
+            while (true)
+            {
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                if (bytesRead == 0) break;
+
+                string chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                messageBuilder.Append(chunk);
+
+                int newlineIndex;
+                while ((newlineIndex = messageBuilder.ToString().IndexOf('\n')) != -1)
+                {
+                    string line = messageBuilder.ToString(0, newlineIndex);
+                    OnLineReceived(line);
+                    messageBuilder.Remove(0, newlineIndex + 1);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error handling client: {ex.Message}");
+        }
+        finally
+        {
+            tcpClients.Remove(client);
+            client.Close();
+        }
+    }
+
+    public virtual void OnLineReceived(string line)
+    {
+        LineReceived?.Invoke(this, line);
+    }
+
+    public async Task BroadcastLineAsync(string message)
+    {
+        // TCP Broadcast
+        byte[] data = Encoding.UTF8.GetBytes(message + "\n");
+        foreach (var client in tcpClients)
         {
             try
             {
-                listener = new TcpListener(IPAddress.Any, port);
-                listener.Start();
-                isRunning = true;
-
-                Console.WriteLine($"Server started on port {port}");
-
-                while (isRunning)
-                {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    string clientId = Guid.NewGuid().ToString();
-                    clients.Add(clientId, client);
-                    _ = HandleClientAsync(client, clientId);
-                }
+                NetworkStream stream = client.GetStream();
+                await stream.WriteAsync(data, 0, data.Length);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting server: {ex.Message}");
+                Console.WriteLine($"Error broadcasting TCP message: {ex.Message}");
             }
         }
 
-        private async Task HandleClientAsync(TcpClient client, string clientId)
+        // WebSocket Broadcast
+        if (wsServer != null)
         {
-            this.clientId = clientId;
-            try
-            {
-                using NetworkStream stream = client.GetStream();
-                byte[] buffer = new byte[1024];
-                StringBuilder messageBuilder = new StringBuilder();
-
-                while (true)
-                {
-                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    if (bytesRead == 0) break;
-
-                    string chunk = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    messageBuilder.Append(chunk);
-
-                    int newlineIndex;
-                    while ((newlineIndex = messageBuilder.ToString().IndexOf('\n')) != -1)
-                    {
-                        string line = messageBuilder.ToString(0, newlineIndex);
-                        OnLineReceived(line);
-                        messageBuilder.Remove(0, newlineIndex + 1);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error handling client: {ex.Message}");
-            }
-            finally
-            {
-                clients.Remove(clientId);
-                client.Close();
-                clientId = "";
-            }
+            wsServer.WebSocketServices["/"].Sessions.Broadcast(message);
         }
+    }
 
-        protected virtual void OnLineReceived(string line)
+    public void Stop()
+    {
+        isRunning = false;
+        tcpListener?.Stop();
+        wsServer?.Stop();
+        foreach (var client in tcpClients)
         {
-            LineReceived?.Invoke(this, line);
+            client.Close();
         }
+        tcpClients.Clear();
+    }
+}
 
-        public async Task BroadcastLineAsync(string message, string clientId = null)
+public class AiWebSocketBehavior : WebSocketBehavior
+{
+    private readonly SimpleServer _server;
+
+    public AiWebSocketBehavior(SimpleServer server)
+    {
+        _server = server;
+    }
+
+    protected override void OnMessage(MessageEventArgs e)
+    {
+        try
         {
-            byte[] data = Encoding.UTF8.GetBytes(message + "\n");
-            
-            if(clientId == null && clients.Count == 1)
-            {
-                clientId = clients.First().Key;
-            }
+            // Process the raw message directly like TCP messages
+            string message = e.Data;
 
-            if (clients.Any() && clients.ContainsKey(clientId))
-            {
-                TcpClient client = clients[clientId];
+            // Trigger the same LineReceived event as TCP messages
+            _server.OnLineReceived(message);
 
-                try
-                {
-                    await client.GetStream().WriteAsync(data, 0, data.Length);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error broadcasting message: {ex.Message}");
-                }
-            }
+            // Note: The response will be handled by whatever is subscribed to LineReceived
+            // The subscriber should use BroadcastLineAsync to send responses
         }
-
-        public void Stop()
+        catch (Exception ex)
         {
-            isRunning = false;
-            listener?.Stop();
-            foreach (var client in clients.Values)
-            {
-                client.Close();
-            }
-            clients.Clear();
+            Send($"Error processing message: {ex.Message}");
         }
     }
 }

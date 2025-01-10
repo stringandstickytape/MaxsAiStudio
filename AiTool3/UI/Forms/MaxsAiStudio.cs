@@ -11,7 +11,7 @@ using AiTool3.Tools;
 using AiTool3.Topics;
 using AiTool3.UI;
 using AiTool3.UI.Forms;
-using AITool3;
+using AiTool3;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
@@ -24,6 +24,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Whisper.net.Ggml;
+using AiTool3.ExtensionMethods;
 
 namespace AiTool3
 {
@@ -240,7 +241,10 @@ namespace AiTool3
 
 
                         cm.SaveConversation();
-                        dgvConversations.Rows.Insert(0, cm.Conversation.ConvGuid, cm.Conversation.Messages[0].Content, cm.Conversation.Messages[0].Engine, "");
+                        dgvConversations.InvokeIfNeeded(() => dgvConversations.Rows.Insert(0, cm.Conversation.ConvGuid,
+                                cm.Conversation.Messages[0].Content,
+                                cm.Conversation.Messages[0].Engine,
+                                ""));
 
 
                         await cm.RegenerateSummary(dgvConversations, cm.Conversation.ConvGuid, CurrentSettings, "(from VS)");

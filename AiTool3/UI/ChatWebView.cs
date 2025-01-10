@@ -9,7 +9,7 @@ using AiTool3.Snippets;
 using AiTool3.Tools;
 using AiTool3.Topics;
 using AiTool3.UI.Forms;
-using AITool3;
+using AiTool3;
 using FFmpeg.AutoGen;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Web.WebView2.Core;

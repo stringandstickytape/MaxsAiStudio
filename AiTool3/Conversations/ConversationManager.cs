@@ -1,4 +1,5 @@
 ﻿using AiTool3.DataModels;
+using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.UI;
 using Newtonsoft.Json;
@@ -112,7 +113,7 @@ namespace AiTool3.Conversations
             }
 
             // Refresh the DataGridView
-            dgv.Refresh();
+            dgv.InvokeIfNeeded(() => dgv.Refresh());
         }
 
         public async Task<AutoSuggestForm> Autosuggest(Model model, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
