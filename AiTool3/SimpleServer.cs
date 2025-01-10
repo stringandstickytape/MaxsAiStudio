@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -10,8 +11,9 @@ namespace AITool3
     public class SimpleServer
     {
         private TcpListener listener;
-        private List<TcpClient> clients = new List<TcpClient>();
+        private Dictionary<string, TcpClient> clients = new Dictionary<string, TcpClient>();
         private bool isRunning = false;
+        private string clientId = "";
 
         public event EventHandler<string> LineReceived;
 
@@ -28,8 +30,9 @@ namespace AITool3
                 while (isRunning)
                 {
                     TcpClient client = await listener.AcceptTcpClientAsync();
-                    clients.Add(client);
-                    _ = HandleClientAsync(client);
+                    string clientId = Guid.NewGuid().ToString();
+                    clients.Add(clientId, client);
+                    _ = HandleClientAsync(client, clientId);
                 }
             }
             catch (Exception ex)
@@ -38,8 +41,9 @@ namespace AITool3
             }
         }
 
-        private async Task HandleClientAsync(TcpClient client)
+        private async Task HandleClientAsync(TcpClient client, string clientId)
         {
+            this.clientId = clientId;
             try
             {
                 using NetworkStream stream = client.GetStream();
@@ -69,8 +73,9 @@ namespace AITool3
             }
             finally
             {
-                clients.Remove(client);
+                clients.Remove(clientId);
                 client.Close();
+                clientId = "";
             }
         }
 
@@ -79,19 +84,26 @@ namespace AITool3
             LineReceived?.Invoke(this, line);
         }
 
-        public async Task BroadcastLineAsync(string message)
+        public async Task BroadcastLineAsync(string message, string clientId = null)
         {
             byte[] data = Encoding.UTF8.GetBytes(message + "\n");
-            foreach (var client in clients)
+            
+            if(clientId == null && clients.Count == 1)
             {
+                clientId = clients.First().Key;
+            }
+
+            if (clients.Any() && clients.ContainsKey(clientId))
+            {
+                TcpClient client = clients[clientId];
+
                 try
                 {
-                    NetworkStream stream = client.GetStream();
-                    await stream.WriteAsync(data, 0, data.Length);
+                    await client.GetStream().WriteAsync(data, 0, data.Length);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error broadcasting message: {ex.Message}");
+                    Debug.WriteLine($"Error broadcasting message: {ex.Message}");
                 }
             }
         }
@@ -100,7 +112,7 @@ namespace AITool3
         {
             isRunning = false;
             listener?.Stop();
-            foreach (var client in clients)
+            foreach (var client in clients.Values)
             {
                 client.Close();
             }
