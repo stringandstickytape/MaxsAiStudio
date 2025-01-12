@@ -64,7 +64,8 @@ async function addWebContent() {
 
         promptInput.value = currentText +
             (currentText ? '\n\n' : '') +
-            '```\n' + webContent + '\n```';
+            `URL: ${tab.url}\n\n` +
+            '\u0060\u0060\u0060\n' + webContent + '\n\u0060\u0060\u0060';
 
     } catch (error) {
         console.error('Error in addWebContent! :', error);
@@ -122,10 +123,79 @@ function connectWebSocket() {
     };
 }
 
+async function summarizePage() {
+    try {
+        console.log('Summarize page clicked');
+
+        // Get the active tab
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        console.log('Found tab:', tab);
+
+        // Execute script to get page content directly from the DOM
+        const [{ result }] = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                // Get visible text content, excluding scripts and styles
+                const getVisibleText = (node) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        return node.textContent.trim();
+                    }
+
+                    if (node.nodeType !== Node.ELEMENT_NODE) {
+                        return '';
+                    }
+
+                    const style = window.getComputedStyle(node);
+                    if (style.display === 'none' || style.visibility === 'hidden') {
+                        return '';
+                    }
+
+                    if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' ||
+                        node.tagName === 'NOSCRIPT' || node.tagName === 'TEMPLATE') {
+                        return '';
+                    }
+
+                    let text = '';
+                    for (let child of node.childNodes) {
+                        text += getVisibleText(child) + ' ';
+                    }
+                    return text.trim();
+                };
+
+                return getVisibleText(document.body);
+            }
+        });
+
+        const webContent = result.split('\n')
+            .filter(line => line.trim()) // Remove empty lines
+            .join('\n');
+
+        // Create the summarization prompt
+        const summarizationPrompt = 
+            'Please provide a clear, concise bullet-point summary of the following webpage content. ' +
+            'Focus on the main points, key information, and important details. ' +
+            'Organize the summary in a logical structure and avoid any unnecessary text or meta-commentary.\n\n' +
+            `URL: ${tab.url}\n\n` +
+            '\u0060\u0060\u0060\n' + webContent + '\n\u0060\u0060\u0060';
+
+        // Set the prompt in the input field
+        const promptInput = document.getElementById('promptInput');
+        promptInput.value = summarizationPrompt;
+
+        // Automatically send the prompt
+        connectWebSocket();
+
+    } catch (error) {
+        console.error('Error in summarizePage:', error);
+        log(`Error summarizing page: ${error.message}`);
+    }
+}
+
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('connectButton').addEventListener('click', connectWebSocket);
     document.getElementById('addWebContentButton').addEventListener('click', addWebContent);
+    document.getElementById('summarizeButton').addEventListener('click', summarizePage);
 
     // Also allow sending with Ctrl+Enter
     document.getElementById('promptInput').addEventListener('keydown', (event) => {
