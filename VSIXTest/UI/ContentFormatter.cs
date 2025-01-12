@@ -80,6 +80,35 @@ namespace VSIXTest
                     $"{(index + 1).ToString().PadLeft(digitCount)} | {line}"));
         }
 
+        private string GetAllOpenFilesContent()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var formattedFiles = new List<string>();
+            var filesIncluded = new HashSet<string>();
+
+            foreach (Document doc in _dte.Documents)
+            {
+                try
+                {
+                    if (doc.Object("TextDocument") is TextDocument textDoc)
+                    {
+                        if (filesIncluded.Add(doc.FullName))
+                        {
+                            var content = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
+                            formattedFiles.Add(FormatContent(doc.FullName, AddLineNumbers(content)));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Skip non-text documents or those that can't be accessed
+                    continue;
+                }
+            }
+
+            return string.Join("\n", formattedFiles);
+        }
+
         public string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)
         {
             switch (option.Option)
@@ -96,6 +125,8 @@ namespace VSIXTest
                     return FormatXmlDocContent(option.Parameter);
                 case "FileGroups":
                     return FormatFileGroupsContent();
+                case "AllOpenFiles":
+                    return GetAllOpenFilesContent();
                 default:
                     return null;
             }

@@ -16,7 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormsToAiToolPrototype", "FormsToAiToolPrototype\FormsToAiToolPrototype.csproj", "{2818E6FE-3BC4-4F59-ACFD-5740550AAF4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSocketConnectionTester", "WebSocketConnectionTester\WebSocketConnectionTester.csproj", "{4CD9499F-4B95-49CC-87AD-5AC7504602C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSocketConnectionTester", "WebSocketConnectionTester\WebSocketConnectionTester.csproj", "{4CD9499F-4B95-49CC-87AD-5AC7504602C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeExtension", "ChromeExtension\ChromeExtension.csproj", "{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -154,6 +156,30 @@ Global
 		{4CD9499F-4B95-49CC-87AD-5AC7504602C0}.Release|arm64.Build.0 = Release|Any CPU
 		{4CD9499F-4B95-49CC-87AD-5AC7504602C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{4CD9499F-4B95-49CC-87AD-5AC7504602C0}.Release|x86.Build.0 = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|Any CPU.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|arm64.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|arm64.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|x86.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.CleanCublas|x86.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|arm64.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Debug|x86.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|Any CPU.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|arm64.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|arm64.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|x86.ActiveCfg = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.DebugCublas|x86.Build.0 = Debug|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|arm64.ActiveCfg = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|arm64.Build.0 = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|x86.ActiveCfg = Release|Any CPU
+		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

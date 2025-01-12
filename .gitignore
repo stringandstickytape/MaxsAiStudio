@@ -358,3 +358,6 @@ ASALocalRun/
 /commit.ps1
 /AiTool3/Tools/hello-world.json
 /AiTool3/Tools/expressiontest.json
+/ChromeExtension/icons/icon128.png
+/ChromeExtension/icons/icon16.png
+/ChromeExtension/icons/icon48.png

@@ -30,6 +30,13 @@
                      Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
 		</DockPanel>
+        <DockPanel Margin="0,5,0,0">
+            <CheckBox Content="All Open Files" Name="cbAllOpenFiles"
+                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+            <TextBox Name="txtAllOpenFiles" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                      Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+        </DockPanel>
 		<DockPanel Margin="0,5,0,0">
 			<CheckBox Content="Git Diff" Name="cbGitDiff"
                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>

@@ -40,6 +40,8 @@ namespace VSIXTest
                     selectedOptions.Add(new OptionWithParameter("Clipboard", txtClipboard.Text, false));
                 if (cbCurrentFile.IsChecked == true)
                     selectedOptions.Add(new OptionWithParameter("CurrentFile", txtCurrentFile.Text, false));
+                if (cbAllOpenFiles.IsChecked == true)
+                    selectedOptions.Add(new OptionWithParameter("AllOpenFiles", txtAllOpenFiles.Text, false));
                 if (cbGitDiff.IsChecked == true)
                     selectedOptions.Add(new OptionWithParameter("GitDiff", txtGitDiff.Text, false));
                 if (cbXmlDoc.IsChecked == true)

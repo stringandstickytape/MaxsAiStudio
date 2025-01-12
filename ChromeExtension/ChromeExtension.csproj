@@ -34,6 +34,15 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="MaxAiStudioChromeExtension\manifest.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="MaxAiStudioChromeExtension\background.js" />
+    <Content Include="MaxAiStudioChromeExtension\icons\icon128.png" />
+    <Content Include="MaxAiStudioChromeExtension\icons\icon16.png" />
+    <Content Include="MaxAiStudioChromeExtension\icons\icon48.png" />
+    <Content Include="MaxAiStudioChromeExtension\sidepanel.html" />
+    <Content Include="MaxAiStudioChromeExtension\sidepanel.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

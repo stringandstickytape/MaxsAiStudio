@@ -124,6 +124,9 @@ DONE:   When the main app sends a message to the main web view, also send it via
 
 Add "Add selection" and "Add selection HTML" to Chrome extension.
 Add "all open files" to the vsix file attachment system.
+- entire current project?
+- entire solution? (!)
+
 
 Review all this old rubbish:
 
