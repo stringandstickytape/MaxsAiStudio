@@ -69,6 +69,29 @@
             margin-top: 0; /* Remove margin */
             min-height: 100px; /* Ensure min height */
         }
+        #outgoing {
+            flex: 1 1 auto; /* Grow to fill available space */
+            overflow-y: auto; /* Add scroll if content overflows */
+            border: 1px solid #525c7a; /* Darker border */
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap; /* Preserve line breaks */
+            background-color: #3e4451; /* Darker background for output */
+            margin-top: 0; /* Remove margin */
+            min-height: 50px; /* Ensure min height */
+            max-height: 10%;
+         }
+        #reply {
+            flex: 1 1 auto; /* Grow to fill available space */
+            overflow-y: auto; /* Add scroll if content overflows */
+            border: 1px solid #525c7a; /* Darker border */
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap; /* Preserve line breaks */
+            background-color: #3e4451; /* Darker background for output */
+            margin-top: 10px; /* Space between the two divs */
+            min-height: 50px; /* Ensure min height */
+        }
     </style>
 </head>
 <body>
@@ -79,7 +102,8 @@
         <button id="newButton">Clear</button>
          <button id="connectButton">Send</button>
     </div>
-    <div id="output"></div>
+    <div id="outgoing"></div>
+    <div id="reply"></div>
     <script src="sidepanel.js" type="module"></script>
 </body>
 </html>

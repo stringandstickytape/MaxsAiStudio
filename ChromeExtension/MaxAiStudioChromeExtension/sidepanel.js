@@ -1,7 +1,7 @@
 ﻿let ws = null;
 
-function log(message) {
-    const output = document.getElementById('output');
+function log(message, isOutgoing = false) {
+    const output = document.getElementById(isOutgoing ? 'outgoing' : 'reply');
     output.textContent += message + '\n';
 }
 
@@ -103,7 +103,7 @@ function connectWebSocket() {
         };
 
         await sendMessage(ws, message);
-        log(`Sent prompt: ${userPrompt}`);
+        log(`Sent prompt: ${userPrompt}`, true);
 
         // Clear the input after sending
         promptInput.value = '';
@@ -113,7 +113,7 @@ function connectWebSocket() {
         try {
             const response = JSON.parse(event.data);
             const content = JSON.parse(response.Content);
-            log(`Received message: ${content.Content}\nConversation GUID: ${content.Guid}`);
+            log(`\n\n${content.Content}\n\n${content.Guid}`);
         } catch (error) {
             log(`Error parsing message: ${error.message}`);
         }
@@ -219,7 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Clean up WebSocket when popup closes
 function newChat() {
     document.getElementById('promptInput').value = '';
-    document.getElementById('output').textContent = '';
+    document.getElementById('outgoing').textContent = '';
+    document.getElementById('reply').textContent = '';
 }
 
 window.addEventListener('unload', () => {

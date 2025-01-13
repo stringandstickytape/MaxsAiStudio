@@ -219,17 +219,13 @@ namespace AiTool3
                         cm2.AddInputAndResponseToConversation(response2, apiModel, conversation2, inputText2, systemPrompt2, out var completionInput2, out var completionResponse2);
                         cm2.SaveConversation();
 
-                        await cm2.RegenerateSummary(dgvConversations, cm2.Conversation.ConvGuid, CurrentSettings, "(from VS)");
+                        await cm2.RegenerateSummary(dgvConversations, cm2.Conversation.ConvGuid, CurrentSettings, "(from external source)");
                         cm2.SaveConversation();
                         await chatWebView.SendCompletionResultsToVsixAsync(response2, cm2.Conversation.ConvGuid);
                         break;
                     }
                 case "RunExternalCompletion":
                     {
-
-
-                        //var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), CurrentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
-                        //await chatWebView.SendMergeResultsToVsixAsync(response);
                         var cm = new ConversationManager();
                         cm.InjectDepencencies(dgvConversations);
                         var inputText =JsonConvert.DeserializeObject<string>(e.Json);
@@ -247,7 +243,7 @@ namespace AiTool3
                                 ""));
 
 
-                        await cm.RegenerateSummary(dgvConversations, cm.Conversation.ConvGuid, CurrentSettings, "(from VS)");
+                        await cm.RegenerateSummary(dgvConversations, cm.Conversation.ConvGuid, CurrentSettings, "(from external source)");
                         cm.SaveConversation();
                         var guid = cm.Conversation.ConvGuid;
 
