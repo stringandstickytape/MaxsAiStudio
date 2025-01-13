@@ -41,9 +41,15 @@
             justify-content: space-between; /* Distribute space between */
             margin-bottom: 10px; /* Space between buttons and output */
         }
+        
+        .send-buttons {
+            display: flex; /* Flex container for buttons */
+            flex: 1 1 auto; /* Equal width on small screen, adjusted for margin */
+            justify-content: flex-end;
+        }
 
         button {
-            flex: 1 1 calc(50% - 5px); /* Equal width on small screen, adjusted for margin */
+            flex: none; /* Equal width on small screen, adjusted for margin */
             margin: 2px;
             padding: 10px 15px;
             border: none; /* Remove default border */
@@ -98,9 +104,11 @@
     <textarea id="promptInput" placeholder="Enter your prompt here..."></textarea>
     <div class="button-container">
         <button id="addWebContentButton">Add Content</button>
-        <button id="summarizeButton">Summarise</button>
+        <div class="send-buttons">
+           <button id="summarizeButton" title="Summarise the current prompt and send">Send for Summary</button>
+           <button id="connectButton">Send</button>
+       </div>
         <button id="newButton">Clear</button>
-         <button id="connectButton">Send</button>
     </div>
     <div id="outgoing"></div>
     <div id="reply"></div>
