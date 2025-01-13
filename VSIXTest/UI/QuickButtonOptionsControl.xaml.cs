@@ -62,6 +62,11 @@ namespace VSIXTest
             window?.Close();
         }
 
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = Window.GetWindow(this);
+            window?.Close();
+        }
         private void btnFileGroups_Click(object sender, RoutedEventArgs e)
         {
             FileGroupsEditorInvoked?.Invoke(this, txtFileGroups.Text);

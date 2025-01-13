@@ -68,8 +68,13 @@
                                                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                          GroupName="ResponseFormat" Margin="10,5,0,0"/>
         </StackPanel>
-        <Button Content="OK" Click="OkButton_Click" Margin="0,10,0,0"
-                Background="{DynamicResource {x:Static vsshell:VsBrushes.ButtonFaceKey}}"
-                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ButtonTextKey}}"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Content="OK" Click="OkButton_Click" Width="75" Margin="0,0,5,0"
+                    Background="{DynamicResource {x:Static vsshell:VsBrushes.ButtonFaceKey}}"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ButtonTextKey}}"/>
+            <Button Content="Cancel" Click="CancelButton_Click" Width="75"
+                    Background="{DynamicResource {x:Static vsshell:VsBrushes.ButtonFaceKey}}"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ButtonTextKey}}"/>
+        </StackPanel>
 	</StackPanel>
 </UserControl>
