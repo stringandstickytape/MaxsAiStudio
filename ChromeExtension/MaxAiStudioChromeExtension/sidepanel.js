@@ -21,6 +21,11 @@ async function addWebContent() {
         const [{ result }] = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
+                const selection = window.getSelection();
+                if (selection && selection.toString()) {
+                    return selection.toString();
+                }
+
                 // Get visible text content, excluding scripts and styles
                 const getVisibleText = (node) => {
                     if (node.nodeType === Node.TEXT_NODE) {
@@ -135,6 +140,11 @@ async function summarizePage() {
         const [{ result }] = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
+                const selection = window.getSelection();
+                if (selection && selection.toString()) {
+                    return selection.toString();
+                }
+
                 // Get visible text content, excluding scripts and styles
                 const getVisibleText = (node) => {
                     if (node.nodeType === Node.TEXT_NODE) {
@@ -195,6 +205,7 @@ async function summarizePage() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('connectButton').addEventListener('click', connectWebSocket);
     document.getElementById('addWebContentButton').addEventListener('click', addWebContent);
+    document.getElementById('newButton').addEventListener('click', newChat);
     document.getElementById('summarizeButton').addEventListener('click', summarizePage);
 
     // Also allow sending with Ctrl+Enter
@@ -206,6 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Clean up WebSocket when popup closes
+function newChat() {
+    document.getElementById('promptInput').value = '';
+    document.getElementById('output').textContent = '';
+}
+
 window.addEventListener('unload', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
