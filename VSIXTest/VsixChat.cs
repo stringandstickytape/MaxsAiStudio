@@ -639,32 +639,32 @@ namespace VSIXTest
 
             }
         }
-         
+
         private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
-        { 
+        {
             var buttonLabel = e.OriginalVsixMessage.content;
             var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
 
             var prompt = "";
 
-            if(string.IsNullOrEmpty(matchingButton?.Prompt))
+            if (string.IsNullOrEmpty(matchingButton?.Prompt))
             {
                 prompt = JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
             }
-            else 
-            prompt = matchingButton?.Prompt;
+            else
+                prompt = matchingButton?.Prompt;
 
             var inclusions = new List<string>();
             var activeDocumentFilename = _dte?.ActiveDocument?.FullName;
-             
+
             foreach (var option in e.SelectedOptions)
             {
                 string content = GetContentForOption(option, activeDocumentFilename);
                 if (!string.IsNullOrEmpty(content))
                 {
                     inclusions.Add(content);
-                } 
-            }  
+                }
+            }
 
             var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
@@ -675,7 +675,15 @@ namespace VSIXTest
 
             await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setSystemPrompt", Content = systemPrompt }, simpleClient);
 
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = matchingButton?.Tool }, simpleClient);
+            var tool = matchingButton?.Tool;
+
+            // Check if File Changes radio button is selected
+            if (e.ResponseType == "FileChanges")
+            {
+                tool = "DiffChange11";
+            }
+
+            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = tool }, simpleClient);
         }
 
         private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)

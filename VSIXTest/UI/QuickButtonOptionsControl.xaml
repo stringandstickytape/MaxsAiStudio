@@ -61,10 +61,10 @@
         </DockPanel>
         <GridSplitter Height="3" Margin="5,15,5,15" HorizontalAlignment="Stretch" Background="White"/>
         <StackPanel Orientation="Horizontal">
-            <RadioButton Content="Respond with Plain Text"
+            <RadioButton Name="rbPlainText" Content="Respond with Plain Text"
                                                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                          GroupName="ResponseFormat" IsChecked="True" Margin="0,5,0,0"/>
-            <RadioButton Content="Respond with File Changes" 
+            <RadioButton Name="rbFileChanges" Content="Respond with File Changes" 
                                                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                          GroupName="ResponseFormat" Margin="10,5,0,0"/>
         </StackPanel>

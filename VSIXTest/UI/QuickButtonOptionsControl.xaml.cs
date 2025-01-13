@@ -56,7 +56,8 @@ namespace VSIXTest
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            OptionsSelected?.Invoke(this, new QuickButtonMessageAndOptions { SelectedOptions = SelectedOptions, OriginalVsixMessage = OriginalMessage });
+            var responseType = ((RadioButton)FindName("rbFileChanges"))?.IsChecked == true ? "FileChanges" : "PlainText";
+            OptionsSelected?.Invoke(this, new QuickButtonMessageAndOptions { SelectedOptions = SelectedOptions, OriginalVsixMessage = OriginalMessage, ResponseType = responseType });
             var window = Window.GetWindow(this);
             window?.Close();
         }
@@ -71,5 +72,6 @@ namespace VSIXTest
     {
         public List<OptionWithParameter> SelectedOptions { get; internal set; }
         public VsixUiMessage OriginalVsixMessage { get; internal set; }
+        public string ResponseType { get; internal set; }
     }
 }
