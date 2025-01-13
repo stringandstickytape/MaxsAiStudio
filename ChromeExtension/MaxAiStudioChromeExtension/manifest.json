@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "WebSocket LLM Client",
+  "name": "Max's AI Studio Chromium Extension",
   "version": "1.0",
   "description": "WebSocket client for LLM queries",
   "permissions": [
