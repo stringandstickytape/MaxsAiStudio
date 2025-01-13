@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dgvModels = new DataGridView();
+            dgvModels = new AlternatingRowsDataGridView();
             btnSettingsOK = new Button();
             btnSettingsCancel = new Button();
             panelToggles = new Panel();
@@ -97,7 +97,7 @@
 
         #endregion
 
-        private DataGridView dgvModels;
+        private AlternatingRowsDataGridView dgvModels;
         private Button btnSettingsOK;
         private Button btnSettingsCancel;
         private Panel panelToggles;

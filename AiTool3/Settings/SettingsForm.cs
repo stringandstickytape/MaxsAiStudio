@@ -2,24 +2,26 @@
 using AiTool3.Providers;
 using System.Data;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace AiTool3.Settings
 {
     public partial class SettingsForm : Form
     {
+        private bool isInitializing = true;  // Add this field
         public int yInc = 32;
 
         public SettingsSet NewSettings;
         public SettingsForm(SettingsSet settings)
         {
+            isInitializing = true;
+
             InitializeComponent();
 
             NewSettings = CloneSettings(settings);
 
             InitializeDgvModels();
             CreateDgvColumns();
-
-            dgvModels.CellClick += DgvModels_CellClick;
 
             CreateDgvRows(settings);
 
@@ -208,6 +210,7 @@ namespace AiTool3.Settings
 
         }
 
+
         private SettingsSet CloneSettings(SettingsSet settings)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(settings);
@@ -218,9 +221,35 @@ namespace AiTool3.Settings
         {
             dgvModels.AllowUserToAddRows = true;
             dgvModels.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dgvModels.CellValueChanged += DgvModels_CellValueChanged;
-            dgvModels.UserAddedRow += DgvModels_UserAddedRow;
             dgvModels.CellClick += DgvModels_CellClick;
+            dgvModels.SelectionChanged += DgvModels_SelectionChanged;
+            dgvModels.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvModels.MultiSelect = false;
+            dgvModels.RowHeadersVisible = true;
+            dgvModels.RowHeadersWidth = 60;
+            dgvModels.RowHeadersDefaultCellStyle.Padding = new Padding(5, 0, 0, 0);
+            dgvModels.EnableHeadersVisualStyles = false;
+            dgvModels.RowHeadersDefaultCellStyle.SelectionBackColor = dgvModels.RowHeadersDefaultCellStyle.BackColor;
+            dgvModels.CellPainting += DgvModels_CellPainting;
+            dgvModels.ColumnHeadersDefaultCellStyle.BackColor = Color.White;
+            dgvModels.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.White;
+        }
+
+        private void DgvModels_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == -1)  // Row header cell
+            {
+                e.PaintBackground(e.ClipBounds, true);
+                using (SolidBrush b = new SolidBrush(Color.Black))  // or whatever color you want
+                {
+                    e.Graphics.DrawString("Edit",
+                        dgvModels.Font,
+                        b,
+                        e.CellBounds.X + 5,
+                        e.CellBounds.Y + 4);
+                }
+                e.Handled = true;
+            }
         }
 
         private List<string> GetAiServiceNames()
@@ -239,13 +268,7 @@ namespace AiTool3.Settings
             {
                 new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
                 new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
-                //new { Name = "ServiceName", HeaderText = "Protocol", ReadOnly = false },
                 new { Name = "AiServ", HeaderText = "AI Service", ReadOnly = false },
-                new { Name = "ModelUrl", HeaderText = "Model Url", ReadOnly = false },
-                new { Name = "ModelKey", HeaderText = "Model Key", ReadOnly = false },
-                new { Name = "ModelInputPrice", HeaderText = "Input 1MToken Price", ReadOnly = false },
-                new { Name = "ModelOutputPrice", HeaderText = "Output 1MToken Price", ReadOnly = false },
-                new { Name = "ModelColor", HeaderText = "Color", ReadOnly = false }
             };
 
             foreach (var col in columns)
@@ -280,9 +303,6 @@ namespace AiTool3.Settings
                     case "ModelName":
                         newCol.Width = 200;
                         break;
-                    //case "ServiceName":
-                    //    newCol.Width = 100;
-                    //    break;
                     case "ModelUrl":
                         newCol.Width = 300;
                         break;
@@ -298,6 +318,8 @@ namespace AiTool3.Settings
                 dgvModels.Columns.Add(newCol);
             }
 
+
+
             dgvModels.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "DeleteButton",
@@ -310,25 +332,127 @@ namespace AiTool3.Settings
         private void CreateDgvRows(SettingsSet settings)
         {
             dgvModels.Rows.Clear();
-            foreach (var model in settings.ModelList)
+
+            // Sort the ModelList by ServiceName and then by FriendlyName
+            var sortedModelList = settings.ModelList
+                .OrderBy(model => model.ServiceName)
+                .ThenBy(model => model.FriendlyName)
+                .ToList();
+
+            foreach (var model in sortedModelList)
             {
                 var index = dgvModels.Rows.Add(
                     model.FriendlyName,
                     model.ModelName,
-                    //model.ServiceName,
                     model.ServiceName,
                     model.Url,
                     model.Key,
                     model.input1MTokenPrice,
                     model.output1MTokenPrice,
                     ColorTranslator.ToHtml(model.Color));
+
+                // Set the text for both buttons in the new row
                 dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
+            }
+        }
+
+        private void DgvModels_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dgvModels.CurrentCell?.OwningColumn?.Name == "DeleteButton") return;
+
+            if (isInitializing)
+            {
+                isInitializing = false;
+                return;
+            }
+
+
+            if (dgvModels.SelectedRows.Count > 0)
+            {
+                var row = dgvModels.SelectedRows[0];
+                if (row.Index == dgvModels.NewRowIndex) return; // Skip if it's the new row
+
+                var modelName = row.Cells["ModelName"].Value?.ToString();
+                if (string.IsNullOrEmpty(modelName)) return;
+
+                var model = NewSettings.ModelList.FirstOrDefault(m => m.ModelName == modelName);
+                if (model != null)
+                {
+                    var aiServiceNames = GetAiServiceNames();
+                    using (var editForm = new ModelEditForm(model, aiServiceNames))
+                    {
+                        if (editForm.ShowDialog() == DialogResult.OK)
+                        {
+                            // Update the grid with the edited model
+                            row.Cells["FriendlyName"].Value = model.FriendlyName;
+                            row.Cells["ModelName"].Value = model.ModelName;
+                            row.Cells["AiServ"].Value = model.ServiceName;
+                            row.Cells["ModelUrl"].Value = model.Url;
+                            row.Cells["ModelKey"].Value = model.Key;
+                            row.Cells["ModelInputPrice"].Value = model.input1MTokenPrice;
+                            row.Cells["ModelOutputPrice"].Value = model.output1MTokenPrice;
+                            row.Cells["ModelColor"].Value = ColorTranslator.ToHtml(model.Color);
+                        }
+                    }
+                }
             }
         }
 
         private void DgvModels_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == dgvModels.Columns["DeleteButton"].Index && e.RowIndex >= 0)
+            if (e.RowIndex < 0) return;
+
+            // Handle click on the new row button (the "+" button)
+            if (e.RowIndex == dgvModels.NewRowIndex)
+            {
+                // Get the list of AI service names
+                var aiServiceNames = GetAiServiceNames();
+
+                // Create a new Model instance with default values
+                var newModel = new Model
+                {
+                    FriendlyName = "New Model",
+                    ModelName = "New Model",
+                    ServiceName = aiServiceNames.FirstOrDefault() ?? "",
+                    Url = "https://api.example.com",
+                    Key = "",
+                    input1MTokenPrice = 0,
+                    output1MTokenPrice = 0,
+                    Color = Color.White
+                };
+
+                // Open the ModelEditForm for the user to fill in details
+                using (var editForm = new ModelEditForm(newModel, aiServiceNames))
+                {
+                    if (editForm.ShowDialog() == DialogResult.OK)
+                    {
+                        // Add the new model to your settings
+                        NewSettings.ModelList.Add(newModel);
+
+                        // Directly add the new row to the DataGridView
+                        var index = dgvModels.Rows.Add(
+                            newModel.FriendlyName,
+                            newModel.ModelName,
+                            newModel.ServiceName,
+                            newModel.Url,
+                            newModel.Key,
+                            newModel.input1MTokenPrice,
+                            newModel.output1MTokenPrice,
+                            ColorTranslator.ToHtml(newModel.Color));
+
+                        // Set the text for both buttons in the new row
+                        dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
+                        dgvModels.Rows[index].Cells["EditButton"].Value = "Edit";
+
+                        // Ensure the row is visible
+                        dgvModels.FirstDisplayedScrollingRowIndex = index;
+                    }
+                }
+                return;
+            }
+
+            // Handle Delete button click
+            if (e.ColumnIndex == dgvModels.Columns["DeleteButton"].Index)
             {
                 if (MessageBox.Show("Are you sure you want to delete this model?", "Confirm Delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
@@ -344,51 +468,67 @@ namespace AiTool3.Settings
             }
         }
 
-        private void DgvModels_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            var row = dgvModels.Rows[e.RowIndex];
-            var modelName = row.Cells["ModelName"].Value?.ToString();
-            var friendlyName = row.Cells["FriendlyName"].Value?.ToString();
-            if (string.IsNullOrEmpty(modelName)) return;
-
-
-
-            var model = NewSettings.ModelList.FirstOrDefault(m => m.FriendlyName == friendlyName);
-            if (model == null)
-            {
-                model = new Model();
-                NewSettings.ModelList.Add(model);
-            }
-
-            model.ModelName = modelName;
-            model.FriendlyName = row.Cells["FriendlyName"].Value?.ToString() ?? "";
-            //model.ServiceName = row.Cells["ServiceName"].Value?.ToString() ?? "";
-            model.ServiceName = row.Cells["AiServ"].Value?.ToString() ?? "";
-            model.Url = row.Cells["ModelUrl"].Value?.ToString() ?? "";
-            model.Key = row.Cells["ModelKey"].Value?.ToString() ?? "";
-            decimal.TryParse(row.Cells["ModelInputPrice"].Value?.ToString(), out decimal inputPrice);
-            model.input1MTokenPrice = inputPrice;
-            decimal.TryParse(row.Cells["ModelOutputPrice"].Value?.ToString(), out decimal outputPrice);
-            model.output1MTokenPrice = outputPrice;
-            model.Color = ColorTranslator.FromHtml(row.Cells["ModelColor"].Value?.ToString() ?? "#FFFFFF");
-        }
-
         private void DgvModels_UserAddedRow(object sender, DataGridViewRowEventArgs e)
         {
-            // Set default values for the new row
-            var row = e.Row;
-            //row.Cells["ApiName"].Value = "New API";
-            row.Cells["FriendlyName"].Value = "New Model";
-            row.Cells["ModelName"].Value = "New Model";
-            //row.Cells["ServiceName"].Value = "NewService";
-            row.Cells["AiServ"].Value = GetAiServiceNames().FirstOrDefault() ?? "";
-            row.Cells["ModelUrl"].Value = "https://api.example.com";
-            row.Cells["ModelKey"].Value = "";
-            row.Cells["ModelInputPrice"].Value = 0;
-            row.Cells["ModelOutputPrice"].Value = 0;
-            row.Cells["ModelColor"].Value = "#FFFFFF";
+            // Get the list of AI service names
+            var aiServiceNames = GetAiServiceNames();
+
+            // Create a new Model instance with default values
+            var newModel = new Model
+            {
+                FriendlyName = "New Model",
+                ModelName = "New Model",
+                ServiceName = aiServiceNames.FirstOrDefault() ?? "",
+                Url = "https://api.example.com",
+                Key = "",
+                input1MTokenPrice = 0,
+                output1MTokenPrice = 0,
+                Color = Color.White
+            };
+
+            // Open the ModelEditForm for the user to fill in details
+            using (var editForm = new ModelEditForm(newModel, aiServiceNames))
+            {
+                if (editForm.ShowDialog() == DialogResult.OK)
+                {
+                    // Add the new model to your settings
+                    NewSettings.ModelList.Add(newModel);
+
+                    // Directly add the new row to the DataGridView
+                    var index = dgvModels.Rows.Add(
+                        newModel.FriendlyName,
+                        newModel.ModelName,
+                        newModel.ServiceName,
+                        newModel.Url,
+                        newModel.Key,
+                        newModel.input1MTokenPrice,
+                        newModel.output1MTokenPrice,
+                        ColorTranslator.ToHtml(newModel.Color));
+
+                    // Set the text for both buttons in the new row (optional, as it's already set in CreateDgvColumns)
+                    dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
+                    dgvModels.Rows[index].Cells["EditButton"].Value = "Edit";
+
+                    // Ensure the row is visible
+                    dgvModels.FirstDisplayedScrollingRowIndex = index;
+
+                }
+                else
+                {
+                    // If you want to remove the row on Cancel, you need to do it differently
+                    // because `e.Row` will likely be null here. You can identify it by
+                    // checking for an empty or default row, or by using a flag.
+                    for (int i = dgvModels.Rows.Count - 1; i >= 0; i--)
+                    {
+                        DataGridViewRow row = dgvModels.Rows[i];
+                        if (row.Cells["ModelName"].Value == null || row.Cells["ModelName"].Value.ToString() == "")
+                        {
+                            dgvModels.Rows.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         private void btnSettingsCancel_Click(object sender, EventArgs e)
@@ -401,6 +541,73 @@ namespace AiTool3.Settings
         {
             DialogResult = DialogResult.OK;
             this.Close();
+        }
+    }
+
+    public class AlternatingRowsDataGridView : DataGridView
+    {
+        private Color _evenRowColor = Color.FromArgb(220, 230, 241); // Light Steel Blue
+        private Color _oddRowColor = Color.FromArgb(255, 248, 220); // Cornsilk
+
+        public AlternatingRowsDataGridView() : base()
+        {
+            // Set default row style for consistent appearance
+            this.DefaultCellStyle.BackColor = _oddRowColor;
+            this.DefaultCellStyle.ForeColor = Color.Black;
+            this.DefaultCellStyle.SelectionBackColor = Color.Transparent; // Make selection transparent
+            this.DefaultCellStyle.SelectionForeColor = Color.Black;
+
+            // Set alternating row style
+            this.AlternatingRowsDefaultCellStyle.BackColor = _evenRowColor;
+            this.AlternatingRowsDefaultCellStyle.ForeColor = Color.Black;
+            this.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.Transparent; // Make selection transparent
+            this.AlternatingRowsDefaultCellStyle.SelectionForeColor = Color.Black;
+        }
+
+        // Properties for customizing the colors
+        public Color EvenRowColor
+        {
+            get { return _evenRowColor; }
+            set
+            {
+                _evenRowColor = value;
+                this.AlternatingRowsDefaultCellStyle.BackColor = _evenRowColor;
+                this.Invalidate();
+            }
+        }
+
+        public Color OddRowColor
+        {
+            get { return _oddRowColor; }
+            set
+            {
+                _oddRowColor = value;
+                this.RowsDefaultCellStyle.BackColor = _oddRowColor;
+                this.Invalidate();
+            }
+        }
+
+        protected override void OnDataSourceChanged(EventArgs e)
+        {
+            base.OnDataSourceChanged(e);
+        }
+
+        protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
+        {
+            base.OnCellFormatting(e);
+
+            if (this.Rows[e.RowIndex].Selected)
+            {
+                // Manually set the background color for selected cells to match the row color
+                if (e.RowIndex % 2 == 0)
+                {
+                    e.CellStyle.SelectionBackColor = _oddRowColor;
+                }
+                else
+                {
+                    e.CellStyle.SelectionBackColor = _evenRowColor;
+                }
+            }
         }
     }
 }
