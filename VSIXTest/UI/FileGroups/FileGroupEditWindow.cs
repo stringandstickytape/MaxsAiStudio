@@ -8,10 +8,14 @@ using System.IO;
 using VSIXTest.FileGroups;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
+using EnvDTE;
 
 namespace VSIXTest
 {
-    public class FileGroupEditWindow : Window
+    public class FileGroupEditWindow : System.Windows.Window
     {
         private List<FileGroup> _fileGroups;
         private List<string> _availableFiles;
@@ -20,13 +24,18 @@ namespace VSIXTest
         private TreeView _fileTreeView;
         private Dictionary<Guid, List<string>> _editedGroups;
         private Guid? previousGroupId = null;
-
+        private string _commonPath;
+        private string _solutionName;
+        private readonly DTE2 _dte;
         public List<FileGroup> EditedFileGroups { get; private set; }
 
         public FileGroupEditWindow(List<FileGroup> fileGroups, List<string> availableFiles)
         {
             _fileGroups = new List<FileGroup>(fileGroups);
             _availableFiles = availableFiles;
+            _dte = (DTE2)ServiceProvider.GlobalProvider.GetService(typeof(SDTE));
+            _commonPath = FindCommonPath(_availableFiles);
+            _solutionName = SolutionInfo.GetCurrentSolutionPath(_dte);
             _editedGroups = new Dictionary<Guid, List<string>>();
             InitializeComponent();
         }
@@ -259,8 +268,7 @@ namespace VSIXTest
             var rootNode = CreateTreeViewItem("Root", isFolder: true);
             _fileTreeView.Items.Add(rootNode);
 
-            var commonPath = FindCommonPath(_availableFiles);
-            var commonPathLength = commonPath.Length;
+            var commonPathLength = _commonPath.Length;
 
             foreach (var file in _availableFiles)
             {
@@ -431,7 +439,8 @@ namespace VSIXTest
                     group.Name,
                     _editedGroups[group.Id],
                     group.CreatedAt,
-                    DateTime.UtcNow
+                    DateTime.UtcNow,
+                    group.SourceSolutionPath
                 )
                 { Selected = group.Selected });
             }
@@ -455,7 +464,7 @@ namespace VSIXTest
                 newGroupName = $"New Group {counter++}";
             }
 
-            var newGroup = new FileGroup(newGroupName, new List<string>());
+            var newGroup = new FileGroup(newGroupName, new List<string>(), _solutionName );
             _fileGroups.Add(newGroup);
             _editedGroups[newGroup.Id] = new List<string>();
 
@@ -507,3 +516,7 @@ namespace VSIXTest
         }
     }
 }
+
+
+
+

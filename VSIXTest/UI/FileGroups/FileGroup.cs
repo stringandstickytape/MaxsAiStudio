@@ -37,6 +37,9 @@ namespace VSIXTest.FileGroups
         // List of file paths included in this group
         public List<string> FilePaths { get; set; }
 
+        // Path to the source solution associated with this file group
+        public string SourceSolutionPath { get; set; }
+
         // Date and time when the group was created
         public DateTime CreatedAt { get; set; }
 
@@ -52,22 +55,24 @@ namespace VSIXTest.FileGroups
         }
 
         // Constructor for creating a new file group
-        public FileGroup(string name, List<string> filePaths)
+        public FileGroup(string name, List<string> filePaths, string sourceSolutionPath)
         {
             Id = Guid.NewGuid();
             Name = name;
             FilePaths = filePaths ?? new List<string>();
+            SourceSolutionPath = sourceSolutionPath;
             CreatedAt = DateTime.UtcNow;
             LastModifiedAt = CreatedAt;
             Selected = false;
         }
 
         // Constructor for loading an existing file group (e.g., from storage)
-        public FileGroup(Guid id, string name, List<string> filePaths, DateTime createdAt, DateTime lastModifiedAt)
+        public FileGroup(Guid id, string name, List<string> filePaths, DateTime createdAt, DateTime lastModifiedAt, string sourceSolutionPath)
         {
             Id = id;
             Name = name;
             FilePaths = filePaths ?? new List<string>();
+            SourceSolutionPath = sourceSolutionPath;
             CreatedAt = createdAt;
             LastModifiedAt = lastModifiedAt;
             Selected = false;

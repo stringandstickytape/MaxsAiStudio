@@ -20,24 +20,26 @@ namespace VSIXTest.FileGroups
             LoadFileGroups();
         }
 
-        public FileGroup CreateFileGroup(string name, List<string> filePaths)
+        public FileGroup CreateFileGroup(string name, List<string> filePaths, string sourceSolutionPath)
         {
             if (FileGroupNameExists(name))
                 throw new ArgumentException($"A file group with the name '{name}' already exists.");
 
-            var newGroup = new FileGroup(name, filePaths);
+            var newGroup = new FileGroup(name, filePaths, sourceSolutionPath);
             _fileGroups.Add(newGroup);
             SaveFileGroups();
             return newGroup;
         }
 
-        public List<FileGroup> GetAllFileGroups()
+        public List<FileGroup> GetAllFileGroups(string sourceSolutionPath)
         {
-            return new List<FileGroup>(_fileGroups);
+            return _fileGroups.Where(x => x.SourceSolutionPath == sourceSolutionPath).ToList();
         }
 
-        public bool UpdateAllFileGroups(List<FileGroup> updatedGroups)
+        public bool UpdateAllFileGroups(List<FileGroup> updatedGroups, string sourceSolutionPath)
         {
+            var groupsForOtherSolutions = _fileGroups.Where(x => x.SourceSolutionPath != sourceSolutionPath).ToList();
+
             _fileGroups = updatedGroups;
 
             foreach(var fileGroup in _fileGroups)
@@ -51,6 +53,8 @@ namespace VSIXTest.FileGroups
                 }
                 fileGroup.FilePaths = newFilePaths;
             }
+
+            _fileGroups.AddRange(groupsForOtherSolutions);
 
             SaveFileGroups();
             return true;
@@ -84,7 +88,7 @@ namespace VSIXTest.FileGroups
             return _fileGroups.Any(fg => fg.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
-                public HashSet<string> GetAllUniquePaths()
+        public HashSet<string> GetAllUniquePaths()
         {
             return new HashSet<string>(_fileGroups.SelectMany(fg => fg.FilePaths));
         }

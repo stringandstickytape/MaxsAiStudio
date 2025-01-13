@@ -75,6 +75,7 @@
     <Compile Include="Models\MessagePrompt.cs" />
     <Compile Include="CodeAnalysis\MethodFinder.cs" />
     <Compile Include="UI\FileGroups\FileWithMembersSelectionWindow.cs" />
+    <Compile Include="UI\FileGroups\SolutionInfo.cs" />
     <Compile Include="UI\FileWithMembersSelectionControl.xaml.cs">
       <DependentUpon>FileWithMembersSelectionControl.xaml</DependentUpon>
     </Compile>
