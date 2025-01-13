@@ -183,6 +183,7 @@
           }
         },
         "required": [
+          "id",
           "backgroundColor",
           "headerBackgroundColor",
           "inputBackgroundColor",
