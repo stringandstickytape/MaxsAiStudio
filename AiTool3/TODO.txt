@@ -127,6 +127,8 @@ Add "all open files" to the vsix file attachment system.
 - entire current project?
 - entire solution? (!)
 
+Refactor so that "return code changes" is selected from the options box
+
 
 Review all this old rubbish:
 

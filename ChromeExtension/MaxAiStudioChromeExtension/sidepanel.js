@@ -2,7 +2,18 @@
 
 function log(message, isOutgoing = false) {
     const output = document.getElementById(isOutgoing ? 'outgoing' : 'reply');
-    output.textContent += message + '\n';
+    const guidOutput = document.getElementById('conversation-guid');
+
+    // Check if message contains a GUID pattern
+    const guidMatch = message.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\s*$/);
+
+    if (guidMatch) {
+        // Remove GUID from message and display separately
+        output.textContent += message.replace(guidMatch[0], '').trim() + '\n';
+        guidOutput.textContent = guidMatch[1];
+    } else {
+        output.textContent += message + '\n';
+    }
 }
 
 async function sendMessage(ws, message) {
@@ -95,12 +106,24 @@ function connectWebSocket() {
     ws = new WebSocket('ws://localhost:35001/');
 
     ws.onopen = async () => {
-        log('WebSocket connection opened.');
+        //log('WebSocket connection opened.');
+        const guidOutput = document.getElementById('conversation-guid');
+        const guid = guidOutput.textContent;
 
-        const message = {
-            Content: userPrompt,
-            MessageType: "vsRunCompletion"
-        };
+        let message;
+        if (guid) {
+            message = {
+                Content: userPrompt,
+                MessageType: "vsContinueCompletion",
+                JsonObject: JSON.stringify(guid)
+            };
+        } else {
+            message = {
+                Content: userPrompt,
+                MessageType: "vsRunCompletion"
+                // for continue, set Guid, json-stringiifed
+            };
+        }
 
         await sendMessage(ws, message);
         log(`Sent prompt: ${userPrompt}`, true);
@@ -113,7 +136,8 @@ function connectWebSocket() {
         try {
             const response = JSON.parse(event.data);
             const content = JSON.parse(response.Content);
-            log(`\n\n${content.Content}\n\n${content.Guid}`);
+            log(`\n\n${content.Content}\n`);
+            document.getElementById('conversation-guid').textContent = content.Guid;
         } catch (error) {
             log(`Error parsing message: ${error.message}`);
         }
@@ -124,7 +148,7 @@ function connectWebSocket() {
     };
 
     ws.onclose = () => {
-        log('WebSocket connection closed.');
+        //log('WebSocket connection closed.');
     };
 }
 
@@ -181,7 +205,7 @@ async function summarizePage() {
             .join('\n');
 
         // Create the summarization prompt
-        const summarizationPrompt = 
+        const summarizationPrompt =
             'Please provide a clear, concise bullet-point summary of the following webpage content. ' +
             'Focus on the main points, key information, and important details. ' +
             'Organize the summary in a logical structure and avoid any unnecessary text or meta-commentary.\n\n' +
@@ -221,6 +245,7 @@ function newChat() {
     document.getElementById('promptInput').value = '';
     document.getElementById('outgoing').textContent = '';
     document.getElementById('reply').textContent = '';
+    document.getElementById('conversation-guid').textContent = '';
 }
 
 window.addEventListener('unload', () => {

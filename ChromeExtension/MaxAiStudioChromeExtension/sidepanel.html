@@ -5,113 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Assistant</title>
     <style>
-        body {
-            font-family: sans-serif;
-            background-color: #282c34; /* Dark background */
-            color: #abb2bf; /* Light text */
-            padding: 15px;
-            margin: 0;
-            box-sizing: border-box;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1e1e1e;
+  color: #dddddd;
+  padding: 10px;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 350px;
+}
+
+textarea, button {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+#promptInput {
+  flex: 0 0 auto;
+  width: calc(100% - 20px);
+  height: 150px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #666;
+  border-radius: 8px;
+  background-color: #333;
+  color: #eee;
+  resize: vertical;
+}
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.send-buttons {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+button {
+  flex: none;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #007acc;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #005f99;
+}
+
+#outgoing {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  border: 1px solid #666;
+  padding: 10px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  background-color: #333;
+  margin-top: 0;
+  min-height: 50px;
+  max-height: 20%;
+}
+
+#reply {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  border: 1px solid #666;
+  padding: 10px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  background-color: #333;
+  margin-top: 10px;
+  min-height: 100px;
+}
+        #chat-output {
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Ensure full height */
-            min-width: 300px; /* Minimum width to prevent layout issues */
-        }
-        
-        textarea, button {
-            font-family: inherit;
+            gap: 10px;
+            flex: 1 1 auto;
+            overflow-y: auto;
         }
 
-        #promptInput {
-            flex: 0 0 auto; /* Do not grow, take up necessary space */
-            width: calc(100% - 20px); /* Account for padding */
-            height: 120px; /* Increased input height */
-            padding: 10px;
-            margin-bottom: 10px; /* Margin for space */
-            border: 1px solid #525c7a; /* Darker border */
-            border-radius: 4px;
-            background-color: #3e4451; /* Darker input background */
-            color: #abb2bf;
-            resize: vertical; /* Allow vertical resizing */
+        #conversation-guid {
+            font-family: monospace;
+            color: #888;
+            padding: 5px;
+            margin-top: 10px;
+            border-top: 1px solid #666;
         }
 
-        .button-container {
-            display: flex; /* Flex container for buttons */
-            flex-wrap: wrap; /* Allow wrapping to multiple lines */
-            justify-content: space-between; /* Distribute space between */
-            margin-bottom: 10px; /* Space between buttons and output */
-        }
-        
-        .send-buttons {
-            display: flex; /* Flex container for buttons */
-            flex: 1 1 auto; /* Equal width on small screen, adjusted for margin */
-            justify-content: flex-end;
-        }
-
-        button {
-            flex: none; /* Equal width on small screen, adjusted for margin */
-            margin: 2px;
-            padding: 10px 15px;
-            border: none; /* Remove default border */
-            border-radius: 4px;
-            background-color: #61afef; /* Blue button background */
-            color: #282c34; /* Dark text for better contrast */
-            cursor: pointer;
-            transition: background-color 0.3s ease; /* Smooth transition */
-        }
-
-       button:hover {
-            background-color: #9cdcfe; /* Lighter blue on hover */
-        }
-
-        #output {
-            flex: 1 1 auto; /* Grow to fill available space */
-            overflow-y: auto; /* Add scroll if content overflows */
-            border: 1px solid #525c7a; /* Darker border */
-            padding: 10px;
-            border-radius: 4px;
-            white-space: pre-wrap; /* Preserve line breaks */
-            background-color: #3e4451; /* Darker background for output */
-            margin-top: 0; /* Remove margin */
-            min-height: 100px; /* Ensure min height */
-        }
-        #outgoing {
-            flex: 1 1 auto; /* Grow to fill available space */
-            overflow-y: auto; /* Add scroll if content overflows */
-            border: 1px solid #525c7a; /* Darker border */
-            padding: 10px;
-            border-radius: 4px;
-            white-space: pre-wrap; /* Preserve line breaks */
-            background-color: #3e4451; /* Darker background for output */
-            margin-top: 0; /* Remove margin */
-            min-height: 50px; /* Ensure min height */
-            max-height: 10%;
-         }
-        #reply {
-            flex: 1 1 auto; /* Grow to fill available space */
-            overflow-y: auto; /* Add scroll if content overflows */
-            border: 1px solid #525c7a; /* Darker border */
-            padding: 10px;
-            border-radius: 4px;
-            white-space: pre-wrap; /* Preserve line breaks */
-            background-color: #3e4451; /* Darker background for output */
-            margin-top: 10px; /* Space between the two divs */
-            min-height: 50px; /* Ensure min height */
-        }
     </style>
 </head>
 <body>
     <textarea id="promptInput" placeholder="Enter your prompt here..."></textarea>
     <div class="button-container">
-        <button id="addWebContentButton">Add Content</button>
+
+        <button id="addWebContentButton">Add Page Content</button>
         <div class="send-buttons">
-           <button id="summarizeButton" title="Summarise the current prompt and send">Send for Summary</button>
-           <button id="connectButton">Send</button>
+           <button id="summarizeButton">Summarize Page</button>
+           <button id="connectButton">Send Prompt</button>
        </div>
-        <button id="newButton">Clear</button>
+        <button id="newButton">Clear Chat</button>
     </div>
-    <div id="outgoing"></div>
-    <div id="reply"></div>
+    <div id="chat-output">
+        <div id="outgoing"></div>
+        <div id="reply"></div>
+        <div id="conversation-guid"></div>
+    </div>
     <script src="sidepanel.js" type="module"></script>
 </body>
 </html>
