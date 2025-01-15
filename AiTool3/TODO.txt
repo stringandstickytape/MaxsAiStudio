@@ -122,13 +122,9 @@ DONE: path app to fetch resources from dll
 DONE: When a VSXIUI message is received by VSIX, pass it via TCP to the app and process it as if it was a message from the main webview
 DONE:   When the main app sends a message to the main web view, also send it via TCP to the app.
 
-Add "Add selection" and "Add selection HTML" to Chrome extension.
-Add "all open files" to the vsix file attachment system.
-- entire current project?
-- entire solution? (!)
-
-Refactor so that "return code changes" is selected from the options box
-
+DONE: Add "Add selection" and "Add selection HTML" to Chrome extension.
+DONE: Add "all open files" to the vsix file attachment system.
+PART-DONE: Refactor so that "return code changes" is selected from the options box
 
 Review all this old rubbish:
 

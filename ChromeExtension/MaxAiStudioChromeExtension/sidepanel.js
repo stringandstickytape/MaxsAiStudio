@@ -20,6 +20,54 @@ async function sendMessage(ws, message) {
     ws.send(JSON.stringify(message));
 }
 
+
+async function addWebHtml() {
+    try {
+        console.log('Add web html clicked');
+
+        // Get the active tab
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        console.log('Found tab:', tab);
+
+        // Execute script to get page content directly from the DOM
+        const [{ result }] = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount) {
+                    const container = document.createElement('div');
+                    for (let i = 0; i < selection.rangeCount; i++) {
+                        container.appendChild(selection.getRangeAt(i).cloneContents());
+                    }
+                    return container.innerHTML
+                } else {
+                    return document.body.innerHTML
+                }
+            }
+        });
+        console.log('Got result:', result);
+
+        // Get the current prompt text
+        const promptInput = document.getElementById('promptInput');
+        const currentText = promptInput.value;
+
+        // Add the web content as a markdown code block
+        const webContent = result.split('\n')
+            .filter(line => line.trim()) // Remove empty lines
+            .join('\n');
+
+
+        promptInput.value = currentText +
+            (currentText ? '\n\n' : '') +
+            `URL: ${tab.url}\n\n` +
+            '\u0060\u0060\u0060html\n' + webContent + '\n\u0060\u0060\u0060';
+
+    } catch (error) {
+        console.error('Error in addWebHtml! :', error);
+        log(`Error getting web content! : ${error.message}`);
+    }
+}
+
 async function addWebContent() {
     try {
         console.log('Add web content clicked');
@@ -229,6 +277,7 @@ async function summarizePage() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('connectButton').addEventListener('click', connectWebSocket);
     document.getElementById('addWebContentButton').addEventListener('click', addWebContent);
+    document.getElementById('addWebHtmlButton').addEventListener('click', addWebHtml);
     document.getElementById('newButton').addEventListener('click', newChat);
     document.getElementById('summarizeButton').addEventListener('click', summarizePage);
 
