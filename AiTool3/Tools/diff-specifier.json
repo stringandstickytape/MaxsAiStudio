@@ -43,7 +43,7 @@
 								},
 								"oldContent": {
 									"type": "string",
-									"description": "The lines that were removed or modified - must have a length greater than 1, but is ignored for createnewFile"
+									"description": "At least three, and at most five, lines that were removed or modified (ignored for createfile)"
 								},
 								"newContent": {
 									"type": "string",

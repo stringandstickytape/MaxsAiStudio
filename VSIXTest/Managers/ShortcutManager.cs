@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System.Linq;
 using static RoslynHelper;
+using SharedClasses.Git;
+using System.Windows.Forms;
 
 namespace VSIXTest
 {
@@ -38,21 +40,6 @@ namespace VSIXTest
             return shortcuts;
         }
 
-        public List<FileWithMembers> GetAllFilesInSolutionWithMembers()
-        {
-            var filesWithMembers = new List<FileWithMembers>();
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (_dte.Solution != null)
-            {
-                foreach (EnvDTE.Project project in _dte.Solution.Projects)
-                {
-                    GetProjectFilesWithMembers(project, filesWithMembers);
-                }
-            }
-
-            return filesWithMembers;
-        }
 
         private static string GetClassName(SyntaxNode node)
         {
@@ -119,13 +106,13 @@ namespace VSIXTest
                     try
                     {
                         string filePath = item.Properties.Item("FullPath").Value.ToString();
-                        if (File.Exists(filePath))
+                        if (File.Exists(filePath) && IsValidFile(filePath))
                         {
                             string sourceCode = File.ReadAllText(filePath);
                             string fileName = Path.GetFileName(filePath);
 
                             List<MemberDetail> methods = RoslynHelper.ExtractMembersUsingRoslyn(sourceCode, fileName);
-                             
+
                             List<Member> members = methods.Select(m => new Member(m.ItemName, m.MemberType, m.SourceCode)).ToList();
 
                             filesWithMembers.Add(new FileWithMembers(filePath, members));
@@ -140,22 +127,35 @@ namespace VSIXTest
             }
         }
 
+       
 
-        public List<string> GetAllFilesInSolution()
+        private string GetActiveFolderPath()
         {
-            var files = new List<string>();
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (_dte.Solution != null)
+            // Try to get the active folder from Solution Explorer
+            if (_dte.ToolWindows.SolutionExplorer.SelectedItems is Array selectedItems && selectedItems.Length > 0)
             {
-                foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                dynamic selected = selectedItems.GetValue(0);
+                if (selected?.Object is ProjectItem item)
                 {
-                    GetProjectFiles(project, files);
+                    try
+                    {
+                        return item.Properties.Item("FullPath").Value.ToString();
+                    }
+                    catch { }
                 }
             }
 
-            return files;
+            // Fallback to active document's folder
+            if (_dte.ActiveDocument != null)
+            {
+                return Path.GetDirectoryName(_dte.ActiveDocument.FullName);
+            }
+
+            return null;
         }
+
 
         private void GetProjectFiles(EnvDTE.Project project, List<string> files)
         {
@@ -166,7 +166,7 @@ namespace VSIXTest
 
             if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
             {
-                if(project.ProjectItems != null)
+                if (project.ProjectItems != null)
                     foreach (ProjectItem item in project.ProjectItems)
                     {
                         if (item.SubProject != null)
@@ -183,9 +183,9 @@ namespace VSIXTest
             {
                 if (project.ProjectItems != null)
                     foreach (ProjectItem item in project.ProjectItems)
-                {
-                    ProcessProjectItem(item, files);
-                }
+                    {
+                        ProcessProjectItem(item, files);
+                    }
             }
         }
 
@@ -195,6 +195,8 @@ namespace VSIXTest
 
             if (item == null)
                 return;
+
+            // ProjectKinds.vsProjectKindSolutionFolder
 
             if (item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder)
             {
@@ -210,7 +212,7 @@ namespace VSIXTest
                     try
                     {
                         string filePath = item.Properties.Item("FullPath").Value.ToString();
-                        if (File.Exists(filePath))
+                        if (File.Exists(filePath) && IsValidFile(filePath))
                         {
                             files.Add(filePath);
                         }
@@ -223,7 +225,174 @@ namespace VSIXTest
                 }
             }
         }
+
+        public List<string> GetAllFilesInSolution()
+        {
+            var files = new List<string>();
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_dte.Solution != null && _dte.Solution.IsOpen)
+            {
+
+
+                // Check if it's a folder-based solution
+                if (IsFolderBasedSolution())
+                {
+                    // If it's a folder-based solution
+                    string rootFolder = GetRootFolder();
+                    if (!string.IsNullOrEmpty(rootFolder))
+                    {
+                        files.AddRange(Directory.GetFiles(rootFolder, "*.*", SearchOption.AllDirectories)
+                            .Where(f => IsValidFile(f)));
+
+                        GitIgnoreFilterManager gitIgnoreFilterManager = new GitIgnoreFilterManager("");
+                        // check for a .gitignore
+                        if (File.Exists(Path.Combine(rootFolder, ".gitignore")))
+                        {
+                            var gitignore = File.ReadAllText(Path.Combine(rootFolder, ".gitignore"));
+                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+
+                            if (gitignore != null)
+                            {
+                                files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files).ToList();
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    // If it's a normal solution - use existing approach
+                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                    {
+                        GetProjectFiles(project, files);
+                    }
+                }
+            }
+
+            return files;
+        }
+
+        private string GetRootFolder()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            try
+            {
+                // Attempt to get the solution path, which will be the root folder in the "open folder" case
+                if (_dte.Solution != null && !string.IsNullOrEmpty(_dte.Solution.FullName))
+                {
+                    string solutionDir = _dte.Solution.FullName;
+                    if (!string.IsNullOrEmpty(solutionDir) && Directory.Exists(solutionDir))
+                    {
+                        return solutionDir;
+                    }
+                }
+
+                // Fallback if solution directory is not found
+                if (_dte.ActiveDocument != null)
+                {
+                    return Path.GetDirectoryName(_dte.ActiveDocument.FullName);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting root folder: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private bool IsFolderBasedSolution()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Check if the solution file is an "empty" project file or a folder
+            if (_dte.Solution != null && !string.IsNullOrEmpty(_dte.Solution.FullName))
+            {
+                string solutionPath = _dte.Solution.FullName;
+                // If it's a folder-based solution, the solution file has no extension or an "empty" extension.
+                return string.IsNullOrEmpty(Path.GetExtension(solutionPath));
+            }
+
+            return false;
+        }
+
+        private bool IsValidFile(string filePath)
+        {
+            // Add your file extension filters here
+            string[] validExtensions = new string[0] { /* ".cs", ".vb", ".ts", ".js" */ }; // modify as needed
+
+            // Check if it's a valid extension
+            //if (!validExtensions.Contains(Path.GetExtension(filePath).ToLower()))
+            //    return false;
+
+            // Exclude binary folders and hidden folders
+            string[] excludeFolders = new[] {
+        "\\bin\\",
+        "\\obj\\",
+        "\\.git\\",
+        "\\.vs\\",
+        "\\node_modules\\"
+    };
+
+            if (excludeFolders.Any(f => filePath.IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0))
+                return false;
+
+            return true;
+        }
+        // Repeat for GetAllFilesInSolutionWithMembers
+        public List<FileWithMembers> GetAllFilesInSolutionWithMembers()
+        {
+            var filesWithMembers = new List<FileWithMembers>();
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_dte.Solution != null && _dte.Solution.IsOpen)
+            {
+                // Check if it's a folder-based solution
+                if (IsFolderBasedSolution())
+                {
+                    string rootFolder = GetRootFolder();
+                    if (!string.IsNullOrEmpty(rootFolder))
+                    {
+                        var csFiles = Directory.GetFiles(rootFolder, "*.*", SearchOption.AllDirectories);
+                            csFiles = csFiles.Where(f => IsValidFile(f)).ToArray();
+
+                        foreach (string filePath in csFiles)
+                        {
+                            try
+                            {
+                                string sourceCode = File.ReadAllText(filePath);
+                                string fileName = Path.GetFileName(filePath);
+
+                                List<MemberDetail> methods = RoslynHelper.ExtractMembersUsingRoslyn(sourceCode, fileName);
+                                List<Member> members = methods.Select(m =>
+                                    new Member(m.ItemName, m.MemberType, m.SourceCode)).ToList();
+
+                                filesWithMembers.Add(new FileWithMembers(filePath, members));
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Solution is open - use existing approach
+                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                    {
+                        GetProjectFilesWithMembers(project, filesWithMembers);
+                    }
+                }
+            }
+
+            return filesWithMembers;
+        }
     }
+
 
     public class FileWithMembers
     {

@@ -1,5 +1,6 @@
 ﻿using AiTool3.Embeddings;
 using Newtonsoft.Json;
+using SharedClasses.Git;
 using System.Data;
 using System.Text.RegularExpressions;
 

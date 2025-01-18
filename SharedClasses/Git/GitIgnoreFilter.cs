@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace AiTool3.Embeddings
+namespace SharedClasses.Git
 {
     public class GitIgnoreFilterManager
     {
