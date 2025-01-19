@@ -31,6 +31,15 @@ namespace VSIXTest.FileGroups
             return newGroup;
         }
 
+        public void DeselectAllFileGroups()
+        {
+            foreach (var fileGroup in _fileGroups)
+            {
+                fileGroup.Selected = false;
+            }
+            SaveFileGroups();
+        }
+
         public List<FileGroup> GetAllFileGroups(string sourceSolutionPath)
         {
             return _fileGroups.Where(x => x.SourceSolutionPath == sourceSolutionPath).ToList();

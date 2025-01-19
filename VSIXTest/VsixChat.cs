@@ -256,10 +256,18 @@ namespace VSIXTest
             {
                 case "applyNewDiff":
                     {
-                        var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
-                        CurrentChangeset = changesetObj.ToObject<Changeset>();
-                        ShowChangesetPopup(CurrentChangeset.Changes); // <-- Call to ShowChangesetPopup is here
-                        VsixDebugLog.Instance.Log("Received applyNewDiff message.");
+                        try
+                        {
+                            var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
+
+                            CurrentChangeset = changesetObj.ToObject<Changeset>();
+                            ShowChangesetPopup(CurrentChangeset.Changes); // <-- Call to ShowChangesetPopup is here
+                            VsixDebugLog.Instance.Log("Received applyNewDiff message.");
+                        }
+                        catch(Exception e2)
+                        {
+                            MessageBox.Show($"Error applying change: {e2.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                     break;
                 case "setSystemPromptFromSolution":
@@ -620,6 +628,7 @@ namespace VSIXTest
             // bodged for now
             var availableFiles = _shortcutManager.GetAllFilesInSolution().Where(x => !x.Contains("\\.nuget\\")).ToList();
             var solutionName = _dte?.Solution?.FullName;
+            _fileGroupManager.DeselectAllFileGroups();
             var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups(solutionName), availableFiles);
 
             bool? result = editWindow.ShowDialog();
