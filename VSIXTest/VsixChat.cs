@@ -368,7 +368,18 @@ namespace VSIXTest
                 case "vsQuickButton":
                     {
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        ShowQuickButtonOptionsWindow(message);
+
+                        var buttonLabel = message.content;
+                        var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
+
+                        var prompt = "";
+
+                        if (!string.IsNullOrEmpty(matchingButton?.Prompt))
+                        {
+                            await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(matchingButton?.Prompt)})");
+                        }
+                        
+                        //ShowQuickButtonOptionsWindow(message);
                         VsixDebugLog.Instance.Log($"Show quick button options window: {message}");
                     }
                     break;

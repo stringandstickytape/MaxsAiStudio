@@ -69,21 +69,38 @@ const SplitButton = ({ label, onClick, dropdownItems = [], disabled, color = '#0
     }, []);
 
     useEffect(() => {
-        if (isOpen && buttonRef.current) {
+        if (isOpen && buttonRef.current && dropdownRef.current) {
             const buttonRect = buttonRef.current.getBoundingClientRect();
+            const dropdownRect = dropdownRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
 
-            const dropdownWidth = 200; // Approximate width of the dropdown
-            const dropdownHeight = dropdownItems.length * 40; // Approximate height of the dropdown
+            let left = 0;
+            let top = null;
+            let bottom = null;
 
-            if (buttonRect.left - dropdownWidth < 0 || buttonRect.top - dropdownHeight < 0) {
-                // If dropdown would appear off-screen to the left or top, position it to the bottom-right
-                setDropdownPosition({ left: '0', top: '100%' });
-            } else {
-                // Otherwise, keep the original position
-                setDropdownPosition({ left: '-60px', bottom: '15px' });
+            // Check horizontal positioning
+            if (buttonRect.left + dropdownRect.width > viewportWidth) {
+                // If dropdown would overflow right side, align it to the right edge of the button
+                left = buttonRect.width - dropdownRect.width;
             }
+
+            // Check vertical positioning
+            if (buttonRect.bottom + dropdownRect.height > viewportHeight) {
+                // If dropdown would overflow bottom, position above the button
+                bottom = '100%';
+            } else {
+                // Position below the button
+                top = '100%';
+            }
+
+            setDropdownPosition({
+                left: `${left}px`,
+                top: top !== null ? top : 'auto',
+                bottom: bottom !== null ? bottom : 'auto'
+            });
         }
-    }, [isOpen, dropdownItems.length]);
+    }, [isOpen]);
 
     useEffect(() => {
         // Expose enable/disable methods to window
