@@ -38,6 +38,8 @@ namespace AiTool3
         private TemplateManager _templateManager;
         private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
+        private readonly ChatWebViewEventHandler _chatWebViewEventHandler;
+
         public static readonly decimal Version = 0.3m;
 
         public static readonly string ThreeTicks = new string('`', 3);
@@ -50,10 +52,10 @@ namespace AiTool3
         }
 
         private CancellationTokenSource? _cts, _cts2;
-        private WebViewManager? webViewManager = null;
+        private WebViewManager? _webViewManager = null;
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer();
-        private AudioRecorderManager audioRecorderManager;
+        private AudioRecorderManager _audioRecorderManager;
 
         public string selectedConversationGuid = "";
 
@@ -94,8 +96,10 @@ namespace AiTool3
                 chatWebView.InjectDependencies(toolManager, fileAttachmentManager);
                 _scratchpadManager = scratchpadManager;
                 _aiResponseHandler = aiResponseHandler;
-                webViewManager = new WebViewManager(ndcWeb);
-                _aiResponseHandler.InjectDependencies(chatWebView, webViewManager);
+                _webViewManager = new WebViewManager(ndcWeb);
+                _aiResponseHandler.InjectDependencies(chatWebView, _webViewManager);
+
+
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
@@ -103,8 +107,8 @@ namespace AiTool3
 
                 splitContainer1.Panel1Collapsed = CurrentSettings.CollapseConversationPane;
 
-                audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn, chatWebView);
-                audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
+                _audioRecorderManager = new AudioRecorderManager(GgmlType.SmallEn, chatWebView);
+                _audioRecorderManager.AudioProcessed += AudioRecorderManager_AudioProcessed;
 
                 splitContainer1.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
                 splitContainer5.Paint += new PaintEventHandler(SplitContainerHelper.SplitContainer_Paint!);
@@ -119,6 +123,20 @@ namespace AiTool3
                 Load += OnLoad!;
 
                 dgvConversations.MouseDown += DgvConversations_MouseDown;
+
+                _chatWebViewEventHandler = new ChatWebViewEventHandler(
+                    chatWebView,
+                    ConversationManager,
+                    _fileAttachmentManager,
+                    _templateManager,
+                    _aiResponseHandler,
+                    _webViewManager,
+                    dgvConversations,
+                    CurrentSettings,
+                    tokenUsageLabel,
+                    _audioRecorderManager,
+                    menuBar,
+                    _scratchpadManager);
 
             }
             finally
@@ -140,7 +158,7 @@ namespace AiTool3
         {
             var eventMappings = new Dictionary<string, Delegate>
             {
-                {"SendMessage", new EventHandler<ChatWebViewSendMessageEventArgs>(ChatWebView_ChatWebViewSendMessageEvent)}, 
+                //{"SendMessage", new EventHandler<ChatWebViewSendMessageEventArgs>(ChatWebView_ChatWebViewSendMessageEvent)}, 
                 {"Cancel", new EventHandler<ChatWebViewCancelEventArgs>(ChatWebView_ChatWebViewCancelEvent)},
                 {"Copy", new EventHandler<ChatWebViewCopyEventArgs>(ChatWebView_ChatWebViewCopyEvent)},
                 {"New", new EventHandler<ChatWebViewNewEventArgs>(ChatWebView_ChatWebViewNewEvent)},
@@ -317,15 +335,15 @@ namespace AiTool3
 
                     break;
                 case "voice":
-                    if (!audioRecorderManager.IsRecording)
+                    if (!_audioRecorderManager.IsRecording)
                     {
-                        await audioRecorderManager.StartRecording();
+                        await _audioRecorderManager.StartRecording();
                         //buttonStartRecording.BackColor = Color.Red;
                         //buttonStartRecording.Text = "Stop\r\nRecord";
                     }
                     else
                     {
-                        await audioRecorderManager.StopRecording();
+                        await _audioRecorderManager.StopRecording();
                         //buttonStartRecording.BackColor = Color.Black;
                         //buttonStartRecording.Text = "Start\r\nRecord";
                     }
@@ -461,7 +479,7 @@ namespace AiTool3
 
             await BeginNewConversation();
 
-            await webViewManager.CreateNewWebNdc(false, WebViewNdc_WebNdcContextMenuOptionSelected, WebViewNdc_WebNdcNodeClicked);
+            await _webViewManager.CreateNewWebNdc(false, WebViewNdc_WebNdcContextMenuOptionSelected, WebViewNdc_WebNdcNodeClicked);
 
             this.BringToFront();
 
@@ -492,7 +510,7 @@ namespace AiTool3
         private void EnableConversationsAndWebView()
         {
             dgvConversations.Enabled = true;
-            webViewManager.Enable();
+            _webViewManager.Enable();
         }
 
         private void ChatWebView_ChatWebViewCopyEvent(object? sender, ChatWebViewCopyEventArgs e) => Clipboard.SetText(e.Content);
@@ -601,7 +619,7 @@ namespace AiTool3
             }
 
             dgvConversations.Enabled = false;
-            webViewManager.Disable();
+            _webViewManager.Disable();
 
 
             await _aiResponseHandler.FetchAiInputResponse(CurrentSettings, _cts.Token, e.SelectedTools, overrideUserPrompt: e.OverrideUserPrompt, sendSecondary: e.SendViaSecondaryAI, addEmbeddings: e.AddEmbeddings, prefill: e.Prefill,
@@ -657,7 +675,7 @@ namespace AiTool3
             }
         }
 
-        private async Task<bool> WebNdcDrawNetworkDiagram() => await webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages);
+        private async Task<bool> WebNdcDrawNetworkDiagram() => await _webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages);
 
 
 
@@ -698,7 +716,7 @@ namespace AiTool3
         private async Task BeginNewConversation()
         {
             await chatWebView.Clear();
-            webViewManager.Enable();
+            _webViewManager.Enable();
             _fileAttachmentManager.ClearBase64();
             ConversationManager.BeginNewConversation();
 
@@ -748,7 +766,7 @@ namespace AiTool3
             _searchManager.ClearSearch();
         }
 
-        private void MaxsAiStudio_FormClosing(object sender, FormClosingEventArgs e) => webViewManager!.webView.Dispose();
+        private void MaxsAiStudio_FormClosing(object sender, FormClosingEventArgs e) => _webViewManager!.webView.Dispose();
 
         private void button1_Click(object sender, EventArgs e)
         {
