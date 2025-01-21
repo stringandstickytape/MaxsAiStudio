@@ -24,7 +24,7 @@ namespace VSIXTest
         private readonly SimpleClient _simpleClient;
         private readonly ContentFormatter _contentFormatter;
         private readonly ShortcutManager _shortcutManager;
-        private readonly VsixChat _vsixChat;  // Changed from WebView2 to VsixChat
+        private readonly VsixChat _vsixChat; 
         private readonly ChangesetManager _changesetManager;
         private Changeset CurrentChangeset { get; set; }
         private bool _changesetPaneInitted = false;
@@ -36,7 +36,7 @@ namespace VSIXTest
             ContentFormatter contentFormatter,
             ShortcutManager shortcutManager,
             VsixChat vsixChat,
-            ChangesetManager changesetManager)  // Changed parameter type to VsixChat
+            ChangesetManager changesetManager) 
         {
             _dte = dte;
             _messageHandler = messageHandler;
@@ -47,7 +47,6 @@ namespace VSIXTest
             _changesetManager = changesetManager;
         }
 
-        // Update method calls to use _vsixChat instead of _webView
         private async Task HandleSendAsync(VsixUiMessage message)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -65,7 +64,7 @@ namespace VSIXTest
             await _vsixChat.ExecuteScriptAsync("window.buttonControls['Set System Prompt from Solution'].show()");
         }
 
-            public async Task ProcessMessageAsync(VsixUiMessage message)
+        public async Task ProcessMessageAsync(VsixUiMessage message)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

@@ -26,28 +26,8 @@ public class ChatWindowPane : ToolWindowPane, IVsWindowFrameNotify3
             Visibility = System.Windows.Visibility.Collapsed
         };
 
-        // Create a button bar
-        System.Windows.Controls.Primitives.StatusBar statusBar = new System.Windows.Controls.Primitives.StatusBar();
-        System.Windows.Controls.Button testButton = new System.Windows.Controls.Button();
-        testButton.Content = "Run test completion and get GUID";
-        testButton.Click += TestButton_Click;
-        statusBar.Items.Add(testButton);
-
-        System.Windows.Controls.Button testButton2 = new System.Windows.Controls.Button();
-        testButton2.Content = "Continue completion test";
-        testButton2.Click += TestButton2_Click;
-        statusBar.Items.Add(testButton2);
-        statusBar.Visibility = System.Windows.Visibility.Collapsed;
-
-
-        // Add all controls to the DockPanel
         System.Windows.Controls.DockPanel dockPanel = new System.Windows.Controls.DockPanel();
 
-        // Add the status bar at the bottom
-        System.Windows.Controls.DockPanel.SetDock(statusBar, System.Windows.Controls.Dock.Bottom);
-        dockPanel.Children.Add(statusBar);
-
-        // Add the textbox above the status bar
         System.Windows.Controls.DockPanel.SetDock(_textBox, System.Windows.Controls.Dock.Bottom);
         dockPanel.Children.Add(_textBox);
 
@@ -57,40 +37,19 @@ public class ChatWindowPane : ToolWindowPane, IVsWindowFrameNotify3
         this.Content = dockPanel;
     }
 
-    private void TestButton_Click(object sender, System.Windows.RoutedEventArgs e)
-    {
-        _webView.RunTestCompletion(); // Call the method on VsixChat instance
-    }
-    private void TestButton2_Click(object sender, System.Windows.RoutedEventArgs e)
-    {
-        _webView.ContinueTestCompletion(_textBox.Text); // Call the method on VsixChat instance
-    }
-
     public int OnShow(int fShow)
     {
         _webView.Visibility = System.Windows.Visibility.Visible;
         return Microsoft.VisualStudio.VSConstants.S_OK;
     }
 
-    public int OnMove(int x, int y, int w, int h)
-    {
-        return Microsoft.VisualStudio.VSConstants.S_OK;
-    }
+    public int OnMove(int x, int y, int w, int h) => Microsoft.VisualStudio.VSConstants.S_OK;
 
-    public int OnSize(int x, int y, int w, int h)
-    {
-        return Microsoft.VisualStudio.VSConstants.S_OK;
-    }
+    public int OnSize(int x, int y, int w, int h) => Microsoft.VisualStudio.VSConstants.S_OK;
 
-    public int OnDockableChange(int fDockable, int x, int y, int w, int h)
-    {
-        return Microsoft.VisualStudio.VSConstants.S_OK;
-    }
+    public int OnDockableChange(int fDockable, int x, int y, int w, int h) => Microsoft.VisualStudio.VSConstants.S_OK;
 
-    public int OnClose(ref uint pgrfSaveOptions)
-    {
-        return Microsoft.VisualStudio.VSConstants.S_OK;
-    }
+    public int OnClose(ref uint pgrfSaveOptions) => Microsoft.VisualStudio.VSConstants.S_OK;
 
     public void UpdateTextBox(string text)
     {

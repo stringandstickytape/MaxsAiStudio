@@ -1,33 +1,18 @@
-﻿using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using EnvDTE;
+﻿using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using Newtonsoft.Json;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using SharedClasses;
 using System;
-using SharedClasses.Helpers;
-using System.Linq;
 using System.IO;
-using System.Threading;
 using System.Windows.Input;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Windows.Documents;
-using System.Collections.Generic;
 using VSIXTest.FileGroups;
-using Microsoft.VisualStudio.Threading;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 using SharedClasses.Models;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.TextManager.Interop;
 using VSIXTest.UI;
 
 namespace VSIXTest
@@ -131,7 +116,7 @@ namespace VSIXTest
                 VsixPackage);  // Pass the VsixPackage
         }
 
-        
+
 
         public async void RunTestCompletion()
         {
@@ -164,17 +149,17 @@ namespace VSIXTest
             await MessageHandler.HandleReceivedMessageAsync(vsixMessage);
         }
 
-        
 
-        
+
+
 
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!vsixInitialised) 
+            if (!vsixInitialised)
             {
                 await simpleClient.StartClientAsync();
-                await InitialiseAsync(); 
-                vsixInitialised = true; 
+                await InitialiseAsync();
+                vsixInitialised = true;
             }
         }
 
