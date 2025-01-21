@@ -387,11 +387,6 @@ namespace AiTool3.Settings
                             row.Cells["FriendlyName"].Value = model.FriendlyName;
                             row.Cells["ModelName"].Value = model.ModelName;
                             row.Cells["AiServ"].Value = model.ServiceName;
-                            row.Cells["ModelUrl"].Value = model.Url;
-                            row.Cells["ModelKey"].Value = model.Key;
-                            row.Cells["ModelInputPrice"].Value = model.input1MTokenPrice;
-                            row.Cells["ModelOutputPrice"].Value = model.output1MTokenPrice;
-                            row.Cells["ModelColor"].Value = ColorTranslator.ToHtml(model.Color);
                         }
                     }
                 }
@@ -442,7 +437,6 @@ namespace AiTool3.Settings
 
                         // Set the text for both buttons in the new row
                         dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
-                        dgvModels.Rows[index].Cells["EditButton"].Value = "Edit";
 
                         // Ensure the row is visible
                         dgvModels.FirstDisplayedScrollingRowIndex = index;

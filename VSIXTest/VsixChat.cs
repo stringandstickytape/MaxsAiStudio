@@ -28,6 +28,7 @@ using System.Diagnostics;
 using SharedClasses.Models;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.TextManager.Interop;
+using VSIXTest.UI;
 
 namespace VSIXTest
 {
@@ -35,6 +36,7 @@ namespace VSIXTest
     {
         private readonly SimpleClient simpleClient = new SimpleClient();
         private readonly ContentFormatter _contentFormatter;
+        private readonly VsixWebViewManager _webViewManager;
 
         private static VsixChat _instance;
         public static VsixChat Instance
@@ -57,6 +59,7 @@ namespace VSIXTest
         private readonly ShortcutManager _shortcutManager;
         private readonly AutocompleteManager _autocompleteManager;
         private readonly FileGroupManager _fileGroupManager;
+        private readonly VsixMessageProcessor _messageProcessor;
 
         private Changeset CurrentChangeset { get; set; }
 
@@ -98,11 +101,19 @@ namespace VSIXTest
 
             _fileGroupManager = new FileGroupManager(extensionDataPath);
             _contentFormatter = new ContentFormatter(_dte, _fileGroupManager);
+            _webViewManager = new VsixWebViewManager(this, new ButtonManager());
 
             simpleClient.LineReceived += SimpleClient_LineReceived;
+            WebMessageReceived += WebView_WebMessageReceived;
 
-
-        }
+            _messageProcessor = new VsixMessageProcessor(
+                _dte,
+                MessageHandler,
+                simpleClient,
+                _contentFormatter,
+                _shortcutManager,
+                this);
+                    }
 
         public async void RunTestCompletion()
         {
@@ -156,35 +167,7 @@ namespace VSIXTest
 
         public async Task InitialiseAsync()
         {
-            var env = await CoreWebView2Environment.CreateAsync(null, "C:\\temp");
-            if (this.CoreWebView2 == null)
-            {
-                await EnsureCoreWebView2Async(env);
-            }
-            WebMessageReceived += WebView_WebMessageReceived;
-            CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
-            CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
-
-            foreach (var resource in AssemblyHelper.GetResourceDetails())
-            {
-                CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
-            }
-            NavigateToString(AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.HTML.ChatWebView2.html"));
-
-            string[] scriptResources = new[]
-                    {
-                "SharedClasses.JavaScriptViewers.JsonViewer.js",
-                "SharedClasses.JavaScriptViewers.ThemeEditor.js",
-                "SharedClasses.JavaScriptViewers.SvgViewer.js",
-                "SharedClasses.JavaScriptViewers.MermaidViewer.js",
-                "SharedClasses.JavaScriptViewers.DotViewer.js",
-                "SharedClasses.JavaScriptViewers.FindAndReplacer.js"
-            };
-
-            foreach (var resource in scriptResources)
-            {
-                await ExecuteScriptAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
-            }
+            await _webViewManager.InitializeAsync();
         }
 
 
@@ -233,167 +216,16 @@ namespace VSIXTest
                 );
         }
 
-        private async Task AddContextMenuItemAsync(string label, string messageType)
+        public async Task AddContextMenuItemAsync(string label, string messageType)
         {
-            string script = $@"
-        window.addCustomContextMenuItem({{
-            label: `{label}`,
-            onClick: () => window.chrome.webview.postMessage({{
-                type: `{messageType}`
-            }})
-        }});
-    ";
-            await ExecuteScriptAsync(script); 
+            await _webViewManager.AddContextMenuItemAsync(label, messageType);
         }
 
 
         private async void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var message = JsonConvert.DeserializeObject<VsixUiMessage>(e.WebMessageAsJson);
-
-            switch (message.type)
-            {
-                case "applyNewDiff":
-                    {
-                        try
-                        {
-                            var changesetObj = JsonConvert.DeserializeObject<JObject>(message.content)["changeset"];
-
-                            CurrentChangeset = changesetObj.ToObject<Changeset>();
-                            ShowChangesetPopup(CurrentChangeset.Changes); // <-- Call to ShowChangesetPopup is here
-                            VsixDebugLog.Instance.Log("Received applyNewDiff message.");
-                        }
-                        catch(Exception e2)
-                        {
-                            MessageBox.Show($"Error applying change: {e2.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                    }
-                    break;
-                case "setSystemPromptFromSolution":
-                    await SetSolutionSystemPrompt();
-                    break;
-                case "QuotedStringClicked":
-                    {
-                        var quotedString = message.content;
-
-                        if (File.Exists(quotedString))
-                        {
-                            _dte.ItemOperations.OpenFile(quotedString);
-                        }
-                        else
-                        {
-                            var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                            var text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-                            var index = text.IndexOf(quotedString);
-
-                            if (index != -1)
-                            {
-                                var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                                textSelection.MoveToAbsoluteOffset(index);
-                                textSelection.SelectLine();
-                            }
-                            else
-                            {
-                                foreach (Document doc in _dte.Documents)
-                                {
-                                    try
-                                    {
-                                        textDocument = doc.Object("TextDocument") as TextDocument;
-                                        text = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-                                        index = text.IndexOf(quotedString);
-                                        if (index != -1)
-                                        {
-                                            doc.Activate();
-                                            var textSelection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                                            textSelection.MoveToAbsoluteOffset(index);
-                                            textSelection.SelectLine();
-                                            break;
-                                        }
-                                    }
-                                    catch(Exception)
-                                    {
-                                        // oh well...
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-
-                case "send":
-                    {
-                        //var userPrompt = await ExecuteScriptAsync("getUserPrompt()");
-                        //await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setUserPrompt", Content = userPrompt }, simpleClient);
-
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        ShowQuickButtonOptionsWindow(message);
-
-                    }
-                    break;
-
-                case "ready":
-                    {
-                        await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRequestButtons" }, simpleClient);
-                        await AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
-                        await AddContextMenuItemAsync("Pop Window", "vsPopWindow");
-                        // look for a systemprompt.txt file in the root of the solution
-                        await ExecuteScriptAsync("window.buttonControls['Set System Prompt from Solution'].show()");
-                    }
-                    break;
-
-                case "vsInsertSelection":
-                    {
-                        var textDocument = _dte.ActiveDocument.Object("TextDocument") as TextDocument;
-                        var activeDocumentFilename = _dte.ActiveDocument.Name;
-                        var selectedText = _contentFormatter.GetCurrentSelection();
-                        var formattedAsFile = _contentFormatter.FormatContent(activeDocumentFilename, selectedText);
-
-                        var jsonSelectedText = JsonConvert.SerializeObject(formattedAsFile);
-                        await ExecuteScriptAsync($"window.insertTextAtCaret({jsonSelectedText})");
-                    }
-                    break;
-
-                case "vsPopWindow":
-                    {
-                        var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
-                        var files = _shortcutManager.GetAllFilesInSolution();
-
-                        files = files.Where(x => !x.Contains("\\.nuget\\")).ToList();
-
-                        await simpleClient.SendLineAsync(JsonConvert.SerializeObject(new VsixMessage { MessageType = "vsShowFileSelector", Content = JsonConvert.SerializeObject(files) }));
-                    }
-                    break;
-
-                case "vsQuickButton":
-                    {
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                        var buttonLabel = message.content;
-                        var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
-
-                        var prompt = "";
-
-                        if (!string.IsNullOrEmpty(matchingButton?.Prompt))
-                        {
-                            await ExecuteScriptAsync($"setUserPrompt({JsonConvert.SerializeObject(matchingButton?.Prompt)})");
-                        }
-                        
-                        //ShowQuickButtonOptionsWindow(message);
-                        VsixDebugLog.Instance.Log($"Show quick button options window: {message}");
-                    }
-                    break;
-
-                case "vsSelectFilesWithMembers":
-                    {
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        ShowFileWithMembersSelectionWindow();
-                    }
-                    break;
-            }
-
-            if(message.type != "send")
-                await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsixui", Content = e.WebMessageAsJson }, simpleClient);
+            await _messageProcessor.ProcessMessageAsync(message);
         }
 
         private bool _changesetPaneInitted = false;

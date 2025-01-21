@@ -91,9 +91,11 @@
     <Compile Include="Managers\ShortcutManager.cs" />
     <Compile Include="Communications\SimpleClient.cs" />
     <Compile Include="UI\TreeViewWindow.cs" />
+    <Compile Include="UI\VsixWebViewManager.cs" />
     <Compile Include="VsixChat.cs" />
     <Compile Include="Communications\VsixMessageHandler.cs" />
     <Compile Include="PaneDebug\VsixDebugLog.cs" />
+    <Compile Include="VsixMessageProcessor.cs" />
     <Compile Include="VSIXTestPackage.cs" />
     <Compile Include="Models\VsixUiMessage.cs" />
   </ItemGroup>
