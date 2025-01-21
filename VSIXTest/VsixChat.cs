@@ -37,7 +37,10 @@ namespace VSIXTest
         private readonly SimpleClient simpleClient = new SimpleClient();
         private readonly ContentFormatter _contentFormatter;
         private readonly VsixWebViewManager _webViewManager;
+        private readonly ChangesetManager _changesetManager;
+        private readonly QuickButtonManager _quickButtonManager;
 
+        private bool vsixInitialised = false;
         private static VsixChat _instance;
         public static VsixChat Instance
         {
@@ -60,6 +63,7 @@ namespace VSIXTest
         private readonly AutocompleteManager _autocompleteManager;
         private readonly FileGroupManager _fileGroupManager;
         private readonly VsixMessageProcessor _messageProcessor;
+        private readonly ButtonManager _buttonManager = new ButtonManager();
 
         private Changeset CurrentChangeset { get; set; }
 
@@ -112,8 +116,22 @@ namespace VSIXTest
                 simpleClient,
                 _contentFormatter,
                 _shortcutManager,
-                this);
-                    }
+                this,
+                _changesetManager);
+            _changesetManager = new ChangesetManager(_dte, MessageHandler, simpleClient);
+
+            _quickButtonManager = new QuickButtonManager(
+                _dte,
+                MessageHandler,
+                simpleClient,
+                _contentFormatter,
+                _fileGroupManager,
+                _shortcutManager,
+                ExecuteScriptAsync,
+                VsixPackage);  // Pass the VsixPackage
+        }
+
+        
 
         public async void RunTestCompletion()
         {
@@ -146,14 +164,9 @@ namespace VSIXTest
             await MessageHandler.HandleReceivedMessageAsync(vsixMessage);
         }
 
-        private readonly ButtonManager _buttonManager = new ButtonManager();
+        
 
-        private async void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
-        {
-            await CoreWebView2.ExecuteScriptAsync(_buttonManager.GenerateButtonScript());
-        }
-
-        private bool vsixInitialised = false;
+        
 
         private async void VsixChat_Loaded(object sender, RoutedEventArgs e)
         {
@@ -161,7 +174,7 @@ namespace VSIXTest
             {
                 await simpleClient.StartClientAsync();
                 await InitialiseAsync(); 
-                vsixInitialised = true;
+                vsixInitialised = true; 
             }
         }
 
@@ -171,50 +184,6 @@ namespace VSIXTest
         }
 
 
-        private void CoreWebView2_WebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)
-        {
-            ReturnCoreWebView2Request(e, CoreWebView2);
-        }
-
-        private static void ReturnCoreWebView2Request(CoreWebView2WebResourceRequestedEventArgs e, CoreWebView2 coreWebView2)
-        {
-            var rd = AssemblyHelper.GetResourceDetails();
-            var matching = rd.Where(x => e.Request.Uri == x.Uri).ToList();
-
-
-            AssemblyHelper.GetResourceDetails().Where(x => e.Request.Uri.Equals(x.Uri, StringComparison.OrdinalIgnoreCase)).ToList().ForEach
-                // (x => ReturnResourceToWebView(e, x.ResourceName, x.MimeType));
-                (x =>
-                {
-                    var assembly = Assembly.GetExecutingAssembly();
-
-                    // if resourcename doesn't exist in that assembly...
-                    if (!assembly.GetManifestResourceNames().Contains(x.ResourceName))
-                    {
-                        assembly = Assembly.Load("SharedClasses");
-                    }
-
-
-
-                    using (Stream stream = assembly.GetManifestResourceStream(x.ResourceName))
-                    {
-                        if (stream != null)
-                        {
-                            using (var reader = new StreamReader(stream))
-                            {
-                                string content = reader.ReadToEnd();
-                                var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-                                var response = coreWebView2.Environment.CreateWebResourceResponse(memoryStream, 200, "OK", $"Content-Type: {x.MimeType}");
-                                e.Response = response;
-                                e.Response.Headers.AppendHeader("Access-Control-Allow-Origin", "*");
-                                return;
-                            }
-                        }
-                        throw new Exception("Probably forgot to embed the resource :(");
-                    }
-                }
-                );
-        }
 
         public async Task AddContextMenuItemAsync(string label, string messageType)
         {
@@ -228,320 +197,12 @@ namespace VSIXTest
             await _messageProcessor.ProcessMessageAsync(message);
         }
 
+        internal void ShowQuickButtonOptionsWindow(VsixUiMessage message)
+        {
+            _quickButtonManager.ShowQuickButtonOptionsWindow(message);
+        }
+
         private bool _changesetPaneInitted = false;
-
- 
-        private async void ShowChangesetPopup(List<Change> changes)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            try
-            {
-                var window = await VSIXTestPackage.Instance.FindToolWindowAsync(
-                    typeof(ChangesetReviewPane), 
-                    0, 
-                    true, 
-                    VSIXTestPackage.Instance.DisposalToken) as ChangesetReviewPane;
-
-                if (window?.Frame == null)
-                    throw new NotSupportedException("Cannot create changeset review window");
-
-                if (!_changesetPaneInitted)
-                {
-                    _changesetPaneInitted = true;
-                    window.ChangeApplied += ChangesetReviewWindow_ChangeApplied;
-                    window.RunMerge += ChangesetReviewWindow_RunMerge;
-                }
-                window.Initialize(changes);
-
-                IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error showing changeset window: {ex}");
-            }
-        }
-
-        private async void ChangesetReviewWindow_RunMerge(object sender, RunMergeEventArgs e)
-        {
-            try
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                if (e.Changes != null)
-                {
-                    await RunMergeAsync(e.Changes);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error applying change 2: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async void ChangesetReviewWindow_ChangeApplied(object sender, ChangeAppliedEventArgs e)
-        {
-            try
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                if (e.Change != null)
-                {
-                    await ApplyChangeAsync(e.Change);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error applying change 2: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async Task RunMergeAsync(List<Change> changes)
-        {
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsRunMerge", Content = JsonConvert.SerializeObject(changes) }, simpleClient);
-        }
-
-        private async Task ApplyChangeAsync(Change change)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            var changeType = change.ChangeType;
-            var path = change.Path;
-             
-            try
-            {
-                switch (changeType)
-                {
-                    case "createnewFile":
-                        {
-                            string deserNewContent = change.NewContent;
-
-                            try
-                            {
-                                deserNewContent = JsonConvert.DeserializeObject<string>($"\"{(change.NewContent ?? "")}\"");
-                            }
-                            catch (Exception e)
-                            {
-                                // Handle exception if needed
-                            }
-
-                            var directoryPath = Path.GetDirectoryName(path);
-
-                            if (!Directory.Exists(directoryPath))
-                            {
-                                Directory.CreateDirectory(directoryPath);
-                            }
-
-                            // Create empty file first
-                            File.WriteAllText(path, string.Empty);
-
-                            // Open the file in VS
-                            var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
-
-                            if (window == null)
-                            {
-                                Debug.WriteLine($"Path not found: {path}");
-                                throw new Exception($"Path not found: {path}");
-                            }
-
-                            await Task.Yield(); // Give VS a chance to complete the file opening
-
-                            window.Activate();
-                            var document = window.Document;
-
-                            if (document == null)
-                            {
-                                Debug.WriteLine("Document is null");
-                                throw new Exception($"Document is null");
-                            }
-
-                            var textDocument = document.Object() as TextDocument;
-                            if (textDocument == null)
-                            {
-                                Debug.WriteLine("TextDocument is null");
-                                throw new Exception($"TextDocument is null");
-                            }
-
-                            // Get the edit point and insert the content
-                            var editPoint = textDocument.StartPoint.CreateEditPoint();
-                            editPoint.Insert(deserNewContent);
-
-                            // Optionally, move to the beginning of the document
-                            textDocument.Selection.MoveToPoint(textDocument.StartPoint);
-
-                            await Task.Yield(); // Give VS a chance to process the edit
-
-                            // If you want to save the file
-                            document.Save();
-                        }
-                        break;
-
-                    case "addToFile":
-                    case "deleteFromFile":
-                    case "modifyFile":
-                        {
-                            var lineNumber = change.LineNumber;
-                            var window = _dte.ItemOperations.OpenFile(path, EnvDTE.Constants.vsViewKindCode);
-
-                            if (window == null)
-                            {
-                                Debug.WriteLine($"Path not found: {path}");
-                                throw new Exception($"Path not found: {path}");
-                            }
-
-                            await Task.Yield(); // Give VS a chance to complete the file opening
-
-                            window.Activate();
-                            var document = window.Document;
-
-                            if (document == null)
-                            {
-                                
-                                Debug.WriteLine("Document is null");
-                                throw new Exception($"Document is null");
-                            }
-
-                            var textDocument = document.Object() as TextDocument;
-                            if (textDocument == null)
-                            {
-                                Debug.WriteLine("TextDocument is null");
-                                throw new Exception($"TextDocument is null");
-                            }
-
-                            var editPoint = textDocument.StartPoint.CreateEditPoint();
-                            var fullText = editPoint.GetText(textDocument.EndPoint);
-
-                            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change.OldContent, change.NewContent, lineNumber);
-
-                            editPoint.StartOfDocument();
-                            editPoint.Delete(textDocument.EndPoint);
-                            editPoint.Insert(outp);
-
-                            var line = textDocument.StartPoint.CreateEditPoint();
-                            line.LineDown(lineNumber - 1);
-                            textDocument.Selection.MoveToPoint(line);
-
-                            await Task.Yield(); // Give VS a chance to process the edit
-                        }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error applying change 3: {ex}");
-                MessageBox.Show($"Error applying change 4: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        private void ShowFileWithMembersSelectionWindow()
-        {
-            var solutionDetails = _shortcutManager.GetAllFilesInSolutionWithMembers();
-
-            var selectionWindow = new FileWithMembersSelectionWindow(solutionDetails);
-            selectionWindow.Show();
-        }
-
-
-        QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
-
-        public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
-        {
-            ToolWindowPane window;
-            window = VsixPackage.FindToolWindow(typeof(QuickButtonOptionsWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
-
-            QuickButtonOptionsWindow = window as QuickButtonOptionsWindow;
-            QuickButtonOptionsWindow.SetMessage(message);
-            if (!QuickButtonOptionsWindow.EventsAttached)
-            {
-                QuickButtonOptionsWindow.OptionsControl.OptionsSelected += OptionsControl_OptionsSelected;
-                QuickButtonOptionsWindow.OptionsControl.FileGroupsEditorInvoked += OptionsControl_FileGroupsEditorInvoked;
-                QuickButtonOptionsWindow.EventsAttached = true;
-            }
-
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
-        }
-
-        private void OptionsControl_FileGroupsEditorInvoked(object sender, string e)
-        {
-            // bodged for now
-            var availableFiles = _shortcutManager.GetAllFilesInSolution().Where(x => !x.Contains("\\.nuget\\")).ToList();
-            var solutionName = _dte?.Solution?.FullName;
-            _fileGroupManager.DeselectAllFileGroups();
-            var editWindow = new FileGroupEditWindow(_fileGroupManager.GetAllFileGroups(solutionName), availableFiles);
-
-            bool? result = editWindow.ShowDialog();
-
-            if (result == true)
-            {
-                var editedFileGroups = editWindow.EditedFileGroups;
-
-                _fileGroupManager.UpdateAllFileGroups(editedFileGroups, _dte?.Solution?.FullName);
-
-                // get the names of all the selected filegroups
-                var selectedFileGroups =string.Join(", ",  editedFileGroups.Where(x => x.Selected).Select(x => x.Name));
-
-                // get the txtFileGroups control from the options control
-                QuickButtonOptionsWindow.OptionsControl.txtFileGroups.Text = selectedFileGroups;
-
-            }
-        }
-
-        private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
-        {
-            var buttonLabel = e.OriginalVsixMessage.content;
-            var matchingButton = MessageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
-
-            var prompt = "";
-
-            if (string.IsNullOrEmpty(matchingButton?.Prompt))
-            {
-                prompt = JsonConvert.DeserializeObject<string>(await ExecuteScriptAsync("getUserPrompt()"));
-            }
-            else
-                prompt = matchingButton?.Prompt;
-
-            var inclusions = new List<string>();
-            var activeDocumentFilename = _dte?.ActiveDocument?.FullName;
-
-            foreach (var option in e.SelectedOptions)
-            {
-                string content = GetContentForOption(option, activeDocumentFilename);
-                if (!string.IsNullOrEmpty(content))
-                {
-                    inclusions.Add(content);
-                }
-            }
-
-            var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
-            var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
-
-            await ExecuteScriptAsync($"setUserPrompt({jsonFormattedAll})");
-
-            var systemPrompt = await ExecuteScriptAsync($"getSystemPrompt()");
-
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "setSystemPrompt", Content = systemPrompt }, simpleClient);
-
-            var tool = matchingButton?.Tool;
-
-            // Check if File Changes radio button is selected
-            if (e.ResponseType == "FileChanges")
-            {
-                tool = "DiffChange11";
-            }
-
-            await MessageHandler.SendVsixMessageAsync(new VsixMessage { MessageType = "vsQuickButtonRun", Content = formattedAll, Tool = tool }, simpleClient);
-        }
-
-        private string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)
-        {
-            return _contentFormatter.GetContentForOption(option, activeDocumentFilename);
-        }
-
 
     }
 }

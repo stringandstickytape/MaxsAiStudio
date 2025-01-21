@@ -48,6 +48,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ChangesetManager.cs" />
     <Compile Include="PaneDebug\DebugWindowControl.xaml.cs">
       <DependentUpon>DebugWindowControl.xaml</DependentUpon>
     </Compile>
@@ -72,7 +73,6 @@
     <Compile Include="UI\FileGroups\FileGroupManager.cs" />
     <Compile Include="Helpers\GitDiffHelper.cs" />
     <Compile Include="Helpers\MessageFormatHelper.cs" />
-    <Compile Include="Models\MessagePrompt.cs" />
     <Compile Include="CodeAnalysis\MethodFinder.cs" />
     <Compile Include="UI\FileGroups\FileWithMembersSelectionWindow.cs" />
     <Compile Include="UI\FileGroups\SolutionInfo.cs" />
@@ -83,6 +83,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\OptionTemplate.cs" />
     <Compile Include="Models\OptionWithParameter.cs" />
+    <Compile Include="UI\QuickButtonManager.cs" />
     <Compile Include="UI\QuickButtonOptionsControl.xaml.cs">
       <DependentUpon>QuickButtonOptionsControl.xaml</DependentUpon>
     </Compile>
