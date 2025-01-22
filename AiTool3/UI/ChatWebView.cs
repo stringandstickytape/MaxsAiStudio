@@ -227,7 +227,7 @@ namespace AiTool3.UI
                     var guid = message["guid"];
                     ChatWebViewContinueEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("continue", guid));
                     break;
-                case "dropdownChanged":
+                case "dropdownChanged": 
                     ChatWebViewDropdownChangedEvent?.Invoke(this, new ChatWebViewDropdownChangedEventArgs() { Dropdown = message["id"], ModelString = content });
                     break;
                 case "joinWithPrevious":

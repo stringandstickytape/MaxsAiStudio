@@ -95,7 +95,7 @@ namespace VSIXTest
             simpleClient.LineReceived += SimpleClient_LineReceived;
             WebMessageReceived += WebView_WebMessageReceived;
 
-            _messageProcessor = new VsixMessageProcessor(
+            _messageProcessor = new VsixMessageProcessor( 
                 _dte,
                 MessageHandler,
                 simpleClient,

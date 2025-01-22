@@ -197,7 +197,6 @@ namespace AiTool3
             chatWebView.Size = new Size(1023, 666);
             chatWebView.TabIndex = 0;
             chatWebView.ZoomFactor = 1D;
-            chatWebView.DragDrop += chatWebView_DragDrop;
             // 
             // menuBar
             // 
