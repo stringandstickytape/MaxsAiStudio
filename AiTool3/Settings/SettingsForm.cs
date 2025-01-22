@@ -380,7 +380,7 @@ namespace AiTool3.Settings
                 if (model != null)
                 {
                     var aiServiceNames = GetAiServiceNames();
-                    using (var editForm = new ModelEditForm(model, aiServiceNames))
+                    using (var editForm = new ModelEditForm(model, aiServiceNames, NewSettings.ServiceProviders))
                     {
                         if (editForm.ShowDialog() == DialogResult.OK)
                         {
@@ -418,7 +418,7 @@ namespace AiTool3.Settings
                 };
 
                 // Open the ModelEditForm for the user to fill in details
-                using (var editForm = new ModelEditForm(newModel, aiServiceNames))
+                using (var editForm = new ModelEditForm(newModel, aiServiceNames, NewSettings.ServiceProviders))
                 {
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
@@ -482,7 +482,7 @@ namespace AiTool3.Settings
             };
 
             // Open the ModelEditForm for the user to fill in details
-            using (var editForm = new ModelEditForm(newModel, aiServiceNames))
+            using (var editForm = new ModelEditForm(newModel, aiServiceNames, NewSettings.ServiceProviders))
             {
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {

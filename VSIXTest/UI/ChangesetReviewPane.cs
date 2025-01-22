@@ -302,7 +302,8 @@ public class ChangesetReviewPane : ToolWindowPane
             {
                 try
                 {
-                    _dte.ItemOperations.OpenFile(change.Path);
+
+                    _dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
                     var selection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
                     selection.GotoLine(change.LineNumber, true);
                 }

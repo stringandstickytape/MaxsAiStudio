@@ -17,207 +17,227 @@ namespace AiTool3.Settings
 
         private void InitializeComponent()
         {
-            this.lblFriendlyName = new System.Windows.Forms.Label();
-            this.txtFriendlyName = new System.Windows.Forms.TextBox();
-            this.txtModelName = new System.Windows.Forms.TextBox();
-            this.lblModelName = new System.Windows.Forms.Label();
-            this.lblAiService = new System.Windows.Forms.Label();
-            this.cboAiService = new System.Windows.Forms.ComboBox();
-            this.txtModelUrl = new System.Windows.Forms.TextBox();
-            this.lblModelUrl = new System.Windows.Forms.Label();
-            this.txtModelKey = new System.Windows.Forms.TextBox();
-            this.lblModelKey = new System.Windows.Forms.Label();
-            this.txtInputPrice = new System.Windows.Forms.TextBox();
-            this.lblInputPrice = new System.Windows.Forms.Label();
-            this.txtOutputPrice = new System.Windows.Forms.TextBox();
-            this.lblOutputPrice = new System.Windows.Forms.Label();
-            this.txtColor = new System.Windows.Forms.TextBox();
-            this.lblColor = new System.Windows.Forms.Label();
-            this.btnOK = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            lblFriendlyName = new Label();
+            txtFriendlyName = new TextBox();
+            txtModelName = new TextBox();
+            lblModelName = new Label();
+            lblAiService = new Label();
+            cboAiService = new ComboBox();
+            txtModelUrl = new TextBox();
+            lblModelUrl = new Label();
+            txtModelKey = new TextBox();
+            lblModelKey = new Label();
+            txtInputPrice = new TextBox();
+            lblInputPrice = new Label();
+            txtOutputPrice = new TextBox();
+            lblOutputPrice = new Label();
+            txtColor = new TextBox();
+            lblColor = new Label();
+            btnOK = new Button();
+            btnCancel = new Button();
+            lblServiceProvider = new Label();
+            cboServiceProvider = new ComboBox();
+            SuspendLayout();
             // 
             // lblFriendlyName
             // 
-            this.lblFriendlyName.AutoSize = true;
-            this.lblFriendlyName.Location = new System.Drawing.Point(12, 9);
-            this.lblFriendlyName.Name = "lblFriendlyName";
-            this.lblFriendlyName.Size = new System.Drawing.Size(86, 15);
-            this.lblFriendlyName.TabIndex = 0;
-            this.lblFriendlyName.Text = "Friendly Name:";
+            lblFriendlyName.AutoSize = true;
+            lblFriendlyName.Location = new Point(12, 9);
+            lblFriendlyName.Name = "lblFriendlyName";
+            lblFriendlyName.Size = new Size(87, 15);
+            lblFriendlyName.TabIndex = 0;
+            lblFriendlyName.Text = "Friendly Name:";
             // 
             // txtFriendlyName
             // 
-            this.txtFriendlyName.Location = new System.Drawing.Point(150, 6);
-            this.txtFriendlyName.Name = "txtFriendlyName";
-            this.txtFriendlyName.Size = new System.Drawing.Size(200, 23);
-            this.txtFriendlyName.TabIndex = 1;
+            txtFriendlyName.Location = new Point(150, 6);
+            txtFriendlyName.Name = "txtFriendlyName";
+            txtFriendlyName.Size = new Size(200, 23);
+            txtFriendlyName.TabIndex = 1;
             // 
             // txtModelName
             // 
-            this.txtModelName.Location = new System.Drawing.Point(150, 35);
-            this.txtModelName.Name = "txtModelName";
-            this.txtModelName.Size = new System.Drawing.Size(200, 23);
-            this.txtModelName.TabIndex = 3;
+            txtModelName.Location = new Point(150, 35);
+            txtModelName.Name = "txtModelName";
+            txtModelName.Size = new Size(200, 23);
+            txtModelName.TabIndex = 3;
             // 
             // lblModelName
             // 
-            this.lblModelName.AutoSize = true;
-            this.lblModelName.Location = new System.Drawing.Point(12, 38);
-            this.lblModelName.Name = "lblModelName";
-            this.lblModelName.Size = new System.Drawing.Size(78, 15);
-            this.lblModelName.TabIndex = 2;
-            this.lblModelName.Text = "Model Name:";
+            lblModelName.AutoSize = true;
+            lblModelName.Location = new Point(12, 38);
+            lblModelName.Name = "lblModelName";
+            lblModelName.Size = new Size(79, 15);
+            lblModelName.TabIndex = 2;
+            lblModelName.Text = "Model Name:";
             // 
             // lblAiService
             // 
-            this.lblAiService.AutoSize = true;
-            this.lblAiService.Location = new System.Drawing.Point(12, 67);
-            this.lblAiService.Name = "lblAiService";
-            this.lblAiService.Size = new System.Drawing.Size(62, 15);
-            this.lblAiService.TabIndex = 4;
-            this.lblAiService.Text = "AI Service:";
+            lblAiService.AutoSize = true;
+            lblAiService.Location = new Point(12, 67);
+            lblAiService.Name = "lblAiService";
+            lblAiService.Size = new Size(61, 15);
+            lblAiService.TabIndex = 4;
+            lblAiService.Text = "AI Service:";
             // 
             // cboAiService
             // 
-            this.cboAiService.FormattingEnabled = true;
-            this.cboAiService.Location = new System.Drawing.Point(150, 64);
-            this.cboAiService.Name = "cboAiService";
-            this.cboAiService.Size = new System.Drawing.Size(200, 23);
-            this.cboAiService.TabIndex = 5;
+            cboAiService.FormattingEnabled = true;
+            cboAiService.Location = new Point(150, 64);
+            cboAiService.Name = "cboAiService";
+            cboAiService.Size = new Size(200, 23);
+            cboAiService.TabIndex = 5;
             // 
             // txtModelUrl
             // 
-            this.txtModelUrl.Location = new System.Drawing.Point(150, 93);
-            this.txtModelUrl.Name = "txtModelUrl";
-            this.txtModelUrl.Size = new System.Drawing.Size(200, 23);
-            this.txtModelUrl.TabIndex = 7;
+            txtModelUrl.Location = new Point(150, 93);
+            txtModelUrl.Name = "txtModelUrl";
+            txtModelUrl.Size = new Size(200, 23);
+            txtModelUrl.TabIndex = 7;
             // 
             // lblModelUrl
             // 
-            this.lblModelUrl.AutoSize = true;
-            this.lblModelUrl.Location = new System.Drawing.Point(12, 96);
-            this.lblModelUrl.Name = "lblModelUrl";
-            this.lblModelUrl.Size = new System.Drawing.Size(64, 15);
-            this.lblModelUrl.TabIndex = 6;
-            this.lblModelUrl.Text = "Model Url:";
+            lblModelUrl.AutoSize = true;
+            lblModelUrl.Location = new Point(12, 96);
+            lblModelUrl.Name = "lblModelUrl";
+            lblModelUrl.Size = new Size(62, 15);
+            lblModelUrl.TabIndex = 6;
+            lblModelUrl.Text = "Model Url:";
             // 
             // txtModelKey
             // 
-            this.txtModelKey.Location = new System.Drawing.Point(150, 122);
-            this.txtModelKey.Name = "txtModelKey";
-            this.txtModelKey.Size = new System.Drawing.Size(200, 23);
-            this.txtModelKey.TabIndex = 9;
+            txtModelKey.Location = new Point(150, 122);
+            txtModelKey.Name = "txtModelKey";
+            txtModelKey.Size = new Size(200, 23);
+            txtModelKey.TabIndex = 9;
             // 
             // lblModelKey
             // 
-            this.lblModelKey.AutoSize = true;
-            this.lblModelKey.Location = new System.Drawing.Point(12, 125);
-            this.lblModelKey.Name = "lblModelKey";
-            this.lblModelKey.Size = new System.Drawing.Size(64, 15);
-            this.lblModelKey.TabIndex = 8;
-            this.lblModelKey.Text = "Model Key:";
+            lblModelKey.AutoSize = true;
+            lblModelKey.Location = new Point(12, 125);
+            lblModelKey.Name = "lblModelKey";
+            lblModelKey.Size = new Size(66, 15);
+            lblModelKey.TabIndex = 8;
+            lblModelKey.Text = "Model Key:";
             // 
             // txtInputPrice
             // 
-            this.txtInputPrice.Location = new System.Drawing.Point(150, 151);
-            this.txtInputPrice.Name = "txtInputPrice";
-            this.txtInputPrice.Size = new System.Drawing.Size(200, 23);
-            this.txtInputPrice.TabIndex = 11;
+            txtInputPrice.Location = new Point(150, 151);
+            txtInputPrice.Name = "txtInputPrice";
+            txtInputPrice.Size = new Size(200, 23);
+            txtInputPrice.TabIndex = 11;
             // 
             // lblInputPrice
             // 
-            this.lblInputPrice.AutoSize = true;
-            this.lblInputPrice.Location = new System.Drawing.Point(12, 154);
-            this.lblInputPrice.Name = "lblInputPrice";
-            this.lblInputPrice.Size = new System.Drawing.Size(111, 15);
-            this.lblInputPrice.TabIndex = 10;
-            this.lblInputPrice.Text = "Input 1MToken Price:";
+            lblInputPrice.AutoSize = true;
+            lblInputPrice.Location = new Point(12, 154);
+            lblInputPrice.Name = "lblInputPrice";
+            lblInputPrice.Size = new Size(119, 15);
+            lblInputPrice.TabIndex = 10;
+            lblInputPrice.Text = "Input 1MToken Price:";
             // 
             // txtOutputPrice
             // 
-            this.txtOutputPrice.Location = new System.Drawing.Point(150, 180);
-            this.txtOutputPrice.Name = "txtOutputPrice";
-            this.txtOutputPrice.Size = new System.Drawing.Size(200, 23);
-            this.txtOutputPrice.TabIndex = 13;
+            txtOutputPrice.Location = new Point(150, 180);
+            txtOutputPrice.Name = "txtOutputPrice";
+            txtOutputPrice.Size = new Size(200, 23);
+            txtOutputPrice.TabIndex = 13;
             // 
             // lblOutputPrice
             // 
-            this.lblOutputPrice.AutoSize = true;
-            this.lblOutputPrice.Location = new System.Drawing.Point(12, 183);
-            this.lblOutputPrice.Name = "lblOutputPrice";
-            this.lblOutputPrice.Size = new System.Drawing.Size(120, 15);
-            this.lblOutputPrice.TabIndex = 12;
-            this.lblOutputPrice.Text = "Output 1MToken Price:";
+            lblOutputPrice.AutoSize = true;
+            lblOutputPrice.Location = new Point(12, 183);
+            lblOutputPrice.Name = "lblOutputPrice";
+            lblOutputPrice.Size = new Size(129, 15);
+            lblOutputPrice.TabIndex = 12;
+            lblOutputPrice.Text = "Output 1MToken Price:";
             // 
             // txtColor
             // 
-            this.txtColor.Location = new System.Drawing.Point(150, 209);
-            this.txtColor.Name = "txtColor";
-            this.txtColor.Size = new System.Drawing.Size(200, 23);
-            this.txtColor.TabIndex = 15;
+            txtColor.Location = new Point(150, 209);
+            txtColor.Name = "txtColor";
+            txtColor.Size = new Size(200, 23);
+            txtColor.TabIndex = 15;
             // 
             // lblColor
             // 
-            this.lblColor.AutoSize = true;
-            this.lblColor.Location = new System.Drawing.Point(12, 212);
-            this.lblColor.Name = "lblColor";
-            this.lblColor.Size = new System.Drawing.Size(39, 15);
-            this.lblColor.TabIndex = 14;
-            this.lblColor.Text = "Color:";
+            lblColor.AutoSize = true;
+            lblColor.Location = new Point(12, 212);
+            lblColor.Name = "lblColor";
+            lblColor.Size = new Size(39, 15);
+            lblColor.TabIndex = 14;
+            lblColor.Text = "Color:";
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(194, 238);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
-            this.btnOK.TabIndex = 16;
-            this.btnOK.Text = "OK";
-            this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            btnOK.Location = new Point(194, 271);
+            btnOK.Name = "btnOK";
+            btnOK.Size = new Size(75, 23);
+            btnOK.TabIndex = 16;
+            btnOK.Text = "OK";
+            btnOK.UseVisualStyleBackColor = true;
+            btnOK.Click += btnOK_Click;
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(275, 238);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 17;
-            this.btnCancel.Text = "Cancel";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            btnCancel.Location = new Point(275, 271);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(75, 23);
+            btnCancel.TabIndex = 17;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
+            // 
+            // lblServiceProvider
+            // 
+            lblServiceProvider.AutoSize = true;
+            lblServiceProvider.Location = new Point(12, 241);
+            lblServiceProvider.Name = "lblServiceProvider";
+            lblServiceProvider.Size = new Size(94, 15);
+            lblServiceProvider.TabIndex = 18;
+            lblServiceProvider.Text = "Service Provider:";
+            // 
+            // cboServiceProvider
+            // 
+            cboServiceProvider.FormattingEnabled = true;
+            cboServiceProvider.Location = new Point(150, 238);
+            cboServiceProvider.Name = "cboServiceProvider";
+            cboServiceProvider.Size = new Size(200, 23);
+            cboServiceProvider.TabIndex = 19;
             // 
             // ModelEditForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(364, 273);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.txtColor);
-            this.Controls.Add(this.lblColor);
-            this.Controls.Add(this.txtOutputPrice);
-            this.Controls.Add(this.lblOutputPrice);
-            this.Controls.Add(this.txtInputPrice);
-            this.Controls.Add(this.lblInputPrice);
-            this.Controls.Add(this.txtModelKey);
-            this.Controls.Add(this.lblModelKey);
-            this.Controls.Add(this.txtModelUrl);
-            this.Controls.Add(this.lblModelUrl);
-            this.Controls.Add(this.cboAiService);
-            this.Controls.Add(this.lblAiService);
-            this.Controls.Add(this.txtModelName);
-            this.Controls.Add(this.lblModelName);
-            this.Controls.Add(this.txtFriendlyName);
-            this.Controls.Add(this.lblFriendlyName);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "ModelEditForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Edit Model";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(364, 303);
+            Controls.Add(cboServiceProvider);
+            Controls.Add(lblServiceProvider);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOK);
+            Controls.Add(txtColor);
+            Controls.Add(lblColor);
+            Controls.Add(txtOutputPrice);
+            Controls.Add(lblOutputPrice);
+            Controls.Add(txtInputPrice);
+            Controls.Add(lblInputPrice);
+            Controls.Add(txtModelKey);
+            Controls.Add(lblModelKey);
+            Controls.Add(txtModelUrl);
+            Controls.Add(lblModelUrl);
+            Controls.Add(cboAiService);
+            Controls.Add(lblAiService);
+            Controls.Add(txtModelName);
+            Controls.Add(lblModelName);
+            Controls.Add(txtFriendlyName);
+            Controls.Add(lblFriendlyName);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "ModelEditForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Edit Model";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -240,5 +260,7 @@ namespace AiTool3.Settings
         private System.Windows.Forms.Label lblColor;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Label lblServiceProvider;
+        private System.Windows.Forms.ComboBox cboServiceProvider;
     }
 }

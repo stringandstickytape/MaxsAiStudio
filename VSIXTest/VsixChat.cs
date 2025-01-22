@@ -95,6 +95,8 @@ namespace VSIXTest
             simpleClient.LineReceived += SimpleClient_LineReceived;
             WebMessageReceived += WebView_WebMessageReceived;
 
+            _changesetManager = new ChangesetManager(_dte, MessageHandler, simpleClient);
+
             _messageProcessor = new VsixMessageProcessor( 
                 _dte,
                 MessageHandler,
@@ -103,7 +105,7 @@ namespace VSIXTest
                 _shortcutManager,
                 this,
                 _changesetManager);
-            _changesetManager = new ChangesetManager(_dte, MessageHandler, simpleClient);
+            
 
             _quickButtonManager = new QuickButtonManager(
                 _dte,

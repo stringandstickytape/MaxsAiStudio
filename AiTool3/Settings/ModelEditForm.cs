@@ -9,7 +9,7 @@ namespace AiTool3.Settings
     {
         public Model Model { get; private set; }
 
-        public ModelEditForm(Model model, List<string> aiServiceNames)
+        public ModelEditForm(Model model, List<string> aiServiceNames, List<ServiceProvider> serviceProviders)
         {
             InitializeComponent();
             this.Model = model;
@@ -17,6 +17,11 @@ namespace AiTool3.Settings
             // Initialize ComboBox for AI Services
             cboAiService.DataSource = aiServiceNames;
             cboAiService.SelectedItem = model.ServiceName;
+
+            // Initialize ComboBox for Service Providers
+            cboServiceProvider.DataSource = serviceProviders;
+            cboServiceProvider.DisplayMember = "FriendlyName";
+            cboServiceProvider.SelectedItem = model.Provider;
 
             // Initialize other fields
             txtFriendlyName.Text = model.FriendlyName;
@@ -34,6 +39,7 @@ namespace AiTool3.Settings
             Model.FriendlyName = txtFriendlyName.Text;
             Model.ModelName = txtModelName.Text;
             Model.ServiceName = cboAiService.SelectedItem?.ToString() ?? "";
+            Model.Provider = (ServiceProvider)cboServiceProvider.SelectedItem;
             Model.Url = txtModelUrl.Text;
             Model.Key = txtModelKey.Text;
             if (decimal.TryParse(txtInputPrice.Text, out decimal inputPrice))
