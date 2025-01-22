@@ -253,7 +253,7 @@ namespace AiTool3.Settings
             }
         }
 
-        private List<string> GetAiServiceNames()
+        public static List<string> GetAiServiceNames()
         {
             return Assembly.GetExecutingAssembly()
                 .GetTypes()

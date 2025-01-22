@@ -5,7 +5,7 @@ namespace AiTool3.DataModels
     public class Model
     {
         public string ModelName { get; set; }
-
+         
         public ServiceProvider Provider { get; set; }
         public string ServiceName { get; set; }
         public string Key { get; set; }
