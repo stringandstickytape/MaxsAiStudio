@@ -1,4 +1,4 @@
-﻿using AiTool3.Providers;
+﻿using AiTool3.AiServices;
 
 namespace AiTool3.DataModels
 {

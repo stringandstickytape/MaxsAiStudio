@@ -1,5 +1,5 @@
 ﻿using AiTool3.DataModels;
-using AiTool3.Providers;
+using AiTool3.AiServices;
 using AiTool3.Settings;
 using AiTool3.UI;
 using SharedClasses.Models;

@@ -126,6 +126,10 @@ DONE: Add "Add selection" and "Add selection HTML" to Chrome extension.
 DONE: Add "all open files" to the vsix file attachment system.
 PART-DONE: Refactor so that "return code changes" is selected from the options box
 
+Remove the scratchpad, it's annoying and useless
+
+Refactor models to pull out service providers
+
 Review all this old rubbish:
 
 Default system prompt should be editable, not just empty.

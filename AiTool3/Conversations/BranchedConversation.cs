@@ -1,5 +1,5 @@
 ﻿using AiTool3.DataModels;
-using AiTool3.Providers;
+using AiTool3.AiServices;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using static AiTool3.AutoSuggestForm;

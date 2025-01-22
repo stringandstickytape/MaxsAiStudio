@@ -1,6 +1,6 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
-using AiTool3.Providers;
+using AiTool3.AiServices;
 using Newtonsoft.Json;
 
 namespace AiTool3.Helpers
