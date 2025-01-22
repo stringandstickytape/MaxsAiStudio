@@ -180,10 +180,9 @@ namespace AiTool3
 
             MenuHelper.CreateMenuItem("Quit", ref fileMenu).Click += (s, e) => Application.Exit();
 
-            MenuHelper.CreateMenuItem("Settings", ref editMenu).Click += async (s, e) =>
-            {
-                CurrentSettings = await SettingsSet.OpenSettingsForm(chatWebView, CurrentSettings);
-            };
+            MenuHelper.CreateMenuItem("Settings", ref editMenu).Click += async (s, e) => CurrentSettings = await SettingsSet.OpenSettingsForm(chatWebView, CurrentSettings);
+
+            MenuHelper.CreateMenuItem("Test SP", ref editMenu).Click += async (s, e) => new ServiceProviderForm(new List<ServiceProvider> { new ServiceProvider { FriendlyName = "1", Url = "2"} }).ShowDialog();
 
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedResource("AiTool3.UI.Licenses.txt")).ShowDialog();
 

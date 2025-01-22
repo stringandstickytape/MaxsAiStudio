@@ -3,6 +3,7 @@ using AiTool3.AiServices;
 using System.Data;
 using System.Reflection;
 using System.Windows.Forms;
+using AiTool3.UI.Forms;
 
 namespace AiTool3.Settings
 {
@@ -258,7 +259,7 @@ namespace AiTool3.Settings
                 .GetTypes()
                 .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(AiServiceBase)))
                 .Select(t => t.Name)
-                .OrderBy(x=>x)
+                .OrderBy(x => x)
                 .ToList();
         }
 
@@ -535,6 +536,17 @@ namespace AiTool3.Settings
         {
             DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void btnEditServiceProviders_Click(object sender, EventArgs e)
+        {
+            var serviceProviderForm = new ServiceProviderForm(NewSettings.ServiceProviders);
+            var x =serviceProviderForm.ShowDialog();
+
+            if(x == DialogResult.OK)
+            {
+                NewSettings.ServiceProviders = serviceProviderForm.ServiceProviders;
+            }
         }
     }
 

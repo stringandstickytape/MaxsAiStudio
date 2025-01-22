@@ -14,6 +14,7 @@ namespace AiTool3
     {
         private string selectedSummaryModel = "";
 
+        public List<ServiceProvider> ServiceProviders { get; set; } = new List<ServiceProvider>();
         public List<Model> ModelList { get; set; } = new List<Model>();
 
         [MyDisplayNameAttr("Narrate responses using Windows TTS")]
@@ -243,6 +244,8 @@ new Model { Url = "https://mock.com", ServiceName = typeof(MockAiService).Name, 
             System.IO.File.WriteAllText("Settings\\settings.json", json);
 
         }
+
+
 
         public static SettingsSet? Load()
         {
