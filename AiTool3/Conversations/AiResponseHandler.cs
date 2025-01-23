@@ -219,19 +219,35 @@ namespace AiTool3.Conversations
 
             await _chatWebView.AddMessage(completionInput);
             await _chatWebView.AddMessage(completionResponse);
-            await WebNdcDrawNetworkDiagram();
+            await WebNdcDrawNetworkDiagram(currentSettings);
             _webViewManager!.CentreOnNode(completionResponse.Guid);
         }
 
-        private async Task WebNdcDrawNetworkDiagram()
+        private async Task WebNdcDrawNetworkDiagram(SettingsSet currentSettings)
         {
             if (_webViewManager == null || _webViewManager.webView.CoreWebView2 == null) return;
 
             await _webViewManager.Clear();
 
-            var nodes = _conversationManager.Conversation!.Messages
-                .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new D3Node { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine() }).ToList();
+            var nodes = new List<D3Node>();
+            foreach (var message in _conversationManager.Conversation!.Messages)
+            {
+                var model = WebViewManager.GetModelForModelGuid(currentSettings.ModelList, message.ModelGuid);
+
+                var colorHex = model == null ? "#DDDDDD" : $"#{model.Color.R:X2}{model.Color.G:X2}{model.Color.B:X2}";
+
+                if (message.Role != CompletionRole.Root)
+                {
+                    var node = new D3Node
+                    {
+                        id = message.Guid!,
+                        label = message.Content!,
+                        role = message.Role.ToString(),
+                        colour = colorHex
+                    };
+                    nodes.Add(node);
+                }
+            }
 
             var links2 = _conversationManager.Conversation.Messages
                 .Where(x => x.Parent != null)

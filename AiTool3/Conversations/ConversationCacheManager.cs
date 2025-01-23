@@ -70,8 +70,6 @@ namespace AiTool3.Conversations
     public class CachedConversation
     {
         public string ConvGuid { get; set; }
-        public string Content { get; set; }
-        public string Engine { get; set; }
         public string Summary { get; set; }
         public string FileName { get; set; }
         public DateTime LastModified { get; set; }

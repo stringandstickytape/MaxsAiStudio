@@ -146,19 +146,46 @@ namespace AiTool3.UI
 
         internal void Enable() => webView.Enabled = true;
 
-        internal async Task<bool> DrawNetworkDiagram(List<CompletionMessage> messages)
+        internal async Task<bool> DrawNetworkDiagram(List<CompletionMessage> messages, List<Model> modelList)
         {
             if (webView.CoreWebView2 == null)
                 await webView.EnsureCoreWebView2Async(null);
             var a = await Clear();
 
-            var nodes = messages
-                .Where(x => x.Role != CompletionRole.Root)
-                .Select(m => new D3Node { id = m.Guid!, label = m.Content!, role = m.Role.ToString(), colour = m.GetColorHexForEngine(), 
-                tooltip = m.Role == CompletionRole.Assistant ? 
-                $"{m.Engine}\n{m.TimeTaken.TotalSeconds.ToString("F2")} seconds{(m.OutputTokens > 0 ? $"\n@ {(m.OutputTokens * 1000 / m.TimeTaken.TotalMilliseconds).ToString("F2")} t/s" : "")}"
-                : ""
-                }).ToList();
+            List<D3Node> nodes = new List<D3Node>();
+
+            foreach (var message in messages)
+            {
+                if (message.Role != CompletionRole.Root)
+                {
+                    var model = GetModelForModelGuid(modelList, message.ModelGuid);
+                    string tooltip = "";
+                    if (message.Role == CompletionRole.Assistant)
+                    {
+                        tooltip = $"{model.FriendlyName}\n{message.TimeTaken.TotalSeconds.ToString("F2")} seconds";
+
+                        if (message.OutputTokens > 0)
+                        {
+                            double tokensPerSecond = message.OutputTokens * 1000 / message.TimeTaken.TotalMilliseconds;
+                            tooltip += $"\n@ {tokensPerSecond.ToString("F2")} t/s";
+                        }
+                    }
+
+                    
+                    var colorHex = $"#{model.Color.R:X2}{model.Color.G:X2}{model.Color.B:X2}";
+
+                    D3Node node = new D3Node
+                    {
+                        id = message.Guid!,
+                        label = message.Content!,
+                        role = message.Role.ToString(),
+                        colour = colorHex,
+                        tooltip = tooltip
+                    };
+
+                    nodes.Add(node);
+                }
+            }
 
             var links2 = messages
                 .Where(x => x.Parent != null)
@@ -167,6 +194,11 @@ namespace AiTool3.UI
             await EvaluateJavascriptAsync($"addNodes({JsonConvert.SerializeObject(nodes)});");
             await EvaluateJavascriptAsync($"addLinks({JsonConvert.SerializeObject(links2)});");
             return true;
+        }
+
+        public static Model GetModelForModelGuid(List<Model> models, string modelGuid)
+        {
+            return models.FirstOrDefault(x => x.Guid == modelGuid);
         }
     }
 

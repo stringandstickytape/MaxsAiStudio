@@ -27,14 +27,17 @@ namespace AiTool3.Conversations
 
         [JsonIgnore]
         public bool Omit { get; set; }
-        public string? Engine { get; set; }
+
+        public string ModelGuid { get; set; }
 
         public DateTime? CreatedAt { get; set; }
 
         public string GetColorHexForEngine()
         {
-            var c = GetColorForEngine(Engine);
-            return $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+            //var c = GetColorForEngine(Engine);
+            //return $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+            return "#EEEEEE";
         }
 
         public static Color GetColorForEngine(string? engine)

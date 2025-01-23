@@ -181,7 +181,7 @@ namespace AiTool3.Conversations
             {
                 Content = inputText.Replace("\r", ""),
                 Parent = MostRecentCompletion?.Guid,
-                Engine = model.ModelName,
+                ModelGuid = model.Guid,
                 SystemPrompt = systemPrompt,
                 InputTokens = response.TokenUsage.InputTokens,
                 OutputTokens = 0,
@@ -200,7 +200,7 @@ namespace AiTool3.Conversations
             {
                 Content = response.ResponseText.Replace("\r", ""),
                 Parent = completionInput.Guid,
-                Engine = model.ModelName,
+                ModelGuid = model.Guid,
                 SystemPrompt = systemPrompt,
                 InputTokens = 0,
                 OutputTokens = response.TokenUsage.OutputTokens,
@@ -316,7 +316,7 @@ namespace AiTool3.Conversations
             {
                 Content = newContent,
                 Parent = parentOfPrevious.Guid,
-                Engine = previousMessage.Engine,
+                ModelGuid = previousMessage.Guid,
                 SystemPrompt = previousMessage.SystemPrompt,
                 InputTokens = previousMessage.InputTokens,
                 OutputTokens = previousMessage.OutputTokens,
@@ -431,8 +431,7 @@ namespace AiTool3.Conversations
             {
                 Parent = null,
                 Content = lastAssistantMessage.Content,
-                Engine = lastAssistantMessage.Engine,
-
+                ModelGuid = lastAssistantMessage.ModelGuid,
                 CreatedAt = DateTime.Now,
             };
             var rootMessage = Conversation.GetRootNode();
@@ -441,8 +440,7 @@ namespace AiTool3.Conversations
             {
                 Parent = rootMessage.Guid,
                 Content = lastUserMessage.Content,
-                Engine = lastUserMessage.Engine,
-
+                ModelGuid = lastUserMessage.ModelGuid,
                 CreatedAt = DateTime.Now,
             };
             rootMessage.Children!.Add(userMessage.Guid);

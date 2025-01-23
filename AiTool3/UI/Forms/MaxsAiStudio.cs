@@ -250,7 +250,7 @@ namespace AiTool3
         private async void AudioRecorderManager_AudioProcessed(object? sender, string e) => await chatWebView.ConcatenateUserPrompt(e);
 
 
-        private async Task<bool> WebNdcDrawNetworkDiagram() => await _webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages);
+        private async Task<bool> WebNdcDrawNetworkDiagram() => await _webViewManager.DrawNetworkDiagram(ConversationManager.Conversation.Messages, CurrentSettings.ModelList);
 
 
         private async void dgvConversations_CellClick(object sender, DataGridViewCellEventArgs e)

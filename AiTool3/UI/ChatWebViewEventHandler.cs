@@ -245,7 +245,7 @@ namespace AiTool3.UI
                         cm.SaveConversation();
                         _dgvConversations.InvokeIfNeeded(() => _dgvConversations.Rows.Insert(0, cm.Conversation.ConvGuid,
                                 cm.Conversation.Messages[0].Content,
-                                cm.Conversation.Messages[0].Engine,
+                                cm.Conversation.Messages[0].ModelGuid,
                                 ""));
 
 
@@ -386,7 +386,7 @@ namespace AiTool3.UI
 
         }
 
-        private async Task<bool> WebNdcDrawNetworkDiagram() => await _webViewManager.DrawNetworkDiagram(_conversationManager.Conversation.Messages);
+        private async Task<bool> WebNdcDrawNetworkDiagram() => await _webViewManager.DrawNetworkDiagram(_conversationManager.Conversation.Messages, _currentSettings.ModelList);
 
         private void ChatWebView_ChatWebViewAddBranchEvent(object? sender, ChatWebViewAddBranchEventArgs e)
         {
@@ -545,7 +545,7 @@ namespace AiTool3.UI
 
             if (row == null)
             {
-                _dgvConversations.Rows.Insert(0, _conversationManager.Conversation.ConvGuid, _conversationManager.Conversation.Messages[0].Content, _conversationManager.Conversation.Messages[0].Engine, "");
+                _dgvConversations.Rows.Insert(0, _conversationManager.Conversation.ConvGuid, _conversationManager.Conversation.Messages[0].Content, _conversationManager.Conversation.Messages[0].ModelGuid, "");
             }
         }
     }

@@ -126,9 +126,20 @@ DONE: Add "Add selection" and "Add selection HTML" to Chrome extension.
 DONE: Add "all open files" to the vsix file attachment system.
 PART-DONE: Refactor so that "return code changes" is selected from the options box
 
-Remove the scratchpad, it's annoying and useless
+DONE: Remove the scratchpad, it's annoying and useless (also project helper)
 
-Refactor models to pull out service providers
+Improve the Attach dialog
+Add feedback on / improve AI merging
+
+Somehow mark which models support tools? And do what, exactly, when an attempt to use tools then occurs?
+
+Deal with the multiple-toold problem
+
+In VS, load the solution prompt reliably and allow it to be set from the textbox
+
+Remove the model selectors in VS, or make them work reliably
+
+DONE: Refactor models to pull out service providers
 
 Review all this old rubbish:
 
