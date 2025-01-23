@@ -40,22 +40,25 @@ const CheckboxBar = () => {
 
     return (
         <div style={{
+            display: 'flex',
+            alignItems: 'center',
             height: '20px',
             backgroundColor: colorScheme.backgroundColor,
             borderTop: `1px solid ${colorScheme.borderColor}`,
             borderBottom: `1px solid ${colorScheme.borderColor}`,
-            display: 'flex',
             justifyContent: 'right',
-            alignItems: 'center',
             padding: '0 10px',
             fontSize: '12px',
             color: colorScheme.textColor
         }}>
-            <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer'
-            }}>
+
+            <button onClick={() => {
+                window.hideAllFormattedContent();
+            }} style={{ fontSize: '12px', marginRight: '10px', backgroundColor: 'transparent', border: '1px solid white', color: colorScheme.textColor, cursor: 'pointer' }}>Collapse All</button>
+            <button onClick={() => {
+                window.showAllFormattedContent();
+            }} style={{ fontSize: '12px', marginRight: '10px', backgroundColor: 'transparent', border: '1px solid white', color: colorScheme.textColor, cursor: 'pointer' }}>Expand All</button>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                 <input
                     type="checkbox"
                     checked={isFormatting}
@@ -78,7 +81,6 @@ const CheckboxBar = () => {
                 />
                 Live Scroll
             </label>
-
         </div>
     );
 };

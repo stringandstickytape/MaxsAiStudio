@@ -229,7 +229,8 @@ const matchesFileType = (fileType, allowedTypes) => {
                                 padding: '5px 10px',
                                 borderTopLeftRadius: '5px',
                                 borderTopRightRadius: '5px',
-                                overflowWrap: 'anywhere'
+                                overflowWrap: 'anywhere',
+                                marginBottom: '5px'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <span
@@ -250,7 +251,15 @@ const matchesFileType = (fileType, allowedTypes) => {
                                     >
                                         {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
                                     </span>
-                                    <span>{fileType.trim()}</span>
+                                    <span
+                                        style={{
+                                            flex: '1',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            textAlign: 'left'
+                                        }}
+                                    >{fileType.trim()}</span>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <input
                                             type="checkbox"
@@ -311,7 +320,8 @@ const matchesFileType = (fileType, allowedTypes) => {
                                 padding: '5px 10px',
                                 borderTopLeftRadius: '5px',
                                 borderTopRightRadius: '5px',
-                                overflowWrap: 'anywhere'
+                                overflowWrap: 'anywhere',
+                                marginBottom: '5px'
                             }}>
                                 <span
                                     className="code-block-toggler"
@@ -331,7 +341,15 @@ const matchesFileType = (fileType, allowedTypes) => {
                                 >
                                     {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
                                 </span>
-                                <span>{fileType.trim()}</span>
+                                <span
+                                    style={{
+                                        flex: '1',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        textAlign: 'left'
+                                    }}
+                                >{fileType.trim()}</span>
                                 <div>
                                     {addMessageButton("Copy", () => {
                                         window.chrome.webview.postMessage({
@@ -362,7 +380,8 @@ const matchesFileType = (fileType, allowedTypes) => {
                                 padding: '5px 10px',
                                 borderTopLeftRadius: '5px',
                                 borderTopRightRadius: '5px',
-                                overflowWrap: 'anywhere'
+                                overflowWrap: 'anywhere',
+                                marginBottom: '5px'
                             }}>
                                 <span
                                     className="code-block-toggler"
@@ -382,7 +401,15 @@ const matchesFileType = (fileType, allowedTypes) => {
                                 >
                                     {visibleBlocks[`block-${offset}`] === false ? '[+]' : '[-]'}
                                 </span>
-                                <span>{fileType.trim()}</span>
+                                <span
+                                    style={{
+                                        flex: '1',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        textAlign: 'left'
+                                    }}
+                                >{fileType.trim()}</span>
                                 <div>
                                     {addMessageButton("Copy", () => {
                                         window.chrome.webview.postMessage({
@@ -602,6 +629,13 @@ const matchesFileType = (fileType, allowedTypes) => {
 
     let uniqueKeyCounter = 0;
 
+    function containsNonWhitespace(str) {
+        if (typeof str !== 'string') {
+            return false; // Handle non-string input gracefully
+        }
+        return str.trim().length > 0;
+    }
+
     // New helper function to format URLs in non-code text
     const formatUrls = (text) => {
         const urlRegex = /(?:https?|ftp):\/\/[^\s/$.?#].[^\s]*/g;
@@ -610,7 +644,7 @@ const matchesFileType = (fileType, allowedTypes) => {
         const urlMatches = text.match(urlRegex) || [];
 
         textParts.forEach((part, index) => {
-            if (part) {
+            if (part && containsNonWhitespace(part)) {
                 parts.push(<span key={`text-${index}-${uniqueKeyCounter}`}>{part}</span>);
                 uniqueKeyCounter++;
             }
