@@ -1,10 +1,31 @@
-﻿namespace AiTool3.Helpers
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace AiTool3.Helpers
 {
-    internal static class SimpleDialogsHelper
+    public static class SimpleDialogsHelper
     {
+        internal static readonly int ButtonWidth = 120;
+        internal static readonly int ButtonHeight = 40;
+        internal static readonly int Margin = 20;
+        internal static readonly int ThumbnailSize = 160;
+
         public static DialogResult ShowAttachmentDialog()
         {
-            Form prompt = new Form()
+            var dialog = CreateBaseDialog();
+            AddStandardButtons(dialog);
+
+            if (Clipboard.ContainsImage())
+            {
+                AddClipboardImageControls(dialog);
+            }
+
+            return dialog.ShowDialog();
+        }
+
+        public static Form CreateBaseDialog()
+        {
+            return new Form
             {
                 Width = 500,
                 Height = 500,
@@ -12,70 +33,97 @@
                 StartPosition = FormStartPosition.CenterScreen,
                 BackColor = Color.FromArgb(60, 60, 60)
             };
+        }
 
-            int buttonWidth = 120;
-            int buttonHeight = 40;
-            int margin = 20;
+        private static void AddStandardButtons(Form dialog)
+        {
+            var imageButton = CreateButton(dialog, "Image", Margin, Margin);
+            var videoButton = CreateButton(dialog, "Media\r\nTranscript", Margin * 2 + ButtonWidth, Margin);
+            var textButton = CreateButton(dialog, "Text", Margin * 3 + ButtonWidth * 2, Margin);
+            var cancelButton = CreateButton(dialog, "Cancel", dialog.Width - ButtonWidth - Margin, dialog.Height - ButtonHeight - Margin);
 
-            Button imageButton = new Button() { ForeColor = Color.White, Left = margin, Top = margin, Width = buttonWidth, Height = buttonHeight, Text = "Image" };
-            Button videoButton = new Button() { ForeColor = Color.White, Left = margin * 2 + buttonWidth, Top = margin, Width = buttonWidth, Height = buttonHeight, Text = "Media\r\nTranscript" };
-            Button textButton = new Button() { ForeColor = Color.White, Left = margin * 3 + buttonWidth * 2, Top = margin, Width = buttonWidth, Height = buttonHeight, Text = "Text" };
-            Button cancelButton = new Button() { ForeColor = Color.White, Left = prompt.Width - buttonWidth - margin, Top = prompt.Height - buttonHeight - margin, Width = buttonWidth, Height = buttonHeight, Text = "Cancel" };
+            imageButton.Click += (sender, e) => { dialog.DialogResult = DialogResult.Yes; };
+            videoButton.Click += (sender, e) => { dialog.DialogResult = DialogResult.Retry; };
+            textButton.Click += (sender, e) => { dialog.DialogResult = DialogResult.No; };
+            cancelButton.Click += (sender, e) => { dialog.DialogResult = DialogResult.Cancel; };
 
-            prompt.Controls.Add(imageButton);
-            prompt.Controls.Add(videoButton);
-            prompt.Controls.Add(textButton);
-            prompt.Controls.Add(cancelButton);
+            dialog.Controls.AddRange(new Control[] { imageButton, videoButton, textButton, cancelButton });
+        }
 
-            if (Clipboard.ContainsImage())
+        private static Button CreateButton(Form dialog, string text, int left, int top)
+        {
+            return new Button
             {
-                var image = Clipboard.GetImage();
-                Button clipboardImageButton = new Button() { ForeColor = Color.White, Left = margin, Top = margin * 2 + buttonHeight, Width = buttonWidth * 2, Height = buttonHeight, Text = "Clipboard Image" };
-                prompt.Controls.Add(clipboardImageButton);
-
-                var w = 160;
-                var h = 160;
-
-                if (image.Width > image.Height)
-                {
-                    h = (int)(image.Height * (160.0 / image.Width));
-                    w = 160;
-                }
-                else
-                {
-                    w = (int)(image.Width * (160.0 / image.Height));
-                    h = 160;
-                }
-                w += 2;
-                h += 2;
-                // draw a one-pixel white border around the image
-                using (Bitmap bmp = new Bitmap(w, h))
-                {
-                    Graphics g = Graphics.FromImage(bmp);
-                    g.Clear(Color.White);
-                    g.DrawImage(image, 1, 1, w, h);
-
-                    // on the right and bottom, draw a black border
-                    g.DrawLine(Pens.Black, w - 1, 0, w - 1, h - 1);
-                    g.DrawLine(Pens.Black, 0, h - 1, w - 1, h - 1);
+                ForeColor = Color.White,
+                Left = left,
+                Top = top,
+                Width = ButtonWidth,
+                Height = ButtonHeight,
+                Text = text
+            };
 
 
-                    g.Dispose();
-                    image = bmp;
-                    PictureBox pictureBox = new PictureBox() { Left = margin, Top = margin * 2 + buttonHeight + 30, Width = w, Height = h, Image = image.GetThumbnailImage(w, h, null, IntPtr.Zero) };
-                    pictureBox.Click += (sender, e) => { prompt.DialogResult = DialogResult.Continue; };
-                    prompt.Controls.Add(pictureBox);
-                }
+        }
 
-                clipboardImageButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Continue; };
+        private static void AddClipboardImageControls(Form dialog)
+        {
+            var image = Clipboard.GetImage();
+            var clipboardImageButton = CreateButton(dialog, "Clipboard Image", Margin, Margin * 2 + ButtonHeight);
+            clipboardImageButton.Width = ButtonWidth * 2;
+            dialog.Controls.Add(clipboardImageButton);
+
+            var (width, height) = CalculateImageDimensions(image);
+            var borderedImage = CreateBorderedImage(image, width, height);
+            var pictureBox = CreatePictureBox(dialog, borderedImage, width, height);
+
+            clipboardImageButton.Click += (sender, e) => { dialog.DialogResult = DialogResult.Continue; };
+            pictureBox.Click += (sender, e) => { dialog.DialogResult = DialogResult.Continue; };
+        }
+
+        private static (int width, int height) CalculateImageDimensions(Image image)
+        {
+            int width, height;
+            if (image.Width > image.Height)
+            {
+                height = (int)(image.Height * (ThumbnailSize / (double)image.Width));
+                width = ThumbnailSize;
             }
+            else
+            {
+                width = (int)(image.Width * (ThumbnailSize / (double)image.Height));
+                height = ThumbnailSize;
+            }
+            return (width + 2, height + 2);
+        }
 
-            imageButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Yes; };
-            textButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.No; };
-            cancelButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Cancel; };
-            videoButton.Click += (sender, e) => { prompt.DialogResult = DialogResult.Retry; };
+        private static Image CreateBorderedImage(Image originalImage, int width, int height)
+        {
+            using var bmp = new Bitmap(width, height);
+            using var g = Graphics.FromImage(bmp);
+            
+            g.Clear(Color.White);
+            g.DrawImage(originalImage, 1, 1, width - 2, height - 2);
+            
+            // Draw black border on right and bottom
+            g.DrawLine(Pens.Black, width - 1, 0, width - 1, height - 1);
+            g.DrawLine(Pens.Black, 0, height - 1, width - 1, height - 1);
 
-            return prompt.ShowDialog();
+            return bmp.Clone() as Image;
+        }
+
+        private static PictureBox CreatePictureBox(Form dialog, Image image, int width, int height)
+        {
+            var pictureBox = new PictureBox
+            {
+                Left = Margin,
+                Top = Margin * 2 + ButtonHeight + 30,
+                Width = width,
+                Height = height,
+                Image = image.GetThumbnailImage(width, height, null, IntPtr.Zero)
+            };
+            
+            dialog.Controls.Add(pictureBox);
+            return pictureBox;
         }
     }
 }
