@@ -225,40 +225,8 @@ const HeaderBar = () => {
                                 onClick={handleAttach}
                                 svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
                             />
-                            <SplitButton
-                                color={colorScheme.buttonBackgroundColor}
-                                background={colorScheme.buttonBackgroundCss}
-                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
-                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
-                                label="Voice"
-                                onClick={handleVoice}
-                                svgString='<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <rect fill="currentColor" x="15" y="67" width="10" height="16" rx="5" />
-  <rect fill="currentColor" x="35" y="50" width="10" height="50" rx="5" />
-  <rect fill="currentColor" x="55" y="27" width="10" height="96" rx="5" />
-  <rect fill="currentColor" x="75" y="43" width="10" height="64" rx="5" />
-  <rect fill="currentColor" x="95" y="63" width="10" height="24" rx="5" />
-  <rect fill="currentColor" x="115" y="57" width="10" height="36" rx="5" />
-  <rect fill="currentColor" x="135" y="67" width="10" height="16" rx="5" />
-</svg>'
-                            />
-                            <SplitButton
-                                color={colorScheme.buttonBackgroundColor}
-                                background={colorScheme.buttonBackgroundCss}
-                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
-                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
-                                label="Project"
-                                onClick={handleProject}
-                                svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <rect x="10" y="10" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2"></rect>
-  <circle cx="25" cy="25" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
-  <rect x="35" y="20" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
-  <circle cx="25" cy="50" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
-  <rect x="35" y="45" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
-  <circle cx="25" cy="75" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
-  <rect x="35" y="70" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
-</svg>'
-                            />
+
+                            
                             <SplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
@@ -310,3 +278,39 @@ const HeaderBar = () => {
         </>
     );
 };
+
+/* <SplitButton
+                                color={colorScheme.buttonBackgroundColor}
+                                background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+                                label="Project"
+                                onClick={handleProject}
+                                svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2"></rect>
+  <circle cx="25" cy="25" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
+  <rect x="35" y="20" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
+  <circle cx="25" cy="50" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
+  <rect x="35" y="45" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
+  <circle cx="25" cy="75" r="5" fill="currentColor" stroke="currentColor" stroke-width="2"></circle>
+  <rect x="35" y="70" width="40" height="10" fill="currentColor" stroke="currentColor" stroke-width="2"></rect>
+</svg>'
+                            /> */
+
+/*                             <SplitButton
+    color={colorScheme.buttonBackgroundColor}
+    background={colorScheme.buttonBackgroundCss}
+    border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+    borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+    label="Voice"
+    onClick={handleVoice}
+    svgString='<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect fill="currentColor" x="15" y="67" width="10" height="16" rx="5" />
+<rect fill="currentColor" x="35" y="50" width="10" height="50" rx="5" />
+<rect fill="currentColor" x="55" y="27" width="10" height="96" rx="5" />
+<rect fill="currentColor" x="75" y="43" width="10" height="64" rx="5" />
+<rect fill="currentColor" x="95" y="63" width="10" height="24" rx="5" />
+<rect fill="currentColor" x="115" y="57" width="10" height="36" rx="5" />
+<rect fill="currentColor" x="135" y="67" width="10" height="16" rx="5" />
+</svg>'
+/>  */

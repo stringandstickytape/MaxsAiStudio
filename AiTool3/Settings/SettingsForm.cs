@@ -518,7 +518,7 @@ namespace AiTool3.Settings
 
             if(x == DialogResult.OK)
             {
-                NewSettings.ServiceProviders = serviceProviderForm.ServiceProviders;
+                NewSettings.ServiceProviders = serviceProviderForm.ServiceProviders.OrderBy(x => x.FriendlyName).ToList(); ;
             }
         }
     }

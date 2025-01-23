@@ -17,7 +17,7 @@ namespace AiTool3.Settings
             // Initialize ComboBox for Service Providers
             cboServiceProvider.DataSource = serviceProviders;
             cboServiceProvider.DisplayMember = "FriendlyName";
-            cboServiceProvider.SelectedItem = serviceProviders.FirstOrDefault(x => x.ServiceName == model.Provider.ServiceName);
+            cboServiceProvider.SelectedItem = serviceProviders.FirstOrDefault(x => x.Guid == model.Provider.Guid);
 
             // Initialize other fields
             txtFriendlyName.Text = model.FriendlyName;
