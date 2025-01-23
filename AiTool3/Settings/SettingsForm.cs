@@ -22,6 +22,7 @@ namespace AiTool3.Settings
             NewSettings = CloneSettings(settings);
 
             InitializeDgvModels();
+
             CreateDgvColumns();
 
             CreateDgvRows(settings);
@@ -50,11 +51,8 @@ namespace AiTool3.Settings
                 // add the control to panelToggles
                 panelToggles.Controls.Add(cb);
 
-
-
                 // increment ypos
                 ypos += yInc;
-
             }
 
             // for every public string property on settings...
@@ -457,7 +455,6 @@ namespace AiTool3.Settings
 
         private void DgvModels_UserAddedRow(object sender, DataGridViewRowEventArgs e)
         {
-            // Create a new Model instance with default values
             var newModel = new Model
             {
                 FriendlyName = "New Model",
@@ -467,15 +464,12 @@ namespace AiTool3.Settings
                 Color = Color.White
             };
 
-            // Open the ModelEditForm for the user to fill in details
             using (var editForm = new ModelEditForm(newModel, NewSettings.ServiceProviders))
             {
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    // Add the new model to your settings
                     NewSettings.ModelList.Add(newModel);
 
-                    // Directly add the new row to the DataGridView
                     var index = dgvModels.Rows.Add(
                         newModel.FriendlyName,
                         newModel.ModelName,
@@ -484,19 +478,14 @@ namespace AiTool3.Settings
                         newModel.output1MTokenPrice,
                         ColorTranslator.ToHtml(newModel.Color));
 
-                    // Set the text for both buttons in the new row (optional, as it's already set in CreateDgvColumns)
                     dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
                     dgvModels.Rows[index].Cells["EditButton"].Value = "Edit";
 
-                    // Ensure the row is visible
                     dgvModels.FirstDisplayedScrollingRowIndex = index;
 
                 }
                 else
                 {
-                    // If you want to remove the row on Cancel, you need to do it differently
-                    // because `e.Row` will likely be null here. You can identify it by
-                    // checking for an empty or default row, or by using a flag.
                     for (int i = dgvModels.Rows.Count - 1; i >= 0; i--)
                     {
                         DataGridViewRow row = dgvModels.Rows[i];
@@ -530,73 +519,6 @@ namespace AiTool3.Settings
             if(x == DialogResult.OK)
             {
                 NewSettings.ServiceProviders = serviceProviderForm.ServiceProviders;
-            }
-        }
-    }
-
-    public class AlternatingRowsDataGridView : DataGridView
-    {
-        private Color _evenRowColor = Color.FromArgb(220, 230, 241); // Light Steel Blue
-        private Color _oddRowColor = Color.FromArgb(255, 248, 220); // Cornsilk
-
-        public AlternatingRowsDataGridView() : base()
-        {
-            // Set default row style for consistent appearance
-            this.DefaultCellStyle.BackColor = _oddRowColor;
-            this.DefaultCellStyle.ForeColor = Color.Black;
-            this.DefaultCellStyle.SelectionBackColor = Color.Transparent; // Make selection transparent
-            this.DefaultCellStyle.SelectionForeColor = Color.Black;
-
-            // Set alternating row style
-            this.AlternatingRowsDefaultCellStyle.BackColor = _evenRowColor;
-            this.AlternatingRowsDefaultCellStyle.ForeColor = Color.Black;
-            this.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.Transparent; // Make selection transparent
-            this.AlternatingRowsDefaultCellStyle.SelectionForeColor = Color.Black;
-        }
-
-        // Properties for customizing the colors
-        public Color EvenRowColor
-        {
-            get { return _evenRowColor; }
-            set
-            {
-                _evenRowColor = value;
-                this.AlternatingRowsDefaultCellStyle.BackColor = _evenRowColor;
-                this.Invalidate();
-            }
-        }
-
-        public Color OddRowColor
-        {
-            get { return _oddRowColor; }
-            set
-            {
-                _oddRowColor = value;
-                this.RowsDefaultCellStyle.BackColor = _oddRowColor;
-                this.Invalidate();
-            }
-        }
-
-        protected override void OnDataSourceChanged(EventArgs e)
-        {
-            base.OnDataSourceChanged(e);
-        }
-
-        protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
-        {
-            base.OnCellFormatting(e);
-
-            if (this.Rows[e.RowIndex].Selected)
-            {
-                // Manually set the background color for selected cells to match the row color
-                if (e.RowIndex % 2 == 0)
-                {
-                    e.CellStyle.SelectionBackColor = _oddRowColor;
-                }
-                else
-                {
-                    e.CellStyle.SelectionBackColor = _evenRowColor;
-                }
             }
         }
     }
