@@ -7,6 +7,8 @@ namespace AiTool3.DataModels
     {
         public string ModelName { get; set; }
 
+        public string ProviderGuid { get; set; }
+
         private ServiceProvider _serviceProvider;
         
 
@@ -55,7 +57,7 @@ namespace AiTool3.DataModels
 
         public override string ToString()
         {
-            return $"{FriendlyName}";
+            return FriendlyName;
         }
 
         public string GetCost(TokenUsage tokenUsage)

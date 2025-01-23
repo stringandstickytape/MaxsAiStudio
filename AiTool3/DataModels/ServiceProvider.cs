@@ -21,5 +21,10 @@ namespace AiTool3.DataModels
         {
             return $"{FriendlyName}";
         }
+
+        public static ServiceProvider GetProviderForGuid(List<ServiceProvider> services, string guid)
+        {
+            return services.FirstOrDefault(x => x.Guid == guid);
+        }
     }
 }

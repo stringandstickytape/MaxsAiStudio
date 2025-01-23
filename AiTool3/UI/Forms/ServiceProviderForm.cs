@@ -60,8 +60,8 @@ namespace AiTool3.UI.Forms
             var columns = new[]
             {
                 new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
-                new { Name = "ServiceName", HeaderText = "AI Service", ReadOnly = false },
-                new { Name = "Url", HeaderText = "URL", ReadOnly = false },
+                new { Name = "ServiceName", HeaderText = "API Protocol", ReadOnly = false },
+                new { Name = "Url", HeaderText = "API URL", ReadOnly = false },
                 new { Name = "ApiKey", HeaderText = "API Key", ReadOnly = false }
             };
 

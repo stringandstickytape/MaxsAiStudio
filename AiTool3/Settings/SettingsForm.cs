@@ -382,6 +382,8 @@ namespace AiTool3.Settings
                     }
                 }
             }
+
+            dgvModels.ClearSelection();
         }
 
         private void DgvModels_CellClick(object sender, DataGridViewCellEventArgs e)
