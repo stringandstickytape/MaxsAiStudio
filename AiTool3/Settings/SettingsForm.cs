@@ -4,6 +4,7 @@ using System.Data;
 using System.Reflection;
 using System.Windows.Forms;
 using AiTool3.UI.Forms;
+using Newtonsoft.Json;
 
 namespace AiTool3.Settings
 {
@@ -220,8 +221,10 @@ namespace AiTool3.Settings
 
         private SettingsSet CloneSettings(SettingsSet settings)
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(settings);
-            return System.Text.Json.JsonSerializer.Deserialize<SettingsSet>(json);
+            var json = JsonConvert.SerializeObject(settings);
+            var retVal = JsonConvert.DeserializeObject<SettingsSet>(json);
+
+            return retVal;
         }
 
         private void InitializeDgvModels()

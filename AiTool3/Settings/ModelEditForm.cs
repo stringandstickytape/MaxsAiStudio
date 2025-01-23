@@ -24,7 +24,7 @@ namespace AiTool3.Settings
             txtModelName.Text = model.ModelName;
             txtInputPrice.Text = model.input1MTokenPrice.ToString("N2");
             txtOutputPrice.Text = model.output1MTokenPrice.ToString("N2");
-            txtColor.Text = ColorTranslator.ToHtml(model.Color);
+            UpdateColorButton(model.Color);
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -41,7 +41,7 @@ namespace AiTool3.Settings
             {
                 Model.output1MTokenPrice = outputPrice;
             }
-            Model.Color = ColorTranslator.FromHtml(txtColor.Text);
+            Model.Color = btnColorPicker.BackColor;
 
             DialogResult = DialogResult.OK;
             Close();
@@ -51,6 +51,26 @@ namespace AiTool3.Settings
         {
             DialogResult = DialogResult.Cancel;
             Close();
+        }
+
+        private string ColorToHex(Color color)
+        {
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
+        private void UpdateColorButton(Color color)
+        {
+            btnColorPicker.BackColor = color;
+            btnColorPicker.Text = ColorToHex(color);
+        }
+
+        private void btnColorPicker_Click(object sender, EventArgs e)
+        {
+            colorDialog.Color = btnColorPicker.BackColor;
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                UpdateColorButton(colorDialog.Color);
+            }
         }
     }
 }

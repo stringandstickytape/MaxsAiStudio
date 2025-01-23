@@ -1,8 +1,27 @@
 ﻿using AiTool3.AiServices;
+using Newtonsoft.Json;
 using System.Diagnostics;
 
 namespace AiTool3.DataModels
 {
+    public class ColorConverter : JsonConverter<Color>
+    {
+        public override Color ReadJson(JsonReader reader, Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            if (string.IsNullOrEmpty((string)reader.Value))
+                return Color.LightCyan;
+
+            string colorString = (string)reader.Value;
+            return ColorTranslator.FromHtml(colorString);
+        }
+
+        public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer)
+        {
+            writer.WriteValue(ColorTranslator.ToHtml(value));
+        }
+    }
+
+
     public class Model
     {
         public string ModelName { get; set; }
@@ -29,6 +48,8 @@ namespace AiTool3.DataModels
 
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }
+
+        [JsonConverter(typeof(ColorConverter))]
         public Color Color { get; set; }
         public bool Starred { get; set; }
 

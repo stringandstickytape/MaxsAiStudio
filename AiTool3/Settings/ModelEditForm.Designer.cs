@@ -25,7 +25,8 @@ namespace AiTool3.Settings
             lblInputPrice = new Label();
             txtOutputPrice = new TextBox();
             lblOutputPrice = new Label();
-            txtColor = new TextBox();
+            btnColorPicker = new Button();
+            colorDialog = new ColorDialog();
             lblColor = new Label();
             btnOK = new Button();
             btnCancel = new Button();
@@ -97,12 +98,14 @@ namespace AiTool3.Settings
             lblOutputPrice.TabIndex = 12;
             lblOutputPrice.Text = "Output 1MToken Price:";
             // 
-            // txtColor
+            // btnColorPicker
             // 
-            txtColor.Location = new Point(150, 209);
-            txtColor.Name = "txtColor";
-            txtColor.Size = new Size(200, 23);
-            txtColor.TabIndex = 15;
+            btnColorPicker.Location = new Point(150, 209);
+            btnColorPicker.Name = "btnColorPicker";
+            btnColorPicker.Size = new Size(200, 23);
+            btnColorPicker.TabIndex = 15;
+            btnColorPicker.UseVisualStyleBackColor = true;
+            btnColorPicker.Click += btnColorPicker_Click;
             // 
             // lblColor
             // 
@@ -159,7 +162,7 @@ namespace AiTool3.Settings
             Controls.Add(lblServiceProvider);
             Controls.Add(btnCancel);
             Controls.Add(btnOK);
-            Controls.Add(txtColor);
+            Controls.Add(btnColorPicker);
             Controls.Add(lblColor);
             Controls.Add(txtOutputPrice);
             Controls.Add(lblOutputPrice);
@@ -189,7 +192,8 @@ namespace AiTool3.Settings
         private System.Windows.Forms.Label lblInputPrice;
         private System.Windows.Forms.TextBox txtOutputPrice;
         private System.Windows.Forms.Label lblOutputPrice;
-        private System.Windows.Forms.TextBox txtColor;
+        private System.Windows.Forms.Button btnColorPicker;
+        private System.Windows.Forms.ColorDialog colorDialog;
         private System.Windows.Forms.Label lblColor;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
