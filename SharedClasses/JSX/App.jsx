@@ -6,18 +6,18 @@ function App() {
 
     React.useEffect(() => {
         const handleContextMenu = (event) => {
-            if (!event.ctrlKey) {
-                event.preventDefault();
-                setContextMenu({
-                    x: event.clientX,
-                    y: event.clientY,
-                    items: [
-                        { label: 'Custom Option 1', onClick: () => console.log('Custom Option 1 clicked') },
-                        { label: 'Custom Option 2', onClick: () => console.log('Custom Option 2 clicked') },
-                        // Add more custom options as needed
-                    ],
-                });
-            }
+            //if (!event.ctrlKey) {
+            //    event.preventDefault();
+            //    setContextMenu({
+            //        x: event.clientX,
+            //        y: event.clientY,
+            //        items: [
+            //            { label: 'Custom Option 1', onClick: () => console.log('Custom Option 1 clicked') },
+            //            { label: 'Custom Option 2', onClick: () => console.log('Custom Option 2 clicked') },
+            //            // Add more custom options as needed
+            //        ],
+            //    });
+            //}
             // If CTRL is held, do nothing, allowing the default context menu to appear
         };
 
@@ -81,16 +81,8 @@ function App() {
                 <CheckboxBar /> 
                 <QuickActionsBar />
                 <UserInputBar />
-                <ScratchPad />
             </div>
-            {contextMenu && (
-                <CustomContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    items={contextMenu.items}
-                    onClose={() => setContextMenu(null)}
-                />
-            )}
+
 
         </>
     );
@@ -104,3 +96,12 @@ ReactDOM.render(
     </React.StrictMode>,
     document.getElementById('root')
 );
+
+/*             {contextMenu && (
+                <CustomContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={contextMenu.items}
+                    onClose={() => setContextMenu(null)}
+                />
+            )} */

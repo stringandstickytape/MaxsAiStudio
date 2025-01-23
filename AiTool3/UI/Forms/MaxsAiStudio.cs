@@ -36,7 +36,6 @@ namespace AiTool3
         private SearchManager _searchManager;
         private FileAttachmentManager _fileAttachmentManager;
         private TemplateManager _templateManager;
-        private ScratchpadManager _scratchpadManager;
         private AiResponseHandler _aiResponseHandler;
         private readonly ChatWebViewEventHandler _chatWebViewEventHandler;
 
@@ -73,7 +72,6 @@ namespace AiTool3
                             FileAttachmentManager fileAttachmentManager,
                             ConversationManager conversationManager,
                             TemplateManager templateManager,
-                            ScratchpadManager scratchpadManager,
                             AiResponseHandler aiResponseHandler)
         {
             SplashManager splashManager = new SplashManager();
@@ -100,7 +98,6 @@ namespace AiTool3
                 ConversationManager = conversationManager;
                 ConversationManager.InjectDepencencies(dgvConversations);
                 chatWebView.InjectDependencies(toolManager, fileAttachmentManager);
-                _scratchpadManager = scratchpadManager;
                 _aiResponseHandler = aiResponseHandler;
                 _webViewManager = new WebViewManager(ndcWeb);
                 _aiResponseHandler.InjectDependencies(chatWebView, _webViewManager);
@@ -137,7 +134,6 @@ namespace AiTool3
                     tokenUsageLabel,
                     _audioRecorderManager,
                     menuBar,
-                    _scratchpadManager,
                     this);
 
                 SettingsChanged += _chatWebViewEventHandler.UpdateSettings;

@@ -217,7 +217,6 @@ namespace AiTool3.UI
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {content.Replace("&", "^&")}") { CreateNoWindow = true });
                     break;
                 case "importTemplate":
-                case "saveScratchpad":
                     ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Json = message["content"] });
                     break;
                 case "ready":
@@ -638,7 +637,7 @@ namespace AiTool3.UI
             }
         }
 
-        internal async Task Initialise(SettingsSet settings, ScratchpadManager scratchpadManager)
+        internal async Task Initialise(SettingsSet settings)
         {
             // send color schemes to the chatwebview
             var themesPath = Path.Combine("Settings\\Themes.json");
@@ -655,8 +654,6 @@ namespace AiTool3.UI
                 settings.SelectedTheme = "Serene";
                 SettingsSet.Save(settings);
             }
-
-            var scratchpadContent = scratchpadManager.LoadScratchpad();
 
             await SetTools();
 

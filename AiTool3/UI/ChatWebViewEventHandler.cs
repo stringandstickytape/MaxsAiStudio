@@ -35,7 +35,6 @@ namespace AiTool3.UI
         private CancellationTokenSource? _cts;
         public readonly Stopwatch Stopwatch;
         private readonly System.Windows.Forms.Timer _updateTimer;
-        private readonly ScratchpadManager _scratchpadManager;
         private readonly MaxsAiStudio _maxsAiStudio;
 
         public ChatWebViewEventHandler(
@@ -50,7 +49,6 @@ namespace AiTool3.UI
             ToolStripStatusLabel tokenUsageLabel,
             AudioRecorderManager audioRecorderManager,
             MenuStrip menuBar,
-            ScratchpadManager scratchpadManager,
             MaxsAiStudio maxsAiStudio)
         {
             _chatWebView = chatWebView;
@@ -64,7 +62,6 @@ namespace AiTool3.UI
             _tokenUsageLabel = tokenUsageLabel;
             _audioRecorderManager = audioRecorderManager;
             _menuBar = menuBar;
-            _scratchpadManager = scratchpadManager;
             Stopwatch = new Stopwatch();
             _updateTimer = new System.Windows.Forms.Timer();
             _updateTimer.Interval = 100;
@@ -184,7 +181,7 @@ namespace AiTool3.UI
 
         private async void ChatWebView_ChatWebViewReadyEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
-            await _chatWebView.Initialise(_currentSettings, _scratchpadManager);
+            await _chatWebView.Initialise(_currentSettings);
 
             _maxsAiStudio.Activate();
             _maxsAiStudio.BringToFront();
@@ -304,9 +301,6 @@ namespace AiTool3.UI
                     break;
                 case "importTemplate":
                     ImportTemplateAndRecreateMenus(e.Json);
-                    break;
-                case "saveScratchpad":
-                    _scratchpadManager.SaveScratchpad(e.Json);
                     break;
                 case "allThemes":
                     // persist e.Json to settings subdirectory Themes.json

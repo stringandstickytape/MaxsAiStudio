@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <Compile Remove="UI\FitAllAnimation.cs" />
+    <Compile Remove="UI\Forms\ScratchpadManager.cs" />
     <Compile Remove="UI\NetworkDiagramControl.cs" />
     <Compile Remove="UI\NetworkDiagramControlHelpers.cs" />
   </ItemGroup>
@@ -67,6 +68,7 @@
     <None Remove="Tools\chat-template.json" />
     <None Remove="Tools\color-scheme-spec.json" />
     <None Remove="Tools\diff-specifier.json" />
+    <None Remove="Tools\expressiontest.json" />
     <None Remove="Tools\find-and-replace.json" />
     <None Remove="Tools\insertion.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
@@ -81,12 +83,8 @@
     <EmbeddedResource Include="Defaults\templates.json" />
     <EmbeddedResource Include="Defaults\themes.json" />
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
-    <EmbeddedResource Include="Tools\array-find-and-replace.json" />
-    <EmbeddedResource Include="Tools\chat-template.json" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\diff-specifier.json" />
-    <EmbeddedResource Include="Tools\find-and-replace.json" />
-    <EmbeddedResource Include="Tools\insertion.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>
   

@@ -50,7 +50,6 @@ internal static class Program
         services.AddSingleton<ToolManager>();
         //services.AddSingleton<TcpCommsManager>();
         services.AddTransient<SnippetManager>();
-        services.AddTransient<ScratchpadManager>();
         services.AddSingleton<SearchManager>();
         services.AddSingleton<FileAttachmentManager>();
         services.AddSingleton<TemplateManager>();

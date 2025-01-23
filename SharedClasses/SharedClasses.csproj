@@ -29,7 +29,6 @@
     <None Remove="JSX\MessagesPane.jsx" />
     <None Remove="JSX\PrefillModal.jsx" />
     <None Remove="JSX\QuickActionsBar.jsx" />
-    <None Remove="JSX\ScratchPad.jsx" />
     <None Remove="JSX\SplitButton.jsx" />
     <None Remove="JSX\UserInputBar.jsx" />
     <None Remove="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
@@ -79,7 +78,6 @@
     <EmbeddedResource Include="JSX\MessagesPane.jsx" />
     <EmbeddedResource Include="JSX\PrefillModal.jsx" />
     <EmbeddedResource Include="JSX\QuickActionsBar.jsx" />
-    <EmbeddedResource Include="JSX\ScratchPad.jsx" />
     <EmbeddedResource Include="JSX\SplitButton.jsx" />
     <EmbeddedResource Include="JSX\UserInputBar.jsx" />
     <EmbeddedResource Include="ThirdPartyJavascript\cytoscape-cxtmenu.min.js" />
