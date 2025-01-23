@@ -209,6 +209,14 @@ namespace AiTool3.Settings
                 ypos += yInc;
             }
 
+            //this.BeginInvoke(new Action(() => dgvModels.ClearSelection()));//
+
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            dgvModels.ClearSelection();
         }
 
 
