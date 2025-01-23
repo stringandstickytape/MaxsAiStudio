@@ -162,7 +162,7 @@ const HeaderBar = () => {
                     }
                     .system-prompt-container {
                         flex-grow: 1;
-                        margin-left: 20px;
+                        margin-left: 10px;
                     }
 
                     .option {
@@ -186,7 +186,30 @@ const HeaderBar = () => {
                 <div className="main-header">
                     <div className="left-section">
                         <div className="logo">{logoText}</div>
-                        <div>
+                        <div height="24px" width="24px" style={{marginTop: 'auto', alignSelf: 'end'}}>
+
+                            <SplitButton
+                                color={colorScheme.buttonBackgroundColor}
+                                background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+                                label="Attach"
+                                onClick={handleAttach}
+                                svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
+                            />
+
+                            
+                            <SplitButton
+                                color={colorScheme.buttonBackgroundColor}
+                                background={colorScheme.buttonBackgroundCss}
+                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+                                label="Theme"
+                                onClick={handleTheme}
+                                svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C54.4 90 58 86.4 58 82C58 79.9 57.2 78 55.9 76.5C54.6 75 53.8 73.1 53.8 71C53.8 66.6 57.4 63 61.8 63H70C81 63 90 54 90 43C90 24.8 72.1 10 50 10ZM30 50C25.6 50 22 46.4 22 42C22 37.6 25.6 34 30 34C34.4 34 38 37.6 38 42C38 46.4 34.4 50 30 50ZM42 34C37.6 34 34 30.4 34 26C34 21.6 37.6 18 42 18C46.4 18 50 21.6 50 26C50 30.4 46.4 34 42 34ZM66 34C61.6 34 58 30.4 58 26C58 21.6 61.6 18 66 18C70.4 18 74 21.6 74 26C74 30.4 70.4 34 66 34Z" fill="currentColor"/>
+</svg>'
+                            />
                             <ToggleSplitButton
                                 color={colorScheme.buttonBackgroundColor}
                                 background={colorScheme.buttonBackgroundCss}
@@ -213,30 +236,6 @@ const HeaderBar = () => {
                                 label="Set System Prompt from Solution"
                                 onClick={handleSetSystemPromptFromSolution}
                                 hidden={true}
-                            />
-                            </div>
-                        <div height="24px" width="24px">
-                            <SplitButton
-                                color={colorScheme.buttonBackgroundColor}
-                                background={colorScheme.buttonBackgroundCss}
-                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
-                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
-                                label="Attach"
-                                onClick={handleAttach}
-                                svgString="<svg class='paperclip-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'> <path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'></path></svg > "
-                            />
-
-                            
-                            <SplitButton
-                                color={colorScheme.buttonBackgroundColor}
-                                background={colorScheme.buttonBackgroundCss}
-                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
-                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
-                                label="Theme"
-                                onClick={handleTheme}
-                                svgString='<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C54.4 90 58 86.4 58 82C58 79.9 57.2 78 55.9 76.5C54.6 75 53.8 73.1 53.8 71C53.8 66.6 57.4 63 61.8 63H70C81 63 90 54 90 43C90 24.8 72.1 10 50 10ZM30 50C25.6 50 22 46.4 22 42C22 37.6 25.6 34 30 34C34.4 34 38 37.6 38 42C38 46.4 34.4 50 30 50ZM42 34C37.6 34 34 30.4 34 26C34 21.6 37.6 18 42 18C46.4 18 50 21.6 50 26C50 30.4 46.4 34 42 34ZM66 34C61.6 34 58 30.4 58 26C58 21.6 61.6 18 66 18C70.4 18 74 21.6 74 26C74 30.4 70.4 34 66 34Z" fill="currentColor"/>
-</svg>'
                             />
                         </div>
                     </div>
