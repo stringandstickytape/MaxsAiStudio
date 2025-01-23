@@ -10,8 +10,12 @@ namespace AiTool3.DataModels
         public string FriendlyName { get; set; }
         public string ServiceName { get; set; }
 
+        // create a guid
+        public string Guid { get; set; }
 
-        public ServiceProvider() { }
+        public ServiceProvider() { 
+            Guid = System.Guid.NewGuid().ToString();
+        }
 
         public override string ToString()
         {

@@ -21,12 +21,6 @@ namespace AiTool3.Settings
             txtFriendlyName = new TextBox();
             txtModelName = new TextBox();
             lblModelName = new Label();
-            lblAiService = new Label();
-            cboAiService = new ComboBox();
-            txtModelUrl = new TextBox();
-            lblModelUrl = new Label();
-            txtModelKey = new TextBox();
-            lblModelKey = new Label();
             txtInputPrice = new TextBox();
             lblInputPrice = new Label();
             txtOutputPrice = new TextBox();
@@ -70,55 +64,6 @@ namespace AiTool3.Settings
             lblModelName.Size = new Size(79, 15);
             lblModelName.TabIndex = 2;
             lblModelName.Text = "Model Name:";
-            // 
-            // lblAiService
-            // 
-            lblAiService.AutoSize = true;
-            lblAiService.Location = new Point(12, 67);
-            lblAiService.Name = "lblAiService";
-            lblAiService.Size = new Size(61, 15);
-            lblAiService.TabIndex = 4;
-            lblAiService.Text = "AI Service:";
-            // 
-            // cboAiService
-            // 
-            cboAiService.FormattingEnabled = true;
-            cboAiService.Location = new Point(150, 64);
-            cboAiService.Name = "cboAiService";
-            cboAiService.Size = new Size(200, 23);
-            cboAiService.TabIndex = 5;
-            // 
-            // txtModelUrl
-            // 
-            txtModelUrl.Location = new Point(150, 93);
-            txtModelUrl.Name = "txtModelUrl";
-            txtModelUrl.Size = new Size(200, 23);
-            txtModelUrl.TabIndex = 7;
-            // 
-            // lblModelUrl
-            // 
-            lblModelUrl.AutoSize = true;
-            lblModelUrl.Location = new Point(12, 96);
-            lblModelUrl.Name = "lblModelUrl";
-            lblModelUrl.Size = new Size(62, 15);
-            lblModelUrl.TabIndex = 6;
-            lblModelUrl.Text = "Model Url:";
-            // 
-            // txtModelKey
-            // 
-            txtModelKey.Location = new Point(150, 122);
-            txtModelKey.Name = "txtModelKey";
-            txtModelKey.Size = new Size(200, 23);
-            txtModelKey.TabIndex = 9;
-            // 
-            // lblModelKey
-            // 
-            lblModelKey.AutoSize = true;
-            lblModelKey.Location = new Point(12, 125);
-            lblModelKey.Name = "lblModelKey";
-            lblModelKey.Size = new Size(66, 15);
-            lblModelKey.TabIndex = 8;
-            lblModelKey.Text = "Model Key:";
             // 
             // txtInputPrice
             // 
@@ -220,12 +165,6 @@ namespace AiTool3.Settings
             Controls.Add(lblOutputPrice);
             Controls.Add(txtInputPrice);
             Controls.Add(lblInputPrice);
-            Controls.Add(txtModelKey);
-            Controls.Add(lblModelKey);
-            Controls.Add(txtModelUrl);
-            Controls.Add(lblModelUrl);
-            Controls.Add(cboAiService);
-            Controls.Add(lblAiService);
             Controls.Add(txtModelName);
             Controls.Add(lblModelName);
             Controls.Add(txtFriendlyName);
@@ -246,12 +185,6 @@ namespace AiTool3.Settings
         private System.Windows.Forms.TextBox txtFriendlyName;
         private System.Windows.Forms.TextBox txtModelName;
         private System.Windows.Forms.Label lblModelName;
-        private System.Windows.Forms.Label lblAiService;
-        private System.Windows.Forms.ComboBox cboAiService;
-        private System.Windows.Forms.TextBox txtModelUrl;
-        private System.Windows.Forms.Label lblModelUrl;
-        private System.Windows.Forms.TextBox txtModelKey;
-        private System.Windows.Forms.Label lblModelKey;
         private System.Windows.Forms.TextBox txtInputPrice;
         private System.Windows.Forms.Label lblInputPrice;
         private System.Windows.Forms.TextBox txtOutputPrice;

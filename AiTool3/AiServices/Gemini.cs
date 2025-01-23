@@ -31,7 +31,7 @@ namespace AiTool3.AiServices
             bool addEmbeddings = false)
         {
             InitializeHttpClient(apiModel, currentSettings, 300);
-            var url = $"{apiModel.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Key}";
+            var url = $"{apiModel.Provider.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Provider.ApiKey}";
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
@@ -129,7 +129,7 @@ namespace AiTool3.AiServices
         }
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{apiModel.Url}{apiModel.ModelName}:streamGenerateContent?key={apiModel.Key}"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{apiModel.Provider.Url}{apiModel.ModelName}:streamGenerateContent?key={apiModel.Provider.ApiKey}"))
             {
                 request.Content = content;
                 using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
@@ -235,7 +235,7 @@ namespace AiTool3.AiServices
 
         protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await client.PostAsync($"{apiModel.Url}{apiModel.ModelName}:generateContent?key={apiModel.Key}", content, cancellationToken);
+            HttpResponseMessage response = await client.PostAsync($"{apiModel.Provider.Url}{apiModel.ModelName}:generateContent?key={apiModel.Provider.ApiKey}", content, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {

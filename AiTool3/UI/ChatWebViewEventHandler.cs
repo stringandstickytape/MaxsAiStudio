@@ -210,7 +210,7 @@ namespace AiTool3.UI
         {
             var apiModel = _currentSettings.GetSummaryModel() ?? _currentSettings.GetModel();
 
-            var aiService = AiServiceResolver.GetAiService(apiModel.ServiceName, null);
+            var aiService = AiServiceResolver.GetAiService(apiModel.Provider.ServiceName, null);
 
             switch (e.EventType)
             {

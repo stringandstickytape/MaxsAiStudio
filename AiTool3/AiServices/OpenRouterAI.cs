@@ -18,7 +18,7 @@ namespace AiTool3.AiServices
 
         protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiModel.Key}");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiModel.Provider.ApiKey}");
             client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }

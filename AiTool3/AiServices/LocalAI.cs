@@ -78,7 +78,7 @@ namespace AiTool3.AiServices
 
         protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url);
+            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Provider.Url);
             request.Content = content;
             client.Timeout = TimeSpan.FromSeconds(1800);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -157,7 +157,7 @@ namespace AiTool3.AiServices
 
         protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await client.PostAsync(apiModel.Url, content, cancellationToken);
+            var response = await client.PostAsync(apiModel.Provider.Url, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JObject.Parse(responseContent);
 

@@ -23,7 +23,7 @@ namespace AiTool3.AiServices
 
         protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Provider.ApiKey);
         }
 
 
@@ -41,7 +41,7 @@ namespace AiTool3.AiServices
         {
             InitializeHttpClient(apiModel, currentSettings);
 
-            if (apiModel.Url.Contains("deepseek"))
+            if (apiModel.Provider.Url.Contains("deepseek"))
                 deepseekBodge = true;
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
@@ -90,7 +90,7 @@ namespace AiTool3.AiServices
 
         protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
-            var supportsLogprobs = !apiModel.Url.Contains("generativelanguage.googleapis.com");
+            var supportsLogprobs = !apiModel.Provider.Url.Contains("generativelanguage.googleapis.com");
 
             var payload = new JObject
             {

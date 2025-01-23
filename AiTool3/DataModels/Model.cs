@@ -1,34 +1,58 @@
 ﻿using AiTool3.AiServices;
+using System.Diagnostics;
 
 namespace AiTool3.DataModels
 {
     public class Model
     {
         public string ModelName { get; set; }
-         
-        public ServiceProvider Provider { get; set; }
-        public string ServiceName { get; set; }
-        public string Key { get; set; }
-        public string Url { get; set; }
+
+        private ServiceProvider _serviceProvider;
+        
+
+        public ServiceProvider Provider
+        {
+            get { 
+                if(_serviceProvider == null)
+                {
+                    _serviceProvider = new ServiceProvider();
+                };
+                return _serviceProvider; 
+            }
+            set
+            {
+                _serviceProvider = value;
+            }
+        }
+
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }
         public Color Color { get; set; }
         public bool Starred { get; set; }
 
         public string FriendlyName { get; set; }
-        public Model() { }
+
+        private string guid;
+        public string Guid {
+            get { return guid; }
+            set {
+                Debug.WriteLine(guid);
+                guid = value; 
+            }
+        }
+
+        public Model()
+        {
+            Guid = System.Guid.NewGuid().ToString();
+        }
+
+        public Model(string guid)
+        {
+            Guid = guid;
+        }
 
         public bool SupportsPrefill { get; set; }
-        public Model(string modelName, string serviceName, string key, string url, decimal inputPrice, decimal outputPrice, Color color)
-        {
-            ModelName = modelName;
-            ServiceName = serviceName;
-            Key = key;
-            Url = url;
-            input1MTokenPrice = inputPrice;
-            output1MTokenPrice = outputPrice;
-            Color = color;
-        }
+
         public override string ToString()
         {
             return $"{FriendlyName}";

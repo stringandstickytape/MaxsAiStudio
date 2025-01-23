@@ -269,7 +269,7 @@ namespace AiTool3.Settings
             {
                 new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
                 new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
-                new { Name = "AiServ", HeaderText = "AI Service", ReadOnly = false },
+                new { Name = "Guid", HeaderText = "Guid", ReadOnly = false },
             };
 
             foreach (var col in columns)
@@ -299,15 +299,8 @@ namespace AiTool3.Settings
                 switch (newCol.Name)
                 {
                     case "FriendlyName":
-                        newCol.Width = 200;
-                        break;
+                    case "Guid":
                     case "ModelName":
-                        newCol.Width = 200;
-                        break;
-                    case "ModelUrl":
-                        newCol.Width = 300;
-                        break;
-                    case "ModelKey":
                         newCol.Width = 200;
                         break;
                     case "ModelInputPrice":
@@ -336,7 +329,7 @@ namespace AiTool3.Settings
 
             // Sort the ModelList by ServiceName and then by FriendlyName
             var sortedModelList = settings.ModelList
-                .OrderBy(model => model.ServiceName)
+                .OrderBy(model => model.Provider?.ServiceName ?? "unknown")
                 .ThenBy(model => model.FriendlyName)
                 .ToList();
 
@@ -345,9 +338,7 @@ namespace AiTool3.Settings
                 var index = dgvModels.Rows.Add(
                     model.FriendlyName,
                     model.ModelName,
-                    model.ServiceName,
-                    model.Url,
-                    model.Key,
+                    model.Guid,
                     model.input1MTokenPrice,
                     model.output1MTokenPrice,
                     ColorTranslator.ToHtml(model.Color));
@@ -373,21 +364,20 @@ namespace AiTool3.Settings
                 var row = dgvModels.SelectedRows[0];
                 if (row.Index == dgvModels.NewRowIndex) return; // Skip if it's the new row
 
-                var modelName = row.Cells["ModelName"].Value?.ToString();
-                if (string.IsNullOrEmpty(modelName)) return;
+                var modelGuid = row.Cells["Guid"].Value?.ToString();
 
-                var model = NewSettings.ModelList.FirstOrDefault(m => m.ModelName == modelName);
+                var model = NewSettings.ModelList.FirstOrDefault(m => m.Guid == modelGuid);
                 if (model != null)
                 {
                     var aiServiceNames = GetAiServiceNames();
-                    using (var editForm = new ModelEditForm(model, aiServiceNames, NewSettings.ServiceProviders))
+                    using (var editForm = new ModelEditForm(model, NewSettings.ServiceProviders))
                     {
                         if (editForm.ShowDialog() == DialogResult.OK)
                         {
                             // Update the grid with the edited model
                             row.Cells["FriendlyName"].Value = model.FriendlyName;
                             row.Cells["ModelName"].Value = model.ModelName;
-                            row.Cells["AiServ"].Value = model.ServiceName;
+                            row.Cells["Guid"].Value = model.Guid;
                         }
                     }
                 }
@@ -401,24 +391,18 @@ namespace AiTool3.Settings
             // Handle click on the new row button (the "+" button)
             if (e.RowIndex == dgvModels.NewRowIndex)
             {
-                // Get the list of AI service names
-                var aiServiceNames = GetAiServiceNames();
-
                 // Create a new Model instance with default values
                 var newModel = new Model
                 {
                     FriendlyName = "New Model",
                     ModelName = "New Model",
-                    ServiceName = aiServiceNames.FirstOrDefault() ?? "",
-                    Url = "https://api.example.com",
-                    Key = "",
                     input1MTokenPrice = 0,
                     output1MTokenPrice = 0,
                     Color = Color.White
                 };
 
                 // Open the ModelEditForm for the user to fill in details
-                using (var editForm = new ModelEditForm(newModel, aiServiceNames, NewSettings.ServiceProviders))
+                using (var editForm = new ModelEditForm(newModel, NewSettings.ServiceProviders))
                 {
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
@@ -429,9 +413,7 @@ namespace AiTool3.Settings
                         var index = dgvModels.Rows.Add(
                             newModel.FriendlyName,
                             newModel.ModelName,
-                            newModel.ServiceName,
-                            newModel.Url,
-                            newModel.Key,
+                            newModel.Guid,
                             newModel.input1MTokenPrice,
                             newModel.output1MTokenPrice,
                             ColorTranslator.ToHtml(newModel.Color));
@@ -452,10 +434,10 @@ namespace AiTool3.Settings
                 if (MessageBox.Show("Are you sure you want to delete this model?", "Confirm Delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     var row = dgvModels.Rows[e.RowIndex];
-                    var modelName = row.Cells["ModelName"].Value?.ToString();
+                    var modelGuid = row.Cells["Guid"].Value?.ToString();
 
-                    if (string.IsNullOrEmpty(modelName)) return;
-                    var model = NewSettings.ModelList.FirstOrDefault(a => a.ModelName == modelName);
+                    if (string.IsNullOrEmpty(modelGuid)) return;
+                    var model = NewSettings.ModelList.FirstOrDefault(a => a.Guid == modelGuid);
                     NewSettings.ModelList.Remove(model);
 
                     dgvModels.Rows.RemoveAt(e.RowIndex);
@@ -465,24 +447,18 @@ namespace AiTool3.Settings
 
         private void DgvModels_UserAddedRow(object sender, DataGridViewRowEventArgs e)
         {
-            // Get the list of AI service names
-            var aiServiceNames = GetAiServiceNames();
-
             // Create a new Model instance with default values
             var newModel = new Model
             {
                 FriendlyName = "New Model",
                 ModelName = "New Model",
-                ServiceName = aiServiceNames.FirstOrDefault() ?? "",
-                Url = "https://api.example.com",
-                Key = "",
                 input1MTokenPrice = 0,
                 output1MTokenPrice = 0,
                 Color = Color.White
             };
 
             // Open the ModelEditForm for the user to fill in details
-            using (var editForm = new ModelEditForm(newModel, aiServiceNames, NewSettings.ServiceProviders))
+            using (var editForm = new ModelEditForm(newModel, NewSettings.ServiceProviders))
             {
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
@@ -493,9 +469,7 @@ namespace AiTool3.Settings
                     var index = dgvModels.Rows.Add(
                         newModel.FriendlyName,
                         newModel.ModelName,
-                        newModel.ServiceName,
-                        newModel.Url,
-                        newModel.Key,
+                        newModel.Guid,
                         newModel.input1MTokenPrice,
                         newModel.output1MTokenPrice,
                         ColorTranslator.ToHtml(newModel.Color));

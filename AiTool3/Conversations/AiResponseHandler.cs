@@ -119,7 +119,7 @@ namespace AiTool3.Conversations
                 SettingsSet.Save(currentSettings);
             }
 
-            var aiService = AiServiceResolver.GetAiService(model.ServiceName, _toolManager);
+            var aiService = AiServiceResolver.GetAiService(model.Provider.ServiceName, _toolManager);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { _chatWebView.InvokeIfNeeded(() => _chatWebView.ClearTemp()); };
 

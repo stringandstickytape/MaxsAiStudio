@@ -28,8 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             dgvModels = new AlternatingRowsDataGridView();
             btnSettingsOK = new Button();
             btnSettingsCancel = new Button();
@@ -40,35 +41,37 @@
             // 
             // dgvModels
             // 
-            dataGridViewCellStyle3.BackColor = Color.FromArgb(220, 230, 241);
-            dataGridViewCellStyle3.ForeColor = Color.Black;
-            dataGridViewCellStyle3.SelectionBackColor = Color.Transparent;
-            dataGridViewCellStyle3.SelectionForeColor = Color.Black;
-            dgvModels.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(220, 230, 241);
+            dataGridViewCellStyle1.ForeColor = Color.Black;
+            dataGridViewCellStyle1.SelectionBackColor = Color.Transparent;
+            dataGridViewCellStyle1.SelectionForeColor = Color.Black;
+            dgvModels.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             dgvModels.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvModels.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.FromArgb(255, 248, 220);
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle4.ForeColor = Color.Black;
-            dataGridViewCellStyle4.SelectionBackColor = Color.Transparent;
-            dataGridViewCellStyle4.SelectionForeColor = Color.Black;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgvModels.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(255, 248, 220);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.Black;
+            dataGridViewCellStyle2.SelectionBackColor = Color.Transparent;
+            dataGridViewCellStyle2.SelectionForeColor = Color.Black;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvModels.DefaultCellStyle = dataGridViewCellStyle2;
             dgvModels.EvenRowColor = Color.FromArgb(220, 230, 241);
-            dgvModels.Location = new Point(8, 7);
-            dgvModels.Margin = new Padding(2, 2, 2, 2);
+            dgvModels.Location = new Point(8, 34);
+            dgvModels.Margin = new Padding(2);
             dgvModels.Name = "dgvModels";
             dgvModels.OddRowColor = Color.FromArgb(255, 248, 220);
             dgvModels.RowHeadersWidth = 62;
-            dgvModels.Size = new Size(790, 217);
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(255, 248, 220);
+            dgvModels.RowsDefaultCellStyle = dataGridViewCellStyle3;
+            dgvModels.Size = new Size(790, 190);
             dgvModels.TabIndex = 0;
             // 
             // btnSettingsOK
             // 
             btnSettingsOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSettingsOK.Location = new Point(637, 464);
-            btnSettingsOK.Margin = new Padding(2, 2, 2, 2);
+            btnSettingsOK.Margin = new Padding(2);
             btnSettingsOK.Name = "btnSettingsOK";
             btnSettingsOK.Size = new Size(78, 20);
             btnSettingsOK.TabIndex = 1;
@@ -80,7 +83,7 @@
             // 
             btnSettingsCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnSettingsCancel.Location = new Point(720, 464);
-            btnSettingsCancel.Margin = new Padding(2, 2, 2, 2);
+            btnSettingsCancel.Margin = new Padding(2);
             btnSettingsCancel.Name = "btnSettingsCancel";
             btnSettingsCancel.Size = new Size(78, 20);
             btnSettingsCancel.TabIndex = 2;
@@ -94,18 +97,18 @@
             panelToggles.AutoScroll = true;
             panelToggles.BorderStyle = BorderStyle.FixedSingle;
             panelToggles.Location = new Point(8, 236);
-            panelToggles.Margin = new Padding(2, 2, 2, 2);
+            panelToggles.Margin = new Padding(2);
             panelToggles.Name = "panelToggles";
             panelToggles.Size = new Size(791, 218);
             panelToggles.TabIndex = 3;
             // 
             // btnEditServiceProviders
             // 
-            btnEditServiceProviders.Location = new Point(249, 458);
+            btnEditServiceProviders.Location = new Point(8, 3);
             btnEditServiceProviders.Name = "btnEditServiceProviders";
             btnEditServiceProviders.Size = new Size(144, 26);
             btnEditServiceProviders.TabIndex = 4;
-            btnEditServiceProviders.Text = "button1";
+            btnEditServiceProviders.Text = "Edit Service Providers";
             btnEditServiceProviders.UseVisualStyleBackColor = true;
             btnEditServiceProviders.Click += btnEditServiceProviders_Click;
             // 
@@ -120,7 +123,7 @@
             Controls.Add(btnSettingsCancel);
             Controls.Add(btnSettingsOK);
             Controls.Add(dgvModels);
-            Margin = new Padding(2, 2, 2, 2);
+            Margin = new Padding(2);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "SettingsForm";

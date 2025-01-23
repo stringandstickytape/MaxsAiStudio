@@ -9,25 +9,19 @@ namespace AiTool3.Settings
     {
         public Model Model { get; private set; }
 
-        public ModelEditForm(Model model, List<string> aiServiceNames, List<ServiceProvider> serviceProviders)
+        public ModelEditForm(Model model, List<ServiceProvider> serviceProviders)
         {
             InitializeComponent();
             this.Model = model;
 
-            // Initialize ComboBox for AI Services
-            cboAiService.DataSource = aiServiceNames;
-            cboAiService.SelectedItem = model.ServiceName;
-
             // Initialize ComboBox for Service Providers
             cboServiceProvider.DataSource = serviceProviders;
             cboServiceProvider.DisplayMember = "FriendlyName";
-            cboServiceProvider.SelectedItem = model.Provider;
+            cboServiceProvider.SelectedItem = serviceProviders.FirstOrDefault(x => x.ServiceName == model.Provider.ServiceName);
 
             // Initialize other fields
             txtFriendlyName.Text = model.FriendlyName;
             txtModelName.Text = model.ModelName;
-            txtModelUrl.Text = model.Url;
-            txtModelKey.Text = model.Key;
             txtInputPrice.Text = model.input1MTokenPrice.ToString("N2");
             txtOutputPrice.Text = model.output1MTokenPrice.ToString("N2");
             txtColor.Text = ColorTranslator.ToHtml(model.Color);
@@ -38,10 +32,7 @@ namespace AiTool3.Settings
             // Validate and update model properties
             Model.FriendlyName = txtFriendlyName.Text;
             Model.ModelName = txtModelName.Text;
-            Model.ServiceName = cboAiService.SelectedItem?.ToString() ?? "";
             Model.Provider = (ServiceProvider)cboServiceProvider.SelectedItem;
-            Model.Url = txtModelUrl.Text;
-            Model.Key = txtModelKey.Text;
             if (decimal.TryParse(txtInputPrice.Text, out decimal inputPrice))
             {
                 Model.input1MTokenPrice = inputPrice;

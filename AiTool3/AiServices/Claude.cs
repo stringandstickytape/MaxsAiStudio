@@ -26,7 +26,7 @@ namespace AiTool3.AiServices
         protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
             base.ConfigureHttpClientHeaders(apiModel, currentSettings);
-            client.DefaultRequestHeaders.Add("x-api-key", apiModel.Key);
+            client.DefaultRequestHeaders.Add("x-api-key", apiModel.Provider.ApiKey);
             client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
 
             if (currentSettings.UsePromptCaching)

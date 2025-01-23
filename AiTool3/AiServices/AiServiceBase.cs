@@ -34,9 +34,9 @@ namespace AiTool3.AiServices
 
         protected virtual void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
         {
-            if (!string.IsNullOrEmpty(apiModel.Key))
+            if (!string.IsNullOrEmpty(apiModel.Provider.ApiKey))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Key);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Provider.ApiKey);
             }
         }
 
@@ -147,7 +147,7 @@ namespace AiTool3.AiServices
             CancellationToken cancellationToken,
             bool streamingRequest = false)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Url)
+            var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Provider.Url)
             {
                 Content = content
             };
