@@ -186,6 +186,16 @@ const HeaderBar = () => {
                 <div className="main-header">
                     <div className="left-section">
                         <div className="logo">{logoText}</div>
+                        <div>                            <SplitButton
+                            color={colorScheme.buttonBackgroundColor}
+                            background={colorScheme.buttonBackgroundCss}
+                            border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
+                            borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
+                            label="Set System Prompt from Solution"
+                            onClick={handleSetSystemPromptFromSolution}
+                            hidden={true}
+                        />
+                        </div>
                         <div height="24px" width="24px" style={{marginTop: 'auto', alignSelf: 'end'}}>
 
                             <SplitButton
@@ -228,15 +238,7 @@ const HeaderBar = () => {
                                     }
                                 }))}
                             />
-                            <SplitButton
-                                color={colorScheme.buttonBackgroundColor}
-                                background={colorScheme.buttonBackgroundCss}
-                                border={colorScheme.buttonBorder ? colorScheme.buttonBorder : 'none'}
-                                borderRadius={colorScheme.borderRadius ? colorScheme.borderRadius : '3px'}
-                                label="Set System Prompt from Solution"
-                                onClick={handleSetSystemPromptFromSolution}
-                                hidden={true}
-                            />
+
                         </div>
                     </div>
                     <div className="system-prompt-container">
