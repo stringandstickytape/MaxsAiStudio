@@ -4,34 +4,41 @@ namespace AiTool3.Conversations
 {
     public class ConversationCacheManager
     {
-        public List<CachedConversation> Conversations { get; set; }
+        public Dictionary<string, CachedConversation> Conversations { get; set; }
 
         public ConversationCacheManager()
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Settings", "conversationCache.json");
 
             if (File.Exists(filePath))
-                Conversations = JsonConvert.DeserializeObject<List<CachedConversation>>(File.ReadAllText(filePath));
+            {
+                var list = JsonConvert.DeserializeObject<List<CachedConversation>>(File.ReadAllText(filePath));
+                Conversations = list?.ToDictionary(x => x.FileName) ?? new Dictionary<string, CachedConversation>();
+            }
             else
-                Conversations = new List<CachedConversation>();
+            {
+                Conversations = new Dictionary<string, CachedConversation>();
+            }
         }
 
         public void Save()
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Settings", "conversationCache.json");
-
-            File.WriteAllText(filePath, JsonConvert.SerializeObject(Conversations));
+            var list = Conversations.Values.ToList();
+            File.WriteAllText(filePath, JsonConvert.SerializeObject(list));
         }
 
         internal CachedConversation GetSummary(string file)
         {
-            var conversation = Conversations.FirstOrDefault(x => x.FileName == file);
             var lastWriteTime = new FileInfo(file).LastWriteTime;
 
-            if (conversation != null && lastWriteTime > conversation.LastModified)
+            if (Conversations.TryGetValue(file, out var conversation))
             {
-                Conversations.Remove(conversation);
-                conversation = null;
+                if (lastWriteTime > conversation.LastModified)
+                {
+                    Conversations.Remove(file);
+                    conversation = null;
+                }
             }
 
             if (conversation == null)
@@ -52,18 +59,14 @@ namespace AiTool3.Conversations
                     HighlightColour = conv.HighlightColour
                 };
 
-                Conversations.Add(newConv);
+                Conversations[file] = newConv;
 
                 Save();
 
                 return newConv;
             }
-            else
-            {
-                return conversation;
-            }
 
-
+            return conversation;
         }
     }
 

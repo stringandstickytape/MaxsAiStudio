@@ -3,51 +3,54 @@ const { createContext, useState, useContext } = React;
 const ColorSchemeContext = createContext();
 
 const initialColorSchemes = {
-    "Serene": {
-        "name": "Serene",
-        "id": "Serene",
-        "backgroundColor": "#121212",
-        "headerBackgroundColor": "#1E1E1E",
-        "inputBackgroundColor": "#1A1A1A",
-        "buttonBackgroundColor": "#2C5F5C",
-        "buttonBackgroundCss": "linear-gradient(135deg, #2C5F5C 0%, #3A7A77 100%)",
-        "dropdownBackgroundColor": "#1A1A1A",
-        "messageUserBackgroundColor": "#1E2A3D",
-        "messageAIBackgroundColor": "#1A1A1A",
-        "messageRootBackgroundColor": "#151C2C",
-        "codeBlockBackgroundColor": "#1E1E1E",
-        "codeBlockHeaderBackgroundColor": "#252525",
-        "scrollbarBackgroundColor": "#1E1E1E",
-        "toolbarBackgroundColor": "#1A1A1A",
-        "toolbarButtonBackgroundColor": "#2A3F5F",
-        "selectedItemBackgroundColor": "#202020",
-        "textColor": "#E0E0E0",
-        "headerTextColor": "#FFFFFF",
-        "inputTextColor": "#E0E0E0",
+    "Default": {
+        "id": "Default",
+        "backgroundColor": "#0A1929",
+        "headerBackgroundColor": "#142F45",
+        "inputBackgroundColor": "#1C3F5E",
+        "buttonBackgroundColor": "#2D5F8B",
+        "dropdownBackgroundColor": "#183754",
+        "messageUserBackgroundColor": "#2B4C6F",
+        "messageAIBackgroundColor": "#1D364F",
+        "messageRootBackgroundColor": "#15293E",
+        "codeBlockBackgroundColor": "#0D2137",
+        "codeBlockHeaderBackgroundColor": "#1E425F",
+        "scrollbarBackgroundColor": "#0F2A40",
+        "toolbarBackgroundColor": "#142F45",
+        "toolbarButtonBackgroundColor": "#2D5F8B",
+        "selectedItemBackgroundColor": "#3A77AD",
+        "textColor": "#E6F3FF",
+        "headerTextColor": "#7CC2FF",
+        "inputTextColor": "#B8E2FF",
         "buttonTextColor": "#FFFFFF",
-        "dropdownTextColor": "#E0E0E0",
-        "messageUserTextColor": "#E6E6E6",
-        "messageAITextColor": "#E0E0E0",
-        "messageRootTextColor": "#E6E6E6",
-        "codeBlockTextColor": "#E0E0E0",
-        "codeBlockHeaderTextColor": "#FFFFFF",
+        "dropdownTextColor": "#A1D6FF",
+        "messageUserTextColor": "#E6F3FF",
+        "messageAITextColor": "#B8E2FF",
+        "messageRootTextColor": "#7CC2FF",
+        "codeBlockTextColor": "#56B6C2",
+        "codeBlockHeaderTextColor": "#61AFEF",
         "toolbarButtonTextColor": "#FFFFFF",
-        "selectedItemTextColor": "#4ECDC4",
-        "linkColor": "#81A1C1",
-        "buttonDisabledBackgroundColor": "#2A2A2A",
-        "buttonDisabledTextColor": "#6E6E6E",
-        "headerBarBackgroundCss": "linear-gradient(160deg, #1A1A1A 0%, #2C5F5C 100%)",
-        "messagesPaneBackgroundCss": "linear-gradient(135deg, rgba(30, 42, 61, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
-        "mainContentBackgroundCss": "linear-gradient(135deg, #2C3E50 0%, #4A5568 50%, #2C3E50 100%)",
-        "mainContentBackgroundImage": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='none'/%3E%3Cpath d='M0 0L50 50L100 0L100 100L50 50L0 100Z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E\")",
-        "fontFamily": "Segoe UI, sans-serif",
-        "fixedWidthFontFamily": "Consolas, monospace"
+        "selectedItemTextColor": "#FFFFFF",
+        "linkColor": "#61AFEF",
+        "buttonDisabledBackgroundColor": "#1C3F5E",
+        "buttonDisabledTextColor": "#4A6F94",
+        "fontLink": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap",
+        "fontFamily": "Inter, system-ui, -apple-system, sans-serif",
+        "fixedWidthFontFamily": "JetBrains Mono, monospace",
+        "borderRadius": "4px",
+        "buttonBorder": "1px solid #3A77AD",
+        "headerBarBackgroundCss": "linear-gradient(180deg, #142F45 0%, #1C3F5E 100%)",
+        "mainContentBackgroundCss": "radial-gradient(circle at 50% -20%, #142F45 0%, #0A1929 50%)",
+        "messagesPaneBackgroundCss": "linear-gradient(180deg, rgba(13, 33, 55, 0.8) 0%, rgba(10, 25, 41, 0.9) 100%)",
+        "messagesPaneBackgroundFilter": "blur(10px)",
+        "buttonBackgroundCss": "linear-gradient(180deg, #2D5F8B 0%, #245174 100%)"
     }
 };
 
 const ColorSchemeProvider = ({ children }) => {
+    debugger;
     const [colorSchemes, setColorSchemes] = useState(initialColorSchemes);
-    const [currentSchemeId, setCurrentSchemeId] = useState('Serene');
+    const [currentSchemeId, setCurrentSchemeId] = useState(Object.keys(initialColorSchemes)[0]);
 
     const addColorScheme = (id, scheme) => {
         const schemeId = scheme.id || scheme.themeName || id;
@@ -82,7 +85,17 @@ const ColorSchemeProvider = ({ children }) => {
     };
 
     const setAllColorSchemes = (newColorSchemes) => {
-        setColorSchemes(newColorSchemes);
+
+        // bugfix: if the default theme got eaten somehow, reinstate it
+
+        if (!newColorSchemes['Default']) {
+            setColorSchemes({
+                'Default': initialColorSchemes['Default'],
+                ...newColorSchemes
+            });
+        } else {
+            setColorSchemes(newColorSchemes);
+        }
     };
 
     const selectColorScheme = (id) => {

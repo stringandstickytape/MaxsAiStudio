@@ -36,7 +36,7 @@ function App() {
 
     return (
         <>
-            {colorScheme.fontLink && (
+            {colorScheme && colorScheme.fontLink && (
                 <link href={colorScheme.fontLink} rel="stylesheet" />
             )}
             <style>
@@ -46,11 +46,11 @@ function App() {
                         margin: 0;
                         padding: 0;
                         overflow: hidden;
-                        font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
+                        font-family: ${colorScheme && colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
 
                     button {
-                        font-family: ${colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
+                        font-family: ${colorScheme && colorScheme.fontFamily ? colorScheme.fontFamily : "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"};
                     }
 
                     .app-container {
@@ -64,10 +64,10 @@ function App() {
                         padding: 20px;
                         overflow-x: hidden;
                         scroll-behavior: auto;
-                        background-color: ${colorScheme.backgroundColor};
-                        background: ${colorScheme.mainContentBackgroundCss};
-                        background-image: ${colorScheme.mainContentBackgroundImage};
-                        color: ${colorScheme.textColor};
+                        background-color: ${colorScheme ? colorScheme.backgroundColor : "black"};
+                        background: ${colorScheme ? colorScheme.mainContentBackgroundCss : ""};
+                        background-image: ${colorScheme ? colorScheme.mainContentBackgroundImage : ""};
+                        color: ${colorScheme ? colorScheme.textColor : "white"};
                     }
                 `}
             </style>
