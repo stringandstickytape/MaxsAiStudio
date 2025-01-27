@@ -234,23 +234,23 @@ namespace AiTool3.Helpers
                 {
 
 
-                    new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
-                        {
-                        var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        AiResponse response = await SpecialsHelper.GetReadmeResponses(model);
-                        var snippets = snippetManager.FindSnippets(response.ResponseText);
-
-                        try
-                        {
-                            var code = snippets.Snippets.First().Content;
-                            code = SnippetHelper.StripFirstAndLastLine(code);
-                            File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiStudio\README.md", code);
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Error writing to file: {ex.Message}");
-                        }
-                    }),
+                   //new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
+                   //    {
+                   //    var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
+                   //    AiResponse response = await SpecialsHelper.GetReadmeResponses(model);
+                   //    var snippets = snippetManager.FindSnippets(response.ResponseText);
+                   //
+                   //    try
+                   //    {
+                   //        var code = snippets.Snippets.First().Content;
+                   //        code = SnippetHelper.StripFirstAndLastLine(code);
+                   //        File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiStudio\README.md", code);
+                   //    }
+                   //    catch (Exception ex)
+                   //    {
+                   //        MessageBox.Show($"Error writing to file: {ex.Message}");
+                   //    }
+                   //}),
 
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {

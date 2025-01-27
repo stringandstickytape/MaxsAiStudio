@@ -135,6 +135,8 @@ Somehow mark which models support tools? And do what, exactly, when an attempt t
 
 Deal with the multiple-toold problem
 
+4096 topken limit should be configurable and, when using tools, recoverable-from
+
 In VS, load the solution prompt reliably and allow it to be set from the textbox
 
 Remove the model selectors in VS, or make them work reliably

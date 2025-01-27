@@ -449,7 +449,7 @@ namespace AiTool3.UI
         internal async Task SetModels(List<Model> models)
         {
             var modelStrings = models.Select(x => x.FriendlyName);
-            var columnData = models.Select(x => new { protocol = x.Provider?.ServiceName?? "Unknown", inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred });
+            var columnData = models.Select(x => new { protocol = x.Provider?.ServiceName?? "Unknown", inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred, provider = x.Provider.FriendlyName });
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
