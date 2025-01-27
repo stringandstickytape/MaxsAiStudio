@@ -30,7 +30,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings, 300);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings, 300);
             var url = $"{apiModel.Provider.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Provider.ApiKey}";
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
@@ -123,7 +123,7 @@ namespace AiTool3.AiServices
 
 
 
-        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }

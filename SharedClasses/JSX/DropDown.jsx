@@ -76,7 +76,7 @@
 
     const dropdownStyle = {
         position: 'relative',
-        minWidth: '300px',
+        minWidth: '350px',
         fontSize: '13px',
         border: '1px solid ' + colorScheme.borderColor
     };
@@ -181,6 +181,7 @@
                                     <tr>
                                         <th style={cellStyle}></th>
                                         <th style={cellStyle}>Model</th>
+                                        <th style={cellStyle}>Provider</th>
                                         <th style={costStyle}>Protocol</th>
                                         <th style={costStyle}>Input Cost</th>
                                         <th style={costStyle}>Output Cost</th>
@@ -202,6 +203,7 @@
                                                 </span>
                                             </td>
                                             <td style={cellStyle}>{option}</td>
+                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].provider : ''}</td>
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].protocol : ''}</td>
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].inputCost : ''}</td>
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].outputCost : ''}</td>

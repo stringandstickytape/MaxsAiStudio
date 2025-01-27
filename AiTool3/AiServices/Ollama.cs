@@ -27,7 +27,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 

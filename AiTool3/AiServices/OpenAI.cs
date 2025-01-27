@@ -21,9 +21,9 @@ namespace AiTool3.AiServices
         {
         }
 
-        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Provider.ApiKey);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         }
 
 
@@ -39,7 +39,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
 
             if (apiModel.Provider.Url.Contains("deepseek"))
                 deepseekBodge = true;

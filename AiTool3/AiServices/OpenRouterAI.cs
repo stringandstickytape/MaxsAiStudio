@@ -16,9 +16,9 @@ namespace AiTool3.AiServices
         {
         }
 
-        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiModel.Provider.ApiKey}");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
             client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }
@@ -34,7 +34,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject

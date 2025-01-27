@@ -1,6 +1,4 @@
-﻿using AiTool3.AiServices;
-
-namespace AiTool3.DataModels
+﻿namespace AiTool3.AiServices
 {
     public class ServiceProvider
     {
@@ -13,7 +11,8 @@ namespace AiTool3.DataModels
         // create a guid
         public string Guid { get; set; }
 
-        public ServiceProvider() { 
+        public ServiceProvider()
+        {
             Guid = System.Guid.NewGuid().ToString();
         }
 

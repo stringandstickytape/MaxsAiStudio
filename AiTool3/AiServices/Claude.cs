@@ -23,10 +23,10 @@ namespace AiTool3.AiServices
             oneOffPreFill = prefill;
         }
 
-        protected override void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
-            base.ConfigureHttpClientHeaders(apiModel, currentSettings);
-            client.DefaultRequestHeaders.Add("x-api-key", apiModel.Provider.ApiKey);
+            base.ConfigureHttpClientHeaders(currentSettings);
+            client.DefaultRequestHeaders.Add("x-api-key", ApiKey);
             client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
 
             if (currentSettings.UsePromptCaching)
@@ -113,7 +113,7 @@ namespace AiTool3.AiServices
 
         public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
 
             var req = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 

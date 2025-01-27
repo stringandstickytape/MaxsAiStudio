@@ -1,4 +1,5 @@
 using AiTool3;
+using AiTool3.AiServices;
 using AiTool3.Conversations;
 using AiTool3.FileAttachments;
 using AiTool3.Snippets;
@@ -48,12 +49,12 @@ internal static class Program
     {
         services.AddSingleton<AiResponseHandler>();
         services.AddSingleton<ToolManager>();
-        //services.AddSingleton<TcpCommsManager>();
         services.AddTransient<SnippetManager>();
         services.AddSingleton<SearchManager>();
         services.AddSingleton<FileAttachmentManager>();
         services.AddSingleton<TemplateManager>();
         services.AddSingleton<ConversationManager>();
         services.AddSingleton<MaxsAiStudio>();
+        services.AddSingleton<ServiceProviderManager>();
     }
 }

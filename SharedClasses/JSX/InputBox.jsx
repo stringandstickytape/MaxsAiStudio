@@ -1,11 +1,13 @@
-﻿const { useState, useCallback } = React;
+﻿const { useState, useCallback, useEffect } = React;
 const { useColorScheme } = React;
 
-const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeholderText }, ref) => {
+const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeholderText, name }, ref) => {
     const [content, setContent] = useState('');
     const [placeholder, setPlaceholder] = useState(placeholderText);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [rotation, setRotation] = useState(0);
+    const [isFocused, setIsFocused] = useState(false);
+
 
     const { colorScheme } = useColorScheme();
 
@@ -52,6 +54,21 @@ const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeho
     const toggleFullScreen = () => {
         setIsFullScreen(!isFullScreen);
         setRotation(rotation + 90);
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+        if (value) {
+            window.postMessage({
+                type: 'inputChange',
+                name: name,
+                value: value
+            }, '*');
+        }
+    };
+
+    const handleFocus = () => {
+        setIsFocused(true);
     };
 
     // Export methods
@@ -124,6 +141,8 @@ const InputBox = React.forwardRef(({ onSend, value, onChange, className, placeho
                     onPaste={handlePaste}
                     placeholder={placeholder}
                     style={isFullScreen ? { width: '100%', height: '100%' } : {}}
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
                 />
                 <div
                     className="fullscreen-icon"

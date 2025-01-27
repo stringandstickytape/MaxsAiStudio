@@ -18,7 +18,7 @@ namespace AiTool3.AiServices
         }
         public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel, currentSettings);
+            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
             var messagesArray = new JArray();

@@ -22,21 +22,29 @@ namespace AiTool3.AiServices
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;
 
-        protected virtual void InitializeHttpClient(Model apiModel, SettingsSet currentSettings, int timeout = 100)
+        public string ApiKey { get; set; }
+        public string ApiUrl { get; set; }
+        public string ApiModel { get; set; }
+
+        protected virtual void InitializeHttpClient(string apiKey, string apiUrl, string apiModel, SettingsSet currentSettings, int timeout = 100)
         {
+            ApiKey = apiKey;
+            ApiModel = apiModel;
+            ApiUrl = apiUrl;
+
             if (clientInitialised) return;
-            ConfigureHttpClientHeaders(apiModel, currentSettings);
+            ConfigureHttpClientHeaders(currentSettings);
 
             client.Timeout = TimeSpan.FromSeconds(timeout);
 
             clientInitialised = true;
         }
 
-        protected virtual void ConfigureHttpClientHeaders(Model apiModel, SettingsSet currentSettings)
+        protected virtual void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
-            if (!string.IsNullOrEmpty(apiModel.Provider.ApiKey))
+            if (!string.IsNullOrEmpty(ApiKey))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiModel.Provider.ApiKey);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
             }
         }
 
