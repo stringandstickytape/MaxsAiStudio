@@ -162,7 +162,7 @@ namespace AiTool3.UI
                     string tooltip = "";
                     if (message.Role == CompletionRole.Assistant)
                     {
-                        tooltip = $"{model.FriendlyName}\n{message.TimeTaken.TotalSeconds.ToString("F2")} seconds";
+                        tooltip = $"{model?.FriendlyName ?? "Unknown model"}\n{message.TimeTaken.TotalSeconds.ToString("F2")} seconds";
 
                         if (message.OutputTokens > 0)
                         {
@@ -171,15 +171,16 @@ namespace AiTool3.UI
                         }
                     }
 
-                    
-                    var colorHex = $"#{model.Color.R:X2}{model.Color.G:X2}{model.Color.B:X2}";
+                    string colourHex = $"#FFFFFF";
+                    if(model != null)
+                        colourHex = $"#{model.Color.R:X2}{model.Color.G:X2}{model.Color.B:X2}";
 
                     D3Node node = new D3Node
                     {
                         id = message.Guid!,
                         label = message.Content!,
                         role = message.Role.ToString(),
-                        colour = colorHex,
+                        colour = colourHex,
                         tooltip = tooltip
                     };
 

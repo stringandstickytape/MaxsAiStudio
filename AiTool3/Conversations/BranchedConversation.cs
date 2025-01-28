@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using static AiTool3.AutoSuggestForm;
 using AiTool3.Tools;
+using System.Text.RegularExpressions;
 
 namespace AiTool3.Conversations
 {
@@ -108,6 +109,8 @@ namespace AiTool3.Conversations
                     responseText = responseText.Replace("```json", "").Replace("```", "");
                     try
                     {
+                        responseText = Regex.Replace(responseText, @"<think>.*?</think>", "", RegexOptions.Singleline);
+
                         dynamic obj = JsonConvert.DeserializeObject(responseText);
 
                         // get the first property name from obj
