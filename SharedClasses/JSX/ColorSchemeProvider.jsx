@@ -43,6 +43,7 @@ const initialColorSchemes = {
         "mainContentBackgroundCss": "radial-gradient(circle at 50% -20%, #142F45 0%, #0A1929 50%)",
         "messagesPaneBackgroundCss": "linear-gradient(180deg, rgba(13, 33, 55, 0.8) 0%, rgba(10, 25, 41, 0.9) 100%)",
         "messagesPaneBackgroundFilter": "blur(10px)",
+        "messageBorser": "1px solid black",
         "buttonBackgroundCss": "linear-gradient(180deg, #2D5F8B 0%, #245174 100%)"
     }
 };
@@ -74,7 +75,8 @@ const ColorSchemeProvider = ({ children }) => {
                     mainContentBackgroundCss: newColors.mainContentBackgroundCss || prevSchemes[id].mainContentBackgroundCss,
                     mainContentBackgroundImage: newColors.mainContentBackgroundImage || prevSchemes[id].mainContentBackground,
                     messagesPaneBackgroundImage: newColors.messagesPaneBackgroundImage || prevSchemes[id].messagesPaneBackgroundImage,
-                    messagesPaneBackgroundFilter: newColors.messagesPaneBackgroundFilter || prevSchemes[id].messagesPaneBackgroundFilter
+                    messagesPaneBackgroundFilter: newColors.messagesPaneBackgroundFilter || prevSchemes[id].messagesPaneBackgroundFilter,
+                    messagesBorder: newColors.messagesBorder || prevSchemes[id].messagesBorder
                 }
             };
         });

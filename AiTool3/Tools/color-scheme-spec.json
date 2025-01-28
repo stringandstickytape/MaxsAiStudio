@@ -173,6 +173,10 @@
             "type": "string",
             "description": "Messages pane background image URL"
           },
+          "messageBorder": {
+            "type": "string",
+            "description": "Border CSS for both AI and user messages"
+          },
           "mainContentBackgroundCss": {
             "type": "string",
             "description": "Main content background CSS"

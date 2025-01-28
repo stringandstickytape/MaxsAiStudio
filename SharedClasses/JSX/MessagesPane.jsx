@@ -162,7 +162,7 @@ const MessagesPane = () => {
                 {`
                 .messages-pane {
                     width: calc(100% - 20px);
-                    border: 1px solid ${colorScheme.textColor};
+                    ${colorScheme?.messageBorder ? `border: ${colorScheme.messageBorder}` : ``};
                     border-radius: 4px;
                     overflow-y: auto;
                     overflow-x: hidden;
@@ -181,7 +181,7 @@ const MessagesPane = () => {
                     border-radius: 4px;
                     padding: 10px;
                     max-width: 80%;
-                    border: 1px solid ${colorScheme.textColor};
+                    ${colorScheme?.messageBorder ? `border: ${colorScheme.messageBorder}` : ``};
                 }
                 .message-header {
                     display: flex;
