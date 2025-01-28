@@ -17,7 +17,7 @@ namespace AiTool3.Settings
             // Initialize ComboBox for Service Providers
             cboServiceProvider.DataSource = serviceProviders;
             cboServiceProvider.DisplayMember = "FriendlyName";
-            cboServiceProvider.SelectedItem = serviceProviders.FirstOrDefault(x => x.Guid == model.Provider.Guid);
+            cboServiceProvider.SelectedItem = ServiceProvider.GetProviderForGuid(serviceProviders, model.ProviderGuid);
 
             // Initialize other fields
             txtFriendlyName.Text = model.FriendlyName;
@@ -32,7 +32,9 @@ namespace AiTool3.Settings
             // Validate and update model properties
             Model.FriendlyName = txtFriendlyName.Text;
             Model.ModelName = txtModelName.Text;
-            Model.Provider = (ServiceProvider)cboServiceProvider.SelectedItem;
+
+            Model.ProviderGuid= ((ServiceProvider)cboServiceProvider.SelectedItem).Guid;
+
             if (decimal.TryParse(txtInputPrice.Text, out decimal inputPrice))
             {
                 Model.input1MTokenPrice = inputPrice;

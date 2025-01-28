@@ -23,7 +23,7 @@ namespace AiTool3.AiServices
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }
         public override async Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey, string apiUrl, string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -34,7 +34,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
+            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
@@ -61,18 +61,18 @@ namespace AiTool3.AiServices
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
-                return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+                return await HandleResponse(content, useStreaming, cancellationToken);
             }
         }
         protected override JObject CreateRequestPayload(
-             Model apiModel,
+             string modelName,
              Conversation conversation,
             bool useStreaming,
              SettingsSet currentSettings)
         {
             return new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["messages"] = new JArray(),
                 ["stream"] = useStreaming
             };
@@ -106,7 +106,7 @@ namespace AiTool3.AiServices
             }
             return messageObj;
         }
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
             request.Content = content;
@@ -178,7 +178,7 @@ namespace AiTool3.AiServices
             };
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
             var response = await client.PostAsync(baseUrl, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();

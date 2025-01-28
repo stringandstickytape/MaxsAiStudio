@@ -35,11 +35,11 @@ namespace AiTool3.AiServices
             }
         }
 
-        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
             var req = new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["system"] = conversation.systemprompt ?? "",
                 ["max_tokens"] = 4096,
                 ["stream"] = useStreaming,
@@ -111,9 +111,9 @@ namespace AiTool3.AiServices
             return req;
         }
 
-        public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(string apiKey, string apiUrl, string apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
+            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
 
             var req = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
@@ -136,7 +136,7 @@ namespace AiTool3.AiServices
             {
                 try
                 {
-                    var response = await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+                    var response = await HandleResponse(content, useStreaming, cancellationToken);
                     if (oneOffPreFill != null)
                     {
                         response.ResponseText = $"{oneOffPreFill}{response.ResponseText}";
@@ -160,9 +160,9 @@ namespace AiTool3.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            using var response = await SendRequest(apiModel, content, cancellationToken, true);
+            using var response = await SendRequest(content, cancellationToken, true);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             var streamProcessor = new StreamProcessor(true);
@@ -184,9 +184,9 @@ namespace AiTool3.AiServices
             };
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            using var response = await SendRequest(apiModel, content, cancellationToken);
+            using var response = await SendRequest(content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             var completion = JsonConvert.DeserializeObject<JObject>(responseString);
 
@@ -201,7 +201,7 @@ namespace AiTool3.AiServices
                     var result = MessageBox.Show("Claude reports that it's overloaded. Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
                     if (result == DialogResult.Yes)
                     {
-                        return await HandleNonStreamingResponse(apiModel, content, cancellationToken);
+                        return await HandleNonStreamingResponse( content, cancellationToken);
                     }
                 }
                 return new AiResponse { ResponseText = "error - " + completion["error"]["message"].ToString(), Success = false };

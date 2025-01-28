@@ -116,9 +116,9 @@ namespace AiTool3.Conversations
             dgv.InvokeIfNeeded(() => dgv.Refresh());
         }
 
-        public async Task<AutoSuggestForm> Autosuggest(Model model, DataGridView dgv, bool fun = false, string userAutoSuggestPrompt = null!)
+        public async Task<AutoSuggestForm> Autosuggest(Model model, DataGridView dgv, SettingsSet currentSettings, bool fun = false, string userAutoSuggestPrompt = null!)
         {
-            return await Conversation!.GenerateAutosuggests(model, fun, userAutoSuggestPrompt);
+            return await Conversation!.GenerateAutosuggests(model, currentSettings, fun, userAutoSuggestPrompt);
         }
 
         public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)

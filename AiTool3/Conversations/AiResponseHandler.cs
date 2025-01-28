@@ -119,7 +119,9 @@ namespace AiTool3.Conversations
                 SettingsSet.Save(currentSettings);
             }
 
-            var aiService = AiServiceResolver.GetAiService(model.Provider.ServiceName, _toolManager);
+            var service = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, model.ProviderGuid);
+
+            var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolManager);
             aiService.StreamingTextReceived += AiService_StreamingTextReceived;
             aiService.StreamingComplete += (s, e) => { _chatWebView.InvokeIfNeeded(() => _chatWebView.ClearTemp()); };
 
@@ -140,7 +142,9 @@ namespace AiTool3.Conversations
             await Task.Run(async () =>
             {
                 response = await aiService!.FetchResponse(
-                    model,
+                    service.ApiKey,
+                   service.Url,
+                   model.ModelName,
                     conversation,
                     _fileAttachmentManager.Base64Image!,
                     _fileAttachmentManager.Base64ImageType!,

@@ -3,6 +3,7 @@ using AiTool3.AiServices;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using static AiTool3.AutoSuggestForm;
+using AiTool3.Tools;
 
 namespace AiTool3.Conversations
 {
@@ -61,8 +62,10 @@ namespace AiTool3.Conversations
             try
             {
 
+                var service = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, apiModel.ProviderGuid);
+
                 // instantiate the service from name
-                var aiService = AiServiceResolver.GetAiService(apiModel.Provider.ServiceName, null);
+                var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
 
                 Conversation conversation = null;
 
@@ -88,7 +91,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
                 Debug.WriteLine("Summary : " + response.ResponseText);
 
@@ -130,13 +133,16 @@ namespace AiTool3.Conversations
             }
         }
 
-        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, bool fun, string userAutoSuggestPrompt)
+        internal async Task<AutoSuggestForm> GenerateAutosuggests(Model apiModel, SettingsSet currentSettings, bool fun, string userAutoSuggestPrompt)
         {
             AutoSuggestForm form = null;
             string responseText = "";
             Debug.WriteLine(Summary);
 
-            var aiService = AiServiceResolver.GetAiService(apiModel.Provider.ServiceName, null);
+
+            var service = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, apiModel.ProviderGuid);
+
+            var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
 
             Conversation conversation = null;
 
@@ -170,7 +176,7 @@ namespace AiTool3.Conversations
 
             }
 
-            var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+            var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
             var cost = apiModel.GetCost(response.TokenUsage);
 

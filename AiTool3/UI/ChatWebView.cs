@@ -446,10 +446,13 @@ namespace AiTool3.UI
         }
 
 
-        internal async Task SetModels(List<Model> models)
+        internal async Task SetModels(SettingsSet currentSettings)
         {
-            var modelStrings = models.Select(x => x.FriendlyName);
-            var columnData = models.Select(x => new { protocol = x.Provider?.ServiceName?? "Unknown", inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred, provider = x.Provider.FriendlyName });
+            var modelStrings = currentSettings.ModelList.Select(x => x.FriendlyName);
+            var columnData = currentSettings.ModelList.Select(x => new { protocol =
+                ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid)?.ServiceName?? "Unknown", 
+                inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred, 
+                provider = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid).FriendlyName });
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
@@ -606,7 +609,7 @@ namespace AiTool3.UI
 
         internal async Task InitialiseApiList(SettingsSet settings)
         {
-            await SetModels(settings.ModelList);
+            await SetModels(settings);
 
             await SetModelForDropdown("mainAI", settings.SelectedModel, settings, m => m.SelectedModel);
             await SetModelForDropdown("summaryAI", settings.SelectedSummaryModel, settings, m => m.SelectedSummaryModel);

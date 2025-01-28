@@ -231,7 +231,7 @@ Analyze the above C# code and provide appropriate XML documentation comments for
             newSettings.Create();
             foreach (var model in newSettings.ModelList)
             {
-                var newModel = ModelList.FirstOrDefault(x => x.Provider.ServiceName == model.Provider.ServiceName && x.ModelName == model.ModelName);
+                var newModel = ModelList.FirstOrDefault(x => x.ProviderGuid == model.ProviderGuid && x.ModelName == model.ModelName);
                 if (newModel == null)
                 {
                     // add to correct in apilist

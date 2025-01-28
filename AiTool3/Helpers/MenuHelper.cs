@@ -255,14 +255,14 @@ namespace AiTool3.Helpers
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations);
+                        var autoSuggestForm = await conversationManager.Autosuggest(model,  dgvConversations, currentSettings);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
 
                     new LabelAndEventHander("Autosuggest (Fun)", async (s, e) =>
                     {
                         var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                        var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, true);
+                        var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, currentSettings, true);
                         autoSuggestForm.StringSelected += autoSuggestStringSelected;
                     }),
 
@@ -293,7 +293,7 @@ namespace AiTool3.Helpers
                             userAutoSuggestPrompt = $"{prefix}{userAutoSuggestPrompt}{suffix}";
 
                             var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                            var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, true, userAutoSuggestPrompt);
+                            var autoSuggestForm = await conversationManager.Autosuggest(model, dgvConversations, currentSettings, true, userAutoSuggestPrompt);
                             autoSuggestForm.StringSelected += autoSuggestStringSelected;
                         }
                     }),

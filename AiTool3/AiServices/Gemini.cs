@@ -19,7 +19,7 @@ namespace AiTool3.AiServices
             }
 
         public override async Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey, string apiUrl, string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -30,8 +30,8 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings, 300);
-            var url = $"{apiModel.Provider.Url}{apiModel.ModelName}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={apiModel.Provider.ApiKey}";
+            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings,300);
+            var url = $"{ApiUrl}{ApiModel}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
@@ -81,12 +81,12 @@ namespace AiTool3.AiServices
                 var jsonPayload = JsonConvert.SerializeObject(requestPayload);
                 using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
                 {
-                    return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+                    return await HandleResponse(content, useStreaming, cancellationToken);
                 }
             }
 
         protected override JObject CreateRequestPayload(
-    Model apiModel,
+    string apiModel,
     Conversation conversation,
     bool useStreaming,
     SettingsSet currentSettings)
@@ -127,9 +127,9 @@ namespace AiTool3.AiServices
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{apiModel.Provider.Url}{apiModel.ModelName}:streamGenerateContent?key={apiModel.Provider.ApiKey}"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
             {
                 request.Content = content;
                 using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
@@ -233,9 +233,9 @@ namespace AiTool3.AiServices
             return "";
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await client.PostAsync($"{apiModel.Provider.Url}{apiModel.ModelName}:generateContent?key={apiModel.Provider.ApiKey}", content, cancellationToken);
+            HttpResponseMessage response = await client.PostAsync($"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}", content, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {

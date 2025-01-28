@@ -28,7 +28,7 @@ namespace AiTool3.AiServices
 
 
         public override async Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey, string apiUrl, string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -39,9 +39,9 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
+            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
 
-            if (apiModel.Provider.Url.Contains("deepseek"))
+            if (ApiUrl.Contains("deepseek"))
                 deepseekBodge = true;
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
@@ -85,17 +85,17 @@ namespace AiTool3.AiServices
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+            return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
-            var supportsLogprobs = !apiModel.Provider.Url.Contains("generativelanguage.googleapis.com")
-                && !apiModel.Provider.Url.Contains("api.deepseek.com");
+            var supportsLogprobs = !ApiUrl.Contains("generativelanguage.googleapis.com")
+                && !ApiUrl.Contains("api.deepseek.com");
 
             var payload = new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["stream"] = useStreaming,
 
                 ["stream_options"] = useStreaming ? new JObject
@@ -191,9 +191,9 @@ namespace AiTool3.AiServices
                 request.Remove("tool_choice");
             }
         }
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
-            using var response = await SendRequest(apiModel, content, cancellationToken, true);
+            using var response = await SendRequest(content, cancellationToken, true);
 
             //ValidateResponse(response);
 
@@ -332,9 +332,9 @@ namespace AiTool3.AiServices
             return line;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await SendRequest(apiModel, content, cancellationToken);
+            var response = await SendRequest(content, cancellationToken);
             ValidateResponse(response);
             var responseContent = await response.Content.ReadAsStringAsync();
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);

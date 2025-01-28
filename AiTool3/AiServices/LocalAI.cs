@@ -16,9 +16,10 @@ namespace AiTool3.AiServices
         public LocalAI()
         {
         }
-        public override async Task<AiResponse> FetchResponse(Model apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(string apiKey, string apiUrl, string apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
+            InitializeHttpClient(apiKey,apiUrl,apiModel, currentSettings);
+
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
             var messagesArray = new JArray();
@@ -46,8 +47,8 @@ namespace AiTool3.AiServices
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            StartOllama(apiModel.ModelName);
-            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+            StartOllama(ApiModel);
+            return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
 
@@ -67,18 +68,18 @@ namespace AiTool3.AiServices
             return messageObj;
         }
 
-        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
             return new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["stream"] = useStreaming
             };
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Provider.Url);
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
             request.Content = content;
             client.Timeout = TimeSpan.FromSeconds(1800);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -155,9 +156,9 @@ namespace AiTool3.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await client.PostAsync(apiModel.Provider.Url, content, cancellationToken);
+            var response = await client.PostAsync(ApiUrl, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JObject.Parse(responseContent);
 

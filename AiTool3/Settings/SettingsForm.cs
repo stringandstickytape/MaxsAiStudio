@@ -338,7 +338,7 @@ namespace AiTool3.Settings
 
             // Sort the ModelList by ServiceName and then by FriendlyName
             var sortedModelList = settings.ModelList
-                .OrderBy(model => model.Provider?.ServiceName ?? "unknown")
+                .OrderBy(model => ServiceProvider.GetProviderForGuid(settings.ServiceProviders, model.ProviderGuid)?.ServiceName ?? "unknown")
                 .ThenBy(model => model.FriendlyName)
                 .ToList();
 

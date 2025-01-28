@@ -15,7 +15,7 @@ namespace AiTool3.AiServices
         private const string LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
         public override async Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey, string apiUrl, string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -63,12 +63,12 @@ namespace AiTool3.AiServices
             OnStreamingComplete();
         }
 
-        protected override Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
             throw new NotImplementedException("Should not call this in Mock");
         }
 
-        protected override Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
             throw new NotImplementedException("Should not call this in Mock");
         }

@@ -49,7 +49,9 @@ namespace AiTool3.AiServices
         }
 
         public abstract Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey,
+            string apiUrl,
+            string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -78,20 +80,19 @@ namespace AiTool3.AiServices
         }
 
         protected virtual JObject CreateRequestPayload(
-            Model apiModel,
+            string modelName, 
             Conversation conversation,
             bool useStreaming,
             SettingsSet currentSettings)
         {
             return new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["stream"] = useStreaming
             };
         }
 
         protected virtual async Task<AiResponse> HandleResponse(
-            Model apiModel,
             HttpContent content,
             bool useStreaming,
             CancellationToken cancellationToken)
@@ -99,8 +100,8 @@ namespace AiTool3.AiServices
             try
             {
                 return useStreaming
-                    ? await HandleStreamingResponse(apiModel, content, cancellationToken)
-                    : await HandleNonStreamingResponse(apiModel, content, cancellationToken);
+                    ? await HandleStreamingResponse(content, cancellationToken)
+                    : await HandleNonStreamingResponse(content, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -109,12 +110,10 @@ namespace AiTool3.AiServices
         }
 
         protected abstract Task<AiResponse> HandleStreamingResponse(
-            Model apiModel,
             HttpContent content,
             CancellationToken cancellationToken);
 
         protected abstract Task<AiResponse> HandleNonStreamingResponse(
-            Model apiModel,
             HttpContent content,
             CancellationToken cancellationToken);
 
@@ -150,12 +149,11 @@ namespace AiTool3.AiServices
         }
 
         protected virtual async Task<HttpResponseMessage> SendRequest(
-            Model apiModel,
             HttpContent content,
             CancellationToken cancellationToken,
             bool streamingRequest = false)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, apiModel.Provider.Url)
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl)
             {
                 Content = content
             };

@@ -206,8 +206,8 @@ namespace AiTool3.UI
         private async void ChatWebView_ChatWebViewSimpleEvent(object? sender, ChatWebViewSimpleEventArgs e)
         {
             var apiModel = _currentSettings.GetSummaryModel() ?? _currentSettings.GetModel();
-
-            var aiService = AiServiceResolver.GetAiService(apiModel.Provider.ServiceName, null);
+            
+            var aiService = AiServiceResolver.GetAiService(ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid).ServiceName, null);
 
             switch (e.EventType)
             {
@@ -221,7 +221,10 @@ namespace AiTool3.UI
                         var systemPrompt2 = "";
                         cm2.MostRecentCompletion = cm2.Conversation.Messages.Last();
                         var conversation2 = await cm2.PrepareConversationData(apiModel, systemPrompt2, inputText2, _fileAttachmentManager);
-                        var response2 = await aiService.FetchResponse(apiModel, conversation2, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+
+                        var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
+
+                        var response2 = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation2, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                         cm2.AddInputAndResponseToConversation(response2, apiModel, conversation2, inputText2, systemPrompt2, out var completionInput2, out var completionResponse2);
                         cm2.SaveConversation();
 
@@ -238,7 +241,10 @@ namespace AiTool3.UI
                         var systemPrompt = "";
                         cm.BeginNewConversation();
                         var conversation = await cm.PrepareConversationData(apiModel, "", inputText, _fileAttachmentManager);
-                        var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+
+                        var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
+
+                        var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                         cm.AddInputAndResponseToConversation(response, apiModel, conversation, inputText, systemPrompt, out var completionInput, out var completionResponse);
 
 
@@ -275,7 +281,9 @@ namespace AiTool3.UI
                                 new ConversationMessage { role = "user", content = JsonConvert.DeserializeObject<string>(e.Json) }
                             };
 
-                            var response = await aiService.FetchResponse(apiModel, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                            var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
+
+                            var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                             await _chatWebView.SendMergeResultsToVsixAsync(response);
                         }
                         catch (Exception e2)

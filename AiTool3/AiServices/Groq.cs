@@ -17,7 +17,7 @@ namespace AiTool3.AiServices
         }
 
         public override async Task<AiResponse> FetchResponse(
-            Model apiModel,
+            string apiKey, string apiUrl, string apiModel,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -28,7 +28,7 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiModel.Provider.ApiKey, apiModel.Provider.Url, apiModel.ModelName, currentSettings);
+            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
 
             // Force streaming for Groq
             useStreaming = true;
@@ -67,21 +67,21 @@ namespace AiTool3.AiServices
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(apiModel, content, useStreaming, cancellationToken);
+            return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(Model apiModel, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
             return new JObject
             {
-                ["model"] = apiModel.ModelName,
+                ["model"] = modelName,
                 ["max_tokens"] = 4000,
             };
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await SendRequest(apiModel, content, cancellationToken, streamingRequest: true);
+            var response = await SendRequest(content, cancellationToken, streamingRequest: true);
 
             ValidateResponse(response);
 
@@ -150,9 +150,9 @@ namespace AiTool3.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(Model apiModel, HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
-            var response = await SendRequest(apiModel, content, cancellationToken);
+            var response = await SendRequest(content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
 

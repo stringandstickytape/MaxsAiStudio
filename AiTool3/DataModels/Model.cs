@@ -28,24 +28,6 @@ namespace AiTool3.DataModels
 
         public string ProviderGuid { get; set; }
 
-        private ServiceProvider _serviceProvider;
-        
-
-        public ServiceProvider Provider
-        {
-            get { 
-                if(_serviceProvider == null)
-                {
-                    _serviceProvider = new ServiceProvider();
-                };
-                return _serviceProvider; 
-            }
-            set
-            {
-                _serviceProvider = value;
-            }
-        }
-
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }
 
