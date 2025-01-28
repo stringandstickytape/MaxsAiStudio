@@ -90,8 +90,8 @@ namespace AiTool3.AiServices
 
         protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
-            var supportsLogprobs = !ApiUrl.Contains("generativelanguage.googleapis.com")
-                && !ApiUrl.Contains("api.deepseek.com");
+            var supportsLogprobs = false; // !ApiUrl.Contains("generativelanguage.googleapis.com")
+                //&& !ApiUrl.Contains("api.deepseek.com");
 
             var payload = new JObject
             {
