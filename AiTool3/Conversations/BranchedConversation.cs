@@ -72,7 +72,7 @@ namespace AiTool3.Conversations
 
                 {
                     conversation = new Conversation(DateTime.Now);
-                    conversation.systemprompt = "you are a bot who summarises conversations.  Summarise this conversation in six words or fewer as a json object";
+                    conversation.systemprompt = "you are a bot who summarises conversations.  Summarise this conversation in six words or fewer as a json object like this, and produce no other output: {\"summary\": \"your summary text\"} ";
                     conversation.messages = new List<ConversationMessage>();
                     List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
 
@@ -88,7 +88,7 @@ namespace AiTool3.Conversations
                         }
                         conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                     }
-                    conversation.messages.Add(new ConversationMessage { role = "user", content = "Excluding this instruction, summarise the above conversation in ten words or fewer as a json object" });
+                    conversation.messages.Add(new ConversationMessage { role = "user", content = "Excluding this instruction, summarise the above conversation in ten words or fewer as a json object like this, and produce no other output: {\"summary\": \"your summary text\"} " });
 
                 }
                 // fetch the response from the api
@@ -110,6 +110,9 @@ namespace AiTool3.Conversations
                     try
                     {
                         responseText = Regex.Replace(responseText, @"<think>.*?</think>", "", RegexOptions.Singleline);
+
+                        if (responseText.StartsWith("`")) responseText = responseText.Substring(1);
+                        if (responseText.EndsWith("`")) responseText = responseText.Substring(0, responseText.Length - 1);
 
                         dynamic obj = JsonConvert.DeserializeObject(responseText);
 
