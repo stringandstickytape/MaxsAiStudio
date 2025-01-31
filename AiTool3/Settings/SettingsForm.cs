@@ -276,6 +276,7 @@ namespace AiTool3.Settings
         {
             var columns = new[]
             {
+                new { Name = "CopyButton", HeaderText = "Copy", ReadOnly = false },
                 new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
                 new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
                 new { Name = "Guid", HeaderText = "Guid", ReadOnly = false },
@@ -321,7 +322,13 @@ namespace AiTool3.Settings
                 dgvModels.Columns.Add(newCol);
             }
 
-
+            dgvModels.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "CopyButton",
+                HeaderText = "Copy",
+                Text = "Copy",
+                UseColumnTextForButtonValue = true
+            });
 
             dgvModels.Columns.Add(new DataGridViewButtonColumn
             {
@@ -345,6 +352,7 @@ namespace AiTool3.Settings
             foreach (var model in sortedModelList)
             {
                 var index = dgvModels.Rows.Add(
+                    "Copy",
                     model.FriendlyName,
                     model.ModelName,
                     model.Guid,
@@ -359,7 +367,8 @@ namespace AiTool3.Settings
 
         private void DgvModels_SelectionChanged(object sender, EventArgs e)
         {
-            if (dgvModels.CurrentCell?.OwningColumn?.Name == "DeleteButton") return;
+            if (dgvModels.CurrentCell?.OwningColumn?.Name == "DeleteButton" || 
+                dgvModels.CurrentCell?.OwningColumn?.Name == "CopyButton") return;
 
             if (isInitializing)
             {
@@ -397,6 +406,59 @@ namespace AiTool3.Settings
 
         private void DgvModels_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            // Handle Copy button click
+            if (e.RowIndex >= 0 && e.ColumnIndex == dgvModels.Columns["CopyButton"].Index)
+            {
+                var row = dgvModels.Rows[e.RowIndex];
+                var modelGuid = row.Cells["Guid"].Value?.ToString();
+                var originalModel = NewSettings.ModelList.FirstOrDefault(m => m.Guid == modelGuid);
+
+                if (originalModel != null)
+                {
+                    // Create a deep copy of the model
+                    var json = JsonConvert.SerializeObject(originalModel);
+                    var newModel = JsonConvert.DeserializeObject<Model>(json);
+
+                    // Update properties for the copy
+                    newModel.FriendlyName = "Copy of " + originalModel.FriendlyName;
+                    newModel.Guid = Guid.NewGuid().ToString(); // Generate new GUID
+
+                    // Add to settings
+                    NewSettings.ModelList.Add(newModel);
+
+                    // Add new row to grid
+                    var index = dgvModels.Rows.Add(
+                        "Copy",
+                        newModel.FriendlyName,
+                        newModel.ModelName,
+                        newModel.Guid,
+                        newModel.input1MTokenPrice,
+                        newModel.output1MTokenPrice,
+                        ColorTranslator.ToHtml(newModel.Color));
+
+                    dgvModels.Rows[index].Cells["DeleteButton"].Value = "Delete";
+                    dgvModels.FirstDisplayedScrollingRowIndex = index;
+
+                    // Open edit dialog for the copied model
+                    using (var editForm = new ModelEditForm(newModel, NewSettings.ServiceProviders))
+                    {
+                        if (editForm.ShowDialog() == DialogResult.OK)
+                        {
+                            // Update the grid with edited model details
+                            row.Cells["FriendlyName"].Value = newModel.FriendlyName;
+                            row.Cells["ModelName"].Value = newModel.ModelName;
+                            row.Cells["Guid"].Value = newModel.Guid;
+                        }
+                        else
+                        {
+                            // If canceled, remove the copy
+                            NewSettings.ModelList.Remove(newModel);
+                            dgvModels.Rows.RemoveAt(index);
+                        }
+                    }
+                }
+                return;
+            }
             if (e.RowIndex < 0) return;
 
             // Handle click on the new row button (the "+" button)
@@ -422,6 +484,7 @@ namespace AiTool3.Settings
 
                         // Directly add the new row to the DataGridView
                         var index = dgvModels.Rows.Add(
+                            "Copy",
                             newModel.FriendlyName,
                             newModel.ModelName,
                             newModel.Guid,
@@ -474,6 +537,7 @@ namespace AiTool3.Settings
                     NewSettings.ModelList.Add(newModel);
 
                     var index = dgvModels.Rows.Add(
+                        "Copy",
                         newModel.FriendlyName,
                         newModel.ModelName,
                         newModel.Guid,
