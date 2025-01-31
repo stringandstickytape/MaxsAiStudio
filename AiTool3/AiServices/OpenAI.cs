@@ -4,28 +4,25 @@ using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Linq;
-using SharedClasses.Helpers;
 using System.Text.RegularExpressions;
+using SharedClasses.Helpers;
 
 namespace AiTool3.AiServices
 {
     internal class OpenAI : AiServiceBase
     {
-        private bool deepseekBodge = false;
+        private bool deepseekBodge;
 
-        public OpenAI()
-        {
-        }
+        public OpenAI() { }
 
         protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         }
-
 
         public override async Task<AiResponse> FetchResponse(
             string apiKey, string apiUrl, string apiModel,
@@ -40,68 +37,60 @@ namespace AiTool3.AiServices
             bool addEmbeddings = false)
         {
             InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
-
-            if (ApiUrl.Contains("deepseek"))
-                deepseekBodge = true;
+            deepseekBodge = ApiUrl.Contains("deepseek");
 
             var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
 
-            var messagesArray = new JArray();
-
-            messagesArray.Add(new JObject
+            // Create system message
+            var systemMessage = new JObject
             {
                 ["role"] = "system",
-                ["content"] = deepseekBodge ?
-                    conversation.SystemPromptWithDateTime()
-                : new JArray
-                {
-                    new JObject
+                ["content"] = deepseekBodge
+                    ? conversation.SystemPromptWithDateTime()
+                    : new JArray(new JObject
                     {
                         ["type"] = "text",
                         ["text"] = conversation.SystemPromptWithDateTime()
-                    }
-                }
-            });
+                    })
+            };
 
+            var messagesArray = new JArray { systemMessage };
+
+            // Add conversation messages
             foreach (var m in conversation.messages)
             {
                 messagesArray.Add(CreateMessageObject(m));
             }
-
             requestPayload["messages"] = messagesArray;
 
             AddToolsToRequest(requestPayload, toolIDs);
 
-
             if (addEmbeddings)
             {
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
+                var lastMessageContent = conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessageContent);
                 ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
             }
+
             var json = JsonConvert.SerializeObject(requestPayload, new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore
             });
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
         protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
-            var supportsLogprobs = false; // !ApiUrl.Contains("generativelanguage.googleapis.com")
-                //&& !ApiUrl.Contains("api.deepseek.com");
+            // The supportsLogprobs flag may be extended later if desired
+            var supportsLogprobs = false;
 
             var payload = new JObject
             {
                 ["model"] = modelName,
                 ["stream"] = useStreaming,
-
-                ["stream_options"] = useStreaming ? new JObject
-                {
-                    ["include_usage"] = true
-                } : null
+                ["stream_options"] = useStreaming ? new JObject { ["include_usage"] = true } : null
             };
 
             if (supportsLogprobs)
@@ -129,13 +118,11 @@ namespace AiTool3.AiServices
                 });
             }
 
-
             messageContent.Add(new JObject
             {
                 ["type"] = "text",
                 ["text"] = message.content
             });
-
 
             return new JObject
             {
@@ -144,14 +131,13 @@ namespace AiTool3.AiServices
             };
         }
 
-
-
         protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
-            if (toolIDs == null || !toolIDs.Any()) return;
+            if (toolIDs == null || !toolIDs.Any())
+                return;
 
             var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            var firstLine = toolObj.FullText.Split("\n")[0]
+            var firstLine = toolObj.FullText.Split('\n')[0]
                 .Replace("//", "")
                 .Replace(" ", "")
                 .Replace("\r", "")
@@ -159,11 +145,13 @@ namespace AiTool3.AiServices
 
             var toolManager = new ToolManager();
             var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
-            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", "", RegexOptions.Multiline);
+            // Remove comment header
+            var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", string.Empty, RegexOptions.Multiline);
             var schema = JObject.Parse(colorSchemeToolText);
 
             if (deepseekBodge)
             {
+                // Wrap tool details for deepseek requests
                 var wrappedTool = new JObject
                 {
                     ["type"] = "function",
@@ -171,13 +159,19 @@ namespace AiTool3.AiServices
                 };
 
                 wrappedTool["function"]["parameters"] = wrappedTool["function"]["input_schema"];
-                wrappedTool["function"].Children().Reverse().ToList().ForEach(c =>
-                { if (((JProperty)c).Name == "input_schema") c.Remove(); });
+                // Remove the original "input_schema" property
+                foreach (var c in wrappedTool["function"].Children().OfType<JProperty>().ToList())
+                {
+                    if (c.Name == "input_schema")
+                        c.Remove();
+                }
 
                 request["tools"] = new JArray { wrappedTool };
                 request["tool_choice"] = wrappedTool;
             }
-            else {
+            else
+            {
+                // Change key name from "input_schema" to "schema"
                 schema["schema"] = schema["input_schema"];
                 schema.Remove("input_schema");
 
@@ -191,12 +185,10 @@ namespace AiTool3.AiServices
                 request.Remove("tool_choice");
             }
         }
-        protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
+
+        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
             using var response = await SendRequest(content, cancellationToken, true);
-
-            //ValidateResponse(response);
-
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var reader = new StreamReader(stream);
 
@@ -206,14 +198,12 @@ namespace AiTool3.AiServices
 
             int inputTokens = 0;
             int outputTokens = 0;
-
             string leftovers = null;
 
             while ((charsRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
                 if (cancellationToken.IsCancellationRequested)
                     throw new OperationCanceledException();
-
 
                 var chunk = new string(buffer, 0, charsRead);
                 var lines = chunk.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -224,8 +214,6 @@ namespace AiTool3.AiServices
                 }
             }
 
-            // does leftovers deserialize like this? {  "error": {    "message": "Invalid schema for function 'Expression-Model-5-1': [{'type': 'object', 'properties': {'type': {'enum': ['vstring']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}, {'type': 'object', 'properties': {'type': {'enum': ['vint']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}, {'type': 'object', 'properties': {'type': {'enum': ['vint']}, 'expression': {'$ref': '#/definitions/expression'}}, 'required': ['type', 'expression']}] is not of type 'object', 'boolean'.",    "type": "invalid_request_error",    "param": "tools[0].function.parameters",    "code": "invalid_function_parameters"  }}
-
             try
             {
                 response.EnsureSuccessStatusCode();
@@ -234,8 +222,6 @@ namespace AiTool3.AiServices
             {
                 return HandleError(e, $"Response leftovers: {leftovers}");
             }
-
-            
 
             OnStreamingComplete();
 
@@ -257,45 +243,33 @@ namespace AiTool3.AiServices
 
             if (line.StartsWith("data: "))
             {
-                string jsonData = line.Substring("data: ".Length).Trim();
-
-                if (jsonData == "[DONE]")
-                    return "";
+                var jsonData = line["data: ".Length..].Trim();
+                if (jsonData.Equals("[DONE]"))
+                    return string.Empty;
 
                 try
                 {
-
+                    // Validate JSON format briefly using System.Text.Json
                     try
                     {
-                        // Attempt to parse the JSON string
-                        using (JsonDocument doc = JsonDocument.Parse(jsonData))
-                        {
-                            //System.Diagnostics.Debug.WriteLine("JSON valid.");
-                        }
+                        using (JsonDocument.Parse(jsonData)) { }
                     }
-                    catch (System.Text.Json.JsonException ex)
+                    catch (System.Text.Json.JsonException)
                     {
                         return line;
                     }
 
-
                     var chunk = JsonConvert.DeserializeObject<JObject>(jsonData);
 
-                    if (chunk["choices"] != null && chunk["choices"].Count() > 0)
+                    if (chunk["choices"] != null && chunk["choices"].Any())
                     {
-                        if (chunk["choices"]?[0]?["logprobs"] != null)
-                        {
-                            var x = chunk["choices"]?[0]?["logprobs"];
-                            System.Diagnostics.Debug.WriteLine(x.ToString());
-                            // Debugger.Break();
-                        }
                         var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
-
                         if (string.IsNullOrEmpty(content))
                         {
-                            if (chunk["choices"]?[0]?["delta"]?["tool_calls"] != null && chunk["choices"]?[0]?["delta"]?["tool_calls"].Count() > 0)
+                            // Check for tool_calls if present
+                            if (chunk["choices"]?[0]?["delta"]?["tool_calls"] is JArray toolCalls && toolCalls.Any())
                             {
-                                content = chunk["choices"]?[0]?["delta"]?["tool_calls"]?[0]["function"]?["arguments"]?.ToString();
+                                content = toolCalls[0]["function"]?["arguments"]?.ToString();
                             }
                         }
 
@@ -304,29 +278,26 @@ namespace AiTool3.AiServices
                             responseBuilder.Append(content);
                             OnStreamingDataReceived(content);
                         }
-                        return "";
+                        return string.Empty;
                     }
                     else
                     {
                         // Update token counts if available
-                        var usage = chunk["usage"];
-                        if (usage != null && usage.HasValues)
+                        if (chunk["usage"] is JObject usage && usage.HasValues)
                         {
                             inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
                             outputTokens = usage["completion_tokens"]?.Value<int>() ?? outputTokens;
                         }
                         else
                         {
-                            return line; /* left-overs */
+                            return line; // left-overs
                         }
-                        return "";
+                        return string.Empty;
                     }
-
                 }
                 catch (Newtonsoft.Json.JsonException)
                 {
-                    return line; /* left-overs */
-                    // Handle JSON parsing errors
+                    return line; // left-overs on JSON parse error
                 }
             }
             return line;
@@ -336,25 +307,20 @@ namespace AiTool3.AiServices
         {
             var response = await SendRequest(content, cancellationToken);
             ValidateResponse(response);
+
             var responseContent = await response.Content.ReadAsStringAsync();
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
-            var responseText = "";
-            // if message has an array of tool_calls
-            if ((jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray) != null)
+            string responseText = string.Empty;
+            var message = jsonResponse["choices"]?[0]?["message"];
+            if (message?["tool_calls"] is JArray toolCalls && toolCalls.Any())
             {
-                var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
-
-                // first tool call only for now... :/
-
-                if (toolCallArray.Any())
-                {
-                    responseText = toolCallArray?[0]["function"]["arguments"].ToString();
-                }
-                else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
+                responseText = toolCalls[0]?["function"]?["arguments"]?.ToString();
             }
-            else responseText = jsonResponse["choices"]?[0]?["message"]?["content"]?.ToString();
-
+            else
+            {
+                responseText = message?["content"]?.ToString();
+            }
 
             return new AiResponse
             {
