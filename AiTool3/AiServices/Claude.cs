@@ -3,6 +3,7 @@ using AiTool3.DataModels;
 using AiTool3.Embeddings;
 using AiTool3.Interfaces;
 using AiTool3.Tools;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedClasses.Helpers;
@@ -111,11 +112,12 @@ namespace AiTool3.AiServices
             return req;
         }
 
-        public override async Task<AiResponse> FetchResponse(string apiKey, string apiUrl, string apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
+            Model model, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
+            InitializeHttpClient(serviceProvider, model, currentSettings);
 
-            var req = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            var req = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
 
             if (toolIDs?.Any() == true)
             {

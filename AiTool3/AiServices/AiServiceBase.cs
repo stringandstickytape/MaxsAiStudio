@@ -24,13 +24,17 @@ namespace AiTool3.AiServices
 
         public string ApiKey { get; set; }
         public string ApiUrl { get; set; }
+        public string AdditionalParams { get; set; }
         public string ApiModel { get; set; }
 
-        protected virtual void InitializeHttpClient(string apiKey, string apiUrl, string apiModel, SettingsSet currentSettings, int timeout = 100)
+        protected virtual void InitializeHttpClient(ServiceProvider serviceProvider,
+            Model model, SettingsSet currentSettings, int timeout = 100)
         {
-            ApiKey = apiKey;
-            ApiModel = apiModel;
-            ApiUrl = apiUrl;
+            ApiKey = serviceProvider.ApiKey;
+            ApiModel = model.ModelName;
+            ApiUrl = serviceProvider.Url;
+            AdditionalParams = model.AdditionalParams;
+
 
             if (clientInitialised) return;
             ConfigureHttpClientHeaders(currentSettings);
@@ -49,9 +53,8 @@ namespace AiTool3.AiServices
         }
 
         public abstract Task<AiResponse> FetchResponse(
-            string apiKey,
-            string apiUrl,
-            string apiModel,
+            ServiceProvider serviceProvider,
+            Model model,
             Conversation conversation,
             string base64image,
             string base64ImageType,

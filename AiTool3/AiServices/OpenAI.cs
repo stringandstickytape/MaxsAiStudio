@@ -25,7 +25,8 @@ namespace AiTool3.AiServices
         }
 
         public override async Task<AiResponse> FetchResponse(
-            string apiKey, string apiUrl, string apiModel,
+            ServiceProvider serviceProvider,
+            Model model,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -36,10 +37,10 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
+            InitializeHttpClient(serviceProvider, model, currentSettings, 300);
             deepseekBodge = ApiUrl.Contains("deepseek");
 
-            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
 
             // Create system message
             var systemMessage = new JObject
@@ -86,12 +87,21 @@ namespace AiTool3.AiServices
             // The supportsLogprobs flag may be extended later if desired
             var supportsLogprobs = false;
 
+            var additionalParamsList = AdditionalParams.Split(';').Where(x => !string.IsNullOrEmpty(x)).Select(x => x.Trim());
+            var additionalParamsDict = additionalParamsList.ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+
             var payload = new JObject
             {
                 ["model"] = modelName,
                 ["stream"] = useStreaming,
-                ["stream_options"] = useStreaming ? new JObject { ["include_usage"] = true } : null
+                ["stream_options"] = useStreaming ? new JObject { ["include_usage"] = true } : null,
+                //["reasoning_effort"] = "lolz"
             };
+
+            foreach(var entry in additionalParamsDict)
+            {
+                payload[entry.Key] = entry.Value;
+            }
 
             if (supportsLogprobs)
             {

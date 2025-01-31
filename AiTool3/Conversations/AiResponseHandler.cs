@@ -142,9 +142,8 @@ namespace AiTool3.Conversations
             await Task.Run(async () =>
             {
                 response = await aiService!.FetchResponse(
-                    service.ApiKey,
-                   service.Url,
-                   model.ModelName,
+                    service,
+                   model,
                     conversation,
                     _fileAttachmentManager.Base64Image!,
                     _fileAttachmentManager.Base64ImageType!,

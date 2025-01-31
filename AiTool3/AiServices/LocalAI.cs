@@ -16,11 +16,12 @@ namespace AiTool3.AiServices
         public LocalAI()
         {
         }
-        public override async Task<AiResponse> FetchResponse(string apiKey, string apiUrl, string apiModel, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+        public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
+            Model model, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey,apiUrl,apiModel, currentSettings);
+            InitializeHttpClient(serviceProvider, model, currentSettings);
 
-            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
 
             var messagesArray = new JArray();
             //Add system prompt

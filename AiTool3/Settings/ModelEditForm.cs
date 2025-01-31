@@ -24,6 +24,7 @@ namespace AiTool3.Settings
             txtModelName.Text = model.ModelName;
             txtInputPrice.Text = model.input1MTokenPrice.ToString("N2");
             txtOutputPrice.Text = model.output1MTokenPrice.ToString("N2");
+            txtAdditionalParams.Text = model.AdditionalParams;
             UpdateColorButton(model.Color);
         }
 
@@ -34,6 +35,9 @@ namespace AiTool3.Settings
             Model.ModelName = txtModelName.Text;
 
             Model.ProviderGuid= ((ServiceProvider)cboServiceProvider.SelectedItem).Guid;
+
+            Model.AdditionalParams = txtAdditionalParams.Text;
+                 
 
             if (decimal.TryParse(txtInputPrice.Text, out decimal inputPrice))
             {

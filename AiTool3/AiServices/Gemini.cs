@@ -19,7 +19,8 @@ namespace AiTool3.AiServices
             }
 
         public override async Task<AiResponse> FetchResponse(
-            string apiKey, string apiUrl, string apiModel,
+            ServiceProvider serviceProvider,
+            Model model,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -30,10 +31,10 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings,300);
+            InitializeHttpClient(serviceProvider,model, currentSettings,300);
             var url = $"{ApiUrl}{ApiModel}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
 
-            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
 
             // Add tools if specified
             if (toolIDs?.Any() == true)

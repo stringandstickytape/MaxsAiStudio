@@ -17,7 +17,8 @@ namespace AiTool3.AiServices
         }
 
         public override async Task<AiResponse> FetchResponse(
-            string apiKey, string apiUrl, string apiModel,
+            ServiceProvider serviceProvider,
+            Model model,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -28,12 +29,12 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
+            InitializeHttpClient(serviceProvider, model, currentSettings);
 
             // Force streaming for Groq
             useStreaming = true;
 
-            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
 
             // Add messages to request
             var messagesArray = new JArray();

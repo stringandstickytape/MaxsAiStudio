@@ -276,11 +276,12 @@ namespace AiTool3.Settings
         {
             var columns = new[]
             {
-                new { Name = "CopyButton", HeaderText = "Copy", ReadOnly = false },
-                new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
-                new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
-                new { Name = "Guid", HeaderText = "Guid", ReadOnly = false },
-            };
+    new { Name = "CopyButton", HeaderText = "Copy", ReadOnly = false },
+    new { Name = "FriendlyName", HeaderText = "Friendly Name", ReadOnly = false },
+    new { Name = "ModelName", HeaderText = "Model Name", ReadOnly = false },
+    new { Name = "AdditionalParams", HeaderText = "Additional Params", ReadOnly = false },
+    new { Name = "Guid", HeaderText = "Guid", ReadOnly = false },
+};
 
             foreach (var col in columns)
             {
@@ -355,6 +356,7 @@ namespace AiTool3.Settings
                     "Copy",
                     model.FriendlyName,
                     model.ModelName,
+                    model.AdditionalParams,
                     model.Guid,
                     model.input1MTokenPrice,
                     model.output1MTokenPrice,
@@ -396,6 +398,7 @@ namespace AiTool3.Settings
                             row.Cells["FriendlyName"].Value = model.FriendlyName;
                             row.Cells["ModelName"].Value = model.ModelName;
                             row.Cells["Guid"].Value = model.Guid;
+                            row.Cells["AdditionalParams"].Value = model.AdditionalParams;
                         }
                     }
                 }
@@ -431,6 +434,7 @@ namespace AiTool3.Settings
                         "Copy",
                         newModel.FriendlyName,
                         newModel.ModelName,
+                        newModel.AdditionalParams,
                         newModel.Guid,
                         newModel.input1MTokenPrice,
                         newModel.output1MTokenPrice,

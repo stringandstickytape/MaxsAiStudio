@@ -1,8 +1,29 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace AiTool3.Settings
 {
     partial class ModelEditForm
     {
         private System.ComponentModel.IContainer components = null;
+        private Label lblFriendlyName;
+        private TextBox txtFriendlyName;
+        private Label lblAdditionalParams;
+        private TextBox txtAdditionalParams;
+        private TextBox txtModelName;
+        private Label lblModelName;
+        private TextBox txtInputPrice;
+        private Label lblInputPrice;
+        private TextBox txtOutputPrice;
+        private Label lblOutputPrice;
+        private Button btnColorPicker;
+        private ColorDialog colorDialog;
+        private Label lblColor;
+        private Button btnOK;
+        private Button btnCancel;
+        private Label lblServiceProvider;
+        private ComboBox cboServiceProvider;
 
         protected override void Dispose(bool disposing)
         {
@@ -17,187 +38,191 @@ namespace AiTool3.Settings
 
         private void InitializeComponent()
         {
-            lblFriendlyName = new Label();
-            txtFriendlyName = new TextBox();
-            txtModelName = new TextBox();
-            lblModelName = new Label();
-            txtInputPrice = new TextBox();
-            lblInputPrice = new Label();
-            txtOutputPrice = new TextBox();
-            lblOutputPrice = new Label();
-            btnColorPicker = new Button();
-            colorDialog = new ColorDialog();
-            lblColor = new Label();
-            btnOK = new Button();
-            btnCancel = new Button();
-            lblServiceProvider = new Label();
-            cboServiceProvider = new ComboBox();
-            SuspendLayout();
+            this.lblFriendlyName = new Label();
+            this.txtFriendlyName = new TextBox();
+            this.lblAdditionalParams = new Label();
+            this.txtAdditionalParams = new TextBox();
+            this.txtModelName = new TextBox();
+            this.lblModelName = new Label();
+            this.txtInputPrice = new TextBox();
+            this.lblInputPrice = new Label();
+            this.txtOutputPrice = new TextBox();
+            this.lblOutputPrice = new Label();
+            this.btnColorPicker = new Button();
+            this.colorDialog = new ColorDialog();
+            this.lblColor = new Label();
+            this.btnOK = new Button();
+            this.btnCancel = new Button();
+            this.lblServiceProvider = new Label();
+            this.cboServiceProvider = new ComboBox();
+            this.SuspendLayout();
             // 
             // lblFriendlyName
             // 
-            lblFriendlyName.AutoSize = true;
-            lblFriendlyName.Location = new Point(12, 9);
-            lblFriendlyName.Name = "lblFriendlyName";
-            lblFriendlyName.Size = new Size(87, 15);
-            lblFriendlyName.TabIndex = 0;
-            lblFriendlyName.Text = "Friendly Name:";
+            this.lblFriendlyName.AutoSize = true;
+            this.lblFriendlyName.Location = new Point(12, 9);
+            this.lblFriendlyName.Name = "lblFriendlyName";
+            this.lblFriendlyName.Size = new Size(87, 15);
+            this.lblFriendlyName.TabIndex = 0;
+            this.lblFriendlyName.Text = "Friendly Name:";
             // 
             // txtFriendlyName
             // 
-            txtFriendlyName.Location = new Point(150, 6);
-            txtFriendlyName.Name = "txtFriendlyName";
-            txtFriendlyName.Size = new Size(200, 23);
-            txtFriendlyName.TabIndex = 1;
+            this.txtFriendlyName.Location = new Point(150, 6);
+            this.txtFriendlyName.Name = "txtFriendlyName";
+            this.txtFriendlyName.Size = new Size(200, 23);
+            this.txtFriendlyName.TabIndex = 1;
+            // 
+            // lblAdditionalParams
+            // 
+            this.lblAdditionalParams.AutoSize = true;
+            this.lblAdditionalParams.Location = new Point(12, 67);
+            this.lblAdditionalParams.Name = "lblAdditionalParams";
+            this.lblAdditionalParams.Size = new Size(110, 15);
+            this.lblAdditionalParams.TabIndex = 2;
+            this.lblAdditionalParams.Text = "Additional Params:";
+            // 
+            // txtAdditionalParams
+            // 
+            this.txtAdditionalParams.Location = new Point(150, 64);
+            this.txtAdditionalParams.Name = "txtAdditionalParams";
+            this.txtAdditionalParams.Size = new Size(200, 23);
+            this.txtAdditionalParams.TabIndex = 3;
             // 
             // txtModelName
             // 
-            txtModelName.Location = new Point(150, 35);
-            txtModelName.Name = "txtModelName";
-            txtModelName.Size = new Size(200, 23);
-            txtModelName.TabIndex = 3;
+            this.txtModelName.Location = new Point(150, 35);
+            this.txtModelName.Name = "txtModelName";
+            this.txtModelName.Size = new Size(200, 23);
+            this.txtModelName.TabIndex = 4;
             // 
             // lblModelName
             // 
-            lblModelName.AutoSize = true;
-            lblModelName.Location = new Point(12, 38);
-            lblModelName.Name = "lblModelName";
-            lblModelName.Size = new Size(79, 15);
-            lblModelName.TabIndex = 2;
-            lblModelName.Text = "Model Name:";
+            this.lblModelName.AutoSize = true;
+            this.lblModelName.Location = new Point(12, 38);
+            this.lblModelName.Name = "lblModelName";
+            this.lblModelName.Size = new Size(79, 15);
+            this.lblModelName.TabIndex = 5;
+            this.lblModelName.Text = "Model Name:";
             // 
             // txtInputPrice
             // 
-            txtInputPrice.Location = new Point(150, 151);
-            txtInputPrice.Name = "txtInputPrice";
-            txtInputPrice.Size = new Size(200, 23);
-            txtInputPrice.TabIndex = 11;
+            this.txtInputPrice.Location = new Point(150, 181);
+            this.txtInputPrice.Name = "txtInputPrice";
+            this.txtInputPrice.Size = new Size(200, 23);
+            this.txtInputPrice.TabIndex = 6;
             // 
             // lblInputPrice
             // 
-            lblInputPrice.AutoSize = true;
-            lblInputPrice.Location = new Point(12, 154);
-            lblInputPrice.Name = "lblInputPrice";
-            lblInputPrice.Size = new Size(119, 15);
-            lblInputPrice.TabIndex = 10;
-            lblInputPrice.Text = "Input 1MToken Price:";
+            this.lblInputPrice.AutoSize = true;
+            this.lblInputPrice.Location = new Point(12, 184);
+            this.lblInputPrice.Name = "lblInputPrice";
+            this.lblInputPrice.Size = new Size(119, 15);
+            this.lblInputPrice.TabIndex = 7;
+            this.lblInputPrice.Text = "Input 1MToken Price:";
             // 
             // txtOutputPrice
             // 
-            txtOutputPrice.Location = new Point(150, 180);
-            txtOutputPrice.Name = "txtOutputPrice";
-            txtOutputPrice.Size = new Size(200, 23);
-            txtOutputPrice.TabIndex = 13;
+            this.txtOutputPrice.Location = new Point(150, 210);
+            this.txtOutputPrice.Name = "txtOutputPrice";
+            this.txtOutputPrice.Size = new Size(200, 23);
+            this.txtOutputPrice.TabIndex = 8;
             // 
             // lblOutputPrice
             // 
-            lblOutputPrice.AutoSize = true;
-            lblOutputPrice.Location = new Point(12, 183);
-            lblOutputPrice.Name = "lblOutputPrice";
-            lblOutputPrice.Size = new Size(129, 15);
-            lblOutputPrice.TabIndex = 12;
-            lblOutputPrice.Text = "Output 1MToken Price:";
+            this.lblOutputPrice.AutoSize = true;
+            this.lblOutputPrice.Location = new Point(12, 213);
+            this.lblOutputPrice.Name = "lblOutputPrice";
+            this.lblOutputPrice.Size = new Size(129, 15);
+            this.lblOutputPrice.TabIndex = 9;
+            this.lblOutputPrice.Text = "Output 1MToken Price:";
             // 
             // btnColorPicker
             // 
-            btnColorPicker.Location = new Point(150, 209);
-            btnColorPicker.Name = "btnColorPicker";
-            btnColorPicker.Size = new Size(200, 23);
-            btnColorPicker.TabIndex = 15;
-            btnColorPicker.UseVisualStyleBackColor = true;
-            btnColorPicker.Click += btnColorPicker_Click;
+            this.btnColorPicker.Location = new Point(150, 239);
+            this.btnColorPicker.Name = "btnColorPicker";
+            this.btnColorPicker.Size = new Size(200, 23);
+            this.btnColorPicker.TabIndex = 10;
+            this.btnColorPicker.UseVisualStyleBackColor = true;
+            this.btnColorPicker.Click += new EventHandler(this.btnColorPicker_Click);
             // 
             // lblColor
             // 
-            lblColor.AutoSize = true;
-            lblColor.Location = new Point(12, 212);
-            lblColor.Name = "lblColor";
-            lblColor.Size = new Size(39, 15);
-            lblColor.TabIndex = 14;
-            lblColor.Text = "Color:";
+            this.lblColor.AutoSize = true;
+            this.lblColor.Location = new Point(12, 242);
+            this.lblColor.Name = "lblColor";
+            this.lblColor.Size = new Size(39, 15);
+            this.lblColor.TabIndex = 11;
+            this.lblColor.Text = "Color:";
             // 
             // btnOK
             // 
-            btnOK.Location = new Point(194, 271);
-            btnOK.Name = "btnOK";
-            btnOK.Size = new Size(75, 23);
-            btnOK.TabIndex = 16;
-            btnOK.Text = "OK";
-            btnOK.UseVisualStyleBackColor = true;
-            btnOK.Click += btnOK_Click;
+            this.btnOK.Location = new Point(194, 301);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new Size(75, 23);
+            this.btnOK.TabIndex = 12;
+            this.btnOK.Text = "OK";
+            this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new EventHandler(this.btnOK_Click);
             // 
             // btnCancel
             // 
-            btnCancel.Location = new Point(275, 271);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(75, 23);
-            btnCancel.TabIndex = 17;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = true;
-            btnCancel.Click += btnCancel_Click;
+            this.btnCancel.Location = new Point(275, 301);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new Size(75, 23);
+            this.btnCancel.TabIndex = 13;
+            this.btnCancel.Text = "Cancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new EventHandler(this.btnCancel_Click);
             // 
             // lblServiceProvider
             // 
-            lblServiceProvider.AutoSize = true;
-            lblServiceProvider.Location = new Point(12, 241);
-            lblServiceProvider.Name = "lblServiceProvider";
-            lblServiceProvider.Size = new Size(94, 15);
-            lblServiceProvider.TabIndex = 18;
-            lblServiceProvider.Text = "Service Provider:";
+            this.lblServiceProvider.AutoSize = true;
+            this.lblServiceProvider.Location = new Point(12, 271);
+            this.lblServiceProvider.Name = "lblServiceProvider";
+            this.lblServiceProvider.Size = new Size(94, 15);
+            this.lblServiceProvider.TabIndex = 14;
+            this.lblServiceProvider.Text = "Service Provider:";
             // 
             // cboServiceProvider
             // 
-            cboServiceProvider.FormattingEnabled = true;
-            cboServiceProvider.Location = new Point(150, 238);
-            cboServiceProvider.Name = "cboServiceProvider";
-            cboServiceProvider.Size = new Size(200, 23);
-            cboServiceProvider.TabIndex = 19;
+            this.cboServiceProvider.FormattingEnabled = true;
+            this.cboServiceProvider.Location = new Point(150, 268);
+            this.cboServiceProvider.Name = "cboServiceProvider";
+            this.cboServiceProvider.Size = new Size(200, 23);
+            this.cboServiceProvider.TabIndex = 15;
             // 
             // ModelEditForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(364, 303);
-            Controls.Add(cboServiceProvider);
-            Controls.Add(lblServiceProvider);
-            Controls.Add(btnCancel);
-            Controls.Add(btnOK);
-            Controls.Add(btnColorPicker);
-            Controls.Add(lblColor);
-            Controls.Add(txtOutputPrice);
-            Controls.Add(lblOutputPrice);
-            Controls.Add(txtInputPrice);
-            Controls.Add(lblInputPrice);
-            Controls.Add(txtModelName);
-            Controls.Add(lblModelName);
-            Controls.Add(txtFriendlyName);
-            Controls.Add(lblFriendlyName);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            Name = "ModelEditForm";
-            StartPosition = FormStartPosition.CenterParent;
-            Text = "Edit Model";
-            ResumeLayout(false);
-            PerformLayout();
+            this.AutoScaleDimensions = new SizeF(7F, 15F);
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.ClientSize = new Size(364, 333);
+            this.Controls.Add(this.cboServiceProvider);
+            this.Controls.Add(this.lblServiceProvider);
+            this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.btnOK);
+            this.Controls.Add(this.btnColorPicker);
+            this.Controls.Add(this.lblColor);
+            this.Controls.Add(this.txtOutputPrice);
+            this.Controls.Add(this.lblOutputPrice);
+            this.Controls.Add(this.txtInputPrice);
+            this.Controls.Add(this.lblInputPrice);
+            this.Controls.Add(this.txtModelName);
+            this.Controls.Add(this.lblModelName);
+            this.Controls.Add(this.txtAdditionalParams);
+            this.Controls.Add(this.lblAdditionalParams);
+            this.Controls.Add(this.txtFriendlyName);
+            this.Controls.Add(this.lblFriendlyName);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "ModelEditForm";
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.Text = "Edit Model";
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         #endregion
-
-        private System.Windows.Forms.Label lblFriendlyName;
-        private System.Windows.Forms.TextBox txtFriendlyName;
-        private System.Windows.Forms.TextBox txtModelName;
-        private System.Windows.Forms.Label lblModelName;
-        private System.Windows.Forms.TextBox txtInputPrice;
-        private System.Windows.Forms.Label lblInputPrice;
-        private System.Windows.Forms.TextBox txtOutputPrice;
-        private System.Windows.Forms.Label lblOutputPrice;
-        private System.Windows.Forms.Button btnColorPicker;
-        private System.Windows.Forms.ColorDialog colorDialog;
-        private System.Windows.Forms.Label lblColor;
-        private System.Windows.Forms.Button btnOK;
-        private System.Windows.Forms.Button btnCancel;
-        private System.Windows.Forms.Label lblServiceProvider;
-        private System.Windows.Forms.ComboBox cboServiceProvider;
     }
 }

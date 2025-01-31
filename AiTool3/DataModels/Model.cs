@@ -21,12 +21,14 @@ namespace AiTool3.DataModels
         }
     }
 
-
+    [DebuggerDisplay("ModelName = {ModelName}")]
     public class Model
     {
         public string ModelName { get; set; }
 
         public string ProviderGuid { get; set; }
+
+        public string AdditionalParams { get; set; }
 
         public decimal input1MTokenPrice { get; set; }
         public decimal output1MTokenPrice { get; set; }

@@ -23,7 +23,8 @@ namespace AiTool3.AiServices
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }
         public override async Task<AiResponse> FetchResponse(
-            string apiKey, string apiUrl, string apiModel,
+            ServiceProvider serviceProvider,
+            Model model,
             Conversation conversation,
             string base64image,
             string base64ImageType,
@@ -34,8 +35,8 @@ namespace AiTool3.AiServices
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(apiKey, apiUrl, apiModel, currentSettings);
-            var requestPayload = CreateRequestPayload(apiModel, conversation, useStreaming, currentSettings);
+            InitializeHttpClient(serviceProvider, model, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {

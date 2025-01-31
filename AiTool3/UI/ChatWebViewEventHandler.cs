@@ -224,7 +224,7 @@ namespace AiTool3.UI
 
                         var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
 
-                        var response2 = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation2, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                        var response2 = await aiService.FetchResponse(service, apiModel, conversation2, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                         cm2.AddInputAndResponseToConversation(response2, apiModel, conversation2, inputText2, systemPrompt2, out var completionInput2, out var completionResponse2);
                         cm2.SaveConversation();
 
@@ -244,7 +244,7 @@ namespace AiTool3.UI
 
                         var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
 
-                        var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                        var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                         cm.AddInputAndResponseToConversation(response, apiModel, conversation, inputText, systemPrompt, out var completionInput, out var completionResponse);
 
 
@@ -283,7 +283,7 @@ namespace AiTool3.UI
 
                             var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
 
-                            var response = await aiService.FetchResponse(service.ApiKey, service.Url, apiModel.ModelName, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                            var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
                             await _chatWebView.SendMergeResultsToVsixAsync(response);
                         }
                         catch (Exception e2)
