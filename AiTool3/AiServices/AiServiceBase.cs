@@ -33,7 +33,7 @@ namespace AiTool3.AiServices
             ApiKey = serviceProvider.ApiKey;
             ApiModel = model.ModelName;
             ApiUrl = serviceProvider.Url;
-            AdditionalParams = model.AdditionalParams;
+            AdditionalParams = model.AdditionalParams ?? "";
 
 
             if (clientInitialised) return;
