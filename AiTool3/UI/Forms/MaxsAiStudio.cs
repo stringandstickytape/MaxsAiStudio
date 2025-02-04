@@ -181,6 +181,7 @@ namespace AiTool3
             MenuHelper.CreateMenuItem("Licenses", ref editMenu).Click += (s, e) => new LicensesForm(AssemblyHelper.GetEmbeddedResource("AiTool3.UI.Licenses.txt")).ShowDialog();
 
             await MenuHelper.CreateSpecialsMenu(menuBar, CurrentSettings, chatWebView, _snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager, this);
+            await MenuHelper.CreateFileConversionMenu(menuBar);
             await MenuHelper.CreateEmbeddingsMenu(this, menuBar, CurrentSettings, chatWebView, _snippetManager, dgvConversations, ConversationManager, AutoSuggestStringSelected, _fileAttachmentManager);
 
             MenuHelper.CreateTemplatesMenu(menuBar, chatWebView, _templateManager, CurrentSettings, this);

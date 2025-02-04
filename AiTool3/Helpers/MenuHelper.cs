@@ -222,6 +222,30 @@ namespace AiTool3.Helpers
             CreateTemplatesMenu(menuBar, chatWebView, templateManager, currentSettings, form);
         }
 
+        public static async Task CreateFileConversionMenu(MenuStrip menuBar)
+        {
+
+
+            var menuText = "File Conversion";
+            ToolStripMenuItem specialsMenu = CreateMenu(menuText);
+
+            AddSpecials(specialsMenu,
+                new List<LabelAndEventHander>
+                {
+
+                    new LabelAndEventHander("PDF to TXT and PNG", async (s, e) =>
+                    {
+                        new PdfExtractionManager().ExtractFromPDFs();
+
+                    }),
+
+
+                }
+            );
+
+            menuBar.Items.Add(specialsMenu);
+        }
+
         public static async Task CreateSpecialsMenu(MenuStrip menuBar, SettingsSet currentSettings, ChatWebView chatWebView, SnippetManager snippetManager, DataGridView dgvConversations, ConversationManager conversationManager, Action<string> autoSuggestStringSelected, FileAttachmentManager _fileAttachmentManager, MaxsAiStudio maxsAiStudio)
         {
 
@@ -232,25 +256,6 @@ namespace AiTool3.Helpers
             AddSpecials(specialsMenu,
                 new List<LabelAndEventHander>
                 {
-
-
-                   //new LabelAndEventHander("Pull Readme and update from latest diff", async (s, e) =>
-                   //    {
-                   //    var model = await chatWebView.GetDropdownModel("summaryAI", currentSettings);
-                   //    AiResponse response = await SpecialsHelper.GetReadmeResponses(model);
-                   //    var snippets = snippetManager.FindSnippets(response.ResponseText);
-                   //
-                   //    try
-                   //    {
-                   //        var code = snippets.Snippets.First().Content;
-                   //        code = SnippetHelper.StripFirstAndLastLine(code);
-                   //        File.WriteAllText(@"C:\Users\maxhe\source\repos\CloneTest\MaxsAiStudio\README.md", code);
-                   //    }
-                   //    catch (Exception ex)
-                   //    {
-                   //        MessageBox.Show($"Error writing to file: {ex.Message}");
-                   //    }
-                   //}),
 
                     new LabelAndEventHander("Autosuggest", async (s, e) =>
                     {
