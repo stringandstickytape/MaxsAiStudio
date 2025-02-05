@@ -39,8 +39,6 @@ namespace VSIXTest
             await OpenChatWindowCommand.InitializeAsync(this);
              await OpenDebugWindowCommand.InitializeAsync(this);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await ShowToolWindowAsync(typeof(ChatWindowPane), 0, true, cancellationToken);
             VsixDebugLog.Instance.Log("VSIXTestPackage initialized.");
 
             // Get the file change service

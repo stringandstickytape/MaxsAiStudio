@@ -38,11 +38,12 @@ namespace VSIXTest
             Instance = new OpenChatWindowCommand(package, commandService);
         }
 
-        private void Execute(object sender, EventArgs e)
+        private async void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await package.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            ToolWindowPane window = this.package.FindToolWindow(typeof(ChatWindowPane), 0, true);
+            ToolWindowPane window = await package.FindToolWindowAsync(typeof(ChatWindowPane), 0, true, package.DisposalToken);
+
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");
