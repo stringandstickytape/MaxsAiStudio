@@ -49,7 +49,6 @@ const initialColorSchemes = {
 };
 
 const ColorSchemeProvider = ({ children }) => {
-    debugger;
     const [colorSchemes, setColorSchemes] = useState(initialColorSchemes);
     const [currentSchemeId, setCurrentSchemeId] = useState(Object.keys(initialColorSchemes)[0]);
 

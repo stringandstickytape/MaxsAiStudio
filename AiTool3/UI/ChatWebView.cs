@@ -380,6 +380,7 @@ namespace AiTool3.UI
 
             await EnsureCoreWebView2Async(null);
             CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            CoreWebView2.OpenDevToolsWindow();
 
             foreach (var resource in AssemblyHelper.GetResourceDetails())
             {
