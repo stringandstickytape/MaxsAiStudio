@@ -192,6 +192,14 @@
         backgroundColor: colorScheme.dropdownBackgroundColor,
         color: colorScheme.dropdownTextColor,
     };
+    const modelCardStyle = {
+        border: `1px solid ${colorScheme.borderColor}`,
+        borderRadius: '4px',
+        padding: '8px',
+        margin: '8px 0',
+        backgroundColor: colorScheme.dropdownBackgroundColor,
+        cursor: 'pointer',
+    };
 
     return (
         <div className="dropdown-container" ref={dropdownRef}>
@@ -218,55 +226,44 @@
                             onClick={(e) => e.stopPropagation()}
                         />
                         <div style={scrollableContainerStyle}>
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={cellStyle}></th>
-                                        <th style={cellStyle}>Model</th>
-                                        <th style={cellStyle}>Provider</th>
-                                        <th style={costStyle}>Protocol</th>
-                                        <th style={costStyle}>Input Cost</th>
-                                        <th style={costStyle}>Output Cost</th>
-                                        <th style={cellStyle}>Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredOptionsAndData.options.map((option, index) => (
-                                        <tr
-                                            key={index}
-                                            style={optionStyle}
-                                            onClick={() => handleSelect(option, option)}
+                            {filteredOptionsAndData.options.map((option, index) => (
+                                <div
+                                    key={index}
+                                    style={modelCardStyle}
+                                    onClick={() => handleSelect(option, option)}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{option}</span>
+                                        <span
+                                            style={starStyle}
+                                            onClick={(e) => toggleStar(e, option)}
                                         >
-                                            <td style={cellStyle}>
-                                                <span
-                                                    style={starStyle}
-                                                    onClick={(e) => toggleStar(e, option)}
-                                                >
-                                                    {starredModels[option] ? '★' : '☆'}
-                                                </span>
-                                            </td>
-                                            <td style={cellStyle}>{option}</td>
-                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].provider : ''}</td>
-                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].protocol : ''}</td>
-                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].inputCost : ''}</td>
-                                            <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].outputCost : ''}</td>
-                                            <td style={cellStyle}>
-                                                <span
-                                                    title={filteredOptionsAndData.columnData[index]?.userNotes || ''}
-                                                    style={{ textDecoration: 'underline', cursor: 'pointer' }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleNotesEdit(filteredOptionsAndData.columnData[index]?.modelGuid || '', filteredOptionsAndData.columnData[index]?.userNotes || '');
-                                                    }}
-                                                >
-                                                    Notes
-                                                </span>
-                                            </td>
-                                            
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                            {starredModels[option] ? '★' : '☆'}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                                        Provider: {filteredOptionsAndData.columnData[index]?.provider || ''}
+                                    </div>
+                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                                        Protocol: {filteredOptionsAndData.columnData[index]?.protocol || ''}
+                                    </div>
+                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                                        Cost: Input {filteredOptionsAndData.columnData[index]?.inputCost || ''} / Output {filteredOptionsAndData.columnData[index]?.outputCost || ''}
+                                    </div>
+                                    <div style={{ marginTop: '4px' }}>
+                                        <span
+                                            title={filteredOptionsAndData.columnData[index]?.userNotes || ''}
+                                            style={{ textDecoration: 'underline', cursor: 'pointer', fontSize: '12px' }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleNotesEdit(filteredOptionsAndData.columnData[index]?.modelGuid || '', filteredOptionsAndData.columnData[index]?.userNotes || '');
+                                            }}
+                                        >
+                                            Notes
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
