@@ -140,7 +140,9 @@ namespace VSIXTest
                 {
                     // set the system prompt in the webview
                     var systemPrompt = File.ReadAllText(systemPromptFilePath);
-                    var x = await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");//0 window.buttonControls['Set System Prompt from Solution'].show()
+                    var x = await ExecuteScriptAsync($"updateSystemPrompt({JsonConvert.SerializeObject(systemPrompt)})");
+                    
+                    //0 window.buttonControls['Set System Prompt from Solution'].show()
                 }
             }
         }

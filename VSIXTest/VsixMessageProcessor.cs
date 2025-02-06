@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using VSIXTest.UI;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace VSIXTest
 {
@@ -62,6 +63,12 @@ namespace VSIXTest
             await _vsixChat.AddContextMenuItemAsync("Insert Selection", "vsInsertSelection");
             await _vsixChat.AddContextMenuItemAsync("Pop Window", "vsPopWindow");
             await _vsixChat.ExecuteScriptAsync("window.buttonControls['Set System Prompt from Solution'].show()");
+            await _vsixChat.ExecuteScriptAsync("window.buttonControls['Attach'].hide() ");
+            await _vsixChat.ExecuteScriptAsync("window.buttonControls['Theme'].hide()  ");
+            await _vsixChat.ExecuteScriptAsync("window.buttonControls['Tools'].hide()  ");
+
+
+            await _vsixChat.ExecuteScriptAsync("document.querySelectorAll('div.options-bar').forEach(el => el.style.display = 'none')");
         }
 
         public async Task ProcessMessageAsync(VsixUiMessage message)

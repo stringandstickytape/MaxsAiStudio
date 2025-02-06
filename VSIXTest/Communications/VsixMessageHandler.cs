@@ -71,7 +71,7 @@ namespace VSIXTest
 
                     break;
                 case "vsButtons":
-
+                    
                     Buttons = JsonConvert.DeserializeObject<List<SharedClasses.Models.MessagePrompt>>(message.Content);
 
 
