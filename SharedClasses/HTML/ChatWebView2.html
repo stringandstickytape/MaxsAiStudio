@@ -18,40 +18,85 @@
     <script>
 
 
-
-        function waitForWebView2() {
+        function waitForWebView2AndDOMReady() {
             return new Promise((resolve) => {
-                if (window.chrome && window.chrome.webview) {
-                    setTimeout(resolve, 100); // 2-second delay after WebView2 is detected
-                } else {
-                    window.addEventListener('WebComponentsReady', () => {
-                        setTimeout(resolve, 2000); // 2-second delay after WebComponentsReady event
-                    }, { once: true });
+                if (document.readyState === 'complete') {
+                    console.log("Document already complete");
+                    resolve();
+                    return;
                 }
+
+                console.log("Waiting for document load...");
+                window.addEventListener('load', () => {
+                    console.log("Document load complete");
+                    resolve();
+                }, { once: true });
             });
         }
 
-        function loadAndExecuteScript(src) {
+        function loadAndExecuteScript(src, retries = 3) {
             return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = () => {
-                    setTimeout(resolve, 100); // Small delay after each script load
-                };
-                script.onerror = reject;
-                document.head.appendChild(script);
+                function attemptLoad(attemptsLeft) {
+                    const script = document.createElement('script');
+                    script.src = src;
+
+                    script.onload = () => {
+                        console.log('Successfully loaded:', src);
+                        resolve();
+                    };
+
+                    script.onerror = (event) => {
+                        console.error(`Attempt to load ${src} failed. ${attemptsLeft} attempts remaining.`);
+                        if (attemptsLeft > 0) {
+                            setTimeout(() => attemptLoad(attemptsLeft - 1), 500);
+                        } else {
+                            reject(new Error(`Failed to load script after multiple attempts: ${src}`));
+                        }
+                    };
+
+                    // Preload hint
+                    const preload = document.createElement('link');
+                    preload.href = src;
+                    preload.rel = 'preload';
+                    preload.as = 'script';
+                    document.head.appendChild(preload);
+
+                    // Small delay before actual script load
+                    setTimeout(() => {
+                        document.head.appendChild(script);
+                    }, 100);
+                }
+
+                attemptLoad(retries);
             });
         }
 
-        waitForWebView2()
-            .then(() => loadAndExecuteScript('https://unpkg.com/react@17/umd/react.development.js'))
-            .then(() => loadAndExecuteScript('https://unpkg.com/react-dom@17/umd/react-dom.development.js'))
-            .then(() => loadAndExecuteScript('https://unpkg.com/@babel/standalone/babel.min.js'))
-            .then(() => {
-                console.log('Components loaded');
+        async function initializeScripts() {
+            try {
+                await waitForWebView2AndDOMReady();
+                await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
 
-                // Case-sensitive...
-                var scriptsToLoad = [
+                console.log("Starting script loading...");
+
+                // Try to load core scripts with retries
+                for (const src of [
+                    'https://unpkg.com/react@17/umd/react.development.js',
+                    'https://unpkg.com/react-dom@17/umd/react-dom.development.js',
+                    'https://unpkg.com/@babel/standalone/babel.min.js'
+                ]) {
+                    await loadAndExecuteScript(src);
+                    // Add small delay between core script loads
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                console.log('Core components loaded');
+
+                // Verify that React and ReactDOM are actually loaded
+                if (!window.React || !window.ReactDOM || !window.Babel) {
+                    throw new Error('Core dependencies failed to initialize properly');
+                }
+
+                const scriptsToLoad = [
                     'http://localhost/QuickActionsBar.jsx',
                     'http://localhost/CustomContextMenu.jsx',
                     'http://localhost/ColorSchemeProvider.jsx',
@@ -69,17 +114,38 @@
                     'http://localhost/App.jsx'
                 ];
 
-                // for each script, do the thing
-                for(let i = 0; i < scriptsToLoad.length; i++) {
-                    var script = document.createElement('script');
+                for (const src of scriptsToLoad) {
+                    const script = document.createElement('script');
                     script.type = 'text/babel';
-                    script.src = scriptsToLoad[i];
+                    script.src = src;
                     document.body.appendChild(script);
+                    console.log('Loading:', src);
                 }
 
+                // Wait a bit before transforming
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                console.log('Transforming scripts...');
                 Babel.transformScriptTags();
-            })
-            .catch(error => console.error('Error loading scripts:', error));
+                console.log('All scripts loaded and transformed');
+
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                // Try to provide more detailed error information
+                if (!window.React) console.error('React failed to load');
+                if (!window.ReactDOM) console.error('ReactDOM failed to load');
+                if (!window.Babel) console.error('Babel failed to load');
+            }
+        }
+
+        // Ensure we have a proper error boundary
+        try {
+            initializeScripts().catch(error => {
+                console.error('Caught initialization error:', error);
+            });
+        } catch (error) {
+            console.error('Error starting initialization:', error);
+        }
     </script>
 </body>
 </html>
