@@ -211,6 +211,13 @@ namespace AiTool3.UI
 
             switch (e.EventType)
             {
+                case "userNotesChanged":
+                    var noteChangedModelGuid = e.Guid;
+                    var modelChanged = _currentSettings.ModelList.FirstOrDefault(x => x.Guid == noteChangedModelGuid);
+                    modelChanged.UserNotes = e.Json;
+                    SettingsSet.Save(_currentSettings);
+
+                    break;
                 case "ContinueExternalCompletion":
                     {
 

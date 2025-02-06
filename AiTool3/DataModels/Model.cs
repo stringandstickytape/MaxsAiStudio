@@ -26,6 +26,7 @@ namespace AiTool3.DataModels
     {
         public string ModelName { get; set; }
 
+        public string UserNotes { get; set; }
         public string ProviderGuid { get; set; }
 
         public string AdditionalParams { get; set; }

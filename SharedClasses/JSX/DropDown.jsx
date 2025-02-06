@@ -61,6 +61,19 @@
         onStarToggle(modelName);
     };
 
+    const handleNotesEdit = (modelGuid, currentNotes) => {
+        const newNotes = window.prompt('Edit notes for ' + modelGuid, currentNotes);
+        if (newNotes !== null) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'userNotesChanged',
+                    modelGuid: modelGuid,
+                    content: newNotes
+                });
+            }
+        }
+    };
+
     React.useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -185,6 +198,7 @@
                                         <th style={costStyle}>Protocol</th>
                                         <th style={costStyle}>Input Cost</th>
                                         <th style={costStyle}>Output Cost</th>
+                                        <th style={cellStyle}>Notes</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -207,6 +221,19 @@
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].protocol : ''}</td>
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].inputCost : ''}</td>
                                             <td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].outputCost : ''}</td>
+                                            <td style={cellStyle}>
+                                                <span
+                                                    title={filteredOptionsAndData.columnData[index]?.userNotes || ''}
+                                                    style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleNotesEdit(filteredOptionsAndData.columnData[index]?.modelGuid || '', filteredOptionsAndData.columnData[index]?.userNotes || '');
+                                                    }}
+                                                >
+                                                    Notes
+                                                </span>
+                                            </td>
+                                            
                                         </tr>
                                     ))}
                                 </tbody>
@@ -218,3 +245,5 @@
         </div>
     );
 };
+
+//<td style={costStyle}>{filteredOptionsAndData.columnData[index] ? filteredOptionsAndData.columnData[index].modelGuid : ''}</td>

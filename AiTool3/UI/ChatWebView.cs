@@ -212,6 +212,9 @@ namespace AiTool3.UI
             var type = message?["type"];
             switch (type)
             {
+                case "userNotesChanged":
+                    ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs(type) { Guid = message["modelGuid"], Json = message["content"] });
+                    break;
 
                 case "openUrl":
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {content.Replace("&", "^&")}") { CreateNoWindow = true });
@@ -360,6 +363,9 @@ namespace AiTool3.UI
                     var wvForm = new WebviewForm(message["content"]);
                     wvForm.Show();
                     break;
+                default:
+
+                    throw new NotImplementedException();
             }
         }
 
@@ -453,7 +459,10 @@ namespace AiTool3.UI
             var columnData = currentSettings.ModelList.Select(x => new { protocol =
                 ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid)?.ServiceName?? "Unknown", 
                 inputCost = x.input1MTokenPrice.ToString("F2"), outputCost = x.output1MTokenPrice.ToString("F2"), starred = x.Starred, 
-                provider = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid).FriendlyName });
+                provider = ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid).FriendlyName,
+                userNotes = x.UserNotes,
+                modelGuid = x.Guid
+            });
 
             foreach (var dropdown in new[] { "mainAI", "summaryAI" })
             {
