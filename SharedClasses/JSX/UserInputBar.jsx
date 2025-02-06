@@ -201,7 +201,6 @@
     };
 
     const setUserPrompt = (string, base64image, base64type) => {
-        debugger;
         setInputContent(string);
         if (string.trim().length > 0) window.setMessageText("temp-user-msg", string, 0, base64image, base64type);
     };

@@ -20,7 +20,6 @@ const LiveStream = () => {
     useEffect(() => {
         window.updateTemp = (string) => {
             setLiveStreamData(prevData => prevData + string);
-            debugger;
             window.setMessageText("temp-ai-msg", liveStreamData);
             setIsVisible(true);
             setOpacity(1);

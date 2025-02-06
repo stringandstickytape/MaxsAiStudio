@@ -29,12 +29,11 @@
     }, [options, starredModels, columnData]);
 
     const filteredOptionsAndData = React.useMemo(() => {
+        const tokens = filterText.toLowerCase().split(' ').filter(token => token.trim() !== '');
         return sortedOptions.reduce((acc, option, index) => {
-            const protocol = sortedColumnData[index]?.protocol || '';
-            if (
-                option.toLowerCase().includes(filterText.toLowerCase()) ||
-                protocol.toLowerCase().includes(filterText.toLowerCase())
-            ) {
+            const columnDataValues = sortedColumnData[index] ? Object.values(sortedColumnData[index]).join(' ').toLowerCase() : '';
+            const optionLower = option.toLowerCase();
+            if (tokens.length === 0 || tokens.every(token => optionLower.includes(token) || columnDataValues.includes(token))) {
                 acc.options.push(option);
                 acc.columnData.push(sortedColumnData[index]);
             }
@@ -118,14 +117,15 @@
 
     const dropdownStyle = {
         position: 'relative',
-        minWidth: '350px',
-        fontSize: '13px',
-        border: '1px solid ' + colorScheme.borderColor
+        minWidth: '300px',
+        fontSize: '12px',
+        border: `1px solid ${colorScheme.borderColor}`
     };
 
     const selectedStyle = {
         color: colorScheme.dropdownTextColor,
         backgroundColor: colorScheme.dropdownBackgroundColor,
+        padding: '6px 10px',
         borderRadius: '4px',
         cursor: 'pointer',
         display: 'flex',
@@ -143,7 +143,7 @@
         boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
         fontSize: '10px',
         zIndex: 1000,
-        padding: '10px',
+        padding: '6px',
     };
 
     const scrollableContainerStyle = {
@@ -181,12 +181,13 @@
 
     const starStyle = {
         cursor: 'pointer',
-        fontSize: '20px',
+        fontSize: '30px',
         color: 'goldenrod',
     };
 
     const filterInputStyle = {
         width: '100%',
+        padding: '4px',
         border: `1px solid ${colorScheme.borderColor}`,
         borderRadius: '4px',
         backgroundColor: colorScheme.dropdownBackgroundColor,
@@ -195,8 +196,8 @@
     const modelCardStyle = {
         border: `1px solid ${colorScheme.borderColor}`,
         borderRadius: '4px',
-        padding: '8px',
-        margin: '8px 0',
+        padding: '6px',
+        margin: '4px 0',
         backgroundColor: colorScheme.dropdownBackgroundColor,
         cursor: 'pointer',
     };
@@ -213,7 +214,7 @@
                     title={helpText}
                 >
                     <span>{value}</span>
-                    <span>▼</span>
+                    <span style={{ marginLeft: '8px', fontSize: '12px' }}>▼</span>
                 </div>
                 {isOpen && (
                     <div style={optionsStyle}>
@@ -241,14 +242,13 @@
                                             {starredModels[option] ? '★' : '☆'}
                                         </span>
                                     </div>
-                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                                        Provider: {filteredOptionsAndData.columnData[index]?.provider || ''}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '4px' }}>
+                                        <span>Provider: {filteredOptionsAndData.columnData[index]?.provider || ''}</span>
+                                        <span style={{ textAlign: 'right' }}>Protocol: {filteredOptionsAndData.columnData[index]?.protocol || ''}</span>
                                     </div>
-                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                                        Protocol: {filteredOptionsAndData.columnData[index]?.protocol || ''}
-                                    </div>
-                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                                        Cost: Input {filteredOptionsAndData.columnData[index]?.inputCost || ''} / Output {filteredOptionsAndData.columnData[index]?.outputCost || ''}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '4px' }}>
+                                        <span>Input: {filteredOptionsAndData.columnData[index]?.inputCost || ''}</span>
+                                        <span style={{textAlign: 'right'} }>Output: {filteredOptionsAndData.columnData[index]?.outputCost || ''}</span>
                                     </div>
                                     <div style={{ marginTop: '4px' }}>
                                         <span
@@ -259,7 +259,7 @@
                                                 handleNotesEdit(filteredOptionsAndData.columnData[index]?.modelGuid || '', filteredOptionsAndData.columnData[index]?.userNotes || '');
                                             }}
                                         >
-                                            Notes
+                                            Notes: {filteredOptionsAndData.columnData[index]?.userNotes || ''}
                                         </span>
                                     </div>
                                 </div>
