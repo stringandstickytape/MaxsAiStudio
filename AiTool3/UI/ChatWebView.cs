@@ -363,9 +363,7 @@ namespace AiTool3.UI
                     var wvForm = new WebviewForm(message["content"]);
                     wvForm.Show();
                     break;
-                default:
 
-                    throw new NotImplementedException();
             }
         }
 
