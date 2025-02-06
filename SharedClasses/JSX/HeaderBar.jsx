@@ -14,29 +14,35 @@ const HeaderBar = () => {
     const [starredModels, setStarredModels] = useState({});
 
     const handleStarToggle = (toggleData) => {
-    if (typeof toggleData === "object" && toggleData !== null) {
-        setStarredModels(toggleData);
-        return;
-    }
-    const modelName = toggleData;
+        if (typeof toggleData === "object" && toggleData !== null) {
+            if (toggleData.columnData) {
+                setMainAIColumnData(toggleData.columnData);
+                setSummaryAIColumnData(toggleData.columnData);
+            }
+            setStarredModels(toggleData.starredModels || toggleData);
+            return;
+        }
+        const modelName = toggleData;
         setStarredModels(prevState => {
             const newState = { ...prevState, [modelName]: !prevState[modelName] };
             console.log(`Model: ${modelName}, Starred: ${newState[modelName]}`);
+
+            // send toggled model name and new state
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'toggleModelStar',
+                    modelName: modelName,
+                    isStarred: newState[modelName].toString()
+                });
+            }
             return newState;
         });
-        // send toggled model name and new state
-        if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({
-                type: 'toggleModelStar',
-                modelName: modelName,
-                isStarred: (!starredModels[modelName]).toString()
-            });
-        }
 
         // Force re-render of dropdowns
         setMainAIValue(prevValue => prevValue);
         setSummaryAIValue(prevValue => prevValue);
-    };
+    }
+
 
     useEffect(() => {
         window.setTools = (newTools) => {

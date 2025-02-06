@@ -27,6 +27,7 @@
     <None Remove="JSX\MainContent.jsx" />
     <None Remove="JSX\Message.jsx" />
     <None Remove="JSX\MessagesPane.jsx" />
+    <None Remove="JSX\ModelNotesEditor.jsx" />
     <None Remove="JSX\PrefillModal.jsx" />
     <None Remove="JSX\QuickActionsBar.jsx" />
     <None Remove="JSX\SplitButton.jsx" />
@@ -76,6 +77,7 @@
     <EmbeddedResource Include="JSX\LiveStream.jsx" />
     <EmbeddedResource Include="JSX\Message.jsx" />
     <EmbeddedResource Include="JSX\MessagesPane.jsx" />
+    <EmbeddedResource Include="JSX\ModelNotesEditor.jsx" />
     <EmbeddedResource Include="JSX\PrefillModal.jsx" />
     <EmbeddedResource Include="JSX\QuickActionsBar.jsx" />
     <EmbeddedResource Include="JSX\SplitButton.jsx" />

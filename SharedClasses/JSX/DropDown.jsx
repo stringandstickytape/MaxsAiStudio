@@ -1,5 +1,8 @@
 ﻿const DropDown = ({ id, label, options, value, onChange, helpText, columnData, starredModels, onStarToggle }) => {
     const [filterText, setFilterText] = React.useState('');
+    const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+    const [editingModelGuid, setEditingModelGuid] = useState(null);
+    const [editingModelNotes, setEditingModelNotes] = useState('');
 
     React.useEffect(() => {
         if (columnData && columnData.length > 0) {
@@ -62,17 +65,43 @@
     };
 
     const handleNotesEdit = (modelGuid, currentNotes) => {
-        const newNotes = window.prompt('Edit notes for ' + modelGuid, currentNotes);
-        if (newNotes !== null) {
-            if (window.chrome && window.chrome.webview) {
-                window.chrome.webview.postMessage({
-                    type: 'userNotesChanged',
-                    modelGuid: modelGuid,
-                    content: newNotes
-                });
-            }
-        }
+        setEditingModelGuid(modelGuid);
+        setEditingModelNotes(currentNotes);
+        setIsNotesModalOpen(true);
     };
+
+    const handleNotesSave = (modelGuid, newNotes) => {
+        // Send a message to the C# side to update the notes.
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({
+                type: 'userNotesChanged',
+                modelGuid: modelGuid,
+                content: newNotes
+            });
+        }
+
+        // Update the tooltip and data model with the new notes.
+        const updatedColumnData = columnData.map(data => {
+            if (data.modelGuid === modelGuid) {
+                return { ...data, userNotes: newNotes };
+            } else {
+                return data;
+            }
+        });
+        onStarToggle({
+            ...starredModels,
+            columnData: updatedColumnData, 
+        });
+
+        setIsNotesModalOpen(false);
+        // Optionally update local state of notes, or re-fetch
+    };
+
+    const handleNotesClose = () => {
+        setIsNotesModalOpen(false);
+        setEditingModelGuid(null); // Clear the editing guid
+        setEditingModelNotes('');   // Clear the editing notes
+    }
 
     React.useEffect(() => {
         const handleClickOutside = (event) => {
@@ -242,7 +271,16 @@
                     </div>
                 )}
             </div>
+            {isNotesModalOpen && (
+                <ModelNotesEditor
+                    modelGuid={editingModelGuid}
+                    initialNotes={editingModelNotes}
+                    onSave={handleNotesSave}
+                    onClose={handleNotesClose}
+                />
+            )}
         </div>
+
     );
 };
 
