@@ -27,16 +27,22 @@ namespace VSIXTest.Embeddings
             var allFiles = shortcutManager.GetAllFilesInSolution();
 
             allFiles = allFiles.Where(x => !x.EndsWith(".min.js")
-            && !x.EndsWith(".png")).ToList();
+            && !x.EndsWith(".png")
+            && !x.EndsWith(".ico")).ToList();
 
             var lineFragmenter = new VsixLineFragmenter();
+            var csFragmenter = new VsixCsFragmenter();
 
             var fragments = new List<CodeFragment>();
 
             foreach (var file in allFiles)
             {
                 var content = File.ReadAllText(file);
-                fragments.AddRange(lineFragmenter.FragmentCode(content, file));
+
+                if(file.EndsWith(".cs"))
+                    fragments.AddRange(csFragmenter.FragmentCode(content, file));
+                else
+                    fragments.AddRange(lineFragmenter.FragmentCode(content, file));
             }
 
 
@@ -148,10 +154,10 @@ namespace VSIXTest.Embeddings
             //}
 
             //result = result.GroupBy(x => x.Code).Select(x => x.First()).ToList();
-            return null;// result;
+            return s;// result;
         }
 
-        internal static async Task GetEmbeddingsAsync(DTE2 dte, string prompt)
+        internal static async Task<string> GetEmbeddingsAsync(DTE2 dte, string prompt)
         {
             var embeddings = await GetRelatedCodeFromEmbeddings(dte, prompt);
             //embeddings = embeddings.GroupBy(x => new { x.Filename, x.LineNumber }).Select(x => x.First()).ToList();
@@ -162,16 +168,23 @@ namespace VSIXTest.Embeddings
             // Display embeddings in a modal dialog and let user select
             //var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
             //
-            //var lastMsg = $"{Environment.NewLine}{Environment.NewLine}" +
-            //    $"Here's some related content:{Environment.NewLine}" +
-            //    $"{string.Join(Environment.NewLine, selectedEmbeddings.Select(
-            //        x => $"{new string('`', 3)}{x.Filename} line {x.LineNumber}{Environment.NewLine}, class {x.Namespace}.{x.Class}" +
-            //        $"{x.Code}{Environment.NewLine}" +
-            //        $"{new string('`', 3)}"))}" +
-            //        $"{Environment.NewLine}{Environment.NewLine}" +
-            //        $"{conversation.messages.Last().content}";
-            //conversation.messages.Last().content = lastMsg;
-            return;
+
+            var newPrompt = $"{Environment.NewLine}{Environment.NewLine}" +
+                $"Here's some related content:{Environment.NewLine}";
+
+            foreach (var embedding in embeddings)
+            {
+                newPrompt += $"{new string('`', 3)}" +
+
+                    (embedding.Filename == null ? "" : 
+                        $"{embedding.Filename} line {embedding.LineNumber}, class {embedding.Namespace}.{embedding.Class}{Environment.NewLine}"
+                    ) + 
+                    $"{embedding.Code}{Environment.NewLine}" +
+                    $"{new string('`', 3)}";
+            }
+            prompt = newPrompt + prompt;
+
+            return prompt;
 
         }
     }

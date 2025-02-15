@@ -49,6 +49,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ChangesetManager.cs" />
+    <Compile Include="Embeddings\Fragmenters\VsixCsFragmenter.cs" />
+    <Compile Include="Embeddings\Fragmenters\RoslynHelper.cs" />
     <Compile Include="Embeddings\VsixEmbeddingsHelper.cs" />
     <Compile Include="Embeddings\Fragmenters\VsixLineFragmenter.cs" />
     <Compile Include="Embeddings\VsixEmbedding.cs" />

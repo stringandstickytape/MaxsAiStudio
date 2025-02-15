@@ -104,16 +104,19 @@ namespace VSIXTest.UI
 
             if (e.SelectedOptions.Any(x => x.Option == "Embeddings"))
             {
-                await VsixEmbeddingsHelper.CreateEmbeddingsAsync(_dte);
+                //await VsixEmbeddingsHelper.CreateEmbeddingsAsync(_dte);
 
-                await VsixEmbeddingsHelper.GetEmbeddingsAsync(_dte, formattedAll);
+                formattedAll = await VsixEmbeddingsHelper.GetEmbeddingsAsync(_dte, formattedAll);
             }
 
 
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
             await _executeScriptAsync($"setUserPrompt({jsonFormattedAll})");
-            var systemPrompt = await _executeScriptAsync($"getSystemPrompt()");
+
+            if (e.SelectedOptions.Any(x => x.Option == "Embeddings")) return;
+
+                var systemPrompt = await _executeScriptAsync($"getSystemPrompt()");
 
             await _messageHandler.SendVsixMessageAsync(
                 new VsixMessage
