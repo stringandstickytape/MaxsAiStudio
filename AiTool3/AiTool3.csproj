@@ -71,6 +71,7 @@
     <None Remove="Tools\expressiontest.json" />
     <None Remove="Tools\find-and-replace.json" />
     <None Remove="Tools\insertion.json" />
+    <None Remove="Tools\term-inquiry-or-chat.json" />
     <None Remove="UI\ButtonedRichTextBox.cs.defunct" />
     <None Remove="UI\Licenses.txt" />
   </ItemGroup>
@@ -85,6 +86,7 @@
     <EmbeddedResource Include="JavaScript\NetworkDiagramHtmlControl.html" />
     <EmbeddedResource Include="Tools\color-scheme-spec.json" />
     <EmbeddedResource Include="Tools\diff-specifier.json" />
+    <EmbeddedResource Include="Tools\term-inquiry-or-chat.json" />
     <EmbeddedResource Include="UI\Licenses.txt" />
   </ItemGroup>
   
