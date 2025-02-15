@@ -245,12 +245,11 @@ namespace VSIXTest
                         files.AddRange(Directory.GetFiles(rootFolder, "*.*", SearchOption.AllDirectories)
                             .Where(f => IsValidFile(f)));
 
-                        GitIgnoreFilterManager gitIgnoreFilterManager = new GitIgnoreFilterManager("");
                         // check for a .gitignore
                         if (File.Exists(Path.Combine(rootFolder, ".gitignore")))
                         {
                             var gitignore = File.ReadAllText(Path.Combine(rootFolder, ".gitignore"));
-                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+                            var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
 
                             if (gitignore != null)
                             {
@@ -266,6 +265,19 @@ namespace VSIXTest
                     foreach (EnvDTE.Project project in _dte.Solution.Projects)
                     {
                         GetProjectFiles(project, files);
+                    }
+
+                    var solutionRoot = Path.GetDirectoryName(_dte.Solution.FullName);
+
+                    if (File.Exists(Path.Combine(solutionRoot, ".gitignore")))
+                    {
+                        var gitignore = File.ReadAllText(Path.Combine(solutionRoot, ".gitignore"));
+                        var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+
+                        if (gitignore != null)
+                        {
+                            files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files).ToList();
+                        }
                     }
                 }
             }

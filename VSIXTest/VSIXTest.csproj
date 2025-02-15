@@ -49,6 +49,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ChangesetManager.cs" />
+    <Compile Include="Embeddings\VsixEmbeddingsHelper.cs" />
+    <Compile Include="Embeddings\Fragmenters\VsixLineFragmenter.cs" />
+    <Compile Include="Embeddings\VsixEmbedding.cs" />
+    <Compile Include="Embeddings\VsixEmbeddingManager.cs" />
     <Compile Include="PaneDebug\DebugWindowControl.xaml.cs">
       <DependentUpon>DebugWindowControl.xaml</DependentUpon>
     </Compile>
@@ -150,6 +154,9 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.10.2186" />
     <PackageReference Include="Microsoft.Web.WebView2">
       <Version>1.0.2651.64</Version>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json">
+      <Version>8.0.4</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

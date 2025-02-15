@@ -7,6 +7,8 @@ using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE80;
 using VSIXTest.FileGroups;
+using VSIXTest.Embeddings;
+using System.Threading.Tasks;
 
 namespace VSIXTest
 {
@@ -109,12 +111,10 @@ namespace VSIXTest
             return string.Join("\n", formattedFiles);
         }
 
-        public string GetContentForOption(OptionWithParameter option, string activeDocumentFilename)
+        public async Task<string> GetContentForOptionAsync(OptionWithParameter option, string activeDocumentFilename)
         {
             switch (option.Option)
             {
-                case "Embeddings":
-                    return "";
                 case "CurrentSelection":
                     return FormatContent(activeDocumentFilename, GetCurrentSelection());
                 case "Clipboard":

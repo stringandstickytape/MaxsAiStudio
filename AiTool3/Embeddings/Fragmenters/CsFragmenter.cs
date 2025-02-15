@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using SharedClasses.Models;
 
 namespace AiTool3.Embeddings.Fragmenters
 {
@@ -22,14 +23,5 @@ namespace AiTool3.Embeddings.Fragmenters
         }
     }
 
-    public class CodeFragment
-    {
-        public string Content { get; set; }
-        public string Type { get; set; }
-        public string FilePath { get; set; }
-        public int LineNumber { get; set; }
 
-        public string Class { get; set; }
-        public string Namespace { get; set; }
-    }
 }

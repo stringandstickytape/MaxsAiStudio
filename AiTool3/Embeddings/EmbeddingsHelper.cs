@@ -1,6 +1,7 @@
 ﻿using AiTool3.Embeddings.Fragmenters;
 using AiTool3.ExtensionMethods;
 using SharedClasses.Git;
+using SharedClasses.Models;
 
 namespace AiTool3.Embeddings
 {

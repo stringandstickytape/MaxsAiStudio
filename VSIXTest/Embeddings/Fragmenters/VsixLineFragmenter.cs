@@ -1,11 +1,14 @@
 ﻿using SharedClasses.Models;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
-namespace AiTool3.Embeddings.Fragmenters
+namespace VSIXTest.Embeddings.Fragmenters
 {
-    public class LineFragmenter
+    public class VsixLineFragmenter
 
     {
-        public List<CodeFragment> FragmentCode(string fileContent, string filePath, int maxFragmentSize = 100)
+        public List<CodeFragment> FragmentCode(string fileContent, string filePath, int maxFragmentSize = 50)
         {
             var fragments = new List<CodeFragment>();
             var lines = fileContent.Split('\n');

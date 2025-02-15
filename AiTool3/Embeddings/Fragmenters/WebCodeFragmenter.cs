@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using SharedClasses.Models;
 using System.Text;
 using System.Text.RegularExpressions;
 

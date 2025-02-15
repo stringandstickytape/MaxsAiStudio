@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSIXTest.FileGroups;
 using SharedClasses.Models;
+using VSIXTest.Embeddings;
 
 namespace VSIXTest.UI
 {
@@ -100,6 +101,15 @@ namespace VSIXTest.UI
             var inclusions = await GetInclusionsAsync(e.SelectedOptions);
 
             var formattedAll = $"\n{string.Join("\n\n", inclusions)}\n\n{prompt}";
+
+            if (e.SelectedOptions.Any(x => x.Option == "Embeddings"))
+            {
+                await VsixEmbeddingsHelper.CreateEmbeddingsAsync(_dte);
+
+                await VsixEmbeddingsHelper.GetEmbeddingsAsync(_dte, formattedAll);
+            }
+
+
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
             await _executeScriptAsync($"setUserPrompt({jsonFormattedAll})");
@@ -142,12 +152,13 @@ namespace VSIXTest.UI
 
             foreach (var option in options)
             {
-                string content = _contentFormatter.GetContentForOption(option, activeDocumentFilename);
+                string content = await _contentFormatter.GetContentForOptionAsync(option, activeDocumentFilename);
                 if (!string.IsNullOrEmpty(content))
                 {
                     inclusions.Add(content);
                 }
             }
+
 
             return inclusions;
         }
