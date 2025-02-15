@@ -16,7 +16,14 @@
                      Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
 		</DockPanel>
-		<DockPanel Margin="0,5,0,0">
+        <DockPanel Margin="0,5,0,0">
+            <CheckBox Content="Embeddings" IsChecked="True" Name="cbEmbeddings"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+            <TextBox Name="txtCurrentSelection" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"
+                     Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+        </DockPanel>
+        <DockPanel Margin="0,5,0,0">
 			<CheckBox Content="Clipboard Contents" Name="cbClipboard"
                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
 			<TextBox Name="txtClipboard" Margin="5,0,0,0" Width="200" HorizontalAlignment="Right"

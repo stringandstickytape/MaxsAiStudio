@@ -113,6 +113,8 @@ namespace VSIXTest
         {
             switch (option.Option)
             {
+                case "Embeddings":
+                    return "";
                 case "CurrentSelection":
                     return FormatContent(activeDocumentFilename, GetCurrentSelection());
                 case "Clipboard":

@@ -36,6 +36,10 @@ namespace VSIXTest
 
                 if (cbCurrentSelection.IsChecked == true)
                     selectedOptions.Add(new OptionWithParameter("CurrentSelection", txtCurrentSelection.Text, false));
+
+                if (cbCurrentSelection.IsChecked == true)
+                    selectedOptions.Add(new OptionWithParameter("Embeddings", "", false));
+
                 if (cbClipboard.IsChecked == true)
                     selectedOptions.Add(new OptionWithParameter("Clipboard", txtClipboard.Text, false));
                 if (cbCurrentFile.IsChecked == true)
