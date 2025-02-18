@@ -4,16 +4,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
-using System.Reflection;
 
 public class WebServer
 {
     private WebApplication app;
     private readonly IConfiguration _configuration;
+    private readonly string _webRootPath;
 
     public WebServer(IConfiguration configuration)
     {
         _configuration = configuration;
+        _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "AiStudio4.Web", "dist");
     }
 
     public async Task StartAsync()
@@ -26,43 +27,58 @@ public class WebServer
 
         app = builder.Build();
 
-
         // Handle root path
         app.MapGet("/", async context =>
         {
-            await ServeEmbeddedResource(context, "AiStudio4.AiStudio4.Web.dist.index.html");
+            await ServeFile(context, "index.html");
         });
 
         // Handle all other paths
         app.MapGet("/{*path}", async context =>
         {
             var path = context.Request.Path.Value?.TrimStart('/');
-            var resourcePath = $"AiStudio4.AiStudio4.Web.dist.{path?.Replace("/", ".")}";
-            await ServeEmbeddedResource(context, resourcePath);
+            if (string.IsNullOrEmpty(path))
+            {
+                await ServeFile(context, "index.html");
+            }
+            else
+            {
+                await ServeFile(context, path);
+            }
         });
 
         await app.RunAsync();
     }
 
-    private async Task ServeEmbeddedResource(HttpContext context, string resourcePath)
+    private async Task ServeFile(HttpContext context, string relativePath)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream(resourcePath);
+        var fullPath = Path.Combine(_webRootPath, relativePath);
 
-        if (stream == null)
+        if (!File.Exists(fullPath))
         {
             context.Response.StatusCode = 404;
+            await context.Response.WriteAsync($"File not found: {relativePath}");
             return;
         }
 
-        context.Response.ContentType = GetContentType(resourcePath);
-        context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
-        await stream.CopyToAsync(context.Response.Body);
+        try
+        {
+            context.Response.ContentType = GetContentType(relativePath);
+            context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+
+            // Read and send the file
+            await using var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            await fileStream.CopyToAsync(context.Response.Body);
+        }
+        catch (Exception ex)
+        {
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync($"Error serving file: {ex.Message}");
+        }
     }
 
     private string GetContentType(string path)
     {
-        // Your existing GetContentType method implementation
         switch (Path.GetExtension(path).ToLower())
         {
             case ".js": return "application/javascript";

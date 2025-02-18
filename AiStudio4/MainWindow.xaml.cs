@@ -12,14 +12,11 @@ using System.Windows.Shapes;
 
 namespace AiStudio4;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
-public partial class MainWindow : Window
+public partial class WebViewWindow : Window
 {
     private readonly WindowManager _windowManager;
 
-    public MainWindow(WindowManager windowManager)
+    public WebViewWindow(WindowManager windowManager)
     {
         _windowManager = windowManager;
         InitializeComponent();

@@ -31,15 +31,15 @@ namespace AiStudio4
             // Register services
             services.AddSingleton<WebServer>();
             services.AddSingleton<WindowManager>();
-            services.AddTransient<MainWindow>();
+            services.AddTransient<WebViewWindow>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
+            webViewWindow.Show();
 
             // Start web server
             var webServer = _serviceProvider.GetRequiredService<WebServer>();

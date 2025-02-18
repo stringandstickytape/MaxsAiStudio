@@ -40,48 +40,32 @@ namespace AiStudio4.Controls
         }
         private void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
         {
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
             var uri = new Uri(e.Request.Uri);
-
             System.Diagnostics.Debug.WriteLine($"Requested URI: {e.Request.Uri}");
 
-            string resourcePath;
-            if (uri.AbsolutePath == "/" && uri.Authority == "localhost:35002")
+            try
             {
-                resourcePath = "AiStudio4.AiStudio4.Web.dist.index.html";
+                string filePath = "./AiStudio4.Web/dist" + (uri.AbsolutePath == "/" ? "/index.html" : uri.AbsolutePath);
+                string text = File.ReadAllText(filePath);
+
+                // Convert the text content to a byte array
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
+
+                // Create a MemoryStream with the content
+                var memoryStream = new MemoryStream(bytes);
+
+                var response = this.CoreWebView2.Environment.CreateWebResourceResponse(
+                    memoryStream,
+                    200,
+                    "OK",
+                    $"Content-Type: {GetContentType(filePath)}\n" +
+                    "Access-Control-Allow-Origin: *");
+                e.Response = response;
             }
-            else
+            catch (Exception ex)
             {
-                resourcePath = $"AiStudio4.AiStudio4.Web.dist{uri.AbsolutePath.Replace("/",".")}";
+                System.Diagnostics.Debug.WriteLine($"Error reading file: {ex.Message}");
             }
-
-            System.Diagnostics.Debug.WriteLine($"Looking for resource: {resourcePath}");
-
-            // Create a MemoryStream that will stay alive after this method returns
-            var memoryStream = new MemoryStream();
-            var res = assembly.GetManifestResourceNames();
-            using (var stream = assembly.GetManifestResourceStream(resourcePath))
-            {
-                if (stream == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Resource not found: {resourcePath}");
-                    return;
-                }
-
-                // Copy the content to the MemoryStream
-                stream.CopyTo(memoryStream);
-                memoryStream.Position = 0;
-            }
-
-            var response = this.CoreWebView2.Environment.CreateWebResourceResponse(
-                memoryStream,
-                200,
-                "OK",
-                $"Content-Type: {GetContentType(resourcePath)}\n" +
-                "Access-Control-Allow-Origin: *");
-            e.Response = response;
-
-            // The WebView2 will dispose of the MemoryStream when it's done with it
         }
 
         private string GetContentType(string path)

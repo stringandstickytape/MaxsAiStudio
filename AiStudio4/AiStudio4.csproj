@@ -22,10 +22,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="AiStudio4.Web\dist\assets\index.css" />
-    <EmbeddedResource Include="AiStudio4.Web\dist\assets\index.js" />
-    <EmbeddedResource Include="AiStudio4.Web\dist\index.html" />
-    <EmbeddedResource Include="AiStudio4.Web\dist\vite.svg" />
+    <EmbeddedResource Include="AiStudio4.Web\dist\assets\index.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AiStudio4.Web\dist\assets\index.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AiStudio4.Web\dist\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AiStudio4.Web\dist\vite.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="AiStudio4.Web\index.html" />
   </ItemGroup>
 

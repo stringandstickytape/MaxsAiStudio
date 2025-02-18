@@ -8,17 +8,17 @@ namespace AiStudio4
     [System.Runtime.InteropServices.ComVisible(true)]
     public class WindowManager
     {
-        private readonly Dictionary<string, MainWindow> _windows;
+        private readonly Dictionary<string, WebViewWindow> _windows;
         private readonly object _lock = new object();
         private readonly IServiceProvider _serviceProvider;
 
         public WindowManager(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _windows = new Dictionary<string, MainWindow>();
+            _windows = new Dictionary<string, WebViewWindow>();
         }
 
-        public MainWindow CreateNewWindow(string windowId)
+        public WebViewWindow CreateNewWindow(string windowId)
         {
             lock (_lock)
             {
@@ -28,7 +28,7 @@ namespace AiStudio4
                     return _windows[windowId];
                 }
 
-                var window = _serviceProvider.GetRequiredService<MainWindow>();
+                var window = _serviceProvider.GetRequiredService<WebViewWindow>();
                 window.Title = windowId.StartsWith("main-") ? "AiStudio4" : $"AiStudio4 - Conversation {windowId}";
 
                 window.Closed += (s, e) =>
@@ -53,7 +53,7 @@ namespace AiStudio4
             }
         }
 
-        public MainWindow? GetWindow(string windowId)
+        public WebViewWindow? GetWindow(string windowId)
         {
             lock (_lock)
             {
@@ -61,7 +61,7 @@ namespace AiStudio4
             }
         }
 
-        public IEnumerable<MainWindow> GetAllWindows()
+        public IEnumerable<WebViewWindow> GetAllWindows()
         {
             lock (_lock)
             {
