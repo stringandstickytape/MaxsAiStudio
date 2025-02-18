@@ -1,6 +1,7 @@
 using AiStudio4.Resources;
 using Microsoft.Web.WebView2.Wpf;
 using System.Windows;
+using SharedClasses.Helpers;
 
 namespace AiStudio4.Controls
 {
@@ -34,8 +35,19 @@ namespace AiStudio4.Controls
         {
             if (e.Uri.StartsWith("http://localhost:35002"))
             {
+
+
+
                 e.Cancel = true;
-                this.CoreWebView2.NavigateToString(WebContent.TEST_HTML);
+
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                //var resourceNames = assembly.GetManifestResourceNames();
+                using (var stream = assembly.GetManifestResourceStream("AiStudio4.WebviewResources.app.html"))
+                using (var reader = new System.IO.StreamReader(stream))
+                {
+                    string html = reader.ReadToEnd();
+                    this.CoreWebView2.NavigateToString(html);
+                }
             }
         }
     }
