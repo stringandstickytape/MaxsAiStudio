@@ -99,43 +99,5 @@ namespace AiStudio4
                 return _windows.Count > 0;
             }
         }
-
-        // Optional: Method to arrange windows on screen
-        public void ArrangeWindows()
-        {
-            lock (_lock)
-            {
-                int count = _windows.Count;
-                if (count == 0) return;
-
-                double screenWidth = SystemParameters.PrimaryScreenWidth;
-                double screenHeight = SystemParameters.PrimaryScreenHeight;
-
-                // Simple grid arrangement
-                int cols = (int)Math.Ceiling(Math.Sqrt(count));
-                int rows = (int)Math.Ceiling((double)count / cols);
-
-                double windowWidth = screenWidth / cols;
-                double windowHeight = screenHeight / rows;
-
-                int currentRow = 0;
-                int currentCol = 0;
-
-                foreach (var window in _windows.Values)
-                {
-                    window.Width = windowWidth;
-                    window.Height = windowHeight;
-                    window.Left = currentCol * windowWidth;
-                    window.Top = currentRow * windowHeight;
-
-                    currentCol++;
-                    if (currentCol >= cols)
-                    {
-                        currentCol = 0;
-                        currentRow++;
-                    }
-                }
-            }
-        }
     }
 }
