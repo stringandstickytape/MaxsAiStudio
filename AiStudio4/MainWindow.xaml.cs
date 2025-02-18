@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -20,5 +21,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         webView.Initialize();
+
+        var webServer = new WebServer();
+        Task.Run(async () => await webServer.StartAsync());
     }
 }

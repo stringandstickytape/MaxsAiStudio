@@ -8,7 +8,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0-preview.1.24081.1" />
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
     <None Remove="AiStudio4.Web\dist\assets\index.css" />
     <None Remove="AiStudio4.Web\dist\assets\index.js" />
     <None Remove="AiStudio4.Web\dist\index.html" />
