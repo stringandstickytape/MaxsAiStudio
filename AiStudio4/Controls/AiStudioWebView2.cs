@@ -1,4 +1,3 @@
-using AiStudio4.Resources;
 using Microsoft.Web.WebView2.Wpf;
 using System.Windows;
 using SharedClasses.Helpers;
