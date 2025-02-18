@@ -24,7 +24,6 @@ namespace AiStudio4.Controls
             this.CoreWebView2.AddHostObjectToScript("windowManager", WindowManager.Instance);
 
             // Add handlers
-            this.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             this.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
 
             // Register for resource handling
@@ -33,12 +32,6 @@ namespace AiStudio4.Controls
             // Navigate to localhost URL
             this.CoreWebView2.Navigate("http://localhost:35002/");
         }
-
-        private void CoreWebView2_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
-        {
-            // Allow the navigation to proceed - it will be handled by WebResourceRequested
-        }
-
         private void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
         {
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();

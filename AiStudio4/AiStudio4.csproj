@@ -14,7 +14,6 @@
     <None Remove="AiStudio4.Web\dist\index.html" />
     <None Remove="AiStudio4.Web\dist\vite.svg" />
     <None Remove="AiStudio4.Web\index.html" />
-    <None Remove="WebviewResources\app.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +22,6 @@
     <EmbeddedResource Include="AiStudio4.Web\dist\index.html" />
     <EmbeddedResource Include="AiStudio4.Web\dist\vite.svg" />
     <EmbeddedResource Include="AiStudio4.Web\index.html" />
-    <EmbeddedResource Include="WebviewResources\app.html" />
   </ItemGroup>
 
   <ItemGroup>
