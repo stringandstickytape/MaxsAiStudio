@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
@@ -7,24 +8,13 @@ namespace AiStudio4
     [System.Runtime.InteropServices.ComVisible(true)]
     public class WindowManager
     {
-        private static WindowManager? _instance;
         private readonly Dictionary<string, MainWindow> _windows;
         private readonly object _lock = new object();
+        private readonly IServiceProvider _serviceProvider;
 
-        public static WindowManager Instance
+        public WindowManager(IServiceProvider serviceProvider)
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new WindowManager();
-                }
-                return _instance;
-            }
-        }
-
-        private WindowManager()
-        {
+            _serviceProvider = serviceProvider;
             _windows = new Dictionary<string, MainWindow>();
         }
 
@@ -38,10 +28,9 @@ namespace AiStudio4
                     return _windows[windowId];
                 }
 
-                var window = new MainWindow();
+                var window = _serviceProvider.GetRequiredService<MainWindow>();
                 window.Title = windowId.StartsWith("main-") ? "AiStudio4" : $"AiStudio4 - Conversation {windowId}";
 
-                // Handle window closing to remove it from dictionary
                 window.Closed += (s, e) =>
                 {
                     RemoveWindow(windowId);

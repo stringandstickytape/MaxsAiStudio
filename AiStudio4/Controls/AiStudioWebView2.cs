@@ -2,13 +2,19 @@ using Microsoft.Web.WebView2.Wpf;
 using System.Windows;
 using SharedClasses.Helpers;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AiStudio4.Controls
 {
     public class AiStudioWebView2 : WebView2
     {
+        private readonly WindowManager _windowManager;
+
         public AiStudioWebView2()
         {
+            // Get the WindowManager from the service provider
+            _windowManager = ((App)Application.Current).Services.GetRequiredService<WindowManager>();
+
             this.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             this.CreationProperties = new Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties
             {
@@ -21,7 +27,7 @@ namespace AiStudio4.Controls
         public async void Initialize()
         {
             await this.EnsureCoreWebView2Async();
-            this.CoreWebView2.AddHostObjectToScript("windowManager", WindowManager.Instance);
+            this.CoreWebView2.AddHostObjectToScript("windowManager", _windowManager);
 
             // Add handlers
             this.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;

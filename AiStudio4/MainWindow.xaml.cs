@@ -17,12 +17,12 @@ namespace AiStudio4;
 /// </summary>
 public partial class MainWindow : Window
 {
-    public MainWindow()
-    {
+    private readonly WindowManager _windowManager;
 
+    public MainWindow(WindowManager windowManager)
+    {
+        _windowManager = windowManager;
         InitializeComponent();
         webView.Initialize();
-
-
     }
 }

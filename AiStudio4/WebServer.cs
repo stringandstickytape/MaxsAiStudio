@@ -1,19 +1,31 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Reflection;
 
 public class WebServer
 {
     private WebApplication app;
+    private readonly IConfiguration _configuration;
+
+    public WebServer(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
     public async Task StartAsync()
     {
         var builder = WebApplication.CreateBuilder();
-        builder.WebHost.UseUrls("http://localhost:35005");
+
+        // Get port from configuration, with fallback
+        var port = _configuration.GetValue<int>("WebServer:Port", 35005);
+        builder.WebHost.UseUrls($"http://localhost:{port}");
 
         app = builder.Build();
+
 
         // Handle root path
         app.MapGet("/", async context =>

@@ -1,47 +1,58 @@
-﻿using System.Configuration;
-using System.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using System.Windows;
+using System.IO;
 
-namespace AiStudio4;
-
-public partial class App : Application
+namespace AiStudio4
 {
-    private WebServer webServer;
-
-    private async void Application_Startup(object sender, StartupEventArgs e)
+    public partial class App : Application
     {
-        try
+        private ServiceProvider _serviceProvider;
+        public ServiceProvider Services => _serviceProvider;
+
+        public App()
         {
-            // Start the web server
-
-
-            // Create the main window
-            //WindowManager.Instance.CreateNewWindow("main-" + DateTime.Now.Ticks);
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            _serviceProvider = services.BuildServiceProvider();
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-            Shutdown(1);
-        }
-    }
 
-    protected override async void OnExit(ExitEventArgs e)
-    {
-        try
+        private void ConfigureServices(IServiceCollection services)
         {
-            if (webServer != null)
+            // Configure configuration
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+
+            // Register configuration
+            services.AddSingleton<IConfiguration>(configuration);
+
+            // Register services
+            services.AddSingleton<WebServer>();
+            services.AddSingleton<WindowManager>();
+            services.AddTransient<MainWindow>();
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+
+            // Start web server
+            var webServer = _serviceProvider.GetRequiredService<WebServer>();
+            _ = webServer.StartAsync();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            if (_serviceProvider is IDisposable disposable)
             {
-                await webServer.StopAsync();
+                disposable.Dispose();
             }
-        }
-        catch (Exception ex)
-        {
-            // Log the error if you have logging set up
-            System.Diagnostics.Debug.WriteLine($"Error shutting down web server: {ex}");
-        }
-        finally
-        {
+
             base.OnExit(e);
         }
     }
