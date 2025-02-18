@@ -19,10 +19,10 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
+
         InitializeComponent();
         webView.Initialize();
 
-        var webServer = new WebServer();
-        Task.Run(async () => await webServer.StartAsync());
+
     }
 }
