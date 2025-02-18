@@ -376,15 +376,7 @@
                     />
                 </div>
                 <div className="buttons-wrapper">
-                    <div className="checkbox-wrapper">
-                        <input
-                            type="checkbox"
-                            id="addEmbeddings"
-                            checked={addEmbeddings}
-                            onChange={(e) => setAddEmbeddings(e.target.checked)}
-                        />
-                        <label htmlFor="addEmbeddings">Add Embeddings</label>
-                    </div>
+
                     <SplitButton
                         label={sendButtonLabel}
                         onClick={handleSend}
@@ -440,3 +432,12 @@
         </>
     );
 };
+/*                     <div className="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="addEmbeddings"
+                            checked={addEmbeddings}
+                            onChange={(e) => setAddEmbeddings(e.target.checked)}
+                        />
+                        <!--<label htmlFor="addEmbeddings">Add Embeddings</label>-->
+                    </div> */

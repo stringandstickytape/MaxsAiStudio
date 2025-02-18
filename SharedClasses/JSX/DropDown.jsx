@@ -190,6 +190,7 @@
         padding: '4px',
         border: `1px solid ${colorScheme.borderColor}`,
         borderRadius: '4px',
+        boxSizing: 'border-box',
         backgroundColor: colorScheme.dropdownBackgroundColor,
         color: colorScheme.dropdownTextColor,
     };

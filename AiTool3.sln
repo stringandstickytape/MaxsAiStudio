@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSocketConnectionTester",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeExtension", "ChromeExtension\ChromeExtension.csproj", "{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiStudio4", "AiStudio4\AiStudio4.csproj", "{AC73E8A8-A625-4FBA-9422-336F5171FF48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CleanCublas|Any CPU = CleanCublas|Any CPU
@@ -180,6 +182,30 @@ Global
 		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|arm64.Build.0 = Release|Any CPU
 		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|x86.ActiveCfg = Release|Any CPU
 		{E8C1EC9F-C7AB-4114-9787-30D15D4458D1}.Release|x86.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|Any CPU.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|Any CPU.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|arm64.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|arm64.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|x86.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.CleanCublas|x86.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|arm64.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Debug|x86.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|Any CPU.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|arm64.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|arm64.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|x86.ActiveCfg = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.DebugCublas|x86.Build.0 = Debug|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|arm64.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|arm64.Build.0 = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|x86.ActiveCfg = Release|Any CPU
+		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
