@@ -9,11 +9,14 @@ namespace AiStudio4.Controls
     public class AiStudioWebView2 : WebView2
     {
         private readonly WindowManager _windowManager;
+        private readonly UiRequestBroker _uiRequestBroker;
 
         public AiStudioWebView2()
         {
-            // Get the WindowManager from the service provider
-            _windowManager = ((App)Application.Current).Services.GetRequiredService<WindowManager>();
+            // Get services from the service provider
+            var services = ((App)Application.Current).Services;
+            _windowManager = services.GetRequiredService<WindowManager>();
+            _uiRequestBroker = services.GetRequiredService<UiRequestBroker>();
 
             this.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             this.CreationProperties = new Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties
@@ -38,33 +41,60 @@ namespace AiStudio4.Controls
             // Navigate to localhost URL
             this.CoreWebView2.Navigate("http://localhost:35002/");
         }
-        private void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
+        private async void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
         {
             var uri = new Uri(e.Request.Uri);
             System.Diagnostics.Debug.WriteLine($"Requested URI: {e.Request.Uri}");
 
             try
             {
+                // Check if this is an API request
+                if (uri.AbsolutePath.StartsWith("/api/"))
+                {
+                    var requestType = uri.AbsolutePath.Split('/').Last();
+                    string requestData = "";
+
+                    // Read request body if POST
+                    if (e.Request.Method == "POST")
+                    {
+                        var content = e.Request.Content;
+                        if (content != null)
+                        {
+                            using (var stream = content)
+                            using (var reader = new StreamReader(stream))
+                            {
+                                requestData = reader.ReadToEnd();
+                            }
+                        }
+                    }
+
+                    var response = await _uiRequestBroker.HandleRequestAsync(requestType, requestData);
+                    var bytes2 = System.Text.Encoding.UTF8.GetBytes(response);
+                    var memoryStream2 = new MemoryStream(bytes2);
+
+                    e.Response = this.CoreWebView2.Environment.CreateWebResourceResponse(
+                        memoryStream2,
+                        200,
+                        "OK",
+                        "Content-Type: application/json\nAccess-Control-Allow-Origin: *");
+                    return;
+                }
+
+                // Handle static files
                 string filePath = "./AiStudio4.Web/dist" + (uri.AbsolutePath == "/" ? "/index.html" : uri.AbsolutePath);
                 string text = File.ReadAllText(filePath);
-
-                // Convert the text content to a byte array
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
-
-                // Create a MemoryStream with the content
                 var memoryStream = new MemoryStream(bytes);
 
-                var response = this.CoreWebView2.Environment.CreateWebResourceResponse(
+                e.Response = this.CoreWebView2.Environment.CreateWebResourceResponse(
                     memoryStream,
                     200,
                     "OK",
-                    $"Content-Type: {GetContentType(filePath)}\n" +
-                    "Access-Control-Allow-Origin: *");
-                e.Response = response;
+                    $"Content-Type: {GetContentType(filePath)}\nAccess-Control-Allow-Origin: *");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error reading file: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error handling request: {ex.Message}");
             }
         }
 

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Windows;
 using System.IO;
+using AiStudio4.Controls;
 
 namespace AiStudio4
 {
@@ -29,6 +30,7 @@ namespace AiStudio4
             services.AddSingleton<IConfiguration>(configuration);
 
             // Register services
+            services.AddSingleton<UiRequestBroker>();
             services.AddSingleton<WebServer>();
             services.AddSingleton<WindowManager>();
             services.AddTransient<WebViewWindow>();
