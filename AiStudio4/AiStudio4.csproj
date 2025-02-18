@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AiTool3\AiTool3.csproj" />
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
   </ItemGroup>
 
