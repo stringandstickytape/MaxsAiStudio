@@ -39,7 +39,7 @@ namespace AiStudio4.Controls
             this.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
 
             // Navigate to localhost URL
-            this.CoreWebView2.Navigate("http://localhost:35002/");
+            this.CoreWebView2.Navigate("http://localhost:35005/");
         }
         private async void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
         {
