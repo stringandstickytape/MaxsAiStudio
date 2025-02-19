@@ -136,14 +136,14 @@ function App() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="fixed top-0 left-0 right-0 bg-white border-b shadow-sm p-4 z-10">
+            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
                 <div className="space-x-4">
                     <Button onClick={makeTestCall}>
                         Test Server Call
                     </Button>
                 </div>
             </div>
-            <div className="fixed top-16 left-0 right-0 bg-white border-b shadow-sm p-4 z-10">
+            <div className="fixed top-16 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">{selectedModel}</Button>
@@ -168,7 +168,7 @@ function App() {
             </div>
 
             {/* WebSocket Status Panel */}
-            <div className="fixed top-10 left-10 p-4 border rounded-lg bg-white shadow-md z-20">
+            <div className="fixed top-10 left-10 p-4 border border-gray-700 rounded-lg bg-[#1f2937] shadow-md z-20">
                 <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                     <span>WebSocket Status: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>

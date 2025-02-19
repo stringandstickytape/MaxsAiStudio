@@ -46,7 +46,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     }
 
     return (
-        <div className="mt-4 prose dark:prose-invert">
+        <div className="mt-4 prose prose-invert prose-dark max-w-none">
             <ReactMarkdown components={components}>
                 {markdownContent}
             </ReactMarkdown>

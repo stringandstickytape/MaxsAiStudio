@@ -19,17 +19,17 @@ export function InputBar({ onSendMessage }: { onSendMessage: (message: string) =
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 h-[30vh] bg-white border-t shadow-lg p-4">
+        <div className="fixed bottom-0 left-0 right-0 h-[30vh] bg-[#1f2937] border-t border-gray-700 shadow-lg p-4">
             <div className="h-full flex flex-col gap-2">
                 <textarea
-                    className="flex-1 w-full p-2 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    className="flex-1 w-full p-2 border border-gray-700 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#2d3748] text-gray-100"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type your message here... (Ctrl+Enter to send)"
                 />
                 <Button 
-                    className="w-full" 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
                     onClick={handleSend}
                 >
                     Send
