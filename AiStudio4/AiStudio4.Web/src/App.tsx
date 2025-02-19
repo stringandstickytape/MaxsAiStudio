@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react"  // Add useEffect here
 import "./App.css"
+import { evaluate } from '@mdx-js/mdx'
+import * as runtime from 'react/jsx-runtime'
 import { Button } from "@/components/ui/button"
 import { Bar, BarChart } from "recharts"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
-import { useState } from "react"
 import * as ts from "typescript"
 // Import the shadcn dropdown menu components
 import {
@@ -11,6 +13,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+
+
 
 const chartData = [
     { month: "January", desktop: 186, mobile: 80 },
@@ -34,10 +39,33 @@ const chartConfig = {
 
 function App() {
     const buttonText: string = `TypeScript Version: ${ts.version}`;
+    const [Content, setContent] = useState<React.ComponentType | null>(null)
 
     // State to store the returned models along with the selected model.
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
+
+    useEffect(() => {
+        const compileMdx = async () => {
+            const mdxContent = `
+# Dynamic MDX
+
+This content was generated programmatically!
+
+- Item 1
+- Item 2
+      `
+
+            const { default: Component } = await evaluate(mdxContent, {
+                ...runtime,
+                development: false
+            })
+
+            setContent(() => Component)
+        }
+
+        compileMdx()
+    }, []);
 
     // Updated fetch call that extracts the models from the response
     const makeTestCall = async () => {
@@ -101,6 +129,9 @@ function App() {
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
+                </div>
+                <div className="mt-4 prose dark:prose-invert">
+                    {Content && <Content />}
                 </div>
             </div>
         </>
