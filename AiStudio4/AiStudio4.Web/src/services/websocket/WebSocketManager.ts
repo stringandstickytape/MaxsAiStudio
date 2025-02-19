@@ -63,6 +63,7 @@ class WebSocketManager {
             // Handle client ID message specially
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
+                console.log('set client id to ' + this.config.clientId);
             }
 
             // Notify all handlers for this message type
@@ -86,6 +87,10 @@ class WebSocketManager {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.close();
         }
+    }
+
+    public getClientId(): string | undefined {
+        return this.config.clientId;
     }
 }
 

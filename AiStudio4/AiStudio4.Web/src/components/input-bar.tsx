@@ -1,7 +1,7 @@
 import React, { useState, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 
-export function InputBar() {
+export function InputBar({ onSendMessage }: { onSendMessage: (message: string) => void }) {
     const [inputText, setInputText] = useState('');
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -12,8 +12,10 @@ export function InputBar() {
     };
 
     const handleSend = () => {
-        console.log('Input text:', inputText);
-        setInputText(''); // Clear the input after sending
+        if (inputText.trim()) {
+            onSendMessage(inputText);
+            setInputText(''); // Clear the input after sending
+        }
     };
 
     return (

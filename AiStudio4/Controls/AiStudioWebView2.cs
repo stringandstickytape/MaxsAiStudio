@@ -34,10 +34,10 @@ namespace AiStudio4.Controls
             this.CoreWebView2.AddHostObjectToScript("windowManager", _windowManager);
 
             // Add handlers
-            this.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            //this.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
 
             // Register for resource handling
-            this.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
+            //this.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
 
             // Navigate to localhost URL
             this.CoreWebView2.Navigate("http://localhost:35005/");

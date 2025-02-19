@@ -31,7 +31,7 @@ namespace AiStudio4.InjectedDependencies
 
             _connectedClients.TryAdd(clientId, webSocket);
 
-            var json = JsonConvert.SerializeObject(new { messageType = "clientId", value = clientId});
+            var json = JsonConvert.SerializeObject(new { messageType = "clientId", content = clientId});
 
             // Send the client their ID immediately after connection
             var clientIdMessage = Encoding.UTF8.GetBytes(json);

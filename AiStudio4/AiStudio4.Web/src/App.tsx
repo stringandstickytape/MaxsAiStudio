@@ -34,6 +34,34 @@ function App() {
     });
 
     // Handle API calls
+    const handleChatMessage = async (message: string) => {
+        const clientId = wsManager.getClientId();
+        if (!clientId) {
+            debugger;
+            console.error('No client ID available');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    clientId: clientId,
+                    message: message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+        }
+    };
+
     const makeTestCall = async () => {
         try {
             const response = await fetch("/api/test", {
@@ -157,7 +185,7 @@ function App() {
                     </div>
                 </div>
             </div>
-            <InputBar />
+            <InputBar onSendMessage={handleChatMessage} />
         </div>
     )
 }

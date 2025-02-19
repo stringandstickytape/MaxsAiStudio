@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System.Text.Json;
 
 namespace AiStudio4.InjectedDependencies
@@ -18,9 +19,12 @@ namespace AiStudio4.InjectedDependencies
         {
             switch (requestType)
             {
+                case "chat":
+
+                    return JsonConvert.SerializeObject("LOL");
                 case "getConfig":
                 default:
-                    return JsonSerializer.Serialize(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
+                    return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
             }
         }
     }
