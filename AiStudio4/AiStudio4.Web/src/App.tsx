@@ -6,6 +6,9 @@ import { MarkdownPane } from "@/components/markdown-pane"
 import { wsManager, LiveChatStreamToken } from '@/services/websocket/WebSocketManager'
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
 import { InputBar } from '@/components/input-bar'
+import { Provider } from 'react-redux'
+import { store } from './store/store'
+import { ConversationView } from './components/ConversationView'
 
 import {
     DropdownMenu,
@@ -135,14 +138,16 @@ function App() {
     }, [selectedModel]);
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
-                <div className="space-x-4">
-                    <Button onClick={makeTestCall}>
-                        Test Server Call
-                    </Button>
+        <Provider store={store}>
+            <div className="flex flex-col min-h-screen">
+                <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
+                    <div className="space-x-4">
+                        <Button onClick={makeTestCall}>
+                            Test Server Call
+                        </Button>
+                    </div>
                 </div>
-            </div>
+
             <div className="fixed top-16 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -182,6 +187,9 @@ function App() {
             </div>
 
             <div className="flex-1 p-4 mt-32 mb-[30vh]">
+                {/* Conversation View */}
+                <ConversationView />
+                
                 {/* Live Stream Markdown Pane */}
                 {liveStreamContent && (
                     <MarkdownPane message={JSON.stringify(liveStreamContent)} />
@@ -193,8 +201,9 @@ function App() {
                 ))}
             </div>
             <InputBar onSendMessage={handleChatMessage} />
-        </div>
-    )
+            </div>
+        </Provider>
+    );
 }
 
-export default App
+export default App;

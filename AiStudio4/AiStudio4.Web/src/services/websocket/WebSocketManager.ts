@@ -1,3 +1,7 @@
+import { store } from '../../store/store';
+import { addMessage, createConversation } from '../../store/conversationSlice';
+import { Message } from '../../types/conversation';
+
 // src/services/websocket/types.ts
 export interface WebSocketMessage {
     messageType: string;
@@ -63,9 +67,9 @@ class WebSocketManager {
 
     private handleMessage = (event: MessageEvent) => {
         try {
-            console.log('Raw message received:', event.data); // Add this
+            console.log('Raw message received:', event.data);
             const message: WebSocketMessage = JSON.parse(event.data);
-            console.log('Parsed message:', message); // Add this
+            console.log('Parsed message:', message);
 
             // Handle client ID message specially
             if (message.messageType === 'clientId') {
@@ -73,6 +77,8 @@ class WebSocketManager {
                 console.log('set client id to ' + this.config.clientId);
             } else if (message.messageType === 'c') {
                 this.handleNewLiveChatStreamToken(message.content);
+            } else if (message.messageType === 'conversation') {
+                this.handleConversationMessage(message.content);
             }
 
             // Notify all handlers for this message type
@@ -90,6 +96,21 @@ class WebSocketManager {
     private handleClose = () => {
         console.log('WebSocket disconnected');
         this.socket = null;
+    }
+
+    private handleConversationMessage = (content: Message) => {
+        if (!content.parentId) {
+            store.dispatch(createConversation({ rootMessage: content }));
+        } else {
+            const state = store.getState();
+            const activeConversationId = state.conversations.activeConversationId;
+            if (activeConversationId) {
+                store.dispatch(addMessage({ 
+                    conversationId: activeConversationId, 
+                    message: content 
+                }));
+            }
+        }
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
