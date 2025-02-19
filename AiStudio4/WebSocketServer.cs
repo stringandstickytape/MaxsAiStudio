@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace AiStudio4.Controls
 {
@@ -22,6 +23,16 @@ namespace AiStudio4.Controls
             var clientId = Guid.NewGuid().ToString();
 
             _connectedClients.TryAdd(clientId, webSocket);
+
+            var json = JsonConvert.SerializeObject(new { messageType = "clientId", value = clientId});
+
+            // Send the client their ID immediately after connection
+            var clientIdMessage = Encoding.UTF8.GetBytes(json);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(clientIdMessage),
+                WebSocketMessageType.Text,
+                true,
+                _cancellationTokenSource.Token);
 
             try
             {
