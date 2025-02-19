@@ -5,6 +5,9 @@ import * as ts from "typescript"
 import { MarkdownPane } from "@/components/markdown-pane"
 import { wsManager } from '@/services/websocket/WebSocketManager'
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
+import { InputBar } from '@/components/input-bar'
+
+// tools in use: vite, shadcn, tailwind 3, react
 
 import {
     DropdownMenu,
@@ -119,7 +122,7 @@ function App() {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="flex-1 p-4 mt-32">
+            <div className="flex-1 p-4 mt-32 mb-[30vh]">
 
 
 
@@ -154,6 +157,7 @@ function App() {
                     </div>
                 </div>
             </div>
+            <InputBar />
         </div>
     )
 }
