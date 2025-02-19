@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -53,6 +54,22 @@ namespace AiStudio4.InjectedDependencies
                         service, model, conversation, null!, null!,
                         new CancellationToken(false), _settingsManager.CurrentSettings,
                         mustNotUseEmbedding: true, toolNames: null, useStreaming: true); // Set useStreaming to true
+
+                    // send a sample conversation to the front-end
+                    await _webSocketServer.SendToClientAsync(clientId,
+                        JsonConvert.SerializeObject(new
+                        {
+                            messageType = "conversation",
+                            content = new
+                            {
+                                id = $"msg_{Guid.NewGuid()}",
+                                content = "Hello! I'm your AI assistant. How can I help you today?",
+                                source = "ai",
+                                parentId = (string)null,  // null for root message
+                                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                                children = new string[] { }
+                            }
+                        }));
 
                     return JsonConvert.SerializeObject(response);
                 case "getConfig":

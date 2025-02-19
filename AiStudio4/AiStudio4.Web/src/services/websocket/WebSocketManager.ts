@@ -30,6 +30,42 @@ class WebSocketManager {
         this.handleMessage = this.handleMessage.bind(this);
     }
 
+    private handleConversationMessage = (content: Message) => {
+        console.log('Received conversation message:', content);
+
+        // For new conversation root messages
+        if (!content.parentId) {
+            store.dispatch(createConversation({
+                rootMessage: {
+                    id: content.id,
+                    content: content.content,
+                    source: content.source,
+                    parentId: null,
+                    timestamp: Date.now(),
+                    children: []
+                }
+            }));
+        }
+        // For replies/branches
+        else {
+            const state = store.getState();
+            const activeConversationId = state.conversations.activeConversationId;
+            if (activeConversationId) {
+                store.dispatch(addMessage({
+                    conversationId: activeConversationId,
+                    message: {
+                        id: content.id,
+                        content: content.content,
+                        source: content.source,
+                        parentId: content.parentId,
+                        timestamp: Date.now(),
+                        children: []
+                    }
+                }));
+            }
+        }
+    };
+
     public connect() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         this.socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
@@ -96,21 +132,6 @@ class WebSocketManager {
     private handleClose = () => {
         console.log('WebSocket disconnected');
         this.socket = null;
-    }
-
-    private handleConversationMessage = (content: Message) => {
-        if (!content.parentId) {
-            store.dispatch(createConversation({ rootMessage: content }));
-        } else {
-            const state = store.getState();
-            const activeConversationId = state.conversations.activeConversationId;
-            if (activeConversationId) {
-                store.dispatch(addMessage({ 
-                    conversationId: activeConversationId, 
-                    message: content 
-                }));
-            }
-        }
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
