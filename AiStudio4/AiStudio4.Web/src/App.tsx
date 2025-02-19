@@ -20,7 +20,6 @@ interface WebSocketState {
 }
 
 function App() {
-    const buttonText: string = `TypeScript Version: ${ts.version}`;
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
 
@@ -88,54 +87,42 @@ function App() {
         }
     }, [selectedModel]);
 
-    // Handler for sending test messages
-    const sendTestMessage = () => {
-        wsManager.send({
-            messageType: 'message',
-            content: `Test message from ${wsState.clientId}`
-        });
-    };
-
     return (
-        <>
-            <div className="p-4">
-                <div className="mt-4 space-x-4">
-                    <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-                        {buttonText}
-                    </Button>
+        <div className="flex flex-col min-h-screen">
+            <div className="fixed top-0 left-0 right-0 bg-white border-b shadow-sm p-4 z-10">
+                <div className="space-x-4">
                     <Button onClick={makeTestCall}>
                         Test Server Call
                     </Button>
-                    {wsState.isConnected && (
-                        <Button onClick={sendTestMessage}>
-                            Send Test Message
-                        </Button>
-                    )}
                 </div>
-
-                <div className="mt-4">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline">{selectedModel}</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            {models.length > 0 ? (
-                                models.map((model, index) => (
-                                    <DropdownMenuItem
-                                        key={index}
-                                        onSelect={() => setSelectedModel(model)}
-                                    >
-                                        {model}
-                                    </DropdownMenuItem>
-                                ))
-                            ) : (
-                                <DropdownMenuItem disabled>
-                                    No models available
+            </div>
+            <div className="fixed top-16 left-0 right-0 bg-white border-b shadow-sm p-4 z-10">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">{selectedModel}</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        {models.length > 0 ? (
+                            models.map((model, index) => (
+                                <DropdownMenuItem
+                                    key={index}
+                                    onSelect={() => setSelectedModel(model)}
+                                >
+                                    {model}
                                 </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                            ))
+                        ) : (
+                            <DropdownMenuItem disabled>
+                                No models available
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <div className="flex-1 p-4 mt-32">
+
+
+
 
                 {/* Render MarkdownPane for each message */}
                 {wsState.messages.map((msg, index) => (
@@ -167,7 +154,7 @@ function App() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 

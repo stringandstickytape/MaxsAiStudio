@@ -28,7 +28,7 @@ namespace AiStudio4.Controls
         {
             var builder = WebApplication.CreateBuilder();
             var port = _configuration.GetValue<int>("WebServer:Port", 35005);
-            builder.WebHost.UseUrls($"http://localhost:{port}");
+            builder.WebHost.UseUrls($"http://*:{port}");
 
             app = builder.Build();
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
