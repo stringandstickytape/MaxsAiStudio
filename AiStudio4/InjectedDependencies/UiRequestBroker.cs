@@ -8,11 +8,13 @@ namespace AiStudio4.InjectedDependencies
     {
         private readonly IConfiguration _configuration;
         private readonly SettingsManager _settingsManager;
+        private readonly WebSocketServer _webSocketServer;
 
-        public UiRequestBroker(IConfiguration configuration, SettingsManager settingsManager)
+        public UiRequestBroker(IConfiguration configuration, SettingsManager settingsManager, WebSocketServer webSocketServer)
         {
             _configuration = configuration;
             _settingsManager = settingsManager;
+            _webSocketServer = webSocketServer;
         }
 
         public async Task<string> HandleRequestAsync(string requestType, string requestData)
@@ -20,7 +22,7 @@ namespace AiStudio4.InjectedDependencies
             switch (requestType)
             {
                 case "chat":
-
+                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject("fragment"));
                     return JsonConvert.SerializeObject("LOL");
                 case "getConfig":
                 default:
