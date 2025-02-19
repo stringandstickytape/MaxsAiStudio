@@ -19,6 +19,19 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task<string> HandleRequestAsync(string requestType, string requestData)
         {
+            if (requestType == "chat")
+            {
+                // Start a background task that continues after the method returns
+                _ = Task.Run(async () =>
+                {
+                    for(int i = 0; i < 5; i++)
+                    {
+                        await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(new { messageType = "c", content = "fragment" }));
+                        await Task.Delay(1000); // Wait for 1 second
+                    }
+                });
+            }
+
             switch (requestType)
             {
                 case "chat":

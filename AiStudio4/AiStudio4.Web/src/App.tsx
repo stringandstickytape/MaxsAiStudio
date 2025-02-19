@@ -7,8 +7,6 @@ import { wsManager, LiveChatStreamToken } from '@/services/websocket/WebSocketMa
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
 import { InputBar } from '@/components/input-bar'
 
-// tools in use: vite, shadcn, tailwind 3, react
-
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -26,6 +24,7 @@ interface WebSocketState {
 function App() {
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
+    const [liveStreamContent, setLiveStreamContent] = useState('');
 
     // WebSocket state
     const [wsState, setWsState] = useState<WebSocketState>({
@@ -59,10 +58,9 @@ function App() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Parse the JSON response
             const data = await response.json();
             console.log('Response data:', data);
-            return data; // Return the response data if needed
+            return data;
 
         } catch (error) {
             console.error('Error sending chat message:', error);
@@ -90,7 +88,7 @@ function App() {
 
     // WebSocket message handlers
     const handleClientId = (clientId: string) => {
-        console.log('Received client ID message:', clientId); // Add this
+        console.log('Received client ID message:', clientId);
         setWsState(prev => ({
             ...prev,
             isConnected: true,
@@ -105,10 +103,11 @@ function App() {
         }));
     };
 
-    const handleNewStreamToken = (token: LiveChatStreamToken) => {
+    const handleNewStreamToken = (token: string) => {
+        setLiveStreamContent(wsManager.getStreamTokens());
         setWsState(prev => ({
             ...prev,
-            streamTokens: [...prev.streamTokens, token]
+            streamTokens: [...prev.streamTokens, { token, timestamp: Date.now() }]
         }));
     };
 
@@ -129,6 +128,7 @@ function App() {
                     isConnected: false,
                     clientId: null
                 }));
+                setLiveStreamContent('');
             };
         }
     }, [selectedModel]);
@@ -166,9 +166,10 @@ function App() {
                 </DropdownMenu>
             </div>
             <div className="flex-1 p-4 mt-32 mb-[30vh]">
-
-
-
+                {/* Live Stream Markdown Pane */}
+                {liveStreamContent && (
+                    <MarkdownPane message={JSON.stringify(liveStreamContent)} />
+                )}
 
                 {/* Render MarkdownPane for each message */}
                 {wsState.messages.map((msg, index) => (
