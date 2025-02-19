@@ -40,13 +40,22 @@ namespace AiStudio4.Controls
             // Handle API requests
             app.MapPost("/api/{requestType}", async context =>
             {
-                var requestType = context.Request.RouteValues["requestType"]?.ToString();
-                using var reader = new StreamReader(context.Request.Body);
-                var requestData = await reader.ReadToEndAsync();
+                try
+                {
+                    var requestType = context.Request.RouteValues["requestType"]?.ToString();
+                    using var reader = new StreamReader(context.Request.Body);
+                    var requestData = await reader.ReadToEndAsync();
 
-                var response = await _uiRequestBroker.HandleRequestAsync(requestType, requestData);
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(response);
+                    var response = await _uiRequestBroker.HandleRequestAsync(requestType, requestData);
+                    context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(response);
+                }
+                catch (Exception ex)
+                {
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsync($"Error handling request: {ex.Message}");
+                }
             });
 
             // Handle file requests
@@ -61,9 +70,9 @@ namespace AiStudio4.Controls
                 {
                     await ServeFile(context, path);
                 }
-
-                await app.RunAsync();
             });
+            
+            await app.RunAsync();
         }
 
         private async Task ServeFile(HttpContext context, string relativePath)

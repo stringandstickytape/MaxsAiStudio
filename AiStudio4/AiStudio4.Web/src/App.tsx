@@ -31,8 +31,24 @@ function App() {
 
     const makeTestCall = async () => {
         try {
-            const response = await fetch('/api/test');
+            const response = await fetch('/api/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             const data = await response.json();
+
+            // data is like this:
+            /*
+            {
+                "success": true,
+                    "models": [
+                        "claude-3-5-sonnet-latest",
+                        "gemini-2.0-flash-exp",
+                        ...
+                        */
+
             setTestData(JSON.stringify(data, null, 2));
         } catch (error) {
             console.error('Error fetching test data:', error);
@@ -49,7 +65,7 @@ function App() {
                     <Bar dataKey="mobile" fill = "var(--color-mobile)" radius = { 4} />
                         </BarChart>
                         </ChartContainer>
-        <Button>{buttonText}</Button>
+              <Button className="bg-teal-500 hover:bg-teal-600 text-white">{buttonText}</Button>
         <Button onClick={makeTestCall} className="ml-4">Test Server Call</Button>
         {testData && (
           <pre className="mt-4 p-4 bg-gray-100 rounded">
