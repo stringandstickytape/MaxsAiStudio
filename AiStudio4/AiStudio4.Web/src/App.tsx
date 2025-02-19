@@ -76,34 +76,31 @@ function App() {
     useEffect(() => {
         // Only establish connection after successful API call and model selection
         if (selectedModel !== "Select Model") {
-            // Create WebSocket connection
-            const ws = new WebSocket('ws://localhost:5000/ws'); // Adjust URL as needed
+            // Create WebSocket connection using current host
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
             // Connection opened
             ws.addEventListener('open', (event) => {
                 console.log('WebSocket Connected');
                 setSocket(ws);
-            });
+            })
 
-            // Listen for messages
             ws.addEventListener('message', (event) => {
                 const message = event.data;
                 setMessages(prev => [...prev, message]);
                 console.log('Message from server:', message);
             });
 
-            // Handle errors
             ws.addEventListener('error', (event) => {
                 console.error('WebSocket error:', event);
             });
 
-            // Handle connection close
             ws.addEventListener('close', (event) => {
                 console.log('WebSocket disconnected');
                 setSocket(null);
             });
 
-            // Cleanup on component unmount
             return () => {
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.close();
