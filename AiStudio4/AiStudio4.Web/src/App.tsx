@@ -10,6 +10,7 @@ import { InputBar } from '@/components/input-bar'
 import { Provider } from 'react-redux'
 import { store } from './store/store'
 import { ConversationView } from './components/ConversationView'
+import { ConversationList } from './components/ConversationList'
 
 import {
     DropdownMenu,
@@ -154,7 +155,7 @@ function App() {
                     <div className="flex flex-col h-full">
                         <div className="p-4 flex-grow">
                             <h2 className="text-white text-xl font-bold">Sidebar</h2>
-                            {/* Add more sidebar content as needed */}
+                            <ConversationList />
                         </div>
                         {/* WebSocket Status Panel */}
                         <div className="p-3 border-t border-gray-700 text-sm">
