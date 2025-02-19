@@ -1,37 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import { Button } from "@/components/ui/button"
+import { Bar, BarChart } from "recharts"
+import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+import { useState } from 'react'
+import * as ts from 'typescript';
 
+const chartData = [
+    { month: "January", desktop: 186, mobile: 80 },
+    { month: "February", desktop: 305, mobile: 200 },
+    { month: "March", desktop: 237, mobile: 120 },
+    { month: "April", desktop: 73, mobile: 190 },
+    { month: "May", desktop: 209, mobile: 130 },
+    { month: "June", desktop: 214, mobile: 140 },
+]
+
+const chartConfig = {
+    desktop: {
+        label: "Desktop",
+        color: "#2563eb",
+    },
+    mobile: {
+        label: "Mobile",
+        color: "#60a5fa",
+    },
+} satisfies ChartConfig
 
 function App() {
-    const [count, setCount] = useState(0);
-    const buttonText: string = 'I am a ShadCN/Tailwind 3 button, whose title was set using Typescript';
+    const buttonText: string = `TypeScript Version: ${ts.version}`;
+    const [testData, setTestData] = useState<string>('');
+
+    const makeTestCall = async () => {
+        try {
+            const response = await fetch('/api/test');
+            const data = await response.json();
+            setTestData(JSON.stringify(data, null, 2));
+        } catch (error) {
+            console.error('Error fetching test data:', error);
+            setTestData('Error fetching data');
+        }
+    };
 
   return (
-    <>
+      <>
       <div>
-<Button>{buttonText}</Button>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <ChartContainer config= { chartConfig } className = "h-[200px] w-[300px]" >
+            <BarChart accessibilityLayer data = { chartData } >
+                <Bar dataKey="desktop" fill = "var(--color-desktop)" radius = { 4} />
+                    <Bar dataKey="mobile" fill = "var(--color-mobile)" radius = { 4} />
+                        </BarChart>
+                        </ChartContainer>
+        <Button>{buttonText}</Button>
+        <Button onClick={makeTestCall} className="ml-4">Test Server Call</Button>
+        {testData && (
+          <pre className="mt-4 p-4 bg-gray-100 rounded">
+            {testData}
+          </pre>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+
     </>
   )
 }

@@ -30,17 +30,31 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
-
 	<ItemGroup>
 		<None Update="AiStudio4.Web\dist\**\*.*">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+
 		</None>
+
 	</ItemGroup>
 
+	<ItemGroup>
+		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.tsx" />
+		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.ts" />
+		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.jsx" />
+		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.js" />
+		<Content Include="@(TypeScriptFiles)">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun"
+			Inputs="@(TypeScriptFiles)"
+			Outputs="$(ProjectDir)AiStudio4.Web\dist\index.html">
+		<Message Text="Running npm build..." Importance="high" />
+		<Exec Command="xcopy &quot;$(ProjectDir)AiStudio4.Web\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
+	</Target>
 
 
-  <Target Name="BuildReactApp" BeforeTargets="PrepareForBuild">
-    <Exec Command="cd $(ProjectDir)\AiStudio4.Web &amp;&amp; npm run build" />
-  </Target>
 
 </Project>

@@ -20,7 +20,7 @@ namespace AiStudio4
             {
                 case "getConfig":
                 default:
-                    return JsonSerializer.Serialize(new { success = true, data = string.Join(",",_settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName)) });
+                    return JsonSerializer.Serialize(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
             }
         }
     }
