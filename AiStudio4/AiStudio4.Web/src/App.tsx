@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./App.css"
 import { Button } from "@/components/ui/button"
 import { Bar, BarChart } from "recharts"
@@ -41,6 +41,8 @@ function App() {
     // State to store the returned models along with the selected model.
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
+    const [socket, setSocket] = useState<WebSocket | null>(null);
+    const [messages, setMessages] = useState<string[]>([]); // To store received messages
 
     // Updated fetch call that extracts the models from the response
     const makeTestCall = async () => {
@@ -63,6 +65,52 @@ function App() {
             setModels([])
         }
     }
+
+    // Optional: Add a function to send messages to the server
+    const sendMessage = (message: string) => {
+        if (socket?.readyState === WebSocket.OPEN) {
+            socket.send(message);
+        }
+    };
+
+    useEffect(() => {
+        // Only establish connection after successful API call and model selection
+        if (selectedModel !== "Select Model") {
+            // Create WebSocket connection
+            const ws = new WebSocket('ws://localhost:5000/ws'); // Adjust URL as needed
+
+            // Connection opened
+            ws.addEventListener('open', (event) => {
+                console.log('WebSocket Connected');
+                setSocket(ws);
+            });
+
+            // Listen for messages
+            ws.addEventListener('message', (event) => {
+                const message = event.data;
+                setMessages(prev => [...prev, message]);
+                console.log('Message from server:', message);
+            });
+
+            // Handle errors
+            ws.addEventListener('error', (event) => {
+                console.error('WebSocket error:', event);
+            });
+
+            // Handle connection close
+            ws.addEventListener('close', (event) => {
+                console.log('WebSocket disconnected');
+                setSocket(null);
+            });
+
+            // Cleanup on component unmount
+            return () => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            };
+        }
+    }, [selectedModel]); // Dependency on selectedModel means connection is established after model selection
 
     return (
         <>
@@ -106,6 +154,19 @@ function App() {
                     </DropdownMenu>
                 </div>
                 <MarkdownPane />
+
+                <div className="mt-4">
+                    <div>WebSocket Status: {socket ? 'Connected' : 'Disconnected'}</div>
+                    <div className="mt-2">
+                        <h3>Received Messages:</h3>
+                        <div className="max-h-40 overflow-y-auto">
+                            {messages.map((msg, index) => (
+                                <div key={index}>{msg}</div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </>
     )
