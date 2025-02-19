@@ -43,18 +43,6 @@ namespace AiStudio4.InjectedDependencies
                 true,
                 _cancellationTokenSource.Token);
 
-            // Send test generic packet
-            await webSocket.SendAsync(
-                new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new { messageType = "message", content = @"# hello
-```filetype
-hello world!
-```
-"
-                }))),
-                WebSocketMessageType.Text,
-                true,
-                _cancellationTokenSource.Token);
-
             try
             {
                 await HandleWebSocketConnection(clientId, webSocket);

@@ -166,6 +166,21 @@ function App() {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
+
+            {/* WebSocket Status Panel */}
+            <div className="fixed top-10 left-10 p-4 border rounded-lg bg-white shadow-md z-20">
+                <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span>WebSocket Status: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>
+                </div>
+
+                {wsState.clientId && (
+                    <div className="mt-2">
+                        Client ID: {wsState.clientId}
+                    </div>
+                )}
+            </div>
+
             <div className="flex-1 p-4 mt-32 mb-[30vh]">
                 {/* Live Stream Markdown Pane */}
                 {liveStreamContent && (
@@ -176,43 +191,6 @@ function App() {
                 {wsState.messages.map((msg, index) => (
                     <MarkdownPane key={index} message={msg} />
                 ))}
-
-                {/* WebSocket Status Panel */}
-                <div className="mt-4 p-4 border rounded-lg">
-                    <div className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                        <span>WebSocket Status: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>
-                    </div>
-
-                    {wsState.clientId && (
-                        <div className="mt-2">
-                            Client ID: {wsState.clientId}
-                        </div>
-                    )}
-
-                    <div className="mt-4">
-                        <h3 className="font-semibold">Messages:</h3>
-                        <div className="mt-2 max-h-40 overflow-y-auto bg-gray-100 rounded p-2">
-                            {wsState.messages.map((msg, index) => (
-                                <div key={index} className="text-sm py-1">
-                                    {msg}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stream Tokens Panel */}
-                <div className="mt-4 p-4 border rounded-lg">
-                    <h3 className="font-semibold">Stream Tokens:</h3>
-                    <div className="mt-2 max-h-40 overflow-y-auto bg-gray-100 rounded p-2">
-                        {wsState.streamTokens.map((token, index) => (
-                            <div key={index} className="text-sm py-1">
-                                Token: {token.token} (Received: {new Date(token.timestamp).toLocaleTimeString()})
-                            </div>
-                        ))}
-                    </div>
-                </div>
             </div>
             <InputBar onSendMessage={handleChatMessage} />
         </div>
