@@ -1,45 +1,39 @@
-import React from 'react'
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+import { Button } from "@/components/ui/button"
+
 
 function App() {
+    const [count, setCount] = useState(0);
+    const buttonText: string = 'I am a ShadCN/Tailwind 3 button, whose title was set using Typescript';
 
-    const version: string = 'Hello!';
-    const swName: string = 'Typescript';
-    const [testData, setTestData] = React.useState<any>(null);
-
-    const fetchTestData = async () => {
-        try {
-            const response = await fetch('/api/test');
-            const data = await response.json();
-            setTestData(data);
-            console.log('Test data:', data);
-        } catch (e) {
-            console.error('Error fetching test data:', e);
-        }
-    };
-
-    const openNewWindow = async () => {
-        try {
-            console.log(version);
-            await window.chrome.webview.hostObjects.windowManager.CreateNewWindow('new-' + Date.now())
-        } catch (e) {
-            console.error('Error:', e)
-        }
-    }
-
-    return (
-        <div className="app">
-            <h1>Holy sh*t, it's {swName}!</h1>
-            <p>WebView2 initialization successful!</p>
-            <button onClick={openNewWindow}>Open New Window</button>
-            <button onClick={fetchTestData}>Fetch Test Data</button>
-            {testData && (
-                <div>
-                    <h3>Test Data Response:</h3>
-                    <pre>{JSON.stringify(testData, null, 2)}</pre>
-                </div>
-            )}
-        </div>
-    )
+  return (
+    <>
+      <div>
+<Button>{buttonText}</Button>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
 export default App
