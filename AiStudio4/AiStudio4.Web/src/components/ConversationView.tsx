@@ -11,7 +11,7 @@ const MessageNode = ({ messageId, conversationId }: { messageId: string; convers
     return (
         <div className="ml-4">
             <div className={`p-2 rounded ${
-                message.source === 'user' ? 'bg-blue-100' : 'bg-gray-100'
+                message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
             }`}>
                 {message.content}
             </div>

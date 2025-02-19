@@ -30,6 +30,11 @@ class WebSocketManager {
         this.handleMessage = this.handleMessage.bind(this);
     }
 
+    private handleEndStream = () => {
+        this.streamTokenString = '';
+        console.log('Stream ended - cleared stream token string');
+    }
+
     private handleConversationMessage = (content: Message) => {
         console.log('Received conversation message:', content);
 
@@ -111,10 +116,12 @@ class WebSocketManager {
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
                 console.log('set client id to ' + this.config.clientId);
-            } else if (message.messageType === 'c') {
+            } else if (message.messageType === 'cfrag') {
                 this.handleNewLiveChatStreamToken(message.content);
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
+            } else if (message.messageType === 'endstream') {
+                this.handleEndStream();
             }
 
             // Notify all handlers for this message type

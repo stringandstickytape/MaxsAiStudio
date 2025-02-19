@@ -32,6 +32,24 @@ namespace AiStudio4.InjectedDependencies
                     var msg = JsonConvert.DeserializeObject<JObject>(requestData);
                     var userMessage = (string)msg["message"];
 
+                    var parentId = $"msg_{Guid.NewGuid()}";
+
+                    // send a sample conversation to the front-end
+                    await _webSocketServer.SendToClientAsync(clientId,
+                        JsonConvert.SerializeObject(new
+                        {
+                            messageType = "conversation",
+                            content = new
+                            {
+                                id = parentId,
+                                content = userMessage,
+                                source = "user",
+                                parentId = (string)null,  // null for root message
+                                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                                children = new string[] { }
+                            }
+                        }));
+
 
                     //var userMessage = $"Write a bullet point list of things, in markdown format, and demarcate it as an md code block.";
                     var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
@@ -41,6 +59,7 @@ namespace AiStudio4.InjectedDependencies
 
                     // Use a lambda to capture the clientId
                     aiService.StreamingTextReceived += (sender, text) => AiService_StreamingTextReceived(clientId, text);
+                    aiService.StreamingComplete += (sender, text) => AiService_StreamingCompleted(clientId, text);
 
                     var conversation = new Conversation(DateTime.Now)
                     {
@@ -55,22 +74,6 @@ namespace AiStudio4.InjectedDependencies
                         new CancellationToken(false), _settingsManager.CurrentSettings,
                         mustNotUseEmbedding: true, toolNames: null, useStreaming: true); // Set useStreaming to true
 
-                    var parentId = $"msg_{Guid.NewGuid()}";
-                    // send a sample conversation to the front-end
-                    await _webSocketServer.SendToClientAsync(clientId,
-                        JsonConvert.SerializeObject(new
-                        {
-                            messageType = "conversation",
-                            content = new
-                            {
-                                id = parentId,
-                                content = "Ping!",
-                                source = "ai",
-                                parentId = (string)null,  // null for root message
-                                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                                children = new string[] { }
-                            }
-                        }));
 
                     await _webSocketServer.SendToClientAsync(clientId,
                         JsonConvert.SerializeObject(new
@@ -79,8 +82,8 @@ namespace AiStudio4.InjectedDependencies
                             content = new
                             {
                                 id = $"msg_{Guid.NewGuid()}",
-                                content = "Pong!",
-                                source = "user",
+                                content = response.ResponseText,
+                                source = "ai",
                                 parentId = parentId,  // null for root message
                                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                                 children = new string[] { }
@@ -94,11 +97,17 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
+        private async void AiService_StreamingCompleted(string clientId, string text)
+        {
+            await _webSocketServer.SendToClientAsync(clientId,
+                JsonConvert.SerializeObject(new { messageType = "endstream", content = text }));
+        }
+
         private async void AiService_StreamingTextReceived(string clientId, string text)
         {
             // Send the streaming text to the specific client
             await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new { messageType = "c", content = text }));
+                JsonConvert.SerializeObject(new { messageType = "cfrag", content = text }));
         }
     }
 }

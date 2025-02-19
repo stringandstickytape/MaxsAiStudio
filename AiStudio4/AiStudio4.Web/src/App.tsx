@@ -115,10 +115,16 @@ function App() {
         }));
     };
 
+    const handleEndStream = () => {
+        setLiveStreamContent('');
+        console.log('Stream ended - cleared live stream content');
+    };
+
     // Use our custom hook to handle different message types
     useWebSocketMessage('clientId', handleClientId);
     useWebSocketMessage('message', handleGenericMessage);
     useWebSocketMessage('newStreamToken', handleNewStreamToken);
+    useWebSocketMessage('endstream', handleEndStream);
 
     // Initialize WebSocket connection when model is selected
     useEffect(() => {
