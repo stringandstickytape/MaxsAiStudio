@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using System.Collections.Concurrent;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace AiStudio4.Controls
 {
@@ -10,6 +11,12 @@ namespace AiStudio4.Controls
     {
         private readonly ConcurrentDictionary<string, WebSocket> _connectedClients = new();
         private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private readonly IConfiguration _configuration;
+
+        public WebSocketServer(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
         public async Task HandleWebSocketRequest(HttpContext context)
         {

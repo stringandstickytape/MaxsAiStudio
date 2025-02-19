@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 
 namespace AiStudio4.Controls
@@ -7,9 +8,9 @@ namespace AiStudio4.Controls
     {
         private readonly string _webRootPath;
 
-        public FileServer(string webRootPath)
+        public FileServer(IConfiguration configuration)
         {
-            _webRootPath = webRootPath;
+            _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "AiStudio4.Web", "dist");
         }
 
         public async Task HandleFileRequest(HttpContext context)

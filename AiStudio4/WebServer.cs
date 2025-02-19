@@ -16,12 +16,12 @@ namespace AiStudio4.Controls
         private readonly FileServer _fileServer;
         private readonly WebSocketServer _wsServer;
 
-        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker)
+        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker, FileServer fileServer, WebSocketServer wsServer)
         {
             _configuration = configuration;
             _uiRequestBroker = uiRequestBroker;
-            _fileServer = new FileServer(Path.Combine(Directory.GetCurrentDirectory(), "AiStudio4.Web", "dist"));
-            _wsServer = new WebSocketServer();
+            _fileServer = fileServer;
+            _wsServer = wsServer;
         }
 
         public async Task StartAsync()
