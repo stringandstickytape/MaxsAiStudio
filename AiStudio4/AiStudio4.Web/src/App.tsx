@@ -5,6 +5,8 @@ import { Bar, BarChart } from "recharts"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import * as ts from "typescript"
 import { MarkdownPane } from "@/components/markdown-pane"
+import { wsManager } from '@/services/websocket/WebSocketManager'
+import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
 
 import {
     DropdownMenu,
@@ -12,9 +14,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-
-
 
 const chartData = [
     { month: "January", desktop: 186, mobile: 80 },
@@ -36,15 +35,25 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
+interface WebSocketState {
+    isConnected: boolean;
+    clientId: string | null;
+    messages: string[];
+}
+
 function App() {
     const buttonText: string = `TypeScript Version: ${ts.version}`;
-    // State to store the returned models along with the selected model.
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
-    const [socket, setSocket] = useState<WebSocket | null>(null);
-    const [messages, setMessages] = useState<string[]>([]); // To store received messages
 
-    // Updated fetch call that extracts the models from the response
+    // WebSocket state
+    const [wsState, setWsState] = useState<WebSocketState>({
+        isConnected: false,
+        clientId: null,
+        messages: []
+    });
+
+    // Handle API calls
     const makeTestCall = async () => {
         try {
             const response = await fetch("/api/test", {
@@ -54,10 +63,8 @@ function App() {
                 },
             })
             const data = await response.json()
-            // If the response is successful and we have a models array, store it in state.
             if (data.success && Array.isArray(data.models)) {
                 setModels(data.models)
-                // Optionally, you could reset the selected model:
                 setSelectedModel("Select Model")
             }
         } catch (error) {
@@ -66,48 +73,50 @@ function App() {
         }
     }
 
-    // Optional: Add a function to send messages to the server
-    const sendMessage = (message: string) => {
-        if (socket?.readyState === WebSocket.OPEN) {
-            socket.send(message);
-        }
+    // WebSocket message handlers
+    const handleClientId = (clientId: string) => {
+        console.log('Received client ID message:', clientId); // Add this
+        setWsState(prev => ({
+            ...prev,
+            isConnected: true,
+            clientId
+        }));
     };
 
+    const handleGenericMessage = (message: any) => {
+        setWsState(prev => ({
+            ...prev,
+            messages: [...prev.messages, JSON.stringify(message)]
+        }));
+    };
+
+    // Use our custom hook to handle different message types
+    useWebSocketMessage('clientId', handleClientId);
+    useWebSocketMessage('message', handleGenericMessage);
+
+    // Initialize WebSocket connection when model is selected
     useEffect(() => {
-        // Only establish connection after successful API call and model selection
         if (selectedModel !== "Select Model") {
-            // Create WebSocket connection using current host
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
-
-            // Connection opened
-            ws.addEventListener('open', (event) => {
-                console.log('WebSocket Connected');
-                setSocket(ws);
-            })
-
-            ws.addEventListener('message', (event) => {
-                const message = event.data;
-                setMessages(prev => [...prev, message]);
-                console.log('Message from server:', message);
-            });
-
-            ws.addEventListener('error', (event) => {
-                console.error('WebSocket error:', event);
-            });
-
-            ws.addEventListener('close', (event) => {
-                console.log('WebSocket disconnected');
-                setSocket(null);
-            });
+            wsManager.connect();
 
             return () => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.close();
-                }
+                wsManager.disconnect();
+                setWsState(prev => ({
+                    ...prev,
+                    isConnected: false,
+                    clientId: null
+                }));
             };
         }
-    }, [selectedModel]); // Dependency on selectedModel means connection is established after model selection
+    }, [selectedModel]);
+
+    // Handler for sending test messages
+    const sendTestMessage = () => {
+        wsManager.send({
+            messageType: 'message',
+            content: `Test message from ${wsState.clientId}`
+        });
+    };
 
     return (
         <>
@@ -118,15 +127,21 @@ function App() {
                         <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
                     </BarChart>
                 </ChartContainer>
-                <div className="mt-4">
+
+                <div className="mt-4 space-x-4">
                     <Button className="bg-teal-500 hover:bg-teal-600 text-white">
                         {buttonText}
                     </Button>
-                    <Button onClick={makeTestCall} className="ml-4">
+                    <Button onClick={makeTestCall}>
                         Test Server Call
                     </Button>
+                    {wsState.isConnected && (
+                        <Button onClick={sendTestMessage}>
+                            Send Test Message
+                        </Button>
+                    )}
                 </div>
-                {/* Always display the dropdown menu with appropriate content */}
+
                 <div className="mt-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -150,20 +165,33 @@ function App() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+
                 <MarkdownPane />
 
-                <div className="mt-4">
-                    <div>WebSocket Status: {socket ? 'Connected' : 'Disconnected'}</div>
-                    <div className="mt-2">
-                        <h3>Received Messages:</h3>
-                        <div className="max-h-40 overflow-y-auto">
-                            {messages.map((msg, index) => (
-                                <div key={index}>{msg}</div>
+                {/* WebSocket Status Panel */}
+                <div className="mt-4 p-4 border rounded-lg">
+                    <div className="flex items-center space-x-2">
+                        <div className={`w-3 h-3 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <span>WebSocket Status: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>
+                    </div>
+
+                    {wsState.clientId && (
+                        <div className="mt-2">
+                            Client ID: {wsState.clientId}
+                        </div>
+                    )}
+
+                    <div className="mt-4">
+                        <h3 className="font-semibold">Messages:</h3>
+                        <div className="mt-2 max-h-40 overflow-y-auto bg-gray-100 rounded p-2">
+                            {wsState.messages.map((msg, index) => (
+                                <div key={index} className="text-sm py-1">
+                                    {msg}
+                                </div>
                             ))}
                         </div>
                     </div>
                 </div>
-
             </div>
         </>
     )
