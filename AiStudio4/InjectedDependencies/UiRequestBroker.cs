@@ -17,26 +17,26 @@ namespace AiStudio4.InjectedDependencies
             _webSocketServer = webSocketServer;
         }
 
-        public async Task<string> HandleRequestAsync(string requestType, string requestData)
+        public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
             if (requestType == "chat")
             {
                 // Start a background task that continues after the method returns
-                _ = Task.Run(async () =>
-                {
-                    for(int i = 0; i < 5; i++)
-                    {
-                        await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(new { messageType = "c", content = "fragment" }));
-                        await Task.Delay(1000); // Wait for 1 second
-                    }
-                });
+
             }
 
             switch (requestType)
             {
                 case "chat":
-                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(new { messageType = "c", content = "fragment" }));
-                    return JsonConvert.SerializeObject("LOL");
+                    _ = Task.Run(async () =>
+                    {
+                        for (int i = 0; i < 5; i++)
+                        {
+                            await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new { messageType = "c", content = "fragment " }));
+                            await Task.Delay(1000); // Wait for 1 second
+                        }
+                    });
+                    return JsonConvert.SerializeObject("Test Completed");
                 case "getConfig":
                 default:
                     return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });

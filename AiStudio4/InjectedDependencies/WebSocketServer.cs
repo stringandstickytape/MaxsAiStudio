@@ -10,6 +10,7 @@ namespace AiStudio4.InjectedDependencies
     public class WebSocketServer
     {
         private readonly ConcurrentDictionary<string, WebSocket> _connectedClients = new();
+        private readonly ConcurrentDictionary<WebSocket, string> _socketToClientId = new();
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly IConfiguration _configuration;
 
@@ -30,6 +31,7 @@ namespace AiStudio4.InjectedDependencies
             var clientId = Guid.NewGuid().ToString();
 
             _connectedClients.TryAdd(clientId, webSocket);
+            _socketToClientId.TryAdd(webSocket, clientId);
 
             var json = JsonConvert.SerializeObject(new { messageType = "clientId", content = clientId});
 
@@ -60,6 +62,7 @@ hello world!
             finally
             {
                 _connectedClients.TryRemove(clientId, out _);
+                _socketToClientId.TryRemove(webSocket, out _);
                 if (webSocket.State == WebSocketState.Open)
                 {
                     await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,
@@ -67,6 +70,12 @@ hello world!
                         _cancellationTokenSource.Token);
                 }
             }
+        }
+
+        public string GetClientIdFromWebSocket(WebSocket socket)
+        {
+            _socketToClientId.TryGetValue(socket, out var clientId);
+            return clientId;
         }
 
         private async Task HandleWebSocketConnection(string clientId, WebSocket webSocket)

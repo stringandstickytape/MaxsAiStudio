@@ -47,6 +47,7 @@ function App() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Client-Id': clientId,
                 },
                 body: JSON.stringify({
                     clientId: clientId,

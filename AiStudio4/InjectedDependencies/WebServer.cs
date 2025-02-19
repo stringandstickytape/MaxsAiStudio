@@ -57,11 +57,13 @@ namespace AiStudio4.InjectedDependencies
         {
             try
             {
+                var clientId = context.Request.Headers["X-Client-Id"].ToString();
+
                 var requestType = context.Request.RouteValues["requestType"]?.ToString();
                 using var reader = new StreamReader(context.Request.Body);
                 var requestData = await reader.ReadToEndAsync();
 
-                var response = await _uiRequestBroker.HandleRequestAsync(requestType, requestData);
+                var response = await _uiRequestBroker.HandleRequestAsync(clientId, requestType, requestData);
                 context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(response);
