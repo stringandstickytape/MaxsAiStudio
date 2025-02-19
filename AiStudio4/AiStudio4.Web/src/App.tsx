@@ -74,7 +74,7 @@ function App() {
         }
     };
 
-    const makeTestCall = async () => {
+    const fetchModels = async () => {
         try {
             const response = await fetch("/api/test", {
                 method: "POST",
@@ -129,6 +129,12 @@ function App() {
     useWebSocketMessage('newStreamToken', handleNewStreamToken);
     useWebSocketMessage('endstream', handleEndStream);
 
+    
+    // Fetch models on component mount
+    useEffect(() => {
+        fetchModels();
+    }, []);
+
     // Initialize WebSocket connection when model is selected
     useEffect(() => {
         if (selectedModel !== "Select Model") {
@@ -179,15 +185,8 @@ function App() {
                 >
                     <Menu className="w-6 h-6 text-white" />
                 </button>
-                <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
-                    <div className="space-x-4">
-                        <Button onClick={makeTestCall}>
-                            Test Server Call
-                        </Button>
-                    </div>
-                </div>
 
-            <div className="fixed top-16 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
+            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">{selectedModel}</Button>
