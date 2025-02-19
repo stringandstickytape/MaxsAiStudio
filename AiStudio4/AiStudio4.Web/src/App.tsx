@@ -1,9 +1,16 @@
-import './App.css'
+import "./App.css"
 import { Button } from "@/components/ui/button"
 import { Bar, BarChart } from "recharts"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
-import { useState } from 'react'
-import * as ts from 'typescript';
+import { useState } from "react"
+import * as ts from "typescript"
+// Import the shadcn dropdown menu components
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const chartData = [
     { month: "January", desktop: 186, mobile: 80 },
@@ -27,55 +34,77 @@ const chartConfig = {
 
 function App() {
     const buttonText: string = `TypeScript Version: ${ts.version}`;
-    const [testData, setTestData] = useState<string>('');
 
+    // State to store the returned models along with the selected model.
+    const [models, setModels] = useState<string[]>([])
+    const [selectedModel, setSelectedModel] = useState<string>("Select Model")
+
+    // Updated fetch call that extracts the models from the response
     const makeTestCall = async () => {
         try {
-            const response = await fetch('/api/test', {
-                method: 'POST',
+            const response = await fetch("/api/test", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-
-            // data is like this:
-            /*
-            {
-                "success": true,
-                    "models": [
-                        "claude-3-5-sonnet-latest",
-                        "gemini-2.0-flash-exp",
-                        ...
-                        */
-
-            setTestData(JSON.stringify(data, null, 2));
+                    "Content-Type": "application/json",
+                },
+            })
+            const data = await response.json()
+            // If the response is successful and we have a models array, store it in state.
+            if (data.success && Array.isArray(data.models)) {
+                setModels(data.models)
+                // Optionally, you could reset the selected model:
+                setSelectedModel("Select Model")
+            }
         } catch (error) {
-            console.error('Error fetching test data:', error);
-            setTestData('Error fetching data');
+            console.error("Error fetching test data:", error)
+            setModels([])
         }
-    };
+    }
 
-  return (
-      <>
-      <div>
-        <ChartContainer config= { chartConfig } className = "h-[200px] w-[300px]" >
-            <BarChart accessibilityLayer data = { chartData } >
-                <Bar dataKey="desktop" fill = "var(--color-desktop)" radius = { 4} />
-                    <Bar dataKey="mobile" fill = "var(--color-mobile)" radius = { 4} />
-                        </BarChart>
-                        </ChartContainer>
-              <Button className="bg-teal-500 hover:bg-teal-600 text-white">{buttonText}</Button>
-        <Button onClick={makeTestCall} className="ml-4">Test Server Call</Button>
-        {testData && (
-          <pre className="mt-4 p-4 bg-gray-100 rounded">
-            {testData}
-          </pre>
-        )}
-      </div>
-
-    </>
-  )
+    return (
+        <>
+            <div className="p-4">
+                <ChartContainer config={chartConfig} className="h-[200px] w-[300px]">
+                    <BarChart accessibilityLayer data={chartData}>
+                        <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
+                        <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+                    </BarChart>
+                </ChartContainer>
+                <div className="mt-4">
+                    <Button className="bg-teal-500 hover:bg-teal-600 text-white">
+                        {buttonText}
+                    </Button>
+                    <Button onClick={makeTestCall} className="ml-4">
+                        Test Server Call
+                    </Button>
+                </div>
+                {/* Always display the dropdown menu with appropriate content */}
+                <div className="mt-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">{selectedModel}</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {models.length > 0 ? (
+                                models.map((model, index) => (
+                                    <DropdownMenuItem
+                                        key={index}
+                                        onSelect={() => setSelectedModel(model)}
+                                    >
+                                        {model}
+                                    </DropdownMenuItem>
+                                ))
+                            ) : (
+                                <DropdownMenuItem disabled>
+                                    No models available
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+        </>
+    )
 }
 
 export default App
