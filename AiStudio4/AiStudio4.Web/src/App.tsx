@@ -174,7 +174,7 @@ function App() {
                 {/* Menu Toggle Button */}
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="fixed top-5 right-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
+                    className="fixed top-5 left-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
                 >
                     <Menu className="w-6 h-6 text-white" />
                 </button>
