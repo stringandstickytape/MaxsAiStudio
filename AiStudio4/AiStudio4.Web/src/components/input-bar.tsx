@@ -22,7 +22,7 @@ export function InputBar({ onSendMessage }: { onSendMessage: (message: string) =
         <div className="fixed bottom-0 left-0 right-0 h-[30vh] bg-white border-t shadow-lg p-4">
             <div className="h-full flex flex-col gap-2">
                 <textarea
-                    className="flex-1 w-full p-2 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 w-full p-2 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}

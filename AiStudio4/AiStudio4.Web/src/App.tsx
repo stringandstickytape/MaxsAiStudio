@@ -37,7 +37,6 @@ function App() {
     const handleChatMessage = async (message: string) => {
         const clientId = wsManager.getClientId();
         if (!clientId) {
-            debugger;
             console.error('No client ID available');
             return;
         }
@@ -57,6 +56,12 @@ function App() {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            // Parse the JSON response
+            const data = await response.json();
+            console.log('Response data:', data);
+            return data; // Return the response data if needed
+
         } catch (error) {
             console.error('Error sending chat message:', error);
         }
