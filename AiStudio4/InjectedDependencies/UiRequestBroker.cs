@@ -22,7 +22,7 @@ namespace AiStudio4.InjectedDependencies
             switch (requestType)
             {
                 case "chat":
-                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject("fragment"));
+                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(new { messageType = "c", content = "fragment" }));
                     return JsonConvert.SerializeObject("LOL");
                 case "getConfig":
                 default:

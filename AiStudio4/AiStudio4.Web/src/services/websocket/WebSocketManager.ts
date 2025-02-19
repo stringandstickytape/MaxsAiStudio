@@ -4,6 +4,11 @@ export interface WebSocketMessage {
     content: any;
 }
 
+export interface LiveChatStreamToken {
+    token: string;
+    timestamp: number;
+}
+
 export interface ClientConfig {
     clientId?: string;
     // Add other client-specific config
@@ -14,6 +19,7 @@ class WebSocketManager {
     private socket: WebSocket | null = null;
     private config: ClientConfig = {};
     private messageHandlers: Map<string, ((data: any) => void)[]> = new Map();
+    private streamTokenString: string = '';
 
     constructor() {
         this.connect = this.connect.bind(this);
@@ -28,6 +34,7 @@ class WebSocketManager {
         this.socket.addEventListener('message', this.handleMessage);
         this.socket.addEventListener('error', this.handleError);
         this.socket.addEventListener('close', this.handleClose);
+        // Handle stream tokens through the message handler instead
     }
 
     public subscribe(messageType: string, handler: (data: any) => void) {
@@ -64,6 +71,8 @@ class WebSocketManager {
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
                 console.log('set client id to ' + this.config.clientId);
+            } else if (message.messageType === 'c') {
+                this.handleNewLiveChatStreamToken(message.content);
             }
 
             // Notify all handlers for this message type
@@ -83,6 +92,15 @@ class WebSocketManager {
         this.socket = null;
     }
 
+    private handleNewLiveChatStreamToken = (token: string) => {
+        // Concatenate the new token with existing tokens
+        this.streamTokenString = this.streamTokenString + token;
+        console.log('WebSocket Manager - Current stream token string:', this.streamTokenString);
+        // Notify subscribers about the new token
+        const handlers = this.messageHandlers.get('newStreamToken') || [];
+        handlers.forEach(handler => handler(token));
+    }
+
     public disconnect() {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.close();
@@ -91,6 +109,18 @@ class WebSocketManager {
 
     public getClientId(): string | undefined {
         return this.config.clientId;
+    }
+
+    public getStreamTokens(): string {
+        return this.streamTokenString;
+    }
+
+    public clearStreamTokens() {
+        this.streamTokenString = '';
+    }
+
+    public getLatestStreamToken(): string {
+        return this.streamTokenString;
     }
 }
 

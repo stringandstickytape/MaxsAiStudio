@@ -3,7 +3,7 @@ import "./App.css"
 import { Button } from "@/components/ui/button"
 import * as ts from "typescript"
 import { MarkdownPane } from "@/components/markdown-pane"
-import { wsManager } from '@/services/websocket/WebSocketManager'
+import { wsManager, LiveChatStreamToken } from '@/services/websocket/WebSocketManager'
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
 import { InputBar } from '@/components/input-bar'
 
@@ -20,6 +20,7 @@ interface WebSocketState {
     isConnected: boolean;
     clientId: string | null;
     messages: string[];
+    streamTokens: LiveChatStreamToken[];
 }
 
 function App() {
@@ -30,7 +31,8 @@ function App() {
     const [wsState, setWsState] = useState<WebSocketState>({
         isConnected: false,
         clientId: null,
-        messages: []
+        messages: [],
+        streamTokens: []
     });
 
     // Handle API calls
@@ -103,9 +105,17 @@ function App() {
         }));
     };
 
+    const handleNewStreamToken = (token: LiveChatStreamToken) => {
+        setWsState(prev => ({
+            ...prev,
+            streamTokens: [...prev.streamTokens, token]
+        }));
+    };
+
     // Use our custom hook to handle different message types
     useWebSocketMessage('clientId', handleClientId);
     useWebSocketMessage('message', handleGenericMessage);
+    useWebSocketMessage('newStreamToken', handleNewStreamToken);
 
     // Initialize WebSocket connection when model is selected
     useEffect(() => {
@@ -187,6 +197,18 @@ function App() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+
+                {/* Stream Tokens Panel */}
+                <div className="mt-4 p-4 border rounded-lg">
+                    <h3 className="font-semibold">Stream Tokens:</h3>
+                    <div className="mt-2 max-h-40 overflow-y-auto bg-gray-100 rounded p-2">
+                        {wsState.streamTokens.map((token, index) => (
+                            <div key={index} className="text-sm py-1">
+                                Token: {token.token} (Received: {new Date(token.timestamp).toLocaleTimeString()})
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
