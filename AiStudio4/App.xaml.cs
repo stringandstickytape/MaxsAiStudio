@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Windows;
 using System.IO;
-using AiStudio4.Controls;
+using AiStudio4.InjectedDependencies;
 
 namespace AiStudio4
 {

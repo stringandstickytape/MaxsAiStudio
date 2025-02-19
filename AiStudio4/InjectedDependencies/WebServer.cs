@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 
-namespace AiStudio4.Controls
+namespace AiStudio4.InjectedDependencies
 {
     public class WebServer
     {
@@ -27,7 +27,7 @@ namespace AiStudio4.Controls
         public async Task StartAsync()
         {
             var builder = WebApplication.CreateBuilder();
-            var port = _configuration.GetValue<int>("WebServer:Port", 35005);
+            var port = _configuration.GetValue("WebServer:Port", 35005);
             builder.WebHost.UseUrls($"http://*:{port}");
 
             app = builder.Build();

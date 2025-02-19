@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text.Json;
 
-namespace AiStudio4
+namespace AiStudio4.InjectedDependencies
 {
     public class SettingsManager
     {

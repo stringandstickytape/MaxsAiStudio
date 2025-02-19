@@ -5,7 +5,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 
-namespace AiStudio4.Controls
+namespace AiStudio4.InjectedDependencies
 {
     public class WebSocketServer
     {

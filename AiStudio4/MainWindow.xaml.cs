@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AiStudio4.InjectedDependencies;
+using System;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;

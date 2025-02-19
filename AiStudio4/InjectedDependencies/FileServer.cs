@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace AiStudio4.Controls
+namespace AiStudio4.InjectedDependencies
 {
     public class FileServer
     {

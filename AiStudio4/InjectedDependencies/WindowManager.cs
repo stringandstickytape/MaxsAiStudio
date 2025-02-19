@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 
-namespace AiStudio4
+namespace AiStudio4.InjectedDependencies
 {
     [System.Runtime.InteropServices.ComVisible(true)]
     public class WindowManager
