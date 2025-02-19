@@ -36,7 +36,12 @@ namespace AiStudio4.Controls
 
             // Send test generic packet
             await webSocket.SendAsync(
-                new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new { messageType = "message", content = DateTime.Now.ToString()}))),
+                new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new { messageType = "message", content = @"# hello
+```filetype
+hello world!
+```
+"
+                }))),
                 WebSocketMessageType.Text,
                 true,
                 _cancellationTokenSource.Token);

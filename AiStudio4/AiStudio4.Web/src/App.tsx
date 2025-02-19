@@ -166,7 +166,10 @@ function App() {
                     </DropdownMenu>
                 </div>
 
-                <MarkdownPane />
+                {/* Render MarkdownPane for each message */}
+                {wsState.messages.map((msg, index) => (
+                    <MarkdownPane key={index} message={msg} />
+                ))}
 
                 {/* WebSocket Status Panel */}
                 <div className="mt-4 p-4 border rounded-lg">

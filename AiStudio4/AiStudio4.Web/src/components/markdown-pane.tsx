@@ -2,19 +2,24 @@ import { useState, useEffect } from "react"
 import { evaluate } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 
-export function MarkdownPane() {
+interface MarkdownPaneProps {
+    message: string;
+}
+
+export function MarkdownPane({ message }: MarkdownPaneProps) {
     const [Content, setContent] = useState<React.ComponentType | null>(null)
 
     useEffect(() => {
         const compileMdx = async () => {
+            
             const mdxContent = `
-# Dynamic MDX
-
-This content was generated programmatically!
-
-- Item 1
-- Item 2
+# Message
+# Message2
+${JSON.parse(message)}
             `
+
+            console.log(mdxContent)
+            debugger;
 
             const { default: Component } = await evaluate(mdxContent, {
                 ...runtime,
@@ -25,7 +30,7 @@ This content was generated programmatically!
         }
 
         compileMdx()
-    }, [])
+    }, [message])
 
     return (
         <div className="mt-4 prose dark:prose-invert">
