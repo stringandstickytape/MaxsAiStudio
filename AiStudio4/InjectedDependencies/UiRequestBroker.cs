@@ -55,6 +55,7 @@ namespace AiStudio4.InjectedDependencies
                         new CancellationToken(false), _settingsManager.CurrentSettings,
                         mustNotUseEmbedding: true, toolNames: null, useStreaming: true); // Set useStreaming to true
 
+                    var parentId = $"msg_{Guid.NewGuid()}";
                     // send a sample conversation to the front-end
                     await _webSocketServer.SendToClientAsync(clientId,
                         JsonConvert.SerializeObject(new
@@ -62,10 +63,25 @@ namespace AiStudio4.InjectedDependencies
                             messageType = "conversation",
                             content = new
                             {
-                                id = $"msg_{Guid.NewGuid()}",
-                                content = "Hello! I'm your AI assistant. How can I help you today?",
+                                id = parentId,
+                                content = "Ping!",
                                 source = "ai",
                                 parentId = (string)null,  // null for root message
+                                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                                children = new string[] { }
+                            }
+                        }));
+
+                    await _webSocketServer.SendToClientAsync(clientId,
+                        JsonConvert.SerializeObject(new
+                        {
+                            messageType = "conversation",
+                            content = new
+                            {
+                                id = $"msg_{Guid.NewGuid()}",
+                                content = "Pong!",
+                                source = "user",
+                                parentId = parentId,  // null for root message
                                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                                 children = new string[] { }
                             }
