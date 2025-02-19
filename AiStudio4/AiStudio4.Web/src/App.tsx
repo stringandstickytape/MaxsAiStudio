@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import "./App.css"
 import { Button } from "@/components/ui/button"
+import { Menu } from "lucide-react"
 import * as ts from "typescript"
 import { MarkdownPane } from "@/components/markdown-pane"
 import { wsManager, LiveChatStreamToken } from '@/services/websocket/WebSocketManager'
@@ -28,6 +29,7 @@ function App() {
     const [models, setModels] = useState<string[]>([])
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
     const [liveStreamContent, setLiveStreamContent] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // WebSocket state
     const [wsState, setWsState] = useState<WebSocketState>({
@@ -145,7 +147,37 @@ function App() {
 
     return (
         <Provider store={store}>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen relative">
+                {/* Sidebar */}
+                <div className={`fixed left-0 top-0 h-full w-80 bg-[#1f2937] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
+                    {/* Sidebar content goes here */}
+                    <div className="flex flex-col h-full">
+                        <div className="p-4 flex-grow">
+                            <h2 className="text-white text-xl font-bold">Sidebar</h2>
+                            {/* Add more sidebar content as needed */}
+                        </div>
+                        {/* WebSocket Status Panel */}
+                        <div className="p-3 border-t border-gray-700 text-sm">
+                            <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                                <span className="text-white text-xs">WebSocket: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>
+                            </div>
+                            {wsState.clientId && (
+                                <div className="mt-1 text-gray-400 text-xs truncate">
+                                    ID: {wsState.clientId}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Menu Toggle Button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-5 right-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
+                >
+                    <Menu className="w-6 h-6 text-white" />
+                </button>
                 <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
                     <div className="space-x-4">
                         <Button onClick={makeTestCall}>
@@ -176,20 +208,6 @@ function App() {
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
-            </div>
-
-            {/* WebSocket Status Panel */}
-            <div className="fixed top-10 left-10 p-4 border border-gray-700 rounded-lg bg-[#1f2937] shadow-md z-20">
-                <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${wsState.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                    <span>WebSocket Status: {wsState.isConnected ? 'Connected' : 'Disconnected'}</span>
-                </div>
-
-                {wsState.clientId && (
-                    <div className="mt-2">
-                        Client ID: {wsState.clientId}
-                    </div>
-                )}
             </div>
 
             <div className="flex-1 p-4 mt-32 mb-[30vh]">
