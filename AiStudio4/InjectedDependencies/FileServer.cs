@@ -1,28 +1,68 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Net.Http;
 
 namespace AiStudio4.InjectedDependencies
 {
     public class FileServer
     {
+        private const bool DevMode = true; // Toggle this for dev/prod mode
         private readonly string _webRootPath;
+        private readonly HttpClient _httpClient;
+        private const string DevServerUrl = "http://localhost:5174";
 
         public FileServer(IConfiguration configuration)
         {
             _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "AiStudio4.Web", "dist");
+            _httpClient = new HttpClient();
         }
 
         public async Task HandleFileRequest(HttpContext context)
         {
-            var path = context.Request.Path.Value?.TrimStart('/');
-            if (string.IsNullOrEmpty(path))
+            if (true)
             {
-                await ServeFile(context, "index.html");
+                await ForwardToDevServer(context);
             }
             else
             {
-                await ServeFile(context, path);
+                var path = context.Request.Path.Value?.TrimStart('/');
+                if (string.IsNullOrEmpty(path))
+                {
+                    await ServeFile(context, "index.html");
+                }
+                else
+                {
+                    await ServeFile(context, path);
+                }
+            }
+        }
+
+        private async Task ForwardToDevServer(HttpContext context)
+        {
+            try
+            {
+                var targetUri = new Uri($"{DevServerUrl}{context.Request.Path}{context.Request.QueryString}");
+                var response = await _httpClient.GetAsync(targetUri);
+
+                context.Response.StatusCode = (int)response.StatusCode;
+
+                foreach (var header in response.Headers)
+                {
+                    context.Response.Headers[header.Key] = header.Value.ToArray();
+                }
+
+                foreach (var header in response.Content.Headers)
+                {
+                    context.Response.Headers[header.Key] = header.Value.ToArray();
+                }
+
+                await response.Content.CopyToAsync(context.Response.Body);
+            }
+            catch (Exception ex)
+            {
+                context.Response.StatusCode = 500;
+                await context.Response.WriteAsync($"Error forwarding to dev server: {ex.Message}");
             }
         }
 

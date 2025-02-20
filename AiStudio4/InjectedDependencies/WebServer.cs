@@ -41,7 +41,7 @@ namespace AiStudio4.InjectedDependencies
         private void ConfigureRoutes()
         {
             // Root path
-            app.MapGet("/", async context => await _fileServer.ServeFile(context, "index.html"));
+            app.MapGet("/", _fileServer.HandleFileRequest);
 
             // API requests
             app.MapPost("/api/{requestType}", HandleApiRequest);

@@ -70,7 +70,6 @@ class WebSocketManager {
             const state = store.getState();
             const activeConversationId = state.conversations.activeConversationId;
             if (activeConversationId) {
-                debugger;
                 store.dispatch(addMessage({
                     conversationId: activeConversationId,
                     message: {
