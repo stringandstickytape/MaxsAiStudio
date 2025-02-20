@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import "./App.css"
+import { addMessage } from './store/conversationSlice'
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import * as ts from "typescript"
@@ -44,12 +45,36 @@ function App() {
     // Handle API calls
     const handleChatMessage = async (message: string) => {
         const clientId = wsManager.getClientId();
-        const activeConversationId = store.getState().conversations.activeConversationId;
+        const state = store.getState();
+        const activeConversationId = state.conversations.activeConversationId;
 
-        if (!clientId || selectedModel === 'Select Model') {
-            console.error('No client ID available or no model selected');
+        if (!activeConversationId || !clientId || selectedModel === 'Select Model') {
+            console.error('No active conversation, client ID, or model selected');
             return;
         }
+
+        // Get the active conversation
+        const conversation = state.conversations.conversations[activeConversationId];
+        if (!conversation) {
+            console.error('Could not find active conversation');
+            return;
+        }
+
+        // Create new message ID
+        const newMessageId = `msg_${Date.now()}`;
+
+        // Dispatch the user message to the store first
+        store.dispatch(addMessage({
+            conversationId: activeConversationId,
+            message: {
+                id: newMessageId,
+                content: message,
+                source: 'user',
+                parentId: conversation.rootMessageId, // Initially set parent to root
+                timestamp: Date.now(),
+                children: []
+            }
+        }));
 
         try {
             const response = await fetch('/api/chat', {
@@ -62,6 +87,7 @@ function App() {
                     clientId: clientId,
                     message: message,
                     conversationId: activeConversationId,
+                    parentMessageId: newMessageId, // Use the new message ID as parent for the AI response
                     model: selectedModel
                 })
             });

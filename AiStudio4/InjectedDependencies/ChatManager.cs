@@ -28,6 +28,7 @@ namespace AiStudio4.InjectedDependencies
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
             var conversationId = (string)requestObject["conversationId"]; // eg conv_1740088070013
+            var parentMessageId = (string)requestObject["parentMessageId"];
             var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == (string)requestObject["model"]);
             var userMessage = (string)requestObject["message"];
 
@@ -38,6 +39,7 @@ namespace AiStudio4.InjectedDependencies
             aiService.StreamingComplete += (sender, text) => AiService_StreamingCompleted(clientId, text);
 
             var v4conversation = LoadOrCreateConversation(conversationId);
+            v4conversation.AddMessage(parentMessageId, userMessage);
 
             var conversation = new Conversation(DateTime.Now)
             {
@@ -97,7 +99,8 @@ namespace AiStudio4.InjectedDependencies
 
     public class v4BranchedConversation
     { 
-        public string ConversationId { get; internal set; }
+        public string ConversationId { get; private set; }
+        public List<v4BranchedConversationMessage> MessageHierarchy { get; private set; }
 
         public v4BranchedConversation()
         {
@@ -106,8 +109,86 @@ namespace AiStudio4.InjectedDependencies
 
         public v4BranchedConversation(string conversationId)
         {
+            if (string.IsNullOrWhiteSpace(conversationId))
+                throw new ArgumentNullException(nameof(conversationId));
+
             ConversationId = conversationId;
+            MessageHierarchy = new List<v4BranchedConversationMessage>();
         }
+
+
+
+        internal void AddMessage(string? parentMessageId, string? userMessage)
+        {
+            // Initialize Messages list if null
+            if (MessageHierarchy == null)
+            {
+                MessageHierarchy = new List<v4BranchedConversationMessage>();
+            }
+
+            var newMessage = new v4BranchedConversationMessage
+            {
+                Role = v4BranchedConversationMessageRole.User,
+                UserMessage = userMessage ?? string.Empty,
+                Children = new List<v4BranchedConversationMessage>()
+            };
+
+            // Helper function to recursively find parent message
+            bool FindAndAddToParent(v4BranchedConversationMessage current, string targetId)
+            {
+                if (current.UserMessage == targetId)
+                {
+                    current.Children.Add(newMessage);
+                    return true;
+                }
+
+                foreach (var child in current.Children)
+                {
+                    if (FindAndAddToParent(child, targetId))
+                        return true;
+                }
+
+                return false;
+            }
+
+            // Try to find parent and add new message as child
+            bool foundParent = false;
+            foreach (var message in MessageHierarchy)
+            {
+                if (FindAndAddToParent(message, parentMessageId))
+                {
+                    foundParent = true;
+                    break;
+                }
+            }
+
+            // If parent not found, create new root message
+            if (!foundParent)
+            {
+                var rootMessage = new v4BranchedConversationMessage
+                {
+                    Role = v4BranchedConversationMessageRole.System,
+                    UserMessage = parentMessageId,
+                    Children = new List<v4BranchedConversationMessage> { newMessage }
+                };
+                MessageHierarchy.Add(rootMessage);
+            }
+        }
+    }
+
+    public enum v4BranchedConversationMessageRole
+    {
+        System,
+        AI,
+        User
+    }
+
+    public class v4BranchedConversationMessage
+    {
+        public v4BranchedConversationMessageRole Role { get; internal set; }
+        public List<v4BranchedConversationMessage> Children { get; internal set; }
+
+        public string UserMessage{ get; internal set; }
     }
 
 }
