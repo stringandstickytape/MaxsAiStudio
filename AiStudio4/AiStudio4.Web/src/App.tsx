@@ -220,11 +220,6 @@ function App() {
                 {liveStreamContent && (
                     <MarkdownPane message={JSON.stringify(liveStreamContent)} />
                 )}
-
-                {/* Render MarkdownPane for each message */}
-                {wsState.messages.map((msg, index) => (
-                    <MarkdownPane key={index} message={msg} />
-                ))}
             </div>
             <InputBar onSendMessage={handleChatMessage} />
             </div>
