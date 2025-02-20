@@ -52,6 +52,8 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
+            var requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
+
             switch (requestType)
             {
                 case "cachedconversation":
@@ -59,7 +61,7 @@ namespace AiStudio4.InjectedDependencies
                     {
                         System.Diagnostics.Debug.WriteLine($"Received cached conversation request: {requestData}");
 
-                        var requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
+                        
 
                         // Load the conversation
                         var conversationId = requestObject["conversationId"].ToString();
@@ -117,6 +119,8 @@ namespace AiStudio4.InjectedDependencies
 
 
                     var model = _settingsManager.CurrentSettings.GetModel();
+
+                    model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == (string)requestObject["model"]);
 
                     var msg = JsonConvert.DeserializeObject<JObject>(requestData);
                     var userMessage = (string)msg["message"];

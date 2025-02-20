@@ -45,8 +45,8 @@ function App() {
         const clientId = wsManager.getClientId();
         const activeConversationId = store.getState().conversations.activeConversationId;
 
-        if (!clientId) {
-            console.error('No client ID available');
+        if (!clientId || selectedModel === 'Select Model') {
+            console.error('No client ID available or no model selected');
             return;
         }
 
@@ -60,7 +60,8 @@ function App() {
                 body: JSON.stringify({
                     clientId: clientId,
                     message: message,
-                    conversationId: activeConversationId
+                    conversationId: activeConversationId,
+                    model: selectedModel
                 })
             });
 
