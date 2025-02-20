@@ -43,6 +43,8 @@ function App() {
     // Handle API calls
     const handleChatMessage = async (message: string) => {
         const clientId = wsManager.getClientId();
+        const activeConversationId = store.getState().conversations.activeConversationId;
+
         if (!clientId) {
             console.error('No client ID available');
             return;
@@ -57,7 +59,8 @@ function App() {
                 },
                 body: JSON.stringify({
                     clientId: clientId,
-                    message: message
+                    message: message,
+                    conversationId: activeConversationId
                 })
             });
 
