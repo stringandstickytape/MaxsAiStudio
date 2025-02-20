@@ -90,10 +90,15 @@ namespace AiStudio4.InjectedDependencies
                             }
                         }));
 
+                    
+
+
                     return JsonConvert.SerializeObject(response);
                 case "getConfig":
-                default:
+                    var conversationCacheManager = new ConversationCacheManager();
                     return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
+                default:
+                    throw new NotImplementedException();
             }
         }
 

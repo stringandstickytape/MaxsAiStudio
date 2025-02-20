@@ -76,7 +76,7 @@ function App() {
 
     const fetchModels = async () => {
         try {
-            const response = await fetch("/api/test", {
+            const response = await fetch("/api/getConfig", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
