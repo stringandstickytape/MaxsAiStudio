@@ -1,5 +1,6 @@
 import { DiagramRenderer } from './types';
 import { MermaidRenderer } from './mermaid-renderer';
+import { JsonRenderer } from './json-renderer';
 
 class DiagramRegistry {
     private renderers: Map<string, DiagramRenderer> = new Map();
@@ -26,3 +27,4 @@ class DiagramRegistry {
 
 export const diagramRegistry = new DiagramRegistry();
 diagramRegistry.register(MermaidRenderer);
+diagramRegistry.register(JsonRenderer);
