@@ -2,24 +2,7 @@ import { useState, useEffect } from "react"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import mermaid from 'mermaid'
-
-// Initialize mermaid with dark theme configuration
-mermaid.initialize({
-    startOnLoad: true,
-    theme: 'dark',
-    securityLevel: 'loose',
-    darkMode: true,
-    themeVariables: {
-        fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-        primaryColor: '#3b82f6',
-        primaryTextColor: '#e0e0e0',
-        primaryBorderColor: '#374151',
-        lineColor: '#4b5563',
-        secondaryColor: '#475569',
-        tertiaryColor: '#1f2937',
-    }
-});
+import { diagramRegistry } from './diagrams/registry'
 
 interface MarkdownPaneProps {
     message: string;
@@ -40,41 +23,28 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         }
     }, [message])
 
-    // Re-render Mermaid diagrams when content changes
+    // Re-render diagrams when content changes
     useEffect(() => {
-        const renderMermaidDiagrams = async () => {
-            try {
-                // Reset any existing Mermaid diagrams
-                document.querySelectorAll('.mermaid').forEach((element) => {
-                    element.innerHTML = element.getAttribute('data-content') || '';
-                });
-
-                // Re-render all Mermaid diagrams
-                await mermaid.run({
-                    querySelector: '.mermaid',
-                });
-            } catch (error) {
-                console.error('Error rendering Mermaid diagrams:', error);
-            }
-        };
-
-        renderMermaidDiagrams();
+        diagramRegistry.renderAll();
     }, [markdownContent, mermaidKey]);
 
     const components = {
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '')
+            if (!match) return <code className={className}>{children}</code>;
 
-            // Handle Mermaid diagrams
-            if (match && match[1] === 'mermaid') {
+            const language = match[1];
+            const content = String(children).replace(/\n$/, '');
+
+            // Check if it's a supported diagram type
+            const diagramRenderer = diagramRegistry.get(language);
+            if (diagramRenderer) {
+                const DiagramComponent = diagramRenderer.Component;
                 return (
-                    <div
-                        className="mermaid my-4 p-4 bg-gray-800 rounded-lg overflow-auto"
-                        key={mermaidKey}
-                        data-content={String(children).replace(/\n$/, '')}
-                    >
-                        {String(children).replace(/\n$/, '')}
-                    </div>
+                    <DiagramComponent
+                        content={content}
+                        className="my-4 p-4 bg-gray-800 rounded-lg overflow-auto"
+                    />
                 );
             }
 
