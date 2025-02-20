@@ -11,16 +11,15 @@ const MessageNode = ({ messageId, conversationId }: { messageId: string; convers
 
     return (
         
-        <div className="ml-4 mt-4 message-node">
-
-            <div className={`p-2 rounded ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'}`}>
+        <div className="mt-4 message-node">
+            <div className={`p-4 rounded inline-block max-w-[80%] ${message.source === 'user' ? 'float-right bg-blue-800' : 'float-left bg-gray-800'} clear-both`}>
                 <MarkdownPane message={JSON.stringify(message.content)} />
             </div>
             {message.children.map((childId) => (
-                <MessageNode 
-                    key={childId} 
-                    messageId={childId} 
-                    conversationId={conversationId} 
+                <MessageNode
+                    key={childId}
+                    messageId={childId}
+                    conversationId={conversationId}
                 />
             ))}
         </div>
@@ -37,14 +36,14 @@ export const ConversationView = () => {
     if (!conversation) return null;
 
     return (
-        <div className="conversation-view">
-
-            {/* Conversation Tree */}
-
-            <MessageNode 
-                messageId={conversation.rootMessageId} 
-                conversationId={activeConversationId} 
-            />
+        <div className="flex justify-center w-full">
+            <div className="conversation-view w-[900px] min-w-[900px] max-w-[900px]">
+                {/* Conversation Tree */}
+                <MessageNode
+                    messageId={conversation.rootMessageId}
+                    conversationId={activeConversationId}
+                />
+            </div>
         </div>
     );
-};
+}; 

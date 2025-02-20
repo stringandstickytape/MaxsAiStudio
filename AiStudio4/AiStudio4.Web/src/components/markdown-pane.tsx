@@ -66,7 +66,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
                 return isRawView ? (
-                    <div className="relative my-4 p-4 bg-gray-800 rounded-lg">
+                    <div className="relative  p-4 bg-gray-800 rounded-lg">
                         {toggleButton}
                         <pre>{content}</pre>
                     </div>
@@ -75,7 +75,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                         {toggleButton}
                         <DiagramComponent
                             content={content}
-                            className="my-4 p-4 bg-gray-800 rounded-lg overflow-auto"
+                            className="p-4 bg-gray-800 rounded-lg overflow-auto"
                         />
                     </div>
                 );
@@ -83,12 +83,12 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
             // Only handle regular code blocks if not a diagram
             return isRawView ? (
-                <div className="relative my-4 p-4 bg-gray-800 rounded-lg">
+                <div className="relative  p-4 bg-gray-800 rounded-lg">
                     {toggleButton}
                     <pre>{content}</pre>
                 </div>
             ) : (
-                <div className="relative my-4">
+                <div className="relative ">
                     {toggleButton}
                     <SyntaxHighlighter
                         style={nightOwl as any}
@@ -103,7 +103,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         },
         // Add styling for other markdown elements
         p: ({ children }: any) => (
-            <p className="my-4 leading-relaxed">{children}</p>
+            <p className=" leading-relaxed">{children}</p>
         ),
         h1: ({ children }: any) => (
             <h1 className="text-3xl font-bold my-6">{children}</h1>
@@ -112,19 +112,19 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             <h2 className="text-2xl font-bold my-5">{children}</h2>
         ),
         h3: ({ children }: any) => (
-            <h3 className="text-xl font-bold my-4">{children}</h3>
+            <h3 className="text-xl font-bold ">{children}</h3>
         ),
         ul: ({ children }: any) => (
-            <ul className="list-disc list-inside my-4 space-y-2">{children}</ul>
+            <ul className="list-disc list-inside  space-y-2">{children}</ul>
         ),
         ol: ({ children }: any) => (
-            <ol className="list-decimal list-inside my-4 space-y-2">{children}</ol>
+            <ol className="list-decimal list-inside  space-y-2">{children}</ol>
         ),
         li: ({ children }: any) => (
             <li className="ml-4">{children}</li>
         ),
         blockquote: ({ children }: any) => (
-            <blockquote className="border-l-4 border-gray-600 pl-4 my-4 italic">
+            <blockquote className="border-l-4 border-gray-600 pl-4  italic">
                 {children}
             </blockquote>
         ),
@@ -134,7 +134,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             </a>
         ),
         table: ({ children }: any) => (
-            <div className="overflow-x-auto my-4">
+            <div className="overflow-x-auto ">
                 <table className="min-w-full divide-y divide-gray-700">
                     {children}
                 </table>
