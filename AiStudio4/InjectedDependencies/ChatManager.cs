@@ -39,8 +39,9 @@ namespace AiStudio4.InjectedDependencies
             aiService.StreamingComplete += (sender, text) => AiService_StreamingCompleted(clientId, text);
 
             var v4conversation = LoadOrCreateConversation(conversationId);
-            v4conversation.AddMessage(parentMessageId, userMessage);
+            var newUserMessage = v4conversation.AddNewMessage(parentMessageId, userMessage);
 
+            v4conversation.Save();
             var conversation = new Conversation(DateTime.Now)
             {
                 systemprompt = "You are a helpful chatbot.",
@@ -53,6 +54,26 @@ namespace AiStudio4.InjectedDependencies
                 service, model, conversation, null!, null!,
                 new CancellationToken(false), _settingsManager.CurrentSettings,
                 mustNotUseEmbedding: true, toolNames: null, useStreaming: true);
+
+            //var newMessage = v4conversation.AddNewMessage(newUserMessage., userMessage);
+
+            v4conversation.Save();
+
+            await _webSocketServer.SendToClientAsync(clientId,
+                JsonConvert.SerializeObject(new
+                {
+                    messageType = "conversation",
+                    content = new
+                    {
+                        id = $"msg_{Guid.NewGuid()}",
+                        content = response.ResponseText,
+                        source = "ai",
+                        parentId = "1",
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        children = new string[] { }
+                    }
+                }));
+
 
             return JsonConvert.SerializeObject(response);
         }
@@ -82,7 +103,7 @@ namespace AiStudio4.InjectedDependencies
             if (File.Exists(conversationPath))
             { 
                 var existingConversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(conversationPath));
-                File.WriteAllText(conversationPath, JsonConvert.SerializeObject(existingConversation));
+                existingConversation.Save();
                 return existingConversation;
             }
             else
@@ -91,10 +112,12 @@ namespace AiStudio4.InjectedDependencies
                 {
 
                 };
-                File.WriteAllText(conversationPath, JsonConvert.SerializeObject(newConversation));
+                newConversation.Save();
                 return newConversation;
             }
         }
+
+
     }
 
     public class v4BranchedConversation
@@ -105,6 +128,19 @@ namespace AiStudio4.InjectedDependencies
         public v4BranchedConversation()
         {
 
+        }
+
+        public void Save()
+        {
+            string conversationPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "conversations",
+                $"{ConversationId}.json");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(conversationPath));
+
+            File.WriteAllText(conversationPath, JsonConvert.SerializeObject(this));
         }
 
         public v4BranchedConversation(string conversationId)
@@ -118,7 +154,7 @@ namespace AiStudio4.InjectedDependencies
 
 
 
-        internal void AddMessage(string? parentMessageId, string? userMessage)
+        internal v4BranchedConversationMessage AddNewMessage(string? parentMessageId, string? userMessage)
         {
             // Initialize Messages list if null
             if (MessageHierarchy == null)
@@ -130,7 +166,8 @@ namespace AiStudio4.InjectedDependencies
             {
                 Role = v4BranchedConversationMessageRole.User,
                 UserMessage = userMessage ?? string.Empty,
-                Children = new List<v4BranchedConversationMessage>()
+                Children = new List<v4BranchedConversationMessage>(),
+                Id = $"msg_{Guid.NewGuid()}"
             };
 
             // Helper function to recursively find parent message
@@ -169,11 +206,16 @@ namespace AiStudio4.InjectedDependencies
                 {
                     Role = v4BranchedConversationMessageRole.System,
                     UserMessage = parentMessageId,
-                    Children = new List<v4BranchedConversationMessage> { newMessage }
+                    Children = new List<v4BranchedConversationMessage> { newMessage },
+                    Id = $"msg_{Guid.NewGuid()}"
                 };
                 MessageHierarchy.Add(rootMessage);
             }
+
+            return newMessage;
         }
+
+
     }
 
     public enum v4BranchedConversationMessageRole
@@ -189,6 +231,8 @@ namespace AiStudio4.InjectedDependencies
         public List<v4BranchedConversationMessage> Children { get; internal set; }
 
         public string UserMessage{ get; internal set; }
+
+        public string Id { get; internal set; }
     }
 
 }
