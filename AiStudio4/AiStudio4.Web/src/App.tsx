@@ -10,7 +10,7 @@ import { InputBar } from '@/components/input-bar'
 import { Provider } from 'react-redux'
 import { store } from './store/store'
 import { ConversationView } from './components/ConversationView'
-import { ConversationList } from './components/ConversationList'
+import { CachedConversationList } from './components/CachedConversationList'
 
 import {
     DropdownMenu,
@@ -159,9 +159,11 @@ function App() {
                 <div className={`fixed left-0 top-0 h-full w-80 bg-[#1f2937] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
                     {/* Sidebar content goes here */}
                     <div className="flex flex-col h-full">
-                        <div className="p-4 flex-grow">
-                            <h2 className="text-white text-xl font-bold">Sidebar</h2>
-                            <ConversationList />
+                        <div className="p-4 flex-grow overflow-hidden flex flex-col">
+                            <h2 className="text-white text-xl font-bold mb-4">Sidebar</h2>
+                            <div className="overflow-y-auto flex-1">
+                                <CachedConversationList />
+                            </div>
                         </div>
                         {/* WebSocket Status Panel */}
                         <div className="p-3 border-t border-gray-700 text-sm">

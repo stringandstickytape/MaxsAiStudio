@@ -35,6 +35,20 @@ class WebSocketManager {
         console.log('Stream ended - cleared stream token string');
     }
 
+    private handleCachedConversationMessage = (content: any) => {
+        console.log('Received cached conversation message:', content);
+        const cachedConversation = {
+            convGuid: content.id,
+            summary: content.content,
+            fileName: `conv_${content.id}.json`,
+            lastModified: new Date(content.timestamp).toISOString(),
+            highlightColour: undefined
+        };
+        // Notify subscribers to update the CachedConversationList
+        const handlers = this.messageHandlers.get('cachedconversation') || [];
+        handlers.forEach(handler => handler(cachedConversation));
+    }
+
     private handleConversationMessage = (content: Message) => {
         console.log('Received conversation message:', content);
 
@@ -121,6 +135,8 @@ class WebSocketManager {
                 this.handleNewLiveChatStreamToken(message.content);
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
+            } else if (message.messageType === 'cachedconversation') {
+                this.handleCachedConversationMessage(message.content);
             } else if (message.messageType === 'endstream') {
                 this.handleEndStream();
             }

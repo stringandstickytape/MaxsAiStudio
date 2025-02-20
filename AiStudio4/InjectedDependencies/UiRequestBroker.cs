@@ -27,6 +27,31 @@ namespace AiStudio4.InjectedDependencies
             switch (requestType)
             {
                 case "chat":
+
+
+                    var conversationCacheManager = new ConversationCacheManager();
+
+                    foreach (var conv in conversationCacheManager.Conversations)
+                    {
+                        await _webSocketServer.SendToClientAsync(clientId,
+                            JsonConvert.SerializeObject(new
+                            {
+                                messageType = "cachedconversation",
+                                content = new
+                                {
+                                    id = conv.Value.ConvGuid,
+                                    content = conv.Value.Summary,
+                                    source = "ai",
+                                    parentId = (string)null,  // null for root message
+                                    timestamp = new DateTimeOffset(conv.Value.LastModified).ToUnixTimeMilliseconds(),
+                                    children = new string[] { }
+                                }
+                            }));
+                    }
+
+
+
+
                     var model = _settingsManager.CurrentSettings.GetModel();
 
                     var msg = JsonConvert.DeserializeObject<JObject>(requestData);
@@ -95,7 +120,6 @@ namespace AiStudio4.InjectedDependencies
 
                     return JsonConvert.SerializeObject(response);
                 case "getConfig":
-                    var conversationCacheManager = new ConversationCacheManager();
                     return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
                 default:
                     throw new NotImplementedException();
