@@ -10,7 +10,9 @@ const MessageNode = ({ messageId, conversationId }: { messageId: string; convers
     if (!message) return null;
 
     return (
-        <div className="ml-4 mt-4">
+        
+        <div className="ml-4 mt-4 message-node">
+
             <div className={`p-2 rounded ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'}`}>
                 <MarkdownPane message={JSON.stringify(message.content)} />
             </div>
@@ -35,7 +37,10 @@ export const ConversationView = () => {
     if (!conversation) return null;
 
     return (
-        <div className="conversation-tree">
+        <div className="conversation-view">
+
+            {/* Conversation Tree */}
+
             <MessageNode 
                 messageId={conversation.rootMessageId} 
                 conversationId={activeConversationId} 
