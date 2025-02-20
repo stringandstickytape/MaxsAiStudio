@@ -11,6 +11,7 @@ interface MarkdownPaneProps {
 export function MarkdownPane({ message }: MarkdownPaneProps) {
     const [markdownContent, setMarkdownContent] = useState<string>('')
     const [mermaidKey, setMermaidKey] = useState(0)
+    const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
         try {
@@ -38,23 +39,57 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
             // Check if it's a supported diagram type
             const diagramRenderer = diagramRegistry.get(language);
+            const blockId = `${language}-${content.slice(0, 20)}`;
+            const isRawView = showRawContent[blockId];
+
+            const toggleView = () => {
+                setShowRawContent(prev => ({
+                    ...prev,
+                    [blockId]: !prev[blockId]
+                }));
+                // Force re-render of diagrams when toggling back to rendered view
+                if (showRawContent[blockId]) {
+                    setMermaidKey(prev => prev + 1);
+                }
+            };
+
+            const toggleButton = (
+                <button
+                    onClick={toggleView}
+                    className="absolute right-2 top-2 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700"
+                >
+                    {isRawView ? 'Show Rendered' : 'Show Raw'}
+                </button>
+            );
+
+            // Handle diagrams first
             if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
-                return (
-                    <DiagramComponent
-                        content={content}
-                        className="my-4 p-4 bg-gray-800 rounded-lg overflow-auto"
-                    />
+                return isRawView ? (
+                    <div className="relative my-4 p-4 bg-gray-800 rounded-lg">
+                        {toggleButton}
+                        <pre>{content}</pre>
+                    </div>
+                ) : (
+                    <div className="relative" key={mermaidKey}>
+                        {toggleButton}
+                        <DiagramComponent
+                            content={content}
+                            className="my-4 p-4 bg-gray-800 rounded-lg overflow-auto"
+                        />
+                    </div>
                 );
             }
 
-            // Handle other code blocks
-            return match ? (
+            // Only handle regular code blocks if not a diagram
+            return isRawView ? (
+                <div className="relative my-4 p-4 bg-gray-800 rounded-lg">
+                    {toggleButton}
+                    <pre>{content}</pre>
+                </div>
+            ) : (
                 <div className="relative my-4">
-                    {/* Language label */}
-                    <div className="absolute right-2 top-2 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                        {match[1]}
-                    </div>
+                    {toggleButton}
                     <SyntaxHighlighter
                         style={nightOwl as any}
                         language={match[1]}
@@ -64,10 +99,6 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                         {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                 </div>
-            ) : (
-                <code className={`${className} bg-gray-800 rounded px-1 py-0.5`}>
-                    {children}
-                </code>
             )
         },
         // Add styling for other markdown elements
