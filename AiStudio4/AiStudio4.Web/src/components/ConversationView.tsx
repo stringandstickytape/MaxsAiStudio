@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { MarkdownPane } from './markdown-pane';
 
 const MessageNode = ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
     const message = useSelector((state: RootState) => 
@@ -9,11 +10,9 @@ const MessageNode = ({ messageId, conversationId }: { messageId: string; convers
     if (!message) return null;
 
     return (
-        <div className="ml-4">
-            <div className={`p-2 rounded ${
-                message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
-            }`}>
-                {message.content}
+        <div className="ml-4 mt-4">
+            <div className={`p-2 rounded ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'}`}>
+                <MarkdownPane message={JSON.stringify(message.content)} />
             </div>
             {message.children.map((childId) => (
                 <MessageNode 
