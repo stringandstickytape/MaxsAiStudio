@@ -31,8 +31,9 @@ namespace AiStudio4
 
             // Register services
             services.AddSingleton<SettingsManager>();
-            services.AddSingleton<UiRequestBroker>();
             services.AddSingleton<WebSocketServer>();
+            services.AddSingleton<ChatManager>();
+            services.AddSingleton<UiRequestBroker>();
             services.AddSingleton<FileServer>();
             services.AddSingleton<WebServer>();
             services.AddSingleton<WindowManager>();

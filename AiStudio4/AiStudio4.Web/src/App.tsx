@@ -9,6 +9,7 @@ import { useWebSocketMessage } from '@/hooks/useWebSocketMessage'
 import { InputBar } from '@/components/input-bar'
 import { Provider } from 'react-redux'
 import { store } from './store/store'
+import { createConversation } from './store/conversationSlice'
 import { ConversationView } from './components/ConversationView'
 import { CachedConversationList } from './components/CachedConversationList'
 
@@ -192,7 +193,17 @@ function App() {
                     <Menu className="w-6 h-6 text-white" />
                 </button>
 
-            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10">
+            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10 flex gap-4 items-center">
+                <Button onClick={() => store.dispatch(createConversation({
+                    rootMessage: {
+                        id: `msg_${Date.now()}`,
+                        content: '',
+                        source: 'system',
+                        parentId: null,
+                        timestamp: Date.now(),
+                        children: []
+                    }
+                }))}>New Chat</Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">{selectedModel}</Button>

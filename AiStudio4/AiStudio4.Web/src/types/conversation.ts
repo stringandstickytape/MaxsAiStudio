@@ -1,7 +1,7 @@
 export interface Message {
     id: string;
     content: string;
-    source: 'user' | 'ai';
+    source: 'user' | 'ai' | 'system';
     parentId: string | null;
     timestamp: number;
     children: string[];
