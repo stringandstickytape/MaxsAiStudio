@@ -4,7 +4,9 @@ using AiTool3.DataModels;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Text.Json;
+using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace AiStudio4.InjectedDependencies
@@ -22,10 +24,72 @@ namespace AiStudio4.InjectedDependencies
             _webSocketServer = webSocketServer;
         }
 
+        private JArray BuildMessageTree(CompletionMessage message, List<CompletionMessage> allMessages)
+        {
+            var text = message.Content;
+
+            if (text.Length > 20) text = text.Substring(0, 20);
+            var messageObj = new JObject
+            {
+                { "id", message.Guid },
+                { "text", text },
+                { "children", new JArray() }
+            };
+
+            // Find and add all child messages recursively
+            var childMessages = allMessages.Where(m => m.Parent == message.Guid);
+            if (childMessages.Any())
+            {
+                var childrenArray = (JArray)messageObj["children"];
+                foreach (var childMessage in childMessages)
+                {
+                    childrenArray.Add(BuildMessageTree(childMessage, allMessages)[0]);
+                }
+            }
+
+            return new JArray { messageObj };
+        }
+
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
             switch (requestType)
             {
+                case "cachedconversation":
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Received cached conversation request: {requestData}");
+
+                        var requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
+
+                        // Load the conversation
+                        var conversationId = requestObject["conversationId"].ToString();
+                        var branchedConversation = BranchedConversation.LoadConversation(conversationId);
+
+                        if (branchedConversation == null)
+                        {
+                            return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
+                        }
+                        var m1 = branchedConversation.Messages[1];
+                        var o = BuildMessageTree(m1, branchedConversation.Messages);
+
+                        //var t = JsonConvert.SerializeObject(o);
+                        // Return the conversation data
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            treeData = o
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing cached conversation request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+
                 case "chat":
 
 
@@ -40,7 +104,7 @@ namespace AiStudio4.InjectedDependencies
                                 content = new
                                 {
                                     id = conv.Value.ConvGuid,
-                                    content = conv.Value.Summary,
+                                    content = conv.Value.Summary.Length > 20 ? conv.Value.Summary.Substring(0,20) : conv.Value.Summary,
                                     source = "ai",
                                     parentId = (string)null,  // null for root message
                                     timestamp = new DateTimeOffset(conv.Value.LastModified).ToUnixTimeMilliseconds(),
@@ -67,7 +131,7 @@ namespace AiStudio4.InjectedDependencies
                             content = new
                             {
                                 id = parentId,
-                                content = userMessage,
+                                content = userMessage.Length > 20 ? userMessage.Substring(0, 20) : userMessage,
                                 source = "user",
                                 parentId = (string)null,  // null for root message
                                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
@@ -75,14 +139,10 @@ namespace AiStudio4.InjectedDependencies
                             }
                         }));
 
-
-                    //var userMessage = $"Write a bullet point list of things, in markdown format, and demarcate it as an md code block.";
                     var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
 
-                    // instantiate the service from name
                     var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
 
-                    // Use a lambda to capture the clientId
                     aiService.StreamingTextReceived += (sender, text) => AiService_StreamingTextReceived(clientId, text);
                     aiService.StreamingComplete += (sender, text) => AiService_StreamingCompleted(clientId, text);
 
@@ -90,8 +150,8 @@ namespace AiStudio4.InjectedDependencies
                     {
                         systemprompt = "You are a helpful chatbot.",
                         messages = new List<ConversationMessage> {
-                    new ConversationMessage { role = "user", content = userMessage }
-                }
+                            new ConversationMessage { role = "user", content = userMessage }
+                        }
                     };
 
                     var response = await aiService!.FetchResponse(
