@@ -19,16 +19,15 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     const toggleButton = (
         <button
             onClick={onToggle}
-            className="fixed top-5 left-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
+            className="p-4 w-full flex items-center hover:bg-[#374151] transition-colors duration-200"
         >
-            <Menu className="w-6 h-6 text-white" />
+            <Menu className="w-6 h-6 text-gray-100" />
         </button>
     );
 
     if (isMobile) {
         return (
             <>
-                {toggleButton}
                 <Sheet open={isOpen} onOpenChange={onToggle}>
                 <SheetContent side="left" className="w-80 p-0 bg-[#1f2937] border-r border-gray-700">
                     <MobileContent wsState={wsState} />
@@ -39,23 +38,22 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     }
 
     return (
-        <>
-            {toggleButton}
-            <aside
+        <aside
             className={cn(
                 "fixed left-0 top-0 z-30 flex h-screen flex-col bg-[#1f2937] border-r border-gray-700 transition-all duration-300",
                 isOpen ? "w-80" : "w-16"
             )}
         >
+            {toggleButton}
             <DesktopContent wsState={wsState} isCollapsed={!isOpen} />
-            </aside>
-        </>
+        </aside>
     );
 }
 
 function MobileContent({ wsState }: { wsState: WebSocketState }) {
     return (
         <>
+            {toggleButton}
             <SheetHeader className="p-4 border-b border-gray-700 bg-[#1f2937]">
                 <SheetTitle className="text-gray-100">Conversations</SheetTitle>
             </SheetHeader>
