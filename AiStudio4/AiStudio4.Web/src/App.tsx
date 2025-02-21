@@ -202,7 +202,7 @@ function App() {
 
     return (
         <Provider store={store}>
-            <div className="flex flex-col min-h-screen relative">
+            <div className="min-h-screen relative">
                 {/* Sidebar */}
                 <div className={`fixed left-0 top-0 h-full w-80 bg-[#1f2937] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
                     {/* Sidebar content goes here */}

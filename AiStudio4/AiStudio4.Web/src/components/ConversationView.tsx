@@ -12,8 +12,8 @@ export const ConversationView = () => {
     if (!conversation) return null;
 
     return (
-        <div className="flex justify-center w-full">
-            <div className="conversation-view w-[900px] min-w-[900px] max-w-[900px]">
+        <div className="w-full">
+            <div className="conversation-view w-full">
                 {conversation.messages.map((message) => (
                     <div key={message.id} className="mt-4">
                         <div className={`p-4 rounded inline-block max-w-[80%] ${message.source === 'user' ? 'float-right bg-blue-800' : 'float-left bg-gray-800'} clear-both`}>
