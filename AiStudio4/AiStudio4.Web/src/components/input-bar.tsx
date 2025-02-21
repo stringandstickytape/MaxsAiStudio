@@ -1,8 +1,22 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { ChatService } from '@/services/ChatService';
 
-export function InputBar({ onSendMessage }: { onSendMessage: (message: string) => void }) {
+interface InputBarProps {
+    selectedModel: string;
+}
+
+export function InputBar({ selectedModel }: InputBarProps) {
     const [inputText, setInputText] = useState('');
+
+    const handleChatMessage = useCallback(async (message: string) => {
+        try {
+            await ChatService.sendMessage(message, selectedModel);
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+            // TODO: Add error handling/user feedback
+        }
+    }, [selectedModel]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -13,7 +27,7 @@ export function InputBar({ onSendMessage }: { onSendMessage: (message: string) =
 
     const handleSend = () => {
         if (inputText.trim()) {
-            onSendMessage(inputText);
+            handleChatMessage(inputText);
             setInputText(''); // Clear the input after sending
         }
     };

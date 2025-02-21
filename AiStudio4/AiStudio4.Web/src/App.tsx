@@ -20,14 +20,7 @@ function App() {
 
     const { wsState, liveStreamContent } = useWebSocketState(selectedModel);
 
-    const handleChatMessage = useCallback(async (message: string) => {
-        try {
-            await ChatService.sendMessage(message, selectedModel);
-        } catch (error) {
-            console.error('Error sending chat message:', error);
-            // TODO: Add error handling/user feedback
-        }
-    }, [selectedModel]);
+
 
     useEffect(() => {
         const loadModels = async () => {
@@ -82,7 +75,7 @@ function App() {
                 />
 
                 <div className={cn("fixed bottom-0 left-0 right-0 bg-background border-t z-20", !isMobile && "ml-16")}>
-                    <InputBar onSendMessage={handleChatMessage} />
+                    <InputBar selectedModel={selectedModel} />
                 </div>
             </div>
         </Provider>
