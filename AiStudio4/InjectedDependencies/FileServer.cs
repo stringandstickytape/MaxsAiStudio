@@ -10,7 +10,7 @@ namespace AiStudio4.InjectedDependencies
         private const bool DevMode = true; // Toggle this for dev/prod mode
         private readonly string _webRootPath;
         private readonly HttpClient _httpClient;
-        private const string DevServerUrl = "http://localhost:5174";
+        private const string DevServerUrl = "http://localhost:5173";
 
         public FileServer(IConfiguration configuration)
         {
