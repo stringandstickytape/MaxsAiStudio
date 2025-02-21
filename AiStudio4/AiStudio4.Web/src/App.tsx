@@ -3,6 +3,8 @@ import "./App.css"
 import { addMessage } from './store/conversationSlice'
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
+import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import * as ts from "typescript"
 import { MarkdownPane } from "@/components/markdown-pane"
 import { wsManager, LiveChatStreamToken } from '@/services/websocket/WebSocketManager'
@@ -29,6 +31,7 @@ function App() {
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
     const [liveStreamContent, setLiveStreamContent] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const isMobile = useMediaQuery("(max-width: 768px)");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
 
@@ -225,7 +228,7 @@ function App() {
                 {/* Menu Toggle Button */}
 
 
-                <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex gap-4 items-center">
+                <div className={cn("fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex gap-4 items-center", !isMobile && "ml-16")}>
                 <Button onClick={() => store.dispatch(createConversation({
                     rootMessage: {
                         id: `msg_${Date.now()}`,
@@ -259,12 +262,12 @@ function App() {
 
                 <div
                     ref={messagesEndRef}
-                    className="flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth"
+                    className={cn("flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth", !isMobile && "ml-16")}
                 >
                     {/* Conversation View */}
                     <ConversationView liveStreamContent={liveStreamContent} />
                 </div>
-                <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-20">
+                <div className={cn("fixed bottom-0 left-0 right-0 bg-background border-t z-20", !isMobile && "ml-16")}>
                     <InputBar onSendMessage={handleChatMessage} />
                 </div>
             </div>
