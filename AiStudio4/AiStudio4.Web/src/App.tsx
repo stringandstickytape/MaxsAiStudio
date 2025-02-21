@@ -220,7 +220,7 @@ function App() {
         <Provider store={store}>
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Sidebar */}
-                <Sidebar isOpen={isSidebarOpen} wsState={wsState} />
+                <Sidebar isOpen={isSidebarOpen} wsState={wsState} onClose={() => setIsSidebarOpen(false)} />
 
                 {/* Menu Toggle Button */}
                 <button
