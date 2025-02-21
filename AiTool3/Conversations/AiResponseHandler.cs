@@ -106,7 +106,7 @@ namespace AiTool3.Conversations
             await _chatWebView.EnableSendButton();
         }
 
-        public async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, Conversation conversation,
+        public async Task<AiResponse> FetchAndProcessAiResponse(SettingsSet currentSettings, LinearConversation conversation,
                                                                  Model model, List<string> toolIDs,
                                                                  string? overrideUserPrompt,
                                                                  CancellationToken cancellationToken,
@@ -200,7 +200,7 @@ namespace AiTool3.Conversations
             //_namedPipeListener.SendResponseAsync('s', e);
         }
 
-        private async Task ProcessAiResponse(SettingsSet currentSettings, AiResponse response, Model model, Conversation conversation, string? overrideUserPrompt)
+        private async Task ProcessAiResponse(SettingsSet currentSettings, AiResponse response, Model model, LinearConversation conversation, string? overrideUserPrompt)
         {
             var inputText = conversation.messages.Last().content;
             var systemPrompt = await _chatWebView.GetSystemPrompt();

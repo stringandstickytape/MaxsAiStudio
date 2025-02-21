@@ -268,13 +268,13 @@ function App() {
                 </DropdownMenu>
             </div>
 
-            <div className="flex-1 p-4 mt-4 mb-[30vh]">
+                <div className="flex-1 p-4 mt-4 mb-[30vh] text-left ">
                 {/* Conversation View */}
                 <ConversationView />
                 
                 {/* Live Stream Markdown Pane */}
                 {liveStreamContent && (
-                    <MarkdownPane message={JSON.stringify(liveStreamContent)} />
+                    <MarkdownPane message={liveStreamContent} />
                 )}
             </div>
             <InputBar onSendMessage={handleChatMessage} />

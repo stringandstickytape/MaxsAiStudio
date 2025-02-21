@@ -2,12 +2,12 @@
 
 namespace AiTool3.Conversations
 {
-    public class Conversation
+    public class LinearConversation
     {
-        public List<ConversationMessage> messages { get; set; }
+        public List<LinearConversationMessage> messages { get; set; }
         public string systemprompt { get; set; }
         public DateTime ConversationCreationDateTime { get; set; }
-        public Conversation(DateTime creationDateTime)
+        public LinearConversation(DateTime creationDateTime)
         {
             ConversationCreationDateTime = creationDateTime;
 

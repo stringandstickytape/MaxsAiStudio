@@ -27,7 +27,7 @@ namespace AiTool3.AiServices
         public override async Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
-            Conversation conversation,
+            LinearConversation conversation,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -82,7 +82,7 @@ namespace AiTool3.AiServices
             return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
             // The supportsLogprobs flag may be extended later if desired
             var supportsLogprobs = false;
@@ -112,7 +112,7 @@ namespace AiTool3.AiServices
             return payload;
         }
 
-        protected override JObject CreateMessageObject(ConversationMessage message)
+        protected override JObject CreateMessageObject(LinearConversationMessage message)
         {
             var messageContent = new JArray();
 

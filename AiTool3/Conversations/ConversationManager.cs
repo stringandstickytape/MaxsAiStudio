@@ -121,7 +121,7 @@ namespace AiTool3.Conversations
             return await Conversation!.GenerateAutosuggests(model, currentSettings, fun, userAutoSuggestPrompt);
         }
 
-        public async Task<Conversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
+        public async Task<LinearConversation> PrepareConversationData(Model model, string systemPrompt, string userPrompt, FileAttachmentManager fileAttachmentManager)
         {
             var conversation = InitializeConversation(systemPrompt);
             await AddHistoricalMessages(conversation);
@@ -129,16 +129,16 @@ namespace AiTool3.Conversations
             return conversation;
         }
 
-        private Conversation InitializeConversation(string systemPrompt)
+        private LinearConversation InitializeConversation(string systemPrompt)
         {
-            return new Conversation(Conversation.CreationDateTime)
+            return new LinearConversation(Conversation.CreationDateTime)
             {
                 systemprompt = systemPrompt,
-                messages = new List<ConversationMessage>()
+                messages = new List<LinearConversationMessage>()
             };
         }
 
-        private async Task AddHistoricalMessages(Conversation conversation)
+        private async Task AddHistoricalMessages(LinearConversation conversation)
         {
             List<CompletionMessage> nodes = GetParentNodeList();
 
@@ -151,9 +151,9 @@ namespace AiTool3.Conversations
             }
         }
 
-        private ConversationMessage CreateConversationMessage(CompletionMessage node)
+        private LinearConversationMessage CreateConversationMessage(CompletionMessage node)
         {
-            return new ConversationMessage
+            return new LinearConversationMessage
             {
                 role = node.Role == CompletionRole.User ? "user" : "assistant",
                 content = node.Content!,
@@ -162,9 +162,9 @@ namespace AiTool3.Conversations
             };
         }
 
-        private void AddCurrentUserMessage(Conversation conversation, string userPrompt, FileAttachmentManager fileAttachmentManager)
+        private void AddCurrentUserMessage(LinearConversation conversation, string userPrompt, FileAttachmentManager fileAttachmentManager)
         {
-            conversation.messages.Add(new ConversationMessage
+            conversation.messages.Add(new LinearConversationMessage
             {
                 role = "user",
                 content = userPrompt,
@@ -173,7 +173,7 @@ namespace AiTool3.Conversations
             });
         }
 
-        public void AddInputAndResponseToConversation(AiResponse response, Model model, Conversation conversation, string inputText, string systemPrompt,  out CompletionMessage completionInput, out CompletionMessage completionResponse)
+        public void AddInputAndResponseToConversation(AiResponse response, Model model, LinearConversation conversation, string inputText, string systemPrompt,  out CompletionMessage completionInput, out CompletionMessage completionResponse)
         {
             var previousCompletionGuidBeforeAwait = MostRecentCompletion?.Guid;
 

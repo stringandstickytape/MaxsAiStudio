@@ -55,7 +55,7 @@ namespace AiTool3.AiServices
         public abstract Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
-            Conversation conversation,
+            LinearConversation conversation,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -67,7 +67,7 @@ namespace AiTool3.AiServices
         );
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
-            Conversation conversation,
+            LinearConversation conversation,
             SettingsSet currentSettings,
             bool mustNotUseEmbedding,
             bool addEmbeddings,
@@ -84,7 +84,7 @@ namespace AiTool3.AiServices
 
         protected virtual JObject CreateRequestPayload(
             string modelName, 
-            Conversation conversation,
+            LinearConversation conversation,
             bool useStreaming,
             SettingsSet currentSettings)
         {
@@ -192,7 +192,7 @@ namespace AiTool3.AiServices
             await Task.CompletedTask;
         }
 
-        protected virtual JObject CreateMessageObject(ConversationMessage message)
+        protected virtual JObject CreateMessageObject(LinearConversationMessage message)
         {
             // Override in derived classes to implement specific message format
             return new JObject();

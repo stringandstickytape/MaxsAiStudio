@@ -44,12 +44,17 @@ namespace AiStudio4.InjectedDependencies
             var newUserMessage = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.User, newUserMessageId, userMessage, parentMessageId);
             v4conversation.Save();
             
-            var conversation = new Conversation(DateTime.Now)
+            // Get message history by traversing up from new message
+            var messageHistory = GetMessageHistory(v4conversation, newUserMessageId);
+            
+            var conversation = new LinearConversation(DateTime.Now)
             {
                 systemprompt = "You are a helpful chatbot.",
-                messages = new List<ConversationMessage> {
-                    new ConversationMessage { role = "user", content = userMessage }
-                }
+                messages = messageHistory.Where(x => x.Role != v4BranchedConversationMessageRole.System).Select(msg => new LinearConversationMessage { 
+                    role = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
+                          msg.Role == v4BranchedConversationMessageRole.AI ? "assistant" : "system",
+                    content = msg.UserMessage
+                }).ToList()
             };
 
             var response = await aiService!.FetchResponse(
@@ -118,6 +123,42 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
+        private List<v4BranchedConversationMessage> GetMessageHistory(v4BranchedConversation conversation, string messageId)
+        {
+            var history = new List<v4BranchedConversationMessage>();
+            
+            // Helper function to find message and build history
+            bool FindMessageAndBuildHistory(v4BranchedConversationMessage current, string targetId)
+            {
+                if (current.Id == targetId)
+                {
+                    history.Add(current);
+                    return true;
+                }
+
+                foreach (var child in current.Children)
+                {
+                    if (FindMessageAndBuildHistory(child, targetId))
+                    {
+                        history.Add(current);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // Search through message hierarchy
+            foreach (var message in conversation.MessageHierarchy)
+            {
+                if (FindMessageAndBuildHistory(message, messageId))
+                    break;
+            }
+
+            // Reverse to get chronological order (root to leaf)
+            history.Reverse();
+            return history;
+        }
 
     }
 

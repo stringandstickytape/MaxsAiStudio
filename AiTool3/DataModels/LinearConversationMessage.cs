@@ -1,6 +1,6 @@
 ﻿namespace AiTool3.DataModels
 {
-    public class ConversationMessage
+    public class LinearConversationMessage
     {
         public string role { get; set; }
         public string content { get; set; }

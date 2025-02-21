@@ -9,7 +9,7 @@ namespace AiTool3.Embeddings
 {
     internal static class OllamaEmbeddingsHelper
     {
-        public static async Task<string> AddEmbeddingsToInput(Conversation conversation, SettingsSet currentSettings, string input, bool mustNotUseEmbedding)
+        public static async Task<string> AddEmbeddingsToInput(LinearConversation conversation, SettingsSet currentSettings, string input, bool mustNotUseEmbedding)
         {
             if (!mustNotUseEmbedding)
             {

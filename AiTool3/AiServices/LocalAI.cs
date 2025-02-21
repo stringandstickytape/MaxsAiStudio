@@ -17,7 +17,7 @@ namespace AiTool3.AiServices
         {
         }
         public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, Conversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
             InitializeHttpClient(serviceProvider, model, currentSettings);
 
@@ -53,7 +53,7 @@ namespace AiTool3.AiServices
         }
 
 
-        protected override JObject CreateMessageObject(ConversationMessage message)
+        protected override JObject CreateMessageObject(LinearConversationMessage message)
         {
             var messageObj = new JObject
             {
@@ -69,7 +69,7 @@ namespace AiTool3.AiServices
             return messageObj;
         }
 
-        protected override JObject CreateRequestPayload(string modelName, Conversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
         {
             return new JObject
             {

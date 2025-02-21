@@ -21,7 +21,7 @@ namespace AiTool3.AiServices
         public override async Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
-            Conversation conversation,
+            LinearConversation conversation,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -88,7 +88,7 @@ namespace AiTool3.AiServices
 
         protected override JObject CreateRequestPayload(
     string apiModel,
-    Conversation conversation,
+    LinearConversation conversation,
     bool useStreaming,
     SettingsSet currentSettings)
         {
@@ -98,7 +98,7 @@ namespace AiTool3.AiServices
             };
         }
 
-        protected override JObject CreateMessageObject(ConversationMessage message)
+        protected override JObject CreateMessageObject(LinearConversationMessage message)
             {
                 var partArray = new JArray();
                 partArray.Add(new JObject { ["text"] = message.content });

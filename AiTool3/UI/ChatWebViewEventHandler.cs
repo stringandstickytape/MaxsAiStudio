@@ -281,11 +281,11 @@ namespace AiTool3.UI
                             // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
 
 
-                            Conversation conversation = new Conversation(DateTime.Now);
+                            LinearConversation conversation = new LinearConversation(DateTime.Now);
                             conversation.systemprompt = "You are a coding expert who merges changes into original source files.";
-                            conversation.messages = new List<ConversationMessage>
+                            conversation.messages = new List<LinearConversationMessage>
                             {
-                                new ConversationMessage { role = "user", content = JsonConvert.DeserializeObject<string>(e.Json) }
+                                new LinearConversationMessage { role = "user", content = JsonConvert.DeserializeObject<string>(e.Json) }
                             };
 
                             var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);

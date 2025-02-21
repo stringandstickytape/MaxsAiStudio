@@ -68,12 +68,12 @@ namespace AiTool3.Conversations
                 // instantiate the service from name
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
 
-                Conversation conversation = null;
+                LinearConversation conversation = null;
 
                 {
-                    conversation = new Conversation(DateTime.Now);
+                    conversation = new LinearConversation(DateTime.Now);
                     conversation.systemprompt = "you are a bot who summarises conversations.  Summarise this conversation in six words or fewer as a json object like this, and produce no other output: {\"summary\": \"your summary text\"} ";
-                    conversation.messages = new List<ConversationMessage>();
+                    conversation.messages = new List<LinearConversationMessage>();
                     List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
 
                     Debug.WriteLine(nodes);
@@ -86,9 +86,9 @@ namespace AiTool3.Conversations
                         {
                             nodeContent = nodeContent.Substring(0, 300);
                         }
-                        conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
+                        conversation.messages.Add(new LinearConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                     }
-                    conversation.messages.Add(new ConversationMessage { role = "user", content = "Excluding this instruction, summarise the above conversation in ten words or fewer as a json object like this, and produce no other output: {\"summary\": \"your summary text\"} " });
+                    conversation.messages.Add(new LinearConversationMessage { role = "user", content = "Excluding this instruction, summarise the above conversation in ten words or fewer as a json object like this, and produce no other output: {\"summary\": \"your summary text\"} " });
 
                 }
                 // fetch the response from the api
@@ -150,7 +150,7 @@ namespace AiTool3.Conversations
 
             var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
 
-            Conversation conversation = null;
+            LinearConversation conversation = null;
 
             string systemprompt = "";
 
@@ -160,9 +160,9 @@ namespace AiTool3.Conversations
             else systemprompt = userAutoSuggestPrompt;
 
             {
-                conversation = new Conversation(DateTime.Now);
+                conversation = new LinearConversation(DateTime.Now);
                 conversation.systemprompt = systemprompt;
-                conversation.messages = new List<ConversationMessage>();
+                conversation.messages = new List<LinearConversationMessage>();
                 conversation.systemprompt += $" {DateTime.Now.Ticks}";
                 List<CompletionMessage> nodes = GetParentNodeList(Messages.Last().Guid);
 
@@ -176,9 +176,9 @@ namespace AiTool3.Conversations
                     {
                         nodeContent = nodeContent.Substring(0, 1000);
                     }
-                    conversation.messages.Add(new ConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
+                    conversation.messages.Add(new LinearConversationMessage { role = node.Role == CompletionRole.User ? "user" : "assistant", content = nodeContent });
                 }
-                conversation.messages.Add(new ConversationMessage { role = "user", content = $"based on our conversation so far, give me 25 {(fun ? "fun and interesting" : "")} things I might ask you to do next, as a json array of strings." });
+                conversation.messages.Add(new LinearConversationMessage { role = "user", content = $"based on our conversation so far, give me 25 {(fun ? "fun and interesting" : "")} things I might ask you to do next, as a json array of strings." });
 
             }
 
