@@ -220,15 +220,10 @@ function App() {
         <Provider store={store}>
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Sidebar */}
-                <Sidebar isOpen={isSidebarOpen} wsState={wsState} onClose={() => setIsSidebarOpen(false)} />
+                <Sidebar isOpen={isSidebarOpen} wsState={wsState} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
                 {/* Menu Toggle Button */}
-                <button
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="fixed top-5 left-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
-                >
-                    <Menu className="w-6 h-6 text-white" />
-                </button>
+
 
                 <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex gap-4 items-center">
                 <Button onClick={() => store.dispatch(createConversation({

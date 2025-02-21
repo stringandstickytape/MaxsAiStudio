@@ -10,31 +10,46 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 interface SidebarProps {
     isOpen: boolean;
     wsState: WebSocketState;
-    onClose: () => void;
+    onToggle: () => void;
 }
 
-export function Sidebar({ isOpen, wsState, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     const isMobile = useMediaQuery("(max-width: 768px)");
+
+    const toggleButton = (
+        <button
+            onClick={onToggle}
+            className="fixed top-5 left-5 z-50 p-2 rounded-full bg-[#1f2937] hover:bg-[#374151] transition-colors duration-200"
+        >
+            <Menu className="w-6 h-6 text-white" />
+        </button>
+    );
 
     if (isMobile) {
         return (
-            <Sheet open={isOpen} onOpenChange={onClose}>
+            <>
+                {toggleButton}
+                <Sheet open={isOpen} onOpenChange={onToggle}>
                 <SheetContent side="left" className="w-80 p-0 bg-[#1f2937] border-r border-gray-700">
                     <MobileContent wsState={wsState} />
                 </SheetContent>
             </Sheet>
+            </>
         );
     }
 
     return (
-        <aside
+        <>
+            {toggleButton}
+            <aside
             className={cn(
                 "fixed left-0 top-0 z-30 flex h-screen flex-col bg-[#1f2937] border-r border-gray-700 transition-all duration-300",
                 isOpen ? "w-80" : "w-16"
             )}
         >
             <DesktopContent wsState={wsState} isCollapsed={!isOpen} />
-        </aside>
+            </aside>
+        </>
     );
 }
 
