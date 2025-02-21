@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import "./App.css"
 import { addMessage } from './store/conversationSlice'
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,8 @@ function App() {
     const [selectedModel, setSelectedModel] = useState<string>("Select Model")
     const [liveStreamContent, setLiveStreamContent] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
     // WebSocket state
     const [wsState, setWsState] = useState<WebSocketState>({
@@ -200,9 +202,27 @@ function App() {
         }
     }, [selectedModel]);
 
+    useEffect(() => {
+        if (messagesEndRef.current && liveStreamContent) {
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (messagesEndRef.current) {
+                        messagesEndRef.current.scrollTo({
+                            top: messagesEndRef.current.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 10); // Small delay to ensure DOM update
+            });
+        }
+    }, [liveStreamContent]);
+    
+
+
+
     return (
         <Provider store={store}>
-            <div className="min-h-screen flex flex-col">
+            <div className="h-screen flex flex-col overflow-hidden">
                 {/* Sidebar */}
                 <div className={`fixed left-0 top-0 h-full w-80 bg-[#1f2937] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
                     {/* Sidebar content goes here */}
@@ -236,7 +256,7 @@ function App() {
                     <Menu className="w-6 h-6 text-white" />
                 </button>
 
-                <div className="sticky top-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10 flex gap-4 items-center">
+                <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex gap-4 items-center">
                 <Button onClick={() => store.dispatch(createConversation({
                     rootMessage: {
                         id: `msg_${Date.now()}`,
@@ -268,11 +288,14 @@ function App() {
                 </DropdownMenu>
             </div>
 
-                <div className="flex-1 overflow-y-auto p-4">
+                <div
+                    ref={messagesEndRef}
+                    className="flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth"
+                >
                     {/* Conversation View */}
                     <ConversationView liveStreamContent={liveStreamContent} />
                 </div>
-                <div className="sticky bottom-0">
+                <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-20">
                     <InputBar onSendMessage={handleChatMessage} />
                 </div>
             </div>

@@ -92,13 +92,18 @@ namespace VSIXTest
             {
                 try
                 {
-                    if (doc.Object("TextDocument") is TextDocument textDoc)
+                    // Check if the document is actively open in an editor window
+                    if (doc.ActiveWindow?.Visible == true && doc.Object("TextDocument") is TextDocument textDoc)
                     {
                         if (filesIncluded.Add(doc.FullName))
                         {
                             var content = textDoc.StartPoint.CreateEditPoint().GetText(textDoc.EndPoint);
                             formattedFiles.Add(FormatContent(doc.FullName, AddLineNumbers(content)));
                         }
+                    }
+                    else if (doc.ActiveWindow?.Visible == false)
+                    {
+                        // ms bug, according to Anthropic Claude Sopnnet 3.5
                     }
                 }
                 catch (Exception)
