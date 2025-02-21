@@ -16,11 +16,7 @@ function App() {
     const [selectedModel, setSelectedModel] = useState<string>("Select Model");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
     const { wsState, liveStreamContent } = useWebSocketState(selectedModel);
-
-
 
     useEffect(() => {
         const loadModels = async () => {
@@ -36,20 +32,7 @@ function App() {
         loadModels();
     }, []);
 
-    useEffect(() => {
-        if (messagesEndRef.current && liveStreamContent) {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    if (messagesEndRef.current) {
-                        messagesEndRef.current.scrollTo({
-                            top: messagesEndRef.current.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 10);
-            });
-        }
-    }, [liveStreamContent]);
+
 
     return (
         <Provider store={store}>
@@ -69,7 +52,6 @@ function App() {
                 />
 
                 <ChatContainer
-                    messagesEndRef={messagesEndRef}
                     liveStreamContent={liveStreamContent}
                     isMobile={isMobile}
                 />

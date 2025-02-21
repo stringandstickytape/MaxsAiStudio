@@ -1,11 +1,13 @@
-import { WebSocketState } from '@/types/websocket';
+﻿import { WebSocketState } from '@/types/websocket';
 import { CachedConversationList } from './CachedConversationList';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { MessageSquare, Menu } from 'lucide-react';
+import { MessageSquare, Menu, FolderOpen } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ChevronDown } from "lucide-react" // Add this to imports
 
 interface SidebarProps {
     isOpen: boolean;
@@ -85,8 +87,30 @@ function DesktopContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
 function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isCollapsed?: boolean }) {
     return (
         <div className="flex flex-col h-[calc(100vh-10rem)]">
-            <ScrollArea className="flex-1 px-4">
+            <ScrollArea className="flex-1">
                 <CachedConversationList collapsed={isCollapsed} />
+
+                <Collapsible className="mt-4">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-gray-100 hover:bg-[#374151] transition-colors">
+                        <div className="flex items-center gap-2">
+                            <FolderOpen className="h-4 w-4" />
+                            {!isCollapsed && <span>Dummy Section</span>}
+                        </div>
+                        <ChevronDown className="h-4 w-4" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <div className="pl-4 py-2 space-y-2">
+                            {Array.from({ length: 50 }, (_, i) => (
+                                <div
+                                    key={i}
+                                    className="text-sm text-gray-300 hover:text-gray-100 cursor-pointer transition-colors"
+                                >
+                                    Subitem {i + 1}
+                                </div>
+                            ))}
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
             </ScrollArea>
 
             <div className="p-3 border-t border-gray-700 bg-[#2d3748]">

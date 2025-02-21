@@ -1,18 +1,32 @@
-import { RefObject } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { ConversationView } from './ConversationView';
 
 interface ChatContainerProps {
-    messagesEndRef: RefObject<HTMLDivElement>;
     liveStreamContent: string;
     isMobile: boolean;
 }
 
 export function ChatContainer({
-    messagesEndRef,
     liveStreamContent,
     isMobile
 }: ChatContainerProps) {
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (messagesEndRef.current && liveStreamContent) {
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (messagesEndRef.current) {
+                        messagesEndRef.current.scrollTo({
+                            top: messagesEndRef.current.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 10);
+            });
+        }
+    }, [liveStreamContent]);
     return (
         <div
             ref={messagesEndRef}
