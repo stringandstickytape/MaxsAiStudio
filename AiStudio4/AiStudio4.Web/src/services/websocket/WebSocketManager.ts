@@ -54,6 +54,7 @@ class WebSocketManager {
 
         // For new conversation root messages
         if (!content.parentId) {
+            debugger;
             store.dispatch(createConversation({
                 rootMessage: {
                     id: content.id,
@@ -84,6 +85,8 @@ class WebSocketManager {
             }
         }
     };
+
+
 
     public connect() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

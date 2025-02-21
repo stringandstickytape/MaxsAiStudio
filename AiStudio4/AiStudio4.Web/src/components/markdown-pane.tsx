@@ -14,14 +14,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
-        try {
-            const content = JSON.parse(message);
-            setMarkdownContent(content)
-            setMermaidKey(prev => prev + 1) // Force re-render of Mermaid diagrams
-        } catch (error) {
-            console.error('Error parsing markdown content:', error)
-            setMarkdownContent('')
-        }
+        setMarkdownContent(message);
+        setMermaidKey(prev => prev + 1); // Force re-render of Mermaid diagrams
     }, [message])
 
     // Re-render diagrams when content changes

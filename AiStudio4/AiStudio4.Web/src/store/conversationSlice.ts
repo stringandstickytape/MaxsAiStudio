@@ -16,23 +16,17 @@ const conversationSlice = createSlice({
             
             if (!conversation) return;
 
-            if (message.parentId) {
-                const parent = conversation.messages[message.parentId];
-                if (parent) {
-                    parent.children.push(message.id);
-                }
-            }
-
-            conversation.messages[message.id] = message;
+            conversation.messages.push(message);
         },
         createConversation(state, action: PayloadAction<{ rootMessage: Message }>) {
             const conversationId = `conv_${Date.now()}`;
+            console.log("New conversation: " + conversationId);
+            
             const { rootMessage } = action.payload;
 
             state.conversations[conversationId] = {
                 id: conversationId,
-                messages: { [rootMessage.id]: rootMessage },
-                rootMessageId: rootMessage.id,
+                messages: [rootMessage]
             };
             state.activeConversationId = conversationId;
         },

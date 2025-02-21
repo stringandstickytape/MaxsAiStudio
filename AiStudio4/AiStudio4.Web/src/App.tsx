@@ -48,19 +48,19 @@ function App() {
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
 
+        console.log('Current active conversation ID:', activeConversationId);
+
         if (!activeConversationId || !clientId || selectedModel === 'Select Model') {
             console.error('No active conversation, client ID, or model selected');
             return;
         }
 
-        // Get the active conversation
         const conversation = state.conversations.conversations[activeConversationId];
         if (!conversation) {
             console.error('Could not find active conversation');
             return;
         }
 
-        // Create new message ID
         const newMessageId = `msg_${Date.now()}`;
 
         // Dispatch the user message to the store first
@@ -70,13 +70,16 @@ function App() {
                 id: newMessageId,
                 content: message,
                 source: 'user',
-                parentId: conversation.rootMessageId, // Initially set parent to root
-                timestamp: Date.now(),
-                children: []
+                timestamp: Date.now()
             }
         }));
 
         try {
+            console.log('Sending chat request with conversation ID:', activeConversationId);
+            // Get the last message ID from the conversation
+            const lastMessage = conversation.messages.length > 0 ? conversation.messages[conversation.messages.length - 1] : null;
+            const parentMessageId = lastMessage ? lastMessage.id : null;
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
@@ -87,7 +90,8 @@ function App() {
                     clientId: clientId,
                     message: message,
                     conversationId: activeConversationId,
-                    parentMessageId: newMessageId, // Use the new message ID as parent for the AI response
+                    newMessageId: newMessageId,
+                    parentMessageId: parentMessageId,
                     model: selectedModel
                 })
             });
@@ -134,7 +138,20 @@ function App() {
         }));
     };
 
+
+
     const handleGenericMessage = (message: any) => {
+        if (message.messageType === 'conversation') {
+            const state = store.getState();
+            const activeConversationId = state.conversations.activeConversationId;
+
+            // Add message to existing conversation instead of creating new one
+            store.dispatch(addMessage({
+                conversationId: activeConversationId,
+                message: message.content
+            }));
+        }
+
         setWsState(prev => ({
             ...prev,
             messages: [...prev.messages, JSON.stringify(message)]
@@ -225,9 +242,7 @@ function App() {
                         id: `msg_${Date.now()}`,
                         content: '',
                         source: 'system',
-                        parentId: null,
-                        timestamp: Date.now(),
-                        children: []
+                        timestamp: Date.now()
                     }
                 }))}>New Chat</Button>
                 <DropdownMenu>
