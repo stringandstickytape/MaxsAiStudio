@@ -2,7 +2,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { MarkdownPane } from './markdown-pane';
 
-export const ConversationView = () => {
+interface ConversationViewProps {
+    liveStreamContent?: string;
+}
+
+export const ConversationView = ({ liveStreamContent }: ConversationViewProps) => {
     const { activeConversationId, conversations } = useSelector(
         (state: RootState) => state.conversations
     );
@@ -21,6 +25,14 @@ export const ConversationView = () => {
                         </div>
                     </div>
                 ))}
+                {/* Live Stream Markdown Pane */}
+                {liveStreamContent && (
+                    <div className="mt-4">
+                        <div className="p-4 rounded inline-block max-w-[80%] float-left bg-gray-800 clear-both">
+                            <MarkdownPane message={liveStreamContent} />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

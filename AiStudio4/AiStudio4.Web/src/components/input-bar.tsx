@@ -19,7 +19,7 @@ export function InputBar({ onSendMessage }: { onSendMessage: (message: string) =
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 h-[30vh] bg-[#1f2937] border-t border-gray-700 shadow-lg p-4">
+        <div className="h-[30vh] bg-[#1f2937] border-t border-gray-700 shadow-lg p-4">
             <div className="h-full flex flex-col gap-2">
                 <textarea
                     className="flex-1 w-full p-2 border border-gray-700 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#2d3748] text-gray-100"

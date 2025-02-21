@@ -202,7 +202,7 @@ function App() {
 
     return (
         <Provider store={store}>
-            <div className="min-h-screen relative">
+            <div className="min-h-screen flex flex-col">
                 {/* Sidebar */}
                 <div className={`fixed left-0 top-0 h-full w-80 bg-[#1f2937] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
                     {/* Sidebar content goes here */}
@@ -236,7 +236,7 @@ function App() {
                     <Menu className="w-6 h-6 text-white" />
                 </button>
 
-            <div className="fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10 flex gap-4 items-center">
+                <div className="sticky top-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-10 flex gap-4 items-center">
                 <Button onClick={() => store.dispatch(createConversation({
                     rootMessage: {
                         id: `msg_${Date.now()}`,
@@ -268,16 +268,13 @@ function App() {
                 </DropdownMenu>
             </div>
 
-                <div className="flex-1 p-4 mt-4 mb-[30vh] text-left ">
-                {/* Conversation View */}
-                <ConversationView />
-                
-                {/* Live Stream Markdown Pane */}
-                {liveStreamContent && (
-                    <MarkdownPane message={liveStreamContent} />
-                )}
-            </div>
-            <InputBar onSendMessage={handleChatMessage} />
+                <div className="flex-1 overflow-y-auto p-4">
+                    {/* Conversation View */}
+                    <ConversationView liveStreamContent={liveStreamContent} />
+                </div>
+                <div className="sticky bottom-0">
+                    <InputBar onSendMessage={handleChatMessage} />
+                </div>
             </div>
         </Provider>
     );
