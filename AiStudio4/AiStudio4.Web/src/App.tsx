@@ -225,10 +225,18 @@ function App() {
                 {/* Sidebar */}
                 <Sidebar isOpen={isSidebarOpen} wsState={wsState} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-                {/* Menu Toggle Button */}
+                <div className={cn("fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex items-center gap-2", !isMobile && "ml-16")}>
+                    {isMobile && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        >
+                            <Menu className="h-6 w-6" />
+                        </Button>
+                    )}
 
 
-                <div className={cn("fixed top-0 left-0 right-0 bg-[#1f2937] border-b border-gray-700 shadow-lg p-4 z-20 flex gap-4 items-center", !isMobile && "ml-16")}>
                 <Button onClick={() => store.dispatch(createConversation({
                     rootMessage: {
                         id: `msg_${Date.now()}`,

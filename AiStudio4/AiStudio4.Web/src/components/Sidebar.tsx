@@ -30,7 +30,7 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
             <>
                 <Sheet open={isOpen} onOpenChange={onToggle}>
                 <SheetContent side="left" className="w-80 p-0 bg-[#1f2937] border-r border-gray-700">
-                    <MobileContent wsState={wsState} />
+                    <MobileContent wsState={wsState} onToggle={onToggle} />
                 </SheetContent>
             </Sheet>
             </>
@@ -50,10 +50,15 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     );
 }
 
-function MobileContent({ wsState }: { wsState: WebSocketState }) {
+function MobileContent({ wsState, onToggle }: { wsState: WebSocketState; onToggle: () => void }) {
     return (
         <>
-            {toggleButton}
+            <button
+                onClick={onToggle}
+                className="p-4 w-full flex items-center hover:bg-[#374151] transition-colors duration-200"
+            >
+                <Menu className="w-6 h-6 text-gray-100" />
+            </button>
             <SheetHeader className="p-4 border-b border-gray-700 bg-[#1f2937]">
                 <SheetTitle className="text-gray-100">Conversations</SheetTitle>
             </SheetHeader>
