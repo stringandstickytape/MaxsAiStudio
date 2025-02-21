@@ -19,16 +19,16 @@ export const ConversationView = ({ liveStreamContent }: ConversationViewProps) =
         <div className="w-full">
             <div className="conversation-view w-full">
                 {conversation.messages.map((message) => (
-                    <div key={message.id} className="mt-4">
-                        <div className={`p-4 rounded inline-block max-w-[80%] ${message.source === 'user' ? 'float-right bg-blue-800' : 'float-left bg-gray-800'} clear-both`}>
+                    <div key={message.id} className="">
+                        <div className={`px-4 mb-4 rounded inline-block ${message.source === 'user' ? 'float-right bg-blue-800' : 'float-left bg-gray-800'} clear-both`}>
                             <MarkdownPane message={message.content} />
                         </div>
                     </div>
                 ))}
                 {/* Live Stream Markdown Pane */}
                 {liveStreamContent && (
-                    <div className="mt-4">
-                        <div className="p-4 rounded inline-block max-w-[80%] float-left bg-gray-800 clear-both">
+                    <div className="">
+                        <div className="px-4 mb-4 rounded inline-block float-left bg-gray-800 clear-both">
                             <MarkdownPane message={liveStreamContent} />
                         </div>
                     </div>

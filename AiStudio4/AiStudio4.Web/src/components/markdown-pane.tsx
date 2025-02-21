@@ -97,7 +97,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         },
         // Add styling for other markdown elements
         p: ({ children }: any) => (
-            <p className=" leading-relaxed">{children}</p>
+            <p className="my-4 leading-relaxed">{children}</p>
         ),
         h1: ({ children }: any) => (
             <h1 className="text-3xl font-bold my-6">{children}</h1>
