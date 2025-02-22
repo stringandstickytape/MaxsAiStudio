@@ -161,7 +161,7 @@ const renderTree = (node: TreeNode) => {
             </div>
             {node.children && node.children.length > 0 && (
                 <div className="pl-4 mt-1">
-                    {node.children.map(child => renderTree(child))}
+                    {node.children.map((child, index) => <div key={child.id || `${node.id}-${index}`}>{renderTree(child)}</div>)}
                 </div>
             )}
         </div>
