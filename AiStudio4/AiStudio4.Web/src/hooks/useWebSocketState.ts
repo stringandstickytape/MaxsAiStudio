@@ -6,8 +6,8 @@ import { addMessage } from '@/store/conversationSlice';
 
 export function useWebSocketState(selectedModel: string) {
     const [wsState, setWsState] = useState<WebSocketState>({
-        isConnected: false,
-        clientId: null,
+        isConnected: wsManager.isConnected(),
+        clientId: wsManager.getClientId() || null,
         messages: [],
         streamTokens: []
     });
@@ -71,11 +71,22 @@ export function useWebSocketState(selectedModel: string) {
         };
     }, [handleEndStream]);
 
-    // Handle WebSocket connection based on selected model
+    // Handle WebSocket connection based on selected model and track connection status
     useEffect(() => {
         if (selectedModel !== "Select Model") {
+            const handleConnectionStatus = (status: { isConnected: boolean }) => {
+                setWsState(prev => ({
+                    ...prev,
+                    isConnected: status.isConnected,
+                    clientId: wsManager.getClientId() || null
+                }));
+            };
+
+            wsManager.subscribe('connectionStatus', handleConnectionStatus);
             wsManager.connect();
+
             return () => {
+                wsManager.unsubscribe('connectionStatus', handleConnectionStatus);
                 wsManager.disconnect();
                 setWsState(prev => ({
                     ...prev,

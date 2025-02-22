@@ -24,6 +24,7 @@ class WebSocketManager {
     private config: ClientConfig = {};
     private messageHandlers: Map<string, ((data: any) => void)[]> = new Map();
     private streamTokenString: string = '';
+    private connected: boolean = false;
 
     constructor() {
         this.connect = this.connect.bind(this);
@@ -169,6 +170,10 @@ class WebSocketManager {
 
     private handleOpen = () => {
         console.log('WebSocket Connected');
+        this.connected = true;
+        // Notify subscribers of connection status change
+        const handlers = this.messageHandlers.get('connectionStatus') || [];
+        handlers.forEach(handler => handler({ isConnected: true }));
     }
 
     private handleMessage = (event: MessageEvent) => {
@@ -208,6 +213,10 @@ class WebSocketManager {
     private handleClose = () => {
         console.log('WebSocket disconnected');
         this.socket = null;
+        this.connected = false;
+        // Notify subscribers of connection status change
+        const handlers = this.messageHandlers.get('connectionStatus') || [];
+        handlers.forEach(handler => handler({ isConnected: false }));
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
@@ -227,6 +236,10 @@ class WebSocketManager {
 
     public getClientId(): string | undefined {
         return this.config.clientId;
+    }
+
+    public isConnected(): boolean {
+        return this.connected;
     }
 
     public getStreamTokens(): string {
