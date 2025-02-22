@@ -1,17 +1,16 @@
-// src/hooks/useWebSocketMessage.ts
 import { useEffect } from 'react';
-import { wsManager } from '@/services/websocket/WebSocketManager';
+import { messageService } from '@/services/messaging/WebSocketMessageService';
 
 export const useWebSocketMessage = (
     messageType: string,
     handler: (data: any) => void
 ) => {
     useEffect(() => {
-        wsManager.subscribe(messageType, handler);
+        messageService.subscribe(messageType, handler);
 
         // Cleanup subscription when component unmounts
         return () => {
-            wsManager.unsubscribe(messageType, handler);
+            messageService.unsubscribe(messageType, handler);
         };
     }, [messageType, handler]);
 };

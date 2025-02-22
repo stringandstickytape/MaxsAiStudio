@@ -176,7 +176,7 @@ public class ChangesetReviewPane : ToolWindowPane
         try
         {
             var mergeableChanges = _changes.Where(c => c.ChangeType == "modifyFile" || c.ChangeType == "addToFile");
-            var unmergeableChanges = _changes.Where(c => c.ChangeType != "modifyFile" && c.ChangeType == "addToFile");
+            var unmergeableChanges = _changes.Where(c => c.ChangeType != "modifyFile" && c.ChangeType != "addToFile");
 
             
             foreach (var item in _fileListBox.Items)

@@ -1,20 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { WebSocketState } from '@/types/websocket';
-import { wsManager } from '@/services/websocket/WebSocketManager';
+import { messageService } from '@/services/messaging/WebSocketMessageService';
 import { store } from '@/store/store';
 import { addMessage } from '@/store/conversationSlice';
 
 export function useWebSocketState() {
     const [wsState, setWsState] = useState<WebSocketState>({
-        isConnected: wsManager.isConnected(),
-        clientId: wsManager.getClientId() || null,
+        isConnected: messageService.isConnected(),
+        clientId: null, // Initially null; will be set via connection event.
         messages: [],
         streamTokens: []
     });
     const [liveStreamContent, setLiveStreamContent] = useState('');
 
     const handleClientId = useCallback((clientId: string) => {
-
         setWsState(prev => ({
             ...prev,
             isConnected: true,
@@ -32,7 +31,6 @@ export function useWebSocketState() {
                 message: message.content
             }));
         }
-
         setWsState(prev => ({
             ...prev,
             messages: [...prev.messages, JSON.stringify(message)]
@@ -40,8 +38,8 @@ export function useWebSocketState() {
     }, []);
 
     const handleNewStreamToken = useCallback((token: string) => {
-        const streamContent = wsManager.getStreamTokens();
-        setLiveStreamContent(streamContent);
+        // Concatenate the new token to the previous liveStreamContent instead of replacing it
+        setLiveStreamContent(prev => prev + token);
 
         setWsState(prev => ({
             ...prev,
@@ -53,50 +51,45 @@ export function useWebSocketState() {
         setLiveStreamContent('');
     }, []);
 
-    // Subscribe to cfrag messages
+    // Subscribe to events via the messageService
     useEffect(() => {
-        wsManager.subscribe('cfrag', handleNewStreamToken);
+        messageService.subscribe('cfrag', handleNewStreamToken);
         return () => {
-            wsManager.unsubscribe('cfrag', handleNewStreamToken);
+            messageService.unsubscribe('cfrag', handleNewStreamToken);
         };
     }, [handleNewStreamToken]);
 
-    // Subscribe to endstream messages
     useEffect(() => {
         console.log('Setting up endstream subscription');
-        wsManager.subscribe('endstream', handleEndStream);
+        messageService.subscribe('endstream', handleEndStream);
         return () => {
             console.log('Cleaning up endstream subscription');
-            wsManager.unsubscribe('endstream', handleEndStream);
+            messageService.unsubscribe('endstream', handleEndStream);
         };
     }, [handleEndStream]);
 
-    // Handle WebSocket connection based on selected model and track connection status
     useEffect(() => {
-        //if (selectedModel !== "Select Model") {
-            const handleConnectionStatus = (status: { isConnected: boolean }) => {
-                setWsState(prev => ({
-                    ...prev,
-                    isConnected: status.isConnected,
-                    clientId: wsManager.getClientId() || null
-                }));
-            };
+        const handleConnectionStatus = (status: { isConnected: boolean, clientId?: string }) => {
+            setWsState(prev => ({
+                ...prev,
+                isConnected: status.isConnected,
+                clientId: status.clientId || prev.clientId
+            }));
+        };
+        messageService.subscribe('connectionStatus', handleConnectionStatus);
+        messageService.connect();
 
-            wsManager.subscribe('connectionStatus', handleConnectionStatus);
-            wsManager.connect();
-
-            return () => {
-                wsManager.unsubscribe('connectionStatus', handleConnectionStatus);
-                wsManager.disconnect();
-                setWsState(prev => ({
-                    ...prev,
-                    isConnected: false,
-                    clientId: null
-                }));
-                setLiveStreamContent('');
-        //    };
-        }
-    }, []); // Only run on mount
+        return () => {
+            messageService.unsubscribe('connectionStatus', handleConnectionStatus);
+            messageService.disconnect();
+            setWsState(prev => ({
+                ...prev,
+                isConnected: false,
+                clientId: null
+            }));
+            setLiveStreamContent('');
+        };
+    }, []);
 
     return {
         wsState,

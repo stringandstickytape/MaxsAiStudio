@@ -1,6 +1,7 @@
 import { store } from '../../store/store';
 import { addMessage, createConversation } from '../../store/conversationSlice';
 import { Message } from '../../types/conversation';
+import { eventBus } from '../messaging/EventBus';
 
 // src/services/websocket/types.ts
 export interface WebSocketMessage {
@@ -22,7 +23,6 @@ export interface ClientConfig {
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private config: ClientConfig = {};
-    private messageHandlers: Map<string, ((data: any) => void)[]> = new Map();
     private streamTokenString: string = '';
     private connected: boolean = false;
 
@@ -46,8 +46,6 @@ class WebSocketManager {
             highlightColour: undefined
         };
         // Notify subscribers to update the CachedConversationList
-        const handlers = this.messageHandlers.get('cachedconversation') || [];
-        handlers.forEach(handler => handler(cachedConversation));
     }
 
     private handleLoadConversation = (content: any) => {
@@ -148,20 +146,6 @@ class WebSocketManager {
         // Handle stream tokens through the message handler instead
     }
 
-    public subscribe(messageType: string, handler: (data: any) => void) {
-        const handlers = this.messageHandlers.get(messageType) || [];
-        handlers.push(handler);
-        this.messageHandlers.set(messageType, handlers);
-    }
-
-    public unsubscribe(messageType: string, handler: (data: any) => void) {
-        const handlers = this.messageHandlers.get(messageType) || [];
-        this.messageHandlers.set(
-            messageType,
-            handlers.filter(h => h !== handler)
-        );
-    }
-
     public send(message: WebSocketMessage) {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(message));
@@ -171,9 +155,8 @@ class WebSocketManager {
     private handleOpen = () => {
         console.log('WebSocket Connected');
         this.connected = true;
-        // Notify subscribers of connection status change
-        const handlers = this.messageHandlers.get('connectionStatus') || [];
-        handlers.forEach(handler => handler({ isConnected: true }));
+        // Emit connection status via EventBus so that the messaging service and hooks are notified
+        eventBus.emit('connectionStatus', { isConnected: true, clientId: this.config.clientId });
     }
 
     private handleMessage = (event: MessageEvent) => {
@@ -198,9 +181,7 @@ class WebSocketManager {
                 this.handleEndStream();
             }
 
-            // Notify all handlers for this message type
-            const handlers = this.messageHandlers.get(message.messageType) || [];
-            handlers.forEach(handler => handler(message.content));
+            eventBus.emit(message.messageType, message.content);
         } catch (error) {
             console.error('Error processing message:', error);
         }
@@ -214,18 +195,14 @@ class WebSocketManager {
         console.log('WebSocket disconnected');
         this.socket = null;
         this.connected = false;
-        // Notify subscribers of connection status change
-        const handlers = this.messageHandlers.get('connectionStatus') || [];
-        handlers.forEach(handler => handler({ isConnected: false }));
+        // Emit connection status via EventBus so that subscribers (e.g., our messaging service) know the connection is down
+        eventBus.emit('connectionStatus', { isConnected: false, clientId: null });
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
         // Concatenate the new token with existing tokens
         this.streamTokenString = this.streamTokenString + token;
         console.log('WebSocket Manager - Current stream token string:', this.streamTokenString);
-        // Notify subscribers about the new token
-        const handlers = this.messageHandlers.get('newStreamToken') || [];
-        handlers.forEach(handler => handler(token));
     }
 
     public disconnect() {
