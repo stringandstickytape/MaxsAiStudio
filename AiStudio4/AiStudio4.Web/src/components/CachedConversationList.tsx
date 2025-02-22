@@ -68,35 +68,36 @@ export const CachedConversationList = () => {
             {conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
-                    onClick={() => {
-                        const newConvId = expandedConversation === conversation.convGuid ? null : conversation.convGuid;
-                        setExpandedConversation(newConvId);
-                        if (newConvId) fetchConversationTree(newConvId);
-                    }}
-                    className={`p-3 rounded cursor-pointer transition-all duration-200`}
+                    className={`p-3 rounded transition-all duration-200`}
                     style={{
                         backgroundColor: conversation.highlightColour || '#374151',
                         color: conversation.highlightColour ? '#000' : '#fff'
                     }}
                 >
-                    <div className="flex justify-between items-center">
+                    {/* Make only the header clickable */}
+                    <div
+                        className="flex justify-between items-center cursor-pointer"
+                        onClick={() => {
+                            const newConvId = expandedConversation === conversation.convGuid ? null : conversation.convGuid;
+                            setExpandedConversation(newConvId);
+                            if (newConvId) fetchConversationTree(newConvId);
+                        }}
+                    >
                         <div className="flex-grow">
                             <div className="text-sm">
-
                                 <div className="font-medium truncate mb-1">
                                     <span className="text-xs opacity-70 mr-2">
                                         {new Date(conversation.lastModified).toLocaleDateString()}
                                     </span>
                                     {conversation.summary}
                                 </div>
-
                             </div>
                         </div>
                         <div className="text-sm">
                             {expandedConversation === conversation.convGuid ? '▼' : '▶'}
                         </div>
                     </div>
-                    
+
                     {/* Tree View */}
                     {expandedConversation === conversation.convGuid && (
                         <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
