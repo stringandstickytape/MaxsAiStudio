@@ -16,7 +16,7 @@ function App() {
     const [selectedModel, setSelectedModel] = useState<string>("Select Model");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const { wsState, liveStreamContent } = useWebSocketState(selectedModel);
+    const { wsState, liveStreamContent } = useWebSocketState();
 
     useEffect(() => {
         const loadModels = async () => {

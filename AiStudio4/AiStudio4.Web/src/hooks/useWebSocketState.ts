@@ -4,7 +4,7 @@ import { wsManager } from '@/services/websocket/WebSocketManager';
 import { store } from '@/store/store';
 import { addMessage } from '@/store/conversationSlice';
 
-export function useWebSocketState(selectedModel: string) {
+export function useWebSocketState() {
     const [wsState, setWsState] = useState<WebSocketState>({
         isConnected: wsManager.isConnected(),
         clientId: wsManager.getClientId() || null,
@@ -73,7 +73,7 @@ export function useWebSocketState(selectedModel: string) {
 
     // Handle WebSocket connection based on selected model and track connection status
     useEffect(() => {
-        if (selectedModel !== "Select Model") {
+        //if (selectedModel !== "Select Model") {
             const handleConnectionStatus = (status: { isConnected: boolean }) => {
                 setWsState(prev => ({
                     ...prev,
@@ -94,9 +94,9 @@ export function useWebSocketState(selectedModel: string) {
                     clientId: null
                 }));
                 setLiveStreamContent('');
-            };
+        //    };
         }
-    }, [selectedModel]);
+    }, []); // Only run on mount
 
     return {
         wsState,
