@@ -13,15 +13,14 @@ interface CachedConversation {
 interface TreeNode {
     id: string;
     text: string;
-    children?: TreeNode[];
+    children: TreeNode[];
 }
 
 export const CachedConversationList = () => {
     const [conversations, setConversations] = useState<CachedConversation[]>([]);
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
 
-    // State for tree data
-    const [treeData, setTreeData] = useState<TreeNode[]>([]);
+    const [treeData, setTreeData] = useState<TreeNode | null>(null);
 
     // Function to fetch conversation tree data
     const fetchConversationTree = async (convId: string) => {
@@ -102,7 +101,7 @@ export const CachedConversationList = () => {
                     {/* Tree View */}
                     {expandedConversation === conversation.convGuid && (
                         <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
-                            {renderTree(treeData)}
+                            {treeData && renderTree(treeData)}
                         </div>
                     )}
                 </div>
