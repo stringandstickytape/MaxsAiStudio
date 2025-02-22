@@ -172,7 +172,7 @@ namespace VSIXTest
 
             File.WriteAllText(change.Path, string.Empty);
 
-            var window = dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
+            var window = TryOpenFile(dte, change.Path);
 
             if (window == null)
             {
@@ -208,9 +208,67 @@ namespace VSIXTest
             document.Save();
         }
 
+        private static EnvDTE.Window TryOpenFile(DTE dte, string filePath)
+        {
+            EnvDTE.Window window = null;
+            Exception lastException = null;
+
+            try
+            {
+                // Try method 1: Default view kind
+                window = dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindCode);
+                return window;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Debug.WriteLine($"Method 1 failed: {ex.Message}");
+            }
+
+            try
+            {
+                // Try method 2: Text view kind
+                window = dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindTextView);
+                return window;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Debug.WriteLine($"Method 2 failed: {ex.Message}");
+            }
+
+            try
+            {
+                // Try method 3: No view kind specified
+                window = dte.ItemOperations.OpenFile(filePath);
+                return window;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Debug.WriteLine($"Method 3 failed: {ex.Message}");
+            }
+
+            try
+            {
+                // Try method 4: Full path with code view
+                var fullPath = Path.GetFullPath(filePath);
+                window = dte.ItemOperations.OpenFile(fullPath, EnvDTE.Constants.vsViewKindCode);
+                return window;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Debug.WriteLine($"Method 4 failed: {ex.Message}");
+            }
+
+            // If we get here, all methods failed
+            throw new Exception($"Failed to open file {filePath} using all available methods", lastException);
+        }
+
         public static async Task HandleModifyFileAsync(DTE2 dte, Change change)
         {
-            var window = dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
+            var window = TryOpenFile(dte, change.Path);
 
             if (window == null)
             {
