@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
-import { wsManager } from '@/services/websocket/WebSocketManager';
+import React from 'react';
+import { CachedConversationTree } from './CachedConversationTree';
 
 interface CachedConversation {
     convGuid: string;
@@ -99,70 +100,15 @@ export const CachedConversationList = () => {
                     </div>
 
                     {/* Tree View */}
-                    {expandedConversation === conversation.convGuid && (
-                        <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
-                            {treeData && renderTree(treeData)}
-                        </div>
-                    )}
+                    {
+    expandedConversation === conversation.convGuid && (
+        <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
+            {treeData && <CachedConversationTree treeData={treeData} />}
+        </div>
+    )
+}
                 </div>
             ))}
-        </div>
-    );
-};
-
-// Helper function to render the tree structure
-const renderTree = (node: TreeNode) => {
-    const handleNodeClick = async () => {
-        try {
-            const response = await fetch('/api/conversationmessages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Client-Id': wsManager.getClientId() || ''
-                },
-                body: JSON.stringify({
-                    messageId: node.id
-                })
-            });
-            
-            if (!response.ok) throw new Error('Failed to fetch conversation messages');
-
-            const data = await response.json();
-            console.log('Fetched conversation data:', data);
-
-            if (data.success && data.messages && data.conversationId) {
-                // Handle the response directly instead of sending through WebSocket
-                const conversationData = {
-                    messageType: 'loadConversation',
-                    content: {
-                        conversationId: data.conversationId,
-                        messages: data.messages
-                    }
-                };
-                console.log('Dispatching conversation data:', conversationData);
-                wsManager.send(conversationData);
-            }
-        } catch (error) {
-            console.error('Error loading conversation:', error);
-        }
-    };
-
-    return (
-        <div key={node.id} className="py-1">
-            <div className="flex items-center">
-                <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
-                <div 
-                    className="text-sm text-gray-300 hover:text-white cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-1rem)]"
-                    onClick={handleNodeClick}
-                >
-                    {node.text}
-                </div>
-            </div>
-            {node.children && node.children.length > 0 && (
-                <div className="pl-4 mt-1">
-                    {node.children.map((child, index) => <div key={child.id || `${node.id}-${index}`}>{renderTree(child)}</div>)}
-                </div>
-            )}
         </div>
     );
 };
