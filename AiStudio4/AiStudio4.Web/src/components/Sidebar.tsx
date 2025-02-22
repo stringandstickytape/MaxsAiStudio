@@ -9,6 +9,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown } from "lucide-react"
 import { store } from '@/store/store';
+import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
 
 interface SidebarProps {
@@ -90,7 +91,7 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
     const handleNewChat = () => {
         store.dispatch(createConversation({
             rootMessage: {
-                id: `msg_${Date.now()}`,
+                id: `msg_${uuidv4()}`,
                 content: '',
                 source: 'system',
                 timestamp: Date.now()

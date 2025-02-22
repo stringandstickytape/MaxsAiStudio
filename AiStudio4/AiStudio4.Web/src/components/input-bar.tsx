@@ -20,11 +20,11 @@ export function InputBar({ selectedModel }: InputBarProps) {
 
             // If no active conversation, create a new one
             if (!conversationId) {
-                conversationId = `conv_${Date.now()}`;
+                conversationId = `conv_${uuidv4()}`;
                 store.dispatch(createConversation({
                     id: conversationId,
                     rootMessage: {
-                        id: `msg_${Date.now()}`,
+                        id: `msg_${uuidv4()}`,
                         content: '',
                         source: 'system',
                         timestamp: Date.now()
@@ -35,7 +35,7 @@ export function InputBar({ selectedModel }: InputBarProps) {
             const messageId = `msg_${uuidv4()}`;
             const parentMessageId = state.conversations.conversationHistory?.[conversationId]?.lastMessageId
                 || state.conversations.conversations?.[conversationId]?.rootMessage?.id
-                || `msg_${Date.now()}`;
+                || `msg_${uuidv4()}`;
 
             await ChatService.sendMessage(message, selectedModel, conversationId, messageId, parentMessageId);
         } catch (error) {

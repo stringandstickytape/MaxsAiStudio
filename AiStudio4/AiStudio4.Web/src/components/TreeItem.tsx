@@ -11,6 +11,8 @@ interface TreeItemProps {
 }
 
 export const TreeItem = ({ node }: TreeItemProps) => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
     const handleNodeClick = async () => {
         try {
             const response = await fetch('/api/conversationmessages', {
@@ -48,7 +50,14 @@ export const TreeItem = ({ node }: TreeItemProps) => {
     return (
         <div key={node.id} className="py-1">
             <div className="flex items-center">
-                <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
+                {node.children && node.children.length > 0 ? (
+                    <div 
+                        className="w-2 h-2 bg-gray-500 rounded-full mr-2 cursor-pointer hover:bg-gray-400 transition-colors"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                    ></div>
+                ) : (
+                    <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
+                )}
                 <div 
                     className="text-sm text-gray-300 hover:text-white cursor-pointer"
                     onClick={handleNodeClick}
@@ -56,7 +65,7 @@ export const TreeItem = ({ node }: TreeItemProps) => {
                     {node.text}
                 </div>
             </div>
-            {node.children && node.children.length > 0 && (
+            {node.children && node.children.length > 0 && !isCollapsed && (
                 <div className="pl-4 mt-1">
                     {node.children.map(child => <TreeItem key={child.id} node={child} />)}
                 </div>
