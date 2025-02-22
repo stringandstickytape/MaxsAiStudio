@@ -3,7 +3,7 @@
     public enum v4BranchedConversationMessageRole
     {
         System,
-        AI,
+        Assistant,
         User
     }
 

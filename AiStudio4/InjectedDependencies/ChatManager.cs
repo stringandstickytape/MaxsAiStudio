@@ -65,7 +65,7 @@ namespace AiStudio4.InjectedDependencies
                 systemprompt = "You are a helpful chatbot.",
                 messages = messageHistory.Where(x => x.Role != v4BranchedConversationMessageRole.System).Select(msg => new LinearConversationMessage { 
                     role = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
-                          msg.Role == v4BranchedConversationMessageRole.AI ? "assistant" : "system",
+                          msg.Role == v4BranchedConversationMessageRole.Assistant ? "assistant" : "system",
                     content = msg.UserMessage
                 }).ToList()
             };
@@ -75,7 +75,7 @@ namespace AiStudio4.InjectedDependencies
                 new CancellationToken(false), _settingsManager.CurrentSettings,
                 mustNotUseEmbedding: true, toolNames: null, useStreaming: true);
 
-            var newAiReply = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.AI, $"msg_{Guid.NewGuid()}", response.ResponseText, newUserMessageId);
+            var newAiReply = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, $"msg_{Guid.NewGuid()}", response.ResponseText, newUserMessageId);
 
             v4conversation.Save();
 
@@ -229,7 +229,7 @@ namespace AiStudio4.InjectedDependencies
                     id = msg.Id,
                     content = msg.UserMessage,
                     source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
-                            msg.Role == v4BranchedConversationMessageRole.AI ? "ai" : "system",
+                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
                     timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 }).ToList();
 
