@@ -133,13 +133,13 @@ namespace VSIXTest
                 switch (changeType)
                 {
                     case "createnewFile":
-                        await HandleCreateNewFileAsync(change);
+                        await HandleCreateNewFileAsync(_dte, change);
                         break;
 
                     case "addToFile":
                     case "deleteFromFile":
                     case "modifyFile":
-                        await HandleModifyFileAsync(change);
+                        await HandleModifyFileAsync(_dte, change);
                         break;
                 }
             }
@@ -150,7 +150,7 @@ namespace VSIXTest
             }
         }
 
-        private async Task HandleCreateNewFileAsync(Change change)
+        public static async Task HandleCreateNewFileAsync(DTE2 dte, Change change)
         {
             string deserNewContent = change.NewContent;
 
@@ -172,7 +172,7 @@ namespace VSIXTest
 
             File.WriteAllText(change.Path, string.Empty);
 
-            var window = _dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
+            var window = dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
 
             if (window == null)
             {
@@ -208,9 +208,9 @@ namespace VSIXTest
             document.Save();
         }
 
-        private async Task HandleModifyFileAsync(Change change)
+        public static async Task HandleModifyFileAsync(DTE2 dte, Change change)
         {
-            var window = _dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
+            var window = dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
 
             if (window == null)
             {

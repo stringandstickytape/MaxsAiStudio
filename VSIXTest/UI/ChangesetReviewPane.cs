@@ -171,27 +171,50 @@ public class ChangesetReviewPane : ToolWindowPane
         _cancelButton.Click += CancelButton_Click;
     }
 
-    private void ApplyAllAiButton_Click(object sender, RoutedEventArgs e)
+    private async void ApplyAllAiButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
+            var mergeableChanges = _changes.Where(c => c.ChangeType == "modifyFile" || c.ChangeType == "addToFile");
+            var unmergeableChanges = _changes.Where(c => c.ChangeType != "modifyFile" && c.ChangeType == "addToFile");
+
+            
             foreach (var item in _fileListBox.Items)
             {
                 var fileName = item as string;
                 if (!string.IsNullOrEmpty(fileName))
                 {
-                    var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
-                    if (changesForFile.Any())
+                    var mergeableChangesForFile = mergeableChanges.Where(c => c.Path == fileName).ToList();
+
+                    /*                     case "createnewFile":
+                    case "addToFile":
+                    case "deleteFromFile":
+                    case "modifyFile": */
+
+                    if (mergeableChangesForFile.Any())
                     {
-                        RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+                        RunMerge?.Invoke(this, new RunMergeEventArgs(mergeableChangesForFile));
                     }
+
+
                 }
             }
+
+            foreach (var item in unmergeableChanges)
+            {
+                if(item.ChangeType == "createnewFile")
+                {
+                    await ChangesetManager.HandleCreateNewFileAsync(_dte, item);
+                } else await ChangesetManager.HandleModifyFileAsync(_dte, item);
+            }
         }
+
         catch (Exception ex)
         {
             HandleError("Error applying secondary AI changes", ex);
         }
+
+        MessageBox.Show("Merge completed...");
     }
 
     private void ApplySecondaryAiButton_Click(object sender, RoutedEventArgs e)
