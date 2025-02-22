@@ -111,7 +111,7 @@ namespace AiTool3.UI
 
                 sbNewUserMessage.Append("\n\nApply this JSON changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER \"// ... (rest of ...) ...\" nor similar.\n");
 
-                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunMerge") { Json = JsonConvert.SerializeObject(sbNewUserMessage.ToString()) });
+                ChatWebViewSimpleEvent?.Invoke(this, new ChatWebViewSimpleEventArgs("RunMerge") { Json = JsonConvert.SerializeObject(new { userMessage = sbNewUserMessage.ToString(), filename = filename } )});
             }
             else if (vsixMessage.MessageType == "vsRunCompletion")
 
@@ -453,6 +453,7 @@ namespace AiTool3.UI
 
         internal async Task SetModels(SettingsSet currentSettings)
         {
+           // currentSettings.ModelList = currentSettings.ModelList.Where(x => x.ProviderGuid != null).ToList();
             var modelStrings = currentSettings.ModelList.Select(x => x.FriendlyName);
             var columnData = currentSettings.ModelList.Select(x => new { protocol =
                 ServiceProvider.GetProviderForGuid(currentSettings.ServiceProviders, x.ProviderGuid)?.ServiceName?? "Unknown", 
@@ -700,7 +701,7 @@ namespace AiTool3.UI
             await ExecuteScriptAndSendToVsixAsync($"{(value ? "en" : "dis")}ablePrefill();");
         }
 
-        internal async Task SendMergeResultsToVsixAsync(AiResponse response)
+        internal async Task SendMergeResultsToVsixAsync(AiResponse response, string filename)
         {
             await _simpleServer.BroadcastLineAsync(JsonConvert.SerializeObject(
                 
@@ -708,8 +709,8 @@ namespace AiTool3.UI
                 new VsixMessage
                 {
                     MessageType = "MergeResult",
-                    Content = response.ResponseText
-
+                    Content = response.ResponseText,
+                    JsonObject = JsonConvert.SerializeObject(filename)
                 }
 
                 ));

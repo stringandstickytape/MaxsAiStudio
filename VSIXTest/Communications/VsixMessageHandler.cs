@@ -48,7 +48,7 @@ namespace VSIXTest
                 case "MergeResult":
 
                     var content = message.Content;
-
+                    var filename = JsonConvert.DeserializeObject<string>(message.JsonObject);
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                     try
@@ -62,7 +62,7 @@ namespace VSIXTest
                         if (window?.Frame == null)
                             throw new NotSupportedException("Cannot create changeset review window");
 
-                        window.MergeCompleted(content);
+                        window.MergeCompleted(content, filename);
                     }
                     catch (Exception ex)
                     {

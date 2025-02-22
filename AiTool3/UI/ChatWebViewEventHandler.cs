@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace AiTool3.UI
 {
@@ -272,26 +273,30 @@ namespace AiTool3.UI
                 case "RunMerge":
                     {
 
-
+                        //new { userMessage = sbNewUserMessage.ToString(), filename = filename }
                         string responseText = "";
 
                         try
                         {
                             // AI merge: Apply this JSON changeset and give me the complete entire file verbatim as a single code block with no other output.  Do not include line numbers.  Do not omit any code.  NEVER "// ... (rest of ...) ..." nor similar.
                             // Gemini Flash 2 - or 1.5, but not 8b - seems to do well with the above prompt.  3.5 Haiku crapped out.
+                            var details = JsonConvert.DeserializeObject<JObject>(e.Json);
+
+                            var content = (string)details["userMessage"];
+                            var filename = (string)details["filename"];
 
 
                             LinearConversation conversation = new LinearConversation(DateTime.Now);
                             conversation.systemprompt = "You are a coding expert who merges changes into original source files.";
                             conversation.messages = new List<LinearConversationMessage>
                             {
-                                new LinearConversationMessage { role = "user", content = JsonConvert.DeserializeObject<string>(e.Json) }
+                                new LinearConversationMessage { role = "user", content = content }
                             };
 
                             var service = ServiceProvider.GetProviderForGuid(_currentSettings.ServiceProviders, apiModel.ProviderGuid);
 
                             var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), _currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
-                            await _chatWebView.SendMergeResultsToVsixAsync(response);
+                            await _chatWebView.SendMergeResultsToVsixAsync(response, filename);
                         }
                         catch (Exception e2)
                         {

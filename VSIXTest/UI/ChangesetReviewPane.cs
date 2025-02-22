@@ -11,6 +11,7 @@ using EnvDTE80;
 using System.IO;
 using System.Linq;
 using SharedClasses.Models;
+using System.Windows.Media;
 
 [Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf6")]
 
@@ -26,6 +27,7 @@ public class ChangesetReviewPane : ToolWindowPane
     private Grid _mainGrid;
     private ListBox _fileListBox;
     private Button _applySecondaryAiButton;
+    private Button _applyAllAiButton;
     private TextBox _changeDetailsTextBox;
     private Button _applyButton;
     private Button _nextButton;
@@ -74,6 +76,15 @@ public class ChangesetReviewPane : ToolWindowPane
         };
         Grid.SetRow(_applySecondaryAiButton, 1);
         _mainGrid.Children.Add(_applySecondaryAiButton);
+
+        _applyAllAiButton = new Button
+        {
+            Content = "Apply For All Files Via Secondary AI",
+            Height = 25,
+            Margin = new Thickness(0, 0, 0, 5)
+        };
+        Grid.SetRow(_applyAllAiButton, 2);
+        _mainGrid.Children.Add(_applyAllAiButton);
 
         var separator = new Separator { Margin = new Thickness(0, 5, 0, 5) };
         Grid.SetRow(separator, 2);
@@ -153,10 +164,34 @@ public class ChangesetReviewPane : ToolWindowPane
     private void SetupEventHandlers()
     {
         _applySecondaryAiButton.Click += ApplySecondaryAiButton_Click;
+        _applyAllAiButton.Click += ApplyAllAiButton_Click;
         _applyButton.Click += ApplyButton_Click;
         _undoButton.Click += UndoButton_Click;
         _nextButton.Click += NextButton_Click;
         _cancelButton.Click += CancelButton_Click;
+    }
+
+    private void ApplyAllAiButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            foreach (var item in _fileListBox.Items)
+            {
+                var fileName = item as string;
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
+                    if (changesForFile.Any())
+                    {
+                        RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Error applying secondary AI changes", ex);
+        }
     }
 
     private void ApplySecondaryAiButton_Click(object sender, RoutedEventArgs e)
@@ -350,16 +385,40 @@ public class ChangesetReviewPane : ToolWindowPane
         MessageBox.Show($"{message}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    internal void MergeCompleted(string content)
+    internal void MergeCompleted(string content, string filename)
     {
         try
         {
-            var fileName = _fileListBox.SelectedItem as string;
-            var window = _dte.ItemOperations.OpenFile(fileName);
+            // Find the filename in _fileListBox
+            var listBoxItem = _fileListBox.Items.Cast<object>()
+                .FirstOrDefault(item => item.ToString() == filename);
+
+            if (listBoxItem != null)
+            {
+                int index = _fileListBox.Items.IndexOf(listBoxItem);
+                if (index >= 0)
+                {
+                    // Get the ListBoxItem container
+                    var container = (ListBoxItem)_fileListBox.ItemContainerGenerator
+                        .ContainerFromIndex(index);
+
+                    if (container != null)
+                    {
+                        container.Background = Brushes.Red;
+                        container.Foreground = Brushes.White;
+                    }
+                }
+            }
+
+            var window = _dte.ItemOperations.OpenFile(filename);
             var textDocument = window.Document.Object() as EnvDTE.TextDocument;
             var editPoint = textDocument.StartPoint.CreateEditPoint();
             editPoint.Delete(textDocument.EndPoint);
-            editPoint.Insert(content);
+
+            string[] lines = content.Split('\n');
+            string result = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
+
+            editPoint.Insert(result);
         }
         catch (Exception e)
         {

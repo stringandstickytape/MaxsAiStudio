@@ -34,7 +34,7 @@
 								},
 								"path": {
 									"type": "string",
-									"description": "The original filename and path where the change is to occur"
+									"description": "The original filename and FULL path where the change is to occur"
 								},
 								"lineNumber": {
 									"type": "integer",

@@ -3,6 +3,7 @@ import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
 import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/input-bar';
@@ -19,17 +20,30 @@ function App() {
     const { wsState, liveStreamContent } = useWebSocketState();
 
     useEffect(() => {
-        const loadModels = async () => {
+        const initialize = async () => {
             try {
+                // Load available models
                 const availableModels = await ChatService.fetchModels();
                 setModels(availableModels);
+                
+                // Create initial chat conversation
+                const conversationId = `conv_${Date.now()}`;
+                store.dispatch(createConversation({
+                    id: conversationId,
+                    rootMessage: {
+                        id: `msg_${Date.now()}`,
+                        content: '',
+                        source: 'system',
+                        timestamp: Date.now()
+                    }
+                }));
             } catch (error) {
-                console.error("Error fetching models:", error);
+                console.error("Error during initialization:", error);
                 setModels([]);
                 // TODO: Add error handling/user feedback
             }
         };
-        loadModels();
+        initialize();
     }, []);
 
 
