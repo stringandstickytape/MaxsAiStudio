@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { wsManager } from '../services/websocket/WebSocketManager';
 
 export interface TreeNode {
     id: string;
@@ -18,7 +19,7 @@ export const CachedConversationTree: React.FC<CachedConversationTreeProps> = ({ 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Client-Id': '' // Populate with appropriate clientId if necessary
+                    'X-Client-Id': wsManager.getClientId() || ''
                 },
                 body: JSON.stringify({
                     messageId: node.id
@@ -28,8 +29,14 @@ export const CachedConversationTree: React.FC<CachedConversationTreeProps> = ({ 
             const data = await response.json();
             console.log('Fetched conversation data:', data);
             if (data.success && data.messages && data.conversationId) {
-                // Handle the response directly instead of sending through WebSocket
-                console.log('Dispatching conversation data:', data);
+                // Send the data through WebSocket manager for proper handling
+                wsManager.send({
+                    messageType: 'loadConversation',
+                    content: {
+                        conversationId: data.conversationId,
+                        messages: data.messages
+                    }
+                });
             }
         } catch (error) {
             console.error('Error loading conversation:', error);
