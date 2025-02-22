@@ -18,17 +18,15 @@ const conversationSlice = createSlice({
 
             conversation.messages.push(message);
         },
-        createConversation(state, action: PayloadAction<{ rootMessage: Message }>) {
-            const conversationId = `conv_${Date.now()}`;
-            console.log("New conversation: " + conversationId);
+        createConversation(state, action: PayloadAction<{ id: string, rootMessage: Message }>) {
+            const { id, rootMessage } = action.payload;
+            console.log("New conversation: " + id);
             
-            const { rootMessage } = action.payload;
-
-            state.conversations[conversationId] = {
-                id: conversationId,
+            state.conversations[id] = {
+                id: id,
                 messages: [rootMessage]
             };
-            state.activeConversationId = conversationId;
+            state.activeConversationId = id;
         },
         setActiveConversation(state, action: PayloadAction<string>) {
             state.activeConversationId = action.payload;

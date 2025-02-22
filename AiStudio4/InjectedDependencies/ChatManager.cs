@@ -221,17 +221,42 @@ namespace AiStudio4.InjectedDependencies
             return node;
         }
 
+        internal async Task<string> HandleConversationMessagesRequest(string clientId, JObject? requestObject)
+        {
+            var messageId = requestObject["messageId"].ToString();
+            var foundConversation = FindConversationByMessageId(messageId);
+            
+            if (foundConversation != null)
+            {
+                var messageHistory = GetMessageHistory(foundConversation, messageId);
+                var messages = messageHistory.Select(msg => new
+                {
+                    id = msg.Id,
+                    content = msg.UserMessage,
+                    source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
+                            msg.Role == v4BranchedConversationMessageRole.AI ? "ai" : "system",
+                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                }).ToList();
+
+                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                {
+                    messageType = "loadConversation",
+                    content = new
+                    {
+                        conversationId = foundConversation.ConversationId,
+                        messages = messages
+                    }
+                }));
+
+                return JsonConvert.SerializeObject(new { success = true, messages = messages, conversationId = foundConversation.ConversationId });
+            }
+            return JsonConvert.SerializeObject(new { success = false, error = "Message not found" });
+        }
+
         internal async Task<string> HandleCachedConversationRequest(string clientId, JObject? requestObject)
         {
-            /* target format:
-            {
-                { "id", message.Guid },
-                { "text", text },
-                { "children", [...children...]] }
-            };
-            */
 
-            // Load the conversation
+            // Handle tree view loading (existing code)
             var conversationId = requestObject["conversationId"].ToString();
             var branchedConversation = LoadOrCreateConversation(conversationId);
 
@@ -241,16 +266,13 @@ namespace AiStudio4.InjectedDependencies
             }
             var m1 = branchedConversation.MessageHierarchy.First();
 
-            var o = new 
-                {
-                     id = m1.Id ,
-                     text = m1.UserMessage,
-                     children = CreateChildrenArray(m1.Children)
-                };
+            var o = new
+            {
+                id = m1.Id,
+                text = m1.UserMessage,
+                children = CreateChildrenArray(m1.Children)
+            };
 
-
-            //var t = JsonConvert.SerializeObject(o);
-            // Return the conversation data
             return JsonConvert.SerializeObject(new
             {
                 success = true,
@@ -273,6 +295,41 @@ namespace AiStudio4.InjectedDependencies
                 childrenArray.Add(childObject);
             }
             return childrenArray;
+        }
+        private v4BranchedConversation FindConversationByMessageId(string messageId)
+        {
+            var conversationsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "conversations");
+
+            foreach (var file in Directory.GetFiles(conversationsPath, "*.json"))
+            {
+                try
+                {
+                    var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(file));
+                    if (conversation != null)
+                    {
+                        // Helper function to search for message
+                        bool ContainsMessage(v4BranchedConversationMessage message)
+                        {
+                            if (message.Id == messageId) return true;
+                            return message.Children.Any(ContainsMessage);
+                        }
+
+                        // Check if conversation contains the message
+                        if (conversation.MessageHierarchy.Any(ContainsMessage))
+                        {
+                            return conversation;
+                        }
+                    }
+                }
+                catch
+                {
+                    continue; // Skip invalid files
+                }
+            }
+            return null;
         }
     }
 

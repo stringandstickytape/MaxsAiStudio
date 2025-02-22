@@ -33,6 +33,20 @@ namespace AiStudio4.InjectedDependencies
 
             switch (requestType)
             {
+                case "conversationmessages":
+                    try
+                    {
+                        return await _chatManager.HandleConversationMessagesRequest(clientId, requestObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing conversation messages request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
                 case "cachedconversation":
                     try
                     {

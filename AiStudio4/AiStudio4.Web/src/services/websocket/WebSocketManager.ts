@@ -49,13 +49,61 @@ class WebSocketManager {
         handlers.forEach(handler => handler(cachedConversation));
     }
 
+    private handleLoadConversation = (content: any) => {
+        console.log('Loading conversation:', content);
+        const { conversationId, messages } = content;
+
+        if (!messages || messages.length === 0) return;
+
+        // Find the first message with no parent (should be system/root message)
+        const rootMessageIndex = messages.findIndex(m => !m.parentId);
+        if (rootMessageIndex === -1) return;
+
+        // Initialize conversation with the root message
+        store.dispatch(createConversation({
+            id: conversationId,
+            rootMessage: {
+                id: messages[rootMessageIndex].id,
+                content: messages[rootMessageIndex].content,
+                source: messages[rootMessageIndex].source,
+                parentId: null,
+                timestamp: messages[rootMessageIndex].timestamp,
+                children: []
+            }
+        }));
+
+        // Add remaining messages in chronological order
+        // Skip the root message since we already added it
+        messages.forEach((message: any, index: number) => {
+            if (index !== rootMessageIndex) {
+                store.dispatch(addMessage({
+                    conversationId,
+                    message: {
+                        id: message.id,
+                        content: message.content,
+                        source: message.source,
+                        parentId: message.parentId,
+                        timestamp: message.timestamp,
+                        children: []
+                    }
+                }));
+            }
+        });
+    }
+
     private handleConversationMessage = (content: Message) => {
         console.log('Received conversation message:', content);
 
         // For new conversation root messages
         if (!content.parentId) {
-            debugger;
+            const state = store.getState();
+            const existingConversationId = Object.keys(state.conversations.conversations).find(
+                id => state.conversations.conversations[id].messages.some(m => m.id === content.id)
+            );
+            const conversationId = existingConversationId || `conv_${Date.now()}`;
+            
             store.dispatch(createConversation({
+                id: conversationId,
                 rootMessage: {
                     id: content.id,
                     content: content.content,
@@ -139,6 +187,8 @@ class WebSocketManager {
                 this.handleConversationMessage(message.content);
             } else if (message.messageType === 'cachedconversation') {
                 this.handleCachedConversationMessage(message.content);
+            } else if (message.messageType === 'loadConversation') {
+                this.handleLoadConversation(message.content);
             } else if (message.messageType === 'endstream') {
                 this.handleEndStream();
             }
