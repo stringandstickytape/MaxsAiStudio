@@ -4,10 +4,12 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { MessageSquare, Menu, FolderOpen } from 'lucide-react';
+import { MessageSquare, Menu, FolderOpen, Plus } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ChevronDown } from "lucide-react" // Add this to imports
+import { ChevronDown } from "lucide-react"
+import { store } from '@/store/store';
+import { createConversation } from '@/store/conversationSlice';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -85,32 +87,28 @@ function DesktopContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
 }
 
 function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isCollapsed?: boolean }) {
+    const handleNewChat = () => {
+        store.dispatch(createConversation({
+            rootMessage: {
+                id: `msg_${Date.now()}`,
+                content: '',
+                source: 'system',
+                timestamp: Date.now()
+            }
+        }));
+    };
     return (
         <div className="flex flex-col h-[calc(100vh-10rem)]">
+            <Button
+                onClick={handleNewChat}
+                className="m-2 flex items-center gap-2 bg-[#374151] hover:bg-[#4B5563] text-gray-100 border-gray-600"
+                variant="outline"
+            >
+                <Plus className="h-4 w-4" />
+                {!isCollapsed && "New Chat"}
+            </Button>
             <ScrollArea className="flex-1">
                 <CachedConversationList collapsed={isCollapsed} />
-
-                <Collapsible className="mt-4">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-gray-100 hover:bg-[#374151] transition-colors">
-                        <div className="flex items-center gap-2">
-                            <FolderOpen className="h-4 w-4" />
-                            {!isCollapsed && <span>Dummy Section</span>}
-                        </div>
-                        <ChevronDown className="h-4 w-4" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <div className="pl-4 py-2 space-y-2">
-                            {Array.from({ length: 50 }, (_, i) => (
-                                <div
-                                    key={i}
-                                    className="text-sm text-gray-300 hover:text-gray-100 cursor-pointer transition-colors"
-                                >
-                                    Subitem {i + 1}
-                                </div>
-                            ))}
-                        </div>
-                    </CollapsibleContent>
-                </Collapsible>
             </ScrollArea>
 
             <div className="p-3 border-t border-gray-700 bg-[#2d3748]">

@@ -26,31 +26,6 @@ namespace AiStudio4.InjectedDependencies
             _chatManager = chatManager;
         }
 
-        private JArray BuildMessageTree(CompletionMessage message, List<CompletionMessage> allMessages)
-        {
-            var text = message.Content;
-
-            if (text.Length > 20) text = text.Substring(0, 20);
-            var messageObj = new JObject
-            {
-                { "id", message.Guid },
-                { "text", text },
-                { "children", new JArray() }
-            };
-
-            // Find and add all child messages recursively
-            var childMessages = allMessages.Where(m => m.Parent == message.Guid);
-            if (childMessages.Any())
-            {
-                var childrenArray = (JArray)messageObj["children"];
-                foreach (var childMessage in childMessages)
-                {
-                    childrenArray.Add(BuildMessageTree(childMessage, allMessages)[0]);
-                }
-            }
-
-            return new JArray { messageObj };
-        }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
@@ -61,28 +36,10 @@ namespace AiStudio4.InjectedDependencies
                 case "cachedconversation":
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine($"Received cached conversation request: {requestData}");
+                        return await _chatManager.HandleCachedConversationRequest(clientId, requestObject);
 
-                        
 
-                        // Load the conversation
-                        var conversationId = requestObject["conversationId"].ToString();
-                        var branchedConversation = BranchedConversation.LoadConversation(conversationId);
 
-                        if (branchedConversation == null)
-                        {
-                            return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
-                        }
-                        var m1 = branchedConversation.Messages[1];
-                        var o = BuildMessageTree(m1, branchedConversation.Messages);
-
-                        //var t = JsonConvert.SerializeObject(o);
-                        // Return the conversation data
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true,
-                            treeData = o
-                        });
                     }
                     catch (Exception ex)
                     {

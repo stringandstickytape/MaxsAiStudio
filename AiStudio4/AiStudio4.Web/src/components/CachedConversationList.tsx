@@ -110,8 +110,8 @@ export const CachedConversationList = () => {
 };
 
 // Helper function to render the tree structure
-const renderTree = (nodes: TreeNode[]) => {
-    return nodes.map(node => (
+const renderTree = (node: TreeNode) => {
+    return (
         <div key={node.id} className="py-1">
             <div className="flex items-center">
                 <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
@@ -121,9 +121,9 @@ const renderTree = (nodes: TreeNode[]) => {
             </div>
             {node.children && node.children.length > 0 && (
                 <div className="pl-4 mt-1">
-                    {renderTree(node.children)}
+                    {node.children.map(child => renderTree(child))}
                 </div>
             )}
         </div>
-    ));
+    );
 };

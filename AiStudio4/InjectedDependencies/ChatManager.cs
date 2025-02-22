@@ -43,7 +43,25 @@ namespace AiStudio4.InjectedDependencies
             var v4conversation = LoadOrCreateConversation(conversationId);
             var newUserMessage = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.User, newUserMessageId, userMessage, parentMessageId);
             v4conversation.Save();
-            
+
+            // Build the cached conversation tree from the updated branched conversation
+            var cachedConversationTree = BuildCachedConversationTree(v4conversation);
+
+            // Send the updated cached conversation to the client for sidebar display
+            await _webSocketServer.SendToClientAsync(clientId,
+                JsonConvert.SerializeObject(new
+                {
+                    messageType = "cachedconversation",
+                    content = new
+                    {
+                        convGuid = v4conversation.ConversationId,
+                        summary = cachedConversationTree?.text ?? "",
+                        fileName = $"conv_{v4conversation.ConversationId}.json",
+                        lastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                        treeData = cachedConversationTree
+                    }
+                }));
+
             // Get message history by traversing up from new message
             var messageHistory = GetMessageHistory(v4conversation, newUserMessageId);
             
@@ -148,6 +166,8 @@ namespace AiStudio4.InjectedDependencies
                 return false;
             }
 
+
+
             // Search through message hierarchy
             foreach (var message in conversation.MessageHierarchy)
             {
@@ -160,6 +180,111 @@ namespace AiStudio4.InjectedDependencies
             return history;
         }
 
+        /// <summary>
+        /// Recursively builds a tree structure to represent the cached conversation.
+        /// Each node contains an id, a truncated text summary and optional children.
+        /// </summary>
+        /// <param name="conversation">The branched conversation to build the tree from.</param>
+        /// <returns>A dynamic object representing the conversation tree.</returns>
+        private dynamic BuildCachedConversationTree(v4BranchedConversation conversation)
+        {
+            if (conversation.MessageHierarchy == null || conversation.MessageHierarchy.Count == 0)
+            {
+                return null;
+            }
+            // For simplicity, build the tree from the first root message
+            return BuildTreeNode(conversation.MessageHierarchy[0]);
+        }
+
+        /// <summary>
+        /// Recursively builds a tree node from a v4BranchedConversationMessage.
+        /// </summary>
+        /// <param name="message">The conversation message.</param>
+        /// <returns>A dynamic object with properties id, text, and children.</returns>
+        private dynamic BuildTreeNode(v4BranchedConversationMessage message)
+        {
+            // Truncate the message text to 20 characters for summary display
+            var text = message.UserMessage;
+            if (text.Length > 20) text = text.Substring(0, 20);
+
+            var node = new
+            {
+                id = message.Id,
+                text = text,
+                children = new List<dynamic>()
+            };
+
+            foreach (var child in message.Children)
+            {
+                ((List<dynamic>)node.children).Add(BuildTreeNode(child));
+            }
+            return node;
+        }
+
+        internal async Task<string> HandleCachedConversationRequest(string clientId, JObject? requestObject)
+        {
+            /* target format:
+            {
+                { "id", message.Guid },
+                { "text", text },
+                { "children", [...children...]] }
+            };
+            */
+
+            // Load the conversation
+            var conversationId = requestObject["conversationId"].ToString();
+            var branchedConversation = LoadOrCreateConversation(conversationId);
+
+            if (branchedConversation == null)
+            {
+                return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
+            }
+            var m1 = branchedConversation.MessageHierarchy.First();
+
+            var o = new 
+                {
+                     id = m1.Id ,
+                     text = m1.UserMessage,
+                     children = CreateChildrenArray(m1.Children)
+                };
+
+
+            //var t = JsonConvert.SerializeObject(o);
+            // Return the conversation data
+            return JsonConvert.SerializeObject(new
+            {
+                success = true,
+                treeData = o
+            });
+        }
+
+        // Add this helper method to the class
+        private List<object> CreateChildrenArray(List<v4BranchedConversationMessage> children)
+        {
+            var childrenArray = new List<object>();
+            foreach (var child in children)
+            {
+                var childObject = new
+                {
+                    id = child.Id,
+                    text = child.UserMessage,
+                    children = CreateChildrenArray(child.Children)
+                };
+                childrenArray.Add(childObject);
+            }
+            return childrenArray;
+        }
+    }
+
+
+    public class v4BranchedConversationMessage
+    {
+        public v4BranchedConversationMessageRole Role { get; set; }
+        public List<v4BranchedConversationMessage> Children { get; set; }
+
+        public string UserMessage { get; set; }
+
+        public string Id { get; set; }
     }
 
     public class v4BranchedConversation
@@ -267,14 +392,6 @@ namespace AiStudio4.InjectedDependencies
         User
     }
 
-    public class v4BranchedConversationMessage
-    {
-        public v4BranchedConversationMessageRole Role { get; set; }
-        public List<v4BranchedConversationMessage> Children { get; set; }
 
-        public string UserMessage{ get; set; }
-
-        public string Id { get; set; }
-    }
 
 }

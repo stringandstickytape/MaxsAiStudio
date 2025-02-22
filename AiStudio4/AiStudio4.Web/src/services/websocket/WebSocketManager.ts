@@ -41,7 +41,7 @@ class WebSocketManager {
             convGuid: content.id,
             summary: content.content,
             fileName: `conv_${content.id}.json`,
-            lastModified: new Date(content.timestamp).toISOString(),
+            lastModified: content.lastModified || new Date().toISOString(),
             highlightColour: undefined
         };
         // Notify subscribers to update the CachedConversationList

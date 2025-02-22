@@ -1,34 +1,59 @@
 import React, { useState, KeyboardEvent, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChatService } from '@/services/ChatService';
+import { store } from '@/store/store';
+import { v4 as uuidv4 } from 'uuid';
+import { createConversation } from '@/store/conversationSlice';
 
 interface InputBarProps {
     selectedModel: string;
 }
+
 
 export function InputBar({ selectedModel }: InputBarProps) {
     const [inputText, setInputText] = useState('');
 
     const handleChatMessage = useCallback(async (message: string) => {
         try {
-            await ChatService.sendMessage(message, selectedModel);
+            const state = store.getState();
+            let conversationId = state.conversations.activeConversationId;
+
+            // If no active conversation, create a new one
+            if (!conversationId) {
+                conversationId = `conv_${Date.now()}`;
+                store.dispatch(createConversation({
+                    id: conversationId,
+                    rootMessage: {
+                        id: `msg_${Date.now()}`,
+                        content: '',
+                        source: 'system',
+                        timestamp: Date.now()
+                    }
+                }));
+            }
+
+            const messageId = `msg_${uuidv4()}`;
+            const parentMessageId = state.conversations.conversationHistory?.[conversationId]?.lastMessageId
+                || state.conversations.conversations?.[conversationId]?.rootMessage?.id
+                || `msg_${Date.now()}`;
+
+            await ChatService.sendMessage(message, selectedModel, conversationId, messageId, parentMessageId);
         } catch (error) {
-            console.error('Error sending chat message:', error);
-            // TODO: Add error handling/user feedback
+            console.error('Error sending message:', error);
         }
     }, [selectedModel]);
+
+    const handleSend = () => {
+        if (inputText.trim()) {
+            handleChatMessage(inputText);
+            setInputText('');
+        }
+    };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
             e.preventDefault();
             handleSend();
-        }
-    };
-
-    const handleSend = () => {
-        if (inputText.trim()) {
-            handleChatMessage(inputText);
-            setInputText(''); // Clear the input after sending
         }
     };
 
@@ -42,8 +67,8 @@ export function InputBar({ selectedModel }: InputBarProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="Type your message here... (Ctrl+Enter to send)"
                 />
-                <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+                <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={handleSend}
                 >
                     Send
