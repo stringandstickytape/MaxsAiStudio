@@ -26,11 +26,13 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                         </div>
                     </div>
                 ))}
-                <div className="p-4 mb-4 rounded bg-gray-800 float-left clear-both break-words whitespace-normal w-full">
-                    {streamTokens.map((token, index) => (
-                        <LiveStreamToken key={index} token={token} />
-                    ))}
-                </div>
+                {streamTokens.length > 0 && (
+                    <div className="p-4 mb-4 rounded bg-gray-800 float-left clear-both break-words whitespace-normal w-full">
+                        {streamTokens.map((token, index) => (
+                            <LiveStreamToken key={index} token={token} />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
