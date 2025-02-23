@@ -33,12 +33,12 @@ class WebSocketManager {
 
     private handleEndStream = () => {
         //this.streamTokenString = ''; // Removed
-        console.log('Stream ended');
+        
         eventBus.emit('endstream', null); //  Explicitly emit endstream
     }
 
     private handleCachedConversationMessage = (content: any) => {
-        console.log('Received cached conversation message:', content);
+        
         const cachedConversation = {
             convGuid: content.id,
             summary: content.content,
@@ -50,7 +50,7 @@ class WebSocketManager {
     }
 
     private handleLoadConversation = (content: any) => {
-        console.log('Loading conversation:', content);
+        
         const { conversationId, messages } = content;
 
         if (!messages || messages.length === 0) return;
@@ -92,7 +92,7 @@ class WebSocketManager {
     }
 
     private handleConversationMessage = (content: Message) => {
-        console.log('Received conversation message:', content);
+        
 
         // For new conversation root messages
         if (!content.parentId) {
@@ -170,12 +170,12 @@ class WebSocketManager {
 
     private handleMessage = (event: MessageEvent) => {
         try {
-            console.log('Raw message received:', event.data);
+            
             const message: WebSocketMessage = JSON.parse(event.data);
-            console.log('Parsed message:', message);
+            
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
-                console.log('set client id to ' + this.config.clientId);
+                
             }
             else if (message.messageType === 'cfrag') {
                 this.handleNewLiveChatStreamToken(message.content);
@@ -210,7 +210,7 @@ class WebSocketManager {
 
     private handleNewLiveChatStreamToken = (token: string) => {
         // this.streamTokenString = this.streamTokenString + token; // NO LONGER NEEDED
-        console.log('WebSocket Manager - Received stream token:', token);
+        
     }
 
     public disconnect() {

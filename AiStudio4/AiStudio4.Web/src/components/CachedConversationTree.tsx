@@ -27,7 +27,7 @@ export const CachedConversationTree: React.FC<CachedConversationTreeProps> = ({ 
             });
             if (!response.ok) throw new Error('Failed to fetch conversation messages');
             const data = await response.json();
-            console.log('Fetched conversation data:', data);
+            
             if (data.success && data.messages && data.conversationId) {
                 // Send the data through WebSocket manager for proper handling
                 wsManager.send({

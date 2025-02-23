@@ -29,7 +29,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
         const width = 280;
         const height = 500;
         const margin = { top: 20, right: 40, bottom: 20, left: 40 };
-        console.log('Container dimensions:', { width, height, margin });
+        
 
         // Create SVG with a group for transformation
         const svg = d3.select(treeContainerRef.current)
@@ -41,7 +41,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
 
         try {
             // Create hierarchy directly from messages object
-            console.log('Messages object received:', JSON.stringify(messages, null, 2));
+            
             // Normalize the data structure
             const normalizeData = (node: any) => {
                 if (!node) return null;
@@ -68,17 +68,14 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 };
             };
             const normalizedData = normalizeData(messages);
-            console.log('Raw messages:', messages);
-            console.log('Normalized data:', JSON.stringify(normalizedData, null, 2));
+            
+            
             const hierarchyData = d3.hierarchy(normalizedData);
-            console.log('D3 hierarchy data:', hierarchyData);
-            console.log('Number of children:', hierarchyData.children?.length);
-            console.log('All descendants:', hierarchyData.descendants().length);
-            console.log('Tree structure:', hierarchyData.descendants().map(d => ({ 
-                depth: d.depth,
-                data: d.data,
-                hasChildren: d.children?.length > 0
-            })));
+            
+            
+            
+            
+            
 
             // Create tree layout
             const treeLayout = d3.tree()
@@ -87,18 +84,12 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
 
             // Process the data
             const root = treeLayout(hierarchyData);
-            console.log('Tree layout root:', root);
+            
 
             // Normalize for fixed-depth
             root.descendants().forEach((d: any) => {
                 d.y = d.depth * 60; // Reduced spacing between levels
-                console.log(`Node position:`, { 
-                    id: d.data.id,
-                    text: d.data.text,
-                    x: d.x,
-                    y: d.y,
-                    depth: d.depth
-                });
+                
             });
 
             // Rest of the visualization code remains the same...
@@ -127,7 +118,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 .attr('fill', '#3b82f6')
                 .attr('cursor', 'pointer')
                 .on('click', (event, d: any) => {
-                    console.log('Node clicked:', d.data);
+                    
                 });
 
             // Add text labels

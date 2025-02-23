@@ -20,7 +20,6 @@ const conversationSlice = createSlice({
         },
         createConversation(state, action: PayloadAction<{ id: string, rootMessage: Message }>) {
             const { id, rootMessage } = action.payload;
-            console.log("New conversation: " + id);
             
             state.conversations[id] = {
                 id: id,

@@ -24,7 +24,7 @@ interface SidebarProps {
 function buildMessageTree(messages: Message[]) {
     // Sort messages by timestamp to ensure parents are processed before children
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
-    console.log('Processing sorted messages:', sortedMessages);
+    
 
     const messageMap = new Map();
     let rootMessage: any = null;
@@ -73,7 +73,7 @@ function buildMessageTree(messages: Message[]) {
         }
     });
 
-    console.log('Built tree:', rootMessage);
+    
     return rootMessage;
 }
 
