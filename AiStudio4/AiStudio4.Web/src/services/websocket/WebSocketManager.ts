@@ -1,5 +1,5 @@
 import { store } from '../../store/store';
-import { addMessage, createConversation } from '../../store/conversationSlice';
+import { addMessage, createConversation, setActiveConversation } from '../../store/conversationSlice';
 import { Message } from '../../types/conversation';
 import { eventBus } from '../messaging/EventBus';
 
@@ -50,87 +50,96 @@ class WebSocketManager {
     }
 
     private handleLoadConversation = (content: any) => {
-        
         const { conversationId, messages } = content;
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedMessageId = urlParams.get('messageId');
 
         if (!messages || messages.length === 0) return;
 
-        // Find the first message with no parent (should be system/root message)
-        const rootMessageIndex = messages.findIndex(m => !m.parentId);
-        if (rootMessageIndex === -1) return;
+        // Find root message (message with no parent)
+        const rootMessage = messages.find(m => !m.parentId) || messages[0];
 
-        // Initialize conversation with the root message
+        // Create new conversation with root message
         store.dispatch(createConversation({
             id: conversationId,
             rootMessage: {
-                id: messages[rootMessageIndex].id,
-                content: messages[rootMessageIndex].content,
-                source: messages[rootMessageIndex].source,
+                id: rootMessage.id,
+                content: rootMessage.content,
+                source: rootMessage.source as 'user' | 'ai' | 'system',
                 parentId: null,
-                timestamp: messages[rootMessageIndex].timestamp,
+                timestamp: rootMessage.timestamp || Date.now(),
                 children: []
-            }
+            },
+            selectedMessageId // Include selected message ID in action
         }));
 
-        // Add remaining messages in chronological order
-        // Skip the root message since we already added it
-        messages.forEach((message: any, index: number) => {
-            if (index !== rootMessageIndex) {
-                store.dispatch(addMessage({
-                    conversationId,
-                    message: {
-                        id: message.id,
-                        content: message.content,
-                        source: message.source,
-                        parentId: message.parentId,
-                        timestamp: message.timestamp,
-                        children: []
-                    }
-                }));
-            }
+        // Add remaining messages in order, preserving parent relationships
+        messages.slice(1).forEach((message: any) => {
+            store.dispatch(addMessage({
+                conversationId,
+                message: {
+                    id: message.id,
+                    content: message.content,
+                    source: message.source as 'user' | 'ai' | 'system',
+                    parentId: message.parentId,
+                    timestamp: message.timestamp || Date.now(),
+                    children: []
+                },
+                selectedMessageId // Include selected message ID in action
+            }));
         });
-    }
+        
+        // Set this as the active conversation and track selected message
+        store.dispatch(setActiveConversation({ 
+            conversationId,
+            selectedMessageId
+        }));
+    };
 
     private handleConversationMessage = (content: Message) => {
         
 
-        // For new conversation root messages
-        if (!content.parentId) {
-            const state = store.getState();
+        const state = store.getState();
+        const activeConversationId = state.conversations.activeConversationId;
+        const selectedMessageId = state.conversations.selectedMessageId;
+
+        if (activeConversationId) {
+            // For replies/branches use selectedMessageId as parent if available
+            const parentId = content.parentId || selectedMessageId || null;
+
+            store.dispatch(addMessage({
+                conversationId: activeConversationId,
+                message: {
+                    id: content.id,
+                    content: content.content,
+                    source: content.source,
+                    parentId: parentId,
+                    timestamp: Date.now(),
+                    children: []
+                },
+                selectedMessageId: selectedMessageId // Preserve selected message context
+            }));
+        } else {
             const existingConversationId = Object.keys(state.conversations.conversations).find(
                 id => state.conversations.conversations[id].messages.some(m => m.id === content.id)
             );
             const conversationId = existingConversationId || `conv_${Date.now()}`;
 
+            // If no active conversation, treat as a new root message.
             store.dispatch(createConversation({
                 id: conversationId,
                 rootMessage: {
                     id: content.id,
                     content: content.content,
                     source: content.source,
-                    parentId: null,  // Explicitly set null for root
-                    timestamp: Date.now(),
+                    parentId: null, // It's a root message
+                    timestamp: content.timestamp || Date.now(),
                     children: []
                 }
             }));
-        }
-        // For replies/branches
-        else {
-            const state = store.getState();
-            const activeConversationId = state.conversations.activeConversationId;
-            if (activeConversationId) {
-                store.dispatch(addMessage({
-                    conversationId: activeConversationId,
-                    message: {
-                        id: content.id,
-                        content: content.content,
-                        source: content.source,
-                        parentId: content.parentId,  // Preserve parent relationship
-                        timestamp: Date.now(),
-                        children: []
-                    }
-                }));
-            }
+
+             //Set this new convo as active
+            store.dispatch(setActiveConversation({ conversationId, selectedMessageId: content.id }));
         }
     };
 

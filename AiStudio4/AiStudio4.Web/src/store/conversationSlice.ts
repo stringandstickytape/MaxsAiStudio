@@ -1,34 +1,123 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Message, Conversation, ConversationState } from '../types/conversation';
 
+// Debug helper to expose conversation state
+export const debugConversations = () => {
+    const state = (window as any).store.getState().conversations;
+    console.group('Conversation State Debug');
+    console.log('Active Conversation:', state.activeConversationId);
+    console.log('All Conversations:', state.conversations);
+    Object.entries(state.conversations).forEach(([id, conv]: [string, any]) => {
+        console.group(`Conversation: ${id}`);
+        console.log('Messages:', conv.messages);
+        console.log('Message Count:', conv.messages.length);
+        console.log('Message Tree Structure:', buildDebugTree(conv.messages));
+        console.groupEnd();
+    });
+    console.groupEnd();
+    return state;
+};
+
+// Export to window for console access
+(window as any).debugConversations = debugConversations;
+
+// Helper to build a tree structure for visualization
+const buildDebugTree = (messages: Message[]) => {
+    const messageMap = new Map<string, any>();
+    const rootNodes: any[] = [];
+
+    // Create nodes
+    messages.forEach(msg => {
+        messageMap.set(msg.id, {
+            id: msg.id,
+            content: msg.content,
+            source: msg.source,
+            children: []
+        });
+    });
+
+    // Build relationships
+    messages.forEach(msg => {
+        const node = messageMap.get(msg.id);
+        if (msg.parentId && messageMap.has(msg.parentId)) {
+            const parent = messageMap.get(msg.parentId);
+            parent.children.push(node);
+        } else {
+            rootNodes.push(node);
+        }
+    });
+
+    return rootNodes;
+};
+
 const initialState: ConversationState = {
     conversations: {},
     activeConversationId: null,
+    selectedMessageId: null
 };
 
 const conversationSlice = createSlice({
     name: 'conversations',
     initialState,
     reducers: {
-        addMessage(state, action: PayloadAction<{ conversationId: string; message: Message }>) {
-            const { conversationId, message } = action.payload;
+        addMessage(state, action: PayloadAction<{ conversationId: string; message: Message; selectedMessageId?: string | null }>) {
+            const { conversationId, message, selectedMessageId } = action.payload;
             const conversation = state.conversations[conversationId];
             
-            if (!conversation) return;
+            if (!conversation) {
+                console.warn('Attempted to add message to non-existent conversation:', { conversationId, message });
+                return;
+            }
+
+            // Set parent ID based on selected message if no parent specified
+            if (!message.parentId && state.selectedMessageId) {
+                message.parentId = state.selectedMessageId;
+            }
+
+            console.log('Adding message to conversation:', {
+                conversationId,
+                messageId: message.id,
+                parentId: message.parentId,
+                selectedMessageId: state.selectedMessageId,
+                messageContent: message.content,
+                currentMessages: conversation.messages
+            });
 
             conversation.messages.push(message);
+            
+            // Update selected message ID if provided
+            if (selectedMessageId !== undefined) {
+                state.selectedMessageId = selectedMessageId;
+            }
         },
         createConversation(state, action: PayloadAction<{ id: string, rootMessage: Message }>) {
             const { id, rootMessage } = action.payload;
             
+            console.log('Creating new conversation:', {
+                conversationId: id,
+                rootMessageId: rootMessage.id,
+                rootMessageContent: rootMessage.content,
+                existingConversations: Object.keys(state.conversations)
+            });
+
             state.conversations[id] = {
                 id: id,
                 messages: [rootMessage]
             };
             state.activeConversationId = id;
         },
-        setActiveConversation(state, action: PayloadAction<string>) {
-            state.activeConversationId = action.payload;
+        setActiveConversation(state, action: PayloadAction<{ conversationId: string; selectedMessageId?: string | null }>) {
+            const { conversationId, selectedMessageId } = action.payload;
+            console.log('Setting active conversation:', {
+                newActiveId: conversationId,
+                selectedMessageId,
+                previousActiveId: state.activeConversationId,
+                conversationExists: !!state.conversations[conversationId]
+            });
+            state.activeConversationId = conversationId;
+            if (selectedMessageId !== undefined) {
+                state.selectedMessageId = selectedMessageId;
+            }
         },
     },
 });

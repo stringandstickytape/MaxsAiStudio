@@ -15,4 +15,5 @@ export interface Conversation {
 export interface ConversationState {
     conversations: { [conversationId: string]: Conversation };
     activeConversationId: string | null;
+    selectedMessageId: string | null; // Track currently selected message in tree view
 }

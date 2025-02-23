@@ -18,8 +18,9 @@ export class ChatService {
         }
 
         const newMessageId = `msg_${Date.now()}`;
-        const lastMessage = conversation.messages[conversation.messages.length - 1];
-        const parentMessageId = lastMessage ? lastMessage.id : null;
+        // Use selectedMessageId as parent if available, otherwise use last message
+        const parentMessageId = state.conversations.selectedMessageId || 
+            conversation.messages[conversation.messages.length - 1]?.id || null;
 
         // Dispatch user message to store
         store.dispatch(addMessage({

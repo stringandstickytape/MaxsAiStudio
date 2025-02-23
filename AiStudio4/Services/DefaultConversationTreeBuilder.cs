@@ -26,15 +26,9 @@ namespace AiStudio4.Services
                     return null;
                 }
 
-                // Build root node with consistent array structure for children
-                var rootNode = new {
-                    id = conversation.ConversationId,
-                    text = "Root",
-                    children = conversation.MessageHierarchy.Select(BuildTreeNode).ToList()
-                };
-
+                var tree = BuildTreeNode(conversation.MessageHierarchy[0]);
                 _logger.LogDebug("Built conversation tree for {ConversationId}", conversation.ConversationId);
-                return rootNode;
+                return tree;
             }
             catch (Exception ex)
             {
@@ -51,7 +45,7 @@ namespace AiStudio4.Services
                 if (string.IsNullOrEmpty(messageId)) throw new ArgumentException("Message ID cannot be empty", nameof(messageId));
 
                 var history = new List<v4BranchedConversationMessage>();
-                if (!BuildMessageHistory(conversation.MessageHierarchy, messageId, history))
+                if (!BuildMessageHistory(conversation.MessageHierarchy, messageId, history, null))
                 {
                     _logger.LogWarning("Message {MessageId} not found in conversation {ConversationId}", messageId, conversation.ConversationId);
                     return new List<v4BranchedConversationMessage>();
@@ -77,16 +71,11 @@ namespace AiStudio4.Services
                 var text = message.UserMessage;
                 if (text?.Length > 20) text = text.Substring(0, 20);
 
-                // Ensure children is always an array, even if empty
-                var children = message.Children != null && message.Children.Any()
-                    ? message.Children.Select(BuildTreeNode).ToList()
-                    : new List<dynamic>();
-
                 var node = new
                 {
                     id = message.Id,
                     text = text ?? "[Empty Message]",
-                    children = children
+                    children = message.Children?.Select(BuildTreeNode).ToList() ?? new List<dynamic>()
                 };
 
                 _logger.LogTrace("Built tree node for message {MessageId}", message.Id);
@@ -99,24 +88,38 @@ namespace AiStudio4.Services
             }
         }
 
-        private bool BuildMessageHistory(IEnumerable<v4BranchedConversationMessage> messages, string targetId, List<v4BranchedConversationMessage> history)
+        private bool BuildMessageHistory(IEnumerable<v4BranchedConversationMessage> messages, string targetId, List<v4BranchedConversationMessage> history, v4BranchedConversationMessage parent)
         {
             foreach (var message in messages)
             {
                 if (message.Id == targetId)
                 {
-                    history.Add(message);
+                    var clone = CloneMessage(message, parent);
+                    history.Add(clone);
                     return true;
                 }
 
-                if (BuildMessageHistory(message.Children, targetId, history))
+                if (BuildMessageHistory(message.Children, targetId, history, message))
                 {
-                    history.Add(message);
+                    var clone = CloneMessage(message, parent);
+                    history.Add(clone);
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private v4BranchedConversationMessage CloneMessage(v4BranchedConversationMessage message, v4BranchedConversationMessage parent)
+        {
+            var clone = new v4BranchedConversationMessage
+            {
+                Id = message.Id,
+                UserMessage = message.UserMessage,
+                Role = message.Role,
+                Children = message.Children?.Select(c => CloneMessage(c, message)).ToList() ?? new List<v4BranchedConversationMessage>()
+            };
+            return clone;
         }
     }
 }

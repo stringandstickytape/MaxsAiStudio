@@ -35,14 +35,23 @@ namespace AiStudio4.Services
                 
                 if (conversation != null)
                 {
-                    var messageHistory = _treeBuilder.GetMessageHistory(conversation, messageId);
-                    var messages = messageHistory.Select(msg => new
+                    // Get all messages in the conversation to preserve full hierarchy
+                    var allMessages = new List<v4BranchedConversationMessage>();
+                    CollectAllMessages(conversation.MessageHierarchy, allMessages);
+
+                    var messages = allMessages.Select(msg =>
                     {
-                        id = msg.Id,
-                        content = msg.UserMessage,
-                        source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
-                                msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
-                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        // Find parent by checking message relationships in full hierarchy
+                        var parentMessage = allMessages.FirstOrDefault(m => m.Children.Any(c => c.Id == msg.Id));
+                        return new
+                        {
+                            id = msg.Id,
+                            content = msg.UserMessage,
+                            source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
+                                    msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                            parentId = parentMessage?.Id,
+                            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        };
                     }).ToList();
 
                     await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
@@ -70,5 +79,18 @@ namespace AiStudio4.Services
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
+
+        private void CollectAllMessages(IEnumerable<v4BranchedConversationMessage> messages, List<v4BranchedConversationMessage> allMessages)
+        {
+            foreach (var message in messages)
+            {
+                allMessages.Add(message);
+                if (message.Children != null && message.Children.Any())
+                {
+                    CollectAllMessages(message.Children, allMessages);
+                }
+            }
+        }
+
     }
 }

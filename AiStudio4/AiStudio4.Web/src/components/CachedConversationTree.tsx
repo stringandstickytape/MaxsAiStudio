@@ -15,6 +15,8 @@ export const CachedConversationTree: React.FC<CachedConversationTreeProps> = ({ 
 
     const handleNodeClick = async (node: TreeNode) => {
         try {
+            // Add messageId to URL when loading conversation
+            window.history.pushState({}, '', `?messageId=${node.id}`);
             const response = await fetch('/api/conversationmessages', {
                 method: 'POST',
                 headers: {
