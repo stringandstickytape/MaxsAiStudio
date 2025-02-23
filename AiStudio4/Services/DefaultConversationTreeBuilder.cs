@@ -26,9 +26,15 @@ namespace AiStudio4.Services
                     return null;
                 }
 
-                var tree = BuildTreeNode(conversation.MessageHierarchy[0]);
+                // Build root node with consistent array structure for children
+                var rootNode = new {
+                    id = conversation.ConversationId,
+                    text = "Root",
+                    children = conversation.MessageHierarchy.Select(BuildTreeNode).ToList()
+                };
+
                 _logger.LogDebug("Built conversation tree for {ConversationId}", conversation.ConversationId);
-                return tree;
+                return rootNode;
             }
             catch (Exception ex)
             {
@@ -71,11 +77,16 @@ namespace AiStudio4.Services
                 var text = message.UserMessage;
                 if (text?.Length > 20) text = text.Substring(0, 20);
 
+                // Ensure children is always an array, even if empty
+                var children = message.Children != null && message.Children.Any()
+                    ? message.Children.Select(BuildTreeNode).ToList()
+                    : new List<dynamic>();
+
                 var node = new
                 {
                     id = message.Id,
                     text = text ?? "[Empty Message]",
-                    children = message.Children?.Select(BuildTreeNode).ToList() ?? new List<dynamic>()
+                    children = children
                 };
 
                 _logger.LogTrace("Built tree node for message {MessageId}", message.Id);

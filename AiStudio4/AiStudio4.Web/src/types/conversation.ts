@@ -4,7 +4,7 @@ export interface Message {
     source: 'user' | 'ai' | 'system';
     timestamp: number;
     parentId?: string | null;
-    children?: string[];
+    children?: Message[];
 }
 
 export interface Conversation {

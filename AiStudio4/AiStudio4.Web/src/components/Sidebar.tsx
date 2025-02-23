@@ -25,7 +25,6 @@ function buildMessageTree(messages: Message[]) {
     // Sort messages by timestamp to ensure parents are processed before children
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
     
-
     const messageMap = new Map();
     let rootMessage: any = null;
 
@@ -33,8 +32,8 @@ function buildMessageTree(messages: Message[]) {
     sortedMessages.forEach(msg => {
         const node = {
             id: msg.id,
-            text: msg.content,
-            children: []
+            text: msg.content?.substring(0, 50) + (msg.content?.length > 50 ? '...' : ''),
+            children: [] as any[]
         };
         messageMap.set(msg.id, node);
 
@@ -72,7 +71,7 @@ function buildMessageTree(messages: Message[]) {
             parentNode.children.push(node);
         }
     });
-
+    debugger;
     
     return rootMessage;
 }

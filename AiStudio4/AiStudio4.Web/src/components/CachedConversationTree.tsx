@@ -4,7 +4,7 @@ import { wsManager } from '../services/websocket/WebSocketManager';
 export interface TreeNode {
     id: string;
     text: string;
-    children: TreeNode[];
+    children: TreeNode[] | TreeNode;
 }
 
 interface CachedConversationTreeProps {
@@ -43,26 +43,31 @@ export const CachedConversationTree: React.FC<CachedConversationTreeProps> = ({ 
         }
     };
 
-    const renderTree = (node: TreeNode): JSX.Element => (
-        <div key={node.id} className="py-1">
-            <div className="flex items-center">
-                <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
-                <div 
-                    className="text-sm text-gray-300 hover:text-white cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-1rem)]"
-                    onClick={() => handleNodeClick(node)}
-                >
-                    {node.text}
+    const renderTree = (node: TreeNode): JSX.Element => {
+        // Ensure children is always an array
+        const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
+        
+        return (
+            <div key={node.id} className="py-1">
+                <div className="flex items-center">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
+                    <div 
+                        className="text-sm text-gray-300 hover:text-white cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-1rem)]"
+                        onClick={() => handleNodeClick(node)}
+                    >
+                        {node.text}
+                    </div>
                 </div>
+                {children.length > 0 && (
+                    <div className="pl-4 mt-1">
+                        {children.map(child => (
+                            renderTree(child)
+                        ))}
+                    </div>
+                )}
             </div>
-            {node.children && node.children.length > 0 && (
-                <div className="pl-4 mt-1">
-                    {node.children.map(child => (
-                        renderTree(child)
-                    ))}
-                </div>
-            )}
-        </div>
-    );
+        );
+    };
 
     return <div>{renderTree(treeData)}</div>;
 };

@@ -90,6 +90,7 @@ namespace AiStudio4.Services
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (conversations == null) throw new ArgumentNullException(nameof(conversations));
 
+                // Ensure treeData is properly structured with children as arrays
                 var message = new
                 {
                     messageType = "cachedconversation",
@@ -99,7 +100,7 @@ namespace AiStudio4.Services
                         summary = conversations.Summary,
                         fileName = $"conv_{conversations.ConversationId}.json",
                         lastModified = conversations.LastModified,
-                        treeData = conversations.TreeData
+                        treeData = conversations.TreeData ?? new { id = conversations.ConversationId, text = "Root", children = new List<dynamic>() }
                     }
                 };
 

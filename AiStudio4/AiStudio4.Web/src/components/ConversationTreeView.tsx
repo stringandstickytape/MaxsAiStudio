@@ -20,6 +20,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
     const treeContainerRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
+        console.log('Incoming messages data:', JSON.stringify(messages, null, 2));
         if (!treeContainerRef.current || !messages) return;
 
         // Clear previous content
@@ -67,8 +68,45 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                     children: children
                 };
             };
+            // Test data structure that matches the expected format
+            //const testData = {
+            //    id: 'root',
+            //    text: 'Initial prompt about AI',
+            //    children: [
+            //        {
+            //            id: 'child1',
+            //            text: 'Tell me about neural networks',
+            //            children: [
+            //                {
+            //                    id: 'grandchild1',
+            //                    text: 'What are activation functions?',
+            //                    children: []
+            //                },
+            //                {
+            //                    id: 'grandchild2',
+            //                    text: 'Explain backpropagation',
+            //                    children: []
+            //                }
+            //            ]
+            //        },
+            //        {
+            //            id: 'child2',
+            //            text: 'How do transformers work?',
+            //            children: [
+            //                {
+            //                    id: 'grandchild3',
+            //                    text: 'Self-attention mechanism',
+            //                    children: []
+            //                }
+            //            ]
+            //        }
+            //    ]
+            //};
+            //
+            //// Use test data instead of messages, but still normalize it
+            //const normalizedData = normalizeData(testData);
+
             const normalizedData = normalizeData(messages);
-            
             
             const hierarchyData = d3.hierarchy(normalizedData);
             

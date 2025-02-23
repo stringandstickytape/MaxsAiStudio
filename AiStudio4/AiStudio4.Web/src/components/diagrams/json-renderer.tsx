@@ -8,6 +8,10 @@ const JsonNode = ({ data, level = 0 }: { data: any; level?: number }) => {
     const type = Array.isArray(data) ? 'array' : typeof data;
     const isExpandable = type === 'object' || type === 'array';
 
+    // Normalize children to always be an array if present
+    if (data?.children && !Array.isArray(data.children)) {
+        data.children = [data.children];
+    }
     if (!isExpandable) {
         return (
             <span className={`
