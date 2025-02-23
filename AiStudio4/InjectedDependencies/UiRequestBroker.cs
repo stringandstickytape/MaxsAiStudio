@@ -5,9 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Text.Json;
-using System.Windows.Forms;
-using static System.Net.Mime.MediaTypeNames;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -25,7 +24,6 @@ namespace AiStudio4.InjectedDependencies
             _webSocketServer = webSocketServer;
             _chatManager = chatManager;
         }
-
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
@@ -54,9 +52,6 @@ namespace AiStudio4.InjectedDependencies
                     try
                     {
                         return await _chatManager.HandleCachedConversationRequest(clientId, requestObject);
-
-
-
                     }
                     catch (Exception ex)
                     {
@@ -69,26 +64,41 @@ namespace AiStudio4.InjectedDependencies
                     }
 
                 case "chat":
+                    try
+                    {
+                        return await _chatManager.HandleChatRequest(clientId, requestObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing chat request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
 
-                    return await _chatManager.HandleChatRequest(clientId, requestObject);
                 case "getConfig":
-                    return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });
+                    try
+                    {
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray()
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($@"Error processing config request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
                 default:
                     throw new NotImplementedException();
             }
-        }
-
-        private async void AiService_StreamingCompleted(string clientId, string text)
-        {
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new { messageType = "endstream", content = text }));
-        }
-
-        private async void AiService_StreamingTextReceived(string clientId, string text)
-        {
-            // Send the streaming text to the specific client
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new { messageType = "cfrag", content = text }));
         }
     }
 }
