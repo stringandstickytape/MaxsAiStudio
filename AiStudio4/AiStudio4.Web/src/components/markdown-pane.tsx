@@ -78,12 +78,12 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
             // Only handle regular code blocks if not a diagram
             return isRawView ? (
-                <div className="relative  p-4 bg-gray-800 rounded-lg">
-                    {toggleButton}
-                    <pre>{content}</pre>
-                </div>
-            ) : (
-                <div className="relative ">
+                    <div className="relative p-4 bg-gray-800/40 rounded-xl backdrop-blur-sm shadow-lg border border-gray-700/30">
+                        {toggleButton}
+                        <pre>{content}</pre>
+                    </div>
+                ) : (
+                <div className="relative p-4 bg-gray-800/40 rounded-xl backdrop-blur-sm shadow-lg border border-gray-700/30 hover:bg-gray-800/50 transition-colors duration-200">
                     {toggleButton}
                     <SyntaxHighlighter
                         style={nightOwl as any}

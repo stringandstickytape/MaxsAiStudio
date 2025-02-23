@@ -58,17 +58,17 @@ export function InputBar({ selectedModel }: InputBarProps) {
     };
 
     return (
-        <div className="h-[30vh] bg-[#1f2937] border-t border-gray-700 shadow-lg p-4 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-gradient-to-t before:from-[#1f2937] before:to-transparent">
+        <div className="h-[30vh] bg-gradient-to-b from-gray-900 to-gray-800 border-t border-gray-700/50 shadow-2xl p-6 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-gradient-to-t before:from-gray-900 before:to-transparent backdrop-blur-sm">
             <div className="h-full flex flex-col gap-2">
                 <textarea
-                    className="flex-1 w-full p-2 border border-gray-700 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#2d3748] text-gray-100"
+                    className="flex-1 w-full p-4 border border-gray-700/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-gray-800/50 text-gray-100 shadow-inner transition-all duration-200 placeholder:text-gray-400"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type your message here... (Ctrl+Enter to send)"
                 />
                 <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 rounded-xl"
                     onClick={handleSend}
                 >
                     Send

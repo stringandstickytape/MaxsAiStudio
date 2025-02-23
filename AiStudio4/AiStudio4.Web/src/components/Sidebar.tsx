@@ -36,7 +36,7 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
         return (
             <>
                 <Sheet open={isOpen} onOpenChange={onToggle}>
-                <SheetContent side="left" className="w-80 p-0 bg-[#1f2937] border-r border-gray-700">
+                <SheetContent side="left" className="w-80 p-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700/50 backdrop-blur-lg shadow-2xl">
                     <MobileContent wsState={wsState} onToggle={onToggle} />
                 </SheetContent>
             </Sheet>
@@ -47,7 +47,7 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     return (
         <aside
             className={cn(
-                "fixed left-0 top-0 z-30 flex h-screen flex-col bg-[#1f2937] border-r border-gray-700 transition-all duration-300",
+                "fixed left-0 top-0 z-30 flex h-screen flex-col bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 transition-all duration-300 shadow-xl backdrop-blur-sm",
                 isOpen ? "w-80" : "w-16"
             )}
         >
