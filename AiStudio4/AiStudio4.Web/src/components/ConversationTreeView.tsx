@@ -29,8 +29,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
         // Set up dimensions
         const width = 280;
         const height = 500;
-        const margin = { top: 20, right: 40, bottom: 20, left: 40 };
-        
+        const margin = { top: 40, right: 20, bottom: 20, left: 20 };
 
         // Create SVG with a group for transformation
         const svg = d3.select(treeContainerRef.current)
@@ -117,7 +116,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
 
             // Create tree layout
             const treeLayout = d3.tree()
-                .size([height - margin.top - margin.bottom, width - margin.left - margin.right])
+                .size([width - margin.left - margin.right, height - margin.top - margin.bottom])
                 .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
 
             // Process the data
@@ -127,7 +126,8 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
             // Normalize for fixed-depth
             root.descendants().forEach((d: any) => {
                 d.y = d.depth * 60; // Reduced spacing between levels
-                
+                // Swap x and y coordinates for vertical layout
+                [d.x, d.y] = [d.x, d.y];
             });
 
             // Rest of the visualization code remains the same...
@@ -139,16 +139,16 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 .attr('class', 'link')
                 .attr('fill', 'none')
                 .attr('stroke', '#4b5563')
-                .attr('d', d3.linkHorizontal()
-                    .x((d: any) => d.y)
-                    .y((d: any) => d.x));
+                .attr('d', d3.linkVertical()
+                    .x((d: any) => d.x)
+                    .y((d: any) => d.y));
 
             const node = svg.selectAll('g.node')
                 .data(root.descendants())
                 .enter()
                 .append('g')
                 .attr('class', 'node')
-                .attr('transform', (d: any) => `translate(${d.y},${d.x})`); // Swap x and y for horizontal layout
+                .attr('transform', (d: any) => `translate(${d.x},${d.y})`); // Use normal x,y coordinates for vertical layout
 
             // Add circles for nodes
             node.append('circle')
@@ -161,9 +161,9 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
 
             // Add text labels
             node.append('text')
-                .attr('dy', '0.31em')
-                .attr('x', 8)
-                .attr('text-anchor', 'start')
+                .attr('dy', '1.31em')
+                .attr('x', 0)
+                .attr('text-anchor', 'middle')
                 .text((d: any) => {
                     const text = d.data.text || '';
                     return text.length > 20 ? text.substring(0, 20) + '...' : text;
