@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useWebSocketMessage, WebSocketHookResult } from '@/hooks/useWebSocketMessage';
+import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
 import React from 'react';
 import { CachedConversationTree } from './CachedConversationTree';
 
@@ -28,7 +28,7 @@ export const CachedConversationList = () => {
             const exists = prevConversations.some(conv => conv.convGuid === conversation.convGuid);
             if (exists) {
                 // Update existing conversation
-                return prevConversations.map(conv => 
+                return prevConversations.map(conv =>
                     conv.convGuid === conversation.convGuid ? conversation : conv
                 );
             }
@@ -37,8 +37,7 @@ export const CachedConversationList = () => {
         });
     };
 
-    // Get the WebSocket status from the hook
-    const { isConnected } = useWebSocketMessage('cachedconversation', handleNewCachedConversation) as WebSocketHookResult;
+    useWebSocketMessage('cachedconversation', handleNewCachedConversation);
 
     // treeData state already declared above
 
@@ -55,7 +54,7 @@ export const CachedConversationList = () => {
                     conversationId: convId
                 })
             });
-            
+
             const data = await response.json();
             setTreeData(data.treeData || []);
         } catch (error) {
@@ -65,11 +64,6 @@ export const CachedConversationList = () => {
     };
 
 
-
-
-    useEffect(() => {
-        if (!isConnected) return;
-    }, [isConnected]);
 
 
     return (
@@ -109,12 +103,12 @@ export const CachedConversationList = () => {
 
                     {/* Tree View */}
                     {
-    expandedConversation === conversation.convGuid && (
-        <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
-            {treeData && <CachedConversationTree treeData={treeData} />}
-        </div>
-    )
-}
+                        expandedConversation === conversation.convGuid && (
+                            <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
+                                {treeData && <CachedConversationTree treeData={treeData} />}
+                            </div>
+                        )
+                    }
                 </div>
             ))}
         </div>

@@ -3,18 +3,18 @@ import { cn } from '@/lib/utils';
 import { ConversationView } from './ConversationView';
 
 interface ChatContainerProps {
-    liveStreamContent: string;
+    streamTokens: string[];
     isMobile: boolean;
 }
 
 export function ChatContainer({
-    liveStreamContent,
-    isMobile
+    isMobile,
+    streamTokens
 }: ChatContainerProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (messagesEndRef.current && liveStreamContent) {
+        if (messagesEndRef.current) { // Removed liveStreamContent check
             requestAnimationFrame(() => {
                 if (messagesEndRef.current) {
                     messagesEndRef.current.scrollTo({
@@ -24,7 +24,8 @@ export function ChatContainer({
                 }
             });
         }
-    }, [liveStreamContent]);
+    }, []); // Remove dependency on streamTokens since we're not using it in the effect
+
     return (
         <div
             ref={messagesEndRef}
@@ -33,7 +34,7 @@ export function ChatContainer({
                 !isMobile && "ml-16"
             )}
         >
-            <ConversationView liveStreamContent={liveStreamContent} />
+            <ConversationView streamTokens={streamTokens} /> {/* Pass streamTokens */}
         </div>
     );
 }

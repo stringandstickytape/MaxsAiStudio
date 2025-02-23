@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
@@ -9,6 +9,7 @@ import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/input-bar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocketState } from './hooks/useWebSocketState';
+import { useLiveStream } from '@/hooks/useLiveStream'; // Import useLiveStream
 import { ChatService } from '@/services/ChatService';
 import { cn } from '@/lib/utils';
 
@@ -17,16 +18,15 @@ function App() {
     const [selectedModel, setSelectedModel] = useState<string>("Select Model");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const { wsState, liveStreamContent } = useWebSocketState();
+    const { wsState } = useWebSocketState(); // Destructure only wsState
+    const { streamTokens } = useLiveStream();   // Use the new hook
 
     useEffect(() => {
-        const initialize = async () => {
+       const initialize = async () => {
             try {
-                // Load available models
                 const availableModels = await ChatService.fetchModels();
                 setModels(availableModels);
-                
-                // Create initial chat conversation
+
                 const conversationId = `conv_${Date.now()}`;
                 store.dispatch(createConversation({
                     id: conversationId,
@@ -40,13 +40,10 @@ function App() {
             } catch (error) {
                 console.error("Error during initialization:", error);
                 setModels([]);
-                // TODO: Add error handling/user feedback
             }
         };
         initialize();
     }, []);
-
-
 
     return (
         <Provider store={store}>
@@ -66,7 +63,7 @@ function App() {
                 />
 
                 <ChatContainer
-                    liveStreamContent={liveStreamContent}
+                    streamTokens={streamTokens} // Pass streamTokens
                     isMobile={isMobile}
                 />
 

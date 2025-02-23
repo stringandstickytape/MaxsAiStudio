@@ -23,7 +23,7 @@ export interface ClientConfig {
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private config: ClientConfig = {};
-    private streamTokenString: string = '';
+    //private streamTokenString: string = ''; // Removed
     private connected: boolean = false;
 
     constructor() {
@@ -32,8 +32,9 @@ class WebSocketManager {
     }
 
     private handleEndStream = () => {
-        this.streamTokenString = '';
-        console.log('Stream ended - cleared stream token string');
+        //this.streamTokenString = ''; // Removed
+        console.log('Stream ended');
+        eventBus.emit('endstream', null); //  Explicitly emit endstream
     }
 
     private handleCachedConversationMessage = (content: any) => {
@@ -100,7 +101,7 @@ class WebSocketManager {
                 id => state.conversations.conversations[id].messages.some(m => m.id === content.id)
             );
             const conversationId = existingConversationId || `conv_${Date.now()}`;
-            
+
             store.dispatch(createConversation({
                 id: conversationId,
                 rootMessage: {
@@ -155,9 +156,16 @@ class WebSocketManager {
     private handleOpen = () => {
         console.log('WebSocket Connected');
         this.connected = true;
-
-        // Emit connection status via EventBus so that the messaging service and hooks are notified
         eventBus.emit('connectionStatus', { isConnected: true, clientId: this.config.clientId });
+
+        //Move fetch here
+        fetch('/api/getAllConversations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Client-Id': this.config.clientId || '' //Handle null or undefined
+            }
+        });
     }
 
     private handleMessage = (event: MessageEvent) => {
@@ -165,20 +173,11 @@ class WebSocketManager {
             console.log('Raw message received:', event.data);
             const message: WebSocketMessage = JSON.parse(event.data);
             console.log('Parsed message:', message);
-
-            // Handle client ID message specially
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
                 console.log('set client id to ' + this.config.clientId);
-                // Load conversations when clientId is first set
-                fetch('/api/getAllConversations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Client-Id': this.config.clientId
-                    }
-                });
-            } else if (message.messageType === 'cfrag') {
+            }
+            else if (message.messageType === 'cfrag') {
                 this.handleNewLiveChatStreamToken(message.content);
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
@@ -210,9 +209,8 @@ class WebSocketManager {
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
-        // Concatenate the new token with existing tokens
-        this.streamTokenString = this.streamTokenString + token;
-        console.log('WebSocket Manager - Current stream token string:', this.streamTokenString);
+        // this.streamTokenString = this.streamTokenString + token; // NO LONGER NEEDED
+        console.log('WebSocket Manager - Received stream token:', token);
     }
 
     public disconnect() {
@@ -227,18 +225,6 @@ class WebSocketManager {
 
     public isConnected(): boolean {
         return this.connected;
-    }
-
-    public getStreamTokens(): string {
-        return this.streamTokenString;
-    }
-
-    public clearStreamTokens() {
-        this.streamTokenString = '';
-    }
-
-    public getLatestStreamToken(): string {
-        return this.streamTokenString;
     }
 }
 

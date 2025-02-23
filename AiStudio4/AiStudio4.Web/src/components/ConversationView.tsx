@@ -1,12 +1,13 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { MarkdownPane } from './markdown-pane';
+import { LiveStreamToken } from './LiveStreamToken'; // Import the new component
 
 interface ConversationViewProps {
-    liveStreamContent?: string;
+    streamTokens: string[]; // Receive the array of tokens
 }
 
-export const ConversationView = ({ liveStreamContent }: ConversationViewProps) => {
+export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
     const { activeConversationId, conversations } = useSelector(
         (state: RootState) => state.conversations
     );
@@ -25,14 +26,11 @@ export const ConversationView = ({ liveStreamContent }: ConversationViewProps) =
                         </div>
                     </div>
                 ))}
-                {/* Live Stream Markdown Pane */}
-                {liveStreamContent && (
-                    <div className="">
-                        <div className="px-4 mb-4 rounded inline-block float-left bg-gray-800 clear-both">
-                            <MarkdownPane message={liveStreamContent} />
-                        </div>
-                    </div>
-                )}
+                <div className="p-4 mb-4 rounded bg-gray-800 float-left clear-both break-words whitespace-normal w-full">
+                    {streamTokens.map((token, index) => (
+                        <LiveStreamToken key={index} token={token} />
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -9,16 +9,11 @@ export function useWebSocketState() {
         isConnected: messageService.isConnected(),
         clientId: null, // Initially null; will be set via connection event.
         messages: [],
-        streamTokens: []
+        streamTokens: [] //This can probably be removed as per earlier comment.
     });
-    const [liveStreamContent, setLiveStreamContent] = useState('');
 
     const handleClientId = useCallback((clientId: string) => {
-        setWsState(prev => ({
-            ...prev,
-            isConnected: true,
-            clientId
-        }));
+        setWsState(prev => ({ ...prev, isConnected: true, clientId }));
     }, []);
 
     const handleGenericMessage = useCallback((message: any) => {
@@ -37,44 +32,14 @@ export function useWebSocketState() {
         }));
     }, []);
 
-    const handleNewStreamToken = useCallback((token: string) => {
-        // Concatenate the new token to the previous liveStreamContent instead of replacing it
-        setLiveStreamContent(prev => prev + token);
-
-        setWsState(prev => ({
-            ...prev,
-            streamTokens: [...prev.streamTokens, { token, timestamp: Date.now() }]
-        }));
-    }, []);
-
-    const handleEndStream = useCallback(() => {
-        setLiveStreamContent('');
-    }, []);
-
-    // Subscribe to events via the messageService
-    useEffect(() => {
-        messageService.subscribe('cfrag', handleNewStreamToken);
-        return () => {
-            messageService.unsubscribe('cfrag', handleNewStreamToken);
-        };
-    }, [handleNewStreamToken]);
-
-    useEffect(() => {
-        console.log('Setting up endstream subscription');
-        messageService.subscribe('endstream', handleEndStream);
-        return () => {
-            console.log('Cleaning up endstream subscription');
-            messageService.unsubscribe('endstream', handleEndStream);
-        };
-    }, [handleEndStream]);
 
     useEffect(() => {
         const handleConnectionStatus = (status: { isConnected: boolean, clientId?: string }) => {
-            setWsState(prev => ({
-                ...prev,
-                isConnected: status.isConnected,
-                clientId: status.clientId || prev.clientId
-            }));
+             setWsState(prev => ({
+                 ...prev,
+                 isConnected: status.isConnected,
+                 clientId: status.clientId || prev.clientId
+             }));
         };
         messageService.subscribe('connectionStatus', handleConnectionStatus);
         messageService.connect();
@@ -82,21 +47,13 @@ export function useWebSocketState() {
         return () => {
             messageService.unsubscribe('connectionStatus', handleConnectionStatus);
             messageService.disconnect();
-            setWsState(prev => ({
-                ...prev,
-                isConnected: false,
-                clientId: null
-            }));
-            setLiveStreamContent('');
+            //Don't need to set wsState here - messageService.disconnect will cause connectionStatus to be emitted.
         };
     }, []);
 
     return {
         wsState,
-        liveStreamContent,
         handleClientId,
-        handleGenericMessage,
-        handleNewStreamToken,
-        handleEndStream
+        handleGenericMessage
     };
 }
