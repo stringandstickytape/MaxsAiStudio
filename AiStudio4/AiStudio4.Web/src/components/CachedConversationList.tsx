@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
+import { useWebSocketMessage, WebSocketHookResult } from '@/hooks/useWebSocketMessage';
 import React from 'react';
 import { CachedConversationTree } from './CachedConversationTree';
 
@@ -20,8 +20,27 @@ interface TreeNode {
 export const CachedConversationList = () => {
     const [conversations, setConversations] = useState<CachedConversation[]>([]);
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
-
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
+
+    const handleNewCachedConversation = (conversation: CachedConversation) => {
+        setConversations(prevConversations => {
+            // Check if conversation already exists
+            const exists = prevConversations.some(conv => conv.convGuid === conversation.convGuid);
+            if (exists) {
+                // Update existing conversation
+                return prevConversations.map(conv => 
+                    conv.convGuid === conversation.convGuid ? conversation : conv
+                );
+            }
+            // Add new conversation at the beginning of the list
+            return [conversation, ...prevConversations];
+        });
+    };
+
+    // Get the WebSocket status from the hook
+    const { isConnected } = useWebSocketMessage('cachedconversation', handleNewCachedConversation) as WebSocketHookResult;
+
+    // treeData state already declared above
 
     // Function to fetch conversation tree data
     const fetchConversationTree = async (convId: string) => {
@@ -45,23 +64,12 @@ export const CachedConversationList = () => {
         }
     };
 
-    const handleNewCachedConversation = (conversation: CachedConversation) => {
-        setConversations(prevConversations => {
-            // Check if conversation already exists
-            const exists = prevConversations.some(conv => conv.convGuid === conversation.convGuid);
-            if (exists) {
-                // Update existing conversation
-                return prevConversations.map(conv => 
-                    conv.convGuid === conversation.convGuid ? conversation : conv
-                );
-            }
-            // Add new conversation at the beginning of the list
-            return [conversation, ...prevConversations];
-        });
-    };
 
-    // Subscribe to cached conversation messages
-    useWebSocketMessage('cachedconversation', handleNewCachedConversation);
+
+
+    useEffect(() => {
+        if (!isConnected) return;
+    }, [isConnected]);
 
 
     return (

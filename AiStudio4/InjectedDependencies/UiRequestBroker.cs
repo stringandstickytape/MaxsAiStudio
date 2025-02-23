@@ -33,6 +33,9 @@ namespace AiStudio4.InjectedDependencies
 
             switch (requestType)
             {
+                case "getAllConversations":
+                    return await _chatManager.HandleGetAllConversationsRequest(clientId);
+
                 case "conversationmessages":
                     try
                     {
@@ -66,6 +69,7 @@ namespace AiStudio4.InjectedDependencies
                     }
 
                 case "chat":
+
                     return await _chatManager.HandleChatRequest(clientId, requestObject);
                 case "getConfig":
                     return JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray() });

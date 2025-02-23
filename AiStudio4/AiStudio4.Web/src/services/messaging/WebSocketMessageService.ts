@@ -4,17 +4,20 @@ import { eventBus } from "./EventBus";
 
 export class WebSocketMessageService implements IMessageService {
     private _connected: boolean = false;
+    private connectionChangeHandlers: ((connected: boolean) => void)[] = [];
 
     async connect(): Promise<void> {
         wsManager.connect();
         // _connected will be updated via connectionStatus events emitted by wsManager
         // Optionally, you could poll or wait until a specific event is received.
         this._connected = wsManager.isConnected();
+        this.notifyConnectionChange();
     }
 
     async disconnect(): Promise<void> {
         wsManager.disconnect();
         this._connected = false;
+        this.notifyConnectionChange();
     }
 
     async sendMessage(message: string): Promise<void> {
@@ -32,6 +35,20 @@ export class WebSocketMessageService implements IMessageService {
 
     isConnected(): boolean {
         return this._connected;
+    }
+
+    onConnectionChange(handler: (connected: boolean) => void): void {
+        this.connectionChangeHandlers.push(handler);
+        // Immediately notify the new handler of current state
+        handler(this._connected);
+    }
+
+    offConnectionChange(handler: (connected: boolean) => void): void {
+        this.connectionChangeHandlers = this.connectionChangeHandlers.filter(h => h !== handler);
+    }
+
+    private notifyConnectionChange(): void {
+        this.connectionChangeHandlers.forEach(handler => handler(this._connected));
     }
 }
 

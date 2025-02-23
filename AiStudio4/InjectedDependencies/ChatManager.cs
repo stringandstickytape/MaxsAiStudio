@@ -20,6 +20,58 @@ namespace AiStudio4.InjectedDependencies
             _webSocketServer = webSocketServer;
         }
 
+        public async Task<string> HandleGetAllConversationsRequest(string clientId)
+        {
+            var conversationsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "conversations");
+
+            Directory.CreateDirectory(conversationsPath);
+            var conversations = new List<object>();
+
+            var ctr = 0;
+
+            await Task.Run(async () =>
+            {
+
+                int ctr = 0;
+    foreach (var file in Directory.GetFiles(conversationsPath, "conv_*.json"))
+    {
+        try
+        {
+            var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(file));
+            if (conversation != null && conversation.MessageHierarchy.Any() && conversation.MessageHierarchy.First().UserMessage != null)
+            {// clientidclientidclientid
+                var tree = BuildCachedConversationTree(conversation);
+                            
+                await _webSocketServer.SendToClientAsync(clientId,
+                    JsonConvert.SerializeObject(new
+                    {
+                        messageType = "cachedconversation",
+                        content = new
+                        {
+                            convGuid = conversation.ConversationId,
+                            summary = conversation.MessageHierarchy.First().Children[0].UserMessage,
+                            fileName = $"conv_{conversation.ConversationId}.json",
+                            lastModified = File.GetLastWriteTimeUtc(file).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                            treeData = tree
+                        }
+                    }));
+                ctr++;
+                //if (ctr == 5) break;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading conversation: {ex.Message}");
+            continue;
+        }
+    }
+});
+
+            return JsonConvert.SerializeObject(new { success = true });
+        }
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
             var conversationId = (string)requestObject["conversationId"]; // eg conv_1740088070013
@@ -50,7 +102,7 @@ namespace AiStudio4.InjectedDependencies
                     content = new
                     {
                         convGuid = v4conversation.ConversationId,
-                        summary = cachedConversationTree?.text ?? "",
+                        summary = v4conversation.MessageHierarchy.First().Children[0].UserMessage ?? "",
                         fileName = $"conv_{v4conversation.ConversationId}.json",
                         lastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         treeData = cachedConversationTree

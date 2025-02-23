@@ -155,6 +155,7 @@ class WebSocketManager {
     private handleOpen = () => {
         console.log('WebSocket Connected');
         this.connected = true;
+
         // Emit connection status via EventBus so that the messaging service and hooks are notified
         eventBus.emit('connectionStatus', { isConnected: true, clientId: this.config.clientId });
     }
@@ -169,11 +170,20 @@ class WebSocketManager {
             if (message.messageType === 'clientId') {
                 this.config.clientId = message.content;
                 console.log('set client id to ' + this.config.clientId);
+                // Load conversations when clientId is first set
+                fetch('/api/getAllConversations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Client-Id': this.config.clientId
+                    }
+                });
             } else if (message.messageType === 'cfrag') {
                 this.handleNewLiveChatStreamToken(message.content);
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
             } else if (message.messageType === 'cachedconversation') {
+
                 this.handleCachedConversationMessage(message.content);
             } else if (message.messageType === 'loadConversation') {
                 this.handleLoadConversation(message.content);
