@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MarkdownPane } from './markdown-pane';
 
 interface LiveStreamTokenProps {
@@ -6,9 +6,21 @@ interface LiveStreamTokenProps {
 }
 
 export const LiveStreamToken: React.FC<LiveStreamTokenProps> = ({ token }) => {
-  return (
-    <span className="inline whitespace-pre-wrap">
-      {token}
-    </span>
-  );
+    const [opacity, setOpacity] = useState(0);
+
+    useEffect(() => {
+        setTimeout(() => setOpacity(1), 50);
+    }, []);
+
+    return (
+        <span
+            className="inline whitespace-pre-wrap"
+            style={{
+                opacity: opacity,
+                transition: 'opacity 250ms ease-in'
+            }}
+        >
+            {token}
+        </span>
+    );
 };
