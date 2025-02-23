@@ -7,6 +7,8 @@ using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Services;
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies.WebSocket;
+using AiStudio4.InjectedDependencies.WebSocketManagement;
 
 namespace AiStudio4
 {
@@ -49,6 +51,8 @@ namespace AiStudio4
 
             // Register application services
             services.AddSingleton<SettingsManager>();
+            services.AddSingleton<WebSocketConnectionManager>();
+            services.AddSingleton<WebSocketMessageHandler>();
             services.AddSingleton<WebSocketServer>();
             services.AddSingleton<ConversationService>();
             services.AddSingleton<ChatProcessingService>();

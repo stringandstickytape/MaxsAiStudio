@@ -1,22 +1,31 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
-using System.Collections.Concurrent;
 using System.Text;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using AiStudio4.InjectedDependencies.WebSocketManagement;
+using AiStudio4.InjectedDependencies.WebSocket;
 
 namespace AiStudio4.InjectedDependencies
 {
     public class WebSocketServer
     {
-        private readonly ConcurrentDictionary<string, WebSocket> _connectedClients = new();
-        private readonly ConcurrentDictionary<WebSocket, string> _socketToClientId = new();
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private readonly WebSocketConnectionManager _connectionManager;
+        private readonly WebSocketMessageHandler _messageHandler;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<WebSocketServer> _logger;
 
-        public WebSocketServer(IConfiguration configuration)
+        public WebSocketServer(
+            WebSocketConnectionManager connectionManager,
+            WebSocketMessageHandler messageHandler,
+            IConfiguration configuration,
+            ILogger<WebSocketServer> logger)
         {
+            _connectionManager = connectionManager;
+            _messageHandler = messageHandler;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task HandleWebSocketRequest(HttpContext context)
@@ -30,129 +39,46 @@ namespace AiStudio4.InjectedDependencies
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             var clientId = Guid.NewGuid().ToString();
 
-            _connectedClients.TryAdd(clientId, webSocket);
-            _socketToClientId.TryAdd(webSocket, clientId);
+            _connectionManager.AddConnection(clientId, webSocket);
 
             var json = JsonConvert.SerializeObject(new { messageType = "clientId", content = clientId});
-
-            // Send the client their ID immediately after connection
-            var clientIdMessage = Encoding.UTF8.GetBytes(json);
-            await webSocket.SendAsync(
-                new ArraySegment<byte>(clientIdMessage),
-                WebSocketMessageType.Text,
-                true,
-                _cancellationTokenSource.Token);
+            await _messageHandler.SendToClientAsync(clientId, json);
 
             try
             {
-                await HandleWebSocketConnection(clientId, webSocket);
+                await _messageHandler.HandleIncomingMessages(clientId, webSocket);
             }
             finally
             {
-                _connectedClients.TryRemove(clientId, out _);
-                _socketToClientId.TryRemove(webSocket, out _);
+                _connectionManager.RemoveConnection(clientId);
                 if (webSocket.State == WebSocketState.Open)
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,
+                    await webSocket.CloseAsync(
+                        WebSocketCloseStatus.NormalClosure,
                         "Connection closed by server",
-                        _cancellationTokenSource.Token);
+                        CancellationToken.None);
                 }
             }
         }
 
-        public string GetClientIdFromWebSocket(WebSocket socket)
+        public string GetClientIdFromWebSocket(System.Net.WebSockets.WebSocket socket)
         {
-            _socketToClientId.TryGetValue(socket, out var clientId);
-            return clientId;
+            return _connectionManager.GetClientId(socket);
         }
 
-        private async Task HandleWebSocketConnection(string clientId, WebSocket webSocket)
+        public Task SendToAllClientsAsync(string message)
         {
-            var buffer = new byte[1024 * 4];
-
-            try
-            {
-                while (webSocket.State == WebSocketState.Open)
-                {
-                    var result = await webSocket.ReceiveAsync(
-                        new ArraySegment<byte>(buffer),
-                        _cancellationTokenSource.Token);
-
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        await webSocket.CloseAsync(
-                            WebSocketCloseStatus.NormalClosure,
-                            "Connection closed by client",
-                            _cancellationTokenSource.Token);
-                    }
-                    else
-                    {
-                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Console.WriteLine($"Received message from {clientId}: {message}");
-                    }
-                }
-            }
-            catch (WebSocketException ex)
-            {
-                Console.WriteLine($"WebSocket error for client {clientId}: {ex.Message}");
-            }
+            return _messageHandler.SendToAllClientsAsync(message);
         }
 
-        public async Task SendToAllClientsAsync(string message)
+        public Task SendToClientAsync(string clientId, string message)
         {
-            var buffer = Encoding.UTF8.GetBytes(message);
-            var arraySegment = new ArraySegment<byte>(buffer);
-
-            foreach (var client in _connectedClients)
-            {
-                try
-                {
-                    if (client.Value.State == WebSocketState.Open)
-                    {
-                        await client.Value.SendAsync(
-                            arraySegment,
-                            WebSocketMessageType.Text,
-                            true,
-                            _cancellationTokenSource.Token);
-                    }
-                }
-                catch (WebSocketException ex)
-                {
-                    Console.WriteLine($"Error sending to client {client.Key}: {ex.Message}");
-                    _connectedClients.TryRemove(client.Key, out _);
-                }
-            }
-        }
-
-        public async Task SendToClientAsync(string clientId, string message)
-        {
-            if (_connectedClients.TryGetValue(clientId, out var webSocket))
-            {
-                try
-                {
-                    var buffer = Encoding.UTF8.GetBytes(message);
-                    if (webSocket.State == WebSocketState.Open)
-                    {
-                        await webSocket.SendAsync(
-                            new ArraySegment<byte>(buffer),
-                            WebSocketMessageType.Text,
-                            true,
-                            _cancellationTokenSource.Token);
-                    }
-                }
-                catch (WebSocketException ex)
-                {
-                    Console.WriteLine($"Error sending to client {clientId}: {ex.Message}");
-                    _connectedClients.TryRemove(clientId, out _);
-                }
-            }
+            return _messageHandler.SendToClientAsync(clientId, message);
         }
 
         public async Task StopAsync()
         {
-            _cancellationTokenSource.Cancel();
-
-            foreach (var client in _connectedClients)
+            foreach (var client in _connectionManager.GetAllConnections())
             {
                 try
                 {
@@ -166,12 +92,12 @@ namespace AiStudio4.InjectedDependencies
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error closing WebSocket for client {client.Key}: {ex.Message}");
+                    _logger.LogError(ex, "Error closing WebSocket for client {ClientId}", client.Key);
                 }
             }
 
-            _connectedClients.Clear();
-            _cancellationTokenSource.Dispose();
+            _connectionManager.Clear();
+            _messageHandler.Dispose();
         }
     }
 }
