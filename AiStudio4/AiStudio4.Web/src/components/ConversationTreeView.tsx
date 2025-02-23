@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import * as d3 from 'd3';
+import ReactFlow, { Node, Edge, Position } from 'reactflow';
+import 'reactflow/dist/style.css';
 
 interface TreeViewProps {
     onClose: () => void;
@@ -16,202 +17,95 @@ interface TreeViewProps {
         }>;
     };
 }
+
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, conversationId, messages }) => {
-    const treeContainerRef = React.useRef<HTMLDivElement>(null);
+    const [nodes, setNodes] = React.useState<Node[]>([]);
+    const [edges, setEdges] = React.useState<Edge[]>([]);
 
     React.useEffect(() => {
         console.log('Incoming messages data:', JSON.stringify(messages, null, 2));
-        if (!treeContainerRef.current || !messages) return;
-
-        // Clear previous content
-        d3.select(treeContainerRef.current).selectAll('*').remove();
-
-        // Set up dimensions
-        const width = 280;
-        const height = 500;
-        const margin = { top: 40, right: 20, bottom: 20, left: 20 };
-
-        // Create SVG with a group for transformation
-        const svg = d3.select(treeContainerRef.current)
-            .append('svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('g')
-            .attr('transform', `translate(${margin.left},${margin.top})`); // Position the tree with left margin
+        if (!messages) return;
 
         try {
-            // Create hierarchy directly from messages object
-            
-            // Normalize the data structure
-            const normalizeData = (node: any) => {
-                if (!node) return null;
-                
-                let children = [];
-                if (node.children) {
-                    // If children is an array, process each child
-                    if (Array.isArray(node.children)) {
-                        children = node.children.map((child: any) => normalizeData(child)).filter(Boolean);
-                    } 
-                    // If children is a single object (not an array), process it as a single child
-                    else if (typeof node.children === 'object' && node.children.id) {
-                        const normalizedChild = normalizeData(node.children);
-                        if (normalizedChild) {
-                            children = [normalizedChild];
-                        }
-                    }
+            // Helper function to create a unique vertical layout
+            const createNodesAndEdges = (node: any, parentId: string | null = null, level = 0, index = 0, totalNodesAtLevel: Map<number, number>) => {
+                if (!node) return { nodes: [], edges: [] };
+
+                // Get total nodes at this level for centering
+                if (!totalNodesAtLevel.has(level)) {
+                    totalNodesAtLevel.set(level, 0);
                 }
-                
-                return {
-                    id: node.id || 'unknown',
-                    text: node.text || '',
-                    children: children
+                const nodeIndex = totalNodesAtLevel.get(level)!;
+                totalNodesAtLevel.set(level, nodeIndex + 1);
+
+                // Calculate position
+                const xSpacing = 250; // Horizontal spacing between levels
+                const ySpacing = 100; // Vertical spacing between nodes
+                const x = level * xSpacing;
+                const y = nodeIndex * ySpacing;
+
+                const currentNode: Node = {
+                    id: node.id,
+                    position: { x, y },
+                    data: { label: node.text?.substring(0, 20) + (node.text?.length > 20 ? '...' : '') },
+                    style: {
+                        background: '#3b82f6',
+                        color: '#ffffff',
+                        border: '1px solid #2563eb',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        width: 'auto',
+                        minWidth: '150px',
+                    }
                 };
-            };
-            // Test data structure that matches the expected format
-            //const testData = {
-            //    id: 'root',
-            //    text: 'Initial prompt about AI',
-            //    children: [
-            //        {
-            //            id: 'child1',
-            //            text: 'Tell me about neural networks',
-            //            children: [
-            //                {
-            //                    id: 'grandchild1',
-            //                    text: 'What are activation functions?',
-            //                    children: []
-            //                },
-            //                {
-            //                    id: 'grandchild2',
-            //                    text: 'Explain backpropagation',
-            //                    children: []
-            //                }
-            //            ]
-            //        },
-            //        {
-            //            id: 'child2',
-            //            text: 'How do transformers work?',
-            //            children: [
-            //                {
-            //                    id: 'grandchild3',
-            //                    text: 'Self-attention mechanism',
-            //                    children: []
-            //                }
-            //            ]
-            //        }
-            //    ]
-            //};
-            //
-            //// Use test data instead of messages, but still normalize it
-            //const normalizedData = normalizeData(testData);
 
-            const normalizedData = normalizeData(messages);
-            
-            const hierarchyData = d3.hierarchy(normalizedData);
-            
-            
-            
-            
-            
+                let nodes: Node[] = [currentNode];
+                let edges: Edge[] = [];
 
-            // Create tree layout
-            const treeLayout = d3.tree()
-                .size([width - margin.left - margin.right, height - margin.top - margin.bottom])
-                .separation((a, b) => a.parent === b.parent ? 1 : 1.5);
+                if (parentId) {
+                    edges.push({
+                        id: `${parentId}-${node.id}`,
+                        source: parentId,
+                        target: node.id,
+                        type: 'smoothstep',
+                        style: { stroke: '#4b5563' }
+                    });
+                }
 
-            // Process the data
-            const root = treeLayout(hierarchyData);
-            
-
-            // Normalize for fixed-depth
-            root.descendants().forEach((d: any) => {
-                d.y = d.depth * 60; // Reduced spacing between levels
-                // Swap x and y coordinates for vertical layout
-                [d.x, d.y] = [d.x, d.y];
-            });
-
-            // Rest of the visualization code remains the same...
-            // Add links
-            const link = svg.selectAll('path.link')
-                .data(root.links())
-                .enter()
-                .append('path')
-                .attr('class', 'link')
-                .attr('fill', 'none')
-                .attr('stroke', '#4b5563')
-                .attr('d', d3.linkVertical()
-                    .x((d: any) => d.x)
-                    .y((d: any) => d.y));
-
-            const node = svg.selectAll('g.node')
-                .data(root.descendants())
-                .enter()
-                .append('g')
-                .attr('class', 'node')
-                .attr('transform', (d: any) => `translate(${d.x},${d.y})`); // Use normal x,y coordinates for vertical layout
-
-            // Add circles for nodes
-            node.append('circle')
-                .attr('r', 5)
-                .attr('fill', '#3b82f6')
-                .attr('cursor', 'pointer')
-                .on('click', (event, d: any) => {
-                    
-                });
-
-            // Add text labels
-            node.append('text')
-                .attr('dy', '1.31em')
-                .attr('x', 0)
-                .attr('text-anchor', 'middle')
-                .text((d: any) => {
-                    const text = d.data.text || '';
-                    return text.length > 20 ? text.substring(0, 20) + '...' : text;
-                })
-                .attr('font-size', '10px')
-                .attr('fill', '#e5e7eb')
-                .each(function(this: SVGTextElement) {
-                    // Wrap text if too long
-                    const text = d3.select(this);
-                    const words = text.text().split(/\s+/);
-                    const maxWidth = 100;
-                    let line = [];
-                    let lineNumber = 0;
-                    const lineHeight = 1.1;
-                    const y = text.attr('y');
-                    const dy = parseFloat(text.attr('dy'));
-                    let tspan = text.text(null).append('tspan').attr('x', 8).attr('y', y).attr('dy', dy + 'em');
-
-                    words.forEach(word => {
-                        line.push(word);
-                        tspan.text(line.join(' '));
-                        if ((tspan.node()?.getComputedTextLength() || 0) > maxWidth) {
-                            line.pop();
-                            tspan.text(line.join(' '));
-                            line = [word];
-                            tspan = text.append('tspan')
-                                .attr('x', 8)
-                                .attr('y', y)
-                                .attr('dy', ++lineNumber * lineHeight + dy + 'em')
-                                .text(word);
+                if (node.children) {
+                    const childrenArray = Array.isArray(node.children) ? node.children : [node.children];
+                    childrenArray.forEach((child: any, childIndex: number) => {
+                        if (child && child.id) {
+                            const childResults = createNodesAndEdges(
+                                child,
+                                node.id,
+                                level + 1,
+                                childIndex,
+                                totalNodesAtLevel
+                            );
+                            nodes = [...nodes, ...childResults.nodes];
+                            edges = [...edges, ...childResults.edges];
                         }
                     });
-                });
+                }
+
+                return { nodes, edges };
+            };
+
+            // Create a Map to track the number of nodes at each level
+            const totalNodesAtLevel = new Map<number, number>();
+            const { nodes: newNodes, edges: newEdges } = createNodesAndEdges(messages, null, 0, 0, totalNodesAtLevel);
+            setNodes(newNodes);
+            setEdges(newEdges);
 
         } catch (error) {
             console.error('Error creating tree visualization:', error);
-            if (treeContainerRef.current) {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'text-red-500 text-center';
-                errorDiv.textContent = 'Error creating visualization';
-                treeContainerRef.current.appendChild(errorDiv);
-            }
         }
 
     }, [messages]);
 
     return (
-        <div className="fixed right-0 top-0 h-screen w-[280px] bg-[#1f2937] border-l border-gray-700 shadow-lg transform transition-transform duration-300 z-40">
+        <div className="fixed right-0 top-0 h-screen w-[300px] bg-[#1f2937] border-l border-gray-700 shadow-lg transform transition-transform duration-300 z-40">
             <div className="p-4 border-b border-gray-700 flex items-center">
                 <Button
                     variant="ghost"
@@ -223,9 +117,20 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 </Button>
                 <h2 className="text-gray-100 text-lg font-semibold">Conversation Tree</h2>
             </div>
-            <div ref={treeContainerRef} className="p-4">
-                {!messages && (
-                    <div className="text-gray-400 text-center">No messages to display</div>
+            <div style={{ height: 'calc(100vh - 70px)' }}>
+                {!messages ? (
+                    <div className="text-gray-400 text-center p-4">No messages to display</div>
+                ) : (
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        fitView
+                        className="bg-[#1f2937]"
+                        minZoom={0.1}
+                        maxZoom={1.5}
+                        defaultZoom={0.8}
+                        attributionPosition="bottom-left"
+                    />
                 )}
             </div>
         </div>
