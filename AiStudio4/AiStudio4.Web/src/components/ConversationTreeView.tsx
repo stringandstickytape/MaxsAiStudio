@@ -63,6 +63,17 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
             // Create data array with root node and messages
             const treeData = [rootNode, ...processedMessages];
             console.log('Tree data array:', treeData);
+            console.log('Tree validation:', {
+                uniqueIds: new Set(processedMessages.map(m => m.id)).size === processedMessages.length,
+                allParentsExist: processedMessages.every(m =>
+                    m.parentId === 'root' || processedMessages.some(p => p.id === m.parentId)
+                ),
+                messages: processedMessages.map(m => ({
+                    id: m.id,
+                    parentId: m.parentId,
+                    hasValidParent: m.parentId === 'root' || processedMessages.some(p => p.id === m.parentId)
+                }))
+            });
 
             // Create hierarchy with explicit root handling
             const hierarchyData = d3.stratify()
