@@ -16,14 +16,12 @@ export function ChatContainer({
     useEffect(() => {
         if (messagesEndRef.current && liveStreamContent) {
             requestAnimationFrame(() => {
-                setTimeout(() => {
-                    if (messagesEndRef.current) {
-                        messagesEndRef.current.scrollTo({
-                            top: messagesEndRef.current.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 10);
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollTo({
+                        top: messagesEndRef.current.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             });
         }
     }, [liveStreamContent]);
