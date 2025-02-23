@@ -24,7 +24,7 @@ export function ChatContainer({
                 }
             });
         }
-    }, []); // Remove dependency on streamTokens since we're not using it in the effect
+    }, [streamTokens]); // Add streamTokens back as dependency to ensure scrolling on new tokens
 
     return (
         <div
