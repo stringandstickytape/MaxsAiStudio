@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { MessageSquare, Menu, FolderOpen, Plus } from 'lucide-react';
+import { MessageSquare, Menu, FolderOpen, Plus, GitBranch } from 'lucide-react';
+import { ConversationTreeView } from './ConversationTreeView';
+import { useState } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown } from "lucide-react"
@@ -88,6 +90,20 @@ function DesktopContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
 }
 
 function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isCollapsed?: boolean }) {
+    const [showTreeView, setShowTreeView] = useState(false);
+    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const state = store.getState();
+    const conversations = state.conversations.conversations;
+
+    const handleShowTree = (conversationId: string) => {
+        setSelectedConversationId(conversationId);
+        setShowTreeView(true);
+    };
+
+    const handleCloseTree = () => {
+        setShowTreeView(false);
+        setSelectedConversationId(null);
+    };
     const handleNewChat = () => {
         store.dispatch(createConversation({
             rootMessage: {
@@ -109,7 +125,17 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
                 {!isCollapsed && "New Chat"}
             </Button>
             <ScrollArea className="flex-1">
-                <CachedConversationList collapsed={isCollapsed} />
+                <CachedConversationList 
+                    collapsed={isCollapsed}
+                    onShowTree={handleShowTree}
+                />
+                {showTreeView && selectedConversationId && (
+                    <ConversationTreeView
+                        onClose={handleCloseTree}
+                        conversationId={selectedConversationId}
+                        messages={conversations[selectedConversationId]?.messages || []}
+                    />
+                )}
             </ScrollArea>
 
             <div className="p-3 border-t border-gray-700 bg-[#2d3748]">

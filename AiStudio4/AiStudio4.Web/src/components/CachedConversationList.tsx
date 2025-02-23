@@ -2,6 +2,8 @@
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
 import React from 'react';
 import { CachedConversationTree } from './CachedConversationTree';
+import { Button } from '@/components/ui/button';
+import { GitBranch } from 'lucide-react';
 
 interface CachedConversation {
     convGuid: string;
@@ -17,7 +19,7 @@ interface TreeNode {
     children: TreeNode[];
 }
 
-export const CachedConversationList = () => {
+export const CachedConversationList = ({ onShowTree }: { onShowTree?: (convId: string) => void }) => {
     const [conversations, setConversations] = useState<CachedConversation[]>([]);
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
@@ -71,7 +73,7 @@ export const CachedConversationList = () => {
             {conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
-                    className={`p-3 rounded transition-all duration-200`}
+                    className={`p-3 rounded transition-all duration-200 relative`}
                     style={{
                         backgroundColor: conversation.highlightColour || '#374151',
                         color: conversation.highlightColour ? '#000' : '#fff'
@@ -86,7 +88,20 @@ export const CachedConversationList = () => {
                             if (newConvId) fetchConversationTree(newConvId);
                         }}
                     >
-                        <div className="flex-grow">
+                        <div className="flex-grow flex items-center gap-2">
+                            {onShowTree && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 hover:bg-gray-700 rounded-full"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onShowTree(conversation.convGuid);
+                                }}
+                            >
+                                <GitBranch className="h-4 w-4" />
+                            </Button>
+                        )}
                             <div className="text-sm">
                                 <div className="font-medium truncate mb-1">
                                     <span className="text-xs opacity-70 mr-2">
