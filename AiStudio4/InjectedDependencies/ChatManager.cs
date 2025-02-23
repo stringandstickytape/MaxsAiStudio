@@ -1,3 +1,5 @@
+using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiTool3.AiServices;
 using AiTool3.Conversations;
 using AiTool3.DataModels;
@@ -11,373 +13,178 @@ namespace AiStudio4.InjectedDependencies
 {
     public class ChatManager
     {
-        private readonly SettingsManager _settingsManager;
-        private readonly WebSocketServer _webSocketServer;
+        private readonly IConversationStorage _conversationStorage;
+        private readonly IConversationTreeBuilder _treeBuilder;
+        private readonly IChatService _chatService;
+        private readonly IWebSocketNotificationService _notificationService;
 
-        public ChatManager(SettingsManager settingsManager, WebSocketServer webSocketServer)
+        public ChatManager(
+            IConversationStorage conversationStorage,
+            IConversationTreeBuilder treeBuilder,
+            IChatService chatService,
+            IWebSocketNotificationService notificationService)
         {
-            _settingsManager = settingsManager;
-            _webSocketServer = webSocketServer;
+            _conversationStorage = conversationStorage;
+            _treeBuilder = treeBuilder;
+            _chatService = chatService;
+            _notificationService = notificationService;
         }
 
         public async Task<string> HandleGetAllConversationsRequest(string clientId)
         {
-            var conversationsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "conversations");
-
-            Directory.CreateDirectory(conversationsPath);
-            var conversations = new List<object>();
-
-            var ctr = 0;
-
-            await Task.Run(async () =>
+            try
             {
+                var conversations = await _conversationStorage.GetAllConversations();
 
-                int ctr = 0;
-    foreach (var file in Directory.GetFiles(conversationsPath, "conv_*.json"))
-    {
-        try
-        {
-            var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(file));
-            if (conversation != null && conversation.MessageHierarchy.Any() && conversation.MessageHierarchy.First().UserMessage != null)
-            {// clientidclientidclientid
-                var tree = BuildCachedConversationTree(conversation);
-                            
-                await _webSocketServer.SendToClientAsync(clientId,
-                    JsonConvert.SerializeObject(new
+                foreach (var conversation in conversations.Where(c => c.MessageHierarchy.Any()))
+                {
+                    var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                    
+                    await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
-                        messageType = "cachedconversation",
-                        content = new
-                        {
-                            convGuid = conversation.ConversationId,
-                            summary = conversation.MessageHierarchy.First().Children[0].UserMessage,
-                            fileName = $"conv_{conversation.ConversationId}.json",
-                            lastModified = File.GetLastWriteTimeUtc(file).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                            treeData = tree
-                        }
-                    }));
-                ctr++;
-                //if (ctr == 5) break;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error loading conversation: {ex.Message}");
-            continue;
-        }
-    }
-});
+                        ConversationId = conversation.ConversationId,
+                        Summary = conversation.MessageHierarchy.First().Children[0].UserMessage,
+                        LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                        TreeData = tree
+                    });
+                }
 
-            return JsonConvert.SerializeObject(new { success = true });
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
         }
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
-            var conversationId = (string)requestObject["conversationId"]; // eg conv_1740088070013
-            var newUserMessageId = (string)requestObject["newMessageId"];
-            var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == (string)requestObject["model"]);
-            var userMessage = (string)requestObject["message"];
-            var parentMessageId = (string)requestObject["parentMessageId"];
-
-
-            var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
-            var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
-
-            aiService.StreamingTextReceived += (sender, text) => AiService_StreamingTextReceived(clientId, text);
-            aiService.StreamingComplete += (sender, text) => AiService_StreamingCompleted(clientId, text);
-
-            var v4conversation = LoadOrCreateConversation(conversationId);
-            var newUserMessage = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.User, newUserMessageId, userMessage, parentMessageId);
-            v4conversation.Save();
-
-            // Build the cached conversation tree from the updated branched conversation
-            var cachedConversationTree = BuildCachedConversationTree(v4conversation);
-
-            // Send the updated cached conversation to the client for sidebar display
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new
-                {
-                    messageType = "cachedconversation",
-                    content = new
-                    {
-                        convGuid = v4conversation.ConversationId,
-                        summary = v4conversation.MessageHierarchy.First().Children[0].UserMessage ?? "",
-                        fileName = $"conv_{v4conversation.ConversationId}.json",
-                        lastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        treeData = cachedConversationTree
-                    }
-                }));
-
-            // Get message history by traversing up from new message
-            var messageHistory = GetMessageHistory(v4conversation, newUserMessageId);
-            
-            var conversation = new LinearConversation(DateTime.Now)
+            try 
             {
-                systemprompt = "You are a helpful chatbot.",
-                messages = messageHistory.Where(x => x.Role != v4BranchedConversationMessageRole.System).Select(msg => new LinearConversationMessage { 
-                    role = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
-                          msg.Role == v4BranchedConversationMessageRole.Assistant ? "assistant" : "system",
-                    content = msg.UserMessage
-                }).ToList()
-            };
-
-            var response = await aiService!.FetchResponse(
-                service, model, conversation, null!, null!,
-                new CancellationToken(false), _settingsManager.CurrentSettings,
-                mustNotUseEmbedding: true, toolNames: null, useStreaming: true);
-
-            var newAiReply = v4conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, $"msg_{Guid.NewGuid()}", response.ResponseText, newUserMessageId);
-
-            v4conversation.Save();
-
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new
+                var chatRequest = new ChatRequest
                 {
-                    messageType = "conversation",
-                    content = new
-                    {
-                        id = newAiReply.Id,
-                        content = newAiReply.UserMessage,
-                        source = "ai",
-                        parentId = newUserMessageId,
-                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        children = new string[] { }
-                    }
-                }));
-
-            return JsonConvert.SerializeObject(response);
-        }
-
-        private async void AiService_StreamingCompleted(string clientId, string text)
-        {
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new { messageType = "endstream", content = text }));
-        }
-
-        private async void AiService_StreamingTextReceived(string clientId, string text)
-        {
-            await _webSocketServer.SendToClientAsync(clientId,
-                JsonConvert.SerializeObject(new { messageType = "cfrag", content = text }));
-        }
-
-        private v4BranchedConversation LoadOrCreateConversation(string conversationId)
-        {
-            string conversationPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "conversations",
-                $"{conversationId}.json");
-
-            Directory.CreateDirectory(Path.GetDirectoryName(conversationPath));
-
-            if (File.Exists(conversationPath))
-            { 
-                var existingConversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(conversationPath));
-                existingConversation.Save();
-                return existingConversation;
-            }
-            else
-            {
-                var newConversation = new v4BranchedConversation(conversationId)
-                {
-
+                    ClientId = clientId,
+                    ConversationId = (string)requestObject["conversationId"],
+                    MessageId = (string)requestObject["newMessageId"],
+                    ParentMessageId = (string)requestObject["parentMessageId"],
+                    Message = (string)requestObject["message"],
+                    Model = (string)requestObject["model"]
                 };
-                newConversation.Save();
-                return newConversation;
-            }
-        }
 
-        private List<v4BranchedConversationMessage> GetMessageHistory(v4BranchedConversation conversation, string messageId)
-        {
-            var history = new List<v4BranchedConversationMessage>();
-            
-            // Helper function to find message and build history
-            bool FindMessageAndBuildHistory(v4BranchedConversationMessage current, string targetId)
-            {
-                if (current.Id == targetId)
+                var conversation = await _conversationStorage.LoadConversation(chatRequest.ConversationId);
+                var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                await _conversationStorage.SaveConversation(conversation);
+
+                // Update tree and notify clients
+                var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                 {
-                    history.Add(current);
-                    return true;
-                }
+                    ConversationId = conversation.ConversationId,
+                    Summary = conversation.MessageHierarchy.First().Children[0].UserMessage ?? "",
+                    LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                    TreeData = tree
+                });
 
-                foreach (var child in current.Children)
+                // Get message history and process chat
+                var messageHistory = _treeBuilder.GetMessageHistory(conversation, chatRequest.MessageId);
+                chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem 
                 {
-                    if (FindMessageAndBuildHistory(child, targetId))
-                    {
-                        history.Add(current);
-                        return true;
-                    }
-                }
+                    Role = msg.Role.ToString().ToLower(),
+                    Content = msg.UserMessage
+                }).ToList();
 
-                return false;
+                _chatService.StreamingTextReceived += (s, text) => _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
+                _chatService.StreamingComplete += (s, text) => _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = text });
+
+                var response = await _chatService.ProcessChatRequest(chatRequest);
+                var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, $"msg_{Guid.NewGuid()}", response.ResponseText, chatRequest.MessageId);
+                await _conversationStorage.SaveConversation(conversation);
+
+                await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
+                {
+                    MessageId = newAiReply.Id,
+                    Content = newAiReply.UserMessage,
+                    ParentId = chatRequest.MessageId,
+                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                });
+
+                return JsonConvert.SerializeObject(new { success = true, response = response });
             }
-
-
-
-            // Search through message hierarchy
-            foreach (var message in conversation.MessageHierarchy)
+            catch (Exception ex)
             {
-                if (FindMessageAndBuildHistory(message, messageId))
-                    break;
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
-
-            // Reverse to get chronological order (root to leaf)
-            history.Reverse();
-            return history;
-        }
-
-        /// <summary>
-        /// Recursively builds a tree structure to represent the cached conversation.
-        /// Each node contains an id, a truncated text summary and optional children.
-        /// </summary>
-        /// <param name="conversation">The branched conversation to build the tree from.</param>
-        /// <returns>A dynamic object representing the conversation tree.</returns>
-        private dynamic BuildCachedConversationTree(v4BranchedConversation conversation)
-        {
-            if (conversation.MessageHierarchy == null || conversation.MessageHierarchy.Count == 0)
-            {
-                return null;
-            }
-            // For simplicity, build the tree from the first root message
-            return BuildTreeNode(conversation.MessageHierarchy[0]);
-        }
-
-        /// <summary>
-        /// Recursively builds a tree node from a v4BranchedConversationMessage.
-        /// </summary>
-        /// <param name="message">The conversation message.</param>
-        /// <returns>A dynamic object with properties id, text, and children.</returns>
-        private dynamic BuildTreeNode(v4BranchedConversationMessage message)
-        {
-            // Truncate the message text to 20 characters for summary display
-            var text = message.UserMessage;
-            if (text.Length > 20) text = text.Substring(0, 20);
-
-            var node = new
-            {
-                id = message.Id,
-                text = text,
-                children = new List<dynamic>()
-            };
-
-            foreach (var child in message.Children)
-            {
-                ((List<dynamic>)node.children).Add(BuildTreeNode(child));
-            }
-            return node;
         }
 
         internal async Task<string> HandleConversationMessagesRequest(string clientId, JObject? requestObject)
         {
-            var messageId = requestObject["messageId"].ToString();
-            var foundConversation = FindConversationByMessageId(messageId);
-            
-            if (foundConversation != null)
+            try
             {
-                var messageHistory = GetMessageHistory(foundConversation, messageId);
-                var messages = messageHistory.Select(msg => new
+                var messageId = requestObject["messageId"].ToString();
+                var conversation = await _conversationStorage.FindConversationByMessageId(messageId);
+                
+                if (conversation != null)
                 {
-                    id = msg.Id,
-                    content = msg.UserMessage,
-                    source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
-                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
-                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                }).ToList();
-
-                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new
-                {
-                    messageType = "loadConversation",
-                    content = new
+                    var messageHistory = _treeBuilder.GetMessageHistory(conversation, messageId);
+                    var messages = messageHistory.Select(msg => new
                     {
-                        conversationId = foundConversation.ConversationId,
-                        messages = messages
-                    }
-                }));
+                        id = msg.Id,
+                        content = msg.UserMessage,
+                        source = msg.Role == v4BranchedConversationMessageRole.User ? "user" : 
+                                msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    }).ToList();
 
-                return JsonConvert.SerializeObject(new { success = true, messages = messages, conversationId = foundConversation.ConversationId });
+                    await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
+                    {
+                        ConversationId = conversation.ConversationId,
+                        MessageId = messageId,
+                        Content = new
+                        {
+                            messageType = "loadConversation",
+                            content = new
+                            {
+                                conversationId = conversation.ConversationId,
+                                messages = messages
+                            }
+                        }
+                    });
+
+                    return JsonConvert.SerializeObject(new { success = true, messages = messages, conversationId = conversation.ConversationId });
+                }
+                return JsonConvert.SerializeObject(new { success = false, error = "Message not found" });
             }
-            return JsonConvert.SerializeObject(new { success = false, error = "Message not found" });
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
         }
-
         internal async Task<string> HandleCachedConversationRequest(string clientId, JObject? requestObject)
         {
-
-            // Handle tree view loading (existing code)
-            var conversationId = requestObject["conversationId"].ToString();
-            var branchedConversation = LoadOrCreateConversation(conversationId);
-
-            if (branchedConversation == null)
+            try
             {
-                return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
-            }
-            var m1 = branchedConversation.MessageHierarchy.First();
+                var conversationId = requestObject["conversationId"].ToString();
+                var conversation = await _conversationStorage.LoadConversation(conversationId);
 
-            var o = new
-            {
-                id = m1.Id,
-                text = m1.UserMessage,
-                children = CreateChildrenArray(m1.Children)
-            };
-
-            return JsonConvert.SerializeObject(new
-            {
-                success = true,
-                treeData = o
-            });
-        }
-
-        // Add this helper method to the class
-        private List<object> CreateChildrenArray(List<v4BranchedConversationMessage> children)
-        {
-            var childrenArray = new List<object>();
-            foreach (var child in children)
-            {
-                var childObject = new
+                if (conversation == null)
                 {
-                    id = child.Id,
-                    text = child.UserMessage,
-                    children = CreateChildrenArray(child.Children)
-                };
-                childrenArray.Add(childObject);
-            }
-            return childrenArray;
-        }
-        private v4BranchedConversation FindConversationByMessageId(string messageId)
-        {
-            var conversationsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "conversations");
-
-            foreach (var file in Directory.GetFiles(conversationsPath, "*.json"))
-            {
-                try
-                {
-                    var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(File.ReadAllText(file));
-                    if (conversation != null)
-                    {
-                        // Helper function to search for message
-                        bool ContainsMessage(v4BranchedConversationMessage message)
-                        {
-                            if (message.Id == messageId) return true;
-                            return message.Children.Any(ContainsMessage);
-                        }
-
-                        // Check if conversation contains the message
-                        if (conversation.MessageHierarchy.Any(ContainsMessage))
-                        {
-                            return conversation;
-                        }
-                    }
+                    return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
                 }
-                catch
+
+                var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                return JsonConvert.SerializeObject(new
                 {
-                    continue; // Skip invalid files
-                }
+                    success = true,
+                    treeData = tree
+                });
             }
-            return null;
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
         }
+
+
+
     }
 
 

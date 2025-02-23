@@ -1,8 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.IO;
 using AiStudio4.InjectedDependencies;
+using AiStudio4.Core.Interfaces;
+using AiStudio4.Services;
+using AiStudio4.Core.Models;
 
 namespace AiStudio4
 {
@@ -20,6 +24,14 @@ namespace AiStudio4
 
         private void ConfigureServices(IServiceCollection services)
         {
+            // Configure logging first
+            services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.AddDebug();
+                builder.SetMinimumLevel(LogLevel.Debug);
+            });
+
             // Configure configuration
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -29,7 +41,13 @@ namespace AiStudio4
             // Register configuration
             services.AddSingleton<IConfiguration>(configuration);
 
-            // Register services
+            // Register core services
+            services.AddSingleton<IConversationStorage, FileSystemConversationStorage>();
+            services.AddSingleton<IConversationTreeBuilder, DefaultConversationTreeBuilder>();
+            services.AddSingleton<IChatService, OpenAIChatService>();
+            services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
+
+            // Register application services
             services.AddSingleton<SettingsManager>();
             services.AddSingleton<WebSocketServer>();
             services.AddSingleton<ChatManager>();
