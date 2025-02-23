@@ -39,10 +39,10 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 totalNodesAtLevel.set(level, nodeIndex + 1);
 
                 // Calculate position
-                const xSpacing = 250; // Horizontal spacing between levels
-                const ySpacing = 100; // Vertical spacing between nodes
-                const x = level * xSpacing;
-                const y = nodeIndex * ySpacing;
+                const xSpacing = 250; // Horizontal spacing between nodes
+                const ySpacing = 100; // Vertical spacing between levels
+                const x = nodeIndex * xSpacing;
+                const y = level * ySpacing;
 
                 const currentNode: Node = {
                     id: node.id,
