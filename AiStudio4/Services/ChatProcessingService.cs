@@ -54,6 +54,7 @@ namespace AiStudio4.Services
                         Message = (string)requestObject["message"],
                         Model = (string)requestObject["model"]
                     };
+                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}"); 
 
                     var conversation = await _conversationStorage.LoadConversation(chatRequest.ConversationId);
                     var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
@@ -78,7 +79,11 @@ namespace AiStudio4.Services
                     }).ToList();
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
-                    var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, $"msg_{Guid.NewGuid()}", response.ResponseText, chatRequest.MessageId);
+                    var newId = $"msg_{Guid.NewGuid()}";
+                    var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
+
+                    System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
+
                     await _conversationStorage.SaveConversation(conversation);
 
                     await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
