@@ -18,6 +18,8 @@ export class ChatService {
         }
 
         const newMessageId = `msg_${Date.now()}`;
+        const lastMessage = conversation.messages[conversation.messages.length - 1];
+        const parentMessageId = lastMessage ? lastMessage.id : null;
 
         // Dispatch user message to store
         store.dispatch(addMessage({
@@ -26,12 +28,10 @@ export class ChatService {
                 id: newMessageId,
                 content: message,
                 source: 'user',
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                parentId: parentMessageId
             }
         }));
-
-        const lastMessage = conversation.messages[conversation.messages.length - 1];
-        const parentMessageId = lastMessage ? lastMessage.id : null;
 
         const response = await fetch('/api/chat', {
             method: 'POST',

@@ -13,11 +13,68 @@ import { ChevronDown } from "lucide-react"
 import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
+import { Message } from '@/types/message';
 
 interface SidebarProps {
     isOpen: boolean;
     wsState: WebSocketState;
     onToggle: () => void;
+}
+
+function buildMessageTree(messages: Message[]) {
+    // Sort messages by timestamp to ensure parents are processed before children
+    const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
+    console.log('Processing sorted messages:', sortedMessages);
+
+    const messageMap = new Map();
+    let rootMessage: any = null;
+
+    // First pass: Create all nodes and identify root
+    sortedMessages.forEach(msg => {
+        const node = {
+            id: msg.id,
+            text: msg.content,
+            children: []
+        };
+        messageMap.set(msg.id, node);
+
+        // The first message is typically the root
+        if (!rootMessage && msg.source === 'system') {
+            rootMessage = node;
+        }
+    });
+
+    // If no explicit root was found, create one
+    if (!rootMessage) {
+        rootMessage = {
+            id: 'root',
+            text: 'Conversation Root',
+            children: []
+        };
+    }
+
+    // Second pass: Build tree structure
+    sortedMessages.forEach(msg => {
+        const node = messageMap.get(msg.id);
+        // Skip the root message
+        if (node === rootMessage) return;
+
+        // Find parent - either the specified parent or the previous message
+        let parentNode;
+        if (msg.parentId && messageMap.has(msg.parentId)) {
+            parentNode = messageMap.get(msg.parentId);
+        } else {
+            // If no parent specified, add to root
+            parentNode = rootMessage;
+        }
+
+        if (parentNode) {
+            parentNode.children.push(node);
+        }
+    });
+
+    console.log('Built tree:', rootMessage);
+    return rootMessage;
 }
 
 export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
@@ -36,10 +93,10 @@ export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
         return (
             <>
                 <Sheet open={isOpen} onOpenChange={onToggle}>
-                <SheetContent side="left" className="w-80 p-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700/50 backdrop-blur-lg shadow-2xl">
-                    <MobileContent wsState={wsState} onToggle={onToggle} />
-                </SheetContent>
-            </Sheet>
+                    <SheetContent side="left" className="w-80 p-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700/50 backdrop-blur-lg shadow-2xl">
+                        <MobileContent wsState={wsState} onToggle={onToggle} />
+                    </SheetContent>
+                </Sheet>
             </>
         );
     }
@@ -104,6 +161,7 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
         setShowTreeView(false);
         setSelectedConversationId(null);
     };
+
     const handleNewChat = () => {
         store.dispatch(createConversation({
             rootMessage: {
@@ -114,6 +172,7 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
             }
         }));
     };
+
     return (
         <div className="flex flex-col h-[calc(100vh-10rem)]">
             <Button
@@ -125,7 +184,7 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
                 {!isCollapsed && "New Chat"}
             </Button>
             <ScrollArea className="flex-1">
-                <CachedConversationList 
+                <CachedConversationList
                     collapsed={isCollapsed}
                     onShowTree={handleShowTree}
                 />
@@ -133,7 +192,11 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
                     <ConversationTreeView
                         onClose={handleCloseTree}
                         conversationId={selectedConversationId}
-                        messages={conversations[selectedConversationId]?.messages || []}
+                        messages={{
+                            id: selectedConversationId,
+                            text: "Root",
+                            children: buildMessageTree(conversations[selectedConversationId]?.messages || [])
+                        }}
                     />
                 )}
             </ScrollArea>

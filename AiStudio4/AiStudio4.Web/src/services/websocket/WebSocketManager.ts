@@ -108,7 +108,7 @@ class WebSocketManager {
                     id: content.id,
                     content: content.content,
                     source: content.source,
-                    parentId: null,
+                    parentId: null,  // Explicitly set null for root
                     timestamp: Date.now(),
                     children: []
                 }
@@ -125,7 +125,7 @@ class WebSocketManager {
                         id: content.id,
                         content: content.content,
                         source: content.source,
-                        parentId: content.parentId,
+                        parentId: content.parentId,  // Preserve parent relationship
                         timestamp: Date.now(),
                         children: []
                     }

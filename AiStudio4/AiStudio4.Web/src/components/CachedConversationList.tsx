@@ -58,6 +58,7 @@ export const CachedConversationList = ({ onShowTree }: { onShowTree?: (convId: s
             });
 
             const data = await response.json();
+            
             setTreeData(data.treeData || []);
         } catch (error) {
             console.error('Error fetching conversation tree:', error);

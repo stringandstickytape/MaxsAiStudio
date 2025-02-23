@@ -3,6 +3,8 @@ export interface Message {
     content: string;
     source: 'user' | 'ai' | 'system';
     timestamp: number;
+    parentId?: string | null;
+    children?: string[];
 }
 
 export interface Conversation {
