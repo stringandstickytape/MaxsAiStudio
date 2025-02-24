@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
-import { RootState, store } from '../store/store';
-import { setActiveConversation } from '../store/conversationSlice';
-import { MarkdownPane } from './markdown-pane';
-import { LiveStreamToken } from './LiveStreamToken';
+import { RootState, store } from '@/store/store';
+import { setActiveConversation } from '@/store/conversationSlice';
+import { MarkdownPane } from '@/components/markdown-pane';
+import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { useEffect, useMemo } from 'react';
 import { Message } from '@/types/conversation';
 

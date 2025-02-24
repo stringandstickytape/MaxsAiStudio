@@ -1,6 +1,6 @@
-import { DiagramRenderer } from './types';
-import { MermaidRenderer } from './mermaid-renderer';
-import { JsonRenderer } from './json-renderer';
+import { DiagramRenderer } from '@/components/diagrams/types';
+import { MermaidRenderer } from '@/components/diagrams/mermaid-renderer';
+import { JsonRenderer } from '@/components/diagrams/json-renderer';
 
 class DiagramRegistry {
     private renderers: Map<string, DiagramRenderer> = new Map();

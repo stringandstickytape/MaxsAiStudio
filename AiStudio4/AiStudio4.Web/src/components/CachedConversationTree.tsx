@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { wsManager } from '../services/websocket/WebSocketManager';
+import { wsManager } from '@/services/websocket/WebSocketManager';
 
 export interface TreeNode {
     id: string;

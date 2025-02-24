@@ -1,5 +1,5 @@
 import mermaid from 'mermaid';
-import { DiagramRenderer } from './types';
+import { DiagramRenderer } from '@/components/diagrams/types';
 
 export const MermaidRenderer: DiagramRenderer = {
     type: 'mermaid',

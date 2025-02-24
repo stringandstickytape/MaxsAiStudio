@@ -1,6 +1,6 @@
 import { DiagramRenderer } from './types';
 import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from 'C:/Users/maxhe/source/repos/CloneTest/MaxsAiTool/AiStudio4/AiStudio4.Web/src/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
 const JsonNode = ({ data, level = 0 }: { data: any; level?: number }) => {

@@ -1,7 +1,7 @@
-import { store } from '../../store/store';
-import { addMessage, createConversation, setActiveConversation } from '../../store/conversationSlice';
-import { Message } from '../../types/conversation';
-import { eventBus } from '../messaging/EventBus';
+import { store } from '@/store/store';
+import { addMessage, createConversation, setActiveConversation } from '@/store/conversationSlice';
+import { Message } from '@/types/conversation';
+import { eventBus } from '@/services/messaging/EventBus';
 
 // src/services/websocket/types.ts
 export interface WebSocketMessage {

@@ -1,6 +1,6 @@
 import { IMessageService } from "./IMessageService";
-import { wsManager } from "../../services/websocket/WebSocketManager";
-import { eventBus } from "./EventBus";
+import { wsManager } from "@/services/websocket/WebSocketManager";
+import { eventBus } from "@/services/messaging/EventBus";
 
 export class WebSocketMessageService implements IMessageService {
     private _connected: boolean = false;

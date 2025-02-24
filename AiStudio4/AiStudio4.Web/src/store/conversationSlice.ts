@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Message, Conversation, ConversationState } from '../types/conversation';
+import { Message, Conversation, ConversationState } from '@/types/conversation';
 
 // Debug helper to expose conversation state
 export const debugConversations = () => {
