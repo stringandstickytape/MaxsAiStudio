@@ -21,34 +21,7 @@ export const debugConversations = () => {
 // Export to window for console access
 (window as any).debugConversations = debugConversations;
 
-// Helper to build a tree structure for visualization
-const buildDebugTree = (messages: Message[]) => {
-    const messageMap = new Map<string, any>();
-    const rootNodes: any[] = [];
-
-    // Create nodes
-    messages.forEach(msg => {
-        messageMap.set(msg.id, {
-            id: msg.id,
-            content: msg.content,
-            source: msg.source,
-            children: []
-        });
-    });
-
-    // Build relationships
-    messages.forEach(msg => {
-        const node = messageMap.get(msg.id);
-        if (msg.parentId && messageMap.has(msg.parentId)) {
-            const parent = messageMap.get(msg.parentId);
-            parent.children.push(node);
-        } else {
-            rootNodes.push(node);
-        }
-    });
-
-    return rootNodes;
-};
+import { buildDebugTree } from '@/utils/treeUtils';
 
 const initialState: ConversationState = {
     conversations: {},

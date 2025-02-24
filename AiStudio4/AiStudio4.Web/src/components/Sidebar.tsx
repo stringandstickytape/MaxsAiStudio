@@ -14,6 +14,7 @@ import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
 import { Message } from '@/types/message';
+import { buildMessageTree } from '@/utils/treeUtils';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -21,59 +22,6 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
-function buildMessageTree(messages: Message[]) {
-    // Sort messages by timestamp to ensure parents are processed before children
-    const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
-    
-    const messageMap = new Map();
-    let rootMessage: any = null;
-
-    // First pass: Create all nodes and identify root
-    sortedMessages.forEach(msg => {
-        const node = {
-            id: msg.id,
-            text: msg.content?.substring(0, 50) + (msg.content?.length > 50 ? '...' : ''),
-            children: [] as any[]
-        };
-        messageMap.set(msg.id, node);
-
-        // The first message is typically the root
-        if (!rootMessage && msg.source === 'system') {
-            rootMessage = node;
-        }
-    });
-
-    // If no explicit root was found, create one
-    if (!rootMessage) {
-        rootMessage = {
-            id: 'root',
-            text: 'Conversation Root',
-            children: []
-        };
-    }
-
-    // Second pass: Build tree structure
-    sortedMessages.forEach(msg => {
-        const node = messageMap.get(msg.id);
-        // Skip the root message
-        if (node === rootMessage) return;
-
-        // Find parent - either the specified parent or the previous message
-        let parentNode;
-        if (msg.parentId && messageMap.has(msg.parentId)) {
-            parentNode = messageMap.get(msg.parentId);
-        } else {
-            // If no parent specified, add to root
-            parentNode = rootMessage;
-        }
-
-        if (parentNode) {
-            parentNode.children.push(node);
-        }
-    });
-    
-    return rootMessage;
-}
 
 export function Sidebar({ isOpen, wsState, onToggle }: SidebarProps) {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -193,7 +141,7 @@ function SidebarContent({ wsState, isCollapsed }: { wsState: WebSocketState; isC
                         messages={{
                             id: selectedConversationId,
                             text: "Root",
-                            children: buildMessageTree(conversations[selectedConversationId]?.messages || [])
+                            children: buildMessageTree(conversations[selectedConversationId]?.messages || [], false)
                         }}
                     />
                 )}
