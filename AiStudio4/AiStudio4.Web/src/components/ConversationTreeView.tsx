@@ -18,7 +18,17 @@ interface TreeViewProps {
     };
 }
 
+import { store } from '@/store/store';
+import { setActiveConversation } from '@/store/conversationSlice';
+
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, conversationId, messages }) => {
+    const onNodeClick = (_: React.MouseEvent, node: Node) => {
+        // Dispatch action to update active conversation and selected message
+        store.dispatch(setActiveConversation({
+            conversationId: conversationId,
+            selectedMessageId: node.id
+        }));
+    };
     const [nodes, setNodes] = React.useState<Node[]>([]);
     const [edges, setEdges] = React.useState<Edge[]>([]);
 
@@ -121,16 +131,17 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 {!messages ? (
                     <div className="text-gray-400 text-center p-4">No messages to display</div>
                 ) : (
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        fitView
-                        className="bg-[#1f2937]"
-                        minZoom={0.1}
-                        maxZoom={1.5}
-                        defaultZoom={0.8}
-                        attributionPosition="bottom-left"
-                    />
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            fitView
+                            className="bg-[#1f2937]"
+                            minZoom={0.1}
+                            maxZoom={1.5}
+                            defaultZoom={0.8}
+                            attributionPosition="bottom-left"
+                            onNodeClick={onNodeClick}
+                        />
                 )}
             </div>
         </div>

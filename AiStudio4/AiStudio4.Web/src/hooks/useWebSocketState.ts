@@ -8,8 +8,7 @@ export function useWebSocketState() {
     const [wsState, setWsState] = useState<WebSocketState>({
         isConnected: messageService.isConnected(),
         clientId: null, // Initially null; will be set via connection event.
-        messages: [],
-        streamTokens: [] //This can probably be removed as per earlier comment.
+        messages: []
     });
 
     const handleClientId = useCallback((clientId: string) => {

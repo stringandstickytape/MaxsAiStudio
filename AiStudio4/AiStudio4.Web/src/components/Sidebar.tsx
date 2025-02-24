@@ -71,7 +71,6 @@ function buildMessageTree(messages: Message[]) {
             parentNode.children.push(node);
         }
     });
-    debugger;
     
     return rootMessage;
 }

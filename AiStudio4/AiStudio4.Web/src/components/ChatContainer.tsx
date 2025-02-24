@@ -14,7 +14,7 @@ export function ChatContainer({
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (messagesEndRef.current) { // Removed liveStreamContent check
+        if (messagesEndRef.current) {
             requestAnimationFrame(() => {
                 if (messagesEndRef.current) {
                     messagesEndRef.current.scrollTo({
@@ -24,7 +24,7 @@ export function ChatContainer({
                 }
             });
         }
-    }, [streamTokens]); // Add streamTokens back as dependency to ensure scrolling on new tokens
+    }, [streamTokens]);
 
     return (
         <div

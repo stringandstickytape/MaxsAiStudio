@@ -23,7 +23,6 @@ export interface ClientConfig {
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private config: ClientConfig = {};
-    //private streamTokenString: string = ''; // Removed
     private connected: boolean = false;
 
     constructor() {
@@ -32,9 +31,7 @@ class WebSocketManager {
     }
 
     private handleEndStream = () => {
-        //this.streamTokenString = ''; // Removed
-        
-        eventBus.emit('endstream', null); //  Explicitly emit endstream
+        eventBus.emit('endstream', null);
     }
 
     private handleCachedConversationMessage = (content: any) => {
@@ -153,7 +150,6 @@ class WebSocketManager {
         this.socket.addEventListener('message', this.handleMessage);
         this.socket.addEventListener('error', this.handleError);
         this.socket.addEventListener('close', this.handleClose);
-        // Handle stream tokens through the message handler instead
     }
 
     public send(message: WebSocketMessage) {
@@ -218,8 +214,7 @@ class WebSocketManager {
     }
 
     private handleNewLiveChatStreamToken = (token: string) => {
-        // this.streamTokenString = this.streamTokenString + token; // NO LONGER NEEDED
-        
+        // Empty handler - will be used by event bus subscribers
     }
 
     public disconnect() {
