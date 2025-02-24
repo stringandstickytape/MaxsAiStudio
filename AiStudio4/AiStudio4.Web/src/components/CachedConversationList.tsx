@@ -74,10 +74,9 @@ export const CachedConversationList = ({ onShowTree }: { onShowTree?: (convId: s
             {conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
-                    className={`p-4 rounded-xl transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm`}
+                    className={`p-4 rounded-xl transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm ${conversation.highlightColour ? 'text-black' : 'text-white'}`}
                     style={{
-                        backgroundColor: conversation.highlightColour || '#374151',
-                        color: conversation.highlightColour ? '#000' : '#fff'
+                        backgroundColor: conversation.highlightColour || '#374151'
                     }}
                 >
                     {/* Make only the header clickable */}

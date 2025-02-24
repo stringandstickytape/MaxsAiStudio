@@ -1,5 +1,6 @@
 import { DiagramRenderer } from './types';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
@@ -14,12 +15,12 @@ const JsonNode = ({ data, level = 0 }: { data: any; level?: number }) => {
     }
     if (!isExpandable) {
         return (
-            <span className={`
-                ${type === 'string' ? 'text-green-400' : ''}
-                ${type === 'number' ? 'text-blue-400' : ''}
-                ${type === 'boolean' ? 'text-yellow-400' : ''}
-                ${data === null ? 'text-gray-400' : ''}
-            `}>
+            <span className={cn(
+                type === 'string' && 'text-green-400',
+                type === 'number' && 'text-blue-400',
+                type === 'boolean' && 'text-yellow-400',
+                data === null && 'text-gray-400'
+            )}>
                 {JSON.stringify(data)}
             </span>
         );

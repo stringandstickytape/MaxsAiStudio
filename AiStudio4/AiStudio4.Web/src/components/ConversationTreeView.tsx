@@ -127,7 +127,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 </Button>
                 <h2 className="text-gray-100 text-lg font-semibold">Conversation Tree</h2>
             </div>
-            <div style={{ height: 'calc(100vh - 70px)' }}>
+            <div className="h-[calc(100vh-70px)]">
                 {!messages ? (
                     <div className="text-gray-400 text-center p-4">No messages to display</div>
                 ) : (
