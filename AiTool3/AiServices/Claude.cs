@@ -34,6 +34,11 @@ namespace AiTool3.AiServices
             {
                 client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
             }
+            
+            if (ApiModel == "claude-3.7-sonnet-latest")
+            {
+                client.DefaultRequestHeaders.Add("anthropic-beta", "output-128k-2025-02-19");
+            }
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
@@ -42,7 +47,7 @@ namespace AiTool3.AiServices
             {
                 ["model"] = modelName,
                 ["system"] = conversation.systemprompt ?? "",
-                ["max_tokens"] = 8192,
+                ["max_tokens"] = ApiModel == "claude-3.7-sonnet-latest" ? 65536 : 8192,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
             };
