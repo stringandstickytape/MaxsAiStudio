@@ -19,7 +19,7 @@ interface TreeNode {
     children: TreeNode[];
 }
 
-export const CachedConversationList = ({ onShowTree }: { onShowTree?: (convId: string) => void }) => {
+export const CachedConversationList = () => {
     const [conversations, setConversations] = useState<CachedConversation[]>([]);
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
@@ -89,19 +89,7 @@ export const CachedConversationList = ({ onShowTree }: { onShowTree?: (convId: s
                         }}
                     >
                         <div className="flex-grow flex items-center gap-2">
-                            {onShowTree && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 hover:bg-gray-700 rounded-full"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onShowTree(conversation.convGuid);
-                                }}
-                            >
-                                <GitBranch className="h-4 w-4" />
-                            </Button>
-                        )}
+
                             <div className="text-sm">
                                 <div className="font-medium truncate mb-1">
                                     <span className="text-xs opacity-70 mr-2">
