@@ -83,7 +83,7 @@ function AppContent() {
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
-                    "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-30 transition-transform duration-300",
+                    "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-40 transition-transform duration-300",
                     showSidebar ? "translate-x-0" : "-translate-x-full"
                 )}>
                     <div className="flex justify-end p-3">
@@ -111,20 +111,14 @@ function AppContent() {
                     onToggleSettings={handleToggleSettings}
                 />
 
-                <div className={cn(
-                    "flex-1 overflow-auto transition-all duration-300",
-                    showSidebar ? "ml-80" : "ml-0"
-                )}>
+                <div className="flex-1 overflow-auto transition-all duration-300">
                     <ChatContainer
                         streamTokens={streamTokens} // Pass streamTokens
                         isMobile={isMobile}
                     />
                 </div>
 
-                <div className={cn(
-                    "fixed bottom-0 left-0 right-0 bg-background border-t z-20",
-                    showSidebar ? "ml-80" : "ml-0"
-                )}>
+                <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-20">
                     <InputBar selectedModel={selectedModel} />
                 </div>
             </div>

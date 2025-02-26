@@ -24,7 +24,7 @@ interface SidebarProps {
 export function Sidebar({ wsState }: SidebarProps) {
     return (
         <aside className="fixed left-0 top-0 z-30 flex h-screen w-80 flex-col bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 shadow-xl backdrop-blur-sm">
-            <div className="p-4 border-b border-gray-700 bg-[#1f2937] flex items-center">
+            <div className="p-4 border-b border-gray-700 bg-[#1f2937] flex items-center justify-between">
                 <h2 className="text-gray-100 text-lg font-semibold">Conversations</h2>
             </div>
             <SidebarContent wsState={wsState} />
