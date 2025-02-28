@@ -4,7 +4,6 @@ using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using AiStudio4.AiStudio4.Core.Models;
 
 namespace AiStudio4.Services
 {

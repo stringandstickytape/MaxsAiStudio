@@ -1,4 +1,3 @@
-using AiStudio4.AiStudio4.Core.Models;
 using AiStudio4.Core.Models;
 
 namespace AiStudio4.Core.Interfaces

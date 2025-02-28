@@ -1,6 +1,6 @@
 using System;
 
-namespace AiStudio4.AiStudio4.Core.Models
+namespace AiStudio4.Core.Models
 {
     public class ConversationListDto
     {
