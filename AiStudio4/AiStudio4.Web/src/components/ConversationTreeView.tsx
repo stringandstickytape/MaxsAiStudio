@@ -25,6 +25,10 @@ import { setActiveConversation } from '@/store/conversationSlice';
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, conversationId, messages }) => {
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
         // Dispatch action to update active conversation and selected message
+        console.log('Tree Node clicked:', {
+            node: node.id,
+            conversationId: conversationId
+        });
         store.dispatch(setActiveConversation({
             conversationId: conversationId,
             selectedMessageId: node.id

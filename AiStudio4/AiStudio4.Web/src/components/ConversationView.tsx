@@ -27,6 +27,13 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
         const startingMessageId = streamTokens.length > 0 ? 
             conversation.messages[conversation.messages.length - 1].id : 
             (activeMessageId || conversation.messages[conversation.messages.length - 1].id);
+        
+        console.log('ConversationView: Building message chain from:', {
+            startingMessageId,
+            activeMessageId,
+            streamActive: streamTokens.length > 0,
+            messageCount: conversation.messages.length
+        });
             
         console.log('Building message chain:', {
             conversationId: activeConversationId,

@@ -85,15 +85,17 @@ const conversationSlice = createSlice({
         },
         setActiveConversation(state, action: PayloadAction<{ conversationId: string; selectedMessageId?: string | null }>) {
             const { conversationId, selectedMessageId } = action.payload;
-            console.log('Setting active conversation:', {
+            console.log('Redux: Setting active conversation:', {
                 newActiveId: conversationId,
                 selectedMessageId,
                 previousActiveId: state.activeConversationId,
+                previousSelectedMessageId: state.selectedMessageId,
                 conversationExists: !!state.conversations[conversationId]
             });
             state.activeConversationId = conversationId;
             if (selectedMessageId !== undefined) {
                 state.selectedMessageId = selectedMessageId;
+                console.log('Redux: Updated selectedMessageId to:', selectedMessageId);
             }
         },
     },

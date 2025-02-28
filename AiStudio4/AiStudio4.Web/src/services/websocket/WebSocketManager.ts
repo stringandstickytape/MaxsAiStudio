@@ -101,17 +101,33 @@ class WebSocketManager {
     };
 
     private handleConversationMessage = (content: Message) => {
-        
-
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
-        console.log('Handling conversation message with active conversation:', activeConversationId);
+        const selectedMessageId = state.conversations.selectedMessageId;
+        
+        console.log('WebSocketManager: Handling conversation message:', {
+            activeConversationId,
+            selectedMessageId,
+            messageId: content.id,
+            messageSource: content.source,
+            parentIdFromContent: content.parentId
+        });
 
         if (activeConversationId) {
             // Get the conversation to find the last message as parent
             const conversation = state.conversations.conversations[activeConversationId];
-            // Always use the specified parentId or the last message in the conversation
-            const parentId = content.parentId || conversation.messages[conversation.messages.length - 1]?.id || null;
+            
+            // Use the explicitly specified parentId first, then the selectedMessageId from state,
+            // and finally fall back to the last message in the conversation
+            const parentId = content.parentId || 
+                             (content.source === 'user' ? selectedMessageId : null) || 
+                             conversation.messages[conversation.messages.length - 1]?.id || 
+                             null;
+
+            console.log('WebSocketManager: Message parentage determined:', {
+                finalParentId: parentId,
+                messageId: content.id
+            });
 
             store.dispatch(addMessage({
                 conversationId: activeConversationId,
@@ -123,8 +139,8 @@ class WebSocketManager {
                     timestamp: Date.now(),
                     children: []
                 },
-                // When receiving a new message during active conversation, update selectedMessageId
-                // to the newest message if we're streaming tokens
+                // For AI responses, set the selectedMessageId to continue the same branch
+                // Only update the selectedMessageId if this is an AI response to ensure branch continuity
                 selectedMessageId: content.source === 'ai' ? content.id : undefined
             }));
         } else {
