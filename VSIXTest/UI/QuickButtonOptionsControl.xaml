@@ -44,6 +44,12 @@
                       Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
         </DockPanel>
+        <DockPanel Margin="0,5,0,0">
+            <Button Name="btnOpenFromClipboard" Content="Open documents from Clipboard" Click="btnOpenFromClipboard_Click"
+                    Background="{DynamicResource {x:Static vsshell:VsBrushes.ButtonFaceKey}}"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ButtonTextKey}}"
+                    HorizontalAlignment="Left" Margin="25,0,0,0"/>
+        </DockPanel>
 		<DockPanel Margin="0,5,0,0">
 			<CheckBox Content="Git Diff" Name="cbGitDiff"
                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
