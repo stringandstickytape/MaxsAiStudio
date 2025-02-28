@@ -62,5 +62,18 @@ namespace AiStudio4.InjectedDependencies
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
+
+        internal async Task<string> HandleGetAllHistoricalConversationTreesRequest(string clientId, JObject? requestObject)
+        {
+            try
+            {
+                return await _conversationService.HandleGetAllHistoricalConversationTreesRequest(clientId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in HandleGetAllHistoricalConversationTreesRequest");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
     }
 }

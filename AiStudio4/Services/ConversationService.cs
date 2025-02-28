@@ -3,6 +3,7 @@ using AiStudio4.Core.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace AiStudio4.Services
 {
@@ -49,6 +50,58 @@ namespace AiStudio4.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling historical conversation tree request");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
+
+        public async Task<string> HandleGetAllHistoricalConversationTreesRequest(string clientId)
+        {
+            try
+            {
+                // Get all conversations from storage
+                var conversations = await (_conversationStorage as FileSystemConversationStorage)?.GetAllConversations();
+                
+                if (conversations == null || !conversations.Any())
+                {
+                    return JsonConvert.SerializeObject(new { success = true, conversations = new List<object>() });
+                }
+
+                // Build tree for each conversation
+                var conversationTrees = new List<object>();
+                foreach (var conversation in conversations)
+                {
+                    try
+                    {
+                        if (conversation.MessageHierarchy?.Count > 0)
+                        {
+                            var firstMessage = conversation.MessageHierarchy.First().Children?.FirstOrDefault();
+                            var summary = firstMessage?.UserMessage ?? "Untitled Conversation";
+                            
+                            conversationTrees.Add(new
+                            {
+                                conversationId = conversation.ConversationId,
+                                summary = summary.Length > 50 ? summary.Substring(0, 50) + "..." : summary,
+                                lastModified = File.GetLastWriteTimeUtc(Path.Combine(
+                                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                                    "AiStudio4",
+                                    "conversations",
+                                    $"{conversation.ConversationId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                                treeData = _treeBuilder.BuildHistoricalConversationTree(conversation)
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error building tree for conversation {ConversationId}", conversation.ConversationId);
+                        // Continue with next conversation
+                    }
+                }
+
+                return JsonConvert.SerializeObject(new { success = true, conversations = conversationTrees });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling get all historical conversation trees request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }

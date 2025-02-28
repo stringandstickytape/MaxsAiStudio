@@ -47,7 +47,7 @@ namespace AiTool3.AiServices
             {
                 ["model"] = modelName,
                 ["system"] = conversation.systemprompt ?? "",
-                ["max_tokens"] = ApiModel == "claude-3-7-sonnet-latest" ? 65536 : 8192,
+                ["max_tokens"] = ApiModel == "claude-3-7-sonnet-latest" ? 64000 : 8192,
                 ["stream"] = useStreaming,
                 ["temperature"] = currentSettings.Temperature,
             };

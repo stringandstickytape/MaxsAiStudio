@@ -23,6 +23,7 @@ export const HistoricalConversationTreeList = () => {
     const [conversations, setConversations] = useState<HistoricalConversation[]>([]);
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const handleNewHistoricalConversation = (conversation: HistoricalConversation) => {
         setConversations(prevConversations => {
@@ -40,6 +41,47 @@ export const HistoricalConversationTreeList = () => {
     };
 
     useWebSocketMessage('historicalConversationTree', handleNewHistoricalConversation);
+
+    // Fetch all historical conversations on component mount
+    useEffect(() => {
+        const fetchAllHistoricalConversations = async () => {
+            try {
+                setIsLoading(true);
+                const response = await fetch('/api/getAllHistoricalConversationTrees', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch historical conversations');
+                }
+
+                const data = await response.json();
+                
+                if (data.success && Array.isArray(data.conversations)) {
+                    // Process and update state with the received conversations
+                    const newConversations = data.conversations.map((conv: any) => ({
+                        convGuid: conv.conversationId,
+                        summary: conv.summary || 'Untitled Conversation',
+                        fileName: `conv_${conv.conversationId}.json`,
+                        lastModified: conv.lastModified || new Date().toISOString(),
+                        highlightColour: undefined
+                    }));
+                    
+                    setConversations(newConversations);
+                }
+            } catch (error) {
+                console.error('Error fetching historical conversations:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAllHistoricalConversations();
+    }, []);
 
     // treeData state already declared above
 
@@ -71,7 +113,15 @@ export const HistoricalConversationTreeList = () => {
 
     return (
         <div className="flex flex-col space-y-2">
-            {conversations.map((conversation) => (
+            {isLoading ? (
+                <div className="p-4 text-center text-gray-400">
+                    Loading conversations...
+                </div>
+            ) : conversations.length === 0 ? (
+                <div className="p-4 text-center text-gray-400">
+                    No conversations found
+                </div>
+            ) : conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
                     className={`p-4 rounded-xl transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm ${conversation.highlightColour ? 'text-black' : 'text-white'}`}

@@ -29,8 +29,22 @@ namespace AiStudio4.InjectedDependencies
         {
             var requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
 
-            switch (requestType)
+           switch (requestType)
             {
+                case "getAllHistoricalConversationTrees":
+                    try
+                    {
+                        return await _chatManager.HandleGetAllHistoricalConversationTreesRequest(clientId, requestObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing getAllHistoricalConversationTrees request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
 
                 case "conversationmessages":
                     try
