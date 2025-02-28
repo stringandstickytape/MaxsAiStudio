@@ -17,11 +17,11 @@ namespace AiTool3.AiServices
         {
         }
         public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings);
+            InitializeHttpClient(serviceProvider, model, apiSettings);
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             var messagesArray = new JArray();
             //Add system prompt
@@ -41,7 +41,7 @@ namespace AiTool3.AiServices
 
             if (addEmbeddings)
             {
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
+                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
                 ((JObject)((JArray)requestPayload["messages"]).Last)["content"] = newInput;
             }
 
@@ -69,7 +69,7 @@ namespace AiTool3.AiServices
             return messageObj;
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
         {
             return new JObject
             {

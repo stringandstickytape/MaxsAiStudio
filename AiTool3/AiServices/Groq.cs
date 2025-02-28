@@ -23,18 +23,18 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings);
+            InitializeHttpClient(serviceProvider, model, apiSettings);
 
             // Force streaming for Groq
             useStreaming = true;
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             // Add messages to request
             var messagesArray = new JArray();
@@ -59,7 +59,7 @@ namespace AiTool3.AiServices
             if (addEmbeddings)
             {
                 var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
                 requestPayload["messages"].Last["content"] = newInput;
             }
 
@@ -71,7 +71,7 @@ namespace AiTool3.AiServices
             return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
         {
             return new JObject
             {

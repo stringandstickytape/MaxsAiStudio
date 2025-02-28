@@ -16,7 +16,7 @@ namespace AiTool3.AiServices
         {
         }
 
-        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
             client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
@@ -29,14 +29,14 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings);
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            InitializeHttpClient(serviceProvider, model, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {
@@ -54,7 +54,7 @@ namespace AiTool3.AiServices
             if (addEmbeddings)
             {
                 var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
                 ((JObject)((JArray)requestPayload["messages"]).Last)["content"] = newInput;
             }
 
@@ -69,7 +69,7 @@ namespace AiTool3.AiServices
              string modelName,
              LinearConversation conversation,
             bool useStreaming,
-             SettingsSet currentSettings)
+             ApiSettings apiSettings)
         {
             return new JObject
             {

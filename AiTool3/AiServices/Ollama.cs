@@ -22,15 +22,15 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings);
+            InitializeHttpClient(serviceProvider, model, apiSettings);
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             // Build the prompt from the conversation
             var promptBuilder = new StringBuilder();
@@ -66,7 +66,7 @@ namespace AiTool3.AiServices
             if (addEmbeddings)
             {
                 var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
                 requestPayload["prompt"] = newInput;
             }
 
@@ -80,7 +80,7 @@ namespace AiTool3.AiServices
             string modelName,
             LinearConversation conversation,
             bool useStreaming,
-            SettingsSet currentSettings)
+            ApiSettings apiSettings)
         {
             return new JObject
             {
@@ -88,7 +88,7 @@ namespace AiTool3.AiServices
                 ["stream"] = useStreaming,
                 ["options"] = new JObject
                 {
-                    ["temperature"] = currentSettings.Temperature,
+                    ["temperature"] = apiSettings.Temperature,
                     ["num_predict"] = 4096,
                 }
             };

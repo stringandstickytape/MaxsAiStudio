@@ -141,6 +141,9 @@ namespace AiTool3.Conversations
 
             await Task.Run(async () =>
             {
+                // Create ApiSettings from currentSettings
+                var apiSettings = ApiSettings.FromSettingsSet(currentSettings);
+                
                 response = await aiService!.FetchResponse(
                     service,
                    model,
@@ -148,7 +151,7 @@ namespace AiTool3.Conversations
                     _fileAttachmentManager.Base64Image!,
                     _fileAttachmentManager.Base64ImageType!,
                     cancellationToken,
-                    currentSettings,
+                    apiSettings,
                     mustNotUseEmbedding: false,
                     toolNames: toolLabels,
                     useStreaming: currentSettings.StreamResponses,

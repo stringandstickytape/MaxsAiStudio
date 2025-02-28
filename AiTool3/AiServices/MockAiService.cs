@@ -21,7 +21,7 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,

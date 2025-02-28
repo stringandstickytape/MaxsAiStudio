@@ -24,13 +24,13 @@ namespace AiTool3.AiServices
             oneOffPreFill = prefill;
         }
 
-        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
-            base.ConfigureHttpClientHeaders(currentSettings);
+            base.ConfigureHttpClientHeaders(apiSettings);
             client.DefaultRequestHeaders.Add("x-api-key", ApiKey);
             client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
 
-            if (currentSettings.UsePromptCaching)
+            if (apiSettings.UsePromptCaching)
             {
                 client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
             }
@@ -41,7 +41,7 @@ namespace AiTool3.AiServices
             }
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
         {
             var req = new JObject
             {
@@ -49,7 +49,7 @@ namespace AiTool3.AiServices
                 ["system"] = conversation.systemprompt ?? "",
                 ["max_tokens"] = ApiModel == "claude-3-7-sonnet-latest" ? 64000 : 8192,
                 ["stream"] = useStreaming,
-                ["temperature"] = currentSettings.Temperature,
+                ["temperature"] = apiSettings.Temperature,
             };
 
             var messagesArray = new JArray();
@@ -85,7 +85,7 @@ namespace AiTool3.AiServices
                     ["content"] = contentArray
                 };
 
-                if (currentSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
+                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
                 {
                     messageObject["content"][0]["cache_control"] = new JObject
                     {
@@ -118,11 +118,11 @@ namespace AiTool3.AiServices
         }
 
         public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, SettingsSet currentSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings);
+            InitializeHttpClient(serviceProvider, model, apiSettings);
 
-            var req = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var req = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             if (toolIDs?.Any() == true)
             {
@@ -131,7 +131,7 @@ namespace AiTool3.AiServices
 
             if (addEmbeddings)
             {
-                await AddEmbeddingsToRequest(req, conversation, currentSettings, mustNotUseEmbedding);
+                await AddEmbeddingsToRequest(req, conversation, apiSettings, mustNotUseEmbedding);
             }
 
             var json = JsonConvert.SerializeObject(req);
@@ -153,10 +153,10 @@ namespace AiTool3.AiServices
                 }
                 catch (NotEnoughTokensForCachingException)
                 {
-                    if (currentSettings.UsePromptCaching)
+                    if (apiSettings.UsePromptCaching)
                     {
                         json = RemoveCachingFromJson(json);
-                        currentSettings.UsePromptCaching = false;
+                        apiSettings.UsePromptCaching = false;
                         content = new StringContent(json, Encoding.UTF8, "application/json");
                     }
                     else
@@ -271,11 +271,11 @@ namespace AiTool3.AiServices
             );
         }
 
-        private async Task AddEmbeddingsToRequest(JObject req, LinearConversation conversation, SettingsSet currentSettings, bool mustNotUseEmbedding)
+        private async Task AddEmbeddingsToRequest(JObject req, LinearConversation conversation, ApiSettings apiSettings, bool mustNotUseEmbedding)
         {
             var newInput = await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
                 conversation,
-                currentSettings,
+                apiSettings,
                 conversation.messages.Last().content,
                 mustNotUseEmbedding
             );

@@ -9,7 +9,7 @@ namespace AiTool3.Embeddings
 {
     internal static class OllamaEmbeddingsHelper
     {
-        public static async Task<string> AddEmbeddingsToInput(LinearConversation conversation, SettingsSet currentSettings, string input, bool mustNotUseEmbedding)
+        public static async Task<string> AddEmbeddingsToInput(LinearConversation conversation, ApiSettings apiSettings, string input, bool mustNotUseEmbedding)
         {
             if (!mustNotUseEmbedding)
             {
@@ -20,7 +20,7 @@ namespace AiTool3.Embeddings
                 {
                     embeddingText += lbom + " ";
                 }
-                var embeddings = await GetRelatedCodeFromEmbeddings("Ollama", embeddingText, currentSettings.EmbeddingsFilename, currentSettings.EmbeddingModel);
+                var embeddings = await GetRelatedCodeFromEmbeddings("Ollama", embeddingText, apiSettings.EmbeddingsFilename, apiSettings.EmbeddingModel);
                 embeddings = embeddings.GroupBy(x => new { x.Filename, x.LineNumber }).Select(x => x.First()).ToList();
                 embeddings = embeddings.OrderBy(x => x.Filename).ToList();
 

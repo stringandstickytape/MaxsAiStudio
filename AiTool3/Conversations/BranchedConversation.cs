@@ -92,7 +92,8 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), currentSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+                var apiSettings = ApiSettings.FromSettingsSet(currentSettings);
+                var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), apiSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
                 Debug.WriteLine("Summary : " + response.ResponseText);
 
@@ -182,7 +183,9 @@ namespace AiTool3.Conversations
 
             }
 
-            var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), null, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
+            // Create ApiSettings with default values since a null value was previously passed
+            var apiSettings = new ApiSettings();
+            var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), apiSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
             var cost = apiModel.GetCost(response.TokenUsage);
 

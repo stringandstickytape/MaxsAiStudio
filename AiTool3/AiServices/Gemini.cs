@@ -25,16 +25,16 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider,model, currentSettings,300);
+            InitializeHttpClient(serviceProvider,model, apiSettings,300);
             var url = $"{ApiUrl}{ApiModel}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             // Add tools if specified
             if (toolIDs?.Any() == true)
@@ -64,7 +64,7 @@ namespace AiTool3.AiServices
             if (addEmbeddings)
                 {
                     var lastMessage = conversation.messages.Last().content;
-                    var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                    var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
                     // does the last content array thing have a text prop?
                     var lastContent = ((JArray)requestPayload["contents"]).Last;
                     if (lastContent["parts"].Last["text"] != null)
@@ -90,7 +90,7 @@ namespace AiTool3.AiServices
     string apiModel,
     LinearConversation conversation,
     bool useStreaming,
-    SettingsSet currentSettings)
+    ApiSettings apiSettings)
         {
             return new JObject
             {
@@ -124,7 +124,7 @@ namespace AiTool3.AiServices
 
 
 
-        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }

@@ -19,7 +19,7 @@ namespace AiTool3.AiServices
 
         public OpenAI() { }
 
-        protected override void ConfigureHttpClientHeaders(SettingsSet currentSettings)
+        protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         }
@@ -31,16 +31,16 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false)
         {
-            InitializeHttpClient(serviceProvider, model, currentSettings, 300);
+            InitializeHttpClient(serviceProvider, model, apiSettings, 300);
             deepseekBodge = ApiUrl.Contains("deepseek");
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, currentSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 
             // Create system message
             var systemMessage = new JObject
@@ -69,7 +69,7 @@ namespace AiTool3.AiServices
             if (addEmbeddings)
             {
                 var lastMessageContent = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, currentSettings, mustNotUseEmbedding, addEmbeddings, lastMessageContent);
+                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessageContent);
                 ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
             }
 
@@ -82,7 +82,7 @@ namespace AiTool3.AiServices
             return await HandleResponse(content, useStreaming, cancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, SettingsSet currentSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
         {
             // The supportsLogprobs flag may be extended later if desired
             var supportsLogprobs = false;

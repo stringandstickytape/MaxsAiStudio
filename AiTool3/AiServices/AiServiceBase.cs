@@ -28,7 +28,7 @@ namespace AiTool3.AiServices
         public string ApiModel { get; set; }
 
         protected virtual void InitializeHttpClient(ServiceProvider serviceProvider,
-            Model model, SettingsSet currentSettings, int timeout = 100)
+            Model model, ApiSettings apiSettings, int timeout = 100)
         {
             ApiKey = serviceProvider.ApiKey;
             ApiModel = model.ModelName;
@@ -37,14 +37,14 @@ namespace AiTool3.AiServices
 
 
             if (clientInitialised) return;
-            ConfigureHttpClientHeaders(currentSettings);
+            ConfigureHttpClientHeaders(apiSettings);
 
             client.Timeout = TimeSpan.FromSeconds(timeout);
 
             clientInitialised = true;
         }
 
-        protected virtual void ConfigureHttpClientHeaders(SettingsSet currentSettings)
+        protected virtual void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
             if (!string.IsNullOrEmpty(ApiKey))
             {
@@ -59,7 +59,7 @@ namespace AiTool3.AiServices
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
@@ -68,7 +68,7 @@ namespace AiTool3.AiServices
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
             LinearConversation conversation,
-            SettingsSet currentSettings,
+            ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             bool addEmbeddings,
             string content)
@@ -76,7 +76,7 @@ namespace AiTool3.AiServices
             if (!addEmbeddings) return content;
             return await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
                 conversation,
-                currentSettings,
+                apiSettings,
                 content,
                 mustNotUseEmbedding
             );
@@ -86,7 +86,7 @@ namespace AiTool3.AiServices
             string modelName, 
             LinearConversation conversation,
             bool useStreaming,
-            SettingsSet currentSettings)
+            ApiSettings apiSettings)
         {
             return new JObject
             {
