@@ -5,7 +5,7 @@ import ReactFlow, { Node, Edge, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface TreeViewProps {
-    onClose: () => void;
+    onClose?: () => void;
     conversationId: string;
     messages: {
         id: string;
@@ -115,18 +115,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
     }, [messages]);
 
     return (
-        <div className="fixed right-0 top-0 h-screen w-[300px] bg-[#1f2937] border-l border-gray-700 shadow-lg transform transition-transform duration-300 z-40">
-            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-                <h2 className="text-gray-100 text-lg font-semibold">Conversation Tree</h2>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-100"
-                >
-                    <ChevronLeft className="h-5 w-5" />
-                </Button>
-            </div>
+        <div className="h-[calc(100vh-70px)] w-full overflow-auto">
             <div className="h-[calc(100vh-70px)]">
                 {!messages ? (
                     <div className="text-gray-400 text-center p-4">No messages to display</div>

@@ -27,8 +27,22 @@ interface SidebarProps {
 export function Sidebar({ wsState, isPinned = false, onTogglePin, onClose }: SidebarProps) {
     return (
         <aside className="fixed left-0 top-0 z-30 flex h-screen w-80 flex-col bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 shadow-xl backdrop-blur-sm">
-            <div className="p-4 border-b border-gray-700 bg-[#1f2937] flex items-center justify-between space-x-2">
-                <div className="flex items-center space-x-2">
+            <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
+                <div className="flex space-x-2">
+                    {onTogglePin && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onTogglePin}
+                            className="text-gray-400 hover:text-gray-100"
+                        >
+                            {isPinned ? (
+                                <PinOff className="h-4 w-4" />
+                            ) : (
+                                <Pin className="h-4 w-4" />
+                            )}
+                        </Button>
+                    )}
                     {!isPinned && onClose && (
                         <Button
                             variant="ghost"
@@ -39,22 +53,8 @@ export function Sidebar({ wsState, isPinned = false, onTogglePin, onClose }: Sid
                             <X className="h-4 w-4" />
                         </Button>
                     )}
-                    <h2 className="text-gray-100 text-lg font-semibold">Conversations</h2>
                 </div>
-                {onTogglePin && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onTogglePin}
-                        className="text-gray-400 hover:text-gray-100"
-                    >
-                        {isPinned ? (
-                            <PinOff className="h-4 w-4" />
-                        ) : (
-                            <Pin className="h-4 w-4" />
-                        )}
-                    </Button>
-                )}
+                <h2 className="text-gray-100 text-lg font-semibold flex items-center">Conversations</h2>
             </div>
             <SidebarContent wsState={wsState} isPinned={isPinned} />
         </aside>

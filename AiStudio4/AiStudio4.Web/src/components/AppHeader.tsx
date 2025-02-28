@@ -20,6 +20,7 @@ interface AppHeaderProps {
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
     onOpenNewWindow: () => void;
+    headerRightOffset?: string; // Add new prop for dynamic positioning
 }
 
 export function AppHeader({
@@ -31,6 +32,7 @@ export function AppHeader({
     onToggleConversationTree,
     onToggleSettings,
     onOpenNewWindow,
+    headerRightOffset = 'right-4',
 }: AppHeaderProps) {
     return (
         <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2">
@@ -67,7 +69,7 @@ export function AppHeader({
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="absolute right-4 flex items-center space-x-2">
+            <div className={`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`}>
                 <Button
                     variant="ghost"
                     size="icon"
