@@ -9,7 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, GitBranch } from 'lucide-react';
+import { Settings, GitBranch, ExternalLink } from 'lucide-react';
 
 interface AppHeaderProps {
     isMobile: boolean;
@@ -19,6 +19,7 @@ interface AppHeaderProps {
     onModelSelect: (model: string) => void;
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
+    onOpenNewWindow: () => void;
 }
 
 export function AppHeader({
@@ -29,6 +30,7 @@ export function AppHeader({
     onModelSelect,
     onToggleConversationTree,
     onToggleSettings,
+    onOpenNewWindow,
 }: AppHeaderProps) {
     return (
         <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2">
@@ -73,6 +75,14 @@ export function AppHeader({
                     className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                     <GitBranch className="h-5 w-5" />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onOpenNewWindow}
+                    className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                    <ExternalLink className="h-5 w-5" />
                 </Button>
                 <Button
                     variant="ghost"

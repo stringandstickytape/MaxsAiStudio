@@ -29,6 +29,7 @@ function AppContent() {
     const [showConversationTree, setShowConversationTree] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showSidebar, setShowSidebar] = useState(false); // Hidden by default
+    
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     // We'll get the conversations directly from the store instead of using useSelector
 
@@ -78,6 +79,10 @@ function AppContent() {
         setShowSidebar(!showSidebar);
     };
 
+    const handleOpenNewWindow = () => {
+        window.open(window.location.href, '_blank');
+    };
+
     return (
         <Provider store={store}>
             <div className="h-screen flex flex-col overflow-hidden">
@@ -111,6 +116,7 @@ function AppContent() {
                         onModelSelect={setSelectedModel}
                         onToggleConversationTree={handleToggleConversationTree}
                         onToggleSettings={handleToggleSettings}
+                        onOpenNewWindow={handleOpenNewWindow}
                     />
                 </div>
 
