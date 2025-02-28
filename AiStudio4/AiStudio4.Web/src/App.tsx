@@ -11,47 +11,48 @@ import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/input-bar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocketState } from './hooks/useWebSocketState';
-import { useLiveStream } from '@/hooks/useLiveStream'; // Import useLiveStream
-import { ChatService } from '@/services/ChatService';
+import { useLiveStream } from '@/hooks/useLiveStream';
+import { ChatService, ModelType } from '@/services/ChatService';  // Import the updated type
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { buildMessageTree } from '@/utils/treeUtils';
 
-// Create an inner component that uses Redux hooks
+// Define a type for model settings
+interface ModelSettings {
+    primary: string;
+    secondary: string;
+}
 
+// Create an inner component that uses Redux hooks
 function AppContent() {
     const [models, setModels] = useState<string[]>([]);
-    const [selectedModel, setSelectedModel] = useState<string>("Select Model");
-    const [secondaryModel, setSecondaryModel] = useState<string>("Select Model");
+    const [modelSettings, setModelSettings] = useState<ModelSettings>({
+        primary: "Select Model",
+        secondary: "Select Model"
+    });
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const { wsState } = useWebSocketState(); // Destructure only wsState
-    const { streamTokens } = useLiveStream();   // Use the new hook
+    const { wsState } = useWebSocketState();
+    const { streamTokens } = useLiveStream();
     const [showConversationTree, setShowConversationTree] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const [showSidebar, setShowSidebar] = useState(false); // Hidden by default
-    const [sidebarPinned, setSidebarPinned] = useState(false); // Controls if sidebar is pinned
-    const [conversationTreePinned, setConversationTreePinned] = useState(false); // Controls if conversation tree is pinned
-    const [settingsPanelPinned, setSettingsPanelPinned] = useState(false); // Controls if settings panel is pinned
-    
+    const [showSidebar, setShowSidebar] = useState(false);
+    const [sidebarPinned, setSidebarPinned] = useState(false);
+    const [conversationTreePinned, setConversationTreePinned] = useState(false);
+    const [settingsPanelPinned, setSettingsPanelPinned] = useState(false);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-    // We'll get the conversations directly from the store instead of using useSelector
 
     useEffect(() => {
-       const initialize = async () => {
+        const initialize = async () => {
             try {
                 const { models: availableModels, defaultModel, secondaryModel } = await ChatService.fetchModels();
                 setModels(availableModels);
-                
-                // Set the default model if available
-                if (defaultModel && defaultModel.length > 0) {
-                    setSelectedModel(defaultModel);
-                }
-                
-                // Set the secondary model if available
-                if (secondaryModel && secondaryModel.length > 0) {
-                    setSecondaryModel(secondaryModel);
-                }
+
+                // Set both models at once using the new state structure
+                setModelSettings({
+                    primary: defaultModel && defaultModel.length > 0 ? defaultModel : "Select Model",
+                    secondary: secondaryModel && secondaryModel.length > 0 ? secondaryModel : "Select Model"
+                });
 
                 const conversationId = `conv_${Date.now()}`;
                 store.dispatch(createConversation({
@@ -70,7 +71,16 @@ function AppContent() {
         };
         initialize();
     }, []);
-    
+
+    // Unified handler for model selection
+    const handleModelSelect = (modelType: ModelType, modelName: string) => {
+        setModelSettings(prev => ({
+            ...prev,
+            [modelType]: modelName
+        }));
+        // Note: The model persistence is now handled in the ModelSelector component
+    };
+
     const handleToggleConversationTree = () => {
         if (!showConversationTree) {
             // When opening the tree, use the active conversation ID
@@ -83,34 +93,34 @@ function AppContent() {
         // Close settings if opening conversation tree and it's not pinned
         if (!showConversationTree && !settingsPanelPinned) setShowSettings(false);
     };
-    
+
     // Subscribe to Redux store to update the conversation tree when messages change
     useEffect(() => {
         let lastMessagesLength = 0;
         let lastActiveConversation = '';
-        
+
         const unsubscribe = store.subscribe(() => {
             const state = store.getState();
             const activeConversationId = state.conversations.activeConversationId;
-            
+
             if (!activeConversationId || !selectedConversationId) return;
-            
+
             // Get current conversation messages
             const conversation = state.conversations.conversations[activeConversationId];
             if (!conversation) return;
-            
+
             const currentMessagesLength = conversation.messages.length;
-            
+
             // Only refresh when message count changes or active conversation changes
-            if (currentMessagesLength !== lastMessagesLength || 
+            if (currentMessagesLength !== lastMessagesLength ||
                 activeConversationId !== lastActiveConversation) {
-                
+
                 console.log('Redux store updated - conversation messages changed:', {
                     oldCount: lastMessagesLength,
                     newCount: currentMessagesLength,
                     activeConversationId
                 });
-                
+
                 // Force a refresh of the tree view by briefly setting to null and back
                 if (showConversationTree || conversationTreePinned) {
                     setSelectedConversationId(null);
@@ -118,16 +128,16 @@ function AppContent() {
                         setSelectedConversationId(activeConversationId);
                     }, 50);
                 }
-                
+
                 // Update tracking variables
                 lastMessagesLength = currentMessagesLength;
                 lastActiveConversation = activeConversationId;
             }
         });
-        
+
         return () => unsubscribe();
     }, [showConversationTree, conversationTreePinned, selectedConversationId]);
-    
+
     const handleToggleSettings = () => {
         setShowSettings(!showSettings);
         // Close conversation tree if opening settings and it's not pinned
@@ -157,11 +167,11 @@ function AppContent() {
                 )}>
                     {/* Close button moved to Sidebar component */}
                     <div className="mt-2">
-                        <Sidebar 
-                            wsState={wsState} 
-                            isPinned={sidebarPinned} 
+                        <Sidebar
+                            wsState={wsState}
+                            isPinned={sidebarPinned}
                             onTogglePin={() => setSidebarPinned(!sidebarPinned)}
-                            onClose={handleToggleSidebar} 
+                            onClose={handleToggleSidebar}
                         />
                     </div>
                 </div>
@@ -170,12 +180,12 @@ function AppContent() {
                 <div className="flex-none w-full bg-background border-b">
                     <AppHeader
                         isMobile={isMobile}
-                        selectedModel={selectedModel}
-                        secondaryModel={secondaryModel}
+                        selectedModel={modelSettings.primary}
+                        secondaryModel={modelSettings.secondary}
                         models={models}
                         onToggleSidebar={handleToggleSidebar}
-                        onModelSelect={setSelectedModel}
-                        onSecondaryModelSelect={setSecondaryModel}
+                        onModelSelect={(model) => handleModelSelect('primary', model)}
+                        onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
                         onToggleConversationTree={handleToggleConversationTree}
                         onToggleSettings={handleToggleSettings}
                         onOpenNewWindow={handleOpenNewWindow}
@@ -185,17 +195,17 @@ function AppContent() {
                 {/* Middle dynamic height pane */}
                 <div className="flex-1 overflow-auto">
                     <ChatContainer
-                        streamTokens={streamTokens} 
+                        streamTokens={streamTokens}
                         isMobile={isMobile}
                     />
                 </div>
 
                 {/* Bottom fixed pane */}
                 <div className="flex-none w-full bg-background border-t">
-                    <InputBar selectedModel={selectedModel} />
+                    <InputBar selectedModel={modelSettings.primary} />
                 </div>
             </div>
-            
+
             {/* Right-side slideovers with smooth transitions */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-30 transition-transform duration-300",
@@ -243,7 +253,7 @@ function AppContent() {
                     </>
                 )}
             </div>
-            
+
             {/* Settings panel with higher z-index so it appears on top */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-40 transition-transform duration-300",
@@ -278,7 +288,7 @@ function AppContent() {
                             </div>
                             <h2 className="text-gray-100 text-lg font-semibold flex items-center">Settings</h2>
                         </div>
-                        <SettingsPanel 
+                        <SettingsPanel
                             isOpen={showSettings || settingsPanelPinned}
                             isPinned={settingsPanelPinned}
                             onClose={!settingsPanelPinned ? handleToggleSettings : undefined}
@@ -292,11 +302,11 @@ function AppContent() {
 
 // Wrapper component that provides the Redux store
 function App() {
-  return (
-    <Provider store={store}>
-      <AppContent />
-    </Provider>
-  );
+    return (
+        <Provider store={store}>
+            <AppContent />
+        </Provider>
+    );
 }
 
 export default App;

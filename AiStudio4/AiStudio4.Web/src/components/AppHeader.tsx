@@ -1,16 +1,7 @@
-
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, Settings, GitBranch, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { createConversation } from '@/store/conversationSlice';
-import { store } from '@/store/store';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Settings, GitBranch, ExternalLink } from 'lucide-react';
+import { ModelSelector } from '@/components/ModelSelector'; // Import the new component
 
 interface AppHeaderProps {
     isMobile: boolean;
@@ -52,69 +43,23 @@ export function AppHeader({
                 </Button>
             </div>
             <div className="flex-1 flex justify-center gap-4">
-                {/* Primary AI Model Dropdown */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                            {selectedModel === "Select Model" ? "Primary AI: Select Model" : `Primary AI: ${selectedModel}`}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#1f2937] border-gray-700 text-gray-100 max-h-[300px] overflow-y-auto">
-                        {models.length > 0 ? (
-                            models.map((model, index) => (
-                                <DropdownMenuItem className="hover:bg-[#374151] focus:bg-[#374151] cursor-pointer"
-                                    key={index}
-                                    onSelect={() => {
-                                        onModelSelect(model);
-                                        // Save the selected model as default
-                                        import('@/services/ChatService').then(({ ChatService }) => {
-                                            ChatService.saveDefaultModel(model).catch(err => 
-                                                console.error('Failed to save default model:', err));
-                                        });
-                                    }}
-                                >
-                                    {model}
-                                </DropdownMenuItem>
-                            ))
-                        ) : (
-                            <DropdownMenuItem disabled className="text-gray-500">
-                                No models available
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {/* Secondary AI Model Dropdown */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                            {secondaryModel === "Select Model" ? "Secondary AI: Select Model" : `Secondary AI: ${secondaryModel}`}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#1f2937] border-gray-700 text-gray-100 max-h-[300px] overflow-y-auto">
-                        {models.length > 0 ? (
-                            models.map((model, index) => (
-                                <DropdownMenuItem className="hover:bg-[#374151] focus:bg-[#374151] cursor-pointer"
-                                    key={index}
-                                    onSelect={() => {
-                                        onSecondaryModelSelect(model);
-                                        // Save the selected secondary model as default
-                                        import('@/services/ChatService').then(({ ChatService }) => {
-                                            ChatService.saveSecondaryModel(model).catch(err => 
-                                                console.error('Failed to save secondary model:', err));
-                                        });
-                                    }}
-                                >
-                                    {model}
-                                </DropdownMenuItem>
-                            ))
-                        ) : (
-                            <DropdownMenuItem disabled className="text-gray-500">
-                                No models available
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Primary AI Model Selector */}
+                <ModelSelector
+                    label="Primary AI"
+                    selectedModel={selectedModel}
+                    models={models}
+                    modelType="primary"
+                    onModelSelect={onModelSelect}
+                />
+
+                {/* Secondary AI Model Selector */}
+                <ModelSelector
+                    label="Secondary AI"
+                    selectedModel={secondaryModel}
+                    models={models}
+                    modelType="secondary"
+                    onModelSelect={onSecondaryModelSelect}
+                />
             </div>
             <div className={`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`}>
                 <Button
