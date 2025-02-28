@@ -21,6 +21,7 @@ interface TreeViewProps {
 
 import { store } from '@/store/store';
 import { setActiveConversation } from '@/store/conversationSlice';
+import { cn } from '@/lib/utils';
 
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, conversationId, messages }) => {
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
@@ -54,24 +55,37 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                 totalNodesAtLevel.set(level, nodeIndex + 1);
 
                 // Calculate position
-                const xSpacing = 250; // Horizontal spacing between nodes
-                const ySpacing = 100; // Vertical spacing between levels
+                const xSpacing = 280; // Horizontal spacing between nodes
+                const ySpacing = 150; // Increased vertical spacing between levels for top/bottom connections
                 const x = nodeIndex * xSpacing;
                 const y = level * ySpacing;
 
+                // Determine if this is a user or AI message based on position in tree
+                const isUserMessage = level % 2 === 0;
+                
                 const currentNode: Node = {
                     id: node.id,
                     position: { x, y },
-                    data: { label: node.text?.substring(0, 20) + (node.text?.length > 20 ? '...' : '') },
+                    data: { 
+                        label: (
+                            <div className="flex flex-col gap-1">
+                                <div className="text-xs font-semibold">{isUserMessage ? 'You' : 'AI'}</div>
+                                <div>{node.text?.substring(0, 30) + (node.text?.length > 30 ? '...' : '')}</div>
+                            </div>
+                        ) 
+                    },
                     style: {
-                        background: '#3b82f6',
+                        background: isUserMessage ? '#1e40af' : '#4f46e5',
                         color: '#ffffff',
-                        border: '1px solid #2563eb',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        width: 'auto',
-                        minWidth: '150px',
-                    }
+                        border: isUserMessage ? '1px solid #1e3a8a' : '1px solid #4338ca',
+                        borderRadius: '10px',
+                        padding: '12px',
+                        width: '180px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        fontSize: '0.9rem',
+                    },
+                    sourcePosition: Position.Bottom,
+                    targetPosition: Position.Top
                 };
 
                 let nodes: Node[] = [currentNode];
@@ -83,7 +97,8 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                         source: parentId,
                         target: node.id,
                         type: 'smoothstep',
-                        style: { stroke: '#4b5563' }
+                        animated: true,
+                        style: { stroke: '#6b7280', strokeWidth: 2 }
                     });
                 }
 
@@ -120,22 +135,47 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
     }, [messages]);
 
     return (
-        <div className="h-[calc(100vh-70px)] w-full overflow-auto">
-            <div className="h-[calc(100vh-70px)]">
+        <div className="flex flex-col h-[calc(100vh-70px)] w-full">
+            <div className="flex items-center justify-between bg-gray-800 p-3 border-b border-gray-700">
+                <h2 className="text-lg font-semibold text-white">Conversation Tree</h2>
+                {onClose && (
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={onClose}
+                        className="hover:bg-gray-700"
+                    >
+                        <ChevronLeft className="h-5 w-5" />
+                        <span className="ml-1">Back</span>
+                    </Button>
+                )}
+            </div>
+            
+            <div className={cn(
+                "flex-1 overflow-hidden",
+                !messages && "flex items-center justify-center"
+            )}>
                 {!messages ? (
-                    <div className="text-gray-400 text-center p-4">No messages to display</div>
+                    <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
+                        <p>No conversation history to display</p>
+                        <p className="text-sm mt-2 text-gray-500">Start a new conversation to see the tree view</p>
+                    </div>
                 ) : (
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            fitView
-                            className="bg-[#1f2937]"
-                            minZoom={0.1}
-                            maxZoom={1.5}
-                            defaultZoom={0.8}
-                            attributionPosition="bottom-left"
-                            onNodeClick={onNodeClick}
-                        />
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        fitView
+                        className="bg-[#111827]"
+                        minZoom={0.1}
+                        maxZoom={1.5}
+                        defaultZoom={0.8}
+                        attributionPosition="bottom-left"
+                        onNodeClick={onNodeClick}
+                        nodesDraggable={true}
+                        zoomOnScroll={true}
+                        panOnScroll={true}
+                        panOnDrag={true}
+                    />
                 )}
             </div>
         </div>

@@ -6,6 +6,7 @@ using AiTool3.Conversations;
 using Newtonsoft.Json;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace AiStudio4.Services
 {
@@ -73,21 +74,27 @@ namespace AiStudio4.Services
 
         public async Task<IEnumerable<v4BranchedConversation>> GetAllConversations()
         {
-            var conversations = new List<v4BranchedConversation>();
+            var conversationsWithDates = new List<(v4BranchedConversation Conversation, DateTime FileDate)>();
             foreach (var file in Directory.GetFiles(_basePath, "*.json"))
             {
                 try
                 {
+                    var fileInfo = new FileInfo(file);
                     var json = await File.ReadAllTextAsync(file);
                     var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json);
-                    if (conversation != null) conversations.Add(conversation);
+                    if (conversation != null)
+                        conversationsWithDates.Add((conversation, fileInfo.CreationTime));
                 }
                 catch (Exception ex)
                 {
                     // Log error and continue
                 }
             }
-            return conversations;
+
+            // Order by file creation date in descending order (newest first)
+            return conversationsWithDates
+                .OrderByDescending(x => x.FileDate)
+                .Select(x => x.Conversation);
         }
 
         public async Task<v4BranchedConversation> FindConversationByMessageId(string messageId)
