@@ -29,6 +29,7 @@ function AppContent() {
     const [showConversationTree, setShowConversationTree] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showSidebar, setShowSidebar] = useState(false); // Hidden by default
+    const [sidebarPinned, setSidebarPinned] = useState(false); // Controls if sidebar is pinned
     
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     // We'll get the conversations directly from the store instead of using useSelector
@@ -85,24 +86,23 @@ function AppContent() {
 
     return (
         <Provider store={store}>
-            <div className="h-screen flex flex-col overflow-hidden">
+            <div className={cn(
+                "h-screen flex flex-col overflow-hidden",
+                sidebarPinned && "pl-80" // Add left padding when sidebar is pinned
+            )}>
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
-                    "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-40 transition-transform duration-300",
-                    showSidebar ? "translate-x-0" : "-translate-x-full"
+                    "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-40 transition-all duration-300",
+                    (showSidebar || sidebarPinned) ? "translate-x-0" : "-translate-x-full"
                 )}>
-                    <div className="flex justify-end p-3">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={handleToggleSidebar}
-                            className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg z-50"
-                        >
-                            <X className="h-5 w-5" />
-                        </Button>
-                    </div>
+                    {/* Close button moved to Sidebar component */}
                     <div className="mt-2">
-                        <Sidebar wsState={wsState} />
+                        <Sidebar 
+                            wsState={wsState} 
+                            isPinned={sidebarPinned} 
+                            onTogglePin={() => setSidebarPinned(!sidebarPinned)}
+                            onClose={handleToggleSidebar} 
+                        />
                     </div>
                 </div>
 

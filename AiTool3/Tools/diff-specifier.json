@@ -2,7 +2,7 @@
 // newdiff.json
 {
 	"name": "DiffChange11",
-	"description": "Specifies an array of changes to make up a complete diff, and includes a description of those changes.",
+	"description": "Specifies an array of changes to make up a complete diff, and includes a description of those changes.  You must NEVER double-escape content in this diff.",
 	"input_schema": {
 		"type": "object",
 		"properties": {

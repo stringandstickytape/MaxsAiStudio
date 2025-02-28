@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { MessageSquare, Menu, FolderOpen, Plus, GitBranch } from 'lucide-react';
+import { MessageSquare, Menu, FolderOpen, Plus, GitBranch, Pin, PinOff, X } from 'lucide-react';
 import { ConversationTreeView } from './ConversationTreeView';
 import { useState } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -18,23 +18,52 @@ import { buildMessageTree } from '@/utils/treeUtils';
 
 interface SidebarProps {
     wsState: WebSocketState;
+    isPinned?: boolean;
+    onTogglePin?: () => void;
+    onClose?: () => void;
 }
 
 
-export function Sidebar({ wsState }: SidebarProps) {
+export function Sidebar({ wsState, isPinned = false, onTogglePin, onClose }: SidebarProps) {
     return (
         <aside className="fixed left-0 top-0 z-30 flex h-screen w-80 flex-col bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 shadow-xl backdrop-blur-sm">
-            <div className="p-4 border-b border-gray-700 bg-[#1f2937] flex items-center justify-between">
-                <h2 className="text-gray-100 text-lg font-semibold">Conversations</h2>
+            <div className="p-4 border-b border-gray-700 bg-[#1f2937] flex items-center justify-between space-x-2">
+                <div className="flex items-center space-x-2">
+                    {!isPinned && onClose && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-100"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    )}
+                    <h2 className="text-gray-100 text-lg font-semibold">Conversations</h2>
+                </div>
+                {onTogglePin && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onTogglePin}
+                        className="text-gray-400 hover:text-gray-100"
+                    >
+                        {isPinned ? (
+                            <PinOff className="h-4 w-4" />
+                        ) : (
+                            <Pin className="h-4 w-4" />
+                        )}
+                    </Button>
+                )}
             </div>
-            <SidebarContent wsState={wsState} />
+            <SidebarContent wsState={wsState} isPinned={isPinned} />
         </aside>
     );
 }
 
 
 
-function SidebarContent({ wsState }: { wsState: WebSocketState }) {
+function SidebarContent({ wsState, isPinned }: { wsState: WebSocketState, isPinned?: boolean }) {
 
     const state = store.getState();
     const conversations = state.conversations.conversations;
