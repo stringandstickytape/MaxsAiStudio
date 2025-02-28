@@ -31,8 +31,6 @@ namespace AiStudio4.InjectedDependencies
 
             switch (requestType)
             {
-                case "getAllConversations":
-                    return await _chatManager.HandleGetAllConversationsRequest(clientId);
 
                 case "conversationmessages":
                     try

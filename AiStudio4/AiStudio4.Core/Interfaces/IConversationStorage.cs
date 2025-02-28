@@ -7,7 +7,6 @@ namespace AiStudio4.Core.Interfaces
     {
         Task<v4BranchedConversation> LoadConversation(string conversationId);
         Task SaveConversation(v4BranchedConversation conversation);
-        Task<IEnumerable<v4BranchedConversation>> GetAllConversations();
         Task<v4BranchedConversation> FindConversationByMessageId(string messageId);
     }
 }

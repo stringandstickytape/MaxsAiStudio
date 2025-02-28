@@ -14,12 +14,4 @@ namespace AiStudio4.Core.Models
         public string MessageType { get; set; }
         public string Content { get; set; }
     }
-
-    public class ConversationListDto
-    {
-        public string ConversationId { get; set; }
-        public string Summary { get; set; }
-        public string LastModified { get; set; }
-        public dynamic TreeData { get; set; }
-    }
 }

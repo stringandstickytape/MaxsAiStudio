@@ -24,19 +24,6 @@ namespace AiStudio4.InjectedDependencies
             _logger = logger;
         }
 
-        public async Task<string> HandleGetAllConversationsRequest(string clientId)
-        {
-            try
-            {
-                return await _conversationService.HandleGetAllConversationsRequest(clientId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in HandleGetAllConversationsRequest");
-                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
-            }
-        }
-
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
             try

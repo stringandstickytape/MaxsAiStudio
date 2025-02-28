@@ -162,15 +162,6 @@ class WebSocketManager {
         console.log('WebSocket Connected');
         this.connected = true;
         eventBus.emit('connectionStatus', { isConnected: true, clientId: this.config.clientId });
-
-        //Move fetch here
-        fetch('/api/getAllConversations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': this.config.clientId || '' //Handle null or undefined
-            }
-        });
     }
 
     private handleMessage = (event: MessageEvent) => {

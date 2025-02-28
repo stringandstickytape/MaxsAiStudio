@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using AiStudio4.InjectedDependencies;
 
-namespace AiStudio4.Controls
+namespace AiStudio4
 {
     public class AiStudioWebView2 : WebView2
     {

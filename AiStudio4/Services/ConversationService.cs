@@ -25,33 +25,7 @@ namespace AiStudio4.Services
             _logger = logger;
         }
 
-        public async Task<string> HandleGetAllConversationsRequest(string clientId)
-        {
-            try
-            {
-                var conversations = await _conversationStorage.GetAllConversations();
 
-                foreach (var conversation in conversations.Where(c => c.MessageHierarchy.Any()))
-                {
-                    var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
-                    
-                    await _notificationService.NotifyConversationList(clientId, new ConversationListDto
-                    {
-                        ConversationId = conversation.ConversationId,
-                        Summary = conversation.MessageHierarchy.First().Children[0].UserMessage,
-                        LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        TreeData = tree
-                    });
-                }
-
-                return JsonConvert.SerializeObject(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error handling get all conversations request");
-                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
-            }
-        }
 
         public async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject requestObject)
         {
