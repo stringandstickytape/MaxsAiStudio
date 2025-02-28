@@ -97,7 +97,8 @@ namespace AiStudio4.InjectedDependencies
                         {
                             success = true,
                             models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
-                            defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? ""
+                            defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? "",
+                            secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel ?? ""
                         });
                     }
                     catch (Exception ex)
@@ -133,6 +134,36 @@ namespace AiStudio4.InjectedDependencies
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($@"Error processing setDefaultModel request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "setSecondaryModel":
+                    try
+                    {
+                        var modelName = requestObject["modelName"]?.ToString();
+                        if (string.IsNullOrEmpty(modelName))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Model name cannot be empty"
+                            });
+                        }
+                        
+                        _settingsManager.UpdateSecondaryModel(modelName);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($@"Error processing setSecondaryModel request: {ex.Message}");
                         return JsonConvert.SerializeObject(new
                         {
                             success = false,

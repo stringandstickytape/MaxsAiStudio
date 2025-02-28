@@ -80,7 +80,8 @@ export class ChatService {
 
         return { 
             models: data.models,
-            defaultModel: data.defaultModel || ""
+            defaultModel: data.defaultModel || "",
+            secondaryModel: data.secondaryModel || ""
         };
     }
     
@@ -91,6 +92,31 @@ export class ChatService {
         }
         
         const response = await fetch('/api/setDefaultModel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Client-Id': clientId,
+            },
+            body: JSON.stringify({
+                clientId,
+                modelName
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+    
+    static async saveSecondaryModel(modelName: string) {
+        const clientId = wsManager.getClientId();
+        if (!clientId) {
+            throw new Error('Client ID not found');
+        }
+        
+        const response = await fetch('/api/setSecondaryModel', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

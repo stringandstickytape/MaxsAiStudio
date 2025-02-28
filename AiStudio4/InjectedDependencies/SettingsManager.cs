@@ -111,5 +111,22 @@ namespace AiStudio4.InjectedDependencies
                 
             SaveDefaultSettings(defaultSettingsPath);
         }
+
+        public void UpdateSecondaryModel(string modelName)
+        {
+            if (_defaultSettings == null)
+            {
+                _defaultSettings = new DefaultSettings();
+            }
+            
+            _defaultSettings.SecondaryModel = modelName;
+            
+            string defaultSettingsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "defaultSettings.json");
+                
+            SaveDefaultSettings(defaultSettingsPath);
+        }
     }
 }

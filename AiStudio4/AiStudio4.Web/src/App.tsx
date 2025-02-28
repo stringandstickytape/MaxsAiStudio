@@ -23,6 +23,7 @@ import { buildMessageTree } from '@/utils/treeUtils';
 function AppContent() {
     const [models, setModels] = useState<string[]>([]);
     const [selectedModel, setSelectedModel] = useState<string>("Select Model");
+    const [secondaryModel, setSecondaryModel] = useState<string>("Select Model");
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { wsState } = useWebSocketState(); // Destructure only wsState
     const { streamTokens } = useLiveStream();   // Use the new hook
@@ -39,12 +40,17 @@ function AppContent() {
     useEffect(() => {
        const initialize = async () => {
             try {
-                const { models: availableModels, defaultModel } = await ChatService.fetchModels();
+                const { models: availableModels, defaultModel, secondaryModel } = await ChatService.fetchModels();
                 setModels(availableModels);
                 
                 // Set the default model if available
                 if (defaultModel && defaultModel.length > 0) {
                     setSelectedModel(defaultModel);
+                }
+                
+                // Set the secondary model if available
+                if (secondaryModel && secondaryModel.length > 0) {
+                    setSecondaryModel(secondaryModel);
                 }
 
                 const conversationId = `conv_${Date.now()}`;
@@ -165,9 +171,11 @@ function AppContent() {
                     <AppHeader
                         isMobile={isMobile}
                         selectedModel={selectedModel}
+                        secondaryModel={secondaryModel}
                         models={models}
                         onToggleSidebar={handleToggleSidebar}
                         onModelSelect={setSelectedModel}
+                        onSecondaryModelSelect={setSecondaryModel}
                         onToggleConversationTree={handleToggleConversationTree}
                         onToggleSettings={handleToggleSettings}
                         onOpenNewWindow={handleOpenNewWindow}
