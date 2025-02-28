@@ -35,7 +35,7 @@ namespace AiTool3.AiServices
                 client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
             }
             
-            if (ApiModel == "claude-3.7-sonnet-latest")
+            if (ApiModel == "claude-3-7-sonnet-latest")
             {
                 client.DefaultRequestHeaders.Add("anthropic-beta", "output-128k-2025-02-19");
             }
