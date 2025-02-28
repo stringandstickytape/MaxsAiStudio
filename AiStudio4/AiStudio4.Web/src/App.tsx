@@ -66,11 +66,56 @@ function AppContent() {
             const state = store.getState();
             const activeConversationId = state.conversations.activeConversationId;
             setSelectedConversationId(activeConversationId);
+            console.log('Opening conversation tree with conversation ID:', activeConversationId);
         }
         setShowConversationTree(!showConversationTree);
         // Close settings if opening conversation tree and it's not pinned
         if (!showConversationTree && !settingsPanelPinned) setShowSettings(false);
     };
+    
+    // Subscribe to Redux store to update the conversation tree when messages change
+    useEffect(() => {
+        let lastMessagesLength = 0;
+        let lastActiveConversation = '';
+        
+        const unsubscribe = store.subscribe(() => {
+            const state = store.getState();
+            const activeConversationId = state.conversations.activeConversationId;
+            
+            if (!activeConversationId || !selectedConversationId) return;
+            
+            // Get current conversation messages
+            const conversation = state.conversations.conversations[activeConversationId];
+            if (!conversation) return;
+            
+            const currentMessagesLength = conversation.messages.length;
+            
+            // Only refresh when message count changes or active conversation changes
+            if (currentMessagesLength !== lastMessagesLength || 
+                activeConversationId !== lastActiveConversation) {
+                
+                console.log('Redux store updated - conversation messages changed:', {
+                    oldCount: lastMessagesLength,
+                    newCount: currentMessagesLength,
+                    activeConversationId
+                });
+                
+                // Force a refresh of the tree view by briefly setting to null and back
+                if (showConversationTree || conversationTreePinned) {
+                    setSelectedConversationId(null);
+                    setTimeout(() => {
+                        setSelectedConversationId(activeConversationId);
+                    }, 50);
+                }
+                
+                // Update tracking variables
+                lastMessagesLength = currentMessagesLength;
+                lastActiveConversation = activeConversationId;
+            }
+        });
+        
+        return () => unsubscribe();
+    }, [showConversationTree, conversationTreePinned, selectedConversationId]);
     
     const handleToggleSettings = () => {
         setShowSettings(!showSettings);
@@ -173,13 +218,14 @@ function AppContent() {
                             <h2 className="text-gray-100 text-lg font-semibold flex items-center">Conversation Tree</h2>
                         </div>
                         <ConversationTreeView
+                            key={`tree-${selectedConversationId}-${Date.now()}`} // Force re-render when id changes or is refreshed
                             conversationId={selectedConversationId}
                             isPinned={conversationTreePinned}
                             messages={{
-                            id: selectedConversationId,
-                            text: "Root",
-                            children: buildMessageTree(store.getState().conversations.conversations[selectedConversationId]?.messages || [], false)
-                        }}
+                                id: selectedConversationId,
+                                text: "Root",
+                                children: buildMessageTree(store.getState().conversations.conversations[selectedConversationId]?.messages || [], false)
+                            }}
                         />
                     </>
                 )}
