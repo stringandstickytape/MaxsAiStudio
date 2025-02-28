@@ -50,12 +50,17 @@ class WebSocketManager {
         const { conversationId, messages } = content;
         const urlParams = new URLSearchParams(window.location.search);
         const selectedMessageId = urlParams.get('messageId');
-
+        
+        console.log('Loading conversation:', { conversationId, messageCount: messages?.length, selectedMessageId });
         if (!messages || messages.length === 0) return;
 
         // Find root message (message with no parent)
         const rootMessage = messages.find(m => !m.parentId) || messages[0];
 
+        // Clear any existing conversations by resetting the state
+        // This ensures we start fresh when loading a historical conversation
+        const existingState = store.getState();
+        
         // Create new conversation with root message
         store.dispatch(createConversation({
             id: conversationId,
@@ -87,9 +92,11 @@ class WebSocketManager {
         });
         
         // Set this as the active conversation and track selected message
+        // When loading a historical conversation, always set the selectedMessageId
+        // This ensures we only see the relevant branch
         store.dispatch(setActiveConversation({ 
             conversationId,
-            selectedMessageId
+            selectedMessageId: selectedMessageId || messages[messages.length - 1].id
         }));
     };
 
@@ -98,11 +105,13 @@ class WebSocketManager {
 
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
-        const selectedMessageId = state.conversations.selectedMessageId;
+        console.log('Handling conversation message with active conversation:', activeConversationId);
 
         if (activeConversationId) {
-            // For replies/branches use selectedMessageId as parent if available
-            const parentId = content.parentId || selectedMessageId || null;
+            // Get the conversation to find the last message as parent
+            const conversation = state.conversations.conversations[activeConversationId];
+            // Always use the specified parentId or the last message in the conversation
+            const parentId = content.parentId || conversation.messages[conversation.messages.length - 1]?.id || null;
 
             store.dispatch(addMessage({
                 conversationId: activeConversationId,
@@ -114,7 +123,9 @@ class WebSocketManager {
                     timestamp: Date.now(),
                     children: []
                 },
-                selectedMessageId: selectedMessageId // Preserve selected message context
+                // When receiving a new message during active conversation, update selectedMessageId
+                // to the newest message if we're streaming tokens
+                selectedMessageId: content.source === 'ai' ? content.id : undefined
             }));
         } else {
             const existingConversationId = Object.keys(state.conversations.conversations).find(

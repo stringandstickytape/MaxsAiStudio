@@ -20,7 +20,7 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task HandleFileRequest(HttpContext context)
         {
-            if (true)
+            if (DevMode)
             {
                 await ForwardToDevServer(context);
             }

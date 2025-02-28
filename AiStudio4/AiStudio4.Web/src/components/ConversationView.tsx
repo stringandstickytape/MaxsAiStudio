@@ -22,12 +22,20 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
         const conversation = conversations[activeConversationId];
         if (!conversation || !conversation.messages.length) return [];
 
-        // If we're actively streaming (have stream tokens), always show latest message chain
-        // Otherwise use selected message if one exists
+        // If we're actively streaming (generating new messages), always use the most recent message
+        // Otherwise, if we have a selected message ID, use that as the starting point for the message chain
         const startingMessageId = streamTokens.length > 0 ? 
-            conversation.messages[conversation.messages.length - 1].id :
+            conversation.messages[conversation.messages.length - 1].id : 
             (activeMessageId || conversation.messages[conversation.messages.length - 1].id);
-        
+            
+        console.log('Building message chain:', {
+            conversationId: activeConversationId,
+            startingMessageId,
+            activeMessageId,
+            messageCount: conversation.messages.length,
+            streamTokensLength: streamTokens.length
+        });
+
         const chain: Message[] = [];
         let currentId = startingMessageId;
 

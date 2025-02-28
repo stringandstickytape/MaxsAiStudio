@@ -63,14 +63,15 @@ const conversationSlice = createSlice({
                 state.selectedMessageId = selectedMessageId;
             }
         },
-        createConversation(state, action: PayloadAction<{ id: string, rootMessage: Message }>) {
-            const { id, rootMessage } = action.payload;
+        createConversation(state, action: PayloadAction<{ id: string, rootMessage: Message, selectedMessageId?: string }>) {
+            const { id, rootMessage, selectedMessageId } = action.payload;
             
             console.log('Creating new conversation:', {
                 conversationId: id,
                 rootMessageId: rootMessage.id,
                 rootMessageContent: rootMessage.content,
-                existingConversations: Object.keys(state.conversations)
+                existingConversations: Object.keys(state.conversations),
+                selectedMessageId
             });
 
             state.conversations[id] = {
@@ -78,6 +79,9 @@ const conversationSlice = createSlice({
                 messages: [rootMessage]
             };
             state.activeConversationId = id;
+            
+            // Set selected message ID if provided, otherwise use root message ID
+            state.selectedMessageId = selectedMessageId || rootMessage.id;
         },
         setActiveConversation(state, action: PayloadAction<{ conversationId: string; selectedMessageId?: string | null }>) {
             const { conversationId, selectedMessageId } = action.payload;

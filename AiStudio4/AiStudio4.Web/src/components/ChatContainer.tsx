@@ -29,7 +29,7 @@ export function ChatContainer({
     return (
         <div
             ref={messagesEndRef}
-            className="flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth ml-80"
+            className="flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth"
         >
             <ConversationView streamTokens={streamTokens} /> {/* Pass streamTokens */}
         </div>
