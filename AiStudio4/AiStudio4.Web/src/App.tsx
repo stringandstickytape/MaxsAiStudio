@@ -3,7 +3,7 @@ import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
-import { X } from 'lucide-react';
+import { X, Pin, PinOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
@@ -30,6 +30,8 @@ function AppContent() {
     const [showSettings, setShowSettings] = useState(false);
     const [showSidebar, setShowSidebar] = useState(false); // Hidden by default
     const [sidebarPinned, setSidebarPinned] = useState(false); // Controls if sidebar is pinned
+    const [conversationTreePinned, setConversationTreePinned] = useState(false); // Controls if conversation tree is pinned
+    const [settingsPanelPinned, setSettingsPanelPinned] = useState(false); // Controls if settings panel is pinned
     
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     // We'll get the conversations directly from the store instead of using useSelector
@@ -66,14 +68,14 @@ function AppContent() {
             setSelectedConversationId(activeConversationId);
         }
         setShowConversationTree(!showConversationTree);
-        // Close settings if opening conversation tree
-        if (!showConversationTree) setShowSettings(false);
+        // Close settings if opening conversation tree and it's not pinned
+        if (!showConversationTree && !settingsPanelPinned) setShowSettings(false);
     };
     
     const handleToggleSettings = () => {
         setShowSettings(!showSettings);
-        // Close conversation tree if opening settings
-        if (!showSettings) setShowConversationTree(false);
+        // Close conversation tree if opening settings and it's not pinned
+        if (!showSettings && !conversationTreePinned) setShowConversationTree(false);
     };
 
     const handleToggleSidebar = () => {
@@ -88,7 +90,9 @@ function AppContent() {
         <Provider store={store}>
             <div className={cn(
                 "h-screen flex flex-col overflow-hidden",
-                sidebarPinned && "pl-80" // Add left padding when sidebar is pinned
+                sidebarPinned && "pl-80", // Add left padding when sidebar is pinned
+                conversationTreePinned && "pr-80", // Add right padding when conversation tree is pinned
+                settingsPanelPinned && "pr-80" // Add right padding when settings panel is pinned
             )}>
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
@@ -137,22 +141,40 @@ function AppContent() {
             {/* Right-side slideovers with smooth transitions */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-30 transition-transform duration-300",
-                showConversationTree && selectedConversationId ? "translate-x-0" : "translate-x-full"
+                (showConversationTree && selectedConversationId) || conversationTreePinned ? "translate-x-0" : "translate-x-full"
             )}>
-                {showConversationTree && selectedConversationId && (
+                {(showConversationTree && selectedConversationId || conversationTreePinned) && (
                     <>
-                        <div className="flex justify-end p-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleToggleConversationTree}
-                                className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg z-50"
-                            >
-                                <X className="h-5 w-5" />
-                            </Button>
+                        <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
+                            <div className="flex space-x-2">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setConversationTreePinned(!conversationTreePinned)}
+                                    className="text-gray-400 hover:text-gray-100"
+                                >
+                                    {conversationTreePinned ? (
+                                        <PinOff className="h-4 w-4" />
+                                    ) : (
+                                        <Pin className="h-4 w-4" />
+                                    )}
+                                </Button>
+                                {!conversationTreePinned && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleToggleConversationTree}
+                                        className="text-gray-400 hover:text-gray-100"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                            <h2 className="text-gray-100 text-lg font-semibold flex items-center">Conversation Tree</h2>
                         </div>
                         <ConversationTreeView
                             conversationId={selectedConversationId}
+                            isPinned={conversationTreePinned}
                             messages={{
                             id: selectedConversationId,
                             text: "Root",
@@ -166,23 +188,41 @@ function AppContent() {
             {/* Settings panel with higher z-index so it appears on top */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-40 transition-transform duration-300",
-                showSettings ? "translate-x-0" : "translate-x-full"
+                showSettings || settingsPanelPinned ? "translate-x-0" : "translate-x-full"
             )}>
-                {showSettings && (
+                {(showSettings || settingsPanelPinned) && (
                     <>
-                        <div className="flex justify-end p-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleToggleSettings}
-                                className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg z-50"
-                            >
-                                <X className="h-5 w-5" />
-                            </Button>
+                        <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
+                            <div className="flex space-x-2">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSettingsPanelPinned(!settingsPanelPinned)}
+                                    className="text-gray-400 hover:text-gray-100"
+                                >
+                                    {settingsPanelPinned ? (
+                                        <PinOff className="h-4 w-4" />
+                                    ) : (
+                                        <Pin className="h-4 w-4" />
+                                    )}
+                                </Button>
+                                {!settingsPanelPinned && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleToggleSettings}
+                                        className="text-gray-400 hover:text-gray-100"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                            <h2 className="text-gray-100 text-lg font-semibold flex items-center">Settings</h2>
                         </div>
                         <SettingsPanel 
-                            isOpen={showSettings}
-                            onClose={handleToggleSettings}
+                            isOpen={showSettings || settingsPanelPinned}
+                            isPinned={settingsPanelPinned}
+                            onClose={!settingsPanelPinned ? handleToggleSettings : undefined}
                         />
                     </>
                 )}

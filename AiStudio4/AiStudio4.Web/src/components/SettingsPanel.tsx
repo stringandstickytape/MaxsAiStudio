@@ -4,10 +4,11 @@ import { ChevronRight } from 'lucide-react';
 
 interface SettingsPanelProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose?: () => void;
+    isPinned?: boolean;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, isPinned }) => {
     if (!isOpen) return null;
     
     return (

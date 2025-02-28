@@ -16,6 +16,7 @@ interface TreeViewProps {
             children: any[];
         }>;
     };
+    isPinned?: boolean;
 }
 
 import { store } from '@/store/store';
