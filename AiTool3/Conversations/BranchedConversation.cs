@@ -5,6 +5,7 @@ using System.Diagnostics;
 using static AiTool3.AutoSuggestForm;
 using AiTool3.Tools;
 using System.Text.RegularExpressions;
+using SharedClasses.Providers;
 
 namespace AiTool3.Conversations
 {
@@ -92,7 +93,7 @@ namespace AiTool3.Conversations
 
                 }
                 // fetch the response from the api
-                var apiSettings = ApiSettings.FromSettingsSet(currentSettings);
+                var apiSettings = currentSettings.ToApiSettings();
                 var response = await aiService.FetchResponse(service, apiModel, conversation, null, null, new CancellationToken(false), apiSettings, mustNotUseEmbedding: true, toolNames: null, useStreaming: false);
 
                 Debug.WriteLine("Summary : " + response.ResponseText);

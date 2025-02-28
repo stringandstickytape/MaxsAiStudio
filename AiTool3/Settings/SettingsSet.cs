@@ -6,6 +6,7 @@ using SharedClasses.Models;
 using System.Diagnostics;
 using System.Security.Policy;
 using static System.Net.WebRequestMethods;
+using SharedClasses.Providers;
 
 namespace AiTool3
 {
@@ -265,6 +266,19 @@ Analyze the above C# code and provide appropriate XML documentation comments for
             }
         }
 
+        // Create from SettingsSet
+        public ApiSettings ToApiSettings()
+        {
+            return new ApiSettings
+            {
+                Temperature = Temperature,
+                UsePromptCaching = UsePromptCaching,
+                StreamResponses = StreamResponses,
+                EmbeddingModel = EmbeddingModel,
+                EmbeddingsFilename = EmbeddingsFilename,
+                UseEmbeddings = UseEmbeddings
+            };
+        }
         internal static SettingsSet? LoadOrPromptOnFirstRun()
         {
             SettingsSet settings = null;
@@ -328,4 +342,4 @@ Analyze the above C# code and provide appropriate XML documentation comments for
     }
 
 
-}
+    }

@@ -4,6 +4,7 @@ using AiTool3.Embeddings;
 using AiTool3.Interfaces;
 using AiTool3.Tools;
 using Newtonsoft.Json.Linq;
+using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

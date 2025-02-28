@@ -2,6 +2,7 @@
 using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.Tools;
+using SharedClasses.Providers;
 
 namespace AiTool3.Interfaces
 {

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedClasses.Helpers;
+using SharedClasses.Providers;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;

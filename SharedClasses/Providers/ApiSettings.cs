@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AiTool3.DataModels
+namespace SharedClasses.Providers
 {
     /// <summary>
     /// Encapsulates API settings needed by AI services without creating a dependency on SettingsSet
@@ -15,18 +15,6 @@ namespace AiTool3.DataModels
         public string EmbeddingsFilename { get; set; } = string.Empty;
         public bool UseEmbeddings { get; set; } = false;
 
-        // Create from SettingsSet
-        public static ApiSettings FromSettingsSet(SettingsSet settingsSet)
-        {
-            return new ApiSettings
-            {
-                Temperature = settingsSet.Temperature,
-                UsePromptCaching = settingsSet.UsePromptCaching,
-                StreamResponses = settingsSet.StreamResponses,
-                EmbeddingModel = settingsSet.EmbeddingModel,
-                EmbeddingsFilename = settingsSet.EmbeddingsFilename,
-                UseEmbeddings = settingsSet.UseEmbeddings
-            };
-        }
+
     }
 }

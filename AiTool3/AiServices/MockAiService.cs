@@ -1,6 +1,7 @@
 ﻿using AiTool3.Conversations;
 using AiTool3.DataModels;
 using AiTool3.Interfaces;
+using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
 using System.Text;

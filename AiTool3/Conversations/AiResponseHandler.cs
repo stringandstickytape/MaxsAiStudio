@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using SharedClasses.Providers;
 
 namespace AiTool3.Conversations
 {
@@ -142,7 +143,7 @@ namespace AiTool3.Conversations
             await Task.Run(async () =>
             {
                 // Create ApiSettings from currentSettings
-                var apiSettings = ApiSettings.FromSettingsSet(currentSettings);
+                var apiSettings = currentSettings.ToApiSettings();
                 
                 response = await aiService!.FetchResponse(
                     service,

@@ -6,6 +6,7 @@ using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
+using SharedClasses.Providers;
 
 namespace AiStudio4.Services
 {
@@ -69,7 +70,7 @@ namespace AiStudio4.Services
                     null,
                     null,
                     new CancellationToken(false),
-                    _settingsManager.CurrentSettings,
+                    _settingsManager.CurrentSettings.ToApiSettings(),
                     mustNotUseEmbedding: true,
                     toolNames: null,
                     useStreaming: true);

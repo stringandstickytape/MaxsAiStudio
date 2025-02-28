@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using SharedClasses.Helpers;
+using SharedClasses.Providers;
 
 namespace AiTool3.AiServices
 {

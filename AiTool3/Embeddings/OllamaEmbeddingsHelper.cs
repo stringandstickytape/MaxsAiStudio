@@ -4,6 +4,7 @@ using AiTool3.AiServices;
 using Newtonsoft.Json;
 using System.Text;
 using System.Text.Json;
+using SharedClasses.Providers;
 
 namespace AiTool3.Embeddings
 {
