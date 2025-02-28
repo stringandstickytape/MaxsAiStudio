@@ -1,5 +1,5 @@
 ﻿import { WebSocketState } from '@/types/websocket';
-import { CachedConversationList } from './CachedConversationList';
+import { HistoricalConversationTreeList } from './HistoricalConversationTreeList';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -63,7 +63,7 @@ function SidebarContent({ wsState }: { wsState: WebSocketState }) {
                 New Chat
             </Button>
             <ScrollArea className="flex-1">
-                <CachedConversationList />
+                <HistoricalConversationTreeList />
             </ScrollArea>
 
             <div className="p-3 border-t border-gray-700 bg-[#2d3748]">

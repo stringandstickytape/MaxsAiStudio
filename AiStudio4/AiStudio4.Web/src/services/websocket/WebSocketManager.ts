@@ -34,16 +34,16 @@ class WebSocketManager {
         eventBus.emit('endstream', null);
     }
 
-    private handleCachedConversationMessage = (content: any) => {
+    private handleHistoricalConversationTreeMessage = (content: any) => {
         
-        const cachedConversation = {
+        const historicalConversation = {
             convGuid: content.id,
             summary: content.content,
             fileName: `conv_${content.id}.json`,
             lastModified: content.lastModified || new Date().toISOString(),
             highlightColour: undefined
         };
-        // Notify subscribers to update the CachedConversationList
+        // Notify subscribers to update the HistoricalConversationTreeList
     }
 
     private handleLoadConversation = (content: any) => {
@@ -186,9 +186,9 @@ class WebSocketManager {
                 this.handleNewLiveChatStreamToken(message.content);
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
-            } else if (message.messageType === 'cachedconversation') {
+            } else if (message.messageType === 'historicalConversationTree') {
 
-                this.handleCachedConversationMessage(message.content);
+                this.handleHistoricalConversationTreeMessage(message.content);
             } else if (message.messageType === 'loadConversation') {
                 this.handleLoadConversation(message.content);
             } else if (message.messageType === 'endstream') {

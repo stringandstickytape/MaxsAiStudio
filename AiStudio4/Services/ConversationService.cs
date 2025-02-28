@@ -33,7 +33,7 @@ namespace AiStudio4.Services
 
                 foreach (var conversation in conversations.Where(c => c.MessageHierarchy.Any()))
                 {
-                    var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                    var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
                     
                     await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
@@ -53,7 +53,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<string> HandleCachedConversationRequest(string clientId, JObject requestObject)
+        public async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject requestObject)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace AiStudio4.Services
                     return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
                 }
 
-                var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
@@ -74,7 +74,7 @@ namespace AiStudio4.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling cached conversation request");
+                _logger.LogError(ex, "Error handling historical conversation tree request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }

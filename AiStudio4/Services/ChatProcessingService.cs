@@ -61,7 +61,7 @@ namespace AiStudio4.Services
                     await _conversationStorage.SaveConversation(conversation);
 
                     // Update tree and notify clients
-                    var tree = _treeBuilder.BuildCachedConversationTree(conversation);
+                    var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
                     await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
                         ConversationId = conversation.ConversationId,

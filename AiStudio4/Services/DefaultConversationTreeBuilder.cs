@@ -16,7 +16,7 @@ namespace AiStudio4.Services
             _logger = logger;
         }
 
-        public dynamic BuildCachedConversationTree(v4BranchedConversation conversation)
+        public dynamic BuildHistoricalConversationTree(v4BranchedConversation conversation)
         {
             try
             {

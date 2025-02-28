@@ -93,7 +93,7 @@ namespace AiStudio4.Services
                 // Ensure treeData is properly structured with children as arrays
                 var message = new
                 {
-                    messageType = "cachedconversation",
+                    messageType = "historicalConversationTree",
                     content = new
                     {
                         convGuid = conversations.ConversationId,

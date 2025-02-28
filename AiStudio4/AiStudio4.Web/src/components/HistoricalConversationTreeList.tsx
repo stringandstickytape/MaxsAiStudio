@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
 import React from 'react';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
@@ -100,7 +100,7 @@ export const HistoricalConversationTreeList = () => {
                             </div>
                         </div>
                         <div className="text-sm">
-                            {expandedConversation === conversation.convGuid ? '▼' : '▶'}
+                            {expandedConversation === conversation.convGuid ? '?' : '?'}
                         </div>
                     </div>
 

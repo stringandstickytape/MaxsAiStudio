@@ -63,15 +63,15 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        internal async Task<string> HandleCachedConversationRequest(string clientId, JObject? requestObject)
+        internal async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject? requestObject)
         {
             try
             {
-                return await _conversationService.HandleCachedConversationRequest(clientId, requestObject);
+                return await _conversationService.HandleHistoricalConversationTreeRequest(clientId, requestObject);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in HandleCachedConversationRequest");
+                _logger.LogError(ex, "Error in HandleHistoricalConversationTreeRequest");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }

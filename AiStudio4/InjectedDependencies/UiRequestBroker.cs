@@ -48,14 +48,14 @@ namespace AiStudio4.InjectedDependencies
                             error = "Error processing request: " + ex.Message
                         });
                     }
-                case "cachedconversation":
+                case "historicalConversationTree":
                     try
                     {
-                        return await _chatManager.HandleCachedConversationRequest(clientId, requestObject);
+                        return await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject);
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error processing cached conversation request: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Error processing historical conversation tree request: {ex.Message}");
                         return JsonConvert.SerializeObject(new
                         {
                             success = false,
