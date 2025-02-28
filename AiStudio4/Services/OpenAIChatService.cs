@@ -45,18 +45,22 @@ namespace AiStudio4.Services
                     StreamingComplete?.Invoke(this, text);
                 };
 
+                // here, we should take request.messagehistory and use it to build the conversation, then add the new user message too.
                 var conversation = new LinearConversation(DateTime.Now)
                 {
                     systemprompt = "You are a helpful chatbot.",
-                    messages = new List<LinearConversationMessage>
-                    {
-                        new LinearConversationMessage
-                        {
-                            role = "user",
-                            content = request.Message
-                        }
-                    }
+                    messages = new List<LinearConversationMessage>()
                 };
+
+                // Add all messages from history first
+                foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
+                {
+                    conversation.messages.Add(new LinearConversationMessage
+                    {
+                        role = historyItem.Role,
+                        content = historyItem.Content
+                    });
+                }
 
                 var response = await aiService.FetchResponse(
                     service,

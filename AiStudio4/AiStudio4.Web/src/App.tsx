@@ -101,24 +101,29 @@ function AppContent() {
                     </div>
                 </div>
 
-                <AppHeader
-                    isMobile={isMobile}
-                    selectedModel={selectedModel}
-                    models={models}
-                    onToggleSidebar={handleToggleSidebar}
-                    onModelSelect={setSelectedModel}
-                    onToggleConversationTree={handleToggleConversationTree}
-                    onToggleSettings={handleToggleSettings}
-                />
+                {/* Top fixed header pane */}
+                <div className="flex-none w-full bg-background border-b">
+                    <AppHeader
+                        isMobile={isMobile}
+                        selectedModel={selectedModel}
+                        models={models}
+                        onToggleSidebar={handleToggleSidebar}
+                        onModelSelect={setSelectedModel}
+                        onToggleConversationTree={handleToggleConversationTree}
+                        onToggleSettings={handleToggleSettings}
+                    />
+                </div>
 
-                <div className="flex-1 overflow-auto transition-all duration-300">
+                {/* Middle dynamic height pane */}
+                <div className="flex-1 overflow-auto">
                     <ChatContainer
-                        streamTokens={streamTokens} // Pass streamTokens
+                        streamTokens={streamTokens} 
                         isMobile={isMobile}
                     />
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-20">
+                {/* Bottom fixed pane */}
+                <div className="flex-none w-full bg-background border-t">
                     <InputBar selectedModel={selectedModel} />
                 </div>
             </div>
