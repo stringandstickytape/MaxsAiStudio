@@ -1,4 +1,7 @@
-﻿namespace AiTool3.AiServices
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace SharedClasses.Providers
 {
     public class ServiceProvider
     {

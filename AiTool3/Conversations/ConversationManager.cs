@@ -3,6 +3,7 @@ using AiTool3.ExtensionMethods;
 using AiTool3.FileAttachments;
 using AiTool3.UI;
 using Newtonsoft.Json;
+using SharedClasses.Providers;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static AiTool3.AutoSuggestForm;

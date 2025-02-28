@@ -1,8 +1,9 @@
-﻿using AiTool3.AiServices;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
+using System.Drawing;
 
-namespace AiTool3.DataModels
+namespace SharedClasses.Providers
 {
     public class ColorConverter : JsonConverter<Color>
     {

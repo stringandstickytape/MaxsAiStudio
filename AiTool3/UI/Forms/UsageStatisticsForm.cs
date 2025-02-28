@@ -1,6 +1,7 @@
 ﻿using AiTool3;
 using AiTool3.Conversations;
 using AiTool3.DataModels;
+using SharedClasses.Providers;
 
 internal partial class ModelUsageManager
 {

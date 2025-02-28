@@ -118,7 +118,7 @@ namespace AiTool3.AiServices
             return req;
         }
 
-        public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
+        public override async Task<AiResponse> FetchResponse(SharedClasses.Providers.ServiceProvider serviceProvider,
             Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
         {
             InitializeHttpClient(serviceProvider, model, apiSettings);

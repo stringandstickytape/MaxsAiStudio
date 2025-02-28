@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using AiTool3.UI.Forms;
 using Newtonsoft.Json;
+using SharedClasses.Providers;
 
 namespace AiTool3.Settings
 {

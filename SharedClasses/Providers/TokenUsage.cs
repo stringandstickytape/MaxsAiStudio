@@ -1,4 +1,6 @@
-﻿namespace AiTool3.AiServices
+﻿using System;
+
+namespace SharedClasses.Providers
 {
     public class TokenUsage
     {

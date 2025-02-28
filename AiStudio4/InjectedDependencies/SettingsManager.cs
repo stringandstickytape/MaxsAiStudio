@@ -1,6 +1,3 @@
-using AiTool3;
-using AiTool3.AiServices;
-using AiTool3.DataModels;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
@@ -15,20 +12,14 @@ namespace AiStudio4.InjectedDependencies
         public List<Model> ModelList { get; set; } = new List<Model>();
         public List<ServiceProvider> ServiceProviders { get; set; } = new List<ServiceProvider>();
 
-        [MyDisplayNameAttr("Temperature")]
         public float Temperature { get; set; } = 0.9f;
 
-        [MyDisplayNameAttr("Use embeddings")]
         public bool UseEmbeddings { get; set; } = false;
 
-        [MyDisplayNameAttr("Use prompt caching (Claude only)")]
         public bool UsePromptCaching { get; set; } = true;
 
-        [MyDisplayNameAttr("Stream responses")]
         public bool StreamResponses { get; set; } = false;
 
-        [IsFileAttribute(".embeddings.json")]
-        [MyDisplayNameAttr("Embeddings Filename/path")]
         public string EmbeddingsFilename { get; set; }
 
         public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";

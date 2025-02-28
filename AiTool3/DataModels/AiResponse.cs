@@ -1,4 +1,4 @@
-﻿using AiTool3.AiServices;
+﻿using SharedClasses.Providers;
 
 namespace AiTool3.DataModels
 {
