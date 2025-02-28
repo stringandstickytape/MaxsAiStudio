@@ -37,7 +37,7 @@ export function InputBar({ selectedModel }: InputBarProps) {
                 || state.conversations.conversations?.[conversationId]?.rootMessage?.id
                 || `msg_${uuidv4()}`;
 
-            await ChatService.sendMessage(message, selectedModel, conversationId, messageId, parentMessageId);
+            await ChatService.sendMessage(message, selectedModel);
         } catch (error) {
             console.error('Error sending message:', error);
         }

@@ -78,6 +78,34 @@ export class ChatService {
             throw new Error('Failed to fetch models');
         }
 
-        return data.models;
+        return { 
+            models: data.models,
+            defaultModel: data.defaultModel || ""
+        };
+    }
+    
+    static async saveDefaultModel(modelName: string) {
+        const clientId = wsManager.getClientId();
+        if (!clientId) {
+            throw new Error('Client ID not found');
+        }
+        
+        const response = await fetch('/api/setDefaultModel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Client-Id': clientId,
+            },
+            body: JSON.stringify({
+                clientId,
+                modelName
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
     }
 }

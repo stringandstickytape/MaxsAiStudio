@@ -39,8 +39,13 @@ function AppContent() {
     useEffect(() => {
        const initialize = async () => {
             try {
-                const availableModels = await ChatService.fetchModels();
+                const { models: availableModels, defaultModel } = await ChatService.fetchModels();
                 setModels(availableModels);
+                
+                // Set the default model if available
+                if (defaultModel && defaultModel.length > 0) {
+                    setSelectedModel(defaultModel);
+                }
 
                 const conversationId = `conv_${Date.now()}`;
                 store.dispatch(createConversation({

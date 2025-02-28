@@ -96,12 +96,43 @@ namespace AiStudio4.InjectedDependencies
                         return JsonConvert.SerializeObject(new
                         {
                             success = true,
-                            models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray()
+                            models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
+                            defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? ""
                         });
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($@"Error processing config request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "setDefaultModel":
+                    try
+                    {
+                        var modelName = requestObject["modelName"]?.ToString();
+                        if (string.IsNullOrEmpty(modelName))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Model name cannot be empty"
+                            });
+                        }
+                        
+                        _settingsManager.UpdateDefaultModel(modelName);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($@"Error processing setDefaultModel request: {ex.Message}");
                         return JsonConvert.SerializeObject(new
                         {
                             success = false,
