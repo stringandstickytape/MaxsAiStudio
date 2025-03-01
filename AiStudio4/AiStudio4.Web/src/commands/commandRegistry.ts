@@ -22,15 +22,15 @@ class CommandRegistryService {
             console.warn(`Command with id "${command.id}" is already registered. Overwriting.`);
         }
 
-        // Find the group or use 'core' as default
-        const groupId = command.section || 'utility';
-        let group = this.commandGroups.find(g => g.id === groupId);
+        // Find the group or use 'utility' as default
+        const sectionId = command.section || 'utility';
+        let group = this.commandGroups.find(g => g.id === sectionId);
 
         if (!group) {
             // Create the group if it doesn't exist
             group = {
-                id: groupId,
-                name: this.formatGroupName(groupId),
+                id: sectionId,
+                name: this.formatGroupName(sectionId),
                 commands: []
             };
             this.commandGroups.push(group);
@@ -108,37 +108,44 @@ class CommandRegistryService {
     }
 
     // Filter commands by search term
+    // Filter commands by search term
     searchCommands(searchTerm: string): Command[] {
         if (!searchTerm) {
             return this.getAllCommands();
         }
 
-        const lowercaseSearch = searchTerm.toLowerCase();
+        // Split the search term into tokens and filter out empty strings
+        const searchTokens = searchTerm.toLowerCase()
+            .split(/\s+/)
+            .filter(token => token.length > 0);
 
         return this.getAllCommands().filter(command => {
-            // Match by name
-            if (command.name.toLowerCase().includes(lowercaseSearch)) {
-                return true;
-            }
+            // Check if all tokens are present in any of the searchable fields
+            return searchTokens.every(token => {
+                // Match by name
+                if (command.name.toLowerCase().includes(token)) {
+                    return true;
+                }
 
-            // Match by id
-            if (command.id.toLowerCase().includes(lowercaseSearch)) {
-                return true;
-            }
+                // Match by id
+                if (command.id.toLowerCase().includes(token)) {
+                    return true;
+                }
 
-            // Match by keywords
-            if (command.keywords.some(keyword =>
-                keyword.toLowerCase().includes(lowercaseSearch)
-            )) {
-                return true;
-            }
+                // Match by keywords
+                if (command.keywords.some(keyword =>
+                    keyword.toLowerCase().includes(token)
+                )) {
+                    return true;
+                }
 
-            // Match by description
-            if (command.description?.toLowerCase().includes(lowercaseSearch)) {
-                return true;
-            }
+                // Match by description
+                if (command.description?.toLowerCase().includes(token)) {
+                    return true;
+                }
 
-            return false;
+                return false;
+            });
         });
     }
 
