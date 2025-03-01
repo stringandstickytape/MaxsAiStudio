@@ -17,39 +17,27 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Update filtered commands when search term changes
     useEffect(() => {
-        setFilteredCommands(commandRegistry.searchCommands(searchTerm));
+        const newCommands = commandRegistry.searchCommands(searchTerm);
+        setFilteredCommands(newCommands);
         setSelectedIndex(0);
-        
-        // If user starts typing, ensure the dropdown is visible
-        if (searchTerm.length > 0 && !isOpen) {
-            setIsOpen(true);
-        }
-    }, [searchTerm, isOpen]);
+        if (searchTerm && !isOpen) setIsOpen(true);
+    }, [searchTerm, isOpen, setIsOpen]);
 
-    // Subscribe to command registry changes
     useEffect(() => {
-        const unsubscribe = commandRegistry.subscribe(() => {
+        return commandRegistry.subscribe(() => {
             setFilteredCommands(commandRegistry.searchCommands(searchTerm));
         });
-
-        return unsubscribe;
     }, [searchTerm]);
 
-    // Focus input when opened
     useEffect(() => {
-        if (isOpen && inputRef.current) {
-            inputRef.current.focus();
-        }
+        if (isOpen && inputRef.current) inputRef.current.focus();
     }, [isOpen]);
 
     const handleCommandSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (filteredCommands.length > 0 && selectedIndex >= 0) {
-            const selectedCommand = filteredCommands[selectedIndex];
-            commandRegistry.executeCommand(selectedCommand.id);
+        if (filteredCommands.length && selectedIndex >= 0) {
+            commandRegistry.executeCommand(filteredCommands[selectedIndex].id);
             setSearchTerm('');
             setIsOpen(false);
         }
@@ -58,12 +46,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedIndex(prev =>
-                prev < filteredCommands.length - 1 ? prev + 1 : prev
-            );
+            setSelectedIndex(prev => Math.min(prev + 1, filteredCommands.length - 1));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedIndex(prev => prev > 0 ? prev - 1 : 0);
+            setSelectedIndex(prev => Math.max(prev - 1, 0));
         } else if (e.key === 'Escape') {
             setIsOpen(false);
         }
@@ -75,11 +61,8 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         setIsOpen(false);
     };
 
-    // Group commands by section
     const groupedCommands = filteredCommands.reduce((acc, command) => {
-        if (!acc[command.section]) {
-            acc[command.section] = [];
-        }
+        acc[command.section] = acc[command.section] || [];
         acc[command.section].push(command);
         return acc;
     }, {} as Record<string, CommandType[]>);
@@ -119,16 +102,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                             <span>Close</span>
                         </button>
                     ) : (
-                        <kbd
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
-                        >
+                        <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
                             {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
                         </kbd>
                     )}
                 </div>
             </form>
-
-            {isOpen && (searchTerm.length > 0 || filteredCommands.length > 0) && (
+            {isOpen && (searchTerm || filteredCommands.length) && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-96 overflow-y-auto">
                     {Object.entries(groupedCommands).map(([section, commands]) => (
                         <div key={section} className="border-t border-gray-700 first:border-t-0">
