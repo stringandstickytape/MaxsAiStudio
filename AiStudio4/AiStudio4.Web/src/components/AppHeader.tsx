@@ -1,4 +1,4 @@
-﻿// src/components/AppHeader.tsx (fixed version)
+﻿// src/components/AppHeader.tsx
 import { Button } from '@/components/ui/button';
 import { Menu, Settings, GitBranch, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ export function AppHeader({
     headerRightOffset = 'right-4',
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
-    CommandBarComponent, // Make sure to include this in the destructured props
+    CommandBarComponent,
     sidebarPinned = false,
     rightSidebarPinned = false,
 }: AppHeaderProps) {
@@ -54,7 +54,6 @@ export function AppHeader({
         }
     };
 
-    // Focus the input when command bar is opened
     useEffect(() => {
         const inputElement = document.getElementById('command-input');
         if (isCommandBarOpen && inputElement) {
@@ -68,7 +67,6 @@ export function AppHeader({
             sidebarPinned ? "left-80" : "left-0",
             rightSidebarPinned ? "right-80" : "right-0"
         )}>
-            {/* Hide sidebar toggle button when sidebar is open */}
             {!sidebarPinned && (
                 <div className="absolute left-4">
                     <Button
@@ -83,7 +81,6 @@ export function AppHeader({
             )}
 
             <div className="flex-1 flex flex-col justify-center items-center gap-2 pl-12 pr-20">
-                {/* Command Bar */}
                 {CommandBarComponent || (
                     <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -107,7 +104,6 @@ export function AppHeader({
                     </form>
                 )}
 
-                {/* Model Selectors */}
                 <div className="flex gap-3 items-center w-full justify-center py-1">
                     <ModelSelector
                         label="Primary AI"
@@ -129,8 +125,7 @@ export function AppHeader({
                 </div>
             </div>
 
-            <div className={`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`}>
-                {/* Only show conversation tree button if the function is provided and not null */}
+            <div className={cn(`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`)}>
                 {onToggleConversationTree && (
                     <Button
                         variant="ghost"
@@ -141,7 +136,6 @@ export function AppHeader({
                         <GitBranch className="h-5 w-5" />
                     </Button>
                 )}
-                {/* Only show settings button if the function is provided and not null */}
                 {onToggleSettings && (
                     <Button
                         variant="ghost"
