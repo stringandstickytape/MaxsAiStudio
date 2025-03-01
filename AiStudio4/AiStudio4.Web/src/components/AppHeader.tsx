@@ -1,4 +1,5 @@
-﻿import { Button } from '@/components/ui/button';
+﻿// src/components/AppHeader.tsx (fixed version)
+import { Button } from '@/components/ui/button';
 import { Menu, Settings, GitBranch, ExternalLink, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModelSelector } from '@/components/ModelSelector';
@@ -20,6 +21,7 @@ interface AppHeaderProps {
     headerRightOffset?: string;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
+    CommandBarComponent?: React.ReactNode;
 }
 
 export function AppHeader({
@@ -37,6 +39,7 @@ export function AppHeader({
     headerRightOffset = 'right-4',
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
+    CommandBarComponent, // Make sure to include this in the destructured props
 }: AppHeaderProps) {
     const [commandText, setCommandText] = useState('');
 
@@ -72,26 +75,28 @@ export function AppHeader({
 
             <div className="flex-1 flex flex-col justify-center items-center gap-2 pl-12 pr-20">
                 {/* Command Bar */}
-                <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Command className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <Input
-                        id="command-input"
-                        type="text"
-                        placeholder="Type a command (/ for suggestions)..."
-                        value={commandText}
-                        onChange={(e) => setCommandText(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200"
-                        onBlur={() => setIsCommandBarOpen(false)}
-                    />
-                    <kbd
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
-                        onClick={() => setIsCommandBarOpen(true)}
-                    >
-                        {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
-                    </kbd>
-                </form>
+                {CommandBarComponent || (
+                    <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Command className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <Input
+                            id="command-input"
+                            type="text"
+                            placeholder="Type a command (/ for suggestions)..."
+                            value={commandText}
+                            onChange={(e) => setCommandText(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200"
+                            onBlur={() => setIsCommandBarOpen(false)}
+                        />
+                        <kbd
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
+                            onClick={() => setIsCommandBarOpen(true)}
+                        >
+                            {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
+                        </kbd>
+                    </form>
+                )}
 
                 {/* Model Selectors */}
                 <div className="flex gap-3 items-center w-full justify-center py-1">

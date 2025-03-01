@@ -17,6 +17,10 @@ import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { buildMessageTree } from '@/utils/treeUtils';
+import { commandRegistry } from './commands/commandRegistry';
+import { initializeCoreCommands } from './commands/coreCommands';
+import { initializeModelCommands } from '@/plugins/modelCommands';
+import { CommandBar } from './components/CommandBar';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -42,6 +46,24 @@ function AppContent() {
     const [settingsPanelPinned, setSettingsPanelPinned] = useState(false);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
+
+    // In your AppContent component, add this near the beginning:
+    useEffect(() => {
+        // Initialize core commands with handlers
+        initializeCoreCommands({
+            toggleSidebar: handleToggleSidebar,
+            toggleConversationTree: handleToggleConversationTree,
+            toggleSettings: handleToggleSettings,
+            openNewWindow: handleOpenNewWindow
+        });
+        // Initialize model commands
+        initializeModelCommands({
+            onModelSelect: handleModelSelect,
+            getAvailableModels: () => models
+        });
+
+        // You can register additional commands here
+    }, [models]);
 
     useEffect(() => {
         const initialize = async () => {
@@ -206,6 +228,7 @@ function AppContent() {
                         onOpenNewWindow={handleOpenNewWindow}
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
+                        CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
                     />
                 </div>
 
