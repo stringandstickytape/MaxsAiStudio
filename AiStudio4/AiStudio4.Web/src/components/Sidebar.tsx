@@ -3,18 +3,10 @@ import { HistoricalConversationTreeList } from './HistoricalConversationTreeList
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { MessageSquare, Menu, FolderOpen, Plus, GitBranch, Pin, PinOff, X } from 'lucide-react';
-import { ConversationTreeView } from './ConversationTreeView';
-import { useState } from 'react';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ChevronDown } from "lucide-react"
+import { Plus, Pin, PinOff, X } from 'lucide-react';
 import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
-import { Message } from '@/types/message';
-import { buildMessageTree } from '@/utils/treeUtils';
 
 interface SidebarProps {
     wsState: WebSocketState;

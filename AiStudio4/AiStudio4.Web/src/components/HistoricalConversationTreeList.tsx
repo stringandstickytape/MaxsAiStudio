@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
-import React from 'react';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
-import { Button } from '@/components/ui/button';
-import { GitBranch } from 'lucide-react';
 
 interface HistoricalConversation {
     convGuid: string;
@@ -124,33 +121,32 @@ export const HistoricalConversationTreeList = () => {
             ) : conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
-                    className={`p-4 rounded-xl transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm ${conversation.highlightColour ? 'text-black' : 'text-white'}`}
+                    className={`p-4 transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm max-w-full overflow-hidden ${conversation.highlightColour ? 'text-black' : 'text-white'}`}
                     style={{
                         backgroundColor: conversation.highlightColour || '#374151'
                     }}
                 >
                     {/* Make only the header clickable */}
                     <div
-                        className="flex justify-between items-center cursor-pointer"
+                        className="flex justify-between items-start cursor-pointer w-full"
                         onClick={() => {
                             const newConvId = expandedConversation === conversation.convGuid ? null : conversation.convGuid;
                             setExpandedConversation(newConvId);
                             if (newConvId) fetchConversationTree(newConvId);
                         }}
                     >
-                        <div className="flex-grow flex items-center gap-2">
-
-                            <div className="text-sm">
-                                <div className="font-medium truncate mb-1">
-                                    <span className="text-xs opacity-70 mr-2">
-                                        {new Date(conversation.lastModified).toLocaleDateString()}
-                                    </span>
+                        <div className="flex-grow flex-1 max-w-[80%]" style={{ minWidth: 0 }}>
+                            <div className="text-sm w-full overflow-hidden">
+                                <div className="font-medium mb-1 overflow-hidden break-words" style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
                                     {conversation.summary}
+                                </div>
+                                <div className="text-xs opacity-70">
+                                    {new Date(conversation.lastModified).toLocaleDateString()}
                                 </div>
                             </div>
                         </div>
-                        <div className="text-sm">
-                            {expandedConversation === conversation.convGuid ? '?' : '?'}
+                        <div className="text-sm flex-shrink-0 ml-2">
+                            {expandedConversation === conversation.convGuid ? '▼' : '▶'}
                         </div>
                     </div>
 

@@ -81,7 +81,7 @@ namespace AiStudio4.Services
                             conversationTrees.Add(new
                             {
                                 conversationId = conversation.ConversationId,
-                                summary = summary.Length > 50 ? summary.Substring(0, 50) + "..." : summary,
+                                summary = summary.Length > 150 ? summary.Substring(0, 150) + "..." : summary,
                                 lastModified = File.GetLastWriteTimeUtc(Path.Combine(
                                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                     "AiStudio4",
