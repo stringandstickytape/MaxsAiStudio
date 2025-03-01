@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { MarkdownPane } from './markdown-pane';
 
 interface LiveStreamTokenProps {
   token: string;

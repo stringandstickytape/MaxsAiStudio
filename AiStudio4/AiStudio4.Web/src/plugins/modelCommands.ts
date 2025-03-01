@@ -1,8 +1,6 @@
 ﻿// src/plugins/modelCommands.ts
 import { registerCommandGroup } from '@/commands/commandRegistry';
-import { ChatService } from '@/services/ChatService';
-import { Settings, GitBranch } from 'lucide-react'; // Use icons that we know exist
-import React from 'react';
+import { Settings, GitBranch } from 'lucide-react';
 
 export function initializeModelCommands(
     handlers: {

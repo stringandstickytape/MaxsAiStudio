@@ -2,7 +2,7 @@
 import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
-import { registerCommand, registerCommandGroup } from './commandRegistry';
+import { registerCommandGroup } from './commandRegistry';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink } from 'lucide-react';
 import React from 'react';
 
