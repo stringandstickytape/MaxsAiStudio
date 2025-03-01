@@ -3,13 +3,11 @@ import { wsManager } from "@/services/websocket/WebSocketManager";
 import { eventBus } from "@/services/messaging/EventBus";
 
 export class WebSocketMessageService implements IMessageService {
-    private _connected: boolean = false;
+    private _connected = false;
     private connectionChangeHandlers: ((connected: boolean) => void)[] = [];
 
     async connect(): Promise<void> {
         wsManager.connect();
-        // _connected will be updated via connectionStatus events emitted by wsManager
-        // Optionally, you could poll or wait until a specific event is received.
         this._connected = wsManager.isConnected();
         this.notifyConnectionChange();
     }
@@ -21,7 +19,6 @@ export class WebSocketMessageService implements IMessageService {
     }
 
     async sendMessage(message: string): Promise<void> {
-        // Wrap message inside an object; the messageType here is set to 'custom' by default.
         wsManager.send({ messageType: "custom", content: message });
     }
 
@@ -39,7 +36,6 @@ export class WebSocketMessageService implements IMessageService {
 
     onConnectionChange(handler: (connected: boolean) => void): void {
         this.connectionChangeHandlers.push(handler);
-        // Immediately notify the new handler of current state
         handler(this._connected);
     }
 
