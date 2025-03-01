@@ -44,7 +44,8 @@ namespace AiStudio4.Services
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
-                    treeData = tree
+                    treeData = tree,
+                    summary = conversation.Summary
                 });
             }
             catch (Exception ex)
@@ -75,7 +76,7 @@ namespace AiStudio4.Services
                         if (conversation.MessageHierarchy?.Count > 0)
                         {
                             var firstMessage = conversation.MessageHierarchy.First().Children?.FirstOrDefault();
-                            var summary = firstMessage?.UserMessage ?? "Untitled Conversation";
+                            var summary = conversation.Summary ?? firstMessage?.UserMessage ?? "Untitled Conversation";
                             
                             conversationTrees.Add(new
                             {

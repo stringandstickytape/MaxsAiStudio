@@ -7,6 +7,7 @@ namespace AiStudio4.InjectedDependencies
     { 
         public string ConversationId { get; set; }
         public List<v4BranchedConversationMessage> MessageHierarchy { get; set; }
+        public string Summary { get; set; }
 
         public v4BranchedConversation()
         {

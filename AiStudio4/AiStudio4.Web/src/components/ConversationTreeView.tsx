@@ -136,8 +136,6 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
 
     return (
         <div className="flex flex-col h-[calc(100vh-70px)] w-full">
-            <div className="flex items-center justify-between bg-gray-800 p-3 border-b border-gray-700">
-                <h2 className="text-lg font-semibold text-white">Conversation Tree</h2>
                 {onClose && (
                     <Button 
                         variant="ghost" 
@@ -149,7 +147,6 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
                         <span className="ml-1">Back</span>
                     </Button>
                 )}
-            </div>
             
             <div className={cn(
                 "flex-1 overflow-hidden",
