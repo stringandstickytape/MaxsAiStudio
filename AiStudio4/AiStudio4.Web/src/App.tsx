@@ -41,6 +41,7 @@ function AppContent() {
     const [conversationTreePinned, setConversationTreePinned] = useState(false);
     const [settingsPanelPinned, setSettingsPanelPinned] = useState(false);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
 
     useEffect(() => {
         const initialize = async () => {
@@ -152,6 +153,20 @@ function AppContent() {
         window.open(window.location.href, '_blank');
     };
 
+    // Add global keyboard shortcut listener for Command+K or Ctrl+K
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check for Ctrl+K or Command+K (Mac)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault(); // Prevent default browser behavior
+                setIsCommandBarOpen(prev => !prev);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     return (
         <Provider store={store}>
             <div className={cn(
@@ -189,6 +204,8 @@ function AppContent() {
                         onToggleConversationTree={handleToggleConversationTree}
                         onToggleSettings={handleToggleSettings}
                         onOpenNewWindow={handleOpenNewWindow}
+                        isCommandBarOpen={isCommandBarOpen}
+                        setIsCommandBarOpen={setIsCommandBarOpen}
                     />
                 </div>
 
