@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using SharedClasses.Providers;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -27,369 +28,75 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
-            var requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
+            JObject requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
 
-           switch (requestType)
+            try
             {
-                case "getAllHistoricalConversationTrees":
-                    try
+                return requestType switch
+                {
+                    "getAllHistoricalConversationTrees" => await _chatManager.HandleGetAllHistoricalConversationTreesRequest(clientId, requestObject),
+                    "getModels" => JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList }),
+                    "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _settingsManager.CurrentSettings.ServiceProviders }),
+                    "conversationmessages" => await _chatManager.HandleConversationMessagesRequest(clientId, requestObject),
+                    "historicalConversationTree" => await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject),
+                    "chat" => await _chatManager.HandleChatRequest(clientId, requestObject),
+                    "getConfig" => JsonConvert.SerializeObject(new
                     {
-                        return await _chatManager.HandleGetAllHistoricalConversationTreesRequest(clientId, requestObject);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing getAllHistoricalConversationTrees request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                
-                case "getModels":
-                    try
-                    {
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true,
-                            models = _settingsManager.CurrentSettings.ModelList
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing getModels request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                
-                case "getServiceProviders":
-                    try
-                    {
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true,
-                            providers = _settingsManager.CurrentSettings.ServiceProviders
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing getServiceProviders request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                case "conversationmessages":
-                    try
-                    {
-                        return await _chatManager.HandleConversationMessagesRequest(clientId, requestObject);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing conversation messages request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                case "historicalConversationTree":
-                    try
-                    {
-                        return await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing historical conversation tree request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-
-                case "chat":
-                    try
-                    {
-                        return await _chatManager.HandleChatRequest(clientId, requestObject);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing chat request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-
-                case "getConfig":
-                    try
-                    {
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true,
-                            models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
-                            defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? "",
-                            secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel ?? ""
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($@"Error processing config request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "setDefaultModel":
-                    try
-                    {
-                        var modelName = requestObject["modelName"]?.ToString();
-                        if (string.IsNullOrEmpty(modelName))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Model name cannot be empty"
-                            });
-                        }
-                        
-                        _settingsManager.UpdateDefaultModel(modelName);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($@"Error processing setDefaultModel request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "setSecondaryModel":
-                    try
-                    {
-                        var modelName = requestObject["modelName"]?.ToString();
-                        if (string.IsNullOrEmpty(modelName))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Model name cannot be empty"
-                            });
-                        }
-                        
-                        _settingsManager.UpdateSecondaryModel(modelName);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($@"Error processing setSecondaryModel request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                case "addModel":
-                    try
-                    {
-                        var model = requestObject.ToObject<SharedClasses.Providers.Model>();
-                        if (model == null)
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Invalid model data"
-                            });
-                        }
-                        
-                        _settingsManager.AddModel(model);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing addModel request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "updateModel":
-                    try
-                    {
-                        var model = requestObject.ToObject<SharedClasses.Providers.Model>();
-                        if (model == null || string.IsNullOrEmpty(model.Guid))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Invalid model data or missing model ID"
-                            });
-                        }
-                        
-                        _settingsManager.UpdateModel(model);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing updateModel request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "deleteModel":
-                    try
-                    {
-                        var modelGuid = requestObject["modelGuid"]?.ToString();
-                        if (string.IsNullOrEmpty(modelGuid))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Model ID cannot be empty"
-                            });
-                        }
-                        
-                        _settingsManager.DeleteModel(modelGuid);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing deleteModel request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "addServiceProvider":
-                    try
-                    {
-                        var provider = requestObject.ToObject<SharedClasses.Providers.ServiceProvider>();
-                        if (provider == null)
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Invalid service provider data"
-                            });
-                        }
-                        
-                        _settingsManager.AddServiceProvider(provider);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing addServiceProvider request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "updateServiceProvider":
-                    try
-                    {
-                        var provider = requestObject.ToObject<SharedClasses.Providers.ServiceProvider>();
-                        if (provider == null || string.IsNullOrEmpty(provider.Guid))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Invalid provider data or missing provider ID"
-                            });
-                        }
-                        
-                        _settingsManager.UpdateServiceProvider(provider);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing updateServiceProvider request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                case "deleteServiceProvider":
-                    try
-                    {
-                        var providerGuid = requestObject["providerGuid"]?.ToString();
-                        if (string.IsNullOrEmpty(providerGuid))
-                        {
-                            return JsonConvert.SerializeObject(new
-                            {
-                                success = false,
-                                error = "Provider ID cannot be empty"
-                            });
-                        }
-                        
-                        _settingsManager.DeleteServiceProvider(providerGuid);
-                        
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = true
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error processing deleteServiceProvider request: {ex.Message}");
-                        return JsonConvert.SerializeObject(new
-                        {
-                            success = false,
-                            error = "Error processing request: " + ex.Message
-                        });
-                    }
-                    
-                default:
-                    throw new NotImplementedException();
+                        success = true,
+                        models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
+                        defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? "",
+                        secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel ?? ""
+                    }),
+                    "setDefaultModel" => await SetModel(_settingsManager.UpdateDefaultModel, requestObject),
+                    "setSecondaryModel" => await SetModel(_settingsManager.UpdateSecondaryModel, requestObject),
+                    "addModel" => await AddOrUpdateModel(requestObject, _settingsManager.AddModel),
+                    "updateModel" => await AddOrUpdateModel(requestObject, _settingsManager.UpdateModel, true),
+                    "deleteModel" => await DeleteByGuid(_settingsManager.DeleteModel, requestObject, "modelGuid"),
+                    "addServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.AddServiceProvider),
+                    "updateServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.UpdateServiceProvider, true),
+                    "deleteServiceProvider" => await DeleteByGuid(_settingsManager.DeleteServiceProvider, requestObject, "providerGuid"),
+                    _ => throw new NotImplementedException()
+                };
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error processing {requestType} request: {ex.Message}");
+                return SerializeError("Error processing request: " + ex.Message);
+            }
+        }
+
+        private string SerializeError(string message) => JsonConvert.SerializeObject(new { success = false, error = message });
+
+        private async Task<string> SetModel(Action<string> updateAction, JObject requestObject)
+        {
+            string modelName = requestObject["modelName"]?.ToString();
+            if (string.IsNullOrEmpty(modelName)) return SerializeError("Model name cannot be empty");
+            updateAction(modelName);
+            return JsonConvert.SerializeObject(new { success = true });
+        }
+
+        private async Task<string> AddOrUpdateModel(JObject requestObject, Action<Model> action, bool requireGuid = false)
+        {
+            Model model = requestObject.ToObject<Model>();
+            if (model == null || (requireGuid && string.IsNullOrEmpty(model.Guid))) return SerializeError("Invalid model data" + (requireGuid ? " or missing model ID" : ""));
+            action(model);
+            return JsonConvert.SerializeObject(new { success = true });
+        }
+
+        private async Task<string> AddOrUpdateProvider(JObject requestObject, Action<ServiceProvider> action, bool requireGuid = false)
+        {
+            ServiceProvider provider = requestObject.ToObject<ServiceProvider>();
+            if (provider == null || (requireGuid && string.IsNullOrEmpty(provider.Guid))) return SerializeError("Invalid service provider data" + (requireGuid ? " or missing provider ID" : ""));
+            action(provider);
+            return JsonConvert.SerializeObject(new { success = true });
+        }
+
+        private async Task<string> DeleteByGuid(Action<string> deleteAction, JObject requestObject, string guidName)
+        {
+            string guid = requestObject[guidName]?.ToString();
+            if (string.IsNullOrEmpty(guid)) return SerializeError($"{guidName.Replace("Guid", " ID")} cannot be empty");
+            deleteAction(guid);
+            return JsonConvert.SerializeObject(new { success = true });
         }
     }
 }
