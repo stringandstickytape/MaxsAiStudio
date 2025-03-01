@@ -3,7 +3,6 @@ import { addMessage, createConversation, setActiveConversation } from '@/store/c
 import { Message } from '@/types/conversation';
 import { eventBus } from '@/services/messaging/EventBus';
 
-// src/services/websocket/types.ts
 export interface WebSocketMessage {
     messageType: string;
     content: any;
@@ -16,118 +15,80 @@ export interface LiveChatStreamToken {
 
 export interface ClientConfig {
     clientId?: string;
-    // Add other client-specific config
 }
 
-// src/services/websocket/WebSocketManager.ts
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private config: ClientConfig = {};
-    private connected: boolean = false;
+    private connected = false;
 
     constructor() {
         this.connect = this.connect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
     }
 
-    private handleEndStream = () => {
-        eventBus.emit('endstream', null);
-    }
+    private handleEndStream = () => eventBus.emit('endstream', null);
 
     private handleHistoricalConversationTreeMessage = (content: any) => {
-        
+        const { id, content: summary, lastModified } = content;
         const historicalConversation = {
-            convGuid: content.id,
-            summary: content.content,
-            fileName: `conv_${content.id}.json`,
-            lastModified: content.lastModified || new Date().toISOString(),
+            convGuid: id,
+            summary,
+            fileName: `conv_${id}.json`,
+            lastModified: lastModified || new Date().toISOString(),
             highlightColour: undefined
         };
-        // Notify subscribers to update the HistoricalConversationTreeList
     }
 
     private handleLoadConversation = (content: any) => {
         const { conversationId, messages } = content;
+        if (!messages?.length) return;
+
         const urlParams = new URLSearchParams(window.location.search);
         const selectedMessageId = urlParams.get('messageId');
-        
-        console.log('Loading conversation:', { conversationId, messageCount: messages?.length, selectedMessageId });
-        if (!messages || messages.length === 0) return;
 
-        // Find root message (message with no parent)
         const rootMessage = messages.find(m => !m.parentId) || messages[0];
 
-        // Clear any existing conversations by resetting the state
-        // This ensures we start fresh when loading a historical conversation
-        const existingState = store.getState();
-        
-        // Create new conversation with root message
         store.dispatch(createConversation({
             id: conversationId,
-            rootMessage: {
-                id: rootMessage.id,
-                content: rootMessage.content,
-                source: rootMessage.source as 'user' | 'ai' | 'system',
-                parentId: null,
-                timestamp: rootMessage.timestamp || Date.now(),
-                children: []
-            },
-            selectedMessageId // Include selected message ID in action
+            rootMessage: this.mapMessage(rootMessage),
+            selectedMessageId
         }));
 
-        // Add remaining messages in order, preserving parent relationships
         messages.slice(1).forEach((message: any) => {
             store.dispatch(addMessage({
                 conversationId,
-                message: {
-                    id: message.id,
-                    content: message.content,
-                    source: message.source as 'user' | 'ai' | 'system',
-                    parentId: message.parentId,
-                    timestamp: message.timestamp || Date.now(),
-                    children: []
-                },
-                selectedMessageId // Include selected message ID in action
+                message: this.mapMessage(message),
+                selectedMessageId
             }));
         });
-        
-        // Set this as the active conversation and track selected message
-        // When loading a historical conversation, always set the selectedMessageId
-        // This ensures we only see the relevant branch
-        store.dispatch(setActiveConversation({ 
+
+        store.dispatch(setActiveConversation({
             conversationId,
             selectedMessageId: selectedMessageId || messages[messages.length - 1].id
         }));
     };
 
+    private mapMessage = (message: any): Message => ({
+        id: message.id,
+        content: message.content,
+        source: message.source,
+        parentId: message.parentId || null,
+        timestamp: message.timestamp || Date.now(),
+        children: []
+    });
+
     private handleConversationMessage = (content: Message) => {
         const state = store.getState();
-        const activeConversationId = state.conversations.activeConversationId;
-        const selectedMessageId = state.conversations.selectedMessageId;
-        
-        console.log('WebSocketManager: Handling conversation message:', {
-            activeConversationId,
-            selectedMessageId,
-            messageId: content.id,
-            messageSource: content.source,
-            parentIdFromContent: content.parentId
-        });
+        const { activeConversationId, selectedMessageId } = state.conversations;
 
         if (activeConversationId) {
-            // Get the conversation to find the last message as parent
             const conversation = state.conversations.conversations[activeConversationId];
-            
-            // Use the explicitly specified parentId first, then the selectedMessageId from state,
-            // and finally fall back to the last message in the conversation
-            const parentId = content.parentId || 
-                             (content.source === 'user' ? selectedMessageId : null) || 
-                             conversation.messages[conversation.messages.length - 1]?.id || 
-                             null;
 
-            console.log('WebSocketManager: Message parentage determined:', {
-                finalParentId: parentId,
-                messageId: content.id
-            });
+            const parentId = content.parentId ||
+                (content.source === 'user' ? selectedMessageId : null) ||
+                conversation.messages[conversation.messages.length - 1]?.id ||
+                null;
 
             store.dispatch(addMessage({
                 conversationId: activeConversationId,
@@ -139,8 +100,6 @@ class WebSocketManager {
                     timestamp: Date.now(),
                     children: []
                 },
-                // For AI responses, set the selectedMessageId to continue the same branch
-                // Only update the selectedMessageId if this is an AI response to ensure branch continuity
                 selectedMessageId: content.source === 'ai' ? content.id : undefined
             }));
         } else {
@@ -149,25 +108,21 @@ class WebSocketManager {
             );
             const conversationId = existingConversationId || `conv_${Date.now()}`;
 
-            // If no active conversation, treat as a new root message.
             store.dispatch(createConversation({
                 id: conversationId,
                 rootMessage: {
                     id: content.id,
                     content: content.content,
                     source: content.source,
-                    parentId: null, // It's a root message
+                    parentId: null,
                     timestamp: content.timestamp || Date.now(),
                     children: []
                 }
             }));
 
-             //Set this new convo as active
             store.dispatch(setActiveConversation({ conversationId, selectedMessageId: content.id }));
         }
     };
-
-
 
     public connect() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -186,34 +141,36 @@ class WebSocketManager {
     }
 
     private handleOpen = () => {
-        console.log('WebSocket Connected');
         this.connected = true;
         eventBus.emit('connectionStatus', { isConnected: true, clientId: this.config.clientId });
     }
 
     private handleMessage = (event: MessageEvent) => {
         try {
-            
             const message: WebSocketMessage = JSON.parse(event.data);
-            
-            if (message.messageType === 'clientId') {
-                this.config.clientId = message.content;
-                
-            }
-            else if (message.messageType === 'cfrag') {
-                this.handleNewLiveChatStreamToken(message.content);
-            } else if (message.messageType === 'conversation') {
-                this.handleConversationMessage(message.content);
-            } else if (message.messageType === 'historicalConversationTree') {
 
-                this.handleHistoricalConversationTreeMessage(message.content);
-            } else if (message.messageType === 'loadConversation') {
-                this.handleLoadConversation(message.content);
-            } else if (message.messageType === 'endstream') {
-                this.handleEndStream();
+            switch (message.messageType) {
+                case 'clientId':
+                    this.config.clientId = message.content;
+                    break;
+                case 'cfrag':
+                    this.handleNewLiveChatStreamToken(message.content);
+                    break;
+                case 'conversation':
+                    this.handleConversationMessage(message.content);
+                    break;
+                case 'historicalConversationTree':
+                    this.handleHistoricalConversationTreeMessage(message.content);
+                    break;
+                case 'loadConversation':
+                    this.handleLoadConversation(message.content);
+                    break;
+                case 'endstream':
+                    this.handleEndStream();
+                    break;
+                default:
+                    eventBus.emit(message.messageType, message.content);
             }
-
-            eventBus.emit(message.messageType, message.content);
         } catch (error) {
             console.error('Error processing message:', error);
         }
@@ -224,16 +181,12 @@ class WebSocketManager {
     }
 
     private handleClose = () => {
-        console.log('WebSocket disconnected');
         this.socket = null;
         this.connected = false;
-        // Emit connection status via EventBus so that subscribers (e.g., our messaging service) know the connection is down
         eventBus.emit('connectionStatus', { isConnected: false, clientId: null });
     }
 
-    private handleNewLiveChatStreamToken = (token: string) => {
-        // Empty handler - will be used by event bus subscribers
-    }
+    private handleNewLiveChatStreamToken = (token: string) => { };
 
     public disconnect() {
         if (this.socket?.readyState === WebSocket.OPEN) {
@@ -250,5 +203,4 @@ class WebSocketManager {
     }
 }
 
-// Create a singleton instance
 export const wsManager = new WebSocketManager();
