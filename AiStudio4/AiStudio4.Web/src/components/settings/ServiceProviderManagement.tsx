@@ -101,18 +101,33 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {providers.map(provider => (
-                        <Card key={provider.guid} className="overflow-hidden bg-gray-800 border-gray-700">
-                            <CardHeader className="pb-2">
+                        <Card 
+                            key={provider.guid} 
+                            className="overflow-hidden bg-gray-800/80 border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm group"
+                        >
+                            <div
+                                className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 transition-all duration-300 group-hover:h-3"
+                                style={{
+                                    backgroundColor: '#4f46e5',
+                                    from: '#4f46e580',
+                                    to: '#4f46e5'
+                                }}
+                            />
+                            <CardHeader className="pb-2 pt-4 px-4">
                                 <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-gray-100">{provider.friendlyName}</CardTitle>
-                                        <CardDescription className="text-gray-400">{provider.serviceName}</CardDescription>
+                                    <div className="flex items-center gap-3">
+                                        <div>
+                                            <CardTitle className="flex items-center gap-2 text-gray-100 text-lg">
+                                                {provider.friendlyName}
+                                            </CardTitle>
+                                            <CardDescription className="text-gray-400 font-mono text-xs">Protocol: {provider.serviceName}</CardDescription>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-2">
+                                    <div className="flex flex-col space-y-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-gray-400 hover:text-gray-100 hover:bg-gray-700"
+                                            className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
                                             onClick={() => {
                                                 setEditingProvider(provider);
                                                 setIsEditDialogOpen(true);
@@ -123,7 +138,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
                                             onClick={() => {
                                                 setDeleteConfirmProvider(provider);
                                                 setIsDeleteDialogOpen(true);
@@ -133,14 +148,8 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                         </Button>
                                     </div>
                                 </div>
+                                <span className="text-gray-200 font-medium overflow-hidden text-ellipsis max-w-[250px]">{provider.url}</span>
                             </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 gap-2 text-sm">
-                                    <div>
-                                        <span className="text-gray-400">URL:</span> <span className="text-gray-200">{provider.url}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
                         </Card>
                     ))}
                 </div>
