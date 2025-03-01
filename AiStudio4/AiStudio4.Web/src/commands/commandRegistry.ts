@@ -1,5 +1,5 @@
 ﻿// src/commands/commandRegistry.ts
-import { Command, CommandGroup, CommandSection } from './types';
+import { Command, CommandGroup } from './types';
 
 class CommandRegistryService {
     private commandGroups: CommandGroup[] = [];

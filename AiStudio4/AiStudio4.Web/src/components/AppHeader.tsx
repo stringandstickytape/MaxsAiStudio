@@ -1,9 +1,9 @@
 ﻿// src/components/AppHeader.tsx (fixed version)
 import { Button } from '@/components/ui/button';
-import { Menu, Settings, GitBranch, ExternalLink, Command } from 'lucide-react';
+import { Menu, Settings, GitBranch, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModelSelector } from '@/components/ModelSelector';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 
 interface AppHeaderProps {

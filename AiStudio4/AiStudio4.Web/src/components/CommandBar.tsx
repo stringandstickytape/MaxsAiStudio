@@ -4,7 +4,6 @@ import { Command } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Command as CommandType } from '@/commands/types';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 interface CommandBarProps {
