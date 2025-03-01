@@ -139,9 +139,6 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                     <div>
                                         <span className="text-gray-400">URL:</span> <span className="text-gray-200">{provider.url}</span>
                                     </div>
-                                    <div>
-                                        <span className="text-gray-400">API Key:</span> <span className="text-gray-200">••••••••••••••••</span>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

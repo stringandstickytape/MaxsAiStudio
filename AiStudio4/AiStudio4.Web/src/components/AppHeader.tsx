@@ -16,7 +16,6 @@ interface AppHeaderProps {
     onSecondaryModelSelect: (model: string) => void;
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
-    onOpenNewWindow: () => void;
     onExecuteCommand?: (command: string) => void;
     headerRightOffset?: string;
     isCommandBarOpen?: boolean;
@@ -36,7 +35,6 @@ export function AppHeader({
     onSecondaryModelSelect,
     onToggleConversationTree,
     onToggleSettings,
-    onOpenNewWindow,
     onExecuteCommand = () => { },
     headerRightOffset = 'right-4',
     isCommandBarOpen = false,
@@ -70,16 +68,19 @@ export function AppHeader({
             sidebarPinned ? "left-80" : "left-0",
             rightSidebarPinned ? "right-80" : "right-0"
         )}>
-            <div className="absolute left-4">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleSidebar}
-                    className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                    <Menu className="h-6 w-6" />
-                </Button>
-            </div>
+            {/* Hide sidebar toggle button when sidebar is open */}
+            {!sidebarPinned && (
+                <div className="absolute left-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleSidebar}
+                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                        <Menu className="h-6 w-6" />
+                    </Button>
+                </div>
+            )}
 
             <div className="flex-1 flex flex-col justify-center items-center gap-2 pl-12 pr-20">
                 {/* Command Bar */}
@@ -129,30 +130,28 @@ export function AppHeader({
             </div>
 
             <div className={`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`}>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleConversationTree}
-                    className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                    <GitBranch className="h-5 w-5" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onOpenNewWindow}
-                    className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                    <ExternalLink className="h-5 w-5" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleSettings}
-                    className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                    <Settings className="h-5 w-5" />
-                </Button>
+                {/* Only show conversation tree button if the function is provided and not null */}
+                {onToggleConversationTree && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleConversationTree}
+                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                        <GitBranch className="h-5 w-5" />
+                    </Button>
+                )}
+                {/* Only show settings button if the function is provided and not null */}
+                {onToggleSettings && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleSettings}
+                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                        <Settings className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
         </div>
     );

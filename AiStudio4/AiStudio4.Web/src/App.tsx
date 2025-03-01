@@ -223,13 +223,12 @@ function AppContent() {
                         onToggleSidebar={handleToggleSidebar}
                         onModelSelect={(model) => handleModelSelect('primary', model)}
                         onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
-                        onToggleConversationTree={handleToggleConversationTree}
-                        onToggleSettings={handleToggleSettings}
-                        onOpenNewWindow={handleOpenNewWindow}
+                        onToggleConversationTree={(showConversationTree || conversationTreePinned || showSettings || settingsPanelPinned) ? null : handleToggleConversationTree}
+                        onToggleSettings={(showSettings || settingsPanelPinned || showConversationTree || conversationTreePinned) ? null : handleToggleSettings}
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                        sidebarPinned={sidebarPinned}
+                        sidebarPinned={sidebarPinned || showSidebar} // Pass both states to properly hide the toggle button
                         rightSidebarPinned={conversationTreePinned || settingsPanelPinned}
                     />
                 </div>
@@ -286,6 +285,7 @@ function AppContent() {
                             key={`tree-${selectedConversationId}-${Date.now()}`} // Force re-render when id changes or is refreshed
                             conversationId={selectedConversationId}
                             isPinned={conversationTreePinned}
+                            onClose={handleToggleConversationTree}
                             messages={{
                                 id: selectedConversationId,
                                 text: "Root",
