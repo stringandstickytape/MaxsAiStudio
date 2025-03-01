@@ -22,6 +22,8 @@ interface AppHeaderProps {
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
     CommandBarComponent?: React.ReactNode;
+    sidebarPinned?: boolean;
+    rightSidebarPinned?: boolean;
 }
 
 export function AppHeader({
@@ -40,6 +42,8 @@ export function AppHeader({
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
     CommandBarComponent, // Make sure to include this in the destructured props
+    sidebarPinned = false,
+    rightSidebarPinned = false,
 }: AppHeaderProps) {
     const [commandText, setCommandText] = useState('');
 
@@ -61,7 +65,11 @@ export function AppHeader({
     }, [isCommandBarOpen]);
 
     return (
-        <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2">
+        <div className={cn(
+            "fixed top-0 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2",
+            sidebarPinned ? "left-80" : "left-0",
+            rightSidebarPinned ? "right-80" : "right-0"
+        )}>
             <div className="absolute left-4">
                 <Button
                     variant="ghost"

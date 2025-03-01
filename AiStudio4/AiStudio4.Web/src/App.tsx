@@ -229,6 +229,8 @@ function AppContent() {
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
+                        sidebarPinned={sidebarPinned}
+                        rightSidebarPinned={conversationTreePinned || settingsPanelPinned}
                     />
                 </div>
 
