@@ -45,7 +45,44 @@ namespace AiStudio4.InjectedDependencies
                             error = "Error processing request: " + ex.Message
                         });
                     }
-
+                
+                case "getModels":
+                    try
+                    {
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            models = _settingsManager.CurrentSettings.ModelList
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing getModels request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                
+                case "getServiceProviders":
+                    try
+                    {
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            providers = _settingsManager.CurrentSettings.ServiceProviders
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing getServiceProviders request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
                 case "conversationmessages":
                     try
                     {
@@ -170,6 +207,186 @@ namespace AiStudio4.InjectedDependencies
                             error = "Error processing request: " + ex.Message
                         });
                     }
+                case "addModel":
+                    try
+                    {
+                        var model = requestObject.ToObject<SharedClasses.Providers.Model>();
+                        if (model == null)
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Invalid model data"
+                            });
+                        }
+                        
+                        _settingsManager.AddModel(model);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing addModel request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "updateModel":
+                    try
+                    {
+                        var model = requestObject.ToObject<SharedClasses.Providers.Model>();
+                        if (model == null || string.IsNullOrEmpty(model.Guid))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Invalid model data or missing model ID"
+                            });
+                        }
+                        
+                        _settingsManager.UpdateModel(model);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing updateModel request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "deleteModel":
+                    try
+                    {
+                        var modelGuid = requestObject["modelGuid"]?.ToString();
+                        if (string.IsNullOrEmpty(modelGuid))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Model ID cannot be empty"
+                            });
+                        }
+                        
+                        _settingsManager.DeleteModel(modelGuid);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing deleteModel request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "addServiceProvider":
+                    try
+                    {
+                        var provider = requestObject.ToObject<SharedClasses.Providers.ServiceProvider>();
+                        if (provider == null)
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Invalid service provider data"
+                            });
+                        }
+                        
+                        _settingsManager.AddServiceProvider(provider);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing addServiceProvider request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "updateServiceProvider":
+                    try
+                    {
+                        var provider = requestObject.ToObject<SharedClasses.Providers.ServiceProvider>();
+                        if (provider == null || string.IsNullOrEmpty(provider.Guid))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Invalid provider data or missing provider ID"
+                            });
+                        }
+                        
+                        _settingsManager.UpdateServiceProvider(provider);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing updateServiceProvider request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
+                case "deleteServiceProvider":
+                    try
+                    {
+                        var providerGuid = requestObject["providerGuid"]?.ToString();
+                        if (string.IsNullOrEmpty(providerGuid))
+                        {
+                            return JsonConvert.SerializeObject(new
+                            {
+                                success = false,
+                                error = "Provider ID cannot be empty"
+                            });
+                        }
+                        
+                        _settingsManager.DeleteServiceProvider(providerGuid);
+                        
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing deleteServiceProvider request: {ex.Message}");
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            error = "Error processing request: " + ex.Message
+                        });
+                    }
+                    
                 default:
                     throw new NotImplementedException();
             }

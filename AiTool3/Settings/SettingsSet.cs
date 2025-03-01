@@ -177,7 +177,6 @@ Analyze the above C# code and provide appropriate XML documentation comments for
                 new ServiceProvider { FriendlyName = "Google [OpenAI API]", ServiceName = typeof(OpenAI).Name, Url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions/" },
                 new ServiceProvider { FriendlyName = "Grok", ServiceName = typeof(Groq).Name, Url = "https://api.groq.com/openai/v1/chat/completions"},
                 new ServiceProvider { FriendlyName = "OpenRouter", ServiceName = typeof(OpenRouterAI).Name, Url = "https://openrouter.ai/api"},
-
             };
         }
 

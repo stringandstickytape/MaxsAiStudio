@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ModelManagement } from './settings/ModelManagement';
+import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { SettingsService } from '@/services/SettingsService';
+import { Model, ServiceProvider } from '@/types/settings';
 
 interface SettingsPanelProps {
     isOpen: boolean;
@@ -9,27 +15,163 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, isPinned }) => {
+    const [models, setModels] = useState<Model[]>([]);
+    const [providers, setProviders] = useState<ServiceProvider[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadData();
+        }
+    }, [isOpen]);
+
+    const loadData = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const [modelsData, providersData] = await Promise.all([
+                SettingsService.getModels(),
+                SettingsService.getServiceProviders()
+            ]);
+            setModels(modelsData);
+            setProviders(providersData);
+        } catch (err) {
+            console.error('Failed to load settings data:', err);
+            setError(err instanceof Error ? err.message : 'Unknown error loading data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Handlers for models
+    const handleAddModel = async (model: Omit<Model, 'guid'>) => {
+        try {
+            await SettingsService.addModel(model);
+            await loadData(); // Reload data after successful add
+        } catch (err) {
+            console.error('Failed to add model:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
+    const handleUpdateModel = async (model: Model) => {
+        try {
+            await SettingsService.updateModel(model);
+            await loadData(); // Reload data after successful update
+        } catch (err) {
+            console.error('Failed to update model:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
+    const handleDeleteModel = async (modelGuid: string) => {
+        try {
+            await SettingsService.deleteModel(modelGuid);
+            await loadData(); // Reload data after successful delete
+        } catch (err) {
+            console.error('Failed to delete model:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
+    // Handlers for service providers
+    const handleAddProvider = async (provider: Omit<ServiceProvider, 'guid'>) => {
+        try {
+            await SettingsService.addServiceProvider(provider);
+            await loadData(); // Reload data after successful add
+        } catch (err) {
+            console.error('Failed to add service provider:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
+    const handleUpdateProvider = async (provider: ServiceProvider) => {
+        try {
+            await SettingsService.updateServiceProvider(provider);
+            await loadData(); // Reload data after successful update
+        } catch (err) {
+            console.error('Failed to update service provider:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
+    const handleDeleteProvider = async (providerGuid: string) => {
+        try {
+            await SettingsService.deleteServiceProvider(providerGuid);
+            await loadData(); // Reload data after successful delete
+        } catch (err) {
+            console.error('Failed to delete service provider:', err);
+            throw err; // Re-throw to be caught by the form component
+        }
+    };
+
     if (!isOpen) return null;
     
     return (
-            <div className="p-4">
-                <h3 className="text-md font-medium mb-2">Appearance</h3>
-                <div className="space-y-2 mb-6">
-                    {/* Placeholder for theme settings */}
-                    <div className="p-3 bg-gray-800 rounded-md">Theme settings will go here</div>
+        <div className="p-4 overflow-y-auto h-full">
+            {isLoading ? (
+                <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 </div>
-                
-                <h3 className="text-md font-medium mb-2">API Settings</h3>
-                <div className="space-y-2 mb-6">
-                    {/* Placeholder for API settings */}
-                    <div className="p-3 bg-gray-800 rounded-md">API configuration will go here</div>
+            ) : error ? (
+                <div className="text-red-500 p-4 bg-red-100/10 rounded-md">
+                    {error}
+                    <Button 
+                        className="mt-2 w-full" 
+                        variant="outline" 
+                        onClick={() => loadData()}
+                    >
+                        Retry
+                    </Button>
                 </div>
-                
+            ) : (
+                <Tabs defaultValue="models" className="w-full">
+                    <TabsList className="grid grid-cols-3 mb-4">
+                        <TabsTrigger value="models">Models</TabsTrigger>
+                        <TabsTrigger value="providers">Providers</TabsTrigger>
+                        <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="models" className="space-y-4">
+                        <ModelManagement 
+                            models={models} 
+                            providers={providers}
+                            onAddModel={handleAddModel}
+                            onUpdateModel={handleUpdateModel}
+                            onDeleteModel={handleDeleteModel}
+                        />
+                    </TabsContent>
+                    
+                    <TabsContent value="providers" className="space-y-4">
+                        <ServiceProviderManagement 
+                            providers={providers}
+                            onAddProvider={handleAddProvider}
+                            onUpdateProvider={handleUpdateProvider}
+                            onDeleteProvider={handleDeleteProvider}
+                        />
+                    </TabsContent>
+                    
+                    <TabsContent value="appearance" className="space-y-4">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <h3 className="text-md font-medium mb-2">Theme Settings</h3>
+                                <div className="p-3 bg-gray-800/50 rounded-md">
+                                    Theme settings will go here
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            )}
+            
+            <div className="mt-8">
                 <h3 className="text-md font-medium mb-2">About</h3>
-                <div className="p-3 bg-gray-800 rounded-md">
+                <div className="p-3 bg-gray-800/50 rounded-md">
                     <p className="text-sm text-gray-300">Version: 1.0.0</p>
                     <p className="text-sm text-gray-300">Build Date: 2023-05-28</p>
                 </div>
             </div>
+        </div>
     );
 };

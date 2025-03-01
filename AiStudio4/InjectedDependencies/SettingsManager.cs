@@ -161,5 +161,59 @@ namespace AiStudio4.InjectedDependencies
                 
             SaveDefaultSettings(defaultSettingsPath);
         }
+
+        public void AddModel(Model model)
+        {
+            _currentSettings.ModelList.Add(model);
+            SaveSettings();
+        }
+
+        public void UpdateModel(Model updatedModel)
+        {
+            var existingModel = _currentSettings.ModelList.FirstOrDefault(m => m.Guid == updatedModel.Guid);
+            if (existingModel != null)
+            {
+                int index = _currentSettings.ModelList.IndexOf(existingModel);
+                _currentSettings.ModelList[index] = updatedModel;
+                SaveSettings();
+            }
+        }
+
+        public void DeleteModel(string modelGuid)
+        {
+            var modelToRemove = _currentSettings.ModelList.FirstOrDefault(m => m.Guid == modelGuid);
+            if (modelToRemove != null)
+            {
+                _currentSettings.ModelList.Remove(modelToRemove);
+                SaveSettings();
+            }
+        }
+
+        public void AddServiceProvider(ServiceProvider provider)
+        {
+            _currentSettings.ServiceProviders.Add(provider);
+            SaveSettings();
+        }
+
+        public void UpdateServiceProvider(ServiceProvider updatedProvider)
+        {
+            var existingProvider = _currentSettings.ServiceProviders.FirstOrDefault(p => p.Guid == updatedProvider.Guid);
+            if (existingProvider != null)
+            {
+                int index = _currentSettings.ServiceProviders.IndexOf(existingProvider);
+                _currentSettings.ServiceProviders[index] = updatedProvider;
+                SaveSettings();
+            }
+        }
+
+        public void DeleteServiceProvider(string providerGuid)
+        {
+            var providerToRemove = _currentSettings.ServiceProviders.FirstOrDefault(p => p.Guid == providerGuid);
+            if (providerToRemove != null)
+            {
+                _currentSettings.ServiceProviders.Remove(providerToRemove);
+                SaveSettings();
+            }
+        }
     }
 }
