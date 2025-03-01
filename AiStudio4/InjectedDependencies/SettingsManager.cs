@@ -2,42 +2,30 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
 using System.IO;
-using System.Text.Json;
 
 namespace AiStudio4.InjectedDependencies
 {
-
     public class Studio4Settings
     {
-        public List<Model> ModelList { get; set; } = new List<Model>();
-        public List<ServiceProvider> ServiceProviders { get; set; } = new List<ServiceProvider>();
-
+        public List<Model> ModelList { get; set; } = new();
+        public List<ServiceProvider> ServiceProviders { get; set; } = new();
         public float Temperature { get; set; } = 0.9f;
-
         public bool UseEmbeddings { get; set; } = false;
-
         public bool UsePromptCaching { get; set; } = true;
-
         public bool StreamResponses { get; set; } = false;
-
         public string EmbeddingsFilename { get; set; }
-
         public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";
 
-        public ApiSettings ToApiSettings()
+        public ApiSettings ToApiSettings() => new()
         {
-            return new ApiSettings
-            {
-                Temperature = Temperature,
-                UsePromptCaching = UsePromptCaching,
-                StreamResponses = StreamResponses,
-                EmbeddingModel = EmbeddingModel,
-                EmbeddingsFilename = EmbeddingsFilename,
-                UseEmbeddings = UseEmbeddings
-            };
-        }
+            Temperature = Temperature,
+            UsePromptCaching = UsePromptCaching,
+            StreamResponses = StreamResponses,
+            EmbeddingModel = EmbeddingModel,
+            EmbeddingsFilename = EmbeddingsFilename,
+            UseEmbeddings = UseEmbeddings
+        };
     }
-
 
     public class SettingsManager
     {
@@ -50,50 +38,39 @@ namespace AiStudio4.InjectedDependencies
 
         public SettingsManager(IConfiguration configuration)
         {
-            _settingsFilePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "settings.json");
+            _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "settings.json");
+            var defaultSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json");
 
-            // Path for default settings
-            var defaultSettingsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "defaultSettings.json");
-
-            // Ensure directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath));
-            
+
             LoadSettings();
             LoadDefaultSettings(defaultSettingsPath);
         }
 
         public void LoadSettings()
         {
-            if (File.Exists(_settingsFilePath))
-            {
-                    string jsonContent = File.ReadAllText(_settingsFilePath);
-                    _currentSettings = JsonConvert.DeserializeObject<Studio4Settings>(jsonContent);
-            }
-            else
+            if (!File.Exists(_settingsFilePath))
             {
                 _currentSettings = new Studio4Settings();
                 SaveSettings();
+                return;
             }
+
+            string jsonContent = File.ReadAllText(_settingsFilePath);
+            _currentSettings = JsonConvert.DeserializeObject<Studio4Settings>(jsonContent);
         }
 
         private void LoadDefaultSettings(string defaultSettingsPath)
         {
-            if (File.Exists(defaultSettingsPath))
-            {
-                string jsonContent = File.ReadAllText(defaultSettingsPath);
-                _defaultSettings = JsonConvert.DeserializeObject<DefaultSettings>(jsonContent);
-            }
-            else
+            if (!File.Exists(defaultSettingsPath))
             {
                 _defaultSettings = new DefaultSettings();
                 SaveDefaultSettings(defaultSettingsPath);
+                return;
             }
+
+            string jsonContent = File.ReadAllText(defaultSettingsPath);
+            _defaultSettings = JsonConvert.DeserializeObject<DefaultSettings>(jsonContent);
         }
 
         private void SaveDefaultSettings(string defaultSettingsPath)
@@ -103,10 +80,7 @@ namespace AiStudio4.InjectedDependencies
                 string jsonContent = JsonConvert.SerializeObject(_defaultSettings);
                 File.WriteAllText(defaultSettingsPath, jsonContent);
             }
-            catch (Exception)
-            {
-                // Handle or log error as needed
-            }
+            catch { /* Handle or log error as needed */ }
         }
 
         public void SaveSettings()
@@ -116,10 +90,7 @@ namespace AiStudio4.InjectedDependencies
                 string jsonContent = JsonConvert.SerializeObject(_currentSettings);
                 File.WriteAllText(_settingsFilePath, jsonContent);
             }
-            catch (Exception)
-            {
-                // Handle or log error as needed
-            }
+            catch { /* Handle or log error as needed */ }
         }
 
         public void UpdateSettings(Studio4Settings newSettings)
@@ -130,36 +101,16 @@ namespace AiStudio4.InjectedDependencies
 
         public void UpdateDefaultModel(string modelName)
         {
-            if (_defaultSettings == null)
-            {
-                _defaultSettings = new DefaultSettings();
-            }
-            
+            _defaultSettings ??= new DefaultSettings();
             _defaultSettings.DefaultModel = modelName;
-            
-            string defaultSettingsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "defaultSettings.json");
-                
-            SaveDefaultSettings(defaultSettingsPath);
+            SaveDefaultSettings(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json"));
         }
 
         public void UpdateSecondaryModel(string modelName)
         {
-            if (_defaultSettings == null)
-            {
-                _defaultSettings = new DefaultSettings();
-            }
-            
+            _defaultSettings ??= new DefaultSettings();
             _defaultSettings.SecondaryModel = modelName;
-            
-            string defaultSettingsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "defaultSettings.json");
-                
-            SaveDefaultSettings(defaultSettingsPath);
+            SaveDefaultSettings(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json"));
         }
 
         public void AddModel(Model model)
@@ -173,8 +124,7 @@ namespace AiStudio4.InjectedDependencies
             var existingModel = _currentSettings.ModelList.FirstOrDefault(m => m.Guid == updatedModel.Guid);
             if (existingModel != null)
             {
-                int index = _currentSettings.ModelList.IndexOf(existingModel);
-                _currentSettings.ModelList[index] = updatedModel;
+                _currentSettings.ModelList[_currentSettings.ModelList.IndexOf(existingModel)] = updatedModel;
                 SaveSettings();
             }
         }
@@ -200,8 +150,7 @@ namespace AiStudio4.InjectedDependencies
             var existingProvider = _currentSettings.ServiceProviders.FirstOrDefault(p => p.Guid == updatedProvider.Guid);
             if (existingProvider != null)
             {
-                int index = _currentSettings.ServiceProviders.IndexOf(existingProvider);
-                _currentSettings.ServiceProviders[index] = updatedProvider;
+                _currentSettings.ServiceProviders[_currentSettings.ServiceProviders.IndexOf(existingProvider)] = updatedProvider;
                 SaveSettings();
             }
         }
