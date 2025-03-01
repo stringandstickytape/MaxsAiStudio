@@ -77,6 +77,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                     <Input
                         ref={inputRef}
                         id="command-input"
+                        autoComplete="off"
                         type="text"
                         placeholder="Type a command or search..."
                         value={searchTerm}
