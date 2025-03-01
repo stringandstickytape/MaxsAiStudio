@@ -103,11 +103,29 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                         className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
                         onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                     />
-                    <kbd
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
-                    >
-                        {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
-                    </kbd>
+                    {isOpen ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearchTerm('');
+                                setIsOpen(false);
+                            }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1.5 px-3 py-1 text-gray-300 hover:text-white bg-gray-700/60 hover:bg-gray-700/90 rounded border border-gray-600/50 hover:border-gray-500 transition-colors duration-200 text-xs font-medium"
+                            aria-label="Clear and close"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            <span>Close</span>
+                        </button>
+                    ) : (
+                        <kbd
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
+                        >
+                            {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
+                        </kbd>
+                    )}
                 </div>
             </form>
 
