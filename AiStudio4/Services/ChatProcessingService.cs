@@ -34,16 +34,14 @@ namespace AiStudio4.Services
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
-            try 
+            try
             {
-                // Create event handlers
-                EventHandler<string> streamingHandler = (s, text) => 
+                // Create and attach event handlers
+                EventHandler<string> streamingHandler = (s, text) =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
-                EventHandler<string> completeHandler = (s, text) => 
+                EventHandler<string> completeHandler = (s, text) =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = text });
-                bool isFirstMessageInConversation = false;
 
-                // Attach event handlers
                 _chatService.StreamingTextReceived += streamingHandler;
                 _chatService.StreamingComplete += completeHandler;
 
@@ -58,16 +56,15 @@ namespace AiStudio4.Services
                         Message = (string)requestObject["message"],
                         Model = (string)requestObject["model"]
                     };
-                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}"); 
+                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
                     var conversation = await _conversationStorage.LoadConversation(chatRequest.ConversationId);
-                    isFirstMessageInConversation = conversation.MessageHierarchy.Count <= 1 && 
+                    bool isFirstMessageInConversation = conversation.MessageHierarchy.Count <= 1 &&
                          (conversation.MessageHierarchy.Count == 0 || conversation.MessageHierarchy[0].Children.Count == 0);
-                    
+
                     var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
                     await _conversationStorage.SaveConversation(conversation);
 
-                    // Update tree and notify clients
                     var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
                     await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
@@ -77,9 +74,8 @@ namespace AiStudio4.Services
                         TreeData = tree
                     });
 
-                    // Get message history and process chat
                     var messageHistory = _treeBuilder.GetMessageHistory(conversation, chatRequest.MessageId);
-                    chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem 
+                    chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
                         Content = msg.UserMessage
@@ -91,12 +87,10 @@ namespace AiStudio4.Services
 
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
 
-                    // If this is the first message in the conversation, generate a summary using the secondary model
                     if (isFirstMessageInConversation)
                     {
                         try
                         {
-                            // Get the secondary model from settings
                             var secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel;
                             if (!string.IsNullOrEmpty(secondaryModel))
                             {
@@ -105,7 +99,6 @@ namespace AiStudio4.Services
                                 {
                                     var message = $"Generate a concise 6 - 10 word summary of this conversation:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
 
-                                    // Create a new chat request for summary generation
                                     var summaryChatRequest = new ChatRequest
                                     {
                                         ClientId = clientId,
@@ -113,22 +106,18 @@ namespace AiStudio4.Services
                                         MessageHistory = new List<MessageHistoryItem> { new MessageHistoryItem { Content = message, Role = "user" } }
                                     };
 
-                                    // Process the summary request
                                     var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
                                     var summaryResponse = await _chatService.ProcessChatRequest(summaryChatRequest);
 
                                     if (summaryResponse.Success)
                                     {
-                                        // Truncate summary if it's too long
-                                        var summary = summaryResponse.ResponseText.Length > 100 
-                                            ? summaryResponse.ResponseText.Substring(0, 97) + "..." 
+                                        var summary = summaryResponse.ResponseText.Length > 100
+                                            ? summaryResponse.ResponseText.Substring(0, 97) + "..."
                                             : summaryResponse.ResponseText;
-                                            
-                                        // Update the conversation summary and save it
+
                                         conversation.Summary = summary;
                                         await _conversationStorage.SaveConversation(conversation);
-                                        
-                                        // Notify clients about the updated summary
+
                                         await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                                         {
                                             ConversationId = conversation.ConversationId,
@@ -143,10 +132,9 @@ namespace AiStudio4.Services
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Error generating conversation summary");
-                            // Continue execution even if summary generation fails
                         }
                     }
-                    
+
                     await _conversationStorage.SaveConversation(conversation);
 
                     await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
@@ -161,7 +149,6 @@ namespace AiStudio4.Services
                 }
                 finally
                 {
-                    // Cleanup event handlers
                     _chatService.StreamingTextReceived -= streamingHandler;
                     _chatService.StreamingComplete -= completeHandler;
                 }
