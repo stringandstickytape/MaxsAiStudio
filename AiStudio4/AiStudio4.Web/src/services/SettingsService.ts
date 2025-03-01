@@ -10,8 +10,8 @@ export class SettingsService {
             providerGuid: model.ProviderGuid,
             userNotes: model.UserNotes,
             additionalParams: model.AdditionalParams,
-            input1MTokenPrice: model.Input1MTokenPrice,  // Fix casing
-            output1MTokenPrice: model.Output1MTokenPrice,  // Fix casing
+            input1MTokenPrice: model.Input1MTokenPrice,
+            output1MTokenPrice: model.Output1MTokenPrice,
             color: model.Color,
             starred: model.Starred,
             supportsPrefill: model.SupportsPrefill
@@ -28,19 +28,14 @@ export class SettingsService {
         };
     }
 
-    static async getModels(): Promise<Model[]> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/getModels', {
+    private static async fetchData<T>(endpoint: string, clientId: string, body?: any): Promise<T> {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Client-Id': clientId,
             },
-            body: JSON.stringify({ clientId })
+            body: JSON.stringify(body ? { ...body, clientId } : { clientId })
         });
 
         if (!response.ok) {
@@ -49,10 +44,32 @@ export class SettingsService {
 
         const data = await response.json();
         if (!data.success) {
-            throw new Error(data.error || 'Failed to fetch models');
+            throw new Error(data.error || `Failed to fetch data from ${endpoint}`);
         }
 
-        // Apply normalization to each model
+        return data;
+    }
+
+    private static async executeAction(endpoint: string, data: any): Promise<void> {
+        const clientId = wsManager.getClientId();
+        if (!clientId) {
+            throw new Error('Client ID not found');
+        }
+
+        const responseData = await this.fetchData(endpoint, clientId, data);
+
+        if (!responseData) {
+            throw new Error(`Failed to execute action on ${endpoint}`);
+        }
+    }
+
+    static async getModels(): Promise<Model[]> {
+        const clientId = wsManager.getClientId();
+        if (!clientId) {
+            throw new Error('Client ID not found');
+        }
+
+        const data = await this.fetchData<{ models: any[] }>('/api/getModels', clientId);
         return data.models.map(this.normalizeModel);
     }
 
@@ -62,193 +79,31 @@ export class SettingsService {
             throw new Error('Client ID not found');
         }
 
-        const response = await fetch('/api/getServiceProviders', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({ clientId })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to fetch service providers');
-        }
-
-        // Apply normalization to each provider
+        const data = await this.fetchData<{ providers: any[] }>('/api/getServiceProviders', clientId);
         return data.providers.map(this.normalizeProvider);
     }
 
     static async addModel(model: Omit<Model, 'guid'>): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/addModel', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                ...model,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to add model');
-        }
+        await this.executeAction('/api/addModel', model);
     }
 
     static async updateModel(model: Model): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/updateModel', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                ...model,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to update model');
-        }
+        await this.executeAction('/api/updateModel', model);
     }
 
     static async deleteModel(modelGuid: string): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/deleteModel', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                modelGuid,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to delete model');
-        }
+        await this.executeAction('/api/deleteModel', { modelGuid });
     }
 
     static async addServiceProvider(provider: Omit<ServiceProvider, 'guid'>): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/addServiceProvider', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                ...provider,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to add service provider');
-        }
+        await this.executeAction('/api/addServiceProvider', provider);
     }
 
     static async updateServiceProvider(provider: ServiceProvider): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/updateServiceProvider', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                ...provider,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to update service provider');
-        }
+        await this.executeAction('/api/updateServiceProvider', provider);
     }
 
     static async deleteServiceProvider(providerGuid: string): Promise<void> {
-        const clientId = wsManager.getClientId();
-        if (!clientId) {
-            throw new Error('Client ID not found');
-        }
-
-        const response = await fetch('/api/deleteServiceProvider', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify({
-                providerGuid,
-                clientId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to delete service provider');
-        }
+        await this.executeAction('/api/deleteServiceProvider', { providerGuid });
     }
 }
