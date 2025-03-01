@@ -53,14 +53,15 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                         name="friendlyName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Friendly Name</FormLabel>
+                                <FormLabel className="text-gray-200">Friendly Name</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="e.g., OpenAI"
                                         {...field}
+                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-red-400" />
                             </FormItem>
                         )}
                     />
@@ -70,17 +71,18 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                         name="serviceName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Service Name</FormLabel>
+                                <FormLabel className="text-gray-200">Service Name</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="e.g., OpenAI"
                                         {...field}
+                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                                     />
                                 </FormControl>
-                                <FormDescription>
+                                <FormDescription className="text-gray-400">
                                     Internal service name (e.g., OpenAI, Claude, Gemini)
                                 </FormDescription>
-                                <FormMessage />
+                                <FormMessage className="text-red-400" />
                             </FormItem>
                         )}
                     />
@@ -91,14 +93,15 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                     name="url"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>API URL</FormLabel>
+                            <FormLabel className="text-gray-200">API URL</FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="https://api.example.com/v1/chat/completions"
                                     {...field}
+                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-red-400" />
                         </FormItem>
                     )}
                 />
@@ -108,24 +111,29 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                     name="apiKey"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>API Key</FormLabel>
+                            <FormLabel className="text-gray-200">API Key</FormLabel>
                             <FormControl>
                                 <Input
                                     type="password"
                                     placeholder="Your API key"
                                     {...field}
+                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                                 />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="text-gray-400">
                                 Your API key will be stored securely
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="text-red-400" />
                         </FormItem>
                     )}
                 />
 
                 <div className="flex justify-end gap-2 pt-4">
-                    <Button type="submit" disabled={isProcessing}>
+                    <Button
+                        type="submit"
+                        disabled={isProcessing}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
                         {isProcessing ? 'Saving...' : initialValues ? 'Update Provider' : 'Add Provider'}
                     </Button>
                 </div>
