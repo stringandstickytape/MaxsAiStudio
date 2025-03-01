@@ -1,9 +1,8 @@
 ﻿// src/commands/voiceInputCommand.ts
 import { registerCommand } from './commandRegistry';
 import { Mic } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
-// State management for the voice input overlay
 let voiceInputOpen = false;
 let setVoiceInputOpen: ((isOpen: boolean) => void) | null = null;
 let setVoiceInputCallback: ((callback: (text: string) => void) => void) | null = null;
@@ -19,7 +18,6 @@ export function initializeVoiceInputCommand() {
         icon: React.createElement(Mic, { size: 16 }),
         execute: () => {
             if (setVoiceInputOpen) {
-                // Open the voice input overlay
                 voiceInputOpen = true;
                 setVoiceInputOpen(true);
             }
@@ -27,29 +25,22 @@ export function initializeVoiceInputCommand() {
     });
 }
 
-// Hook into the voice input state from the component
-export function useVoiceInputState(
-    inputCallback: (text: string) => void
-) {
-    const [isOpen, setIsOpen] = React.useState(voiceInputOpen);
+export function useVoiceInputState(inputCallback: (text: string) => void) {
+    const [isOpen, setIsOpen] = useState(voiceInputOpen);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setVoiceInputOpen = setIsOpen;
         setVoiceInputCallback = (callback) => {
             inputCallback = callback;
         };
 
         return () => {
-            if (setVoiceInputOpen === setIsOpen) {
-                setVoiceInputOpen = null;
-            }
-            if (setVoiceInputCallback) {
-                setVoiceInputCallback = null;
-            }
+            setVoiceInputOpen = setVoiceInputOpen === setIsOpen ? null : setVoiceInputOpen;
+            setVoiceInputCallback = null;
         };
     }, [inputCallback]);
 
-    const handleTranscript = React.useCallback((text: string) => {
+    const handleTranscript = useCallback((text: string) => {
         inputCallback(text);
     }, [inputCallback]);
 
@@ -60,10 +51,8 @@ export function useVoiceInputState(
     };
 }
 
-// Also set up a keyboard shortcut listener
 export function setupVoiceInputKeyboardShortcut() {
     const handleKeyDown = (e: KeyboardEvent) => {
-        // Alt+V / Option+V shortcut
         if (e.altKey && e.key.toLowerCase() === 'v') {
             e.preventDefault();
             if (setVoiceInputOpen) {
