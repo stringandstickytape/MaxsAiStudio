@@ -12,7 +12,7 @@ import { InputBar } from './components/input-bar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocketState } from './hooks/useWebSocketState';
 import { useLiveStream } from '@/hooks/useLiveStream';
-import { ChatService, ModelType } from '@/services/ChatService';  // Import the updated type
+import { ChatService, ModelType } from '@/services/ChatService';
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -21,6 +21,9 @@ import { commandRegistry } from './commands/commandRegistry';
 import { initializeCoreCommands } from './commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
 import { CommandBar } from './components/CommandBar';
+import { VoiceInputOverlay } from '@/components/VoiceInputOverlay';
+import { useVoiceInputState, initializeVoiceInputCommand, setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
+import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -46,8 +49,19 @@ function AppContent() {
     const [settingsPanelPinned, setSettingsPanelPinned] = useState(false);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
+    const [inputValue, setInputValue] = useState(''); // Add this state for voice input
 
-    // In your AppContent component, add this near the beginning:
+    // Voice input integration
+    const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState(
+        (text) => {
+            // This function handles the transcript when voice input is done
+            setInputValue(text);
+            // If you want to automatically send the message:
+            // handleSendMessage(text);
+        }
+    );
+
+    // Initialize commands including voice commands
     useEffect(() => {
         // Initialize core commands with handlers
         initializeCoreCommands({
@@ -56,13 +70,22 @@ function AppContent() {
             toggleSettings: handleToggleSettings,
             openNewWindow: handleOpenNewWindow
         });
+
         // Initialize model commands
         initializeModelCommands({
             onModelSelect: handleModelSelect,
             getAvailableModels: () => models
         });
 
-        // You can register additional commands here
+        // Initialize voice commands
+        initializeVoiceCommands();
+
+        // Set up voice input keyboard shortcut
+        const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
+
+        return () => {
+            cleanupKeyboardShortcut();
+        };
     }, [models]);
 
     useEffect(() => {
@@ -243,7 +266,12 @@ function AppContent() {
 
                 {/* Bottom fixed pane */}
                 <div className="flex-none w-full bg-background border-t">
-                    <InputBar selectedModel={modelSettings.primary} />
+                    <InputBar
+                        selectedModel={modelSettings.primary}
+                        onVoiceInputClick={() => setVoiceInputOpen(true)}
+                        inputValue={inputValue}
+                        onInputChange={setInputValue}
+                    />
                 </div>
             </div>
 
@@ -338,6 +366,13 @@ function AppContent() {
                     </>
                 )}
             </div>
+
+            {/* Voice Input Overlay */}
+            <VoiceInputOverlay
+                isOpen={isVoiceInputOpen}
+                onClose={() => setVoiceInputOpen(false)}
+                onTranscript={handleTranscript}
+            />
         </Provider>
     );
 }

@@ -24,11 +24,38 @@ namespace AiStudio4.InjectedDependencies
             _wsServer = wsServer;
         }
 
+        //public async Task StartAsync()
+        //{
+        //    var builder = WebApplication.CreateBuilder();
+        //    var port = _configuration.GetValue("WebServer:Port", 35005);
+        //    builder.WebHost.UseUrls($"http://*:{port}");
+        //
+        //    app = builder.Build();
+        //    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
+        //
+        //    ConfigureRoutes();
+        //
+        //    await app.RunAsync();
+        //}
+
         public async Task StartAsync()
         {
             var builder = WebApplication.CreateBuilder();
             var port = _configuration.GetValue("WebServer:Port", 35005);
-            builder.WebHost.UseUrls($"http://*:{port}");
+
+            // Configure Kestrel for HTTPS
+            builder.WebHost.UseKestrel(options =>
+            {
+                options.ListenAnyIP(port, listenOptions =>
+                {
+                    // Load the certificate from the file
+                    string certPath = Path.Combine(
+                        "C:\\certs",
+                        "aistudio4.pfx");
+
+                    listenOptions.UseHttps(certPath, "YourStrongPassword");
+                });
+            });
 
             app = builder.Build();
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
