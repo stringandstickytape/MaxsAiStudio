@@ -17,7 +17,6 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
     onSubmit,
     isProcessing
 }) => {
-    // Initialize the form with default values
     const form = useForm({
         defaultValues: {
             guid: '',
@@ -28,21 +27,18 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
         }
     });
 
-    // Reset form with initialValues when they change
     useEffect(() => {
         if (initialValues) {
-            console.log('Resetting form with initialValues:', initialValues);
             form.reset(initialValues);
         }
     }, [initialValues, form]);
 
     const handleSubmit = async (data: any) => {
-        // For new providers, generate a GUID
-        if (!data.guid) {
-            data.guid = uuidv4();
-        }
-        await onSubmit(data);
+        const newData = { ...data, guid: data.guid || uuidv4() };
+        await onSubmit(newData);
     };
+
+    const inputClasses = "bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500";
 
     return (
         <Form {...form}>
@@ -58,7 +54,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                                     <Input
                                         placeholder="e.g., OpenAI"
                                         {...field}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputClasses}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-400" />
@@ -76,7 +72,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                                     <Input
                                         placeholder="e.g., OpenAI"
                                         {...field}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputClasses}
                                     />
                                 </FormControl>
                                 <FormDescription className="text-gray-400">
@@ -98,7 +94,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                                 <Input
                                     placeholder="https://api.example.com/v1/chat/completions"
                                     {...field}
-                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                    className={inputClasses}
                                 />
                             </FormControl>
                             <FormMessage className="text-red-400" />
@@ -117,7 +113,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({
                                     type="password"
                                     placeholder="Your API key"
                                     {...field}
-                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                    className={inputClasses}
                                 />
                             </FormControl>
                             <FormDescription className="text-gray-400">

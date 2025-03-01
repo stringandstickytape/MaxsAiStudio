@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Model, ServiceProvider } from '@/types/settings';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,18 +38,18 @@ export const ModelForm: React.FC<ModelFormProps> = ({
 
     useEffect(() => {
         if (initialValues) {
-            console.log('Resetting model form with initialValues:', initialValues);
             form.reset(initialValues);
         }
     }, [initialValues, form]);
 
     const handleSubmit = async (data: any) => {
-        // For new models, generate a GUID
         if (!data.guid) {
             data.guid = uuidv4();
         }
         await onSubmit(data);
     };
+
+    const inputStyle = "bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500";
 
     return (
         <Form {...form}>
@@ -65,7 +65,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                     <Input
                                         placeholder="e.g., GPT-4 Turbo"
                                         {...field}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputStyle}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-400" />
@@ -83,7 +83,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                     <Input
                                         placeholder="e.g., gpt-4-turbo"
                                         {...field}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputStyle}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-400" />
@@ -139,7 +139,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                         placeholder="0.00"
                                         {...field}
                                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputStyle}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-400" />
@@ -161,7 +161,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                         placeholder="0.00"
                                         {...field}
                                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                        className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                        className={inputStyle}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-400" />
@@ -180,7 +180,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                 <Input
                                     placeholder="Any additional notes about this model"
                                     {...field}
-                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                    className={inputStyle}
                                 />
                             </FormControl>
                             <FormMessage className="text-red-400" />
@@ -198,7 +198,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({
                                 <Input
                                     placeholder='{"temperature": 0.7}'
                                     {...field}
-                                    className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                                    className={inputStyle}
                                 />
                             </FormControl>
                             <FormDescription className="text-gray-400">
@@ -272,4 +272,4 @@ export const ModelForm: React.FC<ModelFormProps> = ({
             </form>
         </Form>
     );
-};  
+};
