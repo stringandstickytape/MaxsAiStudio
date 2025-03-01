@@ -17,7 +17,6 @@ interface AppHeaderProps {
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
     onExecuteCommand?: (command: string) => void;
-    headerRightOffset?: string;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
     CommandBarComponent?: React.ReactNode;
@@ -36,7 +35,6 @@ export function AppHeader({
     onToggleConversationTree,
     onToggleSettings,
     onExecuteCommand = () => { },
-    headerRightOffset = 'right-4',
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
     CommandBarComponent,
@@ -63,7 +61,7 @@ export function AppHeader({
 
     return (
         <div className={cn(
-            "fixed top-0 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2",
+            "bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2 h-full",
             sidebarPinned ? "left-80" : "left-0",
             rightSidebarPinned ? "right-80" : "right-0"
         )}>
@@ -111,7 +109,6 @@ export function AppHeader({
                         models={models}
                         modelType="primary"
                         onModelSelect={onModelSelect}
-                        className="py-1 h-auto"
                     />
 
                     <ModelSelector
@@ -120,12 +117,11 @@ export function AppHeader({
                         models={models}
                         modelType="secondary"
                         onModelSelect={onSecondaryModelSelect}
-                        className="py-1 h-auto"
                     />
                 </div>
             </div>
 
-            <div className={cn(`absolute ${headerRightOffset} flex items-center space-x-2 transition-all duration-300 z-10`)}>
+            <div className={cn(`absolute right-4 flex items-center space-x-2 transition-all duration-300 z-10`)}>
                 {onToggleConversationTree && (
                     <Button
                         variant="ghost"

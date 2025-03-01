@@ -215,17 +215,17 @@ function AppContent() {
     return (
         <Provider store={store}>
             <div className={cn(
-                "h-screen flex flex-col overflow-hidden",
-                sidebarPinned && "pl-80", // Add left padding when sidebar is pinned
-                conversationTreePinned && "pr-80", // Add right padding when conversation tree is pinned
-                settingsPanelPinned && "pr-80" // Add right padding when settings panel is pinned
+                "h-screen flex flex-col",
+                sidebarPinned && "pl-80",
+                conversationTreePinned && "pr-80",
+                settingsPanelPinned && "pr-80"
             )}>
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
                     "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-40 transition-all duration-300",
                     (showSidebar || sidebarPinned) ? "translate-x-0" : "-translate-x-full"
                 )}>
-                    {/* Close button moved to Sidebar component */}
+                    {/* Sidebar content remains the same */}
                     <div className="mt-2">
                         <Sidebar
                             wsState={wsState}
@@ -236,8 +236,8 @@ function AppContent() {
                     </div>
                 </div>
 
-                {/* Top fixed header pane */}
-                <div className="flex-none w-full bg-background border-b">
+                {/* Top header - fixed height */}
+                <div className="flex-none h-[140px] bg-background border-b">
                     <AppHeader
                         isMobile={isMobile}
                         selectedModel={modelSettings.primary}
@@ -251,12 +251,12 @@ function AppContent() {
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                        sidebarPinned={sidebarPinned || showSidebar} // Pass both states to properly hide the toggle button
+                        sidebarPinned={sidebarPinned || showSidebar}
                         rightSidebarPinned={conversationTreePinned || settingsPanelPinned}
                     />
                 </div>
 
-                {/* Middle dynamic height pane */}
+                {/* Middle chat container - flexible height */}
                 <div className="flex-1 overflow-auto">
                     <ChatContainer
                         streamTokens={streamTokens}
@@ -264,8 +264,8 @@ function AppContent() {
                     />
                 </div>
 
-                {/* Bottom fixed pane */}
-                <div className="flex-none w-full bg-background border-t">
+                {/* Bottom input bar - fixed height */}
+                <div className="flex-none h-[30vh] bg-background border-t">
                     <InputBar
                         selectedModel={modelSettings.primary}
                         onVoiceInputClick={() => setVoiceInputOpen(true)}

@@ -4,48 +4,27 @@ using System.IO;
 namespace AiStudio4.InjectedDependencies
 {
     public class v4BranchedConversation
-    { 
+    {
         public string ConversationId { get; set; }
-        public List<v4BranchedConversationMessage> MessageHierarchy { get; set; }
+        public List<v4BranchedConversationMessage> MessageHierarchy { get; set; } = new List<v4BranchedConversationMessage>(); // Initialize here
         public string Summary { get; set; }
 
-        public v4BranchedConversation()
-        {
+        public v4BranchedConversation() { }
 
+        public v4BranchedConversation(string conversationId)
+        {
+            ConversationId = string.IsNullOrWhiteSpace(conversationId) ? throw new ArgumentNullException(nameof(conversationId)) : conversationId;
         }
 
         public void Save()
         {
-            string conversationPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "conversations",
-                $"{ConversationId}.json");
-
-            Directory.CreateDirectory(Path.GetDirectoryName(conversationPath));
-
-            File.WriteAllText(conversationPath, JsonConvert.SerializeObject(this));
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "conversations", $"{ConversationId}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
-
-        public v4BranchedConversation(string conversationId)
-        {
-            if (string.IsNullOrWhiteSpace(conversationId))
-                throw new ArgumentNullException(nameof(conversationId));
-
-            ConversationId = conversationId;
-            MessageHierarchy = new List<v4BranchedConversationMessage>();
-        }
-
-
 
         internal v4BranchedConversationMessage AddNewMessage(v4BranchedConversationMessageRole role, string? newMessageId, string? userMessage, string parentMessageId)
         {
-            // Initialize Messages list if null
-            if (MessageHierarchy == null)
-            {
-                MessageHierarchy = new List<v4BranchedConversationMessage>();
-            }
-
             var newMessage = new v4BranchedConversationMessage
             {
                 Role = role,
@@ -54,7 +33,6 @@ namespace AiStudio4.InjectedDependencies
                 Id = newMessageId
             };
 
-            // Helper function to recursively find parent message
             bool FindAndAddToParent(v4BranchedConversationMessage current, string targetId)
             {
                 if (current.Id == targetId)
@@ -63,45 +41,21 @@ namespace AiStudio4.InjectedDependencies
                     return true;
                 }
 
-                foreach (var child in current.Children)
-                {
-                    if (FindAndAddToParent(child, targetId))
-                        return true;
-                }
-
-                return false;
+                return current.Children.Any(child => FindAndAddToParent(child, targetId));
             }
 
-            // Try to find parent and add new message as child
-            bool foundParent = false;
-            foreach (var message in MessageHierarchy)
+            if (string.IsNullOrEmpty(parentMessageId) || !MessageHierarchy.Any(message => FindAndAddToParent(message, parentMessageId)))
             {
-                if (FindAndAddToParent(message, parentMessageId))
-                {
-                    foundParent = true;
-                    break;
-                }
-            }
-
-            // If parent not found, create new root message
-            if (!foundParent)
-            {
-                var rootMessage = new v4BranchedConversationMessage
+                MessageHierarchy.Add(new v4BranchedConversationMessage
                 {
                     Role = v4BranchedConversationMessageRole.System,
                     UserMessage = parentMessageId,
                     Children = new List<v4BranchedConversationMessage> { newMessage },
                     Id = parentMessageId
-                };
-                MessageHierarchy.Add(rootMessage);
+                });
             }
 
             return newMessage;
         }
-
-
     }
-
-
-
 }

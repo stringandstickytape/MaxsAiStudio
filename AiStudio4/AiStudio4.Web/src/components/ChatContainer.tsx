@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
 import { ConversationView } from './ConversationView';
 
 interface ChatContainerProps {
@@ -29,9 +28,9 @@ export function ChatContainer({
     return (
         <div
             ref={messagesEndRef}
-            className="flex-1 overflow-y-auto p-4 mt-[4.5rem] mb-[31vh] scroll-smooth"
+            className="h-full w-full overflow-y-auto p-4 scroll-smooth"
         >
-            <ConversationView streamTokens={streamTokens} /> {/* Pass streamTokens */}
+            <ConversationView streamTokens={streamTokens} />
         </div>
     );
 }
