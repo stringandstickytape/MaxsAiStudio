@@ -7,7 +7,7 @@ import { createConversation } from '@/store/conversationSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { ToolSelector } from './tools/ToolSelector';
-import { Mic, Tool } from 'lucide-react';
+import { Mic, Send } from 'lucide-react';
 
 interface InputBarProps {
     selectedModel: string;
@@ -84,37 +84,48 @@ export function InputBar({
             <div className="h-full flex flex-col gap-2">
                 {/* Tool selector */}
                 <div className="mb-2">
-                    <ToolSelector onManageTools={() => {}} />
+                    <ToolSelector onManageTools={() => { }} />
                 </div>
-                
-                <div className="relative flex-1">
-                    <textarea
-                        className="w-full h-full p-4 border border-gray-700/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-gray-800/50 text-gray-100 shadow-inner transition-all duration-200 placeholder:text-gray-400"
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Type your message here... (Ctrl+Enter to send)"
-                    />
 
-                    {/* Add voice input button */}
-                    {onVoiceInputClick && (
+                <div className="flex-1 flex gap-2">
+                    {/* Input area */}
+                    <div className="relative flex-1">
+                        <textarea
+                            className="w-full h-full p-4 border border-gray-700/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-gray-800/50 text-gray-100 shadow-inner transition-all duration-200 placeholder:text-gray-400"
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type your message here... (Ctrl+Enter to send)"
+                        />
+                    </div>
+
+                    {/* Vertical button bar */}
+                    <div className="flex flex-col gap-2 justify-end">
+                        {/* Voice input button */}
+                        {onVoiceInputClick && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={onVoiceInputClick}
+                                className="bg-gray-800 border-gray-700 text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                                aria-label="Voice input"
+                            >
+                                <Mic className="h-5 w-5" />
+                            </Button>
+                        )}
+
+                        {/* Send button */}
                         <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            onClick={onVoiceInputClick}
-                            className="absolute right-3 bottom-3 text-gray-400 hover:text-blue-400 hover:bg-gray-700/50"
-                            aria-label="Voice input"
+                            onClick={handleSend}
+                            className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500 transition-colors"
+                            aria-label="Send message"
                         >
-                            <Mic className="h-5 w-5" />
+                            <Send className="h-5 w-5" />
                         </Button>
-                    )}
+                    </div>
                 </div>
-                <Button
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 rounded-xl"
-                    onClick={handleSend}
-                >
-                    Send
-                </Button>
             </div>
         </div>
     );
