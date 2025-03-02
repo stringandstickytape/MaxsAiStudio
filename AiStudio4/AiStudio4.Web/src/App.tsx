@@ -59,7 +59,7 @@ function AppContent() {
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     
     // Use the tool commands hook to set up tool-related commands
-    const { toolSelectorRef } = useToolCommands({
+    const toolCommands = useToolCommands({
         openToolPanel: () => setIsToolPanelOpen(true),
         createNewTool: () => {
             setIsToolPanelOpen(true);

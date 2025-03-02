@@ -128,8 +128,8 @@ export function AppHeader({
             </div>
 
             <div className={cn(`absolute right-4 flex items-center space-x-2 transition-all duration-300 z-10`)}>
-                <div className="hidden sm:flex">
-                    <ToolSelector onManageTools={onManageTools || onToggleToolPanel} />
+                <div className="flex">
+                    <ToolSelector onManageTools={onToggleToolPanel} />
                 </div>
                 {onToggleConversationTree && (
                     <Button

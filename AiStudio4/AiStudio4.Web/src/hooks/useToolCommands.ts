@@ -2,7 +2,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { initializeToolCommands, registerToolsAsCommands } from '@/commands/toolCommands';
-import { ToolSelectorMethods } from '@/components/tools/ToolSelector';
 import { fetchTools, addActiveTool, removeActiveTool } from '@/store/toolSlice';
 export function useToolCommands({
     openToolPanel,
@@ -16,8 +15,7 @@ export function useToolCommands({
     exportTools: () => void;
 }) {
     const dispatch = useDispatch();
-    const toolSelectorRef = useRef<ToolSelectorMethods>(null);
-    const { tools, activeTools } = useSelector((state: RootState) => state.tools);
+    const { tools, activeTools } = useSelector((state: any) => state.tools);
     
     // Function to toggle a tool's active state
     const toggleTool = useCallback((toolId: string, activate: boolean) => {
@@ -41,17 +39,8 @@ export function useToolCommands({
                 createNewTool,
                 importTools,
                 exportTools,
-                toggleTool: (toolId: string) => {
-                    if (toolSelectorRef.current) {
-                        toolSelectorRef.current.toggleTool(toolId);
-                    }
-                },
-                getAvailableTools: async () => {
-                    if (toolSelectorRef.current) {
-                        return await toolSelectorRef.current.getAvailableTools();
-                    }
-                    return [];
-                },
+                // Simplified toggle tool function that directly uses the Redux actions
+                toggleTool,
             });
             
             // Register each individual tool as a command
@@ -59,5 +48,5 @@ export function useToolCommands({
         }
     }, [tools, activeTools, openToolPanel, createNewTool, importTools, exportTools, toggleTool]);
 
-    return { toolSelectorRef };
+    return { toggleTool };
 }

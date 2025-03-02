@@ -31,6 +31,26 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
     }
   }, [dispatch, isOpen]);
 
+    useEffect(() => {
+        const pendingAction = window.localStorage.getItem('toolPanel_action');
+        if (pendingAction) {
+            if (pendingAction === 'create') {
+                handleAddTool();
+            } else if (pendingAction === 'import') {
+                // Trigger file input click for import
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.click();
+            } else if (pendingAction === 'export') {
+                // Handle export action
+                // This would be implemented when we add the export functionality
+            }
+            // Clear the action after processing
+            window.localStorage.removeItem('toolPanel_action');
+        }
+    }, [isOpen]);
+
   const handleAddTool = () => {
     setCurrentTool(null);
     setIsEditorOpen(true);
@@ -60,19 +80,7 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
 
   if (!isOpen) return null;
 
-  // Check for actions from localStorage (for cross-component communication)
-  useEffect(() => {
-    const pendingAction = window.localStorage.getItem('toolPanel_action');
-    if (pendingAction) {
-      if (pendingAction === 'create') {
-        handleAddTool();
-      }
-      // Handle other actions like import/export here
-      
-      // Clear the action after processing
-      window.localStorage.removeItem('toolPanel_action');
-    }
-  }, [isOpen]);
+    
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
