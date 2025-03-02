@@ -2,7 +2,6 @@ using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
-using AiTool3.Conversations;
 using Newtonsoft.Json;
 using System.IO;
 using Microsoft.Extensions.Logging;

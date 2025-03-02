@@ -1,6 +1,3 @@
-using AiTool3.AiServices;
-using AiTool3.Conversations;
-using AiTool3.DataModels;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

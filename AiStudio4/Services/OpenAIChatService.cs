@@ -1,12 +1,12 @@
-using AiTool3.AiServices;
-using AiTool3.Conversations;
-using AiTool3.DataModels;
 using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
 using SharedClasses.Providers;
+using AiStudio4.AiServices;
+using AiStudio4.DataModels;
+using AiStudio4.Conversations;
 
 namespace AiStudio4.Services
 {
@@ -34,10 +34,11 @@ namespace AiStudio4.Services
 
                 var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
                 var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
-                var aiService = AiServiceResolver.GetAiService(service.ServiceName, null);
+                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService);
+
 
                 // Wire up streaming events
-                aiService.StreamingTextReceived += (sender, text) => 
+                aiService.StreamingTextReceived += (sender, text) =>
                 {
                     _logger.LogTrace("Received streaming text fragment");
                     StreamingTextReceived?.Invoke(this, text);
@@ -54,7 +55,7 @@ namespace AiStudio4.Services
                     systemprompt = "You are a helpful chatbot.",
                     messages = new List<LinearConversationMessage>()
                 };
-                
+
                 // Get tools if specified
                 List<string> toolNames = null;
                 if (request.ToolIds != null && request.ToolIds.Any())
@@ -80,6 +81,7 @@ namespace AiStudio4.Services
                     });
                 }
 
+                // Pass the tool IDs to FetchResponse to ensure tools are available
                 var response = await aiService.FetchResponse(
                     service,
                     model,
@@ -89,7 +91,7 @@ namespace AiStudio4.Services
                     new CancellationToken(false),
                     _settingsManager.CurrentSettings.ToApiSettings(),
                     mustNotUseEmbedding: true,
-                    toolNames: null,
+                    toolIds: request.ToolIds ?? new(), // Use the original tool IDs from the request
                     useStreaming: true);
 
                 _logger.LogInformation("Successfully processed chat request");

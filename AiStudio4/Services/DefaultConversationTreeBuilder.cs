@@ -1,7 +1,6 @@
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
-using AiTool3.Conversations;
 using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 
