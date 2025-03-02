@@ -38,9 +38,7 @@ export function useToolCommands({
                 openToolPanel,
                 createNewTool,
                 importTools,
-                exportTools,
-                // Simplified toggle tool function that directly uses the Redux actions
-                toggleTool,
+                exportTools
             });
             
             // Register each individual tool as a command

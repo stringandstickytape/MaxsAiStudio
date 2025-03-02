@@ -423,6 +423,13 @@ function AppContent() {
             />
             
             {/* Tool Panel Dialog */}
+            {/* Listen for custom event to open tool panel */}
+            {useEffect(() => {
+                const handleOpenToolPanel = () => setIsToolPanelOpen(true);
+                window.addEventListener('open-tool-panel', handleOpenToolPanel);
+                return () => window.removeEventListener('open-tool-panel', handleOpenToolPanel);
+            }, [])}
+            
             {isToolPanelOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">

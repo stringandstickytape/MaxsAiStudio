@@ -135,7 +135,7 @@ namespace AiStudio4.AiServices
                 {
                     req["tool_choice"] = new JObject
                     {
-                        ["type"] = "any"
+                        ["type"] = "auto"
                     };
                 }
             }
