@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { wsManager } from '@/services/websocket/WebSocketManager';
-import { eventBus } from '@/services/messaging/EventBus';
+import { webSocketService } from '@/services/websocket/WebSocketService';
 
 export interface TreeNode {
     id: string;
@@ -22,7 +21,7 @@ export const HistoricalConversationTree: React.FC<HistoricalConversationTreeProp
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Client-Id': wsManager.getClientId() || ''
+                    'X-Client-Id': webSocketService.getClientId() || ''
                 },
                 body: JSON.stringify({
                     messageId: node.id
@@ -37,7 +36,7 @@ export const HistoricalConversationTree: React.FC<HistoricalConversationTreeProp
                     messageCount: data.messages.length
                 });
                 // Send the data through WebSocket manager for proper handling
-                wsManager.send({
+                webSocketService.send({
                     messageType: 'loadConversation',
                     content: {
                         conversationId: data.conversationId,
@@ -46,7 +45,7 @@ export const HistoricalConversationTree: React.FC<HistoricalConversationTreeProp
                 });
                 
                 // Clear any existing stream tokens when loading a historical conversation
-                eventBus.emit('endstream', null);
+                webSocketService.send({ messageType: 'endstream', content: null });
             }
         } catch (error) {
             console.error('Error loading conversation:', error);

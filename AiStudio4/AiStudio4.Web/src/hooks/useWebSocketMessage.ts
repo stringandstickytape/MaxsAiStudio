@@ -1,29 +1,18 @@
-import { useEffect, useState } from 'react';
-import { messageService } from '@/services/messaging/WebSocketMessageService';
+import { useWebSocket } from './useWebSocket';
 
 export interface WebSocketHookResult {
     isConnected: boolean;
 }
 
+// This is a compatibility wrapper to maintain backward compatibility
+// with code that uses the old useWebSocketMessage hook
 export const useWebSocketMessage = (
     messageType: string,
     handler: (data: any) => void
 ): WebSocketHookResult => {
-    const [isConnected, setIsConnected] = useState(messageService.isConnected());
-
-    useEffect(() => {
-        const handleConnectionChange = (connected: boolean) => {
-            setIsConnected(connected);
-        };
-
-        messageService.onConnectionChange(handleConnectionChange);
-        messageService.subscribe(messageType, handler);
-
-        return () => {
-            messageService.offConnectionChange(handleConnectionChange);
-            messageService.unsubscribe(messageType, handler);
-        };
-    }, [messageType, handler]);
+    const { isConnected } = useWebSocket({
+        subscriptions: { [messageType]: handler }
+    });
 
     return { isConnected };
 };

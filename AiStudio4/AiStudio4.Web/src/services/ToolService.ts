@@ -1,6 +1,6 @@
 // src/services/ToolService.ts
 import { Tool, ToolCategory, ToolResponse } from '@/types/toolTypes';
-import { wsManager } from './websocket/WebSocketManager';
+import { webSocketService } from './websocket/WebSocketService';
 
 export class ToolService {
   private static async apiRequest(endpoint: string, clientId: string, data: any) {
@@ -43,7 +43,7 @@ export class ToolService {
 
   // Get all tools
   static async getTools(): Promise<Tool[]> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -59,7 +59,7 @@ export class ToolService {
 
   // Get a specific tool by ID
   static async getTool(toolId: string): Promise<Tool> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -74,7 +74,7 @@ export class ToolService {
 
   // Add a new tool
   static async addTool(tool: Omit<Tool, 'guid'>): Promise<Tool> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -93,7 +93,7 @@ export class ToolService {
 
   // Update an existing tool
   static async updateTool(tool: Tool): Promise<Tool> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -112,7 +112,7 @@ export class ToolService {
 
   // Delete a tool
   static async deleteTool(toolId: string): Promise<boolean> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -127,7 +127,7 @@ export class ToolService {
 
   // Get all tool categories
   static async getToolCategories(): Promise<ToolCategory[]> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -142,7 +142,7 @@ export class ToolService {
 
   // Add a new tool category
   static async addToolCategory(category: Omit<ToolCategory, 'id'>): Promise<ToolCategory> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -157,7 +157,7 @@ export class ToolService {
 
   // Update an existing tool category
   static async updateToolCategory(category: ToolCategory): Promise<ToolCategory> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -172,7 +172,7 @@ export class ToolService {
 
   // Delete a tool category
   static async deleteToolCategory(categoryId: string): Promise<boolean> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -187,7 +187,7 @@ export class ToolService {
 
   // Validate a tool schema
   static async validateToolSchema(schema: string): Promise<boolean> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -202,7 +202,7 @@ export class ToolService {
 
   // Import tools from JSON
   static async importTools(json: string): Promise<Tool[]> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }
@@ -217,7 +217,7 @@ export class ToolService {
 
   // Export tools to JSON
   static async exportTools(toolIds?: string[]): Promise<string> {
-    const clientId = wsManager.getClientId();
+    const clientId = webSocketService.getClientId();
     if (!clientId) {
       throw new Error('Client ID not found');
     }

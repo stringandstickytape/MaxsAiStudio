@@ -1,7 +1,7 @@
 // C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\AiStudio4.Web\src\services\ChatService.ts
 import { store } from '@/store/store';
 import { addMessage } from '@/store/conversationSlice';
-import { wsManager } from './websocket/WebSocketManager';
+import { webSocketService } from './websocket/WebSocketService';
 
 export type ModelType = 'primary' | 'secondary';
 
@@ -25,7 +25,7 @@ export class ChatService {
 
     static async sendMessage(message: string, selectedModel: string, toolIds: string[] = []) {
         console.log('ChatService.sendMessage called with toolIds:', toolIds);
-        const clientId = wsManager.getClientId();
+        const clientId = webSocketService.getClientId();
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
 
@@ -72,7 +72,7 @@ export class ChatService {
     }
 
     static async fetchModels() {
-        const data = await ChatService.apiRequest("/api/getConfig", wsManager.getClientId() || 'no-client-id', {});
+        const data = await ChatService.apiRequest("/api/getConfig", webSocketService.getClientId() || 'no-client-id', {});
         if (!data.success || !Array.isArray(data.models)) {
             throw new Error('Failed to fetch models');
         }
@@ -85,7 +85,7 @@ export class ChatService {
     }
 
     static async saveModel(modelType: ModelType, modelName: string) {
-        const clientId = wsManager.getClientId();
+        const clientId = webSocketService.getClientId();
         if (!clientId) {
             throw new Error('Client ID not found');
         }

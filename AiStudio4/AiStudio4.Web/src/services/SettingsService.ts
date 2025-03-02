@@ -1,4 +1,4 @@
-import { wsManager } from './websocket/WebSocketManager';
+import { webSocketService } from './websocket/WebSocketService';
 import { ServiceProvider, Model } from '@/types/settings';
 
 export class SettingsService {
@@ -51,7 +51,7 @@ export class SettingsService {
     }
 
     private static async executeAction(endpoint: string, data: any): Promise<void> {
-        const clientId = wsManager.getClientId();
+        const clientId = webSocketService.getClientId();
         if (!clientId) {
             throw new Error('Client ID not found');
         }
@@ -64,7 +64,7 @@ export class SettingsService {
     }
 
     static async getModels(): Promise<Model[]> {
-        const clientId = wsManager.getClientId();
+        const clientId = webSocketService.getClientId();
         if (!clientId) {
             throw new Error('Client ID not found');
         }
@@ -74,7 +74,7 @@ export class SettingsService {
     }
 
     static async getServiceProviders(): Promise<ServiceProvider[]> {
-        const clientId = wsManager.getClientId();
+        const clientId = webSocketService.getClientId();
         if (!clientId) {
             throw new Error('Client ID not found');
         }
