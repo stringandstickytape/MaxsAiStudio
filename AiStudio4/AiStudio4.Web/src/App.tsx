@@ -88,13 +88,16 @@ function AppContent() {
             openToolPanel: () => setIsToolPanelOpen(true),
             createNewTool: () => {
                 setIsToolPanelOpen(true);
-                // TODO: Open tool creation dialog
+                // We'll trigger the "new tool" mode in the tool panel
+                window.localStorage.setItem('toolPanel_action', 'create');
             },
             importTools: () => {
-                // TODO: Open import dialog
+                setIsToolPanelOpen(true);
+                window.localStorage.setItem('toolPanel_action', 'import');
             },
             exportTools: () => {
-                // TODO: Handle export
+                setIsToolPanelOpen(true);
+                window.localStorage.setItem('toolPanel_action', 'export');
             }
         });
 
