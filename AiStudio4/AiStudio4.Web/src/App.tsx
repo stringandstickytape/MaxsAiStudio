@@ -11,7 +11,7 @@ import { AppHeader } from './components/AppHeader';
 import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/input-bar';
 import { Sidebar } from './components/Sidebar';
-import { useWebSocketState } from './hooks/useWebSocketState';
+import { useWebSocket } from './hooks/useWebSocket';
 import { useLiveStream } from '@/hooks/useLiveStream';
 import { ChatService, ModelType } from '@/services/ChatService';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,8 @@ function AppContent() {
         secondary: "Select Model"
     });
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const { wsState } = useWebSocketState();
+    const { isConnected, clientId } = useWebSocket();
+    const wsState = { isConnected, clientId, messages: [] };
     const { streamTokens } = useLiveStream();
     const [showConversationTree, setShowConversationTree] = useState(false);
     const [showSettings, setShowSettings] = useState(false);

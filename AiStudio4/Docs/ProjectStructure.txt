@@ -1,0 +1,152 @@
+﻿File Responsibility Summary for AiStudio4
+Here's a file-by-file summary of responsibilities within the AiStudio4 project:
+Backend (C#)
+Core Structure and Interfaces
+
+AiStudio4/App.xaml.cs: Application entry point, configures services using dependency injection
+AiStudio4/MainWindow.xaml.cs: Main window implementation using WebView2 control
+AiStudio4/Core/Interfaces/IChatService.cs: Interface for chat processing with streaming support
+AiStudio4/Core/Interfaces/IConversationStorage.cs: Interface for conversation persistence
+AiStudio4/Core/Interfaces/IConversationTreeBuilder.cs: Interface for building conversation tree structures
+AiStudio4/Core/Interfaces/IToolService.cs: Interface for managing AI tools library
+AiStudio4/Core/Interfaces/IWebSocketNotificationService.cs: Interface for WebSocket notifications
+
+Models
+
+AiStudio4/Core/Models/ChatRequest.cs: Models for chat request/response data
+AiStudio4/Core/Models/ConversationDtos.cs: DTOs for conversation updates and streaming
+AiStudio4/Core/Models/ConversationListDto.cs: DTO for listing conversations
+AiStudio4/Core/Models/ToolModels.cs: Models for AI tools and tool categories
+AiStudio4/Models/AiResponse.cs: Model for AI response data with token usage tracking
+AiStudio4/Models/RequestMessage.cs: Basic request message model
+
+Services
+
+AiStudio4/Services/ChatProcessingService.cs: Processes chat requests and coordinates responses
+AiStudio4/Services/ConversationService.cs: Manages conversation loading and tree building
+AiStudio4/Services/DefaultConversationTreeBuilder.cs: Builds conversation tree structures
+AiStudio4/Services/FileSystemConversationStorage.cs: Stores conversations as JSON files
+AiStudio4/Services/MessageHistoryService.cs: Manages message history and branching
+AiStudio4/Services/OpenAIChatService.cs: Implements chat processing using OpenAI-compatible API
+AiStudio4/Services/ToolService.cs: Manages AI tools library (creation, retrieval, validation)
+AiStudio4/Services/WebSocketNotificationService.cs: Sends notifications to clients via WebSocket
+
+Exceptions
+
+AiStudio4/Core/Exceptions/*.cs: Various exception types for specific failure scenarios
+
+Injected Dependencies
+
+AiStudio4/InjectedDependencies/ChatManager.cs: Coordinates chat-related services
+AiStudio4/InjectedDependencies/DefaultSettings.cs: Default model configuration
+AiStudio4/InjectedDependencies/FileServer.cs: Serves static files with dev/prod mode support
+AiStudio4/InjectedDependencies/SettingsManager.cs: Manages application settings
+AiStudio4/InjectedDependencies/UiRequestBroker.cs: Handles API requests from UI
+AiStudio4/InjectedDependencies/v4BranchedConversation.cs: Conversation with branching messages
+AiStudio4/InjectedDependencies/WebServer.cs: HTTP server for API and WebSocket
+AiStudio4/InjectedDependencies/WindowManager.cs: Manages multiple application windows
+
+WebSocket
+
+AiStudio4/InjectedDependencies/WebSocket/WebSocketMessageHandler.cs: Handles WebSocket message sending
+AiStudio4/InjectedDependencies/WebSocket/WebSocketConnectionManager.cs: Manages WebSocket connections
+AiStudio4/InjectedDependencies/WebSocketServer.cs: WebSocket server implementation
+
+Controls
+
+AiStudio4/Controls/AiStudioWebView2.cs: WebView2 control for hosting the UI
+
+Frontend (TypeScript/React)
+Core Application
+
+AiStudio4.Web/src/App.tsx: Main application component with layout and state management
+AiStudio4.Web/src/main.tsx: Entry point that renders the App component
+AiStudio4.Web/src/index.css: Global styles and Tailwind configuration
+
+State Management
+
+AiStudio4.Web/src/store/store.ts: Redux store configuration
+AiStudio4.Web/src/store/conversationSlice.ts: Conversation state management
+AiStudio4.Web/src/store/toolSlice.ts: Tool state management
+
+Components
+
+AiStudio4.Web/src/components/AppHeader.tsx: Application header with controls
+AiStudio4.Web/src/components/ChatContainer.tsx: Container for chat messages
+AiStudio4.Web/src/components/CommandBar.tsx: Command palette for quick actions
+AiStudio4.Web/src/components/ConversationTreeView.tsx: Visual tree view of conversation
+AiStudio4.Web/src/components/ConversationView.tsx: Displays active conversation
+AiStudio4.Web/src/components/HistoricalConversationTree.tsx: Displays historical conversations
+AiStudio4.Web/src/components/HistoricalConversationTreeList.tsx: List of historical conversations
+AiStudio4.Web/src/components/input-bar.tsx: Input bar for sending messages
+AiStudio4.Web/src/components/LiveStreamToken.tsx: Component for streaming tokens
+AiStudio4.Web/src/components/markdown-pane.tsx: Renders markdown content with code blocks
+AiStudio4.Web/src/components/ModelSelector.tsx: Model selection dropdown
+AiStudio4.Web/src/components/Sidebar.tsx: Sidebar with conversation history
+AiStudio4.Web/src/components/SettingsPanel.tsx: Settings configuration panel
+
+Command System
+
+AiStudio4.Web/src/commands/commandRegistry.ts: Registry for application commands
+AiStudio4.Web/src/commands/coreCommands.ts: Core application commands
+AiStudio4.Web/src/commands/toolCommands.ts: Tool-related commands
+AiStudio4.Web/src/commands/voiceInputCommand.ts: Voice input commands
+AiStudio4.Web/src/commands/types.ts: Command type definitions
+
+Tool System
+
+AiStudio4.Web/src/components/tools/ToolEditor.tsx: Editor for creating/modifying tools
+AiStudio4.Web/src/components/tools/ToolPanel.tsx: Panel for managing tools
+AiStudio4.Web/src/components/tools/ToolResponse.tsx: Displays tool execution results
+AiStudio4.Web/src/components/tools/ToolSelector.tsx: Component for selecting active tools
+
+Settings Components
+
+AiStudio4.Web/src/components/settings/ModelForm.tsx: Form for adding/editing AI models
+AiStudio4.Web/src/components/settings/ModelManagement.tsx: Interface for managing AI models
+AiStudio4.Web/src/components/settings/ServiceProviderForm.tsx: Form for service providers
+AiStudio4.Web/src/components/settings/ServiceProviderManagement.tsx: Interface for managing providers
+
+Diagram Components
+
+AiStudio4.Web/src/components/diagrams/registry.ts: Registry for diagram renderers
+AiStudio4.Web/src/components/diagrams/mermaid-renderer.tsx: Renders Mermaid diagrams
+AiStudio4.Web/src/components/diagrams/json-renderer.tsx: Renders JSON data with expandable sections
+AiStudio4.Web/src/components/diagrams/types.ts: Types for diagram renderers
+
+Services
+
+AiStudio4.Web/src/services/ChatService.ts: Handles chat message sending and history
+AiStudio4.Web/src/services/SettingsService.ts: Manages application settings
+AiStudio4.Web/src/services/ToolService.ts: Manages AI tools
+AiStudio4.Web/src/services/websocket/WebSocketService.ts: WebSocket communication manager
+
+Hooks
+
+AiStudio4.Web/src/hooks/use-media-query.ts: Hook for responsive design
+AiStudio4.Web/src/hooks/useStreamTokens.ts: Hook for streaming AI responses
+AiStudio4.Web/src/hooks/useToolCommands.ts: Hook for tool command management
+AiStudio4.Web/src/hooks/useVoiceInput.tsx: Hook for voice input functionality
+AiStudio4.Web/src/hooks/useWebSocket.ts: Hook for WebSocket connection
+AiStudio4.Web/src/hooks/useWebSocketMessage.ts: Hook for WebSocket message handling
+AiStudio4.Web/src/hooks/useWebSocketState.ts: Hook for WebSocket connection state
+
+Types
+
+AiStudio4.Web/src/types/conversation.ts: Types for conversations and messages
+AiStudio4.Web/src/types/settings.ts: Types for application settings
+AiStudio4.Web/src/types/toolTypes.ts: Types for AI tools
+AiStudio4.Web/src/types/websocket.ts: Types for WebSocket communication
+
+Utilities
+
+AiStudio4.Web/src/lib/utils.ts: Utility functions
+AiStudio4.Web/src/utils/treeUtils.ts: Utilities for building message trees
+
+External Libraries (AiTool3)
+
+AiTool3/AiServices/AiServiceBase.cs: Base class for AI service implementations
+AiTool3/AiServices/AiServiceResolver.cs: Resolves AI service implementations
+AiTool3/AiServices/Claude.cs: Claude AI service implementation
+AiTool3/AiServices/ServiceProviderManager.cs: Manages AI service providers
+AiTool3/Settings/SettingsSet.cs: Configuration settings for AI tools

@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useWebSocketMessage } from '@/hooks/useWebSocketMessage';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
 
 interface HistoricalConversation {
@@ -37,7 +37,9 @@ export const HistoricalConversationTreeList = () => {
         });
     };
 
-    useWebSocketMessage('historicalConversationTree', handleNewHistoricalConversation);
+    useWebSocket({
+        subscriptions: { 'historicalConversationTree': handleNewHistoricalConversation }
+    });
 
     // Fetch all historical conversations on component mount
     useEffect(() => {
