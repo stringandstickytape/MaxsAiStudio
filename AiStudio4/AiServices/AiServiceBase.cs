@@ -206,7 +206,12 @@ namespace AiStudio4.AiServices
         {
             if (toolIDs?.Any() != true) return;
             var toolRequestBuilder = new ToolRequestBuilder(ToolService);
-            toolRequestBuilder.AddToolToRequest(request, toolIDs[0], GetToolFormat());
+            
+            // Add each tool to the request
+            foreach (var toolID in toolIDs)
+            {
+                toolRequestBuilder.AddToolToRequest(request, toolID, GetToolFormat());
+            }
         }
 
         protected virtual ToolFormat GetToolFormat()

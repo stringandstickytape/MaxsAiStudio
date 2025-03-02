@@ -47,11 +47,19 @@ namespace AiStudio4.Core.Tools
 
         private void ConfigureClaudeFormat(JObject request, JObject toolConfig)
         {
-            request["tools"] = new JArray { toolConfig };
+            // Check if tools array exists
+            if (request["tools"] == null)
+            {
+                request["tools"] = new JArray();
+            }
+
+            // Add the tool to the array
+            ((JArray)request["tools"]).Add(toolConfig);
+
+            // Set tool_choice to "any" to force Claude to use one of the provided tools
             request["tool_choice"] = new JObject
             {
-                ["type"] = "tool",
-                ["name"] = toolConfig["name"].ToString()
+                ["type"] = "any"
             };
         }
 

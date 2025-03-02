@@ -117,7 +117,7 @@ namespace AiStudio4.AiServices
 
             req["messages"] = messagesArray;
             return req;
-        }
+        } 
 
         public override async Task<AiResponse> FetchResponse(SharedClasses.Providers.ServiceProvider serviceProvider,
             Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
@@ -129,6 +129,15 @@ namespace AiStudio4.AiServices
             if (toolIDs?.Any() == true)
             {
                 AddToolsToRequest(req, toolIDs);
+                
+                // Ensure Claude knows it must use one of the provided tools
+                if (req["tool_choice"] == null)
+                {
+                    req["tool_choice"] = new JObject
+                    {
+                        ["type"] = "any"
+                    };
+                }
             }
 
             if (addEmbeddings)
@@ -288,8 +297,19 @@ namespace AiStudio4.AiServices
         {
             if (!toolIDs.Any()) return;
 
+            // Initialize the tools array if needed
+            if (req["tools"] == null)
+            {
+                req["tools"] = new JArray();
+            }
+
             var toolRequestBuilder = new ToolRequestBuilder(ToolService);
-            toolRequestBuilder.AddToolToRequest(req, toolIDs[0], GetToolFormat());
+            
+            // Add each tool to the request
+            foreach (var toolId in toolIDs)
+            {
+                toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+            }
         }
 
         protected override ToolFormat GetToolFormat()
