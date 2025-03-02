@@ -1,5 +1,6 @@
 // src/commands/toolCommands.ts
 import React from 'react';
+
 import { registerCommand, registerCommandGroup } from './commandRegistry';
 import { ToolSelector } from '@/components/tools/ToolSelector';
 
@@ -12,6 +13,7 @@ interface ToolCommandsConfig {
 }
 
 export function initializeToolCommands(config: ToolCommandsConfig) {
+
   registerCommandGroup({
     id: 'tools',
     name: 'Tools',

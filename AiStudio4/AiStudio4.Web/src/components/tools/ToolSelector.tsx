@@ -18,9 +18,12 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
   const { tools, activeTools } = useSelector((state: RootState) => state.tools);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    dispatch(fetchTools());
-  }, [dispatch]);
+    useEffect(() => {
+        // Only fetch tools if the array is empty
+        if (tools.length === 0) {
+            dispatch(fetchTools());
+        }
+    }, [dispatch, tools.length]);
 
   const handleToolToggle = (toolId: string, checked: boolean) => {
     console.log(`Tool ${toolId} toggled: ${checked ? 'activated' : 'deactivated'}`);

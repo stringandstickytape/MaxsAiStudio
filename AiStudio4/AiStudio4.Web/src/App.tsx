@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from 'react-redux';
+
 import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
@@ -26,6 +28,7 @@ import { useVoiceInputState, initializeVoiceInputCommand, setupVoiceInputKeyboar
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { initializeToolCommands } from './commands/toolCommands';
 import { ToolPanel } from '@/components/tools/ToolPanel';
+import { fetchTools } from '@/store/toolSlice';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -53,6 +56,8 @@ function AppContent() {
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
+
+    const dispatch = useDispatch();
 
     // Voice input integration
     const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState(
@@ -121,6 +126,9 @@ function AppContent() {
                     secondary: secondaryModel && secondaryModel.length > 0 ? secondaryModel : "Select Model"
                 });
 
+                // Add this line to fetch tools during initialization
+                dispatch(fetchTools());
+
                 const conversationId = `conv_${Date.now()}`;
                 store.dispatch(createConversation({
                     id: conversationId,
@@ -137,7 +145,7 @@ function AppContent() {
             }
         };
         initialize();
-    }, []);
+    }, [dispatch]); // Make sure to include dispatch in the dependency array
 
     // Unified handler for model selection
     const handleModelSelect = (modelType: ModelType, modelName: string) => {
