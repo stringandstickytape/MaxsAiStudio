@@ -260,13 +260,12 @@ function AppContent() {
     }, []);
 
     return (
-        <Provider store={store}>
-            <div className={cn(
-                "h-screen flex flex-col",
-                sidebarPinned && "pl-80",
-                conversationTreePinned && "pr-80",
-                settingsPanelPinned && "pr-80"
-            )}>
+        <div className={cn(
+            "h-screen flex flex-col",
+            sidebarPinned && "pl-80",
+            conversationTreePinned && "pr-80",
+            settingsPanelPinned && "pr-80"
+        )}>
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
                     "fixed top-0 left-0 bottom-0 w-80 bg-gray-900 border-r border-gray-700/50 shadow-xl z-40 transition-all duration-300",
@@ -450,7 +449,7 @@ function AppContent() {
                     </div>
                 </div>
             )}
-        </Provider>
+        </div>
     );
 }
 
