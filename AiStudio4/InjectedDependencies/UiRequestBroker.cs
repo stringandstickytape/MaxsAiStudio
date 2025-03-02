@@ -16,14 +16,16 @@ namespace AiStudio4.InjectedDependencies
         private readonly WebSocketServer _webSocketServer;
         private readonly ChatManager _chatManager;
         private readonly IToolService _toolService;
+        private readonly ISystemPromptService _systemPromptService;
 
-        public UiRequestBroker(IConfiguration configuration, SettingsManager settingsManager, WebSocketServer webSocketServer, ChatManager chatManager, IToolService toolService)
+        public UiRequestBroker(IConfiguration configuration, SettingsManager settingsManager, WebSocketServer webSocketServer, ChatManager chatManager, IToolService toolService, ISystemPromptService systemPromptService)
         {
             _configuration = configuration;
             _settingsManager = settingsManager;
             _webSocketServer = webSocketServer;
             _chatManager = chatManager;
             _toolService = toolService;
+            _systemPromptService = systemPromptService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -52,6 +54,15 @@ namespace AiStudio4.InjectedDependencies
                     "validateToolSchema" => await HandleValidateToolSchemaRequest(requestObject),
                     "importTools" => await HandleImportToolsRequest(requestObject),
                     "exportTools" => await HandleExportToolsRequest(requestObject),
+                    "getSystemPrompts" => await HandleGetSystemPromptsRequest(),
+                    "getSystemPrompt" => await HandleGetSystemPromptRequest(requestObject),
+                    "createSystemPrompt" => await HandleCreateSystemPromptRequest(requestObject),
+                    "updateSystemPrompt" => await HandleUpdateSystemPromptRequest(requestObject),
+                    "deleteSystemPrompt" => await HandleDeleteSystemPromptRequest(requestObject),
+                    "setDefaultSystemPrompt" => await HandleSetDefaultSystemPromptRequest(requestObject),
+                    "getConversationSystemPrompt" => await HandleGetConversationSystemPromptRequest(requestObject),
+                    "setConversationSystemPrompt" => await HandleSetConversationSystemPromptRequest(requestObject),
+                    "clearConversationSystemPrompt" => await HandleClearConversationSystemPromptRequest(requestObject),
                     "getConfig" => JsonConvert.SerializeObject(new
                     {
                         success = true,
@@ -297,6 +308,161 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error exporting tools: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region System Prompt Request Handlers
+        private async Task<string> HandleGetSystemPromptsRequest()
+        {
+            try
+            {
+                var prompts = await _systemPromptService.GetAllSystemPromptsAsync();
+                return JsonConvert.SerializeObject(new { success = true, prompts });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving system prompts: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string promptId = requestObject["promptId"]?.ToString();
+                if (string.IsNullOrEmpty(promptId)) return SerializeError("Prompt ID cannot be empty");
+                
+                var prompt = await _systemPromptService.GetSystemPromptByIdAsync(promptId);
+                if (prompt == null) return SerializeError($"System prompt with ID {promptId} not found");
+                
+                return JsonConvert.SerializeObject(new { success = true, prompt });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleCreateSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                var prompt = requestObject.ToObject<Core.Models.SystemPrompt>();
+                if (prompt == null) return SerializeError("Invalid system prompt data");
+                
+                var result = await _systemPromptService.CreateSystemPromptAsync(prompt);
+                return JsonConvert.SerializeObject(new { success = true, prompt = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error creating system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleUpdateSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                var prompt = requestObject.ToObject<Core.Models.SystemPrompt>();
+                if (prompt == null || string.IsNullOrEmpty(prompt.Guid)) 
+                    return SerializeError("Invalid system prompt data or missing prompt ID");
+                
+                var result = await _systemPromptService.UpdateSystemPromptAsync(prompt);
+                return JsonConvert.SerializeObject(new { success = true, prompt = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error updating system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleDeleteSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string promptId = requestObject["promptId"]?.ToString();
+                if (string.IsNullOrEmpty(promptId)) return SerializeError("Prompt ID cannot be empty");
+                
+                var success = await _systemPromptService.DeleteSystemPromptAsync(promptId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error deleting system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSetDefaultSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string promptId = requestObject["promptId"]?.ToString();
+                if (string.IsNullOrEmpty(promptId)) return SerializeError("Prompt ID cannot be empty");
+                
+                var success = await _systemPromptService.SetDefaultSystemPromptAsync(promptId);
+                if (success)
+                {
+                    _settingsManager.CurrentSettings.DefaultSystemPromptId = promptId;
+                    _settingsManager.SaveSettings();
+                }
+                
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting default system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetConversationSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string conversationId = requestObject["conversationId"]?.ToString();
+                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                
+                var prompt = await _systemPromptService.GetConversationSystemPromptAsync(conversationId);
+                return JsonConvert.SerializeObject(new { success = true, prompt });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving conversation system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSetConversationSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string conversationId = requestObject["conversationId"]?.ToString();
+                string promptId = requestObject["promptId"]?.ToString();
+                
+                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                if (string.IsNullOrEmpty(promptId)) return SerializeError("Prompt ID cannot be empty");
+                
+                var success = await _systemPromptService.SetConversationSystemPromptAsync(conversationId, promptId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting conversation system prompt: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleClearConversationSystemPromptRequest(JObject requestObject)
+        {
+            try
+            {
+                string conversationId = requestObject["conversationId"]?.ToString();
+                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                
+                var success = await _systemPromptService.ClearConversationSystemPromptAsync(conversationId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error clearing conversation system prompt: {ex.Message}");
             }
         }
         #endregion

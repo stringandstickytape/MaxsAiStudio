@@ -15,6 +15,7 @@ namespace AiStudio4.InjectedDependencies
         public bool StreamResponses { get; set; } = false;
         public string EmbeddingsFilename { get; set; }
         public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";
+        public string DefaultSystemPromptId { get; set; }
 
         public ApiSettings ToApiSettings() => new()
         {
@@ -23,7 +24,8 @@ namespace AiStudio4.InjectedDependencies
             StreamResponses = StreamResponses,
             EmbeddingModel = EmbeddingModel,
             EmbeddingsFilename = EmbeddingsFilename,
-            UseEmbeddings = UseEmbeddings
+            UseEmbeddings = UseEmbeddings,
+            DefaultSystemPromptId = DefaultSystemPromptId
         };
     }
 

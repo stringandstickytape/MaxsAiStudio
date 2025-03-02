@@ -9,7 +9,7 @@ namespace AiStudio4.Services.Interfaces
     public interface IAiService
     {
         Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIds, bool useStreaming = false, bool addEmbeddings = false);
+            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIds, bool useStreaming = false, bool addEmbeddings = false, string customSystemPrompt = null);
 
         IToolService ToolService { get; set; }
         public event EventHandler<string> StreamingTextReceived;

@@ -8,7 +8,8 @@ namespace AiStudio4.InjectedDependencies
         public string ConversationId { get; set; }
         public List<v4BranchedConversationMessage> MessageHierarchy { get; set; } = new List<v4BranchedConversationMessage>(); // Initialize here
         public string Summary { get; set; }
-
+        public string SystemPromptId { get; set; }
+        
         public v4BranchedConversation() { }
 
         public v4BranchedConversation(string conversationId)

@@ -14,7 +14,6 @@ namespace SharedClasses.Providers
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string EmbeddingsFilename { get; set; } = string.Empty;
         public bool UseEmbeddings { get; set; } = false;
-
-
+        public string DefaultSystemPromptId { get; set; }
     }
 }

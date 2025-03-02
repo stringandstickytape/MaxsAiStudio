@@ -49,6 +49,7 @@ namespace AiStudio4
             services.AddSingleton<IChatService, OpenAIChatService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IToolService, ToolService>();
+            services.AddSingleton<ISystemPromptService, SystemPromptService>();
 
             // Register application services
             services.AddSingleton<SettingsManager>();

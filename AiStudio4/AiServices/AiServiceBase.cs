@@ -66,7 +66,8 @@ namespace AiStudio4.AiServices
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
-            bool addEmbeddings = false
+            bool addEmbeddings = false,
+            string customSystemPrompt = null
         );
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(

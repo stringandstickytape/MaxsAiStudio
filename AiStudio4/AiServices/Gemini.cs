@@ -1,5 +1,4 @@
-﻿
-using AiStudio4.Conversations;
+﻿using AiStudio4.Conversations;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,10 +29,17 @@ namespace AiStudio4.AiServices
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
-            bool addEmbeddings = false)
+            bool addEmbeddings = false,
+            string customSystemPrompt = null)
         {
             InitializeHttpClient(serviceProvider,model, apiSettings,300);
             var url = $"{ApiUrl}{ApiModel}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
+            
+            // Apply custom system prompt if provided
+            if (!string.IsNullOrEmpty(customSystemPrompt))
+            {
+                conversation.systemprompt = customSystemPrompt;
+            }
 
             var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 

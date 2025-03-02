@@ -1,5 +1,4 @@
-﻿
-using AiStudio4.Conversations;
+﻿using AiStudio4.Conversations;
 using AiStudio4.DataModels;
 using SharedClasses.Providers;
 using System;
@@ -27,8 +26,15 @@ namespace AiStudio4.AiServices
             bool mustNotUseEmbedding,
             List<string> toolIDs,
             bool useStreaming = false,
-            bool addEmbeddings = false)
+            bool addEmbeddings = false,
+            string customSystemPrompt = null)
         {
+            // Apply custom system prompt if provided
+            if (!string.IsNullOrEmpty(customSystemPrompt))
+            {
+                conversation.systemprompt = customSystemPrompt;
+            }
+            
             int wordCount = random.Next(10, 20);
             string[] words = LoremIpsum.Split(' ');
             StringBuilder responseBuilder = new StringBuilder();

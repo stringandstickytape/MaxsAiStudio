@@ -19,9 +19,15 @@ namespace AiStudio4.AiServices
         {
         }
         public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false)
+            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false, string customSystemPrompt = null)
         {
             InitializeHttpClient(serviceProvider, model, apiSettings);
+            
+            // Apply custom system prompt if provided
+            if (!string.IsNullOrEmpty(customSystemPrompt))
+            {
+                conversation.systemprompt = customSystemPrompt;
+            }
 
             var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
 

@@ -15,15 +15,17 @@ namespace AiStudio4.Services
         private readonly ILogger<OpenAIChatService> _logger;
         private readonly SettingsManager _settingsManager;
         private readonly IToolService _toolService;
+        private readonly ISystemPromptService _systemPromptService;
 
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager, IToolService toolService)
+        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager, IToolService toolService, ISystemPromptService systemPromptService)
         {
             _logger = logger;
             _settingsManager = settingsManager;
             _toolService = toolService;
+            _systemPromptService = systemPromptService;
         }
 
         public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
@@ -49,10 +51,36 @@ namespace AiStudio4.Services
                     StreamingComplete?.Invoke(this, text);
                 };
 
-                // here, we should take request.messagehistory and use it to build the conversation, then add the new user message too.
+                // Get the appropriate system prompt
+                string systemPromptContent = "You are a helpful chatbot.";
+                
+                if (!string.IsNullOrEmpty(request.SystemPromptContent))
+                {
+                    // Use custom system prompt content provided in the request
+                    systemPromptContent = request.SystemPromptContent;
+                }
+                else if (!string.IsNullOrEmpty(request.SystemPromptId))
+                {
+                    // Use specified system prompt ID
+                    var systemPrompt = await _systemPromptService.GetSystemPromptByIdAsync(request.SystemPromptId);
+                    if (systemPrompt != null)
+                    {
+                        systemPromptContent = systemPrompt.Content;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(request.ConversationId))
+                {
+                    // Use conversation-specific system prompt
+                    var systemPrompt = await _systemPromptService.GetConversationSystemPromptAsync(request.ConversationId);
+                    if (systemPrompt != null)
+                    {
+                        systemPromptContent = systemPrompt.Content;
+                    }
+                }
+                
                 var conversation = new LinearConversation(DateTime.Now)
                 {
-                    systemprompt = "You are a helpful chatbot.",
+                    systemprompt = systemPromptContent,
                     messages = new List<LinearConversationMessage>()
                 };
 
@@ -92,7 +120,8 @@ namespace AiStudio4.Services
                     _settingsManager.CurrentSettings.ToApiSettings(),
                     mustNotUseEmbedding: true,
                     toolIds: request.ToolIds ?? new(), // Use the original tool IDs from the request
-                    useStreaming: true);
+                    useStreaming: true,
+                    customSystemPrompt: null); // No need to pass system prompt as we've already set it in the conversation object
 
                 _logger.LogInformation("Successfully processed chat request");
 

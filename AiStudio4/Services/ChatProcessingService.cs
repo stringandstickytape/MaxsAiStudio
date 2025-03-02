@@ -16,6 +16,7 @@ namespace AiStudio4.Services
         private readonly ILogger<ChatProcessingService> _logger;
         private readonly SettingsManager _settingsManager;
         private readonly IToolService _toolService;
+        private readonly ISystemPromptService _systemPromptService;
 
         public ChatProcessingService(
             IConversationStorage conversationStorage,
@@ -24,7 +25,8 @@ namespace AiStudio4.Services
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
             SettingsManager settingsManager,
-            IToolService toolService)
+            IToolService toolService,
+            ISystemPromptService systemPromptService)
         {
             _conversationStorage = conversationStorage;
             _treeBuilder = treeBuilder;
@@ -33,6 +35,7 @@ namespace AiStudio4.Services
             _logger = logger;
             _settingsManager = settingsManager;
             _toolService = toolService;
+            _systemPromptService = systemPromptService;
         }
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
@@ -59,7 +62,9 @@ namespace AiStudio4.Services
                         ParentMessageId = (string)requestObject["parentMessageId"],
                         Message = (string)requestObject["message"],
                         Model = (string)requestObject["model"],
-                        ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>()
+                        ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
+                        SystemPromptId = (string)requestObject["systemPromptId"],
+                        SystemPromptContent = (string)requestObject["systemPromptContent"]
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
@@ -68,6 +73,14 @@ namespace AiStudio4.Services
                          (conversation.MessageHierarchy.Count == 0 || conversation.MessageHierarchy[0].Children.Count == 0);
 
                     var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                    
+                    // Save the conversation system prompt if provided
+                    if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
+                    {
+                        conversation.SystemPromptId = chatRequest.SystemPromptId;
+                        await _systemPromptService.SetConversationSystemPromptAsync(chatRequest.ConversationId, chatRequest.SystemPromptId);
+                    }
+                    
                     await _conversationStorage.SaveConversation(conversation);
 
                     var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
