@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
 
-import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
