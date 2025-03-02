@@ -4,7 +4,14 @@ import { registerCommand, registerCommandGroup } from './commandRegistry';
 import { ToolSelector } from '@/components/tools/ToolSelector';
 
 // Define some basic tool-related commands
-export function initializeToolCommands() {
+interface ToolCommandsConfig {
+  openToolPanel: () => void;
+  createNewTool: () => void;
+  importTools: () => void;
+  exportTools: () => void;
+}
+
+export function initializeToolCommands(config: ToolCommandsConfig) {
   registerCommandGroup({
     id: 'tools',
     name: 'Tools',
@@ -17,8 +24,8 @@ export function initializeToolCommands() {
         shortcut: 'Ctrl+T',
         keywords: ['tools', 'panel', 'manage', 'show', 'hide'],
         execute: () => {
-          // Implementation: Emit an event or update state to toggle the panel
-          console.log('Toggling tool panel');
+          // Implementation: Use the passed in config to toggle the panel
+          config.openToolPanel();
         }
       },
       {
@@ -29,7 +36,7 @@ export function initializeToolCommands() {
         keywords: ['tool', 'new', 'create', 'editor'],
         execute: () => {
           // Implementation: Trigger opening of the tool editor dialog
-          console.log('Creating new tool');
+          config.createNewTool();
         }
       },
       {
@@ -39,7 +46,7 @@ export function initializeToolCommands() {
         shortcut: 'Ctrl+I',
         keywords: ['import', 'tools', 'json'],
         execute: () => {
-          console.log('Importing tools');
+          config.importTools();
         }
       },
       {
@@ -49,7 +56,7 @@ export function initializeToolCommands() {
         shortcut: 'Ctrl+E',
         keywords: ['export', 'tools', 'json'],
         execute: () => {
-          console.log('Exporting tools');
+          config.exportTools();
         }
       }
     ]

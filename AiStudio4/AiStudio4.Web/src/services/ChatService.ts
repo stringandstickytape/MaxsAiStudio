@@ -24,6 +24,7 @@ export class ChatService {
     }
 
     static async sendMessage(message: string, selectedModel: string, toolIds: string[] = []) {
+        console.log('ChatService.sendMessage called with toolIds:', toolIds);
         const clientId = wsManager.getClientId();
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;

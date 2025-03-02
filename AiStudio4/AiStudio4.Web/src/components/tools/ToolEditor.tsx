@@ -78,15 +78,15 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         schema,
         schemaType,
         categories: selectedCategories,
-        lastModified: new Date().toISOString(),
+        lastModified: new Date().toISOString()
       };
 
       if (tool) {
         toolData.guid = tool.guid;
         toolData.isBuiltIn = tool.isBuiltIn;
-        dispatch(updateTool(toolData));
+        await dispatch(updateTool(toolData)).unwrap();
       } else {
-        dispatch(addTool(toolData));
+        await dispatch(addTool(toolData)).unwrap();
       }
 
       onClose();
@@ -128,16 +128,28 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           className="flex space-x-4 mt-2"
         >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="function" id="schema-function" />
-            <Label htmlFor="schema-function" className="cursor-pointer">Function</Label>
+            <RadioGroupItem 
+              value="function" 
+              id="schema-function" 
+              className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <Label htmlFor="schema-function" className="cursor-pointer text-gray-100">Function</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="custom" id="schema-custom" />
-            <Label htmlFor="schema-custom" className="cursor-pointer">Custom</Label>
+            <RadioGroupItem 
+              value="custom" 
+              id="schema-custom" 
+              className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <Label htmlFor="schema-custom" className="cursor-pointer text-gray-100">Custom</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="template" id="schema-template" />
-            <Label htmlFor="schema-template" className="cursor-pointer">Template</Label>
+            <RadioGroupItem 
+              value="template" 
+              id="schema-template" 
+              className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <Label htmlFor="schema-template" className="cursor-pointer text-gray-100">Template</Label>
           </div>
         </RadioGroup>
       </div>

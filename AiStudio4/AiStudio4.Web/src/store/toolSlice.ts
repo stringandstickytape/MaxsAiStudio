@@ -33,16 +33,26 @@ export const fetchCategories = createAsyncThunk('tools/fetchCategories', async (
 export const addTool = createAsyncThunk(
   'tools/addTool',
   async (tool: Omit<Tool, 'guid'>) => {
-    const newTool = await ToolService.addTool(tool);
-    return newTool;
+    try {
+      const newTool = await ToolService.addTool(tool);
+      return newTool;
+    } catch (error) {
+      console.error('Error adding tool:', error);
+      throw error;
+    }
   }
 );
 
 export const updateTool = createAsyncThunk(
   'tools/updateTool',
   async (tool: Tool) => {
-    const updatedTool = await ToolService.updateTool(tool);
-    return updatedTool;
+    try {
+      const updatedTool = await ToolService.updateTool(tool);
+      return updatedTool;
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      throw error;
+    }
   }
 );
 

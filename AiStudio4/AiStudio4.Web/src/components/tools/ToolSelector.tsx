@@ -23,6 +23,13 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
   }, [dispatch]);
 
   const handleToolToggle = (toolId: string, checked: boolean) => {
+    console.log(`Tool ${toolId} toggled: ${checked ? 'activated' : 'deactivated'}`);
+    if (checked) {
+      dispatch(addActiveTool(toolId));
+    } else {
+      dispatch(removeActiveTool(toolId));
+    }
+    console.log('Active tools after toggle:', [...activeTools, checked ? toolId : null].filter(Boolean));
     if (checked) {
       dispatch(addActiveTool(toolId));
     } else {
@@ -46,7 +53,7 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
               className="bg-gray-800/60 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-gray-100"
               onClick={() => handleToolToggle(tool.guid, false)}
             >
-              {tool.name} ?
+              {tool.name}
             </Button>
           );
         })}

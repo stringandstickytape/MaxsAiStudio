@@ -60,6 +60,20 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
 
   if (!isOpen) return null;
 
+  // Check for actions from localStorage (for cross-component communication)
+  useEffect(() => {
+    const pendingAction = window.localStorage.getItem('toolPanel_action');
+    if (pendingAction) {
+      if (pendingAction === 'create') {
+        handleAddTool();
+      }
+      // Handle other actions like import/export here
+      
+      // Clear the action after processing
+      window.localStorage.removeItem('toolPanel_action');
+    }
+  }, [isOpen]);
+
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
       <div className="flex justify-between items-center mb-4">
@@ -188,11 +202,59 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
       </div>
 
       <div className="flex space-x-2 mt-4">
-        <Button variant="outline" className="bg-gray-800 border-gray-700">
+        <Button 
+          variant="outline" 
+          className="bg-gray-800 border-gray-700"
+          onClick={() => {
+            // Implement import functionality
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                  const json = event.target?.result as string;
+                  try {
+                    dispatch(importTools(json));
+                    // Refresh tools list after import
+                    dispatch(fetchTools());
+                  } catch (error) {
+                    console.error('Error importing tools:', error);
+                    alert('Failed to import tools: ' + error);
+                  }
+                };
+                reader.readAsText(file);
+              }
+            };
+            input.click();
+          }}
+        >
           <Import className="h-4 w-4 mr-1" />
           Import
         </Button>
-        <Button variant="outline" className="bg-gray-800 border-gray-700">
+        <Button 
+          variant="outline" 
+          className="bg-gray-800 border-gray-700"
+          onClick={async () => {
+            try {
+              const json = await ToolService.exportTools();
+              const blob = new Blob([json], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'tools-export.json';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error('Error exporting tools:', error);
+              alert('Failed to export tools: ' + error);
+            }
+          }}
+        >
           <Download className="h-4 w-4 mr-1" />
           Export
         </Button>

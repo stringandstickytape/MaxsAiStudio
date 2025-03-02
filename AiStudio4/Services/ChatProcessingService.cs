@@ -50,6 +50,7 @@ namespace AiStudio4.Services
 
                 try
                 {
+                    //public List<string> ToolIds { get; set; } = new List<string>();
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
@@ -57,7 +58,8 @@ namespace AiStudio4.Services
                         MessageId = (string)requestObject["newMessageId"],
                         ParentMessageId = (string)requestObject["parentMessageId"],
                         Message = (string)requestObject["message"],
-                        Model = (string)requestObject["model"]
+                        Model = (string)requestObject["model"],
+                        ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>()
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 

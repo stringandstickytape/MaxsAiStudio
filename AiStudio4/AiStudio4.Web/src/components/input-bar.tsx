@@ -33,6 +33,7 @@ export function InputBar({
     const activeTools = useSelector((state: RootState) => state.tools.activeTools);
 
     const handleChatMessage = useCallback(async (message: string) => {
+        console.log('Sending message with active tools:', activeTools);
         try {
             const state = store.getState();
             let conversationId = state.conversations.activeConversationId;
@@ -63,7 +64,7 @@ export function InputBar({
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    }, [selectedModel, setInputText]);
+    }, [selectedModel, setInputText, activeTools]);
 
     const handleSend = () => {
         if (inputText.trim()) {
