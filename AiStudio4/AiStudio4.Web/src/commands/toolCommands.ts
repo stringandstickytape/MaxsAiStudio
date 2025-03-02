@@ -1,7 +1,8 @@
 // src/commands/toolCommands.ts
 import React from 'react';
+import { commandRegistry } from './commandRegistry';
 
-import { registerCommand, registerCommandGroup } from './commandRegistry';
+import { registerCommandGroup } from './commandRegistry';
 import { ToolSelector } from '@/components/tools/ToolSelector';
 
 // Define some basic tool-related commands
@@ -14,6 +15,7 @@ interface ToolCommandsConfig {
 
 export function initializeToolCommands(config: ToolCommandsConfig) {
 
+  // Register main tool commands group
   registerCommandGroup({
     id: 'tools',
     name: 'Tools',
@@ -62,5 +64,39 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
         }
       }
     ]
+  });
+}
+
+// Function to register each individual tool as a command
+export function registerToolsAsCommands(tools: any[], activeTools: string[], toggleTool: (toolId: string, activate: boolean) => void) {
+  // First unregister any previous tool-specific commands
+  commandRegistry.unregisterCommandGroup('tools-list');
+  
+  // Create commands for each tool
+  const toolCommands = tools.map(tool => ({
+    id: `tool-${tool.guid}`,
+    name: tool.name,
+    description: tool.description,
+    keywords: ['tool', ...tool.name.toLowerCase().split(' '), ...tool.description.toLowerCase().split(' ').slice(0, 5)],
+    section: 'tools',
+    // Use a function that returns the icon element needed by the command registry
+    icon: () => {
+      // Without using JSX, we'll use a simple text icon instead
+      return React.createElement('div', { className: 'text-blue-500 font-bold' }, 'T');
+    },
+    active: activeTools.includes(tool.guid),
+    execute: () => {
+      // Toggle the tool's active state
+      const isCurrentlyActive = activeTools.includes(tool.guid);
+      toggleTool(tool.guid, !isCurrentlyActive);
+    }
+  }));
+
+  // Register all tool commands as a group
+  registerCommandGroup({
+    id: 'tools-list',
+    name: 'Available Tools',
+    priority: 75, // Just below the main tools group
+    commands: toolCommands
   });
 }

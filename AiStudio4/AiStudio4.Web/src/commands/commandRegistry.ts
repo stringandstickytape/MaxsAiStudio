@@ -71,6 +71,28 @@ class CommandRegistryService {
         }
     }
 
+    unregisterCommandGroup(groupId: string): void {
+        // Remove the group and all its commands from the registry
+        const groupIndex = this.groups.findIndex(g => g.id === groupId);
+        
+        if (groupIndex === -1) {
+            return; // Group doesn't exist, nothing to unregister
+        }
+        
+        // Get all commands in this group to remove them from the command map
+        const commandsToRemove = this.groups[groupIndex].commands;
+        
+        // Remove each command from the commands map
+        commandsToRemove.forEach(command => {
+            this.commands.delete(command.id);
+        });
+        
+        // Remove the group from the groups array
+        this.groups.splice(groupIndex, 1);
+        
+        this.notifyListeners();
+    }
+
     searchCommands(searchTerm: string): Command[] {
         if (!searchTerm) return this.getAllCommands();
 

@@ -28,6 +28,7 @@ import { useVoiceInputState, initializeVoiceInputCommand, setupVoiceInputKeyboar
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { initializeToolCommands } from './commands/toolCommands';
 import { ToolPanel } from '@/components/tools/ToolPanel';
+import { useToolCommands } from '@/hooks/useToolCommands';
 import { fetchTools } from '@/store/toolSlice';
 
 // Define a type for model settings
@@ -56,6 +57,23 @@ function AppContent() {
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
+    
+    // Use the tool commands hook to set up tool-related commands
+    const { toolSelectorRef } = useToolCommands({
+        openToolPanel: () => setIsToolPanelOpen(true),
+        createNewTool: () => {
+            setIsToolPanelOpen(true);
+            window.localStorage.setItem('toolPanel_action', 'create');
+        },
+        importTools: () => {
+            setIsToolPanelOpen(true);
+            window.localStorage.setItem('toolPanel_action', 'import');
+        },
+        exportTools: () => {
+            setIsToolPanelOpen(true);
+            window.localStorage.setItem('toolPanel_action', 'export');
+        }
+    });
 
     const dispatch = useDispatch();
 
@@ -88,8 +106,8 @@ function AppContent() {
         // Initialize voice commands
         initializeVoiceCommands();
         
-        // Initialize tool commands
-        initializeToolCommands({
+        // Initialize tool commands - this is now moved to useToolCommands hook
+        /*initializeToolCommands({
             openToolPanel: () => setIsToolPanelOpen(true),
             createNewTool: () => {
                 setIsToolPanelOpen(true);
@@ -104,7 +122,7 @@ function AppContent() {
                 setIsToolPanelOpen(true);
                 window.localStorage.setItem('toolPanel_action', 'export');
             }
-        });
+        });*/
 
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();

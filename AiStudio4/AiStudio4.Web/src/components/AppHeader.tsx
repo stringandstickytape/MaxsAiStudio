@@ -1,5 +1,6 @@
 ﻿// src/components/AppHeader.tsx
 import { Button } from '@/components/ui/button';
+import { ToolSelector } from '@/components/tools/ToolSelector';
 import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModelSelector } from '@/components/ModelSelector';
@@ -17,6 +18,8 @@ interface AppHeaderProps {
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
     onToggleToolPanel?: () => void;
+    // This is used by ToolSelector component inside AppHeader
+    onManageTools?: () => void;
     onExecuteCommand?: (command: string) => void;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
@@ -36,6 +39,7 @@ export function AppHeader({
     onToggleConversationTree,
     onToggleSettings,
     onToggleToolPanel,
+    onManageTools,
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
@@ -124,6 +128,9 @@ export function AppHeader({
             </div>
 
             <div className={cn(`absolute right-4 flex items-center space-x-2 transition-all duration-300 z-10`)}>
+                <div className="hidden sm:flex">
+                    <ToolSelector onManageTools={onManageTools || onToggleToolPanel} />
+                </div>
                 {onToggleConversationTree && (
                     <Button
                         variant="ghost"

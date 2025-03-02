@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Plus, Tool } from 'lucide-react';
+import { Plus, Wrench } from 'lucide-react';
 import { fetchTools, setActiveTools, addActiveTool, removeActiveTool } from '@/store/toolSlice';
 
 interface ToolSelectorProps {
@@ -25,20 +25,24 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
         }
     }, [dispatch, tools.length]);
 
-  const handleToolToggle = (toolId: string, checked: boolean) => {
-    console.log(`Tool ${toolId} toggled: ${checked ? 'activated' : 'deactivated'}`);
-    if (checked) {
-      dispatch(addActiveTool(toolId));
-    } else {
-      dispatch(removeActiveTool(toolId));
-    }
-    console.log('Active tools after toggle:', [...activeTools, checked ? toolId : null].filter(Boolean));
-    if (checked) {
-      dispatch(addActiveTool(toolId));
-    } else {
-      dispatch(removeActiveTool(toolId));
-    }
-  };
+    const handleToolToggle = (toolId: string, checked: boolean) => {
+        // Fix the duplicate dispatch calls
+        if (checked) {
+            dispatch(addActiveTool(toolId));
+        } else {
+            dispatch(removeActiveTool(toolId));
+        }
+    };
+
+    const handleManageTools = () => {
+        // Close the popover first
+        setOpen(false);
+
+        // Then call the provided handler
+        if (onManageTools) {
+            onManageTools();
+        }
+    };
 
   return (
     <div className="flex items-center space-x-2">
@@ -88,14 +92,15 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
             </div>
             
             <div className="mt-4 pt-2 border-t border-gray-700">
-              <Button 
-                variant="link" 
-                size="sm" 
-                className="text-blue-400 hover:text-blue-300 p-0"
-                onClick={onManageTools}
-              >
-                Manage Tools...
-              </Button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-1 bg-gray-700/60 border-gray-600 text-gray-200 hover:bg-gray-600 hover:text-white flex items-center justify-center"
+                    onClick={handleManageTools}
+                >
+                    <span className="mr-1">Manage Tools</span>
+                    <Wrench className="h-3.5 w-3.5" />
+                </Button>
             </div>
           </PopoverContent>
         </Popover>
