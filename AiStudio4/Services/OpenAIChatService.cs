@@ -14,14 +14,16 @@ namespace AiStudio4.Services
     {
         private readonly ILogger<OpenAIChatService> _logger;
         private readonly SettingsManager _settingsManager;
+        private readonly IToolService _toolService;
 
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager)
+        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager, IToolService toolService)
         {
             _logger = logger;
             _settingsManager = settingsManager;
+            _toolService = toolService;
         }
 
         public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
@@ -52,6 +54,21 @@ namespace AiStudio4.Services
                     systemprompt = "You are a helpful chatbot.",
                     messages = new List<LinearConversationMessage>()
                 };
+                
+                // Get tools if specified
+                List<string> toolNames = null;
+                if (request.ToolIds != null && request.ToolIds.Any())
+                {
+                    toolNames = new List<string>();
+                    foreach (var toolId in request.ToolIds)
+                    {
+                        var tool = await _toolService.GetToolByIdAsync(toolId);
+                        if (tool != null)
+                        {
+                            toolNames.Add(tool.Name);
+                        }
+                    }
+                }
 
                 // Add all messages from history first
                 foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))

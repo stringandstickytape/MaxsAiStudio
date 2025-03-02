@@ -3,7 +3,7 @@ import "./App.css";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
-import { X, Pin, PinOff } from 'lucide-react';
+import { X, Pin, PinOff, Tool as ToolIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
@@ -24,6 +24,8 @@ import { CommandBar } from './components/CommandBar';
 import { VoiceInputOverlay } from '@/components/VoiceInputOverlay';
 import { useVoiceInputState, initializeVoiceInputCommand, setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
+import { initializeToolCommands } from './commands/toolCommands';
+import { ToolPanel } from '@/components/tools/ToolPanel';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -50,6 +52,7 @@ function AppContent() {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
+    const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
 
     // Voice input integration
     const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState(
@@ -79,6 +82,21 @@ function AppContent() {
 
         // Initialize voice commands
         initializeVoiceCommands();
+        
+        // Initialize tool commands
+        initializeToolCommands({
+            openToolPanel: () => setIsToolPanelOpen(true),
+            createNewTool: () => {
+                setIsToolPanelOpen(true);
+                // TODO: Open tool creation dialog
+            },
+            importTools: () => {
+                // TODO: Open import dialog
+            },
+            exportTools: () => {
+                // TODO: Handle export
+            }
+        });
 
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
@@ -248,6 +266,7 @@ function AppContent() {
                         onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
                         onToggleConversationTree={(showConversationTree || conversationTreePinned || showSettings || settingsPanelPinned) ? null : handleToggleConversationTree}
                         onToggleSettings={(showSettings || settingsPanelPinned || showConversationTree || conversationTreePinned) ? null : handleToggleSettings}
+                        onToggleToolPanel={() => setIsToolPanelOpen(true)}
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
@@ -373,6 +392,28 @@ function AppContent() {
                 onClose={() => setVoiceInputOpen(false)}
                 onTranscript={handleTranscript}
             />
+            
+            {/* Tool Panel Dialog */}
+            {isToolPanelOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+                            <h2 className="text-xl font-semibold text-gray-100">Tool Management</h2>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setIsToolPanelOpen(false)}
+                                className="text-gray-400 hover:text-gray-100"
+                            >
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </div>
+                        <div className="h-full overflow-y-auto">
+                            <ToolPanel isOpen={true} onClose={() => setIsToolPanelOpen(false)} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </Provider>
     );
 }

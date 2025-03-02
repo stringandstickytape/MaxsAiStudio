@@ -1,0 +1,215 @@
+// src/components/tools/ToolPanel.tsx
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Search, Edit, Trash2, Copy, Import, Download } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchTools, fetchCategories, deleteTool } from '@/store/toolSlice';
+import { ToolEditor } from './ToolEditor';
+import { Tool, ToolCategory } from '@/types/toolTypes';
+
+interface ToolPanelProps {
+  isOpen: boolean;
+  onClose?: () => void;
+}
+
+export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
+  const dispatch = useDispatch();
+  const { tools, categories, loading } = useSelector((state: RootState) => state.tools);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [currentTool, setCurrentTool] = useState<Tool | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(fetchTools());
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, isOpen]);
+
+  const handleAddTool = () => {
+    setCurrentTool(null);
+    setIsEditorOpen(true);
+  };
+
+  const handleEditTool = (tool: Tool) => {
+    setCurrentTool(tool);
+    setIsEditorOpen(true);
+  };
+
+  const handleDeleteTool = (toolId: string) => {
+    if (window.confirm('Are you sure you want to delete this tool?')) {
+      dispatch(deleteTool(toolId));
+    }
+  };
+
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = searchTerm === '' || 
+      tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tool.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === null || 
+      tool.categories.includes(selectedCategory);
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Tool Library</h2>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddTool}
+            className="flex items-center space-x-1 bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Tool</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="md:col-span-1">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            </CardHeader>
+            <CardContent className="p-2">
+              <div className="space-y-1">
+                <Button
+                  variant={selectedCategory === null ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  All Tools
+                </Button>
+                {categories.map(category => (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? "default" : "ghost"}
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="md:col-span-3">
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search tools..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 bg-gray-800 border-gray-700 text-gray-100"
+              />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : filteredTools.length === 0 ? (
+            <div className="text-center p-8 text-gray-400">
+              {searchTerm ? 'No tools match your search' : 'No tools available'}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredTools.map(tool => (
+                <Card key={tool.guid} className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-100">{tool.name}</h3>
+                        <p className="text-sm text-gray-400">{tool.description}</p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {(tool.categories || []).map(catId => {
+                            const category = categories.find(c => c.id === catId);
+                            return category ? (
+                              <span key={catId} className="text-xs px-2 py-1 bg-gray-700 rounded-full">
+                                {category.name}
+                              </span>
+                            ) : null;
+                          })}
+                          <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
+                            {tool.schemaType}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditTool(tool)}
+                          className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteTool(tool.guid)}
+                          className="h-8 w-8 text-gray-400 hover:text-red-400"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex space-x-2 mt-4">
+        <Button variant="outline" className="bg-gray-800 border-gray-700">
+          <Import className="h-4 w-4 mr-1" />
+          Import
+        </Button>
+        <Button variant="outline" className="bg-gray-800 border-gray-700">
+          <Download className="h-4 w-4 mr-1" />
+          Export
+        </Button>
+      </div>
+
+      <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{currentTool ? 'Edit Tool' : 'Create Tool'}</DialogTitle>
+          </DialogHeader>
+          <ToolEditor 
+            tool={currentTool} 
+            onClose={() => setIsEditorOpen(false)} 
+            categories={categories} 
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

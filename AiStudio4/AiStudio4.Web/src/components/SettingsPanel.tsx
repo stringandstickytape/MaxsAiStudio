@@ -4,6 +4,7 @@ import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { ToolPanel } from './tools/ToolPanel';
 import { SettingsService } from '@/services/SettingsService';
 import { Model, ServiceProvider } from '@/types/settings';
 
@@ -140,6 +141,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                             Providers
                         </TabsTrigger>
                         <TabsTrigger
+                            value="tools"
+                            className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
+                        >
+                            Tools
+                        </TabsTrigger>
+                        <TabsTrigger
                             value="appearance"
                             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
                         >
@@ -164,6 +171,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                             onUpdateProvider={handleUpdateProvider}
                             onDeleteProvider={handleDeleteProvider}
                         />
+                    </TabsContent>
+                    
+                    <TabsContent value="tools" className="space-y-4">
+                        <ToolPanel isOpen={true} />
                     </TabsContent>
 
                     <TabsContent value="appearance" className="space-y-4">

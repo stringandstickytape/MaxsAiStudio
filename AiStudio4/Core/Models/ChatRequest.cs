@@ -9,6 +9,7 @@ namespace AiStudio4.Core.Models
         public string Message { get; set; }
         public string Model { get; set; }
         public List<MessageHistoryItem> MessageHistory { get; set; } = new List<MessageHistoryItem>();
+        public List<string> ToolIds { get; set; } = new List<string>();
     }
 
     public class MessageHistoryItem

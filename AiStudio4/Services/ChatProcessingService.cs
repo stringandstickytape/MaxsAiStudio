@@ -15,6 +15,7 @@ namespace AiStudio4.Services
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ChatProcessingService> _logger;
         private readonly SettingsManager _settingsManager;
+        private readonly IToolService _toolService;
 
         public ChatProcessingService(
             IConversationStorage conversationStorage,
@@ -22,7 +23,8 @@ namespace AiStudio4.Services
             IChatService chatService,
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
-            SettingsManager settingsManager)
+            SettingsManager settingsManager,
+            IToolService toolService)
         {
             _conversationStorage = conversationStorage;
             _treeBuilder = treeBuilder;
@@ -30,6 +32,7 @@ namespace AiStudio4.Services
             _notificationService = notificationService;
             _logger = logger;
             _settingsManager = settingsManager;
+            _toolService = toolService;
         }
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)

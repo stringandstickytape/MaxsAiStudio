@@ -1,6 +1,6 @@
 ﻿// src/components/AppHeader.tsx
 import { Button } from '@/components/ui/button';
-import { Menu, Settings, GitBranch, Command } from 'lucide-react';
+import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModelSelector } from '@/components/ModelSelector';
 import { useState, useEffect } from 'react';
@@ -16,6 +16,7 @@ interface AppHeaderProps {
     onSecondaryModelSelect: (model: string) => void;
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
+    onToggleToolPanel?: () => void;
     onExecuteCommand?: (command: string) => void;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
@@ -34,6 +35,7 @@ export function AppHeader({
     onSecondaryModelSelect,
     onToggleConversationTree,
     onToggleSettings,
+    onToggleToolPanel,
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
@@ -140,6 +142,16 @@ export function AppHeader({
                         className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     >
                         <Settings className="h-5 w-5" />
+                    </Button>
+                )}
+                {onToggleToolPanel && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleToolPanel}
+                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                        <ToolIcon className="h-5 w-5" />
                     </Button>
                 )}
             </div>

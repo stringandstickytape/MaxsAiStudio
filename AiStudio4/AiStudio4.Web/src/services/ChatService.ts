@@ -23,7 +23,7 @@ export class ChatService {
         return response.json();
     }
 
-    static async sendMessage(message: string, selectedModel: string) {
+    static async sendMessage(message: string, selectedModel: string, toolIds: string[] = []) {
         const clientId = wsManager.getClientId();
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
@@ -65,7 +65,8 @@ export class ChatService {
             conversationId: activeConversationId,
             newMessageId,
             parentMessageId,
-            model: selectedModel
+            model: selectedModel,
+            toolIds: toolIds
         });
     }
 
