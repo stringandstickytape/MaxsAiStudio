@@ -1,15 +1,21 @@
 // src/components/tools/ToolPanel.tsx
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Search, Edit, Trash2, Copy, Import, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchTools, fetchCategories, deleteTool } from '@/store/toolSlice';
 import { ToolEditor } from './ToolEditor';
 import { Tool, ToolCategory } from '@/types/toolTypes';
+import { 
+  useGetToolsQuery, 
+  useGetToolCategoriesQuery, 
+  useDeleteToolMutation,
+  useImportToolsMutation,
+  useExportToolsMutation
+} from '@/services/api/toolsApi';
 
 interface ToolPanelProps {
   isOpen: boolean;
@@ -17,39 +23,49 @@ interface ToolPanelProps {
 }
 
 export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
-  const dispatch = useDispatch();
-  const { tools, categories, loading } = useSelector((state: RootState) => state.tools);
+  // RTK Query hooks
+  const { data: tools = [], isLoading: toolsLoading, refetch: refetchTools } = useGetToolsQuery(undefined, {
+    skip: !isOpen // Only fetch when panel is open
+  });
+  const { data: categories = [], refetch: refetchCategories } = useGetToolCategoriesQuery(undefined, {
+    skip: !isOpen // Only fetch when panel is open
+  });
+  const [deleteTool, { isLoading: isDeleting }] = useDeleteToolMutation();
+  const [importTools, { isLoading: isImporting }] = useImportToolsMutation();
+  const [exportTools, { isLoading: isExporting }] = useExportToolsMutation();
+
+  // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [currentTool, setCurrentTool] = useState<Tool | null>(null);
-
+  
   useEffect(() => {
     if (isOpen) {
-      dispatch(fetchTools());
-      dispatch(fetchCategories());
+      refetchTools();
+      refetchCategories();
     }
-  }, [dispatch, isOpen]);
+  }, [isOpen, refetchTools, refetchCategories]);
 
-    useEffect(() => {
-        const pendingAction = window.localStorage.getItem('toolPanel_action');
-        if (pendingAction) {
-            if (pendingAction === 'create') {
-                handleAddTool();
-            } else if (pendingAction === 'import') {
-                // Trigger file input click for import
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.json';
-                input.click();
-            } else if (pendingAction === 'export') {
-                // Handle export action
-                // This would be implemented when we add the export functionality
-            }
-            // Clear the action after processing
-            window.localStorage.removeItem('toolPanel_action');
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    const pendingAction = window.localStorage.getItem('toolPanel_action');
+    if (pendingAction) {
+      if (pendingAction === 'create') {
+        handleAddTool();
+      } else if (pendingAction === 'import') {
+        // Trigger file input click for import
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.click();
+      } else if (pendingAction === 'export') {
+        // Handle export action
+        handleExportTools();
+      }
+      // Clear the action after processing
+      window.localStorage.removeItem('toolPanel_action');
+    }
+  }, [isOpen]);
 
   const handleAddTool = () => {
     setCurrentTool(null);
@@ -61,9 +77,56 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
     setIsEditorOpen(true);
   };
 
-  const handleDeleteTool = (toolId: string) => {
+  const handleDeleteTool = async (toolId: string) => {
     if (window.confirm('Are you sure you want to delete this tool?')) {
-      dispatch(deleteTool(toolId));
+      try {
+        await deleteTool(toolId).unwrap();
+      } catch (error) {
+        console.error('Failed to delete tool:', error);
+        alert(`Failed to delete tool: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+  };
+
+  const handleImportTools = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const json = event.target?.result as string;
+          try {
+            await importTools(json).unwrap();
+            // Tools list will auto-update due to RTK Query cache invalidation
+          } catch (error) {
+            console.error('Error importing tools:', error);
+            alert(`Failed to import tools: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleExportTools = async () => {
+    try {
+      const json = await exportTools(undefined).unwrap();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tools-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting tools:', error);
+      alert(`Failed to export tools: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -80,7 +143,8 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
 
   if (!isOpen) return null;
 
-    
+  // Determine loading state
+  const isLoading = toolsLoading || isDeleting || isImporting || isExporting;
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
@@ -144,7 +208,7 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
             </div>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
@@ -196,6 +260,7 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
                           size="icon"
                           onClick={() => handleDeleteTool(tool.guid)}
                           className="h-8 w-8 text-gray-400 hover:text-red-400"
+                          disabled={isDeleting}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -213,58 +278,20 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
         <Button 
           variant="outline" 
           className="bg-gray-800 border-gray-700"
-          onClick={() => {
-            // Implement import functionality
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = async (e) => {
-              const file = (e.target as HTMLInputElement).files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                  const json = event.target?.result as string;
-                  try {
-                    dispatch(importTools(json));
-                    // Refresh tools list after import
-                    dispatch(fetchTools());
-                  } catch (error) {
-                    console.error('Error importing tools:', error);
-                    alert('Failed to import tools: ' + error);
-                  }
-                };
-                reader.readAsText(file);
-              }
-            };
-            input.click();
-          }}
+          onClick={handleImportTools}
+          disabled={isImporting}
         >
           <Import className="h-4 w-4 mr-1" />
-          Import
+          {isImporting ? 'Importing...' : 'Import'}
         </Button>
         <Button 
           variant="outline" 
           className="bg-gray-800 border-gray-700"
-          onClick={async () => {
-            try {
-              const json = await ToolService.exportTools();
-              const blob = new Blob([json], { type: 'application/json' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = 'tools-export.json';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
-            } catch (error) {
-              console.error('Error exporting tools:', error);
-              alert('Failed to export tools: ' + error);
-            }
-          }}
+          onClick={handleExportTools}
+          disabled={isExporting}
         >
           <Download className="h-4 w-4 mr-1" />
-          Export
+          {isExporting ? 'Exporting...' : 'Export'}
         </Button>
       </div>
 
