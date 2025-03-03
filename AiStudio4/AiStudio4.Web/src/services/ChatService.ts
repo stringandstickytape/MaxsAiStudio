@@ -1,97 +1,132 @@
-// C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\AiStudio4.Web\src\services\ChatService.ts
+// src/services/ChatService.ts
+import { v4 as uuidv4 } from 'uuid';
 import { store } from '@/store/store';
 import { addMessage } from '@/store/conversationSlice';
-import { webSocketService } from './websocket/WebSocketService';
 
 export type ModelType = 'primary' | 'secondary';
 
 export class ChatService {
-    private static async apiRequest(endpoint: string, clientId: string, data: any) {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': clientId,
-            },
-            body: JSON.stringify(data)
-        });
+    static async sendMessage(
+        message: string, 
+        modelName: string, 
+        activeTools: string[] = [], 
+        systemPromptId?: string | null,
+        systemPromptContent?: string | null
+    ) {
+        try {
+            const clientId = localStorage.getItem('clientId') || '';
+            const state = store.getState();
+            const conversationId = state.conversations.activeConversationId;
+            const parentMessageId = state.conversations.selectedMessageId;
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-    static async sendMessage(message: string, selectedModel: string, toolIds: string[] = []) {
-        console.log('ChatService.sendMessage called with toolIds:', toolIds);
-        const clientId = webSocketService.getClientId();
-        const state = store.getState();
-        const activeConversationId = state.conversations.activeConversationId;
-
-        if (!activeConversationId || !clientId || selectedModel === 'Select Model') {
-            throw new Error('Missing required chat parameters');
-        }
-
-        const conversation = state.conversations.conversations[activeConversationId];
-        if (!conversation) {
-            throw new Error('Could not find active conversation');
-        }
-
-        const newMessageId = `msg_${Date.now()}`;
-        const selectedMessageId = state.conversations.selectedMessageId;
-        const parentMessageId = selectedMessageId || conversation.messages[conversation.messages.length - 1]?.id || null;
-
-        console.log('ChatService: Sending message with parent:', {
-            selectedMessageId,
-            parentMessageId,
-            messageCount: conversation.messages.length,
-            lastMessageId: conversation.messages[conversation.messages.length - 1]?.id
-        });
-
-        store.dispatch(addMessage({
-            conversationId: activeConversationId,
-            message: {
-                id: newMessageId,
-                content: message,
-                source: 'user',
-                timestamp: Date.now(),
-                parentId: parentMessageId
+            if (!conversationId || !parentMessageId) {
+                console.error('Missing conversation or parent message ID');
+                return;
             }
-        }));
 
-        return await ChatService.apiRequest('/api/chat', clientId, {
-            clientId,
-            message,
-            conversationId: activeConversationId,
-            newMessageId,
-            parentMessageId,
-            model: selectedModel,
-            toolIds: toolIds
-        });
+            const messageId = uuidv4();
+
+            store.dispatch(addMessage({
+                conversationId: conversationId,
+                message: {
+                    id: messageId,
+                    content: message,
+                    source: 'user',
+                    timestamp: Date.now(),
+                    parentId: parentMessageId
+                }
+            }));
+
+            const userMessage = {
+                conversationId: conversationId,
+                newMessageId: messageId,
+                parentMessageId: parentMessageId,
+                message: message,
+                model: modelName,
+                toolIds: activeTools,
+                systemPromptId: systemPromptId || undefined,
+                systemPromptContent: systemPromptContent || undefined
+            };
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': clientId,
+                },
+                body: JSON.stringify(userMessage)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            throw error;
+        }
     }
 
     static async fetchModels() {
-        const data = await ChatService.apiRequest("/api/getConfig", webSocketService.getClientId() || 'no-client-id', {});
-        if (!data.success || !Array.isArray(data.models)) {
-            throw new Error('Failed to fetch models');
-        }
+        try {
+            const clientId = localStorage.getItem('clientId') || 'no-client-id';
+            const response = await fetch("/api/getConfig", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': clientId,
+                },
+                body: JSON.stringify({})
+            });
 
-        return {
-            models: data.models,
-            defaultModel: data.defaultModel || "",
-            secondaryModel: data.secondaryModel || ""
-        };
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.success || !Array.isArray(data.models)) {
+                throw new Error('Failed to fetch models');
+            }
+
+            return {
+                models: data.models,
+                defaultModel: data.defaultModel || "",
+                secondaryModel: data.secondaryModel || ""
+            };
+        } catch (error) {
+            console.error('Failed to fetch models:', error);
+            throw error;
+        }
     }
 
     static async saveModel(modelType: ModelType, modelName: string) {
-        const clientId = webSocketService.getClientId();
+        const clientId = localStorage.getItem('clientId');
         if (!clientId) {
             throw new Error('Client ID not found');
         }
 
         const endpoint = modelType === 'primary' ? '/api/setDefaultModel' : '/api/setSecondaryModel';
-        return await ChatService.apiRequest(endpoint, clientId, { clientId, modelName });
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': clientId,
+                },
+                body: JSON.stringify({ clientId, modelName })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Failed to save ${modelType} model:`, error);
+            throw error;
+        }
     }
 
     static saveDefaultModel(modelName: string) {

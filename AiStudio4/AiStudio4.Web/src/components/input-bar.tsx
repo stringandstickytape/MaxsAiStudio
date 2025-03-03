@@ -29,14 +29,19 @@ export function InputBar({
     const inputText = inputValue !== undefined ? inputValue : localInputText;
     const setInputText = onInputChange || setLocalInputText;
 
-    // Get active tools from Redux store
+    // Get active tools and system prompts from Redux store
     const activeTools = useSelector((state: RootState) => state.tools.activeTools);
+    const { conversationPrompts, defaultPromptId, prompts } = useSelector((state: RootState) => state.systemPrompts);
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
         try {
             const state = store.getState();
             let conversationId = state.conversations.activeConversationId;
+            
+            // Determine which system prompt to use
+            let systemPromptId = null;
+            let systemPromptContent = null;
 
             // If no active conversation, create a new one
             if (!conversationId) {
@@ -57,14 +62,32 @@ export function InputBar({
                 || state.conversations.conversations?.[conversationId]?.rootMessage?.id
                 || `msg_${uuidv4()}`;
 
-            await ChatService.sendMessage(message, selectedModel, activeTools);
+            // Determine which system prompt to use for this conversation
+            if (conversationId) {
+                systemPromptId = conversationPrompts[conversationId] || defaultPromptId;
+                
+                if (systemPromptId) {
+                    const prompt = prompts.find(p => p.guid === systemPromptId);
+                    if (prompt) {
+                        systemPromptContent = prompt.content;
+                    }
+                }
+            }
+            
+            await ChatService.sendMessage(
+                message, 
+                selectedModel, 
+                activeTools, 
+                systemPromptId, 
+                systemPromptContent
+            );
 
             // Clear the input after sending
             setInputText('');
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    }, [selectedModel, setInputText, activeTools]);
+    }, [selectedModel, setInputText, activeTools, conversationPrompts, defaultPromptId, prompts]);
 
     const handleSend = () => {
         if (inputText.trim()) {

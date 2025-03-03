@@ -258,7 +258,7 @@ namespace AiStudio4.Services
         {
             try
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.json");
+                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
                 if (!File.Exists(path))
                 {
                     return await GetDefaultSystemPromptAsync();
@@ -293,7 +293,7 @@ namespace AiStudio4.Services
                     return false;
                 }
                 
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.json");
+                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
                 await File.WriteAllTextAsync(path, promptId);
                 
                 return true;
@@ -309,7 +309,7 @@ namespace AiStudio4.Services
         {
             try
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.json");
+                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
                 if (File.Exists(path))
                 {
                     File.Delete(path);
@@ -326,7 +326,7 @@ namespace AiStudio4.Services
 
         private async Task SavePromptAsync(SystemPrompt prompt)
         {
-            var path = Path.Combine(_promptsPath, $"{prompt.Guid}.json");
+            var path = Path.Combine(_promptsPath, $"{prompt.Guid}.prompt.json");
             var json = JsonConvert.SerializeObject(prompt, Formatting.Indented);
             await File.WriteAllTextAsync(path, json);
         }

@@ -2,6 +2,12 @@
 import { Tool, ToolCategory, ToolResponse } from '@/types/toolTypes';
 import { webSocketService } from './websocket/WebSocketService';
 
+/* 
+
+localStorage.getItem('clientId')
+
+*/
+
 export class ToolService {
   private static async apiRequest(endpoint: string, clientId: string, data: any) {
     const response = await fetch(endpoint, {
@@ -43,7 +49,7 @@ export class ToolService {
 
   // Get all tools
   static async getTools(): Promise<Tool[]> {
-    const clientId = webSocketService.getClientId();
+    const clientId = localStorage.getItem('clientId');
     if (!clientId) {
       throw new Error('Client ID not found');
     }

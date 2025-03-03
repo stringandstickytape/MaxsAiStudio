@@ -4,6 +4,7 @@ import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { SystemPromptLibrary } from './SystemPrompt/SystemPromptLibrary';
 import { ToolPanel } from './tools/ToolPanel';
 import { SettingsService } from '@/services/SettingsService';
 import { Model, ServiceProvider } from '@/types/settings';
@@ -127,7 +128,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                 </div>
             ) : (
                 <Tabs defaultValue="models" className="w-full">
-                    <TabsList className="grid grid-cols-3 mb-4 bg-gray-800 p-1">
+                    <TabsList className="grid grid-cols-4 mb-4 bg-gray-800 p-1">
                         <TabsTrigger
                             value="models"
                             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
@@ -139,6 +140,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
                         >
                             Providers
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="prompts"
+                            className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
+                        >
+                            Prompts
                         </TabsTrigger>
                         <TabsTrigger
                             value="appearance"
@@ -167,6 +174,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                         />
                     </TabsContent>
 
+                    <TabsContent value="prompts" className="space-y-4">
+                        <Card className="bg-gray-800 border-gray-700">
+                            <CardContent className="pt-6">
+                                <h3 className="text-md font-medium mb-2 text-gray-200">System Prompts</h3>
+                                <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/50 h-[400px]">
+                                    <SystemPromptLibrary isOpen={true} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    
                     <TabsContent value="appearance" className="space-y-4">
                         <Card className="bg-gray-800 border-gray-700">
                             <CardContent className="pt-6">

@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
-import { X, Pin, PinOff, Tool as ToolIcon } from 'lucide-react';
+import { X, Pin, PinOff, Tool as ToolIcon, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
@@ -29,6 +29,10 @@ import { initializeToolCommands } from './commands/toolCommands';
 import { ToolPanel } from '@/components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { fetchTools } from '@/store/toolSlice';
+import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
+import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
+import { fetchSystemPrompts, setConversationSystemPrompt } from './store/systemPromptSlice';
+import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -50,13 +54,16 @@ function AppContent() {
     const [showConversationTree, setShowConversationTree] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showSidebar, setShowSidebar] = useState(false);
+    const [showSystemPrompts, setShowSystemPrompts] = useState(false);
     const [sidebarPinned, setSidebarPinned] = useState(false);
     const [conversationTreePinned, setConversationTreePinned] = useState(false);
     const [settingsPanelPinned, setSettingsPanelPinned] = useState(false);
+    const [systemPromptsPinned, setSystemPromptsPinned] = useState(false);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
+    const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
     
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
@@ -96,6 +103,19 @@ function AppContent() {
             toggleSettings: handleToggleSettings,
             openNewWindow: handleOpenNewWindow
         });
+        
+        // Initialize system prompt commands
+        initializeSystemPromptCommands({
+            toggleLibrary: handleToggleSystemPrompts,
+            createNewPrompt: () => {
+                setPromptToEdit(null);
+                setShowSystemPrompts(true);
+            },
+            editPrompt: (promptId) => {
+                setPromptToEdit(promptId);
+                setShowSystemPrompts(true);
+            }
+        });
 
         // Initialize model commands
         initializeModelCommands({
@@ -124,11 +144,30 @@ function AppContent() {
             }
         });*/
 
+        // Register all system prompts as commands
+        const systemPromptsUpdated = () => {
+            registerSystemPromptsAsCommands(handleToggleSystemPrompts);
+        };
+        
+        // Initial registration
+        systemPromptsUpdated();
+        
+        // Set up subscription to system prompts changes
+        const unsubscribeFromStore = store.subscribe(() => {
+            const prevPrompts = store.getState().systemPrompts.prompts;
+            const currentPrompts = store.getState().systemPrompts.prompts;
+            
+            if (prevPrompts !== currentPrompts) {
+                systemPromptsUpdated();
+            }
+        });
+        
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
         return () => {
             cleanupKeyboardShortcut();
+            unsubscribeFromStore();
         };
     }, [models]);
 
@@ -144,8 +183,9 @@ function AppContent() {
                     secondary: secondaryModel && secondaryModel.length > 0 ? secondaryModel : "Select Model"
                 });
 
-                // Add this line to fetch tools during initialization
+                // Fetch tools and system prompts during initialization
                 dispatch(fetchTools());
+                dispatch(fetchSystemPrompts());
 
                 const conversationId = `conv_${Date.now()}`;
                 store.dispatch(createConversation({
@@ -183,8 +223,20 @@ function AppContent() {
             console.log('Opening conversation tree with conversation ID:', activeConversationId);
         }
         setShowConversationTree(!showConversationTree);
-        // Close settings if opening conversation tree and it's not pinned
-        if (!showConversationTree && !settingsPanelPinned) setShowSettings(false);
+        // Close other panels if they're not pinned
+        if (!showConversationTree) {
+            if (!settingsPanelPinned) setShowSettings(false);
+            if (!systemPromptsPinned) setShowSystemPrompts(false);
+        }
+    };
+    
+    const handleToggleSystemPrompts = () => {
+        setShowSystemPrompts(!showSystemPrompts);
+        // Close other panels if they're not pinned
+        if (!showSystemPrompts) {
+            if (!settingsPanelPinned) setShowSettings(false);
+            if (!conversationTreePinned) setShowConversationTree(false);
+        }
     };
 
     // Subscribe to Redux store to update the conversation tree when messages change
@@ -233,8 +285,11 @@ function AppContent() {
 
     const handleToggleSettings = () => {
         setShowSettings(!showSettings);
-        // Close conversation tree if opening settings and it's not pinned
-        if (!showSettings && !conversationTreePinned) setShowConversationTree(false);
+        // Close other panels if they're not pinned
+        if (!showSettings) {
+            if (!conversationTreePinned) setShowConversationTree(false);
+            if (!systemPromptsPinned) setShowSystemPrompts(false);
+        }
     };
 
     const handleToggleSidebar = () => {
@@ -265,7 +320,8 @@ function AppContent() {
                 "h-screen flex flex-col",
                 sidebarPinned && "pl-80",
                 conversationTreePinned && "pr-80",
-                settingsPanelPinned && "pr-80"
+                settingsPanelPinned && "pr-80",
+                systemPromptsPinned && "pr-80"
             )}>
                 {/* Left sidebar with slide-in/out animation */}
                 <div className={cn(
@@ -293,14 +349,16 @@ function AppContent() {
                         onToggleSidebar={handleToggleSidebar}
                         onModelSelect={(model) => handleModelSelect('primary', model)}
                         onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
-                        onToggleConversationTree={(showConversationTree || conversationTreePinned || showSettings || settingsPanelPinned) ? null : handleToggleConversationTree}
-                        onToggleSettings={(showSettings || settingsPanelPinned || showConversationTree || conversationTreePinned) ? null : handleToggleSettings}
+                        onToggleConversationTree={(showConversationTree || conversationTreePinned || showSettings || settingsPanelPinned || showSystemPrompts || systemPromptsPinned) ? null : handleToggleConversationTree}
+                        onToggleSettings={(showSettings || settingsPanelPinned || showConversationTree || conversationTreePinned || showSystemPrompts || systemPromptsPinned) ? null : handleToggleSettings}
+                        onToggleSystemPrompts={(showSettings || settingsPanelPinned || showConversationTree || conversationTreePinned || showSystemPrompts || systemPromptsPinned) ? null : handleToggleSystemPrompts}
                         onToggleToolPanel={() => setIsToolPanelOpen(true)}
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
                         sidebarPinned={sidebarPinned || showSidebar}
-                        rightSidebarPinned={conversationTreePinned || settingsPanelPinned}
+                        rightSidebarPinned={conversationTreePinned || settingsPanelPinned || systemPromptsPinned}
+                        activeConversationId={store.getState().conversations.activeConversationId}
                     />
                 </div>
 
@@ -372,7 +430,79 @@ function AppContent() {
                 )}
             </div>
 
-            {/* Settings panel with higher z-index so it appears on top */}
+            {/* System prompts panel with the highest z-index */}
+            <div className={cn(
+                "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-50 transition-transform duration-300",
+                showSystemPrompts || systemPromptsPinned ? "translate-x-0" : "translate-x-full"
+            )}>
+                {(showSystemPrompts || systemPromptsPinned) && (
+                    <>
+                        <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
+                            <div className="flex space-x-2">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSystemPromptsPinned(!systemPromptsPinned)}
+                                    className="text-gray-400 hover:text-gray-100"
+                                >
+                                    {systemPromptsPinned ? (
+                                        <PinOff className="h-4 w-4" />
+                                    ) : (
+                                        <Pin className="h-4 w-4" />
+                                    )}
+                                </Button>
+                                {!systemPromptsPinned && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleToggleSystemPrompts}
+                                        className="text-gray-400 hover:text-gray-100"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                            <h2 className="text-gray-100 text-lg font-semibold flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5" />
+                                System Prompts
+                            </h2>
+                        </div>
+                        <SystemPromptLibrary 
+                            isOpen={true}
+                            isPinned={systemPromptsPinned}
+                            onClose={handleToggleSystemPrompts}
+                            conversationId={store.getState().conversations.activeConversationId || undefined}
+                            onApplyPrompt={(prompt) => {
+                                console.log("App.tsx - Applying prompt:", prompt);
+                                const conversationId = store.getState().conversations.activeConversationId;
+
+                                // Check for guid in either camelCase or PascalCase
+                                const promptId = prompt?.guid || prompt?.Guid;
+
+                                if (conversationId && promptId) {
+                                    console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
+                                    dispatch(setConversationSystemPrompt({
+                                        conversationId,
+                                        promptId
+                                    }));
+                                } else {
+                                    console.error("Cannot apply prompt - missing required data:", {
+                                        conversationId,
+                                        promptId,
+                                        prompt
+                                    });
+                                }
+
+                                if (!systemPromptsPinned) {
+                                    setShowSystemPrompts(false);
+                                }
+                            }}
+                        />
+                    </>
+                )}
+            </div>
+            
+            {/* Settings panel with high z-index */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-40 transition-transform duration-300",
                 showSettings || settingsPanelPinned ? "translate-x-0" : "translate-x-full"

@@ -147,10 +147,13 @@ export class WebSocketService {
     private handleMessage = (event: MessageEvent): void => {
         try {
             const message: WebSocketMessage = JSON.parse(event.data);
-            
+
             // Handle special message types
             if (message.messageType === 'clientId') {
                 this.clientId = message.content;
+                // Save clientId to localStorage when received
+                localStorage.setItem('clientId', message.content);
+                console.log('Client ID received and saved to localStorage:', message.content);
                 this.notifyConnectionStatusChange();
             } else if (message.messageType === 'conversation') {
                 this.handleConversationMessage(message.content);
@@ -159,7 +162,7 @@ export class WebSocketService {
             } else if (message.messageType === 'historicalConversationTree') {
                 this.handleHistoricalConversationTreeMessage(message.content);
             }
-            
+
             // Notify all subscribers for this message type
             this.notifySubscribers(message.messageType, message.content);
         } catch (error) {

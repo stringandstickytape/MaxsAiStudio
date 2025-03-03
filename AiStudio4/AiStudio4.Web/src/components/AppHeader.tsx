@@ -1,11 +1,12 @@
 ﻿// src/components/AppHeader.tsx
 import { Button } from '@/components/ui/button';
 import { ToolSelector } from '@/components/tools/ToolSelector';
-import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon } from 'lucide-react';
+import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ModelSelector } from '@/components/ModelSelector';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { HeaderPromptComponent } from '@/components/SystemPrompt/HeaderPromptComponent';
 
 interface AppHeaderProps {
     isMobile: boolean;
@@ -18,6 +19,7 @@ interface AppHeaderProps {
     onToggleConversationTree: () => void;
     onToggleSettings: () => void;
     onToggleToolPanel?: () => void;
+    onToggleSystemPrompts?: () => void;
     // This is used by ToolSelector component inside AppHeader
     onManageTools?: () => void;
     onExecuteCommand?: (command: string) => void;
@@ -26,6 +28,7 @@ interface AppHeaderProps {
     CommandBarComponent?: React.ReactNode;
     sidebarPinned?: boolean;
     rightSidebarPinned?: boolean;
+    activeConversationId?: string | null;
 }
 
 export function AppHeader({
@@ -39,6 +42,7 @@ export function AppHeader({
     onToggleConversationTree,
     onToggleSettings,
     onToggleToolPanel,
+    onToggleSystemPrompts,
     onManageTools,
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
@@ -46,6 +50,7 @@ export function AppHeader({
     CommandBarComponent,
     sidebarPinned = false,
     rightSidebarPinned = false,
+    activeConversationId = null,
 }: AppHeaderProps) {
     const [commandText, setCommandText] = useState('');
 
@@ -108,21 +113,28 @@ export function AppHeader({
                     </form>
                 )}
 
-                <div className="flex gap-3 items-center w-full justify-center py-1">
-                    <ModelSelector
-                        label="Primary AI"
-                        selectedModel={selectedModel}
-                        models={models}
-                        modelType="primary"
-                        onModelSelect={onModelSelect}
-                    />
+                <div className="flex flex-col gap-2 w-full py-1">
+                    <div className="flex gap-3 items-center justify-center">
+                        <ModelSelector
+                            label="Primary AI"
+                            selectedModel={selectedModel}
+                            models={models}
+                            modelType="primary"
+                            onModelSelect={onModelSelect}
+                        />
 
-                    <ModelSelector
-                        label="Secondary AI"
-                        selectedModel={secondaryModel}
-                        models={models}
-                        modelType="secondary"
-                        onModelSelect={onSecondaryModelSelect}
+                        <ModelSelector
+                            label="Secondary AI"
+                            selectedModel={secondaryModel}
+                            models={models}
+                            modelType="secondary"
+                            onModelSelect={onSecondaryModelSelect}
+                        />
+                    </div>
+                    
+                    <HeaderPromptComponent 
+                        conversationId={activeConversationId || undefined}
+                        onOpenLibrary={onToggleSystemPrompts}
                     />
                 </div>
             </div>
