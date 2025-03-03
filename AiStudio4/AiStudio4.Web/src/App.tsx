@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
-import { ModelStatusBar } from './components/ModelStatusBar';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
@@ -22,9 +21,8 @@ import { initializeCoreCommands } from './commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
 import { CommandBar } from './components/CommandBar';
 import { VoiceInputOverlay } from '@/components/VoiceInputOverlay';
-import { useVoiceInputState, initializeVoiceInputCommand, setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
+import { useVoiceInputState, setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
-import { initializeToolCommands } from './commands/toolCommands';
 import { ToolPanel } from '@/components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { setTools } from '@/store/toolSlice';
@@ -36,7 +34,6 @@ import { useGetConfigQuery } from '@/services/api/chatApi';
 import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
 import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
 import { ModelType } from '@/types/modelTypes';
-import { addPinnedCommand, removePinnedCommand } from './store/pinnedCommandsSlice';
 
 // Define a type for model settings
 interface ModelSettings {

@@ -1,13 +1,11 @@
 ﻿// src/components/AppHeader.tsx
-import { Button } from '@/components/ui/button';
-import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon, MessageSquare } from 'lucide-react';
+import {  Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { HeaderPromptComponent } from '@/components/SystemPrompt/HeaderPromptComponent';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
-import { commandRegistry } from '@/commands/commandRegistry';
 
 interface AppHeaderProps {
     isMobile: boolean;
