@@ -5,7 +5,6 @@ import ReactFlow, { Node, Edge, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface TreeViewProps {
-    onClose?: () => void;
     conversationId: string;
     messages: {
         id: string;
@@ -16,14 +15,13 @@ interface TreeViewProps {
             children: any[];
         }>;
     };
-    isPinned?: boolean;
 }
 
 import { store } from '@/store/store';
 import { setActiveConversation } from '@/store/conversationSlice';
 import { cn } from '@/lib/utils';
 
-export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, conversationId, messages }) => {
+export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, messages }) => {
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
         // Dispatch action to update active conversation and selected message
         console.log('Tree Node clicked:', {
@@ -135,19 +133,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ onClose, convers
     }, [messages]);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-70px)] w-full">
-                {onClose && (
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={onClose}
-                        className="hover:bg-gray-700"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                        <span className="ml-1">Back</span>
-                    </Button>
-                )}
-            
+        <div className="flex flex-col h-[calc(100vh-70px)] w-full">             
             <div className={cn(
                 "flex-1 overflow-hidden",
                 !messages && "flex items-center justify-center"

@@ -10,20 +10,17 @@ import { createConversation } from '@/store/conversationSlice';
 
 interface SidebarProps {
     wsState: WebSocketState;
-    isPinned?: boolean;
-    onTogglePin?: () => void;
-    onClose?: () => void;
 }
 
-export function Sidebar({ wsState, isPinned = false, onTogglePin, onClose }: SidebarProps) {
+export function Sidebar({ wsState }: SidebarProps) {
     return (
         <div className="flex flex-col h-full">
-            <SidebarContent wsState={wsState} isPinned={isPinned} />
+            <SidebarContent wsState={wsState} />
         </div>
     );
 }
 
-function SidebarContent({ wsState, isPinned }: { wsState: WebSocketState, isPinned?: boolean }) {
+function SidebarContent({ wsState }: { wsState: WebSocketState }) {
     const state = store.getState();
     const conversations = state.conversations.conversations;
 

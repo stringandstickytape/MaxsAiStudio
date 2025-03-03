@@ -19,10 +19,9 @@ import {
 
 interface ToolPanelProps {
   isOpen: boolean;
-  onClose?: () => void;
 }
 
-export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
+export function ToolPanel({ isOpen }: ToolPanelProps) {
   // RTK Query hooks
   const { data: tools = [], isLoading: toolsLoading, refetch: refetchTools } = useGetToolsQuery(undefined, {
     skip: !isOpen // Only fetch when panel is open

@@ -20,11 +20,9 @@ import {
 
 interface SettingsPanelProps {
     isOpen: boolean;
-    onClose?: () => void;
-    isPinned?: boolean;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, isPinned }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
     // Use RTK Query hooks to fetch data and handle mutations
     const {
         data: models = [],

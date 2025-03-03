@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+ï»¿import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
@@ -254,13 +254,11 @@ function AppContent() {
     };
 
     const handleToggleConversationTree = () => {
-        if (!conversationTree.isOpen) {
-            // When opening the tree, use the active conversation ID
-            const state = store.getState();
-            const activeConversationId = state.conversations.activeConversationId;
-            setSelectedConversationId(activeConversationId);
-            console.log('Opening conversation tree with conversation ID:', activeConversationId);
-        }
+        // When opening the tree, use the active conversation ID
+        const state = store.getState();
+        const activeConversationId = state.conversations.activeConversationId;
+        setSelectedConversationId(activeConversationId);
+        console.log('Opening conversation tree with conversation ID:', activeConversationId);
         conversationTree.toggle();
     };
 
@@ -384,14 +382,9 @@ function AppContent() {
                 size="80"
                 zIndex={40}
                 title="Conversations"
-                defaultOpen={sidebar.isOpen}
-                defaultPinned={sidebar.isPinned}
             >
                 <Sidebar
                     wsState={wsState}
-                    isPinned={sidebar.isPinned}
-                    onTogglePin={sidebar.togglePin}
-                    onClose={sidebar.close}
                 />
             </Panel>
 
@@ -403,14 +396,10 @@ function AppContent() {
                     size="80"
                     zIndex={30}
                     title="Conversation Tree"
-                    defaultOpen={conversationTree.isOpen}
-                    defaultPinned={conversationTree.isPinned}
                 >
                     <ConversationTreeView
                         key={`tree-${selectedConversationId}-${Date.now()}`} // Force re-render when id changes or is refreshed
                         conversationId={selectedConversationId}
-                        isPinned={conversationTree.isPinned}
-                        onClose={conversationTree.close}
                         messages={{
                             id: selectedConversationId,
                             text: "Root",
@@ -427,67 +416,48 @@ function AppContent() {
                 size="80"
                 zIndex={40}
                 title="Settings"
-                defaultOpen={settings.isOpen}
-                defaultPinned={settings.isPinned}
             >
                 <SettingsPanel
                     isOpen={true}
-                    isPinned={settings.isPinned}
-                    onClose={settings.close}
                 />
             </Panel>
 
-            {/* System Prompts Panel - Uses modal style instead of Panel for now */}
-            {systemPromptPanel.isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">
-                        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-                            <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-2">
-                                <MessageSquare className="h-5 w-5" />
-                                System Prompts
-                            </h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={systemPromptPanel.close}
-                                className="text-gray-400 hover:text-gray-100"
-                            >
-                                <span className="h-5 w-5">×</span>
-                            </Button>
-                        </div>
-                        <div className="h-[calc(100%-60px)]">
-                            <SystemPromptLibrary
-                                isOpen={true}
-                                onClose={systemPromptPanel.close}
-                                conversationId={store.getState().conversations.activeConversationId || undefined}
-                                onApplyPrompt={(prompt) => {
-                                    console.log("App.tsx - Applying prompt:", prompt);
-                                    const conversationId = store.getState().conversations.activeConversationId;
+            {/* System Prompts Panel */}
+            <Panel
+                id="systemPrompts"
+                position="right"
+                size="80"
+                zIndex={50}
+                title="System Prompts"
+            >
+                <SystemPromptLibrary
+                    isOpen={true}
+                    conversationId={store.getState().conversations.activeConversationId || undefined}
+                    onApplyPrompt={(prompt) => {
+                        console.log("App.tsx - Applying prompt:", prompt);
+                        const conversationId = store.getState().conversations.activeConversationId;
 
-                                    // Check for guid in either camelCase or PascalCase
-                                    const promptId = prompt?.guid || prompt?.Guid;
+                        // Check for guid in either camelCase or PascalCase
+                        const promptId = prompt?.guid || prompt?.Guid;
 
-                                    if (conversationId && promptId) {
-                                        console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
-                                        // Using RTK Query mutation
-                                        setConversationSystemPrompt({ conversationId, promptId });
-                                        // Also update the local Redux state
-                                        dispatch(setConversationPrompt({ conversationId, promptId }));
-                                    } else {
-                                        console.error("Cannot apply prompt - missing required data:", {
-                                            conversationId,
-                                            promptId,
-                                            prompt
-                                        });
-                                    }
+                        if (conversationId && promptId) {
+                            console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
+                            // Using RTK Query mutation
+                            setConversationSystemPrompt({ conversationId, promptId });
+                            // Also update the local Redux state
+                            dispatch(setConversationPrompt({ conversationId, promptId }));
+                        } else {
+                            console.error("Cannot apply prompt - missing required data:", {
+                                conversationId,
+                                promptId,
+                                prompt
+                            });
+                        }
 
-                                    systemPromptPanel.close();
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+                        systemPromptPanel.close();
+                    }}
+                />
+            </Panel>
 
             {/* Voice Input Overlay */}
             <VoiceInputOverlay
@@ -508,7 +478,7 @@ function AppContent() {
                                 onClick={() => setIsToolPanelOpen(false)}
                                 className="text-gray-400 hover:text-gray-100"
                             >
-                                <span className="h-5 w-5">×</span>
+                                <span className="h-5 w-5">ï¿½</span>
                             </Button>
                         </div>
                         <div className="h-full overflow-y-auto">

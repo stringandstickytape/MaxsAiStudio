@@ -19,16 +19,12 @@ import {
 
 interface SystemPromptLibraryProps {
     onApplyPrompt?: (prompt: SystemPrompt) => void;
-    onClose?: () => void;
-    isPinned?: boolean;
     isOpen: boolean;
     conversationId?: string;
 }
 
 export function SystemPromptLibrary({
     onApplyPrompt,
-    onClose,
-    isPinned = false,
     isOpen,
     conversationId
 }: SystemPromptLibraryProps) {
@@ -45,10 +41,12 @@ export function SystemPromptLibrary({
     const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
     const [activeTab, setActiveTab] = useState('all');
 
+    // Use panel context hooks instead of local close handler
+    const { usePanels } = require('@/contexts/PanelContext');
+    const { togglePanel } = usePanels();
+    
     const handleCloseLibrary = () => {
-        if (onClose) {
-            onClose();
-        }
+        togglePanel('systemPrompts');
     };
 
     const handleCreatePrompt = () => {
