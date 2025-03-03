@@ -3,7 +3,7 @@ import { HistoricalConversationTreeList } from './HistoricalConversationTreeList
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Pin, PinOff, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
@@ -15,52 +15,17 @@ interface SidebarProps {
     onClose?: () => void;
 }
 
-
 export function Sidebar({ wsState, isPinned = false, onTogglePin, onClose }: SidebarProps) {
     return (
-        <aside className="fixed left-0 top-0 z-30 flex h-screen w-80 flex-col bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 shadow-xl backdrop-blur-sm">
-            <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
-                <div className="flex space-x-2">
-                    {onTogglePin && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onTogglePin}
-                            className="text-gray-400 hover:text-gray-100"
-                        >
-                            {isPinned ? (
-                                <PinOff className="h-4 w-4" />
-                            ) : (
-                                <Pin className="h-4 w-4" />
-                            )}
-                        </Button>
-                    )}
-                    {!isPinned && onClose && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-100"
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-                <h2 className="text-gray-100 text-lg font-semibold flex items-center">Conversations</h2>
-            </div>
+        <div className="flex flex-col h-full">
             <SidebarContent wsState={wsState} isPinned={isPinned} />
-        </aside>
+        </div>
     );
 }
 
-
-
 function SidebarContent({ wsState, isPinned }: { wsState: WebSocketState, isPinned?: boolean }) {
-
     const state = store.getState();
     const conversations = state.conversations.conversations;
-
-
 
     const handleNewChat = () => {
         store.dispatch(createConversation({
