@@ -1,59 +1,85 @@
 ﻿// src/components/ModelStatusBar.tsx
-import React from 'react';
+import { Info, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ModelStatusBarProps {
     primaryModel: string;
     secondaryModel: string;
-    className?: string;
     onPrimaryClick?: () => void;
     onSecondaryClick?: () => void;
+    orientation?: 'horizontal' | 'vertical';
 }
 
 export function ModelStatusBar({
     primaryModel,
     secondaryModel,
-    className,
     onPrimaryClick,
-    onSecondaryClick
+    onSecondaryClick,
+    orientation = 'horizontal'
 }: ModelStatusBarProps) {
-    // Handle default/empty model names
-    const primaryDisplay = primaryModel && primaryModel !== "Select Model"
-        ? primaryModel
-        : "No model selected";
-
-    const secondaryDisplay = secondaryModel && secondaryModel !== "Select Model"
-        ? secondaryModel
-        : "No model selected";
+    const isVertical = orientation === 'vertical';
 
     return (
         <div className={cn(
-            "w-full px-2 py-1 bg-gray-800/50 border-t border-gray-700/30 text-xs",
-            className
+            "flex gap-2",
+            isVertical ? "flex-col" : "items-center"
         )}>
-            <div className="flex items-center space-x-2">
-                <span className="text-gray-400">Models:</span>
+            {/* Primary Model */}
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onPrimaryClick}
+                            className={cn(
+                                "bg-gradient-to-r from-blue-800/80 to-blue-700/80 hover:from-blue-800 hover:to-blue-700 text-white border-blue-700/50 flex items-center gap-2",
+                                isVertical ? "w-36 justify-between px-3" : ""
+                            )}
+                        >
+                            <Zap className="h-3.5 w-3.5 text-blue-300" />
+                            <span className="truncate">
+                                {primaryModel !== "Select Model" ? primaryModel : "Select Model"}
+                            </span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Primary model for chat responses</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-                <button
-                    onClick={onPrimaryClick}
-                    className="flex items-center px-2 py-0.5 bg-gray-700/70 hover:bg-gray-700 rounded-full border border-gray-700/50 transition-colors"
-                >
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"></span>
-                    <span className="text-gray-100 text-xs font-medium truncate max-w-[120px]">
-                        {primaryDisplay}
-                    </span>
-                </button>
-
-                <button
-                    onClick={onSecondaryClick}
-                    className="flex items-center px-2 py-0.5 bg-gray-700/70 hover:bg-gray-700 rounded-full border border-gray-700/50 transition-colors"
-                >
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-1.5"></span>
-                    <span className="text-gray-100 text-xs font-medium truncate max-w-[120px]">
-                        {secondaryDisplay}
-                    </span>
-                </button>
-            </div>
+            {/* Secondary Model */}
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onSecondaryClick}
+                            className={cn(
+                                "bg-gradient-to-r from-purple-800/80 to-purple-700/80 hover:from-purple-800 hover:to-purple-700 text-white border-purple-700/50 flex items-center gap-2",
+                                isVertical ? "w-36 justify-between px-3" : ""
+                            )}
+                        >
+                            <Info className="h-3.5 w-3.5 text-purple-300" />
+                            <span className="truncate">
+                                {secondaryModel !== "Select Model" ? secondaryModel : "Select Model"}
+                            </span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Secondary model for summaries & short tasks</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
     );
 }

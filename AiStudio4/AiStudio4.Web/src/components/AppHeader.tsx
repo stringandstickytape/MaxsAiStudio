@@ -109,51 +109,58 @@ export function AppHeader({
 
     return (
         <div className={cn(
-            "bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2 h-full",
+            "bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 h-full",
             sidebarPinned ? "left-80" : "left-0",
             rightSidebarPinned ? "right-80" : "right-0"
         )}>
-            <div className="flex-1 flex flex-col justify-center items-center gap-2">
-                {CommandBarComponent || (
-                    <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Command className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <Input
-                            id="command-input"
-                            type="text"
-                            placeholder="Type a command (/ for suggestions)..."
-                            value={commandText}
-                            onChange={(e) => setCommandText(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200"
-                            onBlur={() => setIsCommandBarOpen(false)}
-                        />
-                        <kbd
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
-                            onClick={() => setIsCommandBarOpen(true)}
-                        >
-                            {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
-                        </kbd>
-                    </form>
-                )}
-
-                <div className="flex flex-col gap-2 w-full py-1">
-                    {/* Replace ModelSelector components with ModelStatusBar */}
+            <div className="flex h-full">
+                {/* Left side - Vertical Model Selectors */}
+                <div className="flex flex-col justify-center pr-4 border-r border-gray-700/30">
                     <ModelStatusBar
                         primaryModel={selectedModel}
                         secondaryModel={secondaryModel}
                         onPrimaryClick={handlePrimaryModelClick}
                         onSecondaryClick={handleSecondaryModelClick}
+                        orientation="vertical"
                     />
+                </div>
 
-                    <div className="flex items-center justify-between w-full">
+                {/* Middle - Command Bar and System Prompt */}
+                <div className="flex-1 flex flex-col justify-center px-4">
+                    {CommandBarComponent || (
+                        <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl mx-auto mb-2">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Command className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <Input
+                                id="command-input"
+                                type="text"
+                                placeholder="Type a command (/ for suggestions)..."
+                                value={commandText}
+                                onChange={(e) => setCommandText(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200"
+                                onBlur={() => setIsCommandBarOpen(false)}
+                            />
+                            <kbd
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
+                                onClick={() => setIsCommandBarOpen(true)}
+                            >
+                                {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
+                            </kbd>
+                        </form>
+                    )}
+
+                    <div className="w-full max-w-2xl mx-auto">
                         <HeaderPromptComponent
                             conversationId={activeConversationId || undefined}
                             onOpenLibrary={onToggleSystemPrompts}
                         />
-
-                        <PinnedShortcuts className="ml-2" />
                     </div>
+                </div>
+
+                {/* Right side - Vertical Pinned Shortcuts */}
+                <div className="flex flex-col justify-center pl-4 border-l border-gray-700/30">
+                    <PinnedShortcuts orientation="vertical" />
                 </div>
             </div>
         </div>
