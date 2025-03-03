@@ -9,6 +9,8 @@ using AiStudio4.Services;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies.WebSocket;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace AiStudio4
 {
@@ -19,6 +21,12 @@ namespace AiStudio4
 
         public App()
         {
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                // Other settings like null handling, etc.
+            };
+
             var services = new ServiceCollection();
             ConfigureServices(services);
             _serviceProvider = services.BuildServiceProvider();

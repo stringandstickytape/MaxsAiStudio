@@ -2,31 +2,9 @@ import { webSocketService } from './websocket/WebSocketService';
 import { ServiceProvider, Model } from '@/types/settings';
 
 export class SettingsService {
-    private static normalizeModel(model: any): Model {
-        return {
-            guid: model.Guid,
-            modelName: model.ModelName,
-            friendlyName: model.FriendlyName,
-            providerGuid: model.ProviderGuid,
-            userNotes: model.UserNotes,
-            additionalParams: model.AdditionalParams,
-            input1MTokenPrice: model.Input1MTokenPrice,
-            output1MTokenPrice: model.Output1MTokenPrice,
-            color: model.Color,
-            starred: model.Starred,
-            supportsPrefill: model.SupportsPrefill
-        };
-    }
+    // Removed normalizeModel as JsonConvert handles serialization/deserialization
 
-    private static normalizeProvider(provider: any): ServiceProvider {
-        return {
-            guid: provider.Guid,
-            serviceName: provider.ServiceName,
-            friendlyName: provider.FriendlyName,
-            url: provider.Url,
-            apiKey: provider.ApiKey
-        };
-    }
+    // Removed normalizeProvider as JsonConvert handles serialization/deserialization
 
     private static async fetchData<T>(endpoint: string, clientId: string, body?: any): Promise<T> {
         const response = await fetch(endpoint, {
@@ -70,7 +48,7 @@ export class SettingsService {
         }
 
         const data = await this.fetchData<{ models: any[] }>('/api/getModels', clientId);
-        return data.models.map(this.normalizeModel);
+        return data.models;
     }
 
     static async getServiceProviders(): Promise<ServiceProvider[]> {
@@ -80,7 +58,7 @@ export class SettingsService {
         }
 
         const data = await this.fetchData<{ providers: any[] }>('/api/getServiceProviders', clientId);
-        return data.providers.map(this.normalizeProvider);
+        return data.providers;
     }
 
     static async addModel(model: Omit<Model, 'guid'>): Promise<void> {

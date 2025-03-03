@@ -2,23 +2,7 @@
 import { SystemPrompt } from '@/types/systemPrompt';
 
 export class SystemPromptService {
-    /**
-     * Normalizes prompt data to ensure consistent property naming
-     */
-    private static normalizePrompt(prompt: any): SystemPrompt {
-        if (!prompt) return null;
-
-        return {
-            guid: prompt.guid || prompt.Guid,
-            title: prompt.title || prompt.Title,
-            content: prompt.content || prompt.Content,
-            description: prompt.description || prompt.Description,
-            isDefault: prompt.isDefault || prompt.IsDefault,
-            createdDate: prompt.createdDate || prompt.CreatedDate,
-            modifiedDate: prompt.modifiedDate || prompt.ModifiedDate,
-            tags: prompt.tags || prompt.Tags || [],
-        };
-    }
+    // Removed normalizePrompt as JsonConvert handles serialization/deserialization
 
     /**
      * Fetches all system prompts
@@ -45,7 +29,7 @@ export class SystemPromptService {
 
             // Normalize all prompts
             return Array.isArray(data.prompts)
-                ? data.prompts.map(this.normalizePrompt)
+                ? data.prompts
                 : [];
         } catch (error) {
             console.error('Error fetching system prompts:', error);
@@ -76,7 +60,7 @@ export class SystemPromptService {
                 throw new Error(data.error || 'Failed to fetch system prompt');
             }
 
-            return this.normalizePrompt(data.prompt);
+            return data.prompt;
         } catch (error) {
             console.error('Error fetching system prompt:', error);
             throw error;
@@ -108,9 +92,8 @@ export class SystemPromptService {
                 throw new Error(data.error || 'Failed to create system prompt');
             }
 
-            const normalizedPrompt = this.normalizePrompt(data.prompt);
-            console.log('Created system prompt, normalized response:', normalizedPrompt);
-            return normalizedPrompt;
+            console.log('Created system prompt response:', data.prompt);
+            return data.prompt;
         } catch (error) {
             console.error('Error creating system prompt:', error);
             throw error;
@@ -122,9 +105,7 @@ export class SystemPromptService {
      */
     static async updateSystemPrompt(promptData: SystemPrompt): Promise<SystemPrompt> {
         try {
-            // Ensure we have a guid
-            const promptId = promptData.guid || promptData['Guid'];
-            if (!promptId) {
+            if (!promptData.guid) {
                 throw new Error('Prompt ID is required for updating');
             }
 
@@ -134,12 +115,7 @@ export class SystemPromptService {
                     'Content-Type': 'application/json',
                     'X-Client-Id': localStorage.getItem('clientId') || '',
                 },
-                body: JSON.stringify({
-                    ...promptData,
-                    // Ensure both casing variants are included for backend compatibility
-                    guid: promptId,
-                    Guid: promptId
-                }),
+                body: JSON.stringify(promptData),
             });
 
             if (!response.ok) {
@@ -151,7 +127,7 @@ export class SystemPromptService {
                 throw new Error(data.error || 'Failed to update system prompt');
             }
 
-            return this.normalizePrompt(data.prompt);
+            return data.prompt;
         } catch (error) {
             console.error('Error updating system prompt:', error);
             throw error;
@@ -249,7 +225,7 @@ export class SystemPromptService {
                 throw new Error(data.error || 'Failed to fetch conversation system prompt');
             }
 
-            return data.prompt ? this.normalizePrompt(data.prompt) : null;
+            return data.prompt || null;
         } catch (error) {
             console.error('Error fetching conversation system prompt:', error);
             throw error;

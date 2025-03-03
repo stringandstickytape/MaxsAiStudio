@@ -26,26 +26,7 @@ export class ToolService {
     return response.json();
   }
 
-  // Helper function to normalize property casing from API response
-  private static normalizePropertyNames<T>(obj: any): T {
-    if (!obj) return obj;
-    
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.normalizePropertyNames<any>(item)) as unknown as T;
-    }
-    
-    if (typeof obj === 'object') {
-      const normalized: any = {};
-      Object.keys(obj).forEach(key => {
-        // Convert the first character to lowercase
-        const normalizedKey = key.charAt(0).toLowerCase() + key.slice(1);
-        normalized[normalizedKey] = this.normalizePropertyNames(obj[key]);
-      });
-      return normalized as T;
-    }
-    
-    return obj as T;
-  }
+  // Removed normalizePropertyNames as JsonConvert handles serialization/deserialization
 
   // Get all tools
   static async getTools(): Promise<Tool[]> {
@@ -59,8 +40,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to fetch tools');
     }
 
-    // Normalize property names in the response
-    return this.normalizePropertyNames<Tool[]>(data.tools);
+    return data.tools;
   }
 
   // Get a specific tool by ID
@@ -75,7 +55,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to fetch tool');
     }
 
-    return this.normalizePropertyNames<Tool>(data.tool);
+    return data.tool;
   }
 
   // Add a new tool
@@ -90,7 +70,7 @@ export class ToolService {
       if (!data.success) {
         throw new Error(data.error || 'Failed to add tool');
       }
-      return this.normalizePropertyNames<Tool>(data.tool);
+      return data.tool;
     } catch (error) {
       console.error('Error in addTool:', error);
       throw error;
@@ -109,7 +89,7 @@ export class ToolService {
       if (!data.success) {
         throw new Error(data.error || 'Failed to update tool');
       }
-      return this.normalizePropertyNames<Tool>(data.tool);
+      return data.tool;
     } catch (error) {
       console.error('Error in updateTool:', error);
       throw error;
@@ -143,7 +123,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to fetch tool categories');
     }
 
-    return this.normalizePropertyNames<ToolCategory[]>(data.categories);
+    return data.categories;
   }
 
   // Add a new tool category
@@ -158,7 +138,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to add tool category');
     }
 
-    return this.normalizePropertyNames<ToolCategory>(data.category);
+    return data.category;
   }
 
   // Update an existing tool category
@@ -173,7 +153,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to update tool category');
     }
 
-    return this.normalizePropertyNames<ToolCategory>(data.category);
+    return data.category;
   }
 
   // Delete a tool category
@@ -218,7 +198,7 @@ export class ToolService {
       throw new Error(data.error || 'Failed to import tools');
     }
 
-    return this.normalizePropertyNames<Tool[]>(data.tools);
+    return data.tools;
   }
 
   // Export tools to JSON

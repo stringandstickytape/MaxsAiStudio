@@ -3,36 +3,20 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { SystemPrompt, SystemPromptState } from '@/types/systemPrompt';
 import { SystemPromptService } from '@/services/SystemPromptService';
 
-// Helper function to normalize prompt properties
-const normalizePrompt = (prompt: any): SystemPrompt => {
-    if (!prompt) return null;
-
-    return {
-        guid: prompt.guid || prompt.Guid,
-        title: prompt.title || prompt.Title,
-        content: prompt.content || prompt.Content,
-        description: prompt.description || prompt.Description,
-        isDefault: prompt.isDefault || prompt.IsDefault,
-        createdDate: prompt.createdDate || prompt.CreatedDate,
-        modifiedDate: prompt.modifiedDate || prompt.ModifiedDate,
-        tags: prompt.tags || prompt.Tags || [],
-    };
-};
+// Removed normalizePrompt as JsonConvert handles serialization/deserialization
 
 // Async thunks
 export const fetchSystemPrompts = createAsyncThunk(
     'systemPrompts/fetchAll',
     async () => {
-        const prompts = await SystemPromptService.getSystemPrompts();
-        return prompts.map(normalizePrompt);
+        return await SystemPromptService.getSystemPrompts();
     }
 );
 
 export const fetchSystemPromptById = createAsyncThunk(
     'systemPrompts/fetchById',
     async (promptId: string) => {
-        const prompt = await SystemPromptService.getSystemPromptById(promptId);
-        return normalizePrompt(prompt);
+        return await SystemPromptService.getSystemPromptById(promptId);
     }
 );
 
@@ -42,7 +26,7 @@ export const createSystemPrompt = createAsyncThunk(
         try {
             const newPrompt = await SystemPromptService.createSystemPrompt(promptData);
             console.log("Created prompt from server:", newPrompt);
-            return normalizePrompt(newPrompt);
+            return newPrompt;
         } catch (error) {
             console.error("Error in createSystemPrompt thunk:", error);
             throw error;
@@ -53,8 +37,7 @@ export const createSystemPrompt = createAsyncThunk(
 export const updateSystemPrompt = createAsyncThunk(
     'systemPrompts/update',
     async (promptData: SystemPrompt) => {
-        const updatedPrompt = await SystemPromptService.updateSystemPrompt(promptData);
-        return normalizePrompt(updatedPrompt);
+        return await SystemPromptService.updateSystemPrompt(promptData);
     }
 );
 
@@ -78,7 +61,7 @@ export const getConversationSystemPrompt = createAsyncThunk(
     'systemPrompts/getConversationPrompt',
     async (conversationId: string) => {
         const prompt = await SystemPromptService.getConversationSystemPrompt(conversationId);
-        return { conversationId, prompt: normalizePrompt(prompt) };
+        return { conversationId, prompt };
     }
 );
 
@@ -117,7 +100,7 @@ const systemPromptSlice = createSlice({
     initialState,
     reducers: {
         setCurrentPrompt: (state, action: PayloadAction<SystemPrompt | null>) => {
-            state.currentPrompt = action.payload ? normalizePrompt(action.payload) : null;
+            state.currentPrompt = action.payload;
         },
         toggleLibrary: (state, action: PayloadAction<boolean | undefined>) => {
             state.isLibraryOpen = action.payload !== undefined ? action.payload : !state.isLibraryOpen;
@@ -170,9 +153,8 @@ const systemPromptSlice = createSlice({
                 state.error = null;
             })
             .addCase(createSystemPrompt.fulfilled, (state, action) => {
-                state.loading = false;
-                const newPrompt = normalizePrompt(action.payload);
-                console.log("Normalized new prompt:", newPrompt);
+                const newPrompt = action.payload;
+                console.log("New prompt:", newPrompt);
 
                 if (newPrompt && newPrompt.guid) {
                     state.prompts.push(newPrompt);
@@ -202,8 +184,7 @@ const systemPromptSlice = createSlice({
                 state.error = null;
             })
             .addCase(updateSystemPrompt.fulfilled, (state, action) => {
-                state.loading = false;
-                const updatedPrompt = normalizePrompt(action.payload);
+                const updatedPrompt = action.payload;
 
                 if (updatedPrompt && updatedPrompt.guid) {
                     const index = state.prompts.findIndex(p => p.guid === updatedPrompt.guid);
