@@ -1,107 +1,119 @@
 ﻿// src/components/PinnedShortcuts.tsx
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-import { removePinnedCommand } from '@/store/pinnedCommandsSlice';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-    X, Command, Settings, GitBranch, Plus, RefreshCw, MessageSquare, Wrench,
-    ExternalLink, Mic, Star, PenTool, Save, Edit, Pencil
-} from 'lucide-react';
 import { commandRegistry } from '@/commands/commandRegistry';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { Pin, Command, ChevronRight, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
 
 interface PinnedShortcutsProps {
+    orientation?: 'horizontal' | 'vertical';
+    maxShown?: number;
     className?: string;
 }
 
-export const PinnedShortcuts: React.FC<PinnedShortcutsProps> = ({ className }) => {
-    const dispatch = useDispatch();
-    const { pinnedCommands } = useSelector((state: RootState) => state.pinnedCommands);
+// Common icon mapping for command names
+const getIconForCommand = (commandId: string, iconName?: string) => {
+    // If we have a specific icon name from the stored command, use it
+    if (iconName) {
+        switch (iconName) {
+            case 'Plus': return <Plus className="h-3.5 w-3.5" />;
+            case 'Settings': return <Settings className="h-3.5 w-3.5" />;
+            case 'RefreshCw': return <RefreshCw className="h-3.5 w-3.5" />;
+            case 'GitBranch': return <GitBranch className="h-3.5 w-3.5" />;
+            case 'Mic': return <Mic className="h-3.5 w-3.5" />;
+            default: return <Command className="h-3.5 w-3.5" />;
+        }
+    }
 
-    const executeCommand = (commandId: string) => {
+    // Fallback to inferring based on command ID
+    if (commandId.includes('new')) return <Plus className="h-3.5 w-3.5" />;
+    if (commandId.includes('settings')) return <Settings className="h-3.5 w-3.5" />;
+    if (commandId.includes('clear') || commandId.includes('reset')) return <RefreshCw className="h-3.5 w-3.5" />;
+    if (commandId.includes('tree')) return <GitBranch className="h-3.5 w-3.5" />;
+    if (commandId.includes('voice')) return <Mic className="h-3.5 w-3.5" />;
+
+    return <Command className="h-3.5 w-3.5" />;
+};
+
+export function PinnedShortcuts({
+    orientation = 'horizontal',
+    maxShown = 12,
+    className
+}: PinnedShortcutsProps) {
+    const pinnedCommands = useSelector((state: RootState) => state.pinnedCommands.pinnedCommands);
+
+    // Limit the number of displayed commands
+    const visibleCommands = pinnedCommands.slice(0, maxShown);
+    const hasMoreCommands = pinnedCommands.length > maxShown;
+
+    const handleCommandClick = (commandId: string) => {
         commandRegistry.executeCommand(commandId);
     };
 
-    const unpinCommand = (e: React.MouseEvent, commandId: string) => {
-        e.stopPropagation();
-        dispatch(removePinnedCommand(commandId));
-    };
-
-    // Map icon names to actual icon components
-    const getIconComponent = (iconName?: string) => {
-        if (!iconName) return null;
-
-        const iconMap: Record<string, React.ReactNode> = {
-            Command: <Command className="h-4 w-4" />,
-            Settings: <Settings className="h-4 w-4" />,
-            GitBranch: <GitBranch className="h-4 w-4" />,
-            Plus: <Plus className="h-4 w-4" />,
-            RefreshCw: <RefreshCw className="h-4 w-4" />,
-            MessageSquare: <MessageSquare className="h-4 w-4" />,
-            Wrench: <Wrench className="h-4 w-4" />,
-            ExternalLink: <ExternalLink className="h-4 w-4" />,
-            Mic: <Mic className="h-4 w-4" />,
-            Star: <Star className="h-4 w-4" />,
-            Tool: <PenTool className="h-4 w-4" />,
-            PenTool: <PenTool className="h-4 w-4" />,
-            Save: <Save className="h-4 w-4" />,
-            Edit: <Edit className="h-4 w-4" />,
-            Pencil: <Pencil className="h-4 w-4" />
-        };
-
-        return iconMap[iconName] || null;
-    };
-
+    // Empty state - no pinned commands
     if (pinnedCommands.length === 0) {
         return (
-            <div className={`flex items-center text-gray-400 text-xs ${className}`}>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div className="bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-400 py-1 px-2 rounded text-xs flex items-center">
-                                <Command className="h-3 w-3 mr-1" />
-                                Pin commands for quick access
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Use the pin icon in the command palette to add shortcuts here</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+            <div className={cn(
+                "flex items-center justify-center",
+                orientation === 'vertical' ? "flex-col h-full" : "h-8",
+                className
+            )}>
+                <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Pin className="h-3 w-3" />
+                    <span className="hidden sm:inline">Pin commands for quick access</span>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className={`flex items-center gap-2 ${className}`}>
-            {pinnedCommands.map((command) => (
-                <TooltipProvider key={command.id}>
+        <div className={cn(
+            "flex items-center gap-1 overflow-x-auto py-1 px-2",
+            orientation === 'vertical' ? "flex-col" : "flex-row w-full",
+            className
+        )}>
+            <TooltipProvider>
+                {visibleCommands.map(command => (
+                    <Tooltip key={command.id} delayDuration={300}>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                onClick={() => handleCommandClick(command.id)}
+                                className="h-6 px-1.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex items-center gap-1"
+                            >
+                                {getIconForCommand(command.id, command.iconName)}
+                                <span className="text-xs font-medium max-w-[40px] truncate">
+                                    {command.name.substring(0, 5)}
+                                </span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
+                            <p>{command.name}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                ))}
+
+                {/* "More" button if there are additional commands */}
+                {hasMoreCommands && (
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                onClick={() => executeCommand(command.id)}
-                                variant="outline"
-                                size="sm"
-                                className="relative group bg-gray-800/60 hover:bg-gray-700 border-gray-700/50 text-gray-300"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => commandRegistry.executeCommand('open-command-bar')}
+                                className="h-6 w-6 p-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100"
                             >
-                                {getIconComponent(command.iconName)}
-                                <span className="ml-1">{command.name}</span>
-                                <div
-                                    onClick={(e) => unpinCommand(e, command.id)}
-                                    className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                >
-                                    <X className="h-3 w-3" />
-                                </div>
+                                <ChevronRight className="h-3 w-3" />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                            <p>Execute: {command.name}</p>
-                            <p className="text-xs text-gray-400">Click the X to unpin</p>
+                        <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
+                            <p>More commands ({pinnedCommands.length - maxShown})</p>
                         </TooltipContent>
                     </Tooltip>
-                </TooltipProvider>
-            ))}
+                )}
+            </TooltipProvider>
         </div>
     );
-};
+}
