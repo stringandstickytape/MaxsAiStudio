@@ -24,47 +24,35 @@ namespace AiStudio4.AiServices
             client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
             
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {
                 ["role"] = "system",
-                ["content"] = conversation.SystemPromptWithDateTime()
+                ["content"] = options.Conversation.SystemPromptWithDateTime()
             });
 
             // Add conversation messages
-            foreach (var m in conversation.messages)
+            foreach (var m in options.Conversation.messages)
             {
                 var messageObj = CreateMessageObject(m);
                 ((JArray)requestPayload["messages"]).Add(messageObj);
             }
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
             {
-                var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var lastMessage = options.Conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
                 ((JObject)((JArray)requestPayload["messages"]).Last)["content"] = newInput;
             }
 
@@ -72,7 +60,7 @@ namespace AiStudio4.AiServices
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
-                return await HandleResponse(content, useStreaming, cancellationToken);
+                return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
             }
         }
         protected override JObject CreateRequestPayload(

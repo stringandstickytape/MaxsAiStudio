@@ -15,24 +15,12 @@ namespace AiStudio4.AiServices
         private readonly Random random = new Random();
         private const string LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
             
             int wordCount = random.Next(10, 20);
@@ -46,9 +34,9 @@ namespace AiStudio4.AiServices
 
             string responseText = responseBuilder.ToString().Trim();
 
-            if (useStreaming)
+            if (options.UseStreaming)
             {
-                await SimulateStreaming(words, wordCount, cancellationToken, responseText);
+                await SimulateStreaming(words, wordCount, options.CancellationToken, responseText);
             }
             return new AiResponse
             {

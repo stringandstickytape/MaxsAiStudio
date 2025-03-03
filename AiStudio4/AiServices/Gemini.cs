@@ -18,40 +18,28 @@ namespace AiStudio4.AiServices
             {
             }
 
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider,model, apiSettings,300);
-            var url = $"{ApiUrl}{ApiModel}:{(useStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
+            var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
             // Add tools if specified
-            if (toolIDs?.Any() == true)
+            if (options.ToolIds?.Any() == true)
             {
-                AddToolsToRequest(requestPayload, toolIDs);
+                AddToolsToRequest(requestPayload, options.ToolIds);
             }
 
             // Construct the messages array
             var contentsArray = new JArray();
-            foreach (var message in conversation.messages)
+            foreach (var message in options.Conversation.messages)
             {
                 var messageObj = CreateMessageObject(message);
                 contentsArray.Add(messageObj);
@@ -63,35 +51,41 @@ namespace AiStudio4.AiServices
             {
                 ["parts"] = new JObject
                 {
-                    ["text"] = conversation.SystemPromptWithDateTime()
+                    ["text"] = options.Conversation.SystemPromptWithDateTime()
                 }
             };
 
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
+            {
+                var lastMessage = options.Conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(
+                    options.Conversation, 
+                    options.ApiSettings, 
+                    options.MustNotUseEmbedding, 
+                    options.AddEmbeddings, 
+                    lastMessage);
+                    
+                // does the last content array thing have a text prop?
+                var lastContent = ((JArray)requestPayload["contents"]).Last;
+                if (lastContent["parts"].Last["text"] != null)
                 {
-                    var lastMessage = conversation.messages.Last().content;
-                    var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
-                    // does the last content array thing have a text prop?
-                    var lastContent = ((JArray)requestPayload["contents"]).Last;
-                    if (lastContent["parts"].Last["text"] != null)
-                    {
-                        lastContent["parts"].Last["text"] = newInput;
-                    }
-                    else
-                    {
-                        // set the text prop on the last-but-one content instead
-                        var lastButOneContent = ((JArray)requestPayload["contents"]).Reverse().Skip(1).First();
-                        lastButOneContent["parts"].Last["text"] = newInput;
-                    }
+                    lastContent["parts"].Last["text"] = newInput;
                 }
-
-                var jsonPayload = JsonConvert.SerializeObject(requestPayload);
-                using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
+                else
                 {
-                    return await HandleResponse(content, useStreaming, cancellationToken);
+                    // set the text prop on the last-but-one content instead
+                    var lastButOneContent = ((JArray)requestPayload["contents"]).Reverse().Skip(1).First();
+                    lastButOneContent["parts"].Last["text"] = newInput;
                 }
             }
+
+            var jsonPayload = JsonConvert.SerializeObject(requestPayload);
+            using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
+            {
+                return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+            }
+        }
 
         protected override JObject CreateRequestPayload(
     string apiModel,

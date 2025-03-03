@@ -97,28 +97,27 @@ namespace AiStudio4.AiServices
             return req;
         }
 
-        public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType,
-            CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding,
-            List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false, string customSystemPrompt = null)
+        // Override the FetchResponseInternal method to implement Claude-specific logic
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
-            if (!string.IsNullOrEmpty(customSystemPrompt))
-                conversation.systemprompt = customSystemPrompt;
+            // Apply custom system prompt if provided
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
 
-            var req = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var req = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
-            if (toolIDs?.Any() == true)
+            if (options.ToolIds?.Any() == true)
             {
-                AddToolsToRequest(req, toolIDs);
+                AddToolsToRequest(req, options.ToolIds);
 
                 if (req["tool_choice"] == null)
                     req["tool_choice"] = new JObject { ["type"] = "auto" };
             }
 
-            if (addEmbeddings)
-                await AddEmbeddingsToRequest(req, conversation, apiSettings, mustNotUseEmbedding);
+            if (options.AddEmbeddings)
+                await AddEmbeddingsToRequest(req, options.Conversation, options.ApiSettings, options.MustNotUseEmbedding);
 
             var json = JsonConvert.SerializeObject(req);
             File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
@@ -129,7 +128,7 @@ namespace AiStudio4.AiServices
             {
                 try
                 {
-                    var response = await HandleResponse(content, useStreaming, cancellationToken);
+                    var response = await HandleResponse(content, options.UseStreaming, options.CancellationToken);
                     if (oneOffPreFill != null)
                     {
                         response.ResponseText = $"{oneOffPreFill}{response.ResponseText}";
@@ -139,10 +138,10 @@ namespace AiStudio4.AiServices
                 }
                 catch (NotEnoughTokensForCachingException)
                 {
-                    if (apiSettings.UsePromptCaching)
+                    if (options.ApiSettings.UsePromptCaching)
                     {
                         json = RemoveCachingFromJson(json);
-                        apiSettings.UsePromptCaching = false;
+                        options.ApiSettings.UsePromptCaching = false;
                         content = new StringContent(json, Encoding.UTF8, "application/json");
                     }
                     else

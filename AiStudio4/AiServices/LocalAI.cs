@@ -1,5 +1,4 @@
-﻿
-using AiStudio4.Conversations;
+﻿using AiStudio4.Conversations;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,28 +17,27 @@ namespace AiStudio4.AiServices
         public LocalAI()
         {
         }
-        public override async Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,
-            Model model, LinearConversation conversation, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIDs, bool useStreaming = false, bool addEmbeddings = false, string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
             var messagesArray = new JArray();
             //Add system prompt
             messagesArray.Add(new JObject
             {
                 ["role"] = "system",
-                ["content"] = conversation.SystemPromptWithDateTime()
+                ["content"] = options.Conversation.SystemPromptWithDateTime()
             });
             //Add user messages
-            foreach (var m in conversation.messages)
+            foreach (var m in options.Conversation.messages)
             {
                 var messageObj = CreateMessageObject(m);
                 messagesArray.Add(messageObj);
@@ -47,9 +45,9 @@ namespace AiStudio4.AiServices
 
             requestPayload["messages"] = messagesArray;
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
             {
-                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, conversation.messages.Last().content);
+                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, options.Conversation.messages.Last().content);
                 ((JObject)((JArray)requestPayload["messages"]).Last)["content"] = newInput;
             }
 
@@ -57,7 +55,7 @@ namespace AiStudio4.AiServices
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             StartOllama(ApiModel);
-            return await HandleResponse(content, useStreaming, cancellationToken);
+            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
 

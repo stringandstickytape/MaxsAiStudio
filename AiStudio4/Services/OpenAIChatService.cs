@@ -109,19 +109,20 @@ namespace AiStudio4.Services
                     });
                 }
 
-                // Pass the tool IDs to FetchResponse to ensure tools are available
-                var response = await aiService.FetchResponse(
-                    service,
-                    model,
-                    conversation,
-                    null,
-                    null,
-                    new CancellationToken(false),
-                    _settingsManager.CurrentSettings.ToApiSettings(),
-                    mustNotUseEmbedding: true,
-                    toolIds: request.ToolIds ?? new(), // Use the original tool IDs from the request
-                    useStreaming: true,
-                    customSystemPrompt: null); // No need to pass system prompt as we've already set it in the conversation object
+                var requestOptions = new AiRequestOptions
+                {
+                    ServiceProvider = service,
+                    Model = model,
+                    Conversation = conversation,
+                    CancellationToken = new CancellationToken(false),
+                    ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
+                    MustNotUseEmbedding = true,
+                    ToolIds = request.ToolIds ?? new List<string>(),
+                    UseStreaming = true
+                    // No need to set CustomSystemPrompt as we've already set it in the conversation object
+                };
+                
+                var response = await aiService.FetchResponse(requestOptions);
 
                 _logger.LogInformation("Successfully processed chat request");
 

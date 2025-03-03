@@ -16,42 +16,30 @@ namespace AiStudio4.AiServices
         {
         }
 
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
             // Build the prompt from the conversation
             var promptBuilder = new StringBuilder();
 
             // Add system prompt if present
-            if (!string.IsNullOrEmpty(conversation.systemprompt))
+            if (!string.IsNullOrEmpty(options.Conversation.systemprompt))
             {
-                promptBuilder.AppendLine(conversation.SystemPromptWithDateTime());
+                promptBuilder.AppendLine(options.Conversation.SystemPromptWithDateTime());
                 promptBuilder.AppendLine();
             }
 
             // Add conversation messages
-            foreach (var message in conversation.messages)
+            foreach (var message in options.Conversation.messages)
             {
                 promptBuilder.AppendLine($"{message.role}: {message.content}");
                 promptBuilder.AppendLine();
@@ -60,28 +48,28 @@ namespace AiStudio4.AiServices
             requestPayload["prompt"] = promptBuilder.ToString().TrimEnd();
 
             // Handle images if present
-            if (!string.IsNullOrEmpty(base64image))
+            if (!string.IsNullOrEmpty(options.Base64Image))
             {
-                var images = new JArray { base64image };
+                var images = new JArray { options.Base64Image };
                 requestPayload["images"] = images;
             }
 
-            if (toolIDs?.Any() == true)
+            if (options.ToolIds?.Any() == true)
             {
-                AddToolsToRequest(requestPayload, toolIDs);
+                AddToolsToRequest(requestPayload, options.ToolIds);
             }
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
             {
-                var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var lastMessage = options.Conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
                 requestPayload["prompt"] = newInput;
             }
 
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(content, useStreaming, cancellationToken);
+            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
         protected override JObject CreateRequestPayload(

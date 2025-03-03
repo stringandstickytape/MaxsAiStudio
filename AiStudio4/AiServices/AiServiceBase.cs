@@ -55,7 +55,15 @@ namespace AiStudio4.AiServices
             }
         }
 
-        public abstract Task<AiResponse> FetchResponse(
+        // New implementation using the options pattern
+        public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options)
+        {
+            // Default implementation that calls the legacy method to be overridden by derived classes
+            return await FetchResponseInternal(options);
+        }
+
+        // Legacy method for backward compatibility
+        public Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
             LinearConversation conversation,
@@ -67,8 +75,19 @@ namespace AiStudio4.AiServices
             List<string> toolIDs,
             bool useStreaming = false,
             bool addEmbeddings = false,
-            string customSystemPrompt = null
-        );
+            string customSystemPrompt = null)
+        {
+            // Convert to options and call the new method
+            var options = AiRequestOptions.Create(
+                serviceProvider, model, conversation, base64image, base64ImageType,
+                cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
+                useStreaming, addEmbeddings, customSystemPrompt);
+            
+            return FetchResponse(options);
+        }
+        
+        // Internal method to be implemented by derived classes
+        protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options);
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
             LinearConversation conversation,

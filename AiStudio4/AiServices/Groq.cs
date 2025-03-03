@@ -17,36 +17,24 @@ namespace AiStudio4.AiServices
         {
         }
 
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
             // Force streaming for Groq
-            useStreaming = true;
+            options.UseStreaming = true;
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
             // Add messages to request
             var messagesArray = new JArray();
-            foreach (var message in conversation.messages)
+            foreach (var message in options.Conversation.messages)
             {
                 messagesArray.Add(new JObject
                 {
@@ -60,23 +48,23 @@ namespace AiStudio4.AiServices
             ((JArray)requestPayload["messages"]).Insert(0, new JObject
             {
                 ["role"] = "system",
-                ["content"] = conversation.SystemPromptWithDateTime()
+                ["content"] = options.Conversation.SystemPromptWithDateTime()
             });
 
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
             {
-                var lastMessage = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessage);
+                var lastMessage = options.Conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
                 requestPayload["messages"].Last["content"] = newInput;
             }
 
-            requestPayload["stream"] = useStreaming; // set stream as true regardless
+            requestPayload["stream"] = options.UseStreaming; // set stream as true regardless
 
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(content, useStreaming, cancellationToken);
+            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)

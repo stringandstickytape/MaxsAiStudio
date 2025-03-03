@@ -23,59 +23,47 @@ namespace AiStudio4.AiServices
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         }
 
-        public override async Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConversation conversation,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool useStreaming = false,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(serviceProvider, model, apiSettings, 300);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
             deepseekBodge = ApiUrl.Contains("deepseek");
             
             // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(customSystemPrompt))
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                conversation.systemprompt = customSystemPrompt;
+                options.Conversation.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, conversation, useStreaming, apiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
 
             // Create system message
             var systemMessage = new JObject
             {
                 ["role"] = "system",
                 ["content"] = deepseekBodge
-                    ? conversation.SystemPromptWithDateTime()
+                    ? options.Conversation.SystemPromptWithDateTime()
                     : new JArray(new JObject
                     {
                         ["type"] = "text",
-                        ["text"] = conversation.SystemPromptWithDateTime()
+                        ["text"] = options.Conversation.SystemPromptWithDateTime()
                     })
             };
 
             var messagesArray = new JArray { systemMessage };
 
             // Add conversation messages
-            foreach (var m in conversation.messages)
+            foreach (var m in options.Conversation.messages)
             {
                 messagesArray.Add(CreateMessageObject(m));
             }
             requestPayload["messages"] = messagesArray;
 
-            AddToolsToRequest(requestPayload, toolIDs);
+            AddToolsToRequest(requestPayload, options.ToolIds);
 
-            if (addEmbeddings)
+            if (options.AddEmbeddings)
             {
-                var lastMessageContent = conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(conversation, apiSettings, mustNotUseEmbedding, addEmbeddings, lastMessageContent);
+                var lastMessageContent = options.Conversation.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessageContent);
                 ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
             }
 
@@ -85,7 +73,7 @@ namespace AiStudio4.AiServices
             });
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            return await HandleResponse(content, useStreaming, cancellationToken);
+            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
