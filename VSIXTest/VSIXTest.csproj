@@ -64,7 +64,10 @@
     <Compile Include="Managers\AutocompleteManager.cs" />
     <Compile Include="Managers\ButtonManager.cs" />
     <Compile Include="PaneDebug\OpenDebugWindow.cs" />
-    <Compile Include="PaneWebBrowser\OpenWebBrowserWindow.cs" />
+    <Compile Include="PaneWebBrowser\OpenWebBrowserWindowCommand.cs" />
+    <Compile Include="PaneWebBrowser\WebBrowserWindowControl.xaml.cs">
+      <DependentUpon>WebBrowserWindowControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PaneWebBrowser\WebBrowserWindowPane.cs" />
     <Compile Include="TextReplacer.cs" />
     <Compile Include="UI\ChangesetReviewPane.cs" />

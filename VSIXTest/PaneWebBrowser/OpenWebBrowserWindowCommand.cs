@@ -8,7 +8,7 @@ namespace VSIXTest.PaneWebBrowser
 {
     internal sealed class OpenWebBrowserWindowCommand
     {
-        public const int CommandId = 0x0104; // Make sure this ID is unique
+        public const int CommandId = 0x0104; // Make sure this ID matches the one in VSIXTestPackage.vsct
         public static readonly Guid CommandSet = new Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf3");
 
         private readonly AsyncPackage package;
