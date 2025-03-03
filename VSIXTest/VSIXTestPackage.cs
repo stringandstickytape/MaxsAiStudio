@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using VSIXTest.PaneWebBrowser;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -17,6 +18,7 @@ namespace VSIXTest
     [ProvideToolWindow(typeof(QuickButtonOptionsWindow))]
     [ProvideToolWindow(typeof(ChangesetReviewPane))]
     [ProvideToolWindow(typeof(DebugWindowPane))]
+    [ProvideToolWindow(typeof(WebBrowserWindowPane))]
     public sealed class VSIXTestPackage : AsyncPackage, IVsSolutionEvents, IVsFileChangeEvents
     {
         private uint _solutionEventsCookie;
@@ -37,7 +39,8 @@ namespace VSIXTest
 
             Instance = this;
             await OpenChatWindowCommand.InitializeAsync(this);
-             await OpenDebugWindowCommand.InitializeAsync(this);
+            await OpenDebugWindowCommand.InitializeAsync(this);
+            await PaneWebBrowser.OpenWebBrowserWindowCommand.InitializeAsync(this);
 
             VsixDebugLog.Instance.Log("VSIXTestPackage initialized.");
 
@@ -180,6 +183,12 @@ namespace VSIXTest
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+        }
+
+        // Helper method to show the web browser window
+        public async Task ShowWebBrowserWindowAsync(CancellationToken cancellationToken = default)
+        {
+            await ShowToolWindowAsync(typeof(WebBrowserWindowPane), 0, true, cancellationToken);
         }
     }
 }

@@ -64,6 +64,8 @@
     <Compile Include="Managers\AutocompleteManager.cs" />
     <Compile Include="Managers\ButtonManager.cs" />
     <Compile Include="PaneDebug\OpenDebugWindow.cs" />
+    <Compile Include="PaneWebBrowser\OpenWebBrowserWindow.cs" />
+    <Compile Include="PaneWebBrowser\WebBrowserWindowPane.cs" />
     <Compile Include="TextReplacer.cs" />
     <Compile Include="UI\ChangesetReviewPane.cs" />
     <Compile Include="UI\ChatControl.xaml.cs">
@@ -164,6 +166,10 @@
   <ItemGroup>
     <Page Include="PaneDebug\DebugWindowControl.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PaneWebBrowser\WebBrowserWindowControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\ChatControl.xaml">
       <Generator>MSBuild:Compile</Generator>
