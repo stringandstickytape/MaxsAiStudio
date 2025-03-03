@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
-
+import { ModelStatusBar } from './components/ModelStatusBar';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
@@ -160,6 +160,8 @@ function AppContent() {
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
+
+
         return () => {
             cleanupKeyboardShortcut();
             unsubscribeFromStore();
@@ -205,13 +207,29 @@ function AppContent() {
         }
     }, [configData, dispatch]);
 
-    // Unified handler for model selection
     const handleModelSelect = (modelType: ModelType, modelName: string) => {
         setModelSettings(prev => ({
             ...prev,
             [modelType]: modelName
         }));
-        // Note: The model persistence is now handled in the ModelSelector component
+
+        // When model changes, create command for quick access
+        const commandId = `select-${modelType}-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
+        if (!commandRegistry.getCommandById(commandId)) {
+            commandRegistry.registerCommand({
+                id: commandId,
+                name: `Set ${modelType} model to ${modelName}`,
+                description: `Change the ${modelType} model to ${modelName}`,
+                keywords: ['model', 'select', modelType, modelName],
+                section: 'model',
+                execute: () => {
+                    setModelSettings(prev => ({
+                        ...prev,
+                        [modelType]: modelName
+                    }));
+                }
+            });
+        }
     };
 
     const handleToggleConversationTree = () => {

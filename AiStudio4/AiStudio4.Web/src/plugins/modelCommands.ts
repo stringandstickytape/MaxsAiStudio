@@ -1,44 +1,85 @@
 ﻿// src/plugins/modelCommands.ts
-import React from 'react';
 import { registerCommandGroup } from '@/commands/commandRegistry';
-import { Settings, GitBranch } from 'lucide-react';
+import { ModelType } from '@/types/modelTypes';
+import { Cpu } from 'lucide-react';
+import React from 'react';
 
-export function initializeModelCommands(
-    handlers: {
-        onModelSelect: (modelType: 'primary' | 'secondary', model: string) => void,
-        getAvailableModels: () => string[]
-    }
-) {
-    const models = handlers.getAvailableModels();
+interface ModelCommandsConfig {
+    onModelSelect: (modelType: ModelType, model: string) => void;
+    getAvailableModels: () => string[];
+}
 
+export function initializeModelCommands(config: ModelCommandsConfig) {
+    const { onModelSelect, getAvailableModels } = config;
+
+    // Create commands for selecting primary model
+    const primaryModelCommands = getAvailableModels().map(modelName => ({
+        id: `select-primary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
+        name: `Primary: ${modelName}`,
+        description: `Set primary model to ${modelName}`,
+        keywords: ['model', 'primary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
+        section: 'model',
+        execute: () => onModelSelect('primary', modelName),
+        icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' })
+    }));
+
+    // Create commands for selecting secondary model
+    const secondaryModelCommands = getAvailableModels().map(modelName => ({
+        id: `select-secondary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
+        name: `Secondary: ${modelName}`,
+        description: `Set secondary model to ${modelName}`,
+        keywords: ['model', 'secondary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
+        section: 'model',
+        execute: () => onModelSelect('secondary', modelName),
+        icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' })
+    }));
+
+    // Register main category commands
     registerCommandGroup({
-        id: 'model',
-        name: 'AI Models',
-        priority: 80,
+        id: 'model-selection',
+        name: 'Model Selection',
+        priority: 95,
         commands: [
-            // Generate a command for each model for primary selection
-            ...models.map(model => ({
-                id: `set-primary-model-${model}`,
-                name: `Set Primary Model: ${model}`,
-                description: `Change primary AI to ${model}`,
-                keywords: ['model', 'primary', 'set', 'change', model.toLowerCase()],
+            {
+                id: 'select-primary-model',
+                name: 'Select Primary Model',
+                description: 'Choose which model to use as your primary AI',
+                keywords: ['model', 'primary', 'set', 'change', 'select'],
                 section: 'model',
-                // Use createElement instead of JSX
-                icon: React.createElement(Settings, { size: 16 }), // Use Settings icon
-                execute: () => handlers.onModelSelect('primary', model)
-            })),
-
-            // Generate a command for each model for secondary selection
-            ...models.map(model => ({
-                id: `set-secondary-model-${model}`,
-                name: `Set Secondary Model: ${model}`,
-                description: `Change secondary AI to ${model}`,
-                keywords: ['model', 'secondary', 'set', 'change', model.toLowerCase()],
+                icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' }),
+                execute: () => {
+                    // This command just serves as a category placeholder
+                    // Individual model commands handle the selection
+                }
+            },
+            {
+                id: 'select-secondary-model',
+                name: 'Select Secondary Model',
+                description: 'Choose which model to use as your secondary AI',
+                keywords: ['model', 'secondary', 'set', 'change', 'select'],
                 section: 'model',
-                // Use createElement instead of JSX
-                icon: React.createElement(GitBranch, { size: 16 }), // Use GitBranch icon
-                execute: () => handlers.onModelSelect('secondary', model)
-            }))
+                icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' }),
+                execute: () => {
+                    // This command just serves as a category placeholder
+                    // Individual model commands handle the selection
+                }
+            }
         ]
+    });
+
+    // Register all primary model commands
+    registerCommandGroup({
+        id: 'primary-models',
+        name: 'Primary Models',
+        priority: 90,
+        commands: primaryModelCommands
+    });
+
+    // Register all secondary model commands
+    registerCommandGroup({
+        id: 'secondary-models',
+        name: 'Secondary Models',
+        priority: 89,
+        commands: secondaryModelCommands
     });
 }

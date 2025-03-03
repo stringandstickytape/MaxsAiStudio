@@ -1,13 +1,13 @@
 ﻿// src/components/AppHeader.tsx
 import { Button } from '@/components/ui/button';
-import { ToolSelector } from '@/components/tools/ToolSelector';
 import { Menu, Settings, GitBranch, Command, Wrench as ToolIcon, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ModelSelector } from '@/components/ModelSelector';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { HeaderPromptComponent } from '@/components/SystemPrompt/HeaderPromptComponent';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
+import { ModelStatusBar } from '@/components/ModelStatusBar';
+import { commandRegistry } from '@/commands/commandRegistry';
 
 interface AppHeaderProps {
     isMobile: boolean;
@@ -21,7 +21,6 @@ interface AppHeaderProps {
     onToggleSettings: () => void;
     onToggleToolPanel?: () => void;
     onToggleSystemPrompts?: () => void;
-    // This is used by ToolSelector component inside AppHeader
     onManageTools?: () => void;
     onExecuteCommand?: (command: string) => void;
     isCommandBarOpen?: boolean;
@@ -71,6 +70,35 @@ export function AppHeader({
         }
     }, [isCommandBarOpen]);
 
+    // Handle model selection via commands
+    const handlePrimaryModelClick = () => {
+        setIsCommandBarOpen(true);
+        setTimeout(() => {
+            const element = document.getElementById('command-input');
+            if (element) {
+                element.focus();
+                // Pre-populate with the command to select primary model
+                (element as HTMLInputElement).value = "select primary model";
+                // Simulate an input event to trigger filtering
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }, 100);
+    };
+
+    const handleSecondaryModelClick = () => {
+        setIsCommandBarOpen(true);
+        setTimeout(() => {
+            const element = document.getElementById('command-input');
+            if (element) {
+                element.focus();
+                // Pre-populate with the command to select secondary model
+                (element as HTMLInputElement).value = "select secondary model";
+                // Simulate an input event to trigger filtering
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }, 100);
+    };
+
     return (
         <div className={cn(
             "bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 z-20 flex items-center gap-2 h-full",
@@ -102,23 +130,13 @@ export function AppHeader({
                 )}
 
                 <div className="flex flex-col gap-2 w-full py-1">
-                    <div className="flex gap-3 items-center justify-center">
-                        <ModelSelector
-                            label="Primary AI"
-                            selectedModel={selectedModel}
-                            models={models}
-                            modelType="primary"
-                            onModelSelect={onModelSelect}
-                        />
-
-                        <ModelSelector
-                            label="Secondary AI"
-                            selectedModel={secondaryModel}
-                            models={models}
-                            modelType="secondary"
-                            onModelSelect={onSecondaryModelSelect}
-                        />
-                    </div>
+                    {/* Replace ModelSelector components with ModelStatusBar */}
+                    <ModelStatusBar
+                        primaryModel={selectedModel}
+                        secondaryModel={secondaryModel}
+                        onPrimaryClick={handlePrimaryModelClick}
+                        onSecondaryClick={handleSecondaryModelClick}
+                    />
 
                     <div className="flex items-center justify-between w-full">
                         <HeaderPromptComponent
