@@ -34,39 +34,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' })
     }));
 
-    // Register main category commands
-    registerCommandGroup({
-        id: 'model-selection',
-        name: 'Model Selection',
-        priority: 95,
-        commands: [
-            {
-                id: 'select-primary-model',
-                name: 'Select Primary Model',
-                description: 'Choose which model to use as your primary AI',
-                keywords: ['model', 'primary', 'set', 'change', 'select'],
-                section: 'model',
-                icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' }),
-                execute: () => {
-                    // This command just serves as a category placeholder
-                    // Individual model commands handle the selection
-                }
-            },
-            {
-                id: 'select-secondary-model',
-                name: 'Select Secondary Model',
-                description: 'Choose which model to use as your secondary AI',
-                keywords: ['model', 'secondary', 'set', 'change', 'select'],
-                section: 'model',
-                icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' }),
-                execute: () => {
-                    // This command just serves as a category placeholder
-                    // Individual model commands handle the selection
-                }
-            }
-        ]
-    });
-
     // Register all primary model commands
     registerCommandGroup({
         id: 'primary-models',
