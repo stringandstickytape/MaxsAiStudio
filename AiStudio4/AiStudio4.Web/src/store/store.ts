@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import conversationReducer from './conversationSlice';
 import toolReducer from './toolSlice';
 import systemPromptReducer from './systemPromptSlice';
+import pinnedCommandsReducer from './pinnedCommandsSlice';
 import { baseApi } from '@/services/api/baseApi';
 
 export const store = configureStore({
@@ -9,10 +10,18 @@ export const store = configureStore({
         conversations: conversationReducer,
         tools: toolReducer,
         systemPrompts: systemPromptReducer,
+        pinnedCommands: pinnedCommandsReducer,
         [baseApi.reducerPath]: baseApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(baseApi.middleware),
+        getDefaultMiddleware({
+            serializableCheck: {
+                // Ignore these paths in the state
+                ignoredPaths: ['pinnedCommands.pinnedCommands'],
+                // Ignore these action types
+                ignoredActions: ['pinnedCommands/addPinnedCommand'],
+            },
+        }).concat(baseApi.middleware),
 });
 
 // For debugging in browser console

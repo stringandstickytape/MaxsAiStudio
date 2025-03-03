@@ -1,10 +1,14 @@
 ﻿// src/components/CommandBar.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Command } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
+import { addPinnedCommand, removePinnedCommand } from '@/store/pinnedCommandsSlice';
+import { RootState } from '@/store/store';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CommandBarProps {
     isOpen: boolean;
@@ -12,10 +16,12 @@ interface CommandBarProps {
 }
 
 export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
+    const dispatch = useDispatch();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCommands, setFilteredCommands] = useState<CommandType[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
+    const pinnedCommands = useSelector((state: RootState) => state.pinnedCommands.pinnedCommands);
 
     useEffect(() => {
         const newCommands = commandRegistry.searchCommands(searchTerm);
@@ -59,6 +65,36 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         commandRegistry.executeCommand(commandId);
         setSearchTerm('');
         setIsOpen(false);
+    };
+
+    const handlePinCommand = (e: React.MouseEvent, command: CommandType) => {
+        e.stopPropagation();
+
+        const isPinned = pinnedCommands.some(cmd => cmd.id === command.id);
+
+        if (isPinned) {
+            dispatch(removePinnedCommand(command.id));
+        } else {
+            // Extract icon name from the command if it exists
+            let iconName = undefined;
+
+            // Try to determine icon type by checking properties
+            if (command.icon && typeof command.icon === 'object') {
+                // This is a simplified approach - in a real app, you'd want to 
+                // implement a more robust way to extract the icon name
+                const iconType = command.icon.type?.name || command.icon.type?.displayName;
+                if (iconType) {
+                    iconName = iconType;
+                }
+            }
+
+            dispatch(addPinnedCommand({
+                id: command.id,
+                name: command.name,
+                iconName,
+                section: command.section
+            }));
+        }
     };
 
     const groupedCommands = filteredCommands.reduce((acc, command) => {
@@ -119,6 +155,8 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                             <div>
                                 {commands.map((command, index) => {
                                     const isSelected = filteredCommands.indexOf(command) === selectedIndex;
+                                    const isPinned = pinnedCommands.some(cmd => cmd.id === command.id);
+
                                     return (
                                         <div
                                             key={command.id}
@@ -137,11 +175,31 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                                     )}
                                                 </div>
                                             </div>
-                                            {command.shortcut && (
-                                                <kbd className="px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
-                                                    {command.shortcut}
-                                                </kbd>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div
+                                                                onClick={(e) => handlePinCommand(e, command)}
+                                                                className={cn(
+                                                                    "p-1 rounded hover:bg-gray-600/50 cursor-pointer",
+                                                                    isPinned ? "text-blue-400" : "text-gray-500 hover:text-gray-300"
+                                                                )}
+                                                            >
+                                                                <Pin className="h-3.5 w-3.5" fill={isPinned ? "currentColor" : "none"} />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p>{isPinned ? 'Unpin command' : 'Pin to shortcuts'}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                {command.shortcut && (
+                                                    <kbd className="px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
+                                                        {command.shortcut}
+                                                    </kbd>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })}

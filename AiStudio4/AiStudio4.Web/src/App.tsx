@@ -36,6 +36,7 @@ import { useGetConfigQuery } from '@/services/api/chatApi';
 import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
 import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
 import { ModelType } from '@/types/modelTypes';
+import { addPinnedCommand, removePinnedCommand } from './store/pinnedCommandsSlice';
 
 // Define a type for model settings
 interface ModelSettings {

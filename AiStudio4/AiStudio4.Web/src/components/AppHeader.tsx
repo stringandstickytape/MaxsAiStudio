@@ -7,6 +7,7 @@ import { ModelSelector } from '@/components/ModelSelector';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { HeaderPromptComponent } from '@/components/SystemPrompt/HeaderPromptComponent';
+import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 
 interface AppHeaderProps {
     isMobile: boolean;
@@ -118,11 +119,15 @@ export function AppHeader({
                             onModelSelect={onSecondaryModelSelect}
                         />
                     </div>
-                    
-                    <HeaderPromptComponent 
-                        conversationId={activeConversationId || undefined}
-                        onOpenLibrary={onToggleSystemPrompts}
-                    />
+
+                    <div className="flex items-center justify-between w-full">
+                        <HeaderPromptComponent
+                            conversationId={activeConversationId || undefined}
+                            onOpenLibrary={onToggleSystemPrompts}
+                        />
+
+                        <PinnedShortcuts className="ml-2" />
+                    </div>
                 </div>
             </div>
         </div>
