@@ -37,7 +37,7 @@ namespace AiStudio4.Services
                         {
                             id = update.MessageId,
                             content = update.Content,
-                            source = "ai",
+                            source = update.Source ?? "ai", // Use provided source or default to "ai"
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
                             children = new string[] { }

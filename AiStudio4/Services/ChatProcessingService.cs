@@ -83,6 +83,16 @@ namespace AiStudio4.Services
                     
                     await _conversationStorage.SaveConversation(conversation);
 
+                    await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
+                    {
+                        ConversationId = conversation.ConversationId,
+                        MessageId = newUserMessage.Id,
+                        Content = newUserMessage.UserMessage,
+                        ParentId = chatRequest.ParentMessageId,
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Source = "user" // Explicitly set source as "user"
+                    });
+
                     var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
                     await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
@@ -160,7 +170,8 @@ namespace AiStudio4.Services
                         MessageId = newAiReply.Id,
                         Content = newAiReply.UserMessage,
                         ParentId = chatRequest.MessageId,
-                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Source = "ai" // Explicitly set source as "ai"
                     });
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });

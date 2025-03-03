@@ -7,6 +7,7 @@ namespace AiStudio4.Core.Models
         public object Content { get; set; }
         public string ParentId { get; set; }
         public long Timestamp { get; set; }
+        public string Source { get; set; }
     }
 
     public class StreamingUpdateDto
