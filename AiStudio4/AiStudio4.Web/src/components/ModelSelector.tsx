@@ -5,13 +5,14 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChatService } from '@/services/ChatService';
+import { ModelType } from '@/types/modelTypes';
+import { useSetDefaultModelMutation, useSetSecondaryModelMutation } from '@/services/api/chatApi';
 
 export interface ModelSelectorProps {
     label: string;
     selectedModel: string;
     models: string[];
-    modelType: 'primary' | 'secondary';
+    modelType: ModelType;
     onModelSelect: (model: string) => void;
 }
 
@@ -26,15 +27,19 @@ export function ModelSelector({
         ? `${label}: Select Model`
         : `${label}: ${selectedModel}`;
 
+    // RTK Query mutation hooks
+    const [setDefaultModel] = useSetDefaultModelMutation();
+    const [setSecondaryModel] = useSetSecondaryModelMutation();
+
     const handleModelSelect = async (model: string) => {
         onModelSelect(model);
 
         try {
             // Save the selected model as default based on the model type
             if (modelType === 'primary') {
-                await ChatService.saveDefaultModel(model);
+                await setDefaultModel({ modelName: model }).unwrap();
             } else {
-                await ChatService.saveSecondaryModel(model);
+                await setSecondaryModel({ modelName: model }).unwrap();
             }
         } catch (err) {
             console.error(`Failed to save ${modelType} model:`, err);

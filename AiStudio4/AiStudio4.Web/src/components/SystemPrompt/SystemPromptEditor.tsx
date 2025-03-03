@@ -18,7 +18,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Check } from 'lucide-react';
 import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
-import { createSystemPrompt, updateSystemPrompt } from '@/store/systemPromptSlice';
+import { setCurrentPrompt } from '@/store/systemPromptSlice';
+import {
+    useCreateSystemPromptMutation,
+    useUpdateSystemPromptMutation
+} from '@/services/api/systemPromptApi';
 
 interface SystemPromptEditorProps {
     initialPrompt?: SystemPrompt | null;
@@ -32,6 +36,10 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
     const [isProcessing, setIsProcessing] = useState(false);
     const [newTag, setNewTag] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // RTK Query mutations
+    const [createPrompt] = useCreateSystemPromptMutation();
+    const [updatePrompt] = useUpdateSystemPromptMutation();
 
     const form = useForm<SystemPromptFormValues>({
         defaultValues: initialPrompt ? {
@@ -80,15 +88,20 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
             let result;
 
             if (isCreating) {
-                result = await dispatch(createSystemPrompt(data)).unwrap();
+                result = await createPrompt(data).unwrap();
                 console.log("Created new prompt with result:", result);
             } else if (initialPrompt) {
-                result = await dispatch(updateSystemPrompt({
+                result = await updatePrompt({
                     ...data,
                     guid: initialPrompt.guid,
                     createdDate: initialPrompt.createdDate,
                     modifiedDate: new Date().toISOString()
-                })).unwrap();
+                }).unwrap();
+            }
+
+            // Update the current prompt in Redux store
+            if (result) {
+                dispatch(setCurrentPrompt(result));
             }
 
             // Only apply the prompt if we have a valid result with a guid
@@ -115,14 +128,19 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         try {
             let result;
             if (isCreating) {
-                result = await dispatch(createSystemPrompt(data)).unwrap();
+                result = await createPrompt(data).unwrap();
             } else if (initialPrompt) {
-                result = await dispatch(updateSystemPrompt({
+                result = await updatePrompt({
                     ...data,
                     guid: initialPrompt.guid,
                     createdDate: initialPrompt.createdDate,
                     modifiedDate: new Date().toISOString()
-                })).unwrap();
+                }).unwrap();
+            }
+
+            // Update the current prompt in Redux store
+            if (result) {
+                dispatch(setCurrentPrompt(result));
             }
 
             if (result && result.guid && onApply) {

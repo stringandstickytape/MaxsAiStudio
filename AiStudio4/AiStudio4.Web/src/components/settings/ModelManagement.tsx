@@ -1,3 +1,4 @@
+// src/components/settings/ModelManagement.tsx
 import React, { useState } from 'react';
 import { Model, ServiceProvider } from '@/types/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -5,69 +6,66 @@ import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
+import {
+    useGetModelsQuery,
+    useAddModelMutation,
+    useUpdateModelMutation,
+    useDeleteModelMutation
+} from '@/services/api/settingsApi';
 
 interface ModelManagementProps {
-    models: Model[];
     providers: ServiceProvider[];
-    onAddModel: (model: Omit<Model, 'guid'>) => Promise<void>;
-    onUpdateModel: (model: Model) => Promise<void>;
-    onDeleteModel: (modelGuid: string) => Promise<void>;
 }
 
-export const ModelManagement: React.FC<ModelManagementProps> = ({
-    models,
-    providers,
-    onAddModel,
-    onUpdateModel,
-    onDeleteModel
-}) => {
+export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) => {
     const [editingModel, setEditingModel] = useState<Model | null>(null);
     const [addOpen, setAddOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [deleteModel, setDeleteModel] = useState<Model | null>(null);
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // RTK Query hooks
+    const { data: models = [], isLoading, refetch } = useGetModelsQuery();
+    const [addModel, { isLoading: isAdding }] = useAddModelMutation();
+    const [updateModel, { isLoading: isUpdating }] = useUpdateModelMutation();
+    const [deleteModelMutation, { isLoading: isDeleting }] = useDeleteModelMutation();
+
+    const processing = isAdding || isUpdating || isDeleting;
+
     const handleAddModel = async (modelData: Omit<Model, 'guid'>) => {
-        setProcessing(true);
         setError(null);
         try {
-            await onAddModel(modelData);
+            await addModel(modelData).unwrap();
             setAddOpen(false);
+            refetch();
         } catch (err: any) {
-            setError(err?.message || 'Failed to add model');
-        } finally {
-            setProcessing(false);
+            setError(err?.data?.error || err?.message || 'Failed to add model');
         }
     };
 
     const handleUpdateModel = async (modelData: Model) => {
-        setProcessing(true);
         setError(null);
         try {
-            await onUpdateModel(modelData);
+            await updateModel(modelData).unwrap();
             setEditOpen(false);
+            refetch();
         } catch (err: any) {
-            setError(err?.message || 'Failed to update model');
-        } finally {
-            setProcessing(false);
+            setError(err?.data?.error || err?.message || 'Failed to update model');
         }
     };
 
     const handleDeleteModelConfirm = async () => {
         if (!deleteModel) return;
 
-        setProcessing(true);
         setError(null);
         try {
-            await onDeleteModel(deleteModel.guid);
+            await deleteModelMutation(deleteModel.guid).unwrap();
             setDeleteOpen(false);
             setDeleteModel(null);
+            refetch();
         } catch (err: any) {
-            setError(err?.message || 'Failed to delete model');
-        } finally {
-            setProcessing(false);
+            setError(err?.data?.error || err?.message || 'Failed to delete model');
         }
     };
 
@@ -88,7 +86,11 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                 </Button>
             </div>
 
-            {models.length === 0 ? (
+            {isLoading ? (
+                <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+            ) : models.length === 0 ? (
                 <Card className="bg-gray-800 border-gray-700">
                     <CardContent className="pt-6 text-center text-gray-400">
                         <div className="flex flex-col items-center justify-center py-8">
@@ -265,7 +267,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                             disabled={processing}
                             className="bg-red-700 hover:bg-red-800 text-white border-red-900"
                         >
-                            {processing ? 'Deleting...' : 'Delete'}
+                            {isDeleting ? 'Deleting...' : 'Delete'}
                         </Button>
                     </div>
                 </DialogContent>

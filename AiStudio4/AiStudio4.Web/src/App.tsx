@@ -13,7 +13,6 @@ import { InputBar } from './components/input-bar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useLiveStream } from '@/hooks/useLiveStream';
-import { ChatService, ModelType } from '@/services/ChatService';
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -28,11 +27,15 @@ import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { initializeToolCommands } from './commands/toolCommands';
 import { ToolPanel } from '@/components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
-import { fetchTools } from '@/store/toolSlice';
+import { setTools } from '@/store/toolSlice';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
-import { fetchSystemPrompts, setConversationSystemPrompt } from './store/systemPromptSlice';
+import { setPrompts, setConversationPrompt } from './store/systemPromptSlice';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
+import { useGetConfigQuery } from '@/services/api/chatApi';
+import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
+import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
+import { ModelType } from '@/types/modelTypes';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -64,7 +67,14 @@ function AppContent() {
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
-    
+
+    // RTK Query hooks
+    const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
+    const { data: tools, isLoading: isToolsLoading } = useGetToolsQuery();
+    const { data: toolCategories } = useGetToolCategoriesQuery();
+    const { data: systemPrompts, isLoading: isSystemPromptsLoading } = useGetSystemPromptsQuery();
+    const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
+
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
         openToolPanel: () => setIsToolPanelOpen(true),
@@ -103,7 +113,7 @@ function AppContent() {
             toggleSettings: handleToggleSettings,
             openNewWindow: handleOpenNewWindow
         });
-        
+
         // Initialize system prompt commands
         initializeSystemPromptCommands({
             toggleLibrary: handleToggleSystemPrompts,
@@ -125,43 +135,27 @@ function AppContent() {
 
         // Initialize voice commands
         initializeVoiceCommands();
-        
+
         // Initialize tool commands - this is now moved to useToolCommands hook
-        /*initializeToolCommands({
-            openToolPanel: () => setIsToolPanelOpen(true),
-            createNewTool: () => {
-                setIsToolPanelOpen(true);
-                // We'll trigger the "new tool" mode in the tool panel
-                window.localStorage.setItem('toolPanel_action', 'create');
-            },
-            importTools: () => {
-                setIsToolPanelOpen(true);
-                window.localStorage.setItem('toolPanel_action', 'import');
-            },
-            exportTools: () => {
-                setIsToolPanelOpen(true);
-                window.localStorage.setItem('toolPanel_action', 'export');
-            }
-        });*/
 
         // Register all system prompts as commands
         const systemPromptsUpdated = () => {
             registerSystemPromptsAsCommands(handleToggleSystemPrompts);
         };
-        
+
         // Initial registration
         systemPromptsUpdated();
-        
+
         // Set up subscription to system prompts changes
         const unsubscribeFromStore = store.subscribe(() => {
             const prevPrompts = store.getState().systemPrompts.prompts;
             const currentPrompts = store.getState().systemPrompts.prompts;
-            
+
             if (prevPrompts !== currentPrompts) {
                 systemPromptsUpdated();
             }
         });
-        
+
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
@@ -171,39 +165,44 @@ function AppContent() {
         };
     }, [models]);
 
+    // Update tools and categories in Redux state when they load from RTK Query
     useEffect(() => {
-        const initialize = async () => {
-            try {
-                const { models: availableModels, defaultModel, secondaryModel } = await ChatService.fetchModels();
-                setModels(availableModels);
+        if (tools) {
+            dispatch(setTools(tools));
+        }
+    }, [tools, dispatch]);
 
-                // Set both models at once using the new state structure
-                setModelSettings({
-                    primary: defaultModel && defaultModel.length > 0 ? defaultModel : "Select Model",
-                    secondary: secondaryModel && secondaryModel.length > 0 ? secondaryModel : "Select Model"
-                });
+    // Update system prompts in Redux state when they load from RTK Query
+    useEffect(() => {
+        if (systemPrompts) {
+            dispatch(setPrompts(systemPrompts));
+        }
+    }, [systemPrompts, dispatch]);
 
-                // Fetch tools and system prompts during initialization
-                dispatch(fetchTools());
-                dispatch(fetchSystemPrompts());
+    // Load models from config
+    useEffect(() => {
+        if (configData) {
+            setModels(configData.models || []);
 
-                const conversationId = `conv_${Date.now()}`;
-                store.dispatch(createConversation({
-                    id: conversationId,
-                    rootMessage: {
-                        id: `msg_${Date.now()}`,
-                        content: '',
-                        source: 'system',
-                        timestamp: Date.now()
-                    }
-                }));
-            } catch (error) {
-                console.error("Error during initialization:", error);
-                setModels([]);
-            }
-        };
-        initialize();
-    }, [dispatch]); // Make sure to include dispatch in the dependency array
+            // Set both models at once using the new state structure
+            setModelSettings({
+                primary: configData.defaultModel && configData.defaultModel.length > 0 ? configData.defaultModel : "Select Model",
+                secondary: configData.secondaryModel && configData.secondaryModel.length > 0 ? configData.secondaryModel : "Select Model"
+            });
+
+            // Create initial conversation if needed
+            const conversationId = `conv_${Date.now()}`;
+            store.dispatch(createConversation({
+                id: conversationId,
+                rootMessage: {
+                    id: `msg_${Date.now()}`,
+                    content: '',
+                    source: 'system',
+                    timestamp: Date.now()
+                }
+            }));
+        }
+    }, [configData, dispatch]);
 
     // Unified handler for model selection
     const handleModelSelect = (modelType: ModelType, modelName: string) => {
@@ -229,7 +228,7 @@ function AppContent() {
             if (!systemPromptsPinned) setShowSystemPrompts(false);
         }
     };
-    
+
     const handleToggleSystemPrompts = () => {
         setShowSystemPrompts(!showSystemPrompts);
         // Close other panels if they're not pinned
@@ -449,7 +448,7 @@ function AppContent() {
                             </Button>
                         </div>
                         <div className="h-[calc(100%-60px)]">
-                            <SystemPromptLibrary 
+                            <SystemPromptLibrary
                                 isOpen={true}
                                 onClose={handleToggleSystemPrompts}
                                 conversationId={store.getState().conversations.activeConversationId || undefined}
@@ -462,10 +461,10 @@ function AppContent() {
 
                                     if (conversationId && promptId) {
                                         console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
-                                        dispatch(setConversationSystemPrompt({
-                                            conversationId,
-                                            promptId
-                                        }));
+                                        // Using RTK Query mutation
+                                        setConversationSystemPrompt({ conversationId, promptId });
+                                        // Also update the local Redux state
+                                        dispatch(setConversationPrompt({ conversationId, promptId }));
                                     } else {
                                         console.error("Cannot apply prompt - missing required data:", {
                                             conversationId,
@@ -481,7 +480,7 @@ function AppContent() {
                     </div>
                 </div>
             )}
-            
+
             {/* Settings panel with high z-index */}
             <div className={cn(
                 "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-40 transition-transform duration-300",

@@ -1,13 +1,13 @@
+// src/components/input-bar.tsx
 import React, { useState, KeyboardEvent, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChatService } from '@/services/ChatService';
-import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { ToolSelector } from './tools/ToolSelector';
 import { Mic, Send } from 'lucide-react';
+import { useSendMessageMutation } from '@/services/api/chatApi';
 
 interface InputBarProps {
     selectedModel: string;
@@ -22,6 +22,8 @@ export function InputBar({
     inputValue,
     onInputChange
 }: InputBarProps) {
+    const dispatch = useDispatch();
+
     // If props are provided, use them, otherwise use local state
     const [localInputText, setLocalInputText] = useState('');
 
@@ -33,12 +35,15 @@ export function InputBar({
     const activeTools = useSelector((state: RootState) => state.tools.activeTools);
     const { conversationPrompts, defaultPromptId, prompts } = useSelector((state: RootState) => state.systemPrompts);
 
+    // Use the sendMessage mutation from RTK Query
+    const [sendMessage, { isLoading }] = useSendMessageMutation();
+
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
         try {
             const state = store.getState();
             let conversationId = state.conversations.activeConversationId;
-            
+
             // Determine which system prompt to use
             let systemPromptId = null;
             let systemPromptContent = null;
@@ -46,7 +51,7 @@ export function InputBar({
             // If no active conversation, create a new one
             if (!conversationId) {
                 conversationId = `conv_${uuidv4()}`;
-                store.dispatch(createConversation({
+                dispatch(createConversation({
                     id: conversationId,
                     rootMessage: {
                         id: `msg_${uuidv4()}`,
@@ -57,15 +62,14 @@ export function InputBar({
                 }));
             }
 
-            const messageId = `msg_${uuidv4()}`;
-            const parentMessageId = state.conversations.conversationHistory?.[conversationId]?.lastMessageId
-                || state.conversations.conversations?.[conversationId]?.rootMessage?.id
-                || `msg_${uuidv4()}`;
+            const parentMessageId = state.conversations.selectedMessageId ||
+                state.conversations.conversations[conversationId]?.messages[0]?.id ||
+                `msg_${uuidv4()}`;
 
             // Determine which system prompt to use for this conversation
             if (conversationId) {
                 systemPromptId = conversationPrompts[conversationId] || defaultPromptId;
-                
+
                 if (systemPromptId) {
                     const prompt = prompts.find(p => p.guid === systemPromptId);
                     if (prompt) {
@@ -73,24 +77,26 @@ export function InputBar({
                     }
                 }
             }
-            
-            await ChatService.sendMessage(
-                message, 
-                selectedModel, 
-                activeTools, 
-                systemPromptId, 
+
+            await sendMessage({
+                conversationId,
+                parentMessageId,
+                message,
+                model: selectedModel,
+                toolIds: activeTools,
+                systemPromptId,
                 systemPromptContent
-            );
+            });
 
             // Clear the input after sending
             setInputText('');
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    }, [selectedModel, setInputText, activeTools, conversationPrompts, defaultPromptId, prompts]);
+    }, [selectedModel, setInputText, activeTools, conversationPrompts, defaultPromptId, prompts, sendMessage, dispatch]);
 
     const handleSend = () => {
-        if (inputText.trim()) {
+        if (inputText.trim() && !isLoading) {
             handleChatMessage(inputText);
         }
     };
@@ -119,6 +125,7 @@ export function InputBar({
                             onChange={(e) => setInputText(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Type your message here... (Ctrl+Enter to send)"
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -132,6 +139,7 @@ export function InputBar({
                                 onClick={onVoiceInputClick}
                                 className="bg-gray-800 border-gray-700 text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
                                 aria-label="Voice input"
+                                disabled={isLoading}
                             >
                                 <Mic className="h-5 w-5" />
                             </Button>
@@ -144,6 +152,7 @@ export function InputBar({
                             onClick={handleSend}
                             className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500 transition-colors"
                             aria-label="Send message"
+                            disabled={isLoading}
                         >
                             <Send className="h-5 w-5" />
                         </Button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
@@ -6,8 +6,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { SystemPromptLibrary } from './SystemPrompt/SystemPromptLibrary';
 import { ToolPanel } from './tools/ToolPanel';
-import { SettingsService } from '@/services/SettingsService';
 import { Model, ServiceProvider } from '@/types/settings';
+import {
+    useGetModelsQuery,
+    useGetServiceProvidersQuery,
+    useAddModelMutation,
+    useUpdateModelMutation,
+    useDeleteModelMutation,
+    useAddServiceProviderMutation,
+    useUpdateServiceProviderMutation,
+    useDeleteServiceProviderMutation
+} from '@/services/api/settingsApi';
 
 interface SettingsPanelProps {
     isOpen: boolean;
@@ -16,40 +25,45 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, isPinned }) => {
-    const [models, setModels] = useState<Model[]>([]);
-    const [providers, setProviders] = useState<ServiceProvider[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // Use RTK Query hooks to fetch data and handle mutations
+    const {
+        data: models = [],
+        isLoading: isModelsLoading,
+        error: modelsError,
+        refetch: refetchModels
+    } = useGetModelsQuery(undefined, { skip: !isOpen });
 
-    useEffect(() => {
-        if (isOpen) {
-            loadData();
-        }
-    }, [isOpen]);
+    const {
+        data: providers = [],
+        isLoading: isProvidersLoading,
+        error: providersError,
+        refetch: refetchProviders
+    } = useGetServiceProvidersQuery(undefined, { skip: !isOpen });
 
-    const loadData = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const [modelsData, providersData] = await Promise.all([
-                SettingsService.getModels(),
-                SettingsService.getServiceProviders()
-            ]);
-            setModels(modelsData);
-            setProviders(providersData);
-        } catch (err) {
-            console.error('Failed to load settings data:', err);
-            setError(err instanceof Error ? err.message : 'Unknown error loading data');
-        } finally {
-            setIsLoading(false);
-        }
+    // Model mutations
+    const [addModel, { isLoading: isAddingModel }] = useAddModelMutation();
+    const [updateModel, { isLoading: isUpdatingModel }] = useUpdateModelMutation();
+    const [deleteModel, { isLoading: isDeletingModel }] = useDeleteModelMutation();
+
+    // Provider mutations
+    const [addServiceProvider, { isLoading: isAddingProvider }] = useAddServiceProviderMutation();
+    const [updateServiceProvider, { isLoading: isUpdatingProvider }] = useUpdateServiceProviderMutation();
+    const [deleteServiceProvider, { isLoading: isDeletingProvider }] = useDeleteServiceProviderMutation();
+
+    // Determine loading and error states
+    const isLoading = isModelsLoading || isProvidersLoading;
+    const error = modelsError || providersError;
+
+    // Retry loading function
+    const handleRetry = () => {
+        refetchModels();
+        refetchProviders();
     };
 
     // Handlers for models
     const handleAddModel = async (model: Omit<Model, 'guid'>) => {
         try {
-            await SettingsService.addModel(model);
-            await loadData(); // Reload data after successful add
+            await addModel(model).unwrap();
         } catch (err) {
             console.error('Failed to add model:', err);
             throw err; // Re-throw to be caught by the form component
@@ -58,8 +72,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
 
     const handleUpdateModel = async (model: Model) => {
         try {
-            await SettingsService.updateModel(model);
-            await loadData(); // Reload data after successful update
+            await updateModel(model).unwrap();
         } catch (err) {
             console.error('Failed to update model:', err);
             throw err; // Re-throw to be caught by the form component
@@ -68,8 +81,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
 
     const handleDeleteModel = async (modelGuid: string) => {
         try {
-            await SettingsService.deleteModel(modelGuid);
-            await loadData(); // Reload data after successful delete
+            await deleteModel(modelGuid).unwrap();
         } catch (err) {
             console.error('Failed to delete model:', err);
             throw err; // Re-throw to be caught by the form component
@@ -79,8 +91,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
     // Handlers for service providers
     const handleAddProvider = async (provider: Omit<ServiceProvider, 'guid'>) => {
         try {
-            await SettingsService.addServiceProvider(provider);
-            await loadData(); // Reload data after successful add
+            await addServiceProvider(provider).unwrap();
         } catch (err) {
             console.error('Failed to add service provider:', err);
             throw err; // Re-throw to be caught by the form component
@@ -89,8 +100,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
 
     const handleUpdateProvider = async (provider: ServiceProvider) => {
         try {
-            await SettingsService.updateServiceProvider(provider);
-            await loadData(); // Reload data after successful update
+            await updateServiceProvider(provider).unwrap();
         } catch (err) {
             console.error('Failed to update service provider:', err);
             throw err; // Re-throw to be caught by the form component
@@ -99,8 +109,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
 
     const handleDeleteProvider = async (providerGuid: string) => {
         try {
-            await SettingsService.deleteServiceProvider(providerGuid);
-            await loadData(); // Reload data after successful delete
+            await deleteServiceProvider(providerGuid).unwrap();
         } catch (err) {
             console.error('Failed to delete service provider:', err);
             throw err; // Re-throw to be caught by the form component
@@ -117,11 +126,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                 </div>
             ) : error ? (
                 <div className="text-red-400 p-4 bg-red-950/30 border border-red-800/50 rounded-md mb-4">
-                    {error}
+                    {error instanceof Error ? error.message : 'An error occurred while loading settings'}
                     <Button
                         className="mt-2 w-full bg-gray-800 hover:bg-gray-700 text-gray-100"
                         variant="outline"
-                        onClick={() => loadData()}
+                        onClick={handleRetry}
                     >
                         Retry
                     </Button>
@@ -168,7 +177,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                         />
                     </TabsContent>
 
-                            <TabsContent value="appearance" className="space-y-4">
+                    <TabsContent value="appearance" className="space-y-4">
                         <Card className="bg-gray-800 border-gray-700">
                             <CardContent className="pt-6">
                                 <h3 className="text-md font-medium mb-2 text-gray-200">Theme Settings</h3>
