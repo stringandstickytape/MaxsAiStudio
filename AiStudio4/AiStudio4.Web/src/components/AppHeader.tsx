@@ -76,19 +76,6 @@ export function AppHeader({
             sidebarPinned ? "left-80" : "left-0",
             rightSidebarPinned ? "right-80" : "right-0"
         )}>
-            {!sidebarPinned && (
-                <div className="absolute left-4">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleSidebar}
-                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                        <Menu className="h-6 w-6" />
-                    </Button>
-                </div>
-            )}
-
             <div className="flex-1 flex flex-col justify-center items-center gap-2">
                 {CommandBarComponent || (
                     <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
@@ -137,39 +124,6 @@ export function AppHeader({
                         onOpenLibrary={onToggleSystemPrompts}
                     />
                 </div>
-            </div>
-
-            <div className={cn(`absolute right-4 flex items-center space-x-2 transition-all duration-300 z-10`)}>
-                {onToggleConversationTree && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleConversationTree}
-                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                        <GitBranch className="h-5 w-5" />
-                    </Button>
-                )}
-                {onToggleSettings && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleSettings}
-                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                )}
-                {onToggleToolPanel && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleToolPanel}
-                        className="bg-gray-800/80 hover:bg-gray-700/80 text-gray-100 border-gray-600/50 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                        <ToolIcon className="h-5 w-5" />
-                    </Button>
-                )}
             </div>
         </div>
     );
