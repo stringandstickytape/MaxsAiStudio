@@ -8,251 +8,211 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting; // Needed for IHostedService
-using Microsoft.Extensions.DependencyInjection; //Needed for scope
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 
 namespace AiStudio4.Services
 {
-   public class SystemPromptService : ISystemPromptService
-   {
-       private readonly string _promptsPath;
-       private readonly string _conversationPromptsPath;
-       private readonly ILogger<SystemPromptService> _logger;
-       private readonly object _lockObject = new object();
-       private bool _isInitialized = false; // Track initialization
+    public class SystemPromptService : ISystemPromptService
+    {
+        private readonly string _promptsPath;
+        private readonly string _conversationPromptsPath;
+        private readonly ILogger<SystemPromptService> _logger;
+        private readonly object _lockObject = new object();
+        private bool _isInitialized = false;
 
-       public SystemPromptService(ILogger<SystemPromptService> logger)
-       {
-           _logger = logger;
-           _promptsPath = Path.Combine(
-               Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-               "AiStudio4",
-               "systemPrompts");
-           _conversationPromptsPath = Path.Combine(
-               Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-               "AiStudio4",
-               "conversationPrompts");
-           
-           Directory.CreateDirectory(_promptsPath);
-           Directory.CreateDirectory(_conversationPromptsPath);
-           
-           _logger.LogInformation("Initialized system prompt storage at {PromptsPath}", _promptsPath);
-       }
+        public SystemPromptService(ILogger<SystemPromptService> logger)
+        {
+            _logger = logger;
+            _promptsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "systemPrompts");
+            _conversationPromptsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AiStudio4",
+                "conversationPrompts");
 
-       public async Task InitializeAsync()
-       {
-         if (!_isInitialized)
-         {
-           await InitializeDefaultPromptAsync();
-           _isInitialized = true;
-         }
-       }
+            Directory.CreateDirectory(_promptsPath);
+            Directory.CreateDirectory(_conversationPromptsPath);
 
-       private async Task InitializeDefaultPromptAsync()
-       {
-           var prompts = await GetAllSystemPromptsAsync();
-           if (!prompts.Any())
-           {
-               var defaultPrompt = new SystemPrompt
-               {
-                   Title = "Default Assistant",
-                   Content = "You are a helpful assistant. Answer as concisely as possible.",
-                   Description = "Standard helpful assistant prompt",
-                   IsDefault = true,
-                   Tags = new List<string> { "general", "default" }
-               };
-               
-               await CreateSystemPromptAsync(defaultPrompt);
-               _logger.LogInformation("Created default system prompt");
-           }
-       }
+            _logger.LogInformation("Initialized system prompt storage at {PromptsPath}", _promptsPath);
+        }
 
-       public async Task<IEnumerable<SystemPrompt>> GetAllSystemPromptsAsync()
-       {
-           try
-           {
-               var prompts = new List<SystemPrompt>();
-               foreach (var file in Directory.GetFiles(_promptsPath, "*.prompt.json"))
-               {
-                   try
-                   {
-                       var json = await File.ReadAllTextAsync(file);
-                       var prompt = JsonConvert.DeserializeObject<SystemPrompt>(json);
-                       if (prompt != null)
-                       {
-                           prompts.Add(prompt);
-                       }
-                   }
-                   catch (Exception ex)
-                   {
-                       _logger.LogError(ex, "Error reading system prompt file {File}", file);
-                   }
-               }
-               
-               return prompts;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error retrieving all system prompts");
-               throw;
-           }
-       }
+        public async Task InitializeAsync()
+        {
+            if (!_isInitialized)
+            {
+                await InitializeDefaultPromptAsync();
+                _isInitialized = true;
+            }
+        }
 
-       public async Task<SystemPrompt> GetSystemPromptByIdAsync(string promptId)
-       {
-           try
-           {
-               var path = Path.Combine(_promptsPath, $"{promptId}.prompt.json");
-               if (!File.Exists(path))
-               {
-                   return null;
-               }
-               
-               var json = await File.ReadAllTextAsync(path);
-               return JsonConvert.DeserializeObject<SystemPrompt>(json);
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error retrieving system prompt {PromptId}", promptId);
-               throw;
-           }
-       }
+        private async Task InitializeDefaultPromptAsync()
+        {
+            var prompts = await ExecuteWithErrorHandlingAsync(() => GetAllSystemPromptsAsync(), "initializing default prompt");
+            if (!prompts.Any())
+            {
+                var defaultPrompt = new SystemPrompt
+                {
+                    Title = "Default Assistant",
+                    Content = "You are a helpful assistant. Answer as concisely as possible.",
+                    Description = "Standard helpful assistant prompt",
+                    IsDefault = true,
+                    Tags = new List<string> { "general", "default" }
+                };
 
-       public async Task<SystemPrompt> CreateSystemPromptAsync(SystemPrompt prompt)
-       {
-           try
-           {
-               if (string.IsNullOrEmpty(prompt.Guid))
-               {
-                   prompt.Guid = Guid.NewGuid().ToString();
-               }
-               
-               prompt.CreatedDate = DateTime.UtcNow;
-               prompt.ModifiedDate = DateTime.UtcNow;
-               
-               await SavePromptAsync(prompt);
-               
-               if (prompt.IsDefault)
-               {
-                   await SetAllPromptsAsNonDefault(prompt.Guid);
-               }
-               
-               return prompt;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error creating system prompt");
-               throw;
-           }
-       }
+                await CreateSystemPromptAsync(defaultPrompt);
+                _logger.LogInformation("Created default system prompt");
+            }
+        }
 
-       public async Task<SystemPrompt> UpdateSystemPromptAsync(SystemPrompt prompt)
-       {
-           try
-           {
-               var existingPrompt = await GetSystemPromptByIdAsync(prompt.Guid);
-               if (existingPrompt == null)
-               {
-                   throw new KeyNotFoundException($"System prompt with ID {prompt.Guid} not found");
-               }
-               
-               prompt.CreatedDate = existingPrompt.CreatedDate;
-               prompt.ModifiedDate = DateTime.UtcNow;
-               
-               await SavePromptAsync(prompt);
-               
-               if (prompt.IsDefault)
-               {
-                   await SetAllPromptsAsNonDefault(prompt.Guid);
-               }
-               
-               return prompt;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error updating system prompt {PromptId}", prompt.Guid);
-               throw;
-           }
-       }
+        public async Task<IEnumerable<SystemPrompt>> GetAllSystemPromptsAsync()
+        {
+            var prompts = new List<SystemPrompt>();
+            foreach (var file in Directory.GetFiles(_promptsPath, "*.prompt.json"))
+            {
+                try
+                {
+                    var json = await File.ReadAllTextAsync(file);
+                    var prompt = JsonConvert.DeserializeObject<SystemPrompt>(json);
+                    if (prompt != null)
+                    {
+                        prompts.Add(prompt);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error reading system prompt file {File}", file);
+                }
+            }
 
-       public async Task<bool> DeleteSystemPromptAsync(string promptId)
-       {
-           try
-           {
-               var path = Path.Combine(_promptsPath, $"{promptId}.prompt.json");
-               if (!File.Exists(path))
-               {
-                   return false;
-               }
-               
-               var prompt = await GetSystemPromptByIdAsync(promptId);
-               if (prompt.IsDefault)
-               {
-                   // Find another prompt to set as default
-                   var allPrompts = await GetAllSystemPromptsAsync();
-                   var nextPrompt = allPrompts.FirstOrDefault(p => p.Guid != promptId);
-                   if (nextPrompt != null)
-                   {
-                       await SetDefaultSystemPromptAsync(nextPrompt.Guid);
-                   }
-               }
-               
-               File.Delete(path);
-               return true;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error deleting system prompt {PromptId}", promptId);
-               throw;
-           }
-       }
+            return prompts;
+        }
 
-       public async Task<bool> SetDefaultSystemPromptAsync(string promptId)
-       {
-           try
-           {
-               var prompt = await GetSystemPromptByIdAsync(promptId);
-               if (prompt == null)
-               {
-                   return false;
-               }
-               
-               prompt.IsDefault = true;
-               await SavePromptAsync(prompt);
-               await SetAllPromptsAsNonDefault(promptId);
-               
-               return true;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error setting default system prompt {PromptId}", promptId);
-               throw;
-           }
-       }
+        public Task<SystemPrompt> GetSystemPromptByIdAsync(string promptId)
+        {
+            return ExecuteWithErrorHandlingAsync<SystemPrompt>(async () =>
+            {
+                var path = Path.Combine(_promptsPath, $"{promptId}.prompt.json");
+                if (!File.Exists(path))
+                {
+                    return null;
+                }
 
-       public async Task<SystemPrompt> GetDefaultSystemPromptAsync()
-       {
-           try
-           {
-               var prompts = await GetAllSystemPromptsAsync();
-               var defaultPrompt = prompts.FirstOrDefault(p => p.IsDefault);
-               
-               if (defaultPrompt == null && prompts.Any())
-               {
-                   // If no default is set but prompts exist, set the first one as default
-                   defaultPrompt = prompts.First();
-                   await SetDefaultSystemPromptAsync(defaultPrompt.Guid);
-               }
-               
-               return defaultPrompt;
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, "Error getting default system prompt");
-               throw;
-           }
-       }
+                var json = await File.ReadAllTextAsync(path);
+                return JsonConvert.DeserializeObject<SystemPrompt>(json);
+            }, $"retrieving system prompt {promptId}");
+        }
+
+        public Task<SystemPrompt> CreateSystemPromptAsync(SystemPrompt prompt)
+        {
+            return ExecuteWithErrorHandlingAsync<SystemPrompt>(async () =>
+            {
+                if (string.IsNullOrEmpty(prompt.Guid))
+                {
+                    prompt.Guid = Guid.NewGuid().ToString();
+                }
+
+                prompt.CreatedDate = DateTime.UtcNow;
+                prompt.ModifiedDate = DateTime.UtcNow;
+
+                await SavePromptAsync(prompt);
+
+                if (prompt.IsDefault)
+                {
+                    await SetAllPromptsAsNonDefault(prompt.Guid);
+                }
+
+                return prompt;
+            }, "creating system prompt");
+        }
+
+        public Task<SystemPrompt> UpdateSystemPromptAsync(SystemPrompt prompt)
+        {
+            return ExecuteWithErrorHandlingAsync<SystemPrompt>(async () =>
+            {
+                var existingPrompt = await GetSystemPromptByIdAsync(prompt.Guid);
+                if (existingPrompt == null)
+                {
+                    throw new KeyNotFoundException($"System prompt with ID {prompt.Guid} not found");
+                }
+
+                prompt.CreatedDate = existingPrompt.CreatedDate;
+                prompt.ModifiedDate = DateTime.UtcNow;
+
+                await SavePromptAsync(prompt);
+
+                if (prompt.IsDefault)
+                {
+                    await SetAllPromptsAsNonDefault(prompt.Guid);
+                }
+
+                return prompt;
+            }, $"updating system prompt {prompt.Guid}");
+        }
+
+        public Task<bool> DeleteSystemPromptAsync(string promptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                var path = Path.Combine(_promptsPath, $"{promptId}.prompt.json");
+                if (!File.Exists(path))
+                {
+                    return false;
+                }
+
+                var prompt = await GetSystemPromptByIdAsync(promptId);
+                if (prompt.IsDefault)
+                {
+                    var allPrompts = await GetAllSystemPromptsAsync();
+                    var nextPrompt = allPrompts.FirstOrDefault(p => p.Guid != promptId);
+                    if (nextPrompt != null)
+                    {
+                        await SetDefaultSystemPromptAsync(nextPrompt.Guid);
+                    }
+                }
+
+                File.Delete(path);
+                return true;
+            }, $"deleting system prompt {promptId}");
+        }
+
+        public Task<bool> SetDefaultSystemPromptAsync(string promptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                var prompt = await GetSystemPromptByIdAsync(promptId);
+                if (prompt == null)
+                {
+                    return false;
+                }
+
+                prompt.IsDefault = true;
+                await SavePromptAsync(prompt);
+                await SetAllPromptsAsNonDefault(promptId);
+
+                return true;
+            }, $"setting default system prompt {promptId}");
+        }
+
+        public Task<SystemPrompt> GetDefaultSystemPromptAsync()
+        {
+            return ExecuteWithErrorHandlingAsync<SystemPrompt>(async () =>
+            {
+                var prompts = await GetAllSystemPromptsAsync();
+                var defaultPrompt = prompts.FirstOrDefault(p => p.IsDefault);
+
+                if (defaultPrompt == null && prompts.Any())
+                {
+                    defaultPrompt = prompts.First();
+                    await SetDefaultSystemPromptAsync(defaultPrompt.Guid);
+                }
+
+                return defaultPrompt;
+            }, "getting default system prompt");
+        }
 
         public async Task<SystemPrompt> GetConversationSystemPromptAsync(string conversationId)
         {
@@ -263,17 +223,16 @@ namespace AiStudio4.Services
                 {
                     return await GetDefaultSystemPromptAsync();
                 }
-                
+
                 var promptId = await File.ReadAllTextAsync(path);
                 var prompt = await GetSystemPromptByIdAsync(promptId);
-                
+
                 if (prompt == null)
                 {
-                    // If the prompt no longer exists, revert to default
                     await ClearConversationSystemPromptAsync(conversationId);
                     return await GetDefaultSystemPromptAsync();
                 }
-                
+
                 return prompt;
             }
             catch (Exception ex)
@@ -283,45 +242,35 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<bool> SetConversationSystemPromptAsync(string conversationId, string promptId)
+        public Task<bool> SetConversationSystemPromptAsync(string conversationId, string promptId)
         {
-            try
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
             {
                 var prompt = await GetSystemPromptByIdAsync(promptId);
                 if (prompt == null)
                 {
                     return false;
                 }
-                
+
                 var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
                 await File.WriteAllTextAsync(path, promptId);
-                
+
                 return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error setting system prompt for conversation {ConversationId}", conversationId);
-                throw;
-            }
+            }, $"setting system prompt for conversation {conversationId}");
         }
 
-        public async Task<bool> ClearConversationSystemPromptAsync(string conversationId)
+        public Task<bool> ClearConversationSystemPromptAsync(string conversationId)
         {
-            try
+            return ExecuteWithErrorHandlingAsync<bool>(() =>
             {
                 var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
                 if (File.Exists(path))
                 {
                     File.Delete(path);
                 }
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error clearing system prompt for conversation {ConversationId}", conversationId);
-                throw;
-            }
+
+                return Task.FromResult(true);
+            }, $"clearing system prompt for conversation {conversationId}");
         }
 
         private async Task SavePromptAsync(SystemPrompt prompt)
@@ -340,9 +289,21 @@ namespace AiStudio4.Services
                 await SavePromptAsync(prompt);
             }
         }
+
+        private async Task<T> ExecuteWithErrorHandlingAsync<T>(Func<Task<T>> action, string operationName)
+        {
+            try
+            {
+                return await action();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error {OperationName}", operationName);
+                throw;
+            }
+        }
     }
 
-    // Example using IHostedService:
     public class StartupService : IHostedService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -357,7 +318,7 @@ namespace AiStudio4.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var systemPromptService = scope.ServiceProvider.GetRequiredService<ISystemPromptService>();
-                await systemPromptService.InitializeAsync(); // NOW await the initialization
+                await systemPromptService.InitializeAsync();
             }
         }
 
