@@ -340,7 +340,7 @@ function AppContent() {
                 </div>
 
                 {/* Top header - fixed height */}
-                <div className="flex-none h-[140px] bg-background border-b">
+                <div className="flex-none h-[140px] bg-background">
                     <AppHeader
                         isMobile={isMobile}
                         selectedModel={modelSettings.primary}
@@ -430,77 +430,57 @@ function AppContent() {
                 )}
             </div>
 
-            {/* System prompts panel with the highest z-index */}
-            <div className={cn(
-                "fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-700/50 shadow-xl z-50 transition-transform duration-300",
-                showSystemPrompts || systemPromptsPinned ? "translate-x-0" : "translate-x-full"
-            )}>
-                {(showSystemPrompts || systemPromptsPinned) && (
-                    <>
-                        <div className="flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]">
-                            <div className="flex space-x-2">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setSystemPromptsPinned(!systemPromptsPinned)}
-                                    className="text-gray-400 hover:text-gray-100"
-                                >
-                                    {systemPromptsPinned ? (
-                                        <PinOff className="h-4 w-4" />
-                                    ) : (
-                                        <Pin className="h-4 w-4" />
-                                    )}
-                                </Button>
-                                {!systemPromptsPinned && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={handleToggleSystemPrompts}
-                                        className="text-gray-400 hover:text-gray-100"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                            <h2 className="text-gray-100 text-lg font-semibold flex items-center gap-2">
+            {/* System Prompts Modal */}
+            {showSystemPrompts && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+                            <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-2">
                                 <MessageSquare className="h-5 w-5" />
                                 System Prompts
                             </h2>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleToggleSystemPrompts}
+                                className="text-gray-400 hover:text-gray-100"
+                            >
+                                <X className="h-5 w-5" />
+                            </Button>
                         </div>
-                        <SystemPromptLibrary 
-                            isOpen={true}
-                            isPinned={systemPromptsPinned}
-                            onClose={handleToggleSystemPrompts}
-                            conversationId={store.getState().conversations.activeConversationId || undefined}
-                            onApplyPrompt={(prompt) => {
-                                console.log("App.tsx - Applying prompt:", prompt);
-                                const conversationId = store.getState().conversations.activeConversationId;
+                        <div className="h-[calc(100%-60px)]">
+                            <SystemPromptLibrary 
+                                isOpen={true}
+                                onClose={handleToggleSystemPrompts}
+                                conversationId={store.getState().conversations.activeConversationId || undefined}
+                                onApplyPrompt={(prompt) => {
+                                    console.log("App.tsx - Applying prompt:", prompt);
+                                    const conversationId = store.getState().conversations.activeConversationId;
 
-                                // Check for guid in either camelCase or PascalCase
-                                const promptId = prompt?.guid || prompt?.Guid;
+                                    // Check for guid in either camelCase or PascalCase
+                                    const promptId = prompt?.guid || prompt?.Guid;
 
-                                if (conversationId && promptId) {
-                                    console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
-                                    dispatch(setConversationSystemPrompt({
-                                        conversationId,
-                                        promptId
-                                    }));
-                                } else {
-                                    console.error("Cannot apply prompt - missing required data:", {
-                                        conversationId,
-                                        promptId,
-                                        prompt
-                                    });
-                                }
+                                    if (conversationId && promptId) {
+                                        console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
+                                        dispatch(setConversationSystemPrompt({
+                                            conversationId,
+                                            promptId
+                                        }));
+                                    } else {
+                                        console.error("Cannot apply prompt - missing required data:", {
+                                            conversationId,
+                                            promptId,
+                                            prompt
+                                        });
+                                    }
 
-                                if (!systemPromptsPinned) {
                                     setShowSystemPrompts(false);
-                                }
-                            }}
-                        />
-                    </>
-                )}
-            </div>
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {/* Settings panel with high z-index */}
             <div className={cn(

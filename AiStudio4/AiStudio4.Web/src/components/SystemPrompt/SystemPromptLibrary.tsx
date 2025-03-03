@@ -104,35 +104,23 @@ export function SystemPromptLibrary({
   
   if (!isOpen) return null;
   
-  if (showEditor) {
-    return (
-        <div className="p-4 h-full overflow-y-auto flex flex-col max-h-[calc(100vh-80px)]">
-        <SystemPromptEditor 
-          initialPrompt={promptToEdit} 
-          onClose={handleCloseEditor} 
-          onApply={handleApplyPrompt}
-        />
-      </div>
-    );
-  }
+    if (showEditor) {
+        return (
+            <div className="h-full flex flex-col">
+                <div className="flex-1 overflow-auto p-4">
+                    <SystemPromptEditor
+                        initialPrompt={promptToEdit}
+                        onClose={handleCloseEditor}
+                        onApply={handleApplyPrompt}
+                    />
+                </div>
+            </div>
+        );
+    }
   
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">System Prompts</h2>
-          {!isPinned && onClose && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleCloseLibrary}
-              className="text-gray-400 hover:text-gray-100"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-none p-4 border-b border-gray-700">
         <div className="relative mb-4">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-gray-400" />
@@ -153,8 +141,8 @@ export function SystemPromptLibrary({
         </Button>
       </div>
       
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid grid-cols-4 m-4 bg-gray-800">
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="grid grid-cols-4 mx-4 mt-4 mb-2 bg-gray-800 flex-none">
           <TabsTrigger value="all" className="data-[state=active]:bg-gray-700">
             All
           </TabsTrigger>
@@ -171,7 +159,7 @@ export function SystemPromptLibrary({
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="flex-1 p-4 pt-0">
+        <TabsContent value="all" className="flex-1 p-4 pt-0 overflow-hidden">
           <PromptList 
             prompts={filteredPrompts} 
             defaultPromptId={defaultPromptId} 
@@ -181,7 +169,7 @@ export function SystemPromptLibrary({
           />
         </TabsContent>
         
-        <TabsContent value="default" className="flex-1 p-4 pt-0">
+        <TabsContent value="default" className="flex-1 p-4 pt-0 overflow-hidden">
           <PromptList 
             prompts={filteredPrompts} 
             defaultPromptId={defaultPromptId} 
@@ -191,7 +179,7 @@ export function SystemPromptLibrary({
           />
         </TabsContent>
         
-        <TabsContent value="conversation" className="flex-1 p-4 pt-0">
+        <TabsContent value="conversation" className="flex-1 p-4 pt-0 overflow-hidden">
           <PromptList 
             prompts={filteredPrompts} 
             defaultPromptId={defaultPromptId} 
@@ -201,7 +189,7 @@ export function SystemPromptLibrary({
           />
         </TabsContent>
         
-        <TabsContent value="favorites" className="flex-1 p-4 pt-0">
+        <TabsContent value="favorites" className="flex-1 p-4 pt-0 overflow-hidden">
           <PromptList 
             prompts={filteredPrompts} 
             defaultPromptId={defaultPromptId} 
@@ -243,8 +231,8 @@ function PromptList({ prompts, defaultPromptId, onEdit, onApply, isLoading }: Pr
   }
   
   return (
-    <ScrollArea className="h-[calc(100vh-300px)]">
-      <div className="space-y-3">
+    <ScrollArea className="h-full">
+      <div className="space-y-3 p-1 pb-4">
         {prompts.map(prompt => (
           <SystemPromptCard
             key={prompt.guid}

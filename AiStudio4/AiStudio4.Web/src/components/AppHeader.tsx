@@ -89,7 +89,7 @@ export function AppHeader({
                 </div>
             )}
 
-            <div className="flex-1 flex flex-col justify-center items-center gap-2 pl-12 pr-20">
+            <div className="flex-1 flex flex-col justify-center items-center gap-2">
                 {CommandBarComponent || (
                     <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

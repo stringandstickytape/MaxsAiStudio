@@ -121,30 +121,34 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
   }
   
   return (
-    <div className="relative">
+    <div className="relative w-full max-w-2xl mx-auto">
       <div 
         className={cn(
-          "border border-gray-700/50 rounded-lg transition-all duration-300 overflow-hidden",
+          "border border-gray-700/50 rounded-lg transition-all duration-300",
           expanded ? "bg-gray-800/60" : "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
         )}
       >
-        {/* Collapsed view - just show the prompt title/summary */}
-        {!expanded && (
-          <div 
-            className="px-3 py-2 flex items-center justify-between"
-            onClick={toggleExpand}
-          >
-            <div className="flex items-center">
-              <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
-              <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
-            </div>
-            <ChevronDown className="h-4 w-4 text-gray-400" />
-          </div>
-        )}
+
         
-        {/* Expanded view - show prompt content and editing options */}
+        {/* Collapsed view - just show the prompt title/summary when expanded too */}
+        <div 
+          className="px-3 py-2 flex items-center justify-between"
+          onClick={!expanded ? toggleExpand : undefined}
+        >
+          <div className="flex items-center">
+            <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
+          </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 text-gray-400 cursor-pointer" onClick={toggleExpand} />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          )}
+        </div>
+        
+        {/* Expanded view appears as a dropdown */}
         {expanded && (
-          <div className="p-3">
+          <div className="absolute left-0 right-0 top-full mt-1 p-3 bg-gray-800/95 border border-gray-700/50 rounded-lg shadow-lg z-50">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center">
                 <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
@@ -175,10 +179,10 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
             {editMode ? (
               <>
                 <Textarea
-                  value={promptContent}
-                  onChange={(e) => setPromptContent(e.target.value)}
-                  className="min-h-[100px] bg-gray-700 border-gray-600 text-gray-100 font-mono text-sm"
-                  placeholder="Enter your system prompt here..."
+                    value={promptContent}
+                    onChange={(e) => setPromptContent(e.target.value)}
+                    className="min-h-[100px] max-h-[300px] h-[300px] overflow-y-auto bg-gray-700 border-gray-600 text-gray-100 font-mono text-sm"
+                    placeholder="Enter your system prompt here..."
                 />
                 
                 <div className="flex justify-end gap-2 mt-3">
@@ -204,7 +208,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
               </>
             ) : (
               <>
-                <pre className="p-2 bg-gray-700/30 rounded border border-gray-700/50 text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                <pre className="p-2 bg-gray-700/30 rounded border border-gray-700/50 text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto">
                   {currentPrompt?.content || 'No system prompt content'}
                 </pre>
                 

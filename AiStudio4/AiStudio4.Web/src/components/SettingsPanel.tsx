@@ -142,12 +142,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                             Providers
                         </TabsTrigger>
                         <TabsTrigger
-                            value="prompts"
-                            className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
-                        >
-                            Prompts
-                        </TabsTrigger>
-                        <TabsTrigger
                             value="appearance"
                             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
                         >
@@ -174,18 +168,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, i
                         />
                     </TabsContent>
 
-                    <TabsContent value="prompts" className="space-y-4">
-                        <Card className="bg-gray-800 border-gray-700">
-                            <CardContent className="pt-6">
-                                <h3 className="text-md font-medium mb-2 text-gray-200">System Prompts</h3>
-                                <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/50 h-[400px]">
-                                    <SystemPromptLibrary isOpen={true} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    
-                    <TabsContent value="appearance" className="space-y-4">
+                            <TabsContent value="appearance" className="space-y-4">
                         <Card className="bg-gray-800 border-gray-700">
                             <CardContent className="pt-6">
                                 <h3 className="text-md font-medium mb-2 text-gray-200">Theme Settings</h3>
