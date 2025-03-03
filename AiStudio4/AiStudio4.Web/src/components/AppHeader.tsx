@@ -1,5 +1,5 @@
 ﻿// src/components/AppHeader.tsx
-import {  Command } from 'lucide-react';
+import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
@@ -72,13 +72,18 @@ export function AppHeader({
     const handlePrimaryModelClick = () => {
         setIsCommandBarOpen(true);
         setTimeout(() => {
-            const element = document.getElementById('command-input');
+            const element = document.getElementById('command-input') as HTMLInputElement;
             if (element) {
                 element.focus();
                 // Pre-populate with the command to select primary model
-                (element as HTMLInputElement).value = "select primary model";
-                // Simulate an input event to trigger filtering
-                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.value = "select primary model";
+
+                // Trigger input event manually to update filtered commands
+                const inputEvent = new Event('input', { bubbles: true });
+                element.dispatchEvent(inputEvent);
+
+                // Also update the state
+                setCommandText("select primary model");
             }
         }, 100);
     };
@@ -86,13 +91,18 @@ export function AppHeader({
     const handleSecondaryModelClick = () => {
         setIsCommandBarOpen(true);
         setTimeout(() => {
-            const element = document.getElementById('command-input');
+            const element = document.getElementById('command-input') as HTMLInputElement;
             if (element) {
                 element.focus();
                 // Pre-populate with the command to select secondary model
-                (element as HTMLInputElement).value = "select secondary model";
-                // Simulate an input event to trigger filtering
-                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.value = "select secondary model";
+
+                // Trigger input event manually to update filtered commands
+                const inputEvent = new Event('input', { bubbles: true });
+                element.dispatchEvent(inputEvent);
+
+                // Also update the state
+                setCommandText("select secondary model");
             }
         }, 100);
     };

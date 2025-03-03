@@ -23,6 +23,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const pinnedCommands = useSelector((state: RootState) => state.pinnedCommands.pinnedCommands);
 
+    // Update filtered commands whenever search term changes
     useEffect(() => {
         const newCommands = commandRegistry.searchCommands(searchTerm);
         setFilteredCommands(newCommands);
@@ -30,15 +31,52 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         if (searchTerm && !isOpen) setIsOpen(true);
     }, [searchTerm, isOpen, setIsOpen]);
 
+    // Subscribe to command registry changes
     useEffect(() => {
         return commandRegistry.subscribe(() => {
             setFilteredCommands(commandRegistry.searchCommands(searchTerm));
         });
     }, [searchTerm]);
 
+    // Focus input when command bar opens
     useEffect(() => {
-        if (isOpen && inputRef.current) inputRef.current.focus();
-    }, [isOpen]);
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+
+            // If there's already a search term in the input,
+            // refresh the filtered commands
+            if (searchTerm) {
+                setFilteredCommands(commandRegistry.searchCommands(searchTerm));
+            }
+        }
+    }, [isOpen, searchTerm]);
+
+    // Monitor programmatic changes to the input value
+    useEffect(() => {
+        const handleInput = () => {
+            if (inputRef.current) {
+                // Sync our state with the actual input value
+                const inputValue = inputRef.current.value;
+                if (inputValue !== searchTerm) {
+                    setSearchTerm(inputValue);
+                    const newCommands = commandRegistry.searchCommands(inputValue);
+                    setFilteredCommands(newCommands);
+                    setSelectedIndex(0);
+                }
+            }
+        };
+
+        const inputElement = inputRef.current;
+        if (inputElement) {
+            inputElement.addEventListener('input', handleInput);
+        }
+
+        return () => {
+            if (inputElement) {
+                inputElement.removeEventListener('input', handleInput);
+            }
+        };
+    }, [searchTerm]);
 
     const handleCommandSubmit = (e: React.FormEvent) => {
         e.preventDefault();
