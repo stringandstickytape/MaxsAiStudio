@@ -1,4 +1,4 @@
-// src/components/input-bar.tsx
+// src/components/InputBar.tsx
 import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';

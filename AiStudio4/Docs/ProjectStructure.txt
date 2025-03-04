@@ -78,7 +78,7 @@ AiStudio4.Web/src/components/ConversationTreeView.tsx: Visual tree view of conve
 AiStudio4.Web/src/components/ConversationView.tsx: Displays active conversation
 AiStudio4.Web/src/components/HistoricalConversationTree.tsx: Displays historical conversations
 AiStudio4.Web/src/components/HistoricalConversationTreeList.tsx: List of historical conversations
-AiStudio4.Web/src/components/input-bar.tsx: Input bar for sending messages
+AiStudio4.Web/src/components/InputBar.tsx: Input bar for sending messages
 AiStudio4.Web/src/components/LiveStreamToken.tsx: Component for streaming tokens
 AiStudio4.Web/src/components/markdown-pane.tsx: Renders markdown content with code blocks
 AiStudio4.Web/src/components/Sidebar.tsx: Sidebar with conversation history

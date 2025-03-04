@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
 import { ChatContainer } from './components/ChatContainer';
-import { InputBar } from './components/input-bar';
+import { InputBar } from './components/InputBar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useLiveStream } from '@/hooks/useLiveStream';
