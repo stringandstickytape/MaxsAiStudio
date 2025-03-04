@@ -1,5 +1,5 @@
 // src/components/input-bar.tsx
-import React, { useState, KeyboardEvent, useCallback } from 'react';
+import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
@@ -8,6 +8,7 @@ import { RootState } from '@/store/store';
 import { ToolSelector } from './tools/ToolSelector';
 import { Mic, Send } from 'lucide-react';
 import { useSendMessageMutation } from '@/services/api/chatApi';
+import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
 
 interface InputBarProps {
     selectedModel: string;
@@ -23,6 +24,7 @@ export function InputBar({
     onInputChange
 }: InputBarProps) {
     const dispatch = useDispatch();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // If props are provided, use them, otherwise use local state
     const [localInputText, setLocalInputText] = useState('');
@@ -37,6 +39,51 @@ export function InputBar({
 
     // Use the sendMessage mutation from RTK Query
     const [sendMessage, { isLoading }] = useSendMessageMutation();
+
+    // Track cursor position for file insertion
+    const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+
+    const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setInputText(e.target.value);
+        // Save cursor position
+        setCursorPosition(e.target.selectionStart);
+    };
+
+    const handleTextAreaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+        setCursorPosition(e.currentTarget.selectionStart);
+    };
+
+    const handleTextAreaKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        setCursorPosition(e.currentTarget.selectionStart);
+    };
+
+    const handleAttachFile = (file: File, content: string) => {
+        const fileName = file.name;
+        const fileType = fileName.split('.').pop() || '';
+
+        // Format text to insert
+        const textToInsert = `\`\`\`${fileName}\n${content}\n\`\`\`\n`;
+
+        // Insert at cursor position or append to end
+        const pos = cursorPosition !== null ? cursorPosition : inputText.length;
+
+        const newText = inputText.substring(0, pos) +
+            textToInsert +
+            inputText.substring(pos);
+
+        setInputText(newText);
+
+        // Focus back on textarea after insertion
+        setTimeout(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                // Move cursor to the end of the inserted text
+                const newPosition = pos + textToInsert.length;
+                textareaRef.current.setSelectionRange(newPosition, newPosition);
+                setCursorPosition(newPosition);
+            }
+        }, 0);
+    };
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
@@ -90,6 +137,7 @@ export function InputBar({
 
             // Clear the input after sending
             setInputText('');
+            setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
         }
@@ -120,9 +168,12 @@ export function InputBar({
                     {/* Input area */}
                     <div className="relative flex-1">
                         <textarea
+                            ref={textareaRef}
                             className="w-full h-full p-4 border border-gray-700/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-gray-800/50 text-gray-100 shadow-inner transition-all duration-200 placeholder:text-gray-400"
                             value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
+                            onChange={handleTextAreaInput}
+                            onClick={handleTextAreaClick}
+                            onKeyUp={handleTextAreaKeyUp}
                             onKeyDown={handleKeyDown}
                             placeholder="Type your message here... (Ctrl+Enter to send)"
                             disabled={isLoading}
@@ -131,6 +182,12 @@ export function InputBar({
 
                     {/* Vertical button bar */}
                     <div className="flex flex-col gap-2 justify-end">
+                        {/* File attachment button */}
+                        <FileAttachment
+                            onAttach={handleAttachFile}
+                            disabled={isLoading}
+                        />
+
                         {/* Voice input button */}
                         {onVoiceInputClick && (
                             <Button
