@@ -1,9 +1,9 @@
 import { useSelector } from 'react-redux';
 import { RootState, store } from '@/store/store';
 import { setActiveConversation } from '@/store/conversationSlice';
-import { MarkdownPane } from '@/components/markdown-pane';
+import { EditableMarkdownPane } from '@/components/EditableMarkdownPane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Message } from '@/types/conversation';
 
 interface ConversationViewProps {
@@ -77,7 +77,7 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                                     }));
                                 }}
                             >
-                                <MarkdownPane message={message.content} />
+                            <EditableMarkdownPane message={message.content} />
                             </div>
                         </div>
                     ))}
