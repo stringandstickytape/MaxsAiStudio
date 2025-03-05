@@ -73,6 +73,7 @@ namespace VSIXTest
             }
         }
 
+        public static readonly bool NewUi = true;
         public VsixChat() : base()
         {
             this.KeyDown += VsixChat_KeyDown;
@@ -115,7 +116,8 @@ namespace VSIXTest
                 _fileGroupManager,
                 _shortcutManager,
                 ExecuteScriptAsync,
-                VsixPackage);  // Pass the VsixPackage
+                VsixPackage,
+                this);  // Pass the VsixPackage
         }
 
 

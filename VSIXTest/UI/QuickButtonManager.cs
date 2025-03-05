@@ -24,6 +24,7 @@ namespace VSIXTest.UI
         private readonly ShortcutManager _shortcutManager;
         private readonly Func<string, Task<string>> _executeScriptAsync;
         private readonly VSIXTestPackage _package;
+        private readonly VsixChat _vsixChat;
 
         private QuickButtonOptionsWindow QuickButtonOptionsWindow { get; set; }
 
@@ -35,7 +36,8 @@ namespace VSIXTest.UI
             FileGroupManager fileGroupManager,
             ShortcutManager shortcutManager,
             Func<string, Task<string>> executeScriptAsync,
-            VSIXTestPackage package)
+            VSIXTestPackage package,
+            VsixChat vsixChat)
         {
             _dte = dte;
             _messageHandler = messageHandler;
@@ -45,6 +47,7 @@ namespace VSIXTest.UI
             _shortcutManager = shortcutManager;
             _executeScriptAsync = executeScriptAsync;
             _package = package;
+            this._vsixChat = vsixChat;
         }
 
         public void ShowQuickButtonOptionsWindow(VsixUiMessage message)
@@ -95,7 +98,7 @@ namespace VSIXTest.UI
         private async void OptionsControl_OptionsSelected(object sender, QuickButtonMessageAndOptions e)
         {
             var buttonLabel = e.OriginalVsixMessage.content;
-            var matchingButton = _messageHandler.Buttons.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
+            var matchingButton = _messageHandler.Buttons?.FirstOrDefault(x => x.ButtonLabel == buttonLabel);
 
             var prompt = await GetPromptAsync(matchingButton);
             var inclusions = await GetInclusionsAsync(e.SelectedOptions);
@@ -128,7 +131,46 @@ namespace VSIXTest.UI
 
             var tool = GetToolType(matchingButton, e.ResponseType);
 
-            await _messageHandler.SendVsixMessageAsync(
+
+
+            if (VsixChat.NewUi)
+            {
+
+                //string jsonMessage = JsonConvert.SerializeObject(new
+                //{
+                //    type = "setPrompt",
+                //    content = formattedAll
+                //});
+                //// Execute JavaScript that posts the message to the page
+                //await _vsixChat.CoreWebView2.ExecuteScriptAsync(
+                //    $"window.postMessage({jsonMessage}, '*');"
+                //);
+
+
+                string jsonAttach = JsonConvert.SerializeObject(new
+                {
+                    type = "attach",
+                    content = new
+                    {
+                        fileName = "example.txt",
+                        fileContent = formattedAll
+                    }
+                });
+                await _vsixChat.CoreWebView2.ExecuteScriptAsync(
+                    $"window.postMessage({jsonAttach}, '*');"
+                );
+                //
+                jsonAttach = JsonConvert.SerializeObject(new
+                {
+                    type = "send"
+                });
+                await _vsixChat.CoreWebView2.ExecuteScriptAsync(
+                    $"window.postMessage({jsonAttach}, '*');"
+                );
+            }
+            else
+            {
+                await _messageHandler.SendVsixMessageAsync(
                 new VsixMessage
                 {
                     MessageType = "vsQuickButtonRun",
@@ -136,6 +178,7 @@ namespace VSIXTest.UI
                     Tool = tool
                 },
                 _simpleClient);
+            }
         }
 
         private async Task<string> GetPromptAsync(MessagePrompt matchingButton)

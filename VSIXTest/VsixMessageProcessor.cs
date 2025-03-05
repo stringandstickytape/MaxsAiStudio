@@ -77,6 +77,9 @@ namespace VSIXTest
 
             switch (message.type)
             {
+                case "storeLoaded":
+                    await _vsixChat.ExecuteScriptAsync($"localStorage.isVisualStudio = 'true'");
+                    break;
                 case "applyNewDiff":
                     await _changesetManager.HandleNewChangesetAsync(message.content);
                     break;
