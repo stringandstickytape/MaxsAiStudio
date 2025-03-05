@@ -1,4 +1,4 @@
-// src/components/ui/panel.tsx
+// src/components/panel.tsx
 import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

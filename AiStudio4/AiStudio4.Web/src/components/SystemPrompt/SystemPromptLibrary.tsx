@@ -9,9 +9,9 @@ import { PlusCircle, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SystemPrompt } from '@/types/systemPrompt';
-import { toggleLibrary } from '@/store/systemPromptSlice';
 import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
+import { usePanelStore } from '@/stores/usePanelStore';
 import {
     useGetSystemPromptsQuery,
     useSetConversationSystemPromptMutation
@@ -41,9 +41,8 @@ export function SystemPromptLibrary({
     const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
     const [activeTab, setActiveTab] = useState('all');
 
-    // Use panel context hooks instead of local close handler
-    const { usePanels } = require('@/contexts/PanelContext');
-    const { togglePanel } = usePanels();
+    // Use Zustand panel store instead of context
+    const { togglePanel } = usePanelStore();
     
     const handleCloseLibrary = () => {
         togglePanel('systemPrompts');

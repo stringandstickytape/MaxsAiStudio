@@ -1,9 +1,8 @@
 // src/hooks/usePanelManager.ts
-import { useEffect } from 'react';
-import { usePanels } from '@/contexts/PanelContext';
+import { usePanelStore } from '@/stores/usePanelStore';
 import { PanelState } from '@/types/ui';
+import React from 'react';
 
-// Hook for managing a specific panel
 export function usePanelManager(panelConfig: Omit<PanelState, 'isOpen' | 'isPinned'> & {
   defaultOpen?: boolean;
   defaultPinned?: boolean;
@@ -14,21 +13,23 @@ export function usePanelManager(panelConfig: Omit<PanelState, 'isOpen' | 'isPinn
     togglePinned, 
     getPanelState,
     registerPanel 
-  } = usePanels();
+  } = usePanelStore();
 
   const { id, defaultOpen = false, defaultPinned = false, ...rest } = panelConfig;
   
-  // Register this panel with the context
-  useEffect(() => {
+  // Register this panel with the store if it doesn't exist yet
+  React.useEffect(() => {
     const existingPanel = getPanelState(id);
     
-    registerPanel({
-      id,
-      isOpen: existingPanel ? existingPanel.isOpen : defaultOpen,
-      isPinned: existingPanel ? existingPanel.isPinned : defaultPinned,
-      ...rest
-    });
-  }, [id]);
+    if (!existingPanel) {
+      registerPanel({
+        id,
+        isOpen: defaultOpen,
+        isPinned: defaultPinned,
+        ...rest
+      });
+    }
+  }, [id, registerPanel, getPanelState, defaultOpen, defaultPinned]);
 
   const panelState = getPanelState(id);
 

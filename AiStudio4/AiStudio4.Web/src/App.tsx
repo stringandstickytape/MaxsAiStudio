@@ -1,9 +1,9 @@
-﻿import { useState, useEffect } from "react";
+// src/App.tsx
+import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
-import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
@@ -20,10 +20,10 @@ import { commandRegistry } from './commands/commandRegistry';
 import { initializeCoreCommands } from './commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
 import { CommandBar } from './components/CommandBar';
-import { VoiceInputOverlay } from '@/components/VoiceInputOverlay';
+import { VoiceInputOverlay } from './components/VoiceInputOverlay';
 import { useVoiceInputState, setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
-import { ToolPanel } from '@/components/tools/ToolPanel';
+import { ToolPanel } from './components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { setTools } from '@/store/toolSlice';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
@@ -34,9 +34,8 @@ import { useGetConfigQuery } from '@/services/api/chatApi';
 import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
 import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
 import { ModelType } from '@/types/modelTypes';
-import { PanelProvider } from '@/contexts/PanelContext';
-import { usePanelManager } from '@/hooks/usePanelManager';
-import { Panel } from '@/components/ui/panel';
+import { Panel } from '@/components/panel';
+import { usePanelStore } from '@/stores/usePanelStore';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -68,38 +67,57 @@ function AppContent() {
     const { data: systemPrompts, isLoading: isSystemPromptsLoading } = useGetSystemPromptsQuery();
     const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
 
-    // Use the panel manager hooks for each panel
-    const sidebar = usePanelManager({
-        id: 'sidebar',
-        position: 'left',
-        size: '80',
-        zIndex: 40,
-        title: 'Conversations'
-    });
+    // Zustand panel state
+    const { registerPanel, togglePanel, panels } = usePanelStore();
 
-    const conversationTree = usePanelManager({
-        id: 'conversationTree',
-        position: 'right',
-        size: '80',
-        zIndex: 30,
-        title: 'Conversation Tree'
-    });
+    // Register panels
+    useEffect(() => {
+        registerPanel({
+            id: 'sidebar',
+            position: 'left',
+            size: '80',
+            zIndex: 40,
+            title: 'Conversations',
+            isOpen: false,
+            isPinned: false
+        });
 
-    const settings = usePanelManager({
-        id: 'settings',
-        position: 'right',
-        size: '80',
-        zIndex: 40,
-        title: 'Settings'
-    });
+        registerPanel({
+            id: 'conversationTree',
+            position: 'right',
+            size: '80',
+            zIndex: 30,
+            title: 'Conversation Tree',
+            isOpen: false,
+            isPinned: false
+        });
 
-    const systemPromptPanel = usePanelManager({
-        id: 'systemPrompts',
-        position: 'right',
-        size: '80',
-        zIndex: 50,
-        title: 'System Prompts'
-    });
+        registerPanel({
+            id: 'settings',
+            position: 'right',
+            size: '80',
+            zIndex: 40,
+            title: 'Settings',
+            isOpen: false,
+            isPinned: false
+        });
+
+        registerPanel({
+            id: 'systemPrompts',
+            position: 'right',
+            size: '80',
+            zIndex: 50,
+            title: 'System Prompts',
+            isOpen: false,
+            isPinned: false
+        });
+    }, [registerPanel]);
+
+    // Get panel states
+    const sidebarPanel = panels.sidebar || { isOpen: false, isPinned: false };
+    const conversationTreePanel = panels.conversationTree || { isOpen: false, isPinned: false };
+    const settingsPanel = panels.settings || { isOpen: false, isPinned: false };
+    const systemPromptsPanel = panels.systemPrompts || { isOpen: false, isPinned: false };
 
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
@@ -134,22 +152,22 @@ function AppContent() {
     useEffect(() => {
         // Initialize core commands with handlers
         initializeCoreCommands({
-            toggleSidebar: sidebar.toggle,
+            toggleSidebar: () => togglePanel('sidebar'),
             toggleConversationTree: handleToggleConversationTree,
-            toggleSettings: settings.toggle,
+            toggleSettings: () => togglePanel('settings'),
             openNewWindow: handleOpenNewWindow
         });
 
         // Initialize system prompt commands
         initializeSystemPromptCommands({
-            toggleLibrary: systemPromptPanel.toggle,
+            toggleLibrary: () => togglePanel('systemPrompts'),
             createNewPrompt: () => {
                 setPromptToEdit(null);
-                systemPromptPanel.open();
+                togglePanel('systemPrompts');
             },
             editPrompt: (promptId) => {
                 setPromptToEdit(promptId);
-                systemPromptPanel.open();
+                togglePanel('systemPrompts');
             }
         });
 
@@ -164,7 +182,7 @@ function AppContent() {
 
         // Register all system prompts as commands
         const systemPromptsUpdated = () => {
-            registerSystemPromptsAsCommands(systemPromptPanel.toggle);
+            registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
         };
 
         // Initial registration
@@ -187,7 +205,7 @@ function AppContent() {
             cleanupKeyboardShortcut();
             unsubscribeFromStore();
         };
-    }, [models]);
+    }, [models, togglePanel]);
 
     // Update tools and categories in Redux state when they load from RTK Query
     useEffect(() => {
@@ -259,7 +277,7 @@ function AppContent() {
         const activeConversationId = state.conversations.activeConversationId;
         setSelectedConversationId(activeConversationId);
         console.log('Opening conversation tree with conversation ID:', activeConversationId);
-        conversationTree.toggle();
+        togglePanel('conversationTree');
     };
 
     // Subscribe to Redux store to update the conversation tree when messages change
@@ -290,7 +308,7 @@ function AppContent() {
                 });
 
                 // Force a refresh of the tree view by briefly setting to null and back
-                if (conversationTree.isOpen) {
+                if (conversationTreePanel.isOpen) {
                     setSelectedConversationId(null);
                     setTimeout(() => {
                         setSelectedConversationId(activeConversationId);
@@ -304,7 +322,7 @@ function AppContent() {
         });
 
         return () => unsubscribe();
-    }, [conversationTree.isOpen, selectedConversationId]);
+    }, [conversationTreePanel.isOpen, selectedConversationId]);
 
     const handleOpenNewWindow = () => {
         window.open(window.location.href, '_blank');
@@ -328,10 +346,8 @@ function AppContent() {
         <>
             <div className={cn(
                 "h-screen flex flex-col",
-                sidebar.isPinned && "pl-80",
-                conversationTree.isPinned && "pr-80",
-                settings.isPinned && "pr-80",
-                systemPromptPanel.isPinned && "pr-80"
+                sidebarPanel.isPinned && "pl-80",
+                (conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned) && "pr-80"
             )}>
                 {/* Top header - fixed height */}
                 <div className="flex-none h-[140px] bg-background">
@@ -340,18 +356,18 @@ function AppContent() {
                         selectedModel={modelSettings.primary}
                         secondaryModel={modelSettings.secondary}
                         models={models}
-                        onToggleSidebar={sidebar.toggle}
+                        onToggleSidebar={() => togglePanel('sidebar')}
                         onModelSelect={(model) => handleModelSelect('primary', model)}
                         onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
                         onToggleConversationTree={handleToggleConversationTree}
-                        onToggleSettings={settings.toggle}
-                        onToggleSystemPrompts={systemPromptPanel.toggle}
+                        onToggleSettings={() => togglePanel('settings')}
+                        onToggleSystemPrompts={() => togglePanel('systemPrompts')}
                         onToggleToolPanel={() => setIsToolPanelOpen(true)}
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                        sidebarPinned={sidebar.isPinned}
-                        rightSidebarPinned={conversationTree.isPinned || settings.isPinned || systemPromptPanel.isPinned}
+                        sidebarPinned={sidebarPanel.isPinned}
+                        rightSidebarPinned={conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned}
                         activeConversationId={store.getState().conversations.activeConversationId}
                     />
                 </div>
@@ -382,6 +398,10 @@ function AppContent() {
                 size="80"
                 zIndex={40}
                 title="Conversations"
+                isOpen={sidebarPanel.isOpen}
+                isPinned={sidebarPanel.isPinned}
+                onClose={() => togglePanel('sidebar')}
+                onTogglePinned={() => togglePanel('sidebar')}
             >
                 <Sidebar
                     wsState={wsState}
@@ -396,6 +416,10 @@ function AppContent() {
                     size="80"
                     zIndex={30}
                     title="Conversation Tree"
+                    isOpen={conversationTreePanel.isOpen}
+                    isPinned={conversationTreePanel.isPinned}
+                    onClose={() => togglePanel('conversationTree')}
+                    onTogglePinned={() => togglePanel('conversationTree')}
                 >
                     <ConversationTreeView
                         key={`tree-${selectedConversationId}-${Date.now()}`} // Force re-render when id changes or is refreshed
@@ -416,6 +440,10 @@ function AppContent() {
                 size="80"
                 zIndex={40}
                 title="Settings"
+                isOpen={settingsPanel.isOpen}
+                isPinned={settingsPanel.isPinned}
+                onClose={() => togglePanel('settings')}
+                onTogglePinned={() => togglePanel('settings')}
             >
                 <SettingsPanel
                     isOpen={true}
@@ -429,6 +457,10 @@ function AppContent() {
                 size="80"
                 zIndex={50}
                 title="System Prompts"
+                isOpen={systemPromptsPanel.isOpen}
+                isPinned={systemPromptsPanel.isPinned}
+                onClose={() => togglePanel('systemPrompts')}
+                onTogglePinned={() => togglePanel('systemPrompts')}
             >
                 <SystemPromptLibrary
                     isOpen={true}
@@ -454,7 +486,7 @@ function AppContent() {
                             });
                         }
 
-                        systemPromptPanel.close();
+                        togglePanel('systemPrompts');
                     }}
                 />
             </Panel>
@@ -478,7 +510,7 @@ function AppContent() {
                                 onClick={() => setIsToolPanelOpen(false)}
                                 className="text-gray-400 hover:text-gray-100"
                             >
-                                <span className="h-5 w-5">�</span>
+                                <span className="h-5 w-5">×</span>
                             </Button>
                         </div>
                         <div className="h-full overflow-y-auto">
@@ -491,13 +523,11 @@ function AppContent() {
     );
 }
 
-// Wrapper component that provides the Redux store and panel context
+// Wrapper component that provides the Redux store
 function App() {
     return (
         <Provider store={store}>
-            <PanelProvider>
-                <AppContent />
-            </PanelProvider>
+            <AppContent />
         </Provider>
     );
 }
