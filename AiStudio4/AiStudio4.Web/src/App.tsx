@@ -11,7 +11,7 @@ import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/InputBar';
 import { Sidebar } from './components/Sidebar';
 import { useWebSocket } from './hooks/useWebSocket';
-import { useLiveStream } from '@/hooks/useLiveStream';
+import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -54,7 +54,7 @@ function AppContent() {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { isConnected, clientId } = useWebSocket();
     const wsState = { isConnected, clientId, messages: [] };
-    const { streamTokens } = useLiveStream();
+    const { streamTokens } = useStreamTokens();
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState(''); // Add this state for voice input
