@@ -35,9 +35,9 @@ namespace AiStudio4.Services
                     _logger.LogInformation("Creating new conversation with ID {ConversationId}", conversationId);
                     return new v4BranchedConversation(conversationId);
                 }
-
+                var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                 var json = await File.ReadAllTextAsync(path);
-                var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json);
+                var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json,settings);
                 _logger.LogDebug("Loaded conversation {ConversationId}", conversationId);
                 return conversation;
             }
@@ -74,15 +74,16 @@ namespace AiStudio4.Services
         public async Task<IEnumerable<v4BranchedConversation>> GetAllConversations()
         {
             var conversationsWithDates = new List<(v4BranchedConversation Conversation, DateTime FileDate)>();
-            foreach (var file in Directory.GetFiles(_basePath, "*.json"))
+            foreach (var file in Directory.GetFiles(_basePath, "conv_*.json"))
             {
                 try
                 {
+                    var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                     var fileInfo = new FileInfo(file);
                     var json = await File.ReadAllTextAsync(file);
-                    var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json);
+                    var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json, settings);
                     if (conversation != null)
-                        conversationsWithDates.Add((conversation, fileInfo.CreationTime));
+                        conversationsWithDates.Add((conversation, fileInfo.LastWriteTime));
                 }
                 catch (Exception ex)
                 {

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { diagramRegistry } from '@/components/diagrams/registry'
-
+import remarkGfm from 'remark-gfm'
 interface MarkdownPaneProps {
     message: string;
 }
@@ -128,15 +128,17 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 {children}
             </a>
         ),
-        table: ({ children }: any) => (
-            <div className="overflow-x-auto ">
-                <table className="min-w-full divide-y divide-gray-700">
-                    {children}
-                </table>
-            </div>
+        thead: ({ children }: any) => (
+            <thead className="bg-gray-800">{children}</thead>
+        ),
+        tbody: ({ children }: any) => (
+            <tbody className="divide-y divide-gray-700">{children}</tbody>
+        ),
+        tr: ({ children }: any) => (
+            <tr>{children}</tr>
         ),
         th: ({ children }: any) => (
-            <th className="px-4 py-2 bg-gray-800">{children}</th>
+            <th className="px-4 py-2 text-left font-medium">{children}</th>
         ),
         td: ({ children }: any) => (
             <td className="px-4 py-2 border-t border-gray-700">{children}</td>
@@ -144,7 +146,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     }
 
     return (
-            <ReactMarkdown components={components}>
+            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
                 {markdownContent}
             </ReactMarkdown>
     )
