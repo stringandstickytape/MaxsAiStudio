@@ -73,7 +73,7 @@ namespace VSIXTest
             }
         }
 
-        public static readonly bool NewUi = true;
+        public static readonly bool NewUi = false;
         public VsixChat() : base()
         {
             this.KeyDown += VsixChat_KeyDown;

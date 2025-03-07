@@ -10,7 +10,7 @@ namespace SharedClasses.Providers
     {
         public float Temperature { get; set; } = 0.9f;
         public bool UsePromptCaching { get; set; } = true;
-        public bool StreamResponses { get; set; } = false;
+        public bool StreamResponses { get; set; } = true;
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string EmbeddingsFilename { get; set; } = string.Empty;
         public bool UseEmbeddings { get; set; } = false;
