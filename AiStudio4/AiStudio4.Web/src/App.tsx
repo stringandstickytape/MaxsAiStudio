@@ -422,8 +422,9 @@ function AppContent() {
                     title="Conversation Tree"
                     isOpen={conversationTreePanel.isOpen}
                     isPinned={conversationTreePanel.isPinned}
-                    onClose={() => togglePanel('conversationTree')}
-                    onTogglePinned={() => togglePanel('conversationTree')}
+                // Remove these two lines:
+                // onClose={() => togglePanel('conversationTree')}
+                // onTogglePinned={() => togglePanel('conversationTree')}
                 >
                     <ConversationTreeView
                         key={`tree-${selectedConversationId}-${Date.now()}`}

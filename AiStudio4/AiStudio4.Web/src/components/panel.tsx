@@ -22,7 +22,6 @@ interface PanelProps {
     isOpen?: boolean;
     isPinned?: boolean;
     onClose?: () => void;
-    onTogglePinned?: () => void;
     className?: string;
     headerClassName?: string;
     bodyClassName?: string;
@@ -46,7 +45,6 @@ export function Panel({
     isOpen,
     isPinned,
     onClose,
-    onTogglePinned,
     className,
     headerClassName,
     bodyClassName,
@@ -90,11 +88,7 @@ export function Panel({
     };
 
     const handleTogglePin = () => {
-        if (onTogglePinned) {
-            onTogglePinned();
-        } else {
-            togglePinned(id);
-        }
+        togglePinned(id);
     };
 
     // Prepare style object based on position and constraints
