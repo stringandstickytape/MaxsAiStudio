@@ -1,7 +1,6 @@
 // src/components/SystemPrompt/SystemPromptEditor.tsx
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useDispatch } from 'react-redux';
 import {
     Form,
     FormField,
@@ -18,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Check } from 'lucide-react';
 import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
-import { setCurrentPrompt } from '@/store/systemPromptSlice';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import {
     useCreateSystemPromptMutation,
     useUpdateSystemPromptMutation
@@ -31,7 +30,9 @@ interface SystemPromptEditorProps {
 }
 
 export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPromptEditorProps) {
-    const dispatch = useDispatch();
+    // Use Zustand store instead of Redux
+    const { setCurrentPrompt } = useSystemPromptStore();
+    
     const [isCreating, setIsCreating] = useState(!initialPrompt);
     const [isProcessing, setIsProcessing] = useState(false);
     const [newTag, setNewTag] = useState('');
@@ -99,9 +100,9 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 }).unwrap();
             }
 
-            // Update the current prompt in Redux store
+            // Update the current prompt in Zustand store
             if (result) {
-                dispatch(setCurrentPrompt(result));
+                setCurrentPrompt(result);
             }
 
             // Only apply the prompt if we have a valid result with a guid
@@ -138,9 +139,9 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 }).unwrap();
             }
 
-            // Update the current prompt in Redux store
+            // Update the current prompt in Zustand store
             if (result) {
-                dispatch(setCurrentPrompt(result));
+                setCurrentPrompt(result);
             }
 
             if (result && result.guid && onApply) {

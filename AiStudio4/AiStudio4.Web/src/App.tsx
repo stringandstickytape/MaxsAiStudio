@@ -26,9 +26,9 @@ import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { ToolPanel } from './components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { useToolStore } from '@/stores/useToolStore';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
-import { setPrompts, setConversationPrompt } from './store/systemPromptSlice';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { useGetConfigQuery } from '@/services/api/chatApi';
 import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
@@ -62,6 +62,15 @@ function AppContent() {
 
     // Zustand tool store
     const { setTools, setCategories, activeTools } = useToolStore();
+    
+    // Zustand system prompt store
+    const { 
+        prompts, 
+        defaultPromptId, 
+        conversationPrompts, 
+        setPrompts,
+        setConversationPrompt 
+    } = useSystemPromptStore();
 
     // RTK Query hooks
     const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
@@ -135,6 +144,13 @@ function AppContent() {
         }
     }, [toolCategories, setCategories]);
 
+    // Sync system prompts with Zustand store
+    useEffect(() => {
+        if (systemPrompts) {
+            setPrompts(systemPrompts);
+        }
+    }, [systemPrompts, setPrompts]);
+
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
         openToolPanel: () => setIsToolPanelOpen(true),
@@ -205,30 +221,19 @@ function AppContent() {
         systemPromptsUpdated();
 
         // Set up subscription to system prompts changes
-        const unsubscribeFromStore = store.subscribe(() => {
-            const prevPrompts = store.getState().systemPrompts.prompts;
-            const currentPrompts = store.getState().systemPrompts.prompts;
-
-            if (prevPrompts !== currentPrompts) {
-                systemPromptsUpdated();
-            }
-        });
+        const unsubscribe = useSystemPromptStore.subscribe(
+            (state) => state.prompts,
+            () => systemPromptsUpdated()
+        );
 
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
         return () => {
             cleanupKeyboardShortcut();
-            unsubscribeFromStore();
+            unsubscribe();
         };
     }, [models, togglePanel]);
-
-    // Update system prompts in Redux state when they load from RTK Query
-    useEffect(() => {
-        if (systemPrompts) {
-            dispatch(setPrompts(systemPrompts));
-        }
-    }, [systemPrompts, dispatch]);
 
     // Load models from config
     useEffect(() => {
@@ -476,11 +481,11 @@ function AppContent() {
                         const promptId = prompt?.guid || prompt?.Guid;
 
                         if (conversationId && promptId) {
-                            console.log(`Dispatching setConversationSystemPrompt with conversationId=${conversationId}, promptId=${promptId}`);
+                            console.log(`Setting conversation system prompt with conversationId=${conversationId}, promptId=${promptId}`);
                             // Using RTK Query mutation
                             setConversationSystemPrompt({ conversationId, promptId });
-                            // Also update the local Redux state
-                            dispatch(setConversationPrompt({ conversationId, promptId }));
+                            // Also update the Zustand store
+                            setConversationPrompt(conversationId, promptId);
                         } else {
                             console.error("Cannot apply prompt - missing required data:", {
                                 conversationId,

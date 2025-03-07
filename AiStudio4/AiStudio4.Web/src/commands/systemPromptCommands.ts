@@ -1,10 +1,9 @@
-﻿// src/commands/systemPromptCommands.ts
+// src/commands/systemPromptCommands.ts
 import React from 'react';
 import { registerCommandGroup } from './commandRegistry';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
-import { setCurrentPrompt } from '@/store/systemPromptSlice';
-import { store } from '@/store/store';
-import { useGetSystemPromptsQuery } from '@/services/api/systemPromptApi';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
+import { commandRegistry } from './commandRegistry';
 
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
@@ -53,26 +52,36 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 section: 'utility',
                 icon: React.createElement(Pencil, { size: 16 }),
                 execute: () => {
-                    const state = store.getState();
-                    const currentConversation = state.conversations.activeConversationId;
+                    // Get current prompt information from Zustand store
+                    const { prompts, defaultPromptId, conversationPrompts, currentPrompt } = useSystemPromptStore.getState();
+                    
+                    // Get active conversation ID from Redux store - we still need this for now
+                    // We could potentially move this to Zustand as well in the future
+                    const state = (window as any).store.getState();
+                    const currentConversationId = state.conversations.activeConversationId;
+                    
                     let promptToEdit = null;
 
-                    if (currentConversation) {
-                        // Try to get the conversation-specific prompt
-                        const promptId = state.systemPrompts.conversationPrompts[currentConversation];
+                    // First try to use the current prompt from the store
+                    if (currentPrompt) {
+                        promptToEdit = currentPrompt;
+                    }
+                    // Next try to find a conversation-specific prompt
+                    else if (currentConversationId) {
+                        const promptId = conversationPrompts[currentConversationId];
                         if (promptId) {
-                            promptToEdit = state.systemPrompts.prompts.find(p => p.guid === promptId);
+                            promptToEdit = prompts.find(p => p.guid === promptId);
                         }
                     }
-
-                    if (!promptToEdit) {
-                        // Fallback to default prompt
-                        promptToEdit = state.systemPrompts.prompts.find(p => p.guid === state.systemPrompts.defaultPromptId);
+                    
+                    // Fall back to default prompt
+                    if (!promptToEdit && defaultPromptId) {
+                        promptToEdit = prompts.find(p => p.guid === defaultPromptId);
                     }
-
-                    if (!promptToEdit && state.systemPrompts.prompts.length > 0) {
-                        // Just take the first prompt if nothing else is available
-                        promptToEdit = state.systemPrompts.prompts[0];
+                    
+                    // Last resort: just use the first prompt
+                    if (!promptToEdit && prompts.length > 0) {
+                        promptToEdit = prompts[0];
                     }
 
                     if (promptToEdit) {
@@ -89,10 +98,13 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
 
 // This function registers each system prompt as a command so users can quickly apply them
 export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
-    const systemPrompts = store.getState().systemPrompts.prompts;
-    const defaultPromptId = store.getState().systemPrompts.defaultPromptId;
+    // Unregister any previous prompt commands to avoid duplicates
+    commandRegistry.unregisterCommandGroup('system-prompts-list');
+    
+    // Get prompts from Zustand store
+    const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
 
-    const promptCommands = systemPrompts.map(prompt => ({
+    const promptCommands = prompts.map(prompt => ({
         id: `apply-system-prompt-${prompt.guid}`,
         name: `Apply Prompt: ${prompt.title}`,
         description: prompt.description || `Apply the "${prompt.title}" system prompt`,
@@ -104,7 +116,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
         }),
         execute: () => {
             // Set this prompt as the current prompt and open the library
-            store.dispatch(setCurrentPrompt(prompt));
+            setCurrentPrompt(prompt);
             toggleLibrary();
         }
     }));

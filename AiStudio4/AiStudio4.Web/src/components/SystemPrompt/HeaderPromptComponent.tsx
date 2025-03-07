@@ -1,13 +1,12 @@
 // src/components/SystemPrompt/HeaderPromptComponent.tsx
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronDown, ChevronUp, MessageSquare, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
-import { toggleLibrary, setConversationPrompt } from '@/store/systemPromptSlice';
+import { usePanelStore } from '@/stores/usePanelStore';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import {
     useGetSystemPromptsQuery,
     useUpdateSystemPromptMutation,
@@ -20,11 +19,17 @@ interface HeaderPromptComponentProps {
 }
 
 export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderPromptComponentProps) {
-    const dispatch = useDispatch();
-    const { defaultPromptId, conversationPrompts } = useSelector((state: RootState) => state.systemPrompts);
+    // Use Zustand stores
+    const { togglePanel } = usePanelStore();
+    const { 
+        prompts, 
+        defaultPromptId, 
+        conversationPrompts, 
+        setConversationPrompt 
+    } = useSystemPromptStore();
 
     // RTK Query hooks
-    const { data: prompts = [], isLoading: loading } = useGetSystemPromptsQuery();
+    const { data: serverPrompts = [], isLoading: loading } = useGetSystemPromptsQuery();
     const [updateSystemPrompt] = useUpdateSystemPromptMutation();
     const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
 
@@ -75,7 +80,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
         if (onOpenLibrary) {
             onOpenLibrary();
         } else {
-            dispatch(toggleLibrary(true));
+            togglePanel('systemPrompts');
         }
     };
 
@@ -116,11 +121,8 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                     promptId: currentPrompt.guid
                 }).unwrap();
 
-                // Also update the local state
-                dispatch(setConversationPrompt({
-                    conversationId,
-                    promptId: currentPrompt.guid
-                }));
+                // Also update the local state in Zustand
+                setConversationPrompt(conversationId, currentPrompt.guid);
             }
 
             setEditMode(false);

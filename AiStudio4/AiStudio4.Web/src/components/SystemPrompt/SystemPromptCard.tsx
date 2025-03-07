@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Edit, Copy, Star, Trash2 } from 'lucide-react';
 import { SystemPrompt } from '@/types/systemPrompt';
-import { useDispatch } from 'react-redux';
-import { setDefaultPromptId } from '@/store/systemPromptSlice';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,7 +26,9 @@ interface SystemPromptCardProps {
 }
 
 export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemPromptCardProps) {
-    const dispatch = useDispatch();
+    // Use Zustand store instead of Redux
+    const { setDefaultPromptId } = useSystemPromptStore();
+    
     const [expanded, setExpanded] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -39,8 +40,8 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
         if (!isDefault) {
             try {
                 await setDefaultSystemPrompt(prompt.guid).unwrap();
-                // Update local state
-                dispatch(setDefaultPromptId(prompt.guid));
+                // Update Zustand store
+                setDefaultPromptId(prompt.guid);
             } catch (error) {
                 console.error('Failed to set default prompt:', error);
             }

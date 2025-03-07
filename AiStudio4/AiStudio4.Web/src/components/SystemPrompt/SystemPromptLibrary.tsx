@@ -1,7 +1,5 @@
 // src/components/SystemPrompt/SystemPromptLibrary.tsx
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -12,6 +10,7 @@ import { SystemPrompt } from '@/types/systemPrompt';
 import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import {
     useGetSystemPromptsQuery,
     useSetConversationSystemPromptMutation
@@ -28,9 +27,17 @@ export function SystemPromptLibrary({
     isOpen,
     conversationId
 }: SystemPromptLibraryProps) {
-    const { defaultPromptId, conversationPrompts } = useSelector((state: RootState) => state.systemPrompts);
+    // Use Zustand store instead of Redux
+    const { 
+        prompts, 
+        defaultPromptId, 
+        conversationPrompts,
+        setPrompts,
+        setCurrentPrompt
+    } = useSystemPromptStore();
 
-    const { data: prompts = [], isLoading } = useGetSystemPromptsQuery(undefined, {
+    // RTK Query hooks
+    const { data: serverPrompts = [], isLoading } = useGetSystemPromptsQuery(undefined, {
         skip: !isOpen
     });
 
@@ -41,8 +48,15 @@ export function SystemPromptLibrary({
     const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
     const [activeTab, setActiveTab] = useState('all');
 
-    // Use Zustand panel store instead of context
+    // Use Zustand panel store
     const { togglePanel } = usePanelStore();
+    
+    // Sync server prompts to Zustand store
+    useEffect(() => {
+        if (serverPrompts && serverPrompts.length > 0) {
+            setPrompts(serverPrompts);
+        }
+    }, [serverPrompts, setPrompts]);
     
     const handleCloseLibrary = () => {
         togglePanel('systemPrompts');
@@ -64,6 +78,9 @@ export function SystemPromptLibrary({
     };
 
     const handleApplyPrompt = async (prompt: SystemPrompt) => {
+        // Set as current prompt in the store
+        setCurrentPrompt(prompt);
+        
         if (onApplyPrompt) {
             onApplyPrompt(prompt);
         }

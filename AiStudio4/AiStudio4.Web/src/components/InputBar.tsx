@@ -9,8 +9,7 @@ import { Mic, Send } from 'lucide-react';
 import { useSendMessageMutation } from '@/services/api/chatApi';
 import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
 import { useToolStore } from '@/stores/useToolStore';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 
 interface InputBarProps {
     selectedModel: string;
@@ -42,8 +41,8 @@ export function InputBar({
     // Use props if provided, otherwise use from store
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
-    // Get system prompts from Redux store
-    const { conversationPrompts, defaultPromptId, prompts } = useSelector((state: RootState) => state.systemPrompts);
+    // Get system prompts from Zustand store
+    const { conversationPrompts, defaultPromptId, prompts } = useSystemPromptStore();
 
     // Use the sendMessage mutation from RTK Query
     const [sendMessage, { isLoading }] = useSendMessageMutation();
