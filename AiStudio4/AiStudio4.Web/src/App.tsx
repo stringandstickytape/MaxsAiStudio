@@ -422,13 +422,9 @@ function AppContent() {
                     onTogglePinned={() => togglePanel('conversationTree')}
                 >
                     <ConversationTreeView
-                        key={`tree-${selectedConversationId}-${Date.now()}`} // Force re-render when id changes or is refreshed
+                        key={`tree-${selectedConversationId}-${Date.now()}`}
                         conversationId={selectedConversationId}
-                        messages={{
-                            id: selectedConversationId,
-                            text: "Root",
-                            children: buildMessageTree(store.getState().conversations.conversations[selectedConversationId]?.messages || [], false)
-                        }}
+                        messages={store.getState().conversations.conversations[selectedConversationId]?.messages || []}
                     />
                 </Panel>
             )}

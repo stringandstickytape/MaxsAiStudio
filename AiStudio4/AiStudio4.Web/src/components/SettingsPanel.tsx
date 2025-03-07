@@ -4,8 +4,6 @@ import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { SystemPromptLibrary } from './SystemPrompt/SystemPromptLibrary';
-import { ToolPanel } from './tools/ToolPanel';
 import { Model, ServiceProvider } from '@/types/settings';
 import {
     useGetModelsQuery,

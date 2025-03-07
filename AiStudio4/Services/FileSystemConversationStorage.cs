@@ -1,11 +1,14 @@
 using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
-using Newtonsoft.Json;
-using System.IO;
+using AiTool3.Conversations;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
@@ -35,9 +38,14 @@ namespace AiStudio4.Services
                     _logger.LogInformation("Creating new conversation with ID {ConversationId}", conversationId);
                     return new v4BranchedConversation(conversationId);
                 }
+
                 var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                 var json = await File.ReadAllTextAsync(path);
-                var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json,settings);
+                var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json, settings);
+
+                // Rebuild relationships to ensure Children collections are populated correctly
+                RebuildRelationships(conversation);
+
                 _logger.LogDebug("Loaded conversation {ConversationId}", conversationId);
                 return conversation;
             }
@@ -53,14 +61,14 @@ namespace AiStudio4.Services
             try
             {
                 if (conversation == null) throw new ArgumentNullException(nameof(conversation));
-                
+
                 var path = Path.Combine(_basePath, $"{conversation.ConversationId}.json");
                 var json = JsonConvert.SerializeObject(conversation, new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                 });
-                
+
                 await File.WriteAllTextAsync(path, json);
                 _logger.LogDebug("Saved conversation {ConversationId}", conversation.ConversationId);
             }
@@ -74,7 +82,7 @@ namespace AiStudio4.Services
         public async Task<IEnumerable<v4BranchedConversation>> GetAllConversations()
         {
             var conversationsWithDates = new List<(v4BranchedConversation Conversation, DateTime FileDate)>();
-            foreach (var file in Directory.GetFiles(_basePath, "conv_*.json"))
+            foreach (var file in Directory.GetFiles(_basePath, "*.json"))
             {
                 try
                 {
@@ -82,12 +90,18 @@ namespace AiStudio4.Services
                     var fileInfo = new FileInfo(file);
                     var json = await File.ReadAllTextAsync(file);
                     var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json, settings);
+
                     if (conversation != null)
+                    {
+                        // Rebuild relationships to ensure Children collections are populated correctly
+                        RebuildRelationships(conversation);
                         conversationsWithDates.Add((conversation, fileInfo.LastWriteTime));
+                    }
                 }
                 catch (Exception ex)
                 {
-                    // Log error and continue
+                    _logger.LogError(ex, "Error loading conversation from {File}", file);
+                    // Continue with next file
                 }
             }
 
@@ -99,19 +113,59 @@ namespace AiStudio4.Services
 
         public async Task<v4BranchedConversation> FindConversationByMessageId(string messageId)
         {
-            var conversations = await GetAllConversations();
-            return conversations.FirstOrDefault(c => ContainsMessage(c, messageId));
+            try
+            {
+                var conversations = await GetAllConversations();
+                return conversations.FirstOrDefault(c => ContainsMessage(c, messageId));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding conversation by message ID {MessageId}", messageId);
+                throw new ConversationStorageException($"Failed to find conversation containing message {messageId}", ex);
+            }
         }
 
         private bool ContainsMessage(v4BranchedConversation conversation, string messageId)
         {
-            bool SearchMessage(v4BranchedConversationMessage message)
+            // Flatten the message hierarchy and check for the message ID
+            return GetAllMessages(conversation.MessageHierarchy)
+                .Any(m => m.Id == messageId);
+        }
+
+        private List<v4BranchedConversationMessage> GetAllMessages(List<v4BranchedConversationMessage> messages)
+        {
+            var result = new List<v4BranchedConversationMessage>();
+            foreach (var message in messages)
             {
-                if (message.Id == messageId) return true;
-                return message.Children.Any(SearchMessage);
+                result.Add(message);
+                if (message.Children.Any())
+                {
+                    result.AddRange(GetAllMessages(message.Children));
+                }
+            }
+            return result;
+        }
+
+        private void RebuildRelationships(v4BranchedConversation conversation)
+        {
+            // Get all messages in a flat list
+            var allMessages = GetAllMessages(conversation.MessageHierarchy);
+
+            // Clear all Children collections
+            foreach (var message in allMessages)
+            {
+                message.Children.Clear();
             }
 
-            return conversation.MessageHierarchy.Any(SearchMessage);
+            // Rebuild Children collections based on ParentId
+            foreach (var message in allMessages.Where(m => !string.IsNullOrEmpty(m.ParentId)))
+            {
+                var parent = allMessages.FirstOrDefault(m => m.Id == message.ParentId);
+                if (parent != null)
+                {
+                    parent.Children.Add(message);
+                }
+            }
         }
     }
 }

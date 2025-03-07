@@ -1,6 +1,7 @@
 import { store } from '@/store/store';
 import { addMessage, createConversation, setActiveConversation } from '@/store/conversationSlice';
 import { Message } from '@/types/conversation';
+import { MessageGraph } from '@/utils/messageGraph';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -21,11 +22,11 @@ export class WebSocketService {
     private reconnectAttempts: number = 0;
     private maxReconnectAttempts: number = 5;
     private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-    
+
     // Subscription management
     private subscribers: Map<string, Set<MessageHandler>> = new Map();
     private connectionStatusSubscribers: Set<(status: WebSocketConnectionStatus) => void> = new Set();
-    
+
     constructor() {
         // Bind methods to ensure 'this' context is preserved
         this.connect = this.connect.bind(this);
@@ -48,7 +49,7 @@ export class WebSocketService {
         this.socket.addEventListener('message', this.handleMessage);
         this.socket.addEventListener('error', this.handleError);
         this.socket.addEventListener('close', this.handleClose);
-        
+
         console.log('WebSocket connection attempt initiated');
     }
 
@@ -60,11 +61,11 @@ export class WebSocketService {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
         }
-        
+
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.close();
         }
-        
+
         this.connected = false;
         this.notifyConnectionStatusChange();
     }
@@ -179,13 +180,13 @@ export class WebSocketService {
         this.socket = null;
         this.connected = false;
         this.notifyConnectionStatusChange();
-        
+
         // Attempt to reconnect if not deliberately disconnected
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-            console.log(`Attempting to reconnect in ${delay/1000} seconds (attempt ${this.reconnectAttempts})`);
-            
+            console.log(`Attempting to reconnect in ${delay / 1000} seconds (attempt ${this.reconnectAttempts})`);
+
             this.reconnectTimeout = setTimeout(() => {
                 this.connect();
             }, delay);
@@ -211,7 +212,7 @@ export class WebSocketService {
             isConnected: this.connected,
             clientId: this.clientId
         };
-        
+
         this.connectionStatusSubscribers.forEach(handler => {
             try {
                 handler(status);
@@ -226,7 +227,7 @@ export class WebSocketService {
         const state = store.getState();
         const activeConversationId = state.conversations.activeConversationId;
         const selectedMessageId = state.conversations.selectedMessageId;
-        
+
         console.log('WebSocketService: Handling conversation message:', {
             activeConversationId,
             selectedMessageId,
@@ -236,15 +237,37 @@ export class WebSocketService {
         });
 
         if (activeConversationId) {
-            // Get the conversation to find the last message as parent
+            // Get the conversation
             const conversation = state.conversations.conversations[activeConversationId];
-            
-            // Use the explicitly specified parentId first, then the selectedMessageId from state,
-            // and finally fall back to the last message in the conversation
-            const parentId = content.parentId || 
-                             (content.source === 'user' ? selectedMessageId : null) || 
-                             conversation.messages[conversation.messages.length - 1]?.id || 
-                             null;
+
+            // Determine parentId - using explicit parentId from content first
+            let parentId = content.parentId;
+
+            // If no parentId specified but this is a user message, use selectedMessageId
+            if (!parentId && content.source === 'user') {
+                parentId = selectedMessageId;
+            }
+
+            // If still no parentId and there are messages, use the most appropriate parent
+            if (!parentId && conversation && conversation.messages.length > 0) {
+                // Use message graph to find the most appropriate parent
+                const graph = new MessageGraph(conversation.messages);
+
+                // For AI responses, set parent to the last user message if possible
+                if (content.source === 'ai') {
+                    // Find the most recent user message
+                    const userMessages = conversation.messages
+                        .filter(m => m.source === 'user')
+                        .sort((a, b) => b.timestamp - a.timestamp);
+
+                    if (userMessages.length > 0) {
+                        parentId = userMessages[0].id;
+                    } else {
+                        // Fall back to the last message
+                        parentId = conversation.messages[conversation.messages.length - 1].id;
+                    }
+                }
+            }
 
             console.log('WebSocketService: Message parentage determined:', {
                 finalParentId: parentId,
@@ -258,20 +281,19 @@ export class WebSocketService {
                     content: content.content,
                     source: content.source,
                     parentId: parentId,
-                    timestamp: Date.now(),
-                    children: []
+                    timestamp: Date.now()
                 },
                 // For AI responses, set the selectedMessageId to continue the same branch
                 // Only update the selectedMessageId if this is an AI response to ensure branch continuity
                 selectedMessageId: content.source === 'ai' ? content.id : undefined
             }));
         } else {
+            // If no active conversation, create a new one with this message as root
             const existingConversationId = Object.keys(state.conversations.conversations).find(
                 id => state.conversations.conversations[id].messages.some(m => m.id === content.id)
             );
             const conversationId = existingConversationId || `conv_${Date.now()}`;
 
-            // If no active conversation, treat as a new root message.
             store.dispatch(createConversation({
                 id: conversationId,
                 rootMessage: {
@@ -279,13 +301,15 @@ export class WebSocketService {
                     content: content.content,
                     source: content.source,
                     parentId: null, // It's a root message
-                    timestamp: content.timestamp || Date.now(),
-                    children: []
+                    timestamp: content.timestamp || Date.now()
                 }
             }));
 
-            //Set this new convo as active
-            store.dispatch(setActiveConversation({ conversationId, selectedMessageId: content.id }));
+            // Set this new conversation as active
+            store.dispatch(setActiveConversation({
+                conversationId,
+                selectedMessageId: content.id
+            }));
         }
     }
 
@@ -293,17 +317,22 @@ export class WebSocketService {
         const { conversationId, messages } = content;
         const urlParams = new URLSearchParams(window.location.search);
         const selectedMessageId = urlParams.get('messageId');
-        
-        console.log('Loading conversation:', { conversationId, messageCount: messages?.length, selectedMessageId });
+
+        console.log('Loading conversation:', {
+            conversationId,
+            messageCount: messages?.length,
+            selectedMessageId
+        });
+
         if (!messages || messages.length === 0) return;
 
-        // Find root message (message with no parent)
-        const rootMessage = messages.find((m: any) => !m.parentId) || messages[0];
+        // Use MessageGraph to analyze the message relationships
+        const graph = new MessageGraph(messages);
 
-        // Clear any existing conversations by resetting the state
-        // This ensures we start fresh when loading a historical conversation
-        const existingState = store.getState();
-        
+        // Find the root message - either the first with no parent or the first message
+        const rootMessages = graph.getRootMessages();
+        const rootMessage = rootMessages.length > 0 ? rootMessages[0] : messages[0];
+
         // Create new conversation with root message
         store.dispatch(createConversation({
             id: conversationId,
@@ -312,32 +341,35 @@ export class WebSocketService {
                 content: rootMessage.content,
                 source: rootMessage.source as 'user' | 'ai' | 'system',
                 parentId: null,
-                timestamp: rootMessage.timestamp || Date.now(),
-                children: []
+                timestamp: rootMessage.timestamp || Date.now()
             },
-            selectedMessageId // Include selected message ID in action
+            selectedMessageId
         }));
 
-        // Add remaining messages in order, preserving parent relationships
-        messages.slice(1).forEach((message: any) => {
-            store.dispatch(addMessage({
-                conversationId,
-                message: {
-                    id: message.id,
-                    content: message.content,
-                    source: message.source as 'user' | 'ai' | 'system',
-                    parentId: message.parentId,
-                    timestamp: message.timestamp || Date.now(),
-                    children: []
-                },
-                selectedMessageId // Include selected message ID in action
-            }));
-        });
-        
-        // Set this as the active conversation and track selected message
-        // When loading a historical conversation, always set the selectedMessageId
-        // This ensures we only see the relevant branch
-        store.dispatch(setActiveConversation({ 
+        // Add remaining messages in proper order (not roots)
+        const nonRootMessages = messages.filter(msg =>
+            msg.id !== rootMessage.id &&
+            (msg.parentId || graph.getMessagePath(msg.id).length > 1)
+        );
+
+        // Sort messages by timestamp to ensure parents are dispatched before children
+        nonRootMessages
+            .sort((a, b) => a.timestamp - b.timestamp)
+            .forEach((message) => {
+                store.dispatch(addMessage({
+                    conversationId,
+                    message: {
+                        id: message.id,
+                        content: message.content,
+                        source: message.source as 'user' | 'ai' | 'system',
+                        parentId: message.parentId,
+                        timestamp: message.timestamp || Date.now()
+                    }
+                }));
+            });
+
+        // Set active conversation and selected message
+        store.dispatch(setActiveConversation({
             conversationId,
             selectedMessageId: selectedMessageId || messages[messages.length - 1].id
         }));

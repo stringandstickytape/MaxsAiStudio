@@ -1,4 +1,5 @@
-﻿import { WebSocketState } from '@/types/websocket';
+﻿// Sidebar.tsx - revised solution
+import { WebSocketState } from '@/types/websocket';
 import { HistoricalConversationTreeList } from './HistoricalConversationTreeList';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
+import { usePanelStore } from '@/stores/usePanelStore';
 
 interface SidebarProps {
     wsState: WebSocketState;
@@ -15,12 +17,18 @@ interface SidebarProps {
 export function Sidebar({ wsState }: SidebarProps) {
     return (
         <div className="flex flex-col h-full">
-            <SidebarContent wsState={wsState} />
+            <SidebarContent
+                wsState={wsState}
+            />
         </div>
     );
 }
 
-function SidebarContent({ wsState }: { wsState: WebSocketState }) {
+function SidebarContent({
+    wsState
+}: {
+    wsState: WebSocketState;
+}) {
     const state = store.getState();
     const conversations = state.conversations.conversations;
 
@@ -37,14 +45,16 @@ function SidebarContent({ wsState }: { wsState: WebSocketState }) {
 
     return (
         <div className="flex flex-col h-[calc(100vh-10rem)]">
-            <Button
-                onClick={handleNewChat}
-                className="m-2 flex items-center gap-2 bg-[#374151] hover:bg-[#4B5563] text-gray-100 border-gray-600"
-                variant="outline"
-            >
-                <Plus className="h-4 w-4" />
-                New Chat
-            </Button>
+            <div className="p-2">
+                <Button
+                    onClick={handleNewChat}
+                    className="flex items-center gap-2 bg-[#374151] hover:bg-[#4B5563] text-gray-100 border-gray-600 w-full"
+                    variant="outline"
+                >
+                    <Plus className="h-4 w-4" />
+                    New Chat
+                </Button>
+            </div>
             <ScrollArea className="flex-1">
                 <HistoricalConversationTreeList />
             </ScrollArea>

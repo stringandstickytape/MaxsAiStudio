@@ -1,32 +1,32 @@
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
     public class ConversationService
     {
         private readonly IConversationStorage _conversationStorage;
-        private readonly IConversationTreeBuilder _treeBuilder;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ConversationService> _logger;
 
         public ConversationService(
             IConversationStorage conversationStorage,
-            IConversationTreeBuilder treeBuilder,
             IWebSocketNotificationService notificationService,
             ILogger<ConversationService> logger)
         {
             _conversationStorage = conversationStorage;
-            _treeBuilder = treeBuilder;
             _notificationService = notificationService;
             _logger = logger;
         }
-
-
 
         public async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject requestObject)
         {
@@ -40,12 +40,26 @@ namespace AiStudio4.Services
                     return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
                 }
 
-                var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
+                // Get all messages in a flat structure
+                var allMessages = conversation.GetAllMessages();
+
+                // Convert to the format expected by the client
+                var messagesForClient = allMessages.Select(msg => new {
+                    id = msg.Id,
+                    text = msg.UserMessage?.Length > 20
+                        ? msg.UserMessage.Substring(0, 20) + "..."
+                        : msg.UserMessage ?? "[Empty Message]",
+                    parentId = msg.ParentId,
+                    source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
+                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system"
+                }).ToList();
+
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
-                    treeData = tree,
-                    summary = conversation.Summary
+                    conversationId = conversation.ConversationId,
+                    summary = conversation.Summary ?? "Untitled Conversation",
+                    treeData = messagesForClient  // Flat structure with parentId references
                 });
             }
             catch (Exception ex)
@@ -61,44 +75,54 @@ namespace AiStudio4.Services
             {
                 // Get all conversations from storage
                 var conversations = await (_conversationStorage as FileSystemConversationStorage)?.GetAllConversations();
-                
+
                 if (conversations == null || !conversations.Any())
                 {
                     return JsonConvert.SerializeObject(new { success = true, conversations = new List<object>() });
                 }
 
-                // Build tree for each conversation
-                var conversationTrees = new List<object>();
+                // Build conversation metadata for each conversation
+                var conversationList = new List<object>();
                 foreach (var conversation in conversations)
                 {
                     try
                     {
                         if (conversation.MessageHierarchy?.Count > 0)
                         {
-                            var firstMessage = conversation.MessageHierarchy.First().Children?.FirstOrDefault();
-                            var summary = conversation.Summary ?? firstMessage?.UserMessage ?? "Untitled Conversation";
-                            
-                            conversationTrees.Add(new
+                            // Find the first non-system message to use as summary if needed
+                            var allMessages = conversation.GetAllMessages();
+                            var firstUserMessage = allMessages
+                                .Where(m => m.Role != v4BranchedConversationMessageRole.System)
+                                .OrderBy(m => m.Id)
+                                .FirstOrDefault();
+
+                            var summary = conversation.Summary ??
+                                (firstUserMessage?.UserMessage ?? "Untitled Conversation");
+
+                            // For each conversation, create an entry with just the metadata
+                            // No need to include full messages here
+                            conversationList.Add(new
                             {
                                 conversationId = conversation.ConversationId,
+                                convGuid = conversation.ConversationId,
                                 summary = summary.Length > 150 ? summary.Substring(0, 150) + "..." : summary,
+                                fileName = $"conv_{conversation.ConversationId}.json",
                                 lastModified = File.GetLastWriteTimeUtc(Path.Combine(
                                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                     "AiStudio4",
                                     "conversations",
-                                    $"{conversation.ConversationId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                treeData = _treeBuilder.BuildHistoricalConversationTree(conversation)
+                                    $"{conversation.ConversationId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                             });
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error building tree for conversation {ConversationId}", conversation.ConversationId);
+                        _logger.LogError(ex, "Error building metadata for conversation {ConversationId}", conversation.ConversationId);
                         // Continue with next conversation
                     }
                 }
 
-                return JsonConvert.SerializeObject(new { success = true, conversations = conversationTrees });
+                return JsonConvert.SerializeObject(new { success = true, conversations = conversationList });
             }
             catch (Exception ex)
             {

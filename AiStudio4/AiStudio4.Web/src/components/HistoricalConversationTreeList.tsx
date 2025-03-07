@@ -1,6 +1,9 @@
 ﻿import { useState, useEffect } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
+import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useDispatch } from 'react-redux';
+import { setActiveConversation, createConversation } from '@/store/conversationSlice';
 
 interface HistoricalConversation {
     convGuid: string;
@@ -21,6 +24,72 @@ export const HistoricalConversationTreeList = () => {
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    const handleNodeClick = async (nodeId: string, conversationId: string) => {
+        try {
+            // Fetch the full conversation data
+            const response = await fetch('/api/getConversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': webSocketService.getClientId() || ''
+                },
+                body: JSON.stringify({
+                    conversationId: conversationId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch conversation');
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.conversation && data.conversation.messages) {
+                // First create the conversation in the store
+                const messages = data.conversation.messages;
+                if (messages.length > 0) {
+                    // Find the root message
+                    const rootMessage = messages.find(msg => !msg.parentId) || messages[0];
+
+                    // Create the conversation with the root message
+                    dispatch(createConversation({
+                        id: conversationId,
+                        rootMessage: {
+                            id: rootMessage.id,
+                            content: rootMessage.content,
+                            source: rootMessage.source,
+                            parentId: null,
+                            timestamp: rootMessage.timestamp || Date.now()
+                        }
+                    }));
+
+                    // Add the rest of the messages
+                    const nonRootMessages = messages.filter(msg => msg.id !== rootMessage.id);
+                    for (const message of nonRootMessages) {
+                        dispatch(addMessage({
+                            conversationId,
+                            message: {
+                                id: message.id,
+                                content: message.content,
+                                source: message.source,
+                                parentId: message.parentId,
+                                timestamp: message.timestamp || Date.now()
+                            }
+                        }));
+                    }
+
+                    // Set the active conversation and selected message
+                    dispatch(setActiveConversation({
+                        conversationId,
+                        selectedMessageId: nodeId
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error loading conversation:', error);
+        }
+    };
 
     const handleNewHistoricalConversation = (conversation: HistoricalConversation) => {
         setConversations(prevConversations => {
@@ -49,7 +118,8 @@ export const HistoricalConversationTreeList = () => {
                 const response = await fetch('/api/getAllHistoricalConversationTrees', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-Client-Id': webSocketService.getClientId() || ''
                     },
                     body: JSON.stringify({})
                 });
@@ -87,11 +157,12 @@ export const HistoricalConversationTreeList = () => {
     // Function to fetch conversation tree data
     const fetchConversationTree = async (convId: string) => {
         try {
-            setTreeData([]);
+            setTreeData(null); // Clear previous data
             const response = await fetch('/api/historicalConversationTree', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': webSocketService.getClientId() || ''
                 },
                 body: JSON.stringify({
                     conversationId: convId
@@ -99,11 +170,51 @@ export const HistoricalConversationTreeList = () => {
             });
 
             const data = await response.json();
-            
-            setTreeData(data.treeData || []);
+
+            if (data.success && data.treeData) {
+                // Convert flat array to hierarchical tree structure
+                const flatNodes = data.treeData;
+                const nodeMap = new Map();
+
+                // First pass: create all nodes
+                flatNodes.forEach(node => {
+                    nodeMap.set(node.id, {
+                        id: node.id,
+                        text: node.text,
+                        children: []
+                    });
+                });
+
+                // Second pass: build the tree by connecting parents and children
+                let rootNode = null;
+                flatNodes.forEach(node => {
+                    const treeNode = nodeMap.get(node.id);
+
+                    if (!node.parentId) {
+                        // This is a root node
+                        rootNode = treeNode;
+                    } else if (nodeMap.has(node.parentId)) {
+                        // Add this node as a child of its parent
+                        const parentNode = nodeMap.get(node.parentId);
+                        parentNode.children.push(treeNode);
+                    }
+                });
+
+                // Set the tree data to the root node
+                if (rootNode) {
+                    setTreeData(rootNode);
+                } else if (flatNodes.length > 0) {
+                    // If no explicit root found, use the first node
+                    setTreeData(nodeMap.get(flatNodes[0].id));
+                } else {
+                    setTreeData(null);
+                }
+            } else {
+                setTreeData(null);
+            }
         } catch (error) {
             console.error('Error fetching conversation tree:', error);
-            setTreeData([]);
+            setTreeData(null);
         }
     };
 
@@ -156,10 +267,17 @@ export const HistoricalConversationTreeList = () => {
                     {
                         expandedConversation === conversation.convGuid && (
                             <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
-                                {treeData && <HistoricalConversationTree treeData={treeData} />}
+                                {treeData ?
+                                    <HistoricalConversationTree
+                                        treeData={treeData}
+                                        onNodeClick={(nodeId) => handleNodeClick(nodeId, expandedConversation!)}
+                                    /> :
+                                    <div className="text-sm text-gray-400">Loading conversation...</div>
+                                }
                             </div>
                         )
                     }
+
                 </div>
             ))}
         </div>

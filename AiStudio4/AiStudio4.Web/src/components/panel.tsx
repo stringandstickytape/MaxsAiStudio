@@ -73,10 +73,10 @@ export function Panel({
     bottom: `h-${size}`
   }[position];
 
-  const handleClose = () => {
-    close();
-    if (onClose) onClose();
-  };
+    const handleClose = () => {
+        if (onClose) onClose();
+        else close(); // Only call close if no onClose provided
+    };
 
   return (
     <div

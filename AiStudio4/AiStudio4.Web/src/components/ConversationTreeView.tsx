@@ -1,27 +1,28 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
-import ReactFlow, { Node, Edge, Position } from 'reactflow';
+import React, { useState, useEffect } from 'react';
+import ReactFlow, {
+    Node,
+    Edge,
+    Position,
+    MarkerType,
+    ReactFlowProvider,
+    Controls
+} from 'reactflow';
 import 'reactflow/dist/style.css';
+import { cn } from '@/lib/utils';
+import { store } from '@/store/store';
+import { setActiveConversation } from '@/store/conversationSlice';
+import { Message } from '@/types/conversation';
+import { MessageGraph } from '@/utils/messageGraph';
 
 interface TreeViewProps {
     conversationId: string;
-    messages: {
-        id: string;
-        text: string;
-        children: Array<{
-            id: string;
-            text: string;
-            children: any[];
-        }>;
-    };
+    messages: Message[];
 }
 
-import { store } from '@/store/store';
-import { setActiveConversation } from '@/store/conversationSlice';
-import { cn } from '@/lib/utils';
-
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, messages }) => {
+    const [nodes, setNodes] = useState<Node[]>([]);
+    const [edges, setEdges] = useState<Edge[]>([]);
+
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
         // Dispatch action to update active conversation and selected message
         console.log('Tree Node clicked:', {
@@ -33,134 +34,214 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, 
             selectedMessageId: node.id
         }));
     };
-    const [nodes, setNodes] = React.useState<Node[]>([]);
-    const [edges, setEdges] = React.useState<Edge[]>([]);
 
-    React.useEffect(() => {
-        console.log('Incoming messages data:', JSON.stringify(messages, null, 2));
-        if (!messages) return;
+    useEffect(() => {
+        console.log('Conversation tree building with message count:', messages.length);
+        if (!messages || messages.length === 0) return;
 
         try {
-            // Helper function to create a unique vertical layout
-            const createNodesAndEdges = (node: any, parentId: string | null = null, level = 0, index = 0, totalNodesAtLevel: Map<number, number>) => {
-                if (!node) return { nodes: [], edges: [] };
+            // Create a message graph from the messages
+            const graph = new MessageGraph(messages);
 
-                // Get total nodes at this level for centering
-                if (!totalNodesAtLevel.has(level)) {
-                    totalNodesAtLevel.set(level, 0);
-                }
-                const nodeIndex = totalNodesAtLevel.get(level)!;
-                totalNodesAtLevel.set(level, nodeIndex + 1);
+            // Call transformToReactFlow directly with the flat message array and relationships
+            const { nodes: flowNodes, edges: flowEdges } = transformToReactFlow(
+                graph.getAllMessages(),
+                graph
+            );
 
-                // Calculate position
-                const xSpacing = 280; // Horizontal spacing between nodes
-                const ySpacing = 150; // Increased vertical spacing between levels for top/bottom connections
-                const x = nodeIndex * xSpacing;
-                const y = level * ySpacing;
+            console.log('Tree transformation complete:', {
+                nodeCount: flowNodes.length,
+                edgeCount: flowEdges.length
+            });
 
-                // Determine if this is a user or AI message based on position in tree
-                const isUserMessage = level % 2 === 0;
-                
-                const currentNode: Node = {
-                    id: node.id,
-                    position: { x, y },
-                    data: { 
-                        label: (
-                            <div className="flex flex-col gap-1">
-                                <div className="text-xs font-semibold">{isUserMessage ? 'You' : 'AI'}</div>
-                                <div>{node.text?.substring(0, 30) + (node.text?.length > 30 ? '...' : '')}</div>
-                            </div>
-                        ) 
-                    },
-                    style: {
-                        background: isUserMessage ? '#1e40af' : '#4f46e5',
-                        color: '#ffffff',
-                        border: isUserMessage ? '1px solid #1e3a8a' : '1px solid #4338ca',
-                        borderRadius: '10px',
-                        padding: '12px',
-                        width: '180px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                        fontSize: '0.9rem',
-                    },
-                    sourcePosition: Position.Bottom,
-                    targetPosition: Position.Top
-                };
-
-                let nodes: Node[] = [currentNode];
-                let edges: Edge[] = [];
-
-                if (parentId) {
-                    edges.push({
-                        id: `${parentId}-${node.id}`,
-                        source: parentId,
-                        target: node.id,
-                        type: 'smoothstep',
-                        animated: true,
-                        style: { stroke: '#6b7280', strokeWidth: 2 }
-                    });
-                }
-
-                if (node.children) {
-                    const childrenArray = Array.isArray(node.children) ? node.children : [node.children];
-                    childrenArray.forEach((child: any, childIndex: number) => {
-                        if (child && child.id) {
-                            const childResults = createNodesAndEdges(
-                                child,
-                                node.id,
-                                level + 1,
-                                childIndex,
-                                totalNodesAtLevel
-                            );
-                            nodes = [...nodes, ...childResults.nodes];
-                            edges = [...edges, ...childResults.edges];
-                        }
-                    });
-                }
-
-                return { nodes, edges };
-            };
-
-            // Create a Map to track the number of nodes at each level
-            const totalNodesAtLevel = new Map<number, number>();
-            const { nodes: newNodes, edges: newEdges } = createNodesAndEdges(messages, null, 0, 0, totalNodesAtLevel);
-            setNodes(newNodes);
-            setEdges(newEdges);
-
+            setNodes(flowNodes);
+            setEdges(flowEdges);
         } catch (error) {
             console.error('Error creating tree visualization:', error);
         }
-
-    }, [messages]);
+    }, [messages, conversationId]);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-70px)] w-full">             
+        <div className="flex flex-col h-[calc(100vh-70px)] w-full">
             <div className={cn(
                 "flex-1 overflow-hidden",
-                !messages && "flex items-center justify-center"
+                !messages.length && "flex items-center justify-center"
             )}>
-                {!messages ? (
+                {!messages.length ? (
                     <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
                         <p>No conversation history to display</p>
                         <p className="text-sm mt-2 text-gray-500">Start a new conversation to see the tree view</p>
                     </div>
                 ) : (
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        fitView
-                        className="bg-[#111827]"
-                        minZoom={0.1}
-                        maxZoom={1.5}
-                        defaultZoom={0.8}
-                        attributionPosition="bottom-left"
-                        onNodeClick={onNodeClick}
-                        nodesDraggable={true}
-                        zoomOnScroll={true}
-                        panOnScroll={true}
-                        panOnDrag={true}
-                    />
+                    <ReactFlowProvider>
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            fitView
+                            className="bg-[#111827]"
+                            minZoom={0.1}
+                            maxZoom={1.5}
+                            defaultZoom={0.8}
+                            attributionPosition="bottom-left"
+                            onNodeClick={onNodeClick}
+                            nodesDraggable={true}
+                            zoomOnScroll={true}
+                            panOnScroll={true}
+                            panOnDrag={true}
+                        >
+                            <Controls />
+                        </ReactFlow>
+                    </ReactFlowProvider>
                 )}
             </div>
         </div>
     );
 };
+
+// Helper function that works directly with flat message arrays
+function transformToReactFlow(messages: Message[], graph: MessageGraph): { nodes: Node[]; edges: Edge[] } {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+
+    // Get root messages to establish top level
+    const rootMessages = graph.getRootMessages();
+
+    // Used to track node positions
+    const levelDepths: Map<string, number> = new Map();
+    const horizontalPositions: Map<string, number> = new Map();
+
+    // Calculate depth for each message using graph traversal
+    function calculateDepths() {
+        // Set depth 0 for root messages
+        rootMessages.forEach(root => {
+            levelDepths.set(root.id, 0);
+        });
+
+        // Process each message - if parent has depth, child has depth+1
+        let changed = true;
+        while (changed) {
+            changed = false;
+            messages.forEach(message => {
+                // Skip if no parent or depth already set
+                if (!message.parentId || levelDepths.has(message.id)) return;
+
+                // If parent has depth, set child depth
+                const parentDepth = levelDepths.get(message.parentId);
+                if (parentDepth !== undefined) {
+                    levelDepths.set(message.id, parentDepth + 1);
+                    changed = true;
+                }
+            });
+        }
+    }
+
+    // Assign horizontal positions to prevent overlaps
+    function assignHorizontalPositions() {
+        // Group messages by depth
+        const messagesByDepth: Map<number, Message[]> = new Map();
+
+        messages.forEach(message => {
+            const depth = levelDepths.get(message.id);
+            if (depth === undefined) return;
+
+            if (!messagesByDepth.has(depth)) {
+                messagesByDepth.set(depth, []);
+            }
+            messagesByDepth.get(depth)?.push(message);
+        });
+
+        // For each depth level, assign horizontal positions
+        const horizontalSpacing = 200;
+
+        messagesByDepth.forEach((messagesAtDepth, depth) => {
+            const levelWidth = messagesAtDepth.length * horizontalSpacing;
+            const startX = -levelWidth / 2;
+
+            messagesAtDepth.forEach((message, index) => {
+                horizontalPositions.set(message.id, startX + (index + 0.5) * horizontalSpacing);
+            });
+        });
+    }
+
+    // Calculate positions
+    calculateDepths();
+    assignHorizontalPositions();
+
+    // Create ReactFlow nodes
+    const verticalSpacing = 150;
+
+    messages.forEach(message => {
+        const depth = levelDepths.get(message.id);
+        const horizontalPos = horizontalPositions.get(message.id);
+
+        if (depth === undefined || horizontalPos === undefined) {
+            console.warn(`Missing position data for message ${message.id}`);
+            return;
+        }
+
+        // Determine if user or AI message based on the source
+        const isUserMessage = message.source === 'user';
+        const isSystemMessage = message.source === 'system';
+
+        // Create the node with appropriate styling
+        const newNode: Node = {
+            id: message.id,
+            type: 'default',
+            position: {
+                x: horizontalPos,
+                y: depth * verticalSpacing
+            },
+            data: {
+                label: (
+                    <div className="flex flex-col gap-1 max-w-[150px]">
+                        <div className="text-xs font-semibold">
+                            {isUserMessage ? 'You' : isSystemMessage ? 'System' : 'AI'}
+                        </div>
+                        <div className="text-sm truncate">
+                            {message.content?.substring(0, 30) + (message.content?.length > 30 ? '...' : '')}
+                        </div>
+                    </div>
+                )
+            },
+            style: {
+                background: isUserMessage ? '#1e40af' : isSystemMessage ? '#4B5563' : '#4f46e5',
+                color: '#ffffff',
+                border: isUserMessage ? '1px solid #1e3a8a' :
+                    isSystemMessage ? '1px solid #374151' : '1px solid #4338ca',
+                borderRadius: '10px',
+                padding: '12px',
+                width: '180px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                fontSize: '0.9rem',
+            },
+            sourcePosition: Position.Bottom,
+            targetPosition: Position.Top
+        };
+
+        nodes.push(newNode);
+    });
+
+    // Create edges based on parent-child relationships
+    messages.forEach(message => {
+        if (message.parentId) {
+            const edge: Edge = {
+                id: `${message.parentId}-${message.id}`,
+                source: message.parentId,
+                target: message.id,
+                type: 'smoothstep',
+                animated: true,
+                style: { stroke: '#6b7280', strokeWidth: 2 },
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    width: 15,
+                    height: 15,
+                    color: '#6b7280',
+                },
+            };
+
+            edges.push(edge);
+        }
+    });
+
+    return { nodes, edges };
+}

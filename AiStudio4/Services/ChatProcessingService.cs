@@ -1,16 +1,19 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
     public class ChatProcessingService
     {
         private readonly IConversationStorage _conversationStorage;
-        private readonly IConversationTreeBuilder _treeBuilder;
         private readonly IChatService _chatService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ChatProcessingService> _logger;
@@ -20,7 +23,6 @@ namespace AiStudio4.Services
 
         public ChatProcessingService(
             IConversationStorage conversationStorage,
-            IConversationTreeBuilder treeBuilder,
             IChatService chatService,
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
@@ -29,7 +31,6 @@ namespace AiStudio4.Services
             ISystemPromptService systemPromptService)
         {
             _conversationStorage = conversationStorage;
-            _treeBuilder = treeBuilder;
             _chatService = chatService;
             _notificationService = notificationService;
             _logger = logger;
@@ -53,7 +54,6 @@ namespace AiStudio4.Services
 
                 try
                 {
-                    //public List<string> ToolIds { get; set; } = new List<string>();
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
@@ -73,14 +73,14 @@ namespace AiStudio4.Services
                          (conversation.MessageHierarchy.Count == 0 || conversation.MessageHierarchy[0].Children.Count == 0);
 
                     var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
-                    
+
                     // Save the conversation system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
                     {
                         conversation.SystemPromptId = chatRequest.SystemPromptId;
                         await _systemPromptService.SetConversationSystemPromptAsync(chatRequest.ConversationId, chatRequest.SystemPromptId);
                     }
-                    
+
                     await _conversationStorage.SaveConversation(conversation);
 
                     await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
@@ -93,16 +93,20 @@ namespace AiStudio4.Services
                         Source = "user" // Explicitly set source as "user"
                     });
 
-                    var tree = _treeBuilder.BuildHistoricalConversationTree(conversation);
+                    // Replace tree builder with direct message processing for conversation list notification
+                    var messagesForClient = BuildFlatMessageStructure(conversation);
                     await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                     {
                         ConversationId = conversation.ConversationId,
-                        Summary = conversation.MessageHierarchy.First().Children[0].UserMessage ?? "",
+                        Summary = conversation.MessageHierarchy.First().Children.Count > 0
+                            ? conversation.MessageHierarchy.First().Children[0].UserMessage ?? ""
+                            : "New Conversation",
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        TreeData = tree
+                        TreeData = messagesForClient
                     });
 
-                    var messageHistory = _treeBuilder.GetMessageHistory(conversation, chatRequest.MessageId);
+                    // Get message history without tree builder
+                    var messageHistory = GetMessageHistory(conversation, chatRequest.MessageId);
                     chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
@@ -146,12 +150,13 @@ namespace AiStudio4.Services
                                         conversation.Summary = summary;
                                         await _conversationStorage.SaveConversation(conversation);
 
+                                        // Update client with the new summary, using our flat structure
                                         await _notificationService.NotifyConversationList(clientId, new ConversationListDto
                                         {
                                             ConversationId = conversation.ConversationId,
                                             Summary = summary,
                                             LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                            TreeData = _treeBuilder.BuildHistoricalConversationTree(conversation)
+                                            TreeData = BuildFlatMessageStructure(conversation)
                                         });
                                     }
                                 }
@@ -187,6 +192,61 @@ namespace AiStudio4.Services
                 _logger.LogError(ex, "Error handling chat request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
+        }
+
+        // Helper method to build flat message structure for client
+        private List<object> BuildFlatMessageStructure(v4BranchedConversation conversation)
+        {
+            var allMessages = conversation.GetAllMessages();
+
+            return allMessages.Select(msg => new {
+                id = msg.Id,
+                text = msg.UserMessage?.Length > 20
+                    ? msg.UserMessage.Substring(0, 20) + "..."
+                    : msg.UserMessage ?? "[Empty Message]",
+                parentId = msg.ParentId,
+                source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
+                        msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system"
+            }).ToList<object>();
+        }
+
+        // Helper method to get message history without using tree builder
+        private List<v4BranchedConversationMessage> GetMessageHistory(v4BranchedConversation conversation, string messageId)
+        {
+            var allMessages = conversation.GetAllMessages();
+            var path = new List<v4BranchedConversationMessage>();
+
+            // Find the target message
+            var currentMessage = allMessages.FirstOrDefault(m => m.Id == messageId);
+
+            // Build path from message to root
+            while (currentMessage != null)
+            {
+                // Add message to the beginning of the path (so we get root → leaf order)
+                path.Insert(0, CloneMessage(currentMessage));
+
+                // Stop if we've reached a message with no parent
+                if (string.IsNullOrEmpty(currentMessage.ParentId))
+                    break;
+
+                // Find the parent of the current message
+                currentMessage = allMessages.FirstOrDefault(m => m.Id == currentMessage.ParentId);
+            }
+
+            return path;
+        }
+
+        // Helper method to clone a message without children to avoid circular references
+        private v4BranchedConversationMessage CloneMessage(v4BranchedConversationMessage message)
+        {
+            return new v4BranchedConversationMessage
+            {
+                Id = message.Id,
+                UserMessage = message.UserMessage,
+                Role = message.Role,
+                ParentId = message.ParentId,
+                Children = new List<v4BranchedConversationMessage>() // Empty children list
+            };
         }
     }
 }

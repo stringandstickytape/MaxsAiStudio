@@ -23,11 +23,11 @@ namespace AiStudio4.AiServices
             base.ConfigureHttpClientHeaders(apiSettings);
             client.DefaultRequestHeaders.Add("x-api-key", ApiKey);
             client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-
+            
             if (apiSettings.UsePromptCaching)
                 client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
-
-            if (ApiModel == "claude-3-7-sonnet-latest")
+            
+            if (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest")
                 client.DefaultRequestHeaders.Add("anthropic-beta", "output-128k-2025-02-19");
         }
 
@@ -37,7 +37,7 @@ namespace AiStudio4.AiServices
             {
                 ["model"] = modelName,
                 ["system"] = conversation.systemprompt ?? "",
-                ["max_tokens"] = ApiModel == "claude-3-7-sonnet-latest" ? 64000 : 8192,
+                ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
                 ["stream"] = useStreaming,
                 ["temperature"] = apiSettings.Temperature,
             };
@@ -119,8 +119,8 @@ namespace AiStudio4.AiServices
             if (options.AddEmbeddings)
                 await AddEmbeddingsToRequest(req, options.Conversation, options.ApiSettings, options.MustNotUseEmbedding);
 
-            var json = JsonConvert.SerializeObject(req);
-            File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
+            var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
+            //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 

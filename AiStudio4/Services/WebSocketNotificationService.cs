@@ -1,9 +1,11 @@
 using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Models;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
@@ -40,7 +42,7 @@ namespace AiStudio4.Services
                             source = update.Source ?? "ai", // Use provided source or default to "ai"
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
-                            children = new string[] { }
+                            // Note: We're no longer sending children arrays to the client
                         }
                     };
                     await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
@@ -90,7 +92,7 @@ namespace AiStudio4.Services
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (conversations == null) throw new ArgumentNullException(nameof(conversations));
 
-                // Ensure treeData is properly structured with children as arrays
+                // Format matches client expectations for WebSocket messages
                 var message = new
                 {
                     messageType = "historicalConversationTree",
@@ -99,8 +101,8 @@ namespace AiStudio4.Services
                         convGuid = conversations.ConversationId,
                         summary = conversations.Summary,
                         fileName = $"conv_{conversations.ConversationId}.json",
-                        lastModified = conversations.LastModified,
-                        treeData = conversations.TreeData ?? new { id = conversations.ConversationId, text = "Root", children = new List<dynamic>() }
+                        lastModified = conversations.LastModified
+                        // No treeData here - it will be fetched separately when a conversation is expanded
                     }
                 };
 

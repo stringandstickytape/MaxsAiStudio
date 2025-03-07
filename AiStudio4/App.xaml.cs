@@ -53,7 +53,6 @@ namespace AiStudio4
 
             // Register core services
             services.AddSingleton<IConversationStorage, FileSystemConversationStorage>();
-            services.AddSingleton<IConversationTreeBuilder, DefaultConversationTreeBuilder>();
             services.AddSingleton<IChatService, OpenAIChatService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IToolService, ToolService>();
