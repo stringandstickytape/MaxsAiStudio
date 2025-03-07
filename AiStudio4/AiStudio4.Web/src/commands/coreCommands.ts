@@ -1,10 +1,9 @@
-﻿// src/commands/coreCommands.ts
-import { store } from '@/store/store';
+// src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
-import { createConversation } from '@/store/conversationSlice';
 import { registerCommandGroup } from './commandRegistry';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink } from 'lucide-react';
 import React from 'react';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 export function initializeCoreCommands(
     handlers: {
@@ -14,6 +13,8 @@ export function initializeCoreCommands(
         openNewWindow: () => void,
     }
 ) {
+    // Get Zustand store actions
+    const { createConversation } = useConversationStore.getState();
 
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
@@ -34,10 +35,10 @@ export function initializeCoreCommands(
                 execute: () => {
                     const conversationId = `conv_${uuidv4()}`;
                     const messageId = `msg_${Date.now()}`;
-                    store.dispatch(createConversation({
+                    createConversation({
                         id: conversationId,
                         rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
-                    }));
+                    });
                 }
             },
             {
@@ -48,15 +49,17 @@ export function initializeCoreCommands(
                 section: 'conversation',
                 icon: React.createElement(RefreshCw, { size: 16 }),
                 execute: () => {
-                    const activeConversationId = store.getState().conversations.activeConversationId;
+                    // Use the current store's state to get active conversation ID
+                    const { activeConversationId, createConversation } = useConversationStore.getState();
+                    
                     if (activeConversationId) {
                         const conversationId = `conv_${uuidv4()}`;
                         const messageId = `msg_${Date.now()}`;
 
-                        store.dispatch(createConversation({
+                        createConversation({
                             id: conversationId,
                             rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
-                        }));
+                        });
                     }
                 }
             }

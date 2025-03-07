@@ -1,6 +1,6 @@
-﻿// src/services/api/pinnedCommandsApi.ts
+// src/services/api/pinnedCommandsApi.ts
 import { baseApi } from './baseApi';
-import { PinnedCommand } from '@/store/pinnedCommandsSlice';
+import { PinnedCommand } from '@/stores/usePinnedCommandsStore';
 
 export const pinnedCommandsApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
