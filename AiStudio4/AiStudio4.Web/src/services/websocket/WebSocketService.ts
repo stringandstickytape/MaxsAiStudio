@@ -81,6 +81,20 @@ export class WebSocketService {
         }
     }
 
+    private dispatchCustomWebSocketEvent(eventName: string): void {
+        const event = new CustomEvent(eventName, {
+            detail: {
+                clientId: this.clientId,
+                timestamp: Date.now()
+            },
+            bubbles: true,
+            cancelable: true
+        });
+
+        window.dispatchEvent(event);
+        console.log(`Dispatched custom event: ${eventName}`);
+    }
+
     /**
      * Subscribe to a specific message type
      */
@@ -143,6 +157,9 @@ export class WebSocketService {
         this.connected = true;
         this.reconnectAttempts = 0;
         this.notifyConnectionStatusChange();
+
+        // Dispatch custom event
+        this.dispatchCustomWebSocketEvent('ws-connected');
     }
 
     private handleMessage = (event: MessageEvent): void => {
@@ -180,6 +197,9 @@ export class WebSocketService {
         this.socket = null;
         this.connected = false;
         this.notifyConnectionStatusChange();
+
+        // Dispatch custom event
+        this.dispatchCustomWebSocketEvent('ws-disconnected');
 
         // Attempt to reconnect if not deliberately disconnected
         if (this.reconnectAttempts < this.maxReconnectAttempts) {

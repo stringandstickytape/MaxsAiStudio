@@ -70,27 +70,27 @@ export function initializeCoreCommands(
         commands: [
             {
                 id: 'toggle-sidebar',
-                name: 'Toggle Conversation History',
+                name: 'Conversation History Toggle',
                 shortcut: shortcut('B'),
-                keywords: ['sidebar', 'menu', 'conversations', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show'],
+                keywords: ['sidebar', 'menu', 'conversations', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
                 section: 'view',
                 icon: React.createElement(Plus, { size: 16 }),
                 execute: handlers.toggleSidebar
             },
             {
                 id: 'toggle-conversation-tree',
-                name: 'Toggle Conversation Tree',
+                name: 'Conversation Tree Toggle',
                 shortcut: shortcut('T'),
-                keywords: ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conversation', 'flow', 'thread', 'graph'],
+                keywords: ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conversation', 'flow', 'thread', 'graph', 'toggle'],
                 section: 'view',
                 icon: React.createElement(GitBranch, { size: 16 }),
                 execute: handlers.toggleConversationTree
             },
             {
                 id: 'toggle-settings',
-                name: 'Toggle Settings Panel',
+                name: 'Settings Panel Toggle',
                 shortcut: shortcut(','),
-                keywords: ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust'],
+                keywords: ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'],
                 section: 'view',
                 icon: React.createElement(Settings, { size: 16 }),
                 execute: handlers.toggleSettings

@@ -13,6 +13,7 @@ namespace AiStudio4.Services
     {
         private readonly ILogger<PinnedCommandService> _logger;
         private readonly string _pinnedCommandsDirectory;
+        private readonly string _pinnedCommandsFilePath;
 
         public PinnedCommandService(ILogger<PinnedCommandService> logger)
         {
@@ -23,37 +24,31 @@ namespace AiStudio4.Services
                 "PinnedCommands");
 
             Directory.CreateDirectory(_pinnedCommandsDirectory);
-            _logger.LogInformation("Initialized pinned commands storage at {PinnedCommandsDirectory}", _pinnedCommandsDirectory);
+            _pinnedCommandsFilePath = Path.Combine(_pinnedCommandsDirectory, "pinnedCommands.json");
+            _logger.LogInformation("Initialized pinned commands storage at {PinnedCommandsFile}", _pinnedCommandsFilePath);
         }
 
         /// <inheritdoc />
-        public async Task<List<PinnedCommand>> GetPinnedCommandsAsync(string clientId)
+        public async Task<List<PinnedCommand>> GetPinnedCommandsAsync(string clientId = null)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
+                if (!File.Exists(_pinnedCommandsFilePath))
                 {
-                    throw new ArgumentException("Client ID cannot be empty", nameof(clientId));
-                }
-
-                var filePath = GetClientFilePath(clientId);
-                if (!File.Exists(filePath))
-                {
-                    _logger.LogDebug("No pinned commands file found for client {ClientId}", clientId);
+                    _logger.LogDebug("No pinned commands file found");
                     return new List<PinnedCommand>();
                 }
 
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await File.ReadAllTextAsync(_pinnedCommandsFilePath);
                 var pinnedCommands = JsonConvert.DeserializeObject<List<PinnedCommand>>(json);
 
-                _logger.LogDebug("Retrieved {Count} pinned commands for client {ClientId}",
-                    pinnedCommands?.Count ?? 0, clientId);
+                _logger.LogDebug("Retrieved {Count} pinned commands", pinnedCommands?.Count ?? 0);
 
                 return pinnedCommands ?? new List<PinnedCommand>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving pinned commands for client {ClientId}", clientId);
+                _logger.LogError(ex, "Error retrieving pinned commands");
                 throw;
             }
         }
@@ -63,38 +58,21 @@ namespace AiStudio4.Services
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    throw new ArgumentException("Client ID cannot be empty", nameof(clientId));
-                }
-
                 if (pinnedCommands == null)
                 {
                     pinnedCommands = new List<PinnedCommand>();
                 }
 
-                var filePath = GetClientFilePath(clientId);
                 var json = JsonConvert.SerializeObject(pinnedCommands, Formatting.Indented);
-                await File.WriteAllTextAsync(filePath, json);
+                await File.WriteAllTextAsync(_pinnedCommandsFilePath, json);
 
-                _logger.LogDebug("Saved {Count} pinned commands for client {ClientId}",
-                    pinnedCommands.Count, clientId);
+                _logger.LogDebug("Saved {Count} pinned commands", pinnedCommands.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving pinned commands for client {ClientId}", clientId);
+                _logger.LogError(ex, "Error saving pinned commands");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Gets the file path for a client's pinned commands
-        /// </summary>
-        private string GetClientFilePath(string clientId)
-        {
-            // Sanitize client ID to make sure it's safe for file system
-            var safeClientId = string.Join("_", clientId.Split(Path.GetInvalidFileNameChars()));
-            return Path.Combine(_pinnedCommandsDirectory, $"{safeClientId}.json");
         }
     }
 }
