@@ -1,13 +1,11 @@
-﻿// src/components/PinnedShortcuts.tsx
+// src/components/PinnedShortcuts.tsx
 import { useEffect, useRef, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronRight, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
-import { fetchPinnedCommands, savePinnedCommands } from '@/store/pinnedCommandsSlice';
+import { usePinnedCommandsStore, PinnedCommand } from '@/stores/usePinnedCommandsStore';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -44,8 +42,17 @@ export function PinnedShortcuts({
     maxShown = 12,
     className
 }: PinnedShortcutsProps) {
-    const dispatch = useDispatch();
-    const { pinnedCommands, loading, error } = useSelector((state: RootState) => state.pinnedCommands);
+    // Use Zustand store instead of Redux
+    const { 
+        pinnedCommands,
+        loading,
+        error, 
+        fetchPinnedCommands, 
+        addPinnedCommand, 
+        removePinnedCommand,
+        savePinnedCommands 
+    } = usePinnedCommandsStore();
+    
     const clientId = localStorage.getItem('clientId');
 
     // Track if we've initialized from the server
@@ -60,9 +67,9 @@ export function PinnedShortcuts({
     // Load pinned commands from server when component mounts or clientId changes
     useEffect(() => {
         if (clientId) {
-            dispatch(fetchPinnedCommands());
+            fetchPinnedCommands();
         }
-    }, [dispatch, clientId]);
+    }, [fetchPinnedCommands, clientId]);
 
     // Add a listener for WebSocket connection changes
     useEffect(() => {
@@ -70,7 +77,7 @@ export function PinnedShortcuts({
             // Only refetch if we've already loaded once (prevents double-loading on startup)
             if (wsConnectedRef.current && initialLoadComplete) {
                 console.log('WebSocket reconnected, refreshing pinned commands');
-                dispatch(fetchPinnedCommands());
+                fetchPinnedCommands();
             }
             wsConnectedRef.current = true;
         };
@@ -81,7 +88,7 @@ export function PinnedShortcuts({
         return () => {
             window.removeEventListener('ws-connected', handleWebSocketConnected);
         };
-    }, [dispatch, initialLoadComplete]);
+    }, [fetchPinnedCommands, initialLoadComplete]);
 
     // Set initialLoadComplete flag and update reference when commands change
     useEffect(() => {
@@ -116,11 +123,11 @@ export function PinnedShortcuts({
         // Debounce to prevent excessive API calls
         const saveTimer = setTimeout(() => {
             console.log('Saving user-modified pinned commands');
-            dispatch(savePinnedCommands(pinnedCommands));
+            savePinnedCommands();
         }, 1000);
 
         return () => clearTimeout(saveTimer);
-    }, [pinnedCommands, dispatch, loading, initialLoadComplete, userModified]);
+    }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, userModified]);
 
     // Override addPinnedCommand and removePinnedCommand to set userModified flag
     const handleCommandClick = (commandId: string) => {
@@ -132,9 +139,9 @@ export function PinnedShortcuts({
         // Set user modified flag
         setUserModified(true);
 
-        // Then perform the actual dispatch
+        // Then perform the actual store update
         if (isCurrentlyPinned) {
-            dispatch(removePinnedCommand(commandId));
+            removePinnedCommand(commandId);
         } else {
             // Get command details from registry
             const command = commandRegistry.getCommandById(commandId);
@@ -148,12 +155,12 @@ export function PinnedShortcuts({
                     }
                 }
 
-                dispatch(addPinnedCommand({
+                addPinnedCommand({
                     id: command.id,
                     name: command.name,
                     iconName,
                     section: command.section
-                }));
+                });
             }
         }
     };

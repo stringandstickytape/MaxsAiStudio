@@ -26,6 +26,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useModelStore } from '@/stores/useModelStore';
+import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
@@ -37,8 +38,7 @@ import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
 
-// Create an inner component that uses Redux hooks
-function AppContent() {
+function App() {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { isConnected, clientId } = useWebSocket();
     const wsState = { isConnected, clientId, messages: [] };
@@ -78,6 +78,14 @@ function AppContent() {
         selectPrimaryModel,
         selectSecondaryModel
     } = useModelStore();
+
+    // Initialize pinned commands to use Zustand's store
+    const { fetchPinnedCommands } = usePinnedCommandsStore();
+    
+    // Fetch pinned commands on component mount
+    useEffect(() => {
+        fetchPinnedCommands();
+    }, [fetchPinnedCommands]);
 
     // RTK Query hooks
     const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
@@ -562,13 +570,11 @@ function AppContent() {
     );
 }
 
-// Wrapper component that provides the Redux store
-function App() {
+// Wrap the entire app with Provider to support RTK Query
+export default function AppWithProvider() {
     return (
         <Provider store={store}>
-            <AppContent />
+            <App />
         </Provider>
     );
 }
-
-export default App;

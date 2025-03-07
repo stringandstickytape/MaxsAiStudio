@@ -1,14 +1,12 @@
-﻿// src/components/CommandBar.tsx
+// src/components/CommandBar.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
-import { addPinnedCommand, removePinnedCommand, savePinnedCommands } from '@/store/pinnedCommandsSlice';
-import { RootState } from '@/store/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 
 interface CommandBarProps {
     isOpen: boolean;
@@ -16,12 +14,18 @@ interface CommandBarProps {
 }
 
 export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
-    const dispatch = useDispatch();
+    // Use Zustand store instead of Redux
+    const { 
+        pinnedCommands, 
+        addPinnedCommand, 
+        removePinnedCommand, 
+        savePinnedCommands 
+    } = usePinnedCommandsStore();
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCommands, setFilteredCommands] = useState<CommandType[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
-    const pinnedCommands = useSelector((state: RootState) => state.pinnedCommands.pinnedCommands);
 
     // Update filtered commands whenever search term changes
     useEffect(() => {
@@ -105,13 +109,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         setIsOpen(false);
     };
 
-    const handlePinCommand = (e: React.MouseEvent, command: CommandType) => {
+    const handlePinCommand = async (e: React.MouseEvent, command: CommandType) => {
         e.stopPropagation();
 
         const isPinned = pinnedCommands.some(cmd => cmd.id === command.id);
 
         if (isPinned) {
-            dispatch(removePinnedCommand(command.id));
+            removePinnedCommand(command.id);
         } else {
             // Extract icon name from the command if it exists
             let iconName = undefined;
@@ -126,25 +130,16 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 }
             }
 
-            dispatch(addPinnedCommand({
+            addPinnedCommand({
                 id: command.id,
                 name: command.name,
                 iconName,
                 section: command.section
-            }));
+            });
         }
 
-        // Save changes to server (the thunk will handle the actual API call)
-        const updatedCommands = isPinned
-            ? pinnedCommands.filter(cmd => cmd.id !== command.id)
-            : [...pinnedCommands, {
-                id: command.id,
-                name: command.name,
-                iconName: command.icon?.type?.name || command.icon?.type?.displayName,
-                section: command.section
-            }];
-
-        dispatch(savePinnedCommands(updatedCommands));
+        // Save changes to server
+        await savePinnedCommands();
     };
 
     const groupedCommands = filteredCommands.reduce((acc, command) => {

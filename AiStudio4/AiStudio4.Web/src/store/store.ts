@@ -1,8 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
-import toolReducer from './toolSlice';
-import systemPromptReducer from './systemPromptSlice';
-import pinnedCommandsReducer from './pinnedCommandsSlice';
+// src/store/store.ts
 import { baseApi } from '@/services/api/baseApi';
+import { configureStore } from '@reduxjs/toolkit';
 
 // Initialize the client ID if it doesn't exist
 if (!localStorage.getItem('clientId')) {
@@ -11,23 +9,14 @@ if (!localStorage.getItem('clientId')) {
     console.log('Generated and stored new client ID:', clientId);
 }
 
+// We're only keeping the Redux store for RTK Query
+// All other state management has been migrated to Zustand
 export const store = configureStore({
     reducer: {
-        // conversationReducer has been removed - now using Zustand
-        tools: toolReducer,
-        systemPrompts: systemPromptReducer,
-        pinnedCommands: pinnedCommandsReducer,
         [baseApi.reducerPath]: baseApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-            serializableCheck: {
-                // Ignore these paths in the state
-                ignoredPaths: ['pinnedCommands.pinnedCommands'],
-                // Ignore these action types
-                ignoredActions: ['pinnedCommands/addPinnedCommand'],
-            },
-        }).concat(baseApi.middleware),
+        getDefaultMiddleware().concat(baseApi.middleware),
 });
 
 // For debugging in browser console
