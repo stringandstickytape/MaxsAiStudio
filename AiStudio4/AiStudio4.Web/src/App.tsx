@@ -119,6 +119,7 @@ function AppContent() {
     const settingsPanel = panels.settings || { isOpen: false, isPinned: false };
     const systemPromptsPanel = panels.systemPrompts || { isOpen: false, isPinned: false };
 
+
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
         openToolPanel: () => setIsToolPanelOpen(true),
@@ -392,21 +393,24 @@ function AppContent() {
             </div>
 
             {/* Sidebar Panel */}
-            <Panel 
+            <Panel
                 id="sidebar"
                 position="left"
                 size="80"
+                minWidth="300px"
+                maxWidth="360px"
+                width="320px"  // Fixed width
                 zIndex={40}
                 title="Conversations"
                 isOpen={sidebarPanel.isOpen}
                 isPinned={sidebarPanel.isPinned}
-                onClose={() => togglePanel('sidebar')}
-                onTogglePinned={() => togglePanel('sidebar')}
+            // No need for onClose or onTogglePinned - uses store functions by default
             >
                 <Sidebar
                     wsState={wsState}
                 />
             </Panel>
+
 
             {/* Conversation Tree Panel */}
             {selectedConversationId && (
