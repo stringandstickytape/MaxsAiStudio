@@ -60,20 +60,14 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                 {messageChain.map((message) => (
                     <div key={message.id} className="">
                         <div
-                            className={`px-4 mb-4 rounded inline-block cursor-pointer ${message.source === 'user' ? 'float-right bg-blue-800' : 'float-left bg-gray-800'} ${message.id === activeMessageId ? 'ring-2 ring-blue-500' : ''} clear-both`}
-                            onClick={() => {
-                                store.dispatch(setActiveConversation({
-                                    conversationId: activeConversationId,
-                                    selectedMessageId: message.id
-                                }));
-                            }}
+                            className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} ${message.id === activeMessageId ? 'ring-2 ring-blue-500' : ''} clear-both`}
                         >
                             <MarkdownPane message={message.content} />
                         </div>
                     </div>
                 ))}
                 {streamTokens.length > 0 && (
-                    <div className="p-4 mb-4 rounded bg-gray-800 float-left clear-both break-words whitespace-normal w-full">
+                    <div className="p-4 mb-4 rounded bg-gray-800  clear-both break-words whitespace-normal w-full">
                         {streamTokens.map((token, index) => (
                             <LiveStreamToken key={index} token={token} />
                         ))}

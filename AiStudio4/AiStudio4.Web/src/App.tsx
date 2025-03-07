@@ -422,9 +422,6 @@ function AppContent() {
                     title="Conversation Tree"
                     isOpen={conversationTreePanel.isOpen}
                     isPinned={conversationTreePanel.isPinned}
-                // Remove these two lines:
-                // onClose={() => togglePanel('conversationTree')}
-                // onTogglePinned={() => togglePanel('conversationTree')}
                 >
                     <ConversationTreeView
                         key={`tree-${selectedConversationId}-${Date.now()}`}
@@ -443,8 +440,6 @@ function AppContent() {
                 title="Settings"
                 isOpen={settingsPanel.isOpen}
                 isPinned={settingsPanel.isPinned}
-                onClose={() => togglePanel('settings')}
-                onTogglePinned={() => togglePanel('settings')}
             >
                 <SettingsPanel
                     isOpen={true}
@@ -460,8 +455,6 @@ function AppContent() {
                 title="System Prompts"
                 isOpen={systemPromptsPanel.isOpen}
                 isPinned={systemPromptsPanel.isPinned}
-                onClose={() => togglePanel('systemPrompts')}
-                onTogglePinned={() => togglePanel('systemPrompts')}
             >
                 <SystemPromptLibrary
                     isOpen={true}

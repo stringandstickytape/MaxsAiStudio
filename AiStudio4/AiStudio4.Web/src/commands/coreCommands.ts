@@ -70,7 +70,7 @@ export function initializeCoreCommands(
         commands: [
             {
                 id: 'toggle-sidebar',
-                name: 'Toggle Sidebar',
+                name: 'Toggle Conversation History',
                 shortcut: shortcut('B'),
                 keywords: ['sidebar', 'menu', 'conversations', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show'],
                 section: 'view',
