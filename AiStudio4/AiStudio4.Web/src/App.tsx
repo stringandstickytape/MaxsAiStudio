@@ -25,7 +25,7 @@ import { useVoiceInputState, setupVoiceInputKeyboardShortcut } from '@/commands/
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { ToolPanel } from './components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
-import { setTools } from '@/store/toolSlice';
+import { useToolStore } from '@/stores/useToolStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { setPrompts, setConversationPrompt } from './store/systemPromptSlice';
@@ -60,9 +60,12 @@ function AppContent() {
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
 
+    // Zustand tool store
+    const { setTools, setCategories, activeTools } = useToolStore();
+
     // RTK Query hooks
     const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
-    const { data: tools, isLoading: isToolsLoading } = useGetToolsQuery();
+    const { data: tools } = useGetToolsQuery();
     const { data: toolCategories } = useGetToolCategoriesQuery();
     const { data: systemPrompts, isLoading: isSystemPromptsLoading } = useGetSystemPromptsQuery();
     const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
@@ -119,6 +122,18 @@ function AppContent() {
     const settingsPanel = panels.settings || { isOpen: false, isPinned: false };
     const systemPromptsPanel = panels.systemPrompts || { isOpen: false, isPinned: false };
 
+    // Sync tools and categories with Zustand store
+    useEffect(() => {
+        if (tools) {
+            setTools(tools);
+        }
+    }, [tools, setTools]);
+
+    useEffect(() => {
+        if (toolCategories) {
+            setCategories(toolCategories);
+        }
+    }, [toolCategories, setCategories]);
 
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
@@ -207,13 +222,6 @@ function AppContent() {
             unsubscribeFromStore();
         };
     }, [models, togglePanel]);
-
-    // Update tools and categories in Redux state when they load from RTK Query
-    useEffect(() => {
-        if (tools) {
-            dispatch(setTools(tools));
-        }
-    }, [tools, dispatch]);
 
     // Update system prompts in Redux state when they load from RTK Query
     useEffect(() => {
@@ -388,6 +396,7 @@ function AppContent() {
                         onVoiceInputClick={() => setVoiceInputOpen(true)}
                         inputValue={inputValue}
                         onInputChange={setInputValue}
+                        activeTools={activeTools} // Pass activeTools from Zustand
                     />
                 </div>
             </div>

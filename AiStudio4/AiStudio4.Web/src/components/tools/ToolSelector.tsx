@@ -1,13 +1,11 @@
 // src/components/tools/ToolSelector.tsx
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Plus, Wrench } from 'lucide-react';
-import { addActiveTool, removeActiveTool } from '@/store/toolSlice';
+import { useToolStore } from '@/stores/useToolStore';
 import { useGetToolsQuery } from '@/services/api/toolsApi';
 
 interface ToolSelectorProps {
@@ -15,17 +13,16 @@ interface ToolSelectorProps {
 }
 
 export function ToolSelector({ onManageTools }: ToolSelectorProps) {
-    const dispatch = useDispatch();
-    const { activeTools } = useSelector((state: RootState) => state.tools);
+    // Use Zustand store instead of Redux
+    const { activeTools, addActiveTool, removeActiveTool } = useToolStore();
     const { data: tools = [] } = useGetToolsQuery();
     const [open, setOpen] = useState(false);
 
     const handleToolToggle = (toolId: string, checked: boolean) => {
-        // Fix the duplicate dispatch calls
         if (checked) {
-            dispatch(addActiveTool(toolId));
+            addActiveTool(toolId);
         } else {
-            dispatch(removeActiveTool(toolId));
+            removeActiveTool(toolId);
         }
     };
 

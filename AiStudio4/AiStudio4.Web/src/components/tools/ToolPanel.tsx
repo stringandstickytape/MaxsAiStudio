@@ -1,7 +1,6 @@
 // src/components/tools/ToolPanel.tsx
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,9 +18,10 @@ import {
 
 interface ToolPanelProps {
   isOpen: boolean;
+  onClose?: () => void;
 }
 
-export function ToolPanel({ isOpen }: ToolPanelProps) {
+export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
   // RTK Query hooks
   const { data: tools = [], isLoading: toolsLoading, refetch: refetchTools } = useGetToolsQuery(undefined, {
     skip: !isOpen // Only fetch when panel is open
@@ -32,7 +32,23 @@ export function ToolPanel({ isOpen }: ToolPanelProps) {
   const [deleteTool, { isLoading: isDeleting }] = useDeleteToolMutation();
   const [importTools, { isLoading: isImporting }] = useImportToolsMutation();
   const [exportTools, { isLoading: isExporting }] = useExportToolsMutation();
+  
+  // Use Zustand store to sync tools and categories
+  const { setTools, setCategories } = useToolStore();
 
+  // Sync tools and categories with Zustand store when they change
+  useEffect(() => {
+    if (tools.length > 0) {
+      setTools(tools);
+    }
+  }, [tools, setTools]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      setCategories(categories);
+    }
+  }, [categories, setCategories]);
+  
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

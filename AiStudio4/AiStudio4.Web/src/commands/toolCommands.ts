@@ -3,7 +3,8 @@ import React from 'react';
 import { commandRegistry } from './commandRegistry';
 
 import { registerCommandGroup } from './commandRegistry';
-import { ToolSelector } from '@/components/tools/ToolSelector';
+import { Tool } from '@/types/toolTypes';
+import { useToolStore } from '@/stores/useToolStore';
 
 // Define some basic tool-related commands
 interface ToolCommandsConfig {
@@ -14,7 +15,6 @@ interface ToolCommandsConfig {
 }
 
 export function initializeToolCommands(config: ToolCommandsConfig) {
-
   // Register main tool commands group
   registerCommandGroup({
     id: 'tools',
@@ -68,7 +68,11 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
 }
 
 // Function to register each individual tool as a command
-export function registerToolsAsCommands(tools: any[], activeTools: string[], toggleTool: (toolId: string, activate: boolean) => void) {
+export function registerToolsAsCommands(
+  tools: Tool[], 
+  activeTools: string[], 
+  toggleTool: (toolId: string, activate: boolean) => void
+) {
   // First unregister any previous tool-specific commands
   commandRegistry.unregisterCommandGroup('tools-list');
   

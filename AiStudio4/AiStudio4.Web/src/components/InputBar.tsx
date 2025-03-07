@@ -3,25 +3,29 @@ import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversation } from '@/store/conversationSlice';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useDispatch } from 'react-redux';
 import { ToolSelector } from './tools/ToolSelector';
 import { Mic, Send } from 'lucide-react';
 import { useSendMessageMutation } from '@/services/api/chatApi';
 import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
+import { useToolStore } from '@/stores/useToolStore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
 interface InputBarProps {
     selectedModel: string;
     onVoiceInputClick?: () => void;
     inputValue?: string;
     onInputChange?: (value: string) => void;
+    activeTools?: string[]; // Optional override from parent
 }
 
 export function InputBar({
     selectedModel,
     onVoiceInputClick,
     inputValue,
-    onInputChange
+    onInputChange,
+    activeTools: activeToolsFromProps
 }: InputBarProps) {
     const dispatch = useDispatch();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -33,8 +37,12 @@ export function InputBar({
     const inputText = inputValue !== undefined ? inputValue : localInputText;
     const setInputText = onInputChange || setLocalInputText;
 
-    // Get active tools and system prompts from Redux store
-    const activeTools = useSelector((state: RootState) => state.tools.activeTools);
+    // Get active tools from Zustand store if not provided via props
+    const { activeTools: activeToolsFromStore } = useToolStore();
+    // Use props if provided, otherwise use from store
+    const activeTools = activeToolsFromProps || activeToolsFromStore;
+
+    // Get system prompts from Redux store
     const { conversationPrompts, defaultPromptId, prompts } = useSelector((state: RootState) => state.systemPrompts);
 
     // Use the sendMessage mutation from RTK Query
