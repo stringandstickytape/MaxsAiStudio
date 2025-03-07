@@ -1,5 +1,5 @@
 ﻿// src/components/PinnedShortcuts.tsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,9 @@ export function PinnedShortcuts({
     const { pinnedCommands, loading, error } = useSelector((state: RootState) => state.pinnedCommands);
     const clientId = localStorage.getItem('clientId');
 
+    // Use a ref to track the previous pinnedCommands state for comparison
+    const prevPinnedCommandsRef = useRef<string>('');
+
     // Load pinned commands from server when component mounts or clientId changes
     useEffect(() => {
         if (clientId) {
@@ -57,15 +60,26 @@ export function PinnedShortcuts({
 
     // Save pinned commands to server when they change
     useEffect(() => {
-        // Skip initial load or when loading from server
-        if (loading || pinnedCommands.length === 0) return;
+        // Skip initial load, when loading from server, or when there are no commands
+        if (loading || pinnedCommands.length === 0) {
+            return;
+        }
 
-        // Debounce to prevent excessive API calls
-        const saveTimer = setTimeout(() => {
-            dispatch(savePinnedCommands(pinnedCommands));
-        }, 1000);
+        // Create a stringified version for comparison
+        const currentPinnedCommandsString = JSON.stringify(pinnedCommands);
 
-        return () => clearTimeout(saveTimer);
+        // Only trigger save if the commands have actually changed
+        if (currentPinnedCommandsString !== prevPinnedCommandsRef.current) {
+            // Update ref with current value
+            prevPinnedCommandsRef.current = currentPinnedCommandsString;
+
+            // Debounce to prevent excessive API calls
+            const saveTimer = setTimeout(() => {
+                dispatch(savePinnedCommands(pinnedCommands));
+            }, 1000);
+
+            return () => clearTimeout(saveTimer);
+        }
     }, [pinnedCommands, dispatch, loading]);
 
     // Limit the number of displayed commands
