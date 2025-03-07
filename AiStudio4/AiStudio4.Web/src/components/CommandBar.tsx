@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
-import { addPinnedCommand, removePinnedCommand } from '@/store/pinnedCommandsSlice';
+import { addPinnedCommand, removePinnedCommand, savePinnedCommands } from '@/store/pinnedCommandsSlice';
 import { RootState } from '@/store/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -133,6 +133,18 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 section: command.section
             }));
         }
+
+        // Save changes to server (the thunk will handle the actual API call)
+        const updatedCommands = isPinned
+            ? pinnedCommands.filter(cmd => cmd.id !== command.id)
+            : [...pinnedCommands, {
+                id: command.id,
+                name: command.name,
+                iconName: command.icon?.type?.name || command.icon?.type?.displayName,
+                section: command.section
+            }];
+
+        dispatch(savePinnedCommands(updatedCommands));
     };
 
     const groupedCommands = filteredCommands.reduce((acc, command) => {

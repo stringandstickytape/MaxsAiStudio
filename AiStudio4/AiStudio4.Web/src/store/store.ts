@@ -5,6 +5,13 @@ import systemPromptReducer from './systemPromptSlice';
 import pinnedCommandsReducer from './pinnedCommandsSlice';
 import { baseApi } from '@/services/api/baseApi';
 
+// Initialize the client ID if it doesn't exist
+if (!localStorage.getItem('clientId')) {
+    const clientId = `client_${Math.random().toString(36).substring(2, 11)}`;
+    localStorage.setItem('clientId', clientId);
+    console.log('Generated and stored new client ID:', clientId);
+}
+
 export const store = configureStore({
     reducer: {
         conversations: conversationReducer,

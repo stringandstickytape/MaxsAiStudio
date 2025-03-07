@@ -57,6 +57,7 @@ namespace AiStudio4
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IToolService, ToolService>();
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
+            services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
 
             // Register application services
             services.AddSingleton<SettingsManager>();

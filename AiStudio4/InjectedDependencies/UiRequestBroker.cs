@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SharedClasses.Providers;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -17,8 +18,16 @@ namespace AiStudio4.InjectedDependencies
         private readonly ChatManager _chatManager;
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
+        private readonly IPinnedCommandService _pinnedCommandService;
 
-        public UiRequestBroker(IConfiguration configuration, SettingsManager settingsManager, WebSocketServer webSocketServer, ChatManager chatManager, IToolService toolService, ISystemPromptService systemPromptService)
+        public UiRequestBroker(
+            IConfiguration configuration,
+            SettingsManager settingsManager,
+            WebSocketServer webSocketServer,
+            ChatManager chatManager,
+            IToolService toolService,
+            ISystemPromptService systemPromptService,
+            IPinnedCommandService pinnedCommandService)
         {
             _configuration = configuration;
             _settingsManager = settingsManager;
@@ -26,6 +35,7 @@ namespace AiStudio4.InjectedDependencies
             _chatManager = chatManager;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
+            _pinnedCommandService = pinnedCommandService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -63,6 +73,8 @@ namespace AiStudio4.InjectedDependencies
                     "getConversationSystemPrompt" => await HandleGetConversationSystemPromptRequest(requestObject),
                     "setConversationSystemPrompt" => await HandleSetConversationSystemPromptRequest(requestObject),
                     "clearConversationSystemPrompt" => await HandleClearConversationSystemPromptRequest(requestObject),
+                    "pinnedCommands/get" => await HandleGetPinnedCommandsRequest(clientId, requestObject),
+                    "pinnedCommands/save" => await HandleSavePinnedCommandsRequest(clientId, requestObject),
                     "getConfig" => JsonConvert.SerializeObject(new
                     {
                         success = true,
@@ -248,6 +260,8 @@ namespace AiStudio4.InjectedDependencies
                 return SerializeError($"Error updating tool category: {ex.Message}");
             }
         }
+        
+
 
         private async Task<string> HandleDeleteToolCategoryRequest(JObject requestObject)
         {
@@ -308,6 +322,62 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error exporting tools: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Pinned Commands Request Handlers
+        private async Task<string> HandleGetPinnedCommandsRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var pinnedCommands = await _pinnedCommandService.GetPinnedCommandsAsync(clientId);
+                return JsonConvert.SerializeObject(new
+                {
+                    success = true,
+                    pinnedCommands
+                });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving pinned commands: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSavePinnedCommandsRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var pinnedCommands = requestObject["pinnedCommands"]?.ToObject<List<PinnedCommand>>();
+                if (pinnedCommands == null)
+                {
+                    return SerializeError("Pinned commands data is invalid");
+                }
+
+                await _pinnedCommandService.SavePinnedCommandsAsync(clientId, pinnedCommands);
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error saving pinned commands: {ex.Message}");
             }
         }
         #endregion
@@ -465,6 +535,8 @@ namespace AiStudio4.InjectedDependencies
                 return SerializeError($"Error clearing conversation system prompt: {ex.Message}");
             }
         }
+
+
         #endregion
     }
 }

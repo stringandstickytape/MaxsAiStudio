@@ -1,11 +1,13 @@
 ﻿// src/components/PinnedShortcuts.tsx
-import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronRight, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
+import { fetchPinnedCommands, savePinnedCommands } from '@/store/pinnedCommandsSlice';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -42,7 +44,29 @@ export function PinnedShortcuts({
     maxShown = 12,
     className
 }: PinnedShortcutsProps) {
-    const pinnedCommands = useSelector((state: RootState) => state.pinnedCommands.pinnedCommands);
+    const dispatch = useDispatch();
+    const { pinnedCommands, loading, error } = useSelector((state: RootState) => state.pinnedCommands);
+    const clientId = localStorage.getItem('clientId');
+
+    // Load pinned commands from server when component mounts or clientId changes
+    useEffect(() => {
+        if (clientId) {
+            dispatch(fetchPinnedCommands());
+        }
+    }, [dispatch, clientId]);
+
+    // Save pinned commands to server when they change
+    useEffect(() => {
+        // Skip initial load or when loading from server
+        if (loading || pinnedCommands.length === 0) return;
+
+        // Debounce to prevent excessive API calls
+        const saveTimer = setTimeout(() => {
+            dispatch(savePinnedCommands(pinnedCommands));
+        }, 1000);
+
+        return () => clearTimeout(saveTimer);
+    }, [pinnedCommands, dispatch, loading]);
 
     // Limit the number of displayed commands
     const visibleCommands = pinnedCommands.slice(0, maxShown);
@@ -66,6 +90,11 @@ export function PinnedShortcuts({
                 </div>
             </div>
         );
+    }
+
+    // Error state
+    if (error) {
+        console.error("Error with pinned commands:", error);
     }
 
     return (

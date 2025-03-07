@@ -72,6 +72,7 @@ namespace AiStudio4.InjectedDependencies
 
             // API requests
             app.MapPost("/api/{requestType}", HandleApiRequest);
+            app.MapPost("/api/{requestType}/{action}", HandleApiRequest);
 
             // Static files
             app.MapGet("/{*path}", _fileServer.HandleFileRequest);
@@ -86,7 +87,18 @@ namespace AiStudio4.InjectedDependencies
             {
                 var clientId = context.Request.Headers["X-Client-Id"].ToString();
 
+                // Get the request type from the route values
                 var requestType = context.Request.RouteValues["requestType"]?.ToString();
+
+                // Check if there's an action specified (for nested routes like pinnedCommands/get)
+                var action = context.Request.RouteValues["action"]?.ToString();
+
+                // Combine requestType and action if both are present
+                if (!string.IsNullOrEmpty(action))
+                {
+                    requestType = $"{requestType}/{action}";
+                }
+
                 using var reader = new StreamReader(context.Request.Body);
                 var requestData = await reader.ReadToEndAsync();
 
