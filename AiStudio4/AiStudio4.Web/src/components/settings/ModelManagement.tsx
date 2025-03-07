@@ -1,71 +1,86 @@
 // src/components/settings/ModelManagement.tsx
-import React, { useState } from 'react';
-import { Model, ServiceProvider } from '@/types/settings';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
-import {
-    useGetModelsQuery,
-    useAddModelMutation,
-    useUpdateModelMutation,
-    useDeleteModelMutation
-} from '@/services/api/settingsApi';
+import { Model } from '@/types/settings';
+import { useModelStore } from '@/stores/useModelStore';
 
 interface ModelManagementProps {
-    providers: ServiceProvider[];
+    providers: any[]; // We'll still get providers as props for now
 }
 
 export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) => {
+    // Use Zustand store
+    const { 
+        models, 
+        loading: isLoading, 
+        error: storeError,
+        addModel, 
+        updateModel, 
+        deleteModel, 
+        setError 
+    } = useModelStore();
+
     const [editingModel, setEditingModel] = useState<Model | null>(null);
     const [addOpen, setAddOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
-    const [deleteModel, setDeleteModel] = useState<Model | null>(null);
+    const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setLocalError] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // RTK Query hooks
-    const { data: models = [], isLoading, refetch } = useGetModelsQuery();
-    const [addModel, { isLoading: isAdding }] = useAddModelMutation();
-    const [updateModel, { isLoading: isUpdating }] = useUpdateModelMutation();
-    const [deleteModelMutation, { isLoading: isDeleting }] = useDeleteModelMutation();
+    // Combine errors from store and local state
+    const displayError = error || storeError;
 
-    const processing = isAdding || isUpdating || isDeleting;
+    // Clear error when dialog closes
+    useEffect(() => {
+        if (!addOpen && !editOpen && !deleteOpen) {
+            setLocalError(null);
+            setError(null);
+        }
+    }, [addOpen, editOpen, deleteOpen, setError]);
 
     const handleAddModel = async (modelData: Omit<Model, 'guid'>) => {
-        setError(null);
+        setIsProcessing(true);
+        setLocalError(null);
         try {
-            await addModel(modelData).unwrap();
+            await addModel(modelData);
             setAddOpen(false);
-            refetch();
         } catch (err: any) {
-            setError(err?.data?.error || err?.message || 'Failed to add model');
+            setLocalError(err?.message || 'Failed to add model');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleUpdateModel = async (modelData: Model) => {
-        setError(null);
+        setIsProcessing(true);
+        setLocalError(null);
         try {
-            await updateModel(modelData).unwrap();
+            await updateModel(modelData);
             setEditOpen(false);
-            refetch();
         } catch (err: any) {
-            setError(err?.data?.error || err?.message || 'Failed to update model');
+            setLocalError(err?.message || 'Failed to update model');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleDeleteModelConfirm = async () => {
-        if (!deleteModel) return;
+        if (!modelToDelete) return;
 
-        setError(null);
+        setIsProcessing(true);
+        setLocalError(null);
         try {
-            await deleteModelMutation(deleteModel.guid).unwrap();
+            await deleteModel(modelToDelete.guid);
             setDeleteOpen(false);
-            setDeleteModel(null);
-            refetch();
         } catch (err: any) {
-            setError(err?.data?.error || err?.message || 'Failed to delete model');
+            setLocalError(err?.message || 'Failed to delete model');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -122,7 +137,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                                     to: model.color || '#4f46e5'
                                 }}
                             />
-                            <CardHeader className="pb-2  pt-4 px-4">
+                            <CardHeader className="pb-2 pt-4 px-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
                                         <div>
@@ -150,7 +165,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                                             size="icon"
                                             className="text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
                                             onClick={() => {
-                                                setDeleteModel(model);
+                                                setModelToDelete(model);
                                                 setDeleteOpen(true);
                                             }}
                                         >
@@ -201,15 +216,15 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                     <DialogHeader>
                         <DialogTitle className="text-gray-100">Add New Model</DialogTitle>
                     </DialogHeader>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     <ModelForm
                         providers={providers}
                         onSubmit={handleAddModel}
-                        isProcessing={processing}
+                        isProcessing={isProcessing}
                     />
                 </DialogContent>
             </Dialog>
@@ -220,9 +235,9 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                     <DialogHeader>
                         <DialogTitle className="text-gray-100">Edit Model</DialogTitle>
                     </DialogHeader>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     {editingModel && (
@@ -230,7 +245,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                             key={`edit-model-form-${editingModel.guid}`}
                             providers={providers}
                             onSubmit={handleUpdateModel}
-                            isProcessing={processing}
+                            isProcessing={isProcessing}
                             initialValues={editingModel}
                         />
                     )}
@@ -244,19 +259,19 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                         <DialogTitle className="text-gray-100">Confirm Deletion</DialogTitle>
                     </DialogHeader>
                     <div className="py-4 text-gray-200">
-                        Are you sure you want to delete the model <strong>{deleteModel?.friendlyName}</strong>?
+                        Are you sure you want to delete the model <strong>{modelToDelete?.friendlyName}</strong>?
                         This action cannot be undone.
                     </div>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     <div className="flex justify-end space-x-2">
                         <Button
                             variant="outline"
                             onClick={() => setDeleteOpen(false)}
-                            disabled={processing}
+                            disabled={isProcessing}
                             className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
                         >
                             Cancel
@@ -264,10 +279,10 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) =
                         <Button
                             variant="destructive"
                             onClick={handleDeleteModelConfirm}
-                            disabled={processing}
+                            disabled={isProcessing}
                             className="bg-red-700 hover:bg-red-800 text-white border-red-900"
                         >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
+                            {isProcessing ? 'Deleting...' : 'Delete'}
                         </Button>
                     </div>
                 </DialogContent>

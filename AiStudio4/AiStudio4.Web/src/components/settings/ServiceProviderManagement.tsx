@@ -1,40 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ServiceProviderForm } from './ServiceProviderForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
+import { useModelStore } from '@/stores/useModelStore';
 
 interface ServiceProviderManagementProps {
     providers: ServiceProvider[];
-    onAddProvider: (provider: Omit<ServiceProvider, 'guid'>) => Promise<void>;
-    onUpdateProvider: (provider: ServiceProvider) => Promise<void>;
-    onDeleteProvider: (providerGuid: string) => Promise<void>;
 }
 
 export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps> = ({
-    providers,
-    onAddProvider,
-    onUpdateProvider,
-    onDeleteProvider
+    providers
 }) => {
+    // Use Zustand store
+    const {
+        addProvider,
+        updateProvider,
+        deleteProvider,
+        loading: storeLoading,
+        error: storeError,
+        setError
+    } = useModelStore();
+
     const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deleteConfirmProvider, setDeleteConfirmProvider] = useState<ServiceProvider | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setLocalError] = useState<string | null>(null);
+
+    // Combine errors and loading states
+    const displayError = error || storeError;
+
+    // Clear errors when dialogs close
+    useEffect(() => {
+        if (!isAddDialogOpen && !isEditDialogOpen && !isDeleteDialogOpen) {
+            setLocalError(null);
+            setError(null);
+        }
+    }, [isAddDialogOpen, isEditDialogOpen, isDeleteDialogOpen, setError]);
 
     const handleAddProvider = async (providerData: Omit<ServiceProvider, 'guid'>) => {
         setIsProcessing(true);
-        setError(null);
+        setLocalError(null);
         try {
-            await onAddProvider(providerData);
+            await addProvider(providerData);
             setIsAddDialogOpen(false);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add provider');
+            setLocalError(err instanceof Error ? err.message : 'Failed to add provider');
         } finally {
             setIsProcessing(false);
         }
@@ -42,12 +58,12 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
 
     const handleUpdateProvider = async (providerData: ServiceProvider) => {
         setIsProcessing(true);
-        setError(null);
+        setLocalError(null);
         try {
-            await onUpdateProvider(providerData);
+            await updateProvider(providerData);
             setIsEditDialogOpen(false);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to update provider');
+            setLocalError(err instanceof Error ? err.message : 'Failed to update provider');
         } finally {
             setIsProcessing(false);
         }
@@ -57,13 +73,13 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         if (!deleteConfirmProvider) return;
 
         setIsProcessing(true);
-        setError(null);
+        setLocalError(null);
         try {
-            await onDeleteProvider(deleteConfirmProvider.guid);
+            await deleteProvider(deleteConfirmProvider.guid);
             setIsDeleteDialogOpen(false);
             setDeleteConfirmProvider(null);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete provider');
+            setLocalError(err instanceof Error ? err.message : 'Failed to delete provider');
         } finally {
             setIsProcessing(false);
         }
@@ -101,8 +117,8 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {providers.map(provider => (
-                        <Card 
-                            key={provider.guid} 
+                        <Card
+                            key={provider.guid}
                             className="overflow-hidden bg-gray-800/80 border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm group"
                         >
                             <div
@@ -161,9 +177,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                     <DialogHeader>
                         <DialogTitle className="text-gray-100">Add New Provider</DialogTitle>
                     </DialogHeader>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     <ServiceProviderForm
@@ -179,9 +195,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                     <DialogHeader>
                         <DialogTitle className="text-gray-100">Edit Provider</DialogTitle>
                     </DialogHeader>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     {editingProvider && (
@@ -205,9 +221,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                         Are you sure you want to delete the provider <strong>{deleteConfirmProvider?.friendlyName}</strong>?
                         This action cannot be undone. Models associated with this provider may stop working.
                     </div>
-                    {error && (
+                    {displayError && (
                         <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-                            {error}
+                            {displayError}
                         </div>
                     )}
                     <div className="flex justify-end space-x-2">

@@ -25,6 +25,7 @@ import { useToolCommands } from '@/hooks/useToolCommands';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConversationStore } from '@/stores/useConversationStore';
+import { useModelStore } from '@/stores/useModelStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
@@ -36,19 +37,8 @@ import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
 
-// Define a type for model settings
-interface ModelSettings {
-    primary: string;
-    secondary: string;
-}
-
 // Create an inner component that uses Redux hooks
 function AppContent() {
-    const [models, setModels] = useState<string[]>([]);
-    const [modelSettings, setModelSettings] = useState<ModelSettings>({
-        primary: "Select Model",
-        secondary: "Select Model"
-    });
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { isConnected, clientId } = useWebSocket();
     const wsState = { isConnected, clientId, messages: [] };
@@ -60,7 +50,12 @@ function AppContent() {
     const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
 
     // Zustand stores
-    const { setTools, setCategories, activeTools } = useToolStore();
+    const { 
+        setTools, 
+        setCategories, 
+        activeTools 
+    } = useToolStore();
+    
     const { 
         prompts, 
         defaultPromptId, 
@@ -68,11 +63,21 @@ function AppContent() {
         setPrompts,
         setConversationPrompt 
     } = useSystemPromptStore();
+    
     const { 
         createConversation, 
         activeConversationId,
         conversations
     } = useConversationStore();
+    
+    const {
+        models,
+        setModels,
+        selectedPrimaryModel,
+        selectedSecondaryModel,
+        selectPrimaryModel,
+        selectSecondaryModel
+    } = useModelStore();
 
     // RTK Query hooks
     const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
@@ -205,8 +210,7 @@ function AppContent() {
 
         // Initialize model commands
         initializeModelCommands({
-            onModelSelect: handleModelSelect,
-            getAvailableModels: () => models
+            getAvailableModels: () => models.map(m => m.modelName)
         });
 
         // Initialize voice commands
@@ -238,13 +242,35 @@ function AppContent() {
     // Load models from config
     useEffect(() => {
         if (configData) {
-            setModels(configData.models || []);
+            // Set available models
+            if (configData.models && configData.models.length > 0) {
+                // Create model objects from config data
+                const modelObjects = configData.models.map(modelName => ({
+                    guid: uuidv4(),
+                    modelName,
+                    friendlyName: modelName,
+                    providerGuid: '', // Default value, will be updated later
+                    userNotes: '',
+                    additionalParams: '',
+                    input1MTokenPrice: 0,
+                    output1MTokenPrice: 0,
+                    color: '#4f46e5',
+                    starred: false,
+                    supportsPrefill: false
+                }));
+                
+                setModels(modelObjects);
+            }
 
-            // Set both models at once using the new state structure
-            setModelSettings({
-                primary: configData.defaultModel && configData.defaultModel.length > 0 ? configData.defaultModel : "Select Model",
-                secondary: configData.secondaryModel && configData.secondaryModel.length > 0 ? configData.secondaryModel : "Select Model"
-            });
+            // Set primary model if available
+            if (configData.defaultModel && configData.defaultModel.length > 0) {
+                selectPrimaryModel(configData.defaultModel);
+            }
+            
+            // Set secondary model if available
+            if (configData.secondaryModel && configData.secondaryModel.length > 0) {
+                selectSecondaryModel(configData.secondaryModel);
+            }
 
             // Create initial conversation if needed
             if (!activeConversationId) {
@@ -259,13 +285,14 @@ function AppContent() {
                 });
             }
         }
-    }, [configData, activeConversationId, createConversation]);
+    }, [configData, activeConversationId, createConversation, setModels, selectPrimaryModel, selectSecondaryModel]);
 
     const handleModelSelect = (modelType: ModelType, modelName: string) => {
-        setModelSettings(prev => ({
-            ...prev,
-            [modelType]: modelName
-        }));
+        if (modelType === 'primary') {
+            selectPrimaryModel(modelName);
+        } else {
+            selectSecondaryModel(modelName);
+        }
 
         // When model changes, create command for quick access
         const commandId = `select-${modelType}-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -277,10 +304,11 @@ function AppContent() {
                 keywords: ['model', 'select', modelType, modelName],
                 section: 'model',
                 execute: () => {
-                    setModelSettings(prev => ({
-                        ...prev,
-                        [modelType]: modelName
-                    }));
+                    if (modelType === 'primary') {
+                        selectPrimaryModel(modelName);
+                    } else {
+                        selectSecondaryModel(modelName);
+                    }
                 }
             });
         }
@@ -370,9 +398,9 @@ function AppContent() {
                 <div className="flex-none h-[140px] bg-background">
                     <AppHeader
                         isMobile={isMobile}
-                        selectedModel={modelSettings.primary}
-                        secondaryModel={modelSettings.secondary}
-                        models={models}
+                        selectedModel={selectedPrimaryModel}
+                        secondaryModel={selectedSecondaryModel}
+                        models={models.map(m => m.modelName)}
                         onToggleSidebar={() => togglePanel('sidebar')}
                         onModelSelect={(model) => handleModelSelect('primary', model)}
                         onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
@@ -400,7 +428,7 @@ function AppContent() {
                 {/* Bottom input bar - fixed height */}
                 <div className="flex-none h-[30vh] bg-background border-t">
                     <InputBar
-                        selectedModel={modelSettings.primary}
+                        selectedModel={selectedPrimaryModel}
                         onVoiceInputClick={() => setVoiceInputOpen(true)}
                         inputValue={inputValue}
                         onInputChange={setInputValue}

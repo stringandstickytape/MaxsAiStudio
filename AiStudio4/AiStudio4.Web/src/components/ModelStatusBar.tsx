@@ -1,4 +1,4 @@
-﻿// src/components/ModelStatusBar.tsx
+// src/components/ModelStatusBar.tsx
 import { Info, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -8,22 +8,22 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useModelStore } from '@/stores/useModelStore';
 
 interface ModelStatusBarProps {
-    primaryModel: string;
-    secondaryModel: string;
     onPrimaryClick?: () => void;
     onSecondaryClick?: () => void;
     orientation?: 'horizontal' | 'vertical';
 }
 
 export function ModelStatusBar({
-    primaryModel,
-    secondaryModel,
     onPrimaryClick,
     onSecondaryClick,
     orientation = 'horizontal'
 }: ModelStatusBarProps) {
+    // Use Zustand store
+    const { selectedPrimaryModel, selectedSecondaryModel } = useModelStore();
+    
     const isVertical = orientation === 'vertical';
 
     return (
@@ -46,7 +46,7 @@ export function ModelStatusBar({
                         >
                             <Zap className="h-3.5 w-3.5 text-blue-300" />
                             <span className="truncate">
-                                {primaryModel !== "Select Model" ? primaryModel : "Select Model"}
+                                {selectedPrimaryModel !== "Select Model" ? selectedPrimaryModel : "Select Model"}
                             </span>
                         </Button>
                     </TooltipTrigger>
@@ -71,7 +71,7 @@ export function ModelStatusBar({
                         >
                             <Info className="h-3.5 w-3.5 text-purple-300" />
                             <span className="truncate">
-                                {secondaryModel !== "Select Model" ? secondaryModel : "Select Model"}
+                                {selectedSecondaryModel !== "Select Model" ? selectedSecondaryModel : "Select Model"}
                             </span>
                         </Button>
                     </TooltipTrigger>
