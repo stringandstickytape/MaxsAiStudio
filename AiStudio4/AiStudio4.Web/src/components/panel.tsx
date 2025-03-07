@@ -1,162 +1,171 @@
-// src/components/panel.tsx
-import React, { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
+import { usePanelStore } from '@/stores/usePanelStore';
+import { PanelPosition, PanelState } from '@/types/ui';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { X, Pin, PinOff } from 'lucide-react';
-import { PanelPosition } from '@/types/ui';
-import { usePanelStore } from '@/stores/usePanelStore';
+import { X, Pin } from 'lucide-react';
 
 interface PanelProps {
     id: string;
     children: ReactNode;
-    title: string;
     position: PanelPosition;
     size?: string;
     minWidth?: string;
     maxWidth?: string;
+    width?: string;
     minHeight?: string;
     maxHeight?: string;
-    width?: string;
     height?: string;
     zIndex?: number;
+    title?: string;
     isOpen?: boolean;
     isPinned?: boolean;
-    onClose?: () => void;
     className?: string;
-    headerClassName?: string;
-    bodyClassName?: string;
-    showCloseButton?: boolean;
-    showPinButton?: boolean;
+    onClose?: () => void;
+    onTogglePinned?: () => void;
 }
 
-export function Panel({
+export const Panel = ({
     id,
     children,
-    title,
-    position = 'right',
-    size = '80',
-    minWidth = '300px',
-    maxWidth = '480px',
-    minHeight = '200px',
-    maxHeight = '100vh',
+    position,
+    size = '300px',
+    minWidth,
+    maxWidth,
     width,
+    minHeight,
+    maxHeight,
     height,
-    zIndex = 30,
+    zIndex = 40,
+    title,
     isOpen,
     isPinned,
-    onClose,
     className,
-    headerClassName,
-    bodyClassName,
-    showCloseButton = true,
-    showPinButton = true
-}: PanelProps) {
-    // Get the panel store functions for toggling
-    const { togglePanel, togglePinned } = usePanelStore();
+    onClose,
+    onTogglePinned
+}: PanelProps) => {
+    const panelStore = usePanelStore();
+    const { registerPanel, togglePanel, togglePinned, getPanelState } = panelStore;
+
+    // Register the panel with the store if not already registered
+    useEffect(() => {
+        // Create a panel state
+        const panelState: PanelState = {
+            id,
+            isOpen: isOpen || false,
+            isPinned: isPinned || false,
+            position,
+            size,
+            zIndex,
+            title: title || id
+        };
+
+        // Register the panel
+        registerPanel(panelState);
+    }, [id, isOpen, isPinned, position, size, zIndex, title, registerPanel]);
 
     // Get the panel state from the store
-    const panelState = usePanelStore(state => state.panels[id]);
+    const panelState = getPanelState(id);
 
-    // Use the prop values if provided, otherwise use values from the store
-    const isVisible = isOpen !== undefined ? isOpen : (panelState?.isOpen || false);
-    const isPinnedState = isPinned !== undefined ? isPinned : (panelState?.isPinned || false);
+    // If no panel state, don't render
+    if (!panelState) return null;
 
-    if (!isVisible) return null;
+    // Handle panel actions using the store if custom handlers are not provided
+    const handleClose = onClose || (() => togglePanel(id));
+    const handleTogglePinned = onTogglePinned || (() => togglePinned(id));
 
-    // Position-based styles
-    const positionStyles = {
-        left: 'fixed top-0 left-0 bottom-0 border-r',
-        right: 'fixed top-0 right-0 bottom-0 border-l',
-        top: 'fixed top-0 left-0 right-0 border-b',
-        bottom: 'fixed bottom-0 left-0 right-0 border-t'
-    }[position];
+    // If not open and not pinned, don't render
+    if (!panelState.isOpen && !panelState.isPinned) return null;
 
-    // Size-based styles (width for left/right, height for top/bottom)
-    const sizeStyles = {
-        left: `w-${size}`,
-        right: `w-${size}`,
-        top: `h-${size}`,
-        bottom: `h-${size}`
-    }[position];
-
-    const handleClose = () => {
-        if (onClose) {
-            onClose();
-        } else {
-            togglePanel(id);
-        }
-    };
-
-    const handleTogglePin = () => {
-        togglePinned(id);
-    };
-
-    // Prepare style object based on position and constraints
-    const panelStyle: React.CSSProperties = {};
-
-    if (position === 'left' || position === 'right') {
-        if (width) {
-            panelStyle.width = width;
-        } else {
-            panelStyle.minWidth = minWidth;
-            panelStyle.maxWidth = maxWidth;
-        }
-    } else {
-        if (height) {
-            panelStyle.height = height;
-        } else {
-            panelStyle.minHeight = minHeight;
-            panelStyle.maxHeight = maxHeight;
-        }
+    // Determine panel position styles
+    let positionStyles = {};
+    switch (position) {
+        case 'left':
+            positionStyles = {
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: width || size,
+                minWidth,
+                maxWidth,
+            };
+            break;
+        case 'right':
+            positionStyles = {
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: width || size,
+                minWidth,
+                maxWidth,
+            };
+            break;
+        case 'top':
+            positionStyles = {
+                top: 0,
+                left: 0,
+                right: 0,
+                height: height || size,
+                minHeight,
+                maxHeight,
+            };
+            break;
+        case 'bottom':
+            positionStyles = {
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: height || size,
+                minHeight,
+                maxHeight,
+            };
+            break;
     }
 
     return (
         <div
             className={cn(
-                positionStyles,
-                (position === 'left' || position === 'right') && !width ? sizeStyles : '',
-                (position === 'top' || position === 'bottom') && !height ? sizeStyles : '',
-                'bg-gray-900 border-gray-700/50 shadow-xl transition-all duration-300',
-                `z-${zIndex}`,
+                "fixed z-[var(--z-index)] bg-gray-900 border border-gray-700 flex flex-col",
+                panelState.isPinned ? "shadow-lg" : "shadow-xl",
                 className
             )}
-            style={panelStyle}
+            style={{
+                ...positionStyles,
+                '--z-index': panelState.zIndex,
+            } as React.CSSProperties}
         >
-            <div className={cn(
-                'flex justify-between p-3 border-b border-gray-700 bg-[#1f2937]',
-                headerClassName
-            )}>
-                <h2 className="text-gray-100 text-lg font-semibold flex items-center">{title}</h2>
-                <div className="flex space-x-2">
-                    {showPinButton && (
+            {/* Panel header */}
+            <div className="flex justify-between items-center p-3 border-b border-gray-700 bg-gray-800">
+                <h3 className="font-medium text-gray-100 flex-1 truncate">{panelState.title}</h3>
+                <div className="flex gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "h-8 w-8 text-gray-400 hover:text-gray-100",
+                            panelState.isPinned && "text-blue-400 hover:text-blue-300"
+                        )}
+                        onClick={handleTogglePinned}
+                    >
+                        <Pin className={cn("h-4 w-4", panelState.isPinned && "fill-blue-400")} />
+                    </Button>
+                    {!panelState.isPinned && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleTogglePin}
-                            className="text-gray-400 hover:text-gray-100"
-                        >
-                            {isPinnedState ? (
-                                <PinOff className="h-4 w-4" />
-                            ) : (
-                                <Pin className="h-4 w-4" />
-                            )}
-                        </Button>
-                    )}
-                    {showCloseButton && !isPinnedState && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-gray-100"
                             onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-100"
                         >
                             <X className="h-4 w-4" />
                         </Button>
                     )}
                 </div>
             </div>
-            <div className={cn('h-[calc(100%-3.5rem)] overflow-auto', bodyClassName)}>
+
+            {/* Panel content */}
+            <div className="flex-1 overflow-auto">
                 {children}
             </div>
         </div>
     );
-}
+};

@@ -1,14 +1,13 @@
-﻿// Sidebar.tsx - revised solution
+﻿// Sidebar.tsx - revised solution with Zustand
 import { WebSocketState } from '@/types/websocket';
 import { HistoricalConversationTreeList } from './HistoricalConversationTreeList';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus } from 'lucide-react';
-import { store } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
-import { createConversation } from '@/store/conversationSlice';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface SidebarProps {
     wsState: WebSocketState;
@@ -29,18 +28,17 @@ function SidebarContent({
 }: {
     wsState: WebSocketState;
 }) {
-    const state = store.getState();
-    const conversations = state.conversations.conversations;
+    const { createConversation } = useConversationStore();
 
     const handleNewChat = () => {
-        store.dispatch(createConversation({
+        createConversation({
             rootMessage: {
                 id: `msg_${uuidv4()}`,
                 content: '',
                 source: 'system',
                 timestamp: Date.now()
             }
-        }));
+        });
     };
 
     return (

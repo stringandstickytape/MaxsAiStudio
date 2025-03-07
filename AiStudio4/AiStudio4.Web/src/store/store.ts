@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-import conversationReducer from './conversationSlice';
 import toolReducer from './toolSlice';
 import systemPromptReducer from './systemPromptSlice';
 import pinnedCommandsReducer from './pinnedCommandsSlice';
@@ -14,7 +13,7 @@ if (!localStorage.getItem('clientId')) {
 
 export const store = configureStore({
     reducer: {
-        conversations: conversationReducer,
+        // conversationReducer has been removed - now using Zustand
         tools: toolReducer,
         systemPrompts: systemPromptReducer,
         pinnedCommands: pinnedCommandsReducer,

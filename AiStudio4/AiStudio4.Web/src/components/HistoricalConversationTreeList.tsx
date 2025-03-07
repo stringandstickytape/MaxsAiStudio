@@ -2,8 +2,7 @@
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
 import { webSocketService } from '@/services/websocket/WebSocketService';
-import { useDispatch } from 'react-redux';
-import { setActiveConversation, createConversation } from '@/store/conversationSlice';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface HistoricalConversation {
     convGuid: string;
@@ -24,6 +23,9 @@ export const HistoricalConversationTreeList = () => {
     const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
     const [treeData, setTreeData] = useState<TreeNode | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    // Use Zustand store
+    const { createConversation, addMessage, setActiveConversation } = useConversationStore();
 
     const handleNodeClick = async (nodeId: string, conversationId: string) => {
         try {
@@ -52,8 +54,8 @@ export const HistoricalConversationTreeList = () => {
                     // Find the root message
                     const rootMessage = messages.find(msg => !msg.parentId) || messages[0];
 
-                    // Create the conversation with the root message
-                    dispatch(createConversation({
+                    // Create the conversation with the root message using Zustand
+                    createConversation({
                         id: conversationId,
                         rootMessage: {
                             id: rootMessage.id,
@@ -62,12 +64,12 @@ export const HistoricalConversationTreeList = () => {
                             parentId: null,
                             timestamp: rootMessage.timestamp || Date.now()
                         }
-                    }));
+                    });
 
                     // Add the rest of the messages
                     const nonRootMessages = messages.filter(msg => msg.id !== rootMessage.id);
                     for (const message of nonRootMessages) {
-                        dispatch(addMessage({
+                        addMessage({
                             conversationId,
                             message: {
                                 id: message.id,
@@ -76,14 +78,14 @@ export const HistoricalConversationTreeList = () => {
                                 parentId: message.parentId,
                                 timestamp: message.timestamp || Date.now()
                             }
-                        }));
+                        });
                     }
 
                     // Set the active conversation and selected message
-                    dispatch(setActiveConversation({
+                    setActiveConversation({
                         conversationId,
                         selectedMessageId: nodeId
-                    }));
+                    });
                 }
             }
         } catch (error) {
@@ -129,7 +131,7 @@ export const HistoricalConversationTreeList = () => {
                 }
 
                 const data = await response.json();
-                
+
                 if (data.success && Array.isArray(data.conversations)) {
                     // Process and update state with the received conversations
                     const newConversations = data.conversations.map((conv: any) => ({
@@ -139,7 +141,7 @@ export const HistoricalConversationTreeList = () => {
                         lastModified: conv.lastModified || new Date().toISOString(),
                         highlightColour: undefined
                     }));
-                    
+
                     setConversations(newConversations);
                 }
             } catch (error) {
@@ -151,8 +153,6 @@ export const HistoricalConversationTreeList = () => {
 
         fetchAllHistoricalConversations();
     }, []);
-
-    // treeData state already declared above
 
     // Function to fetch conversation tree data
     const fetchConversationTree = async (convId: string) => {
@@ -217,9 +217,6 @@ export const HistoricalConversationTreeList = () => {
             setTreeData(null);
         }
     };
-
-
-
 
     return (
         <div className="flex flex-col space-y-2">

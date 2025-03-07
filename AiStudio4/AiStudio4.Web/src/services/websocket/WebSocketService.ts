@@ -1,7 +1,6 @@
-import { store } from '@/store/store';
-import { addMessage, createConversation, setActiveConversation } from '@/store/conversationSlice';
 import { Message } from '@/types/conversation';
 import { MessageGraph } from '@/utils/messageGraph';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -244,9 +243,9 @@ export class WebSocketService {
 
     // Message type handlers
     private handleConversationMessage(content: Message): void {
-        const state = store.getState();
-        const activeConversationId = state.conversations.activeConversationId;
-        const selectedMessageId = state.conversations.selectedMessageId;
+        // Get the Zustand conversation store
+        const conversationStore = useConversationStore.getState();
+        const { activeConversationId, selectedMessageId, addMessage, createConversation, setActiveConversation } = conversationStore;
 
         console.log('WebSocketService: Handling conversation message:', {
             activeConversationId,
@@ -258,7 +257,7 @@ export class WebSocketService {
 
         if (activeConversationId) {
             // Get the conversation
-            const conversation = state.conversations.conversations[activeConversationId];
+            const conversation = conversationStore.getConversation(activeConversationId);
 
             // Determine parentId - using explicit parentId from content first
             let parentId = content.parentId;
@@ -294,7 +293,7 @@ export class WebSocketService {
                 messageId: content.id
             });
 
-            store.dispatch(addMessage({
+            addMessage({
                 conversationId: activeConversationId,
                 message: {
                     id: content.id,
@@ -306,15 +305,12 @@ export class WebSocketService {
                 // For AI responses, set the selectedMessageId to continue the same branch
                 // Only update the selectedMessageId if this is an AI response to ensure branch continuity
                 selectedMessageId: content.source === 'ai' ? content.id : undefined
-            }));
+            });
         } else {
             // If no active conversation, create a new one with this message as root
-            const existingConversationId = Object.keys(state.conversations.conversations).find(
-                id => state.conversations.conversations[id].messages.some(m => m.id === content.id)
-            );
-            const conversationId = existingConversationId || `conv_${Date.now()}`;
+            const conversationId = `conv_${Date.now()}`;
 
-            store.dispatch(createConversation({
+            createConversation({
                 id: conversationId,
                 rootMessage: {
                     id: content.id,
@@ -323,13 +319,13 @@ export class WebSocketService {
                     parentId: null, // It's a root message
                     timestamp: content.timestamp || Date.now()
                 }
-            }));
+            });
 
             // Set this new conversation as active
-            store.dispatch(setActiveConversation({
+            setActiveConversation({
                 conversationId,
                 selectedMessageId: content.id
-            }));
+            });
         }
     }
 
@@ -346,6 +342,9 @@ export class WebSocketService {
 
         if (!messages || messages.length === 0) return;
 
+        // Get the Zustand store
+        const { createConversation, addMessage, setActiveConversation } = useConversationStore.getState();
+
         // Use MessageGraph to analyze the message relationships
         const graph = new MessageGraph(messages);
 
@@ -354,7 +353,7 @@ export class WebSocketService {
         const rootMessage = rootMessages.length > 0 ? rootMessages[0] : messages[0];
 
         // Create new conversation with root message
-        store.dispatch(createConversation({
+        createConversation({
             id: conversationId,
             rootMessage: {
                 id: rootMessage.id,
@@ -364,7 +363,7 @@ export class WebSocketService {
                 timestamp: rootMessage.timestamp || Date.now()
             },
             selectedMessageId
-        }));
+        });
 
         // Add remaining messages in proper order (not roots)
         const nonRootMessages = messages.filter(msg =>
@@ -376,7 +375,7 @@ export class WebSocketService {
         nonRootMessages
             .sort((a, b) => a.timestamp - b.timestamp)
             .forEach((message) => {
-                store.dispatch(addMessage({
+                addMessage({
                     conversationId,
                     message: {
                         id: message.id,
@@ -385,14 +384,14 @@ export class WebSocketService {
                         parentId: message.parentId,
                         timestamp: message.timestamp || Date.now()
                     }
-                }));
+                });
             });
 
         // Set active conversation and selected message
-        store.dispatch(setActiveConversation({
+        setActiveConversation({
             conversationId,
             selectedMessageId: selectedMessageId || messages[messages.length - 1].id
-        }));
+        });
     }
 
     private handleHistoricalConversationTreeMessage(content: any): void {

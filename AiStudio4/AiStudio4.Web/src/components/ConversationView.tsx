@@ -1,20 +1,16 @@
-import { useSelector } from 'react-redux';
-import { RootState, store } from '@/store/store';
-import { setActiveConversation } from '@/store/conversationSlice';
 import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { useEffect, useMemo } from 'react';
 import { Message } from '@/types/conversation';
 import { MessageGraph } from '@/utils/messageGraph';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface ConversationViewProps {
     streamTokens: string[]; // Receive the array of tokens
 }
 
 export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
-    const activeConversationId = useSelector((state: RootState) => state.conversations.activeConversationId);
-    const activeMessageId = useSelector((state: RootState) => state.conversations.selectedMessageId);
-    const conversations = useSelector((state: RootState) => state.conversations.conversations);
+    const { activeConversationId, selectedMessageId, conversations, getActiveConversation } = useConversationStore();
 
     // Get the message chain (active message plus its ancestors)
     const messageChain = useMemo(() => {
@@ -30,11 +26,11 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
         // Otherwise, if we have a selected message ID, use that as the starting point for the message chain
         const startingMessageId = streamTokens.length > 0 ?
             conversation.messages[conversation.messages.length - 1].id :
-            (activeMessageId || conversation.messages[conversation.messages.length - 1].id);
+            (selectedMessageId || conversation.messages[conversation.messages.length - 1].id);
 
         console.log('ConversationView: Building message chain from:', {
             startingMessageId,
-            activeMessageId,
+            selectedMessageId,
             streamActive: streamTokens.length > 0,
             messageCount: conversation.messages.length
         });
@@ -42,7 +38,7 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
         // Get the path from the starting message back to the root
         return graph.getMessagePath(startingMessageId);
 
-    }, [activeConversationId, activeMessageId, conversations, streamTokens.length]);
+    }, [activeConversationId, selectedMessageId, conversations, streamTokens.length]);
 
     useEffect(() => {
         console.log("Message chain updated with length:", messageChain.length);
@@ -60,7 +56,7 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                 {messageChain.map((message) => (
                     <div key={message.id} className="">
                         <div
-                            className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} ${message.id === activeMessageId ? 'ring-2 ring-blue-500' : ''} clear-both`}
+                            className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} ${message.id === selectedMessageId ? 'ring-2 ring-blue-500' : ''} clear-both`}
                         >
                             <MarkdownPane message={message.content} />
                         </div>

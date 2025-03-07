@@ -9,10 +9,9 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { cn } from '@/lib/utils';
-import { store } from '@/store/store';
-import { setActiveConversation } from '@/store/conversationSlice';
 import { Message } from '@/types/conversation';
 import { MessageGraph } from '@/utils/messageGraph';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface TreeViewProps {
     conversationId: string;
@@ -22,17 +21,18 @@ interface TreeViewProps {
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, messages }) => {
     const [nodes, setNodes] = useState<Node[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
+    const { setActiveConversation } = useConversationStore();
 
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
-        // Dispatch action to update active conversation and selected message
+        // Set active conversation and selected message
         console.log('Tree Node clicked:', {
             node: node.id,
             conversationId: conversationId
         });
-        store.dispatch(setActiveConversation({
+        setActiveConversation({
             conversationId: conversationId,
             selectedMessageId: node.id
-        }));
+        });
     };
 
     useEffect(() => {

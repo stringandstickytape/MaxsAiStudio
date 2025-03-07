@@ -1,11 +1,9 @@
 // src/App.tsx
 import { useState, useEffect } from "react";
-import { useDispatch } from 'react-redux';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
-import { createConversation } from './store/conversationSlice';
 import { AppHeader } from './components/AppHeader';
 import { ChatContainer } from './components/ChatContainer';
 import { InputBar } from './components/InputBar';
@@ -15,7 +13,6 @@ import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
-import { buildMessageTree } from '@/utils/treeUtils';
 import { commandRegistry } from './commands/commandRegistry';
 import { initializeCoreCommands } from './commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
@@ -27,6 +24,7 @@ import { ToolPanel } from './components/tools/ToolPanel';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
+import { useConversationStore } from '@/stores/useConversationStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
@@ -36,6 +34,7 @@ import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from
 import { ModelType } from '@/types/modelTypes';
 import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define a type for model settings
 interface ModelSettings {
@@ -60,10 +59,8 @@ function AppContent() {
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
 
-    // Zustand tool store
+    // Zustand stores
     const { setTools, setCategories, activeTools } = useToolStore();
-    
-    // Zustand system prompt store
     const { 
         prompts, 
         defaultPromptId, 
@@ -71,6 +68,11 @@ function AppContent() {
         setPrompts,
         setConversationPrompt 
     } = useSystemPromptStore();
+    const { 
+        createConversation, 
+        activeConversationId,
+        conversations
+    } = useConversationStore();
 
     // RTK Query hooks
     const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
@@ -168,8 +170,6 @@ function AppContent() {
         }
     });
 
-    const dispatch = useDispatch();
-
     // Voice input integration
     const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState(
         (text) => {
@@ -247,18 +247,19 @@ function AppContent() {
             });
 
             // Create initial conversation if needed
-            const conversationId = `conv_${Date.now()}`;
-            store.dispatch(createConversation({
-                id: conversationId,
-                rootMessage: {
-                    id: `msg_${Date.now()}`,
-                    content: '',
-                    source: 'system',
-                    timestamp: Date.now()
-                }
-            }));
+            if (!activeConversationId) {
+                createConversation({
+                    id: `conv_${Date.now()}`,
+                    rootMessage: {
+                        id: `msg_${uuidv4()}`,
+                        content: '',
+                        source: 'system',
+                        timestamp: Date.now()
+                    }
+                });
+            }
         }
-    }, [configData, dispatch]);
+    }, [configData, activeConversationId, createConversation]);
 
     const handleModelSelect = (modelType: ModelType, modelName: string) => {
         setModelSettings(prev => ({
@@ -287,53 +288,55 @@ function AppContent() {
 
     const handleToggleConversationTree = () => {
         // When opening the tree, use the active conversation ID
-        const state = store.getState();
-        const activeConversationId = state.conversations.activeConversationId;
         setSelectedConversationId(activeConversationId);
         console.log('Opening conversation tree with conversation ID:', activeConversationId);
         togglePanel('conversationTree');
     };
 
-    // Subscribe to Redux store to update the conversation tree when messages change
+    // Subscribe to Zustand store to update the conversation tree when messages change
     useEffect(() => {
         let lastMessagesLength = 0;
         let lastActiveConversation = '';
 
-        const unsubscribe = store.subscribe(() => {
-            const state = store.getState();
-            const activeConversationId = state.conversations.activeConversationId;
-
-            if (!activeConversationId || !selectedConversationId) return;
-
-            // Get current conversation messages
-            const conversation = state.conversations.conversations[activeConversationId];
-            if (!conversation) return;
-
-            const currentMessagesLength = conversation.messages.length;
-
-            // Only refresh when message count changes or active conversation changes
-            if (currentMessagesLength !== lastMessagesLength ||
-                activeConversationId !== lastActiveConversation) {
-
-                console.log('Redux store updated - conversation messages changed:', {
-                    oldCount: lastMessagesLength,
-                    newCount: currentMessagesLength,
-                    activeConversationId
-                });
-
-                // Force a refresh of the tree view by briefly setting to null and back
-                if (conversationTreePanel.isOpen) {
-                    setSelectedConversationId(null);
-                    setTimeout(() => {
-                        setSelectedConversationId(activeConversationId);
-                    }, 50);
+        // Set up subscription to conversation messages changes
+        const unsubscribe = useConversationStore.subscribe(
+            (state) => ({ 
+                activeId: state.activeConversationId, 
+                conversations: state.conversations 
+            }),
+            ({ activeId, conversations }) => {
+                if (!activeId || !selectedConversationId) return;
+                
+                // Get current conversation messages
+                const conversation = conversations[activeId];
+                if (!conversation) return;
+                
+                const currentMessagesLength = conversation.messages.length;
+                
+                // Only refresh when message count changes or active conversation changes
+                if (currentMessagesLength !== lastMessagesLength ||
+                    activeId !== lastActiveConversation) {
+                    
+                    console.log('Conversation store updated - conversation messages changed:', {
+                        oldCount: lastMessagesLength,
+                        newCount: currentMessagesLength,
+                        activeConversationId: activeId
+                    });
+                    
+                    // Force a refresh of the tree view by briefly setting to null and back
+                    if (conversationTreePanel.isOpen) {
+                        setSelectedConversationId(null);
+                        setTimeout(() => {
+                            setSelectedConversationId(activeId);
+                        }, 50);
+                    }
+                    
+                    // Update tracking variables
+                    lastMessagesLength = currentMessagesLength;
+                    lastActiveConversation = activeId;
                 }
-
-                // Update tracking variables
-                lastMessagesLength = currentMessagesLength;
-                lastActiveConversation = activeConversationId;
             }
-        });
+        );
 
         return () => unsubscribe();
     }, [conversationTreePanel.isOpen, selectedConversationId]);
@@ -382,7 +385,7 @@ function AppContent() {
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
                         sidebarPinned={sidebarPanel.isPinned}
                         rightSidebarPinned={conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned}
-                        activeConversationId={store.getState().conversations.activeConversationId}
+                        activeConversationId={activeConversationId}
                     />
                 </div>
 
@@ -440,7 +443,7 @@ function AppContent() {
                     <ConversationTreeView
                         key={`tree-${selectedConversationId}-${Date.now()}`}
                         conversationId={selectedConversationId}
-                        messages={store.getState().conversations.conversations[selectedConversationId]?.messages || []}
+                        messages={selectedConversationId && conversations[selectedConversationId]?.messages || []}
                     />
                 </Panel>
             )}
@@ -472,10 +475,10 @@ function AppContent() {
             >
                 <SystemPromptLibrary
                     isOpen={true}
-                    conversationId={store.getState().conversations.activeConversationId || undefined}
+                    conversationId={activeConversationId || undefined}
                     onApplyPrompt={(prompt) => {
                         console.log("App.tsx - Applying prompt:", prompt);
-                        const conversationId = store.getState().conversations.activeConversationId;
+                        const conversationId = activeConversationId;
 
                         // Check for guid in either camelCase or PascalCase
                         const promptId = prompt?.guid || prompt?.Guid;

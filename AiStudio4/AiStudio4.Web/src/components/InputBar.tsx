@@ -2,14 +2,13 @@
 import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
-import { createConversation } from '@/store/conversationSlice';
-import { useDispatch } from 'react-redux';
-import { ToolSelector } from './tools/ToolSelector';
 import { Mic, Send } from 'lucide-react';
 import { useSendMessageMutation } from '@/services/api/chatApi';
 import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
+import { useConversationStore } from '@/stores/useConversationStore';
+import { ToolSelector } from './tools/ToolSelector';
 
 interface InputBarProps {
     selectedModel: string;
@@ -26,7 +25,6 @@ export function InputBar({
     onInputChange,
     activeTools: activeToolsFromProps
 }: InputBarProps) {
-    const dispatch = useDispatch();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // If props are provided, use them, otherwise use local state
@@ -38,11 +36,20 @@ export function InputBar({
 
     // Get active tools from Zustand store if not provided via props
     const { activeTools: activeToolsFromStore } = useToolStore();
+    
     // Use props if provided, otherwise use from store
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
     // Get system prompts from Zustand store
     const { conversationPrompts, defaultPromptId, prompts } = useSystemPromptStore();
+    
+    // Get conversation state from Zustand store
+    const { 
+        activeConversationId, 
+        selectedMessageId,
+        createConversation,
+        getConversation 
+    } = useConversationStore();
 
     // Use the sendMessage mutation from RTK Query
     const [sendMessage, { isLoading }] = useSendMessageMutation();
@@ -95,8 +102,8 @@ export function InputBar({
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
         try {
-            const state = store.getState();
-            let conversationId = state.conversations.activeConversationId;
+            let conversationId = activeConversationId;
+            let parentMessageId = null;
 
             // Determine which system prompt to use
             let systemPromptId = null;
@@ -105,20 +112,32 @@ export function InputBar({
             // If no active conversation, create a new one
             if (!conversationId) {
                 conversationId = `conv_${uuidv4()}`;
-                dispatch(createConversation({
+                const messageId = `msg_${uuidv4()}`;
+                
+                // Create a new conversation in the Zustand store
+                createConversation({
                     id: conversationId,
                     rootMessage: {
-                        id: `msg_${uuidv4()}`,
+                        id: messageId,
                         content: '',
                         source: 'system',
                         timestamp: Date.now()
                     }
-                }));
+                });
+                
+                parentMessageId = messageId;
+            } else {
+                // Use the current selected message ID from the store
+                parentMessageId = selectedMessageId;
+                
+                // If still no parent ID, try to find the last message in the conversation
+                if (!parentMessageId) {
+                    const conversation = getConversation(conversationId);
+                    if (conversation && conversation.messages.length > 0) {
+                        parentMessageId = conversation.messages[conversation.messages.length - 1].id;
+                    }
+                }
             }
-
-            const parentMessageId = state.conversations.selectedMessageId ||
-                state.conversations.conversations[conversationId]?.messages[0]?.id ||
-                `msg_${uuidv4()}`;
 
             // Determine which system prompt to use for this conversation
             if (conversationId) {
@@ -132,6 +151,7 @@ export function InputBar({
                 }
             }
 
+            // Send the message using the chat API
             await sendMessage({
                 conversationId,
                 parentMessageId,
@@ -148,7 +168,19 @@ export function InputBar({
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    }, [selectedModel, setInputText, activeTools, conversationPrompts, defaultPromptId, prompts, sendMessage, dispatch]);
+    }, [
+        selectedModel, 
+        setInputText, 
+        activeTools, 
+        conversationPrompts, 
+        defaultPromptId, 
+        prompts, 
+        sendMessage, 
+        activeConversationId, 
+        selectedMessageId,
+        createConversation,
+        getConversation
+    ]);
 
     const handleSend = () => {
         if (inputText.trim() && !isLoading) {
