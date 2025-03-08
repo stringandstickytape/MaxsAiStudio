@@ -1,7 +1,5 @@
 // src/App.tsx
 import { useState, useEffect, useCallback } from "react";
-import { Provider } from 'react-redux';
-import { store } from './store/store';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
@@ -27,18 +25,19 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useModelStore } from '@/stores/useModelStore';
-import { useModelManagement } from '@/hooks/useModelManagement'; // Add this import
+import { useModelManagement } from '@/hooks/useModelManagement';
+import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from './commands/settingsCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
-import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
-import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
 import { ModelType } from '@/types/modelTypes';
 import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
+
 function App() {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { isConnected, clientId } = useWebSocket();
@@ -46,14 +45,12 @@ function App() {
     const { streamTokens } = useStreamTokens();
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
-    const [inputValue, setInputValue] = useState(''); // Add this state for voice input
+    const [inputValue, setInputValue] = useState('');
     const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     const [promptToEdit, setPromptToEdit] = useState<string | null>(null);
 
     // Zustand stores
     const { 
-        setTools, 
-        setCategories, 
         activeTools 
     } = useToolStore();
     
@@ -71,13 +68,24 @@ function App() {
         conversations
     } = useConversationStore();
     
-    // Use the centralized model management hook
+    // Use the centralized management hooks
     const {
         models,
         selectedPrimaryModel,
         selectedSecondaryModel,
         handleModelSelect
     } = useModelManagement();
+
+    const {
+        isLoading: isSystemPromptsLoading,
+        prompts: systemPrompts,
+        setConversationSystemPrompt
+    } = useSystemPromptManagement();
+
+    const {
+        fetchTools,
+        fetchToolCategories
+    } = useToolsManagement();
 
     // Initialize pinned commands to use Zustand's store
     const { fetchPinnedCommands } = usePinnedCommandsStore();
@@ -87,11 +95,11 @@ function App() {
         fetchPinnedCommands();
     }, [fetchPinnedCommands]);
 
-    // RTK Query hooks
-    const { data: tools } = useGetToolsQuery();
-    const { data: toolCategories } = useGetToolCategoriesQuery();
-    const { data: systemPrompts, isLoading: isSystemPromptsLoading } = useGetSystemPromptsQuery();
-    const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
+    // Fetch tools and categories
+    useEffect(() => {
+        fetchTools();
+        fetchToolCategories();
+    }, [fetchTools, fetchToolCategories]);
 
     // Zustand panel state
     const { registerPanel, togglePanel, panels } = usePanelStore();
@@ -144,19 +152,6 @@ function App() {
     const conversationTreePanel = panels.conversationTree || { isOpen: false, isPinned: false };
     const settingsPanel = panels.settings || { isOpen: false, isPinned: false };
     const systemPromptsPanel = panels.systemPrompts || { isOpen: false, isPinned: false };
-
-    // Sync tools and categories with Zustand store
-    useEffect(() => {
-        if (tools) {
-            setTools(tools);
-        }
-    }, [tools, setTools]);
-
-    useEffect(() => {
-        if (toolCategories) {
-            setCategories(toolCategories);
-        }
-    }, [toolCategories, setCategories]);
 
     // Sync system prompts with Zustand store
     useEffect(() => {
@@ -556,11 +551,5 @@ function App() {
     );
 }
 
-// Wrap the entire app with Provider to support RTK Query
-export default function AppWithProvider() {
-    return (
-        <Provider store={store}>
-            <App />
-        </Provider>
-    );
-}
+// Export the App component directly, no Redux Provider needed
+export default App;

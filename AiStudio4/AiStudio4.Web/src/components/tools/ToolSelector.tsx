@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Plus, Wrench } from 'lucide-react';
 import { useToolStore } from '@/stores/useToolStore';
-import { useGetToolsQuery } from '@/services/api/toolsApi';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { commandRegistry } from '@/commands/commandRegistry';
 
 interface ToolSelectorProps {
@@ -14,9 +14,12 @@ interface ToolSelectorProps {
 }
 
 export function ToolSelector({ onManageTools }: ToolSelectorProps) {
-    // Use Zustand store instead of Redux
+    // Use Zustand store
     const { activeTools, addActiveTool, removeActiveTool } = useToolStore();
-    const { data: tools = [] } = useGetToolsQuery();
+    
+    // Use the tools management hook
+    const { tools } = useToolsManagement();
+    
     const [open, setOpen] = useState(false);
 
     const handleToolToggle = (toolId: string, checked: boolean) => {
@@ -32,6 +35,11 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
         setOpen(false);
 
         const commandSuccess = commandRegistry.executeCommand('manage-tools');
+        
+        // If command execution fails or onManageTools is provided, call it
+        if (!commandSuccess && onManageTools) {
+            onManageTools();
+        }
     };
 
     return (

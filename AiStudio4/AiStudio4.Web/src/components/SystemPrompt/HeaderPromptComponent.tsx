@@ -7,11 +7,7 @@ import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import {
-    useGetSystemPromptsQuery,
-    useUpdateSystemPromptMutation,
-    useSetConversationSystemPromptMutation
-} from '@/services/api/systemPromptApi';
+import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface HeaderPromptComponentProps {
     conversationId?: string;
@@ -28,10 +24,12 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
         setConversationPrompt 
     } = useSystemPromptStore();
 
-    // RTK Query hooks
-    const { data: serverPrompts = [], isLoading: loading } = useGetSystemPromptsQuery();
-    const [updateSystemPrompt] = useUpdateSystemPromptMutation();
-    const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
+    // Use the management hook for API operations
+    const { 
+        updateSystemPrompt,
+        setConversationSystemPrompt,
+        isLoading: loading
+    } = useSystemPromptManagement();
 
     const [expanded, setExpanded] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -111,15 +109,15 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                 modifiedDate: new Date().toISOString()
             };
 
-            // Update the prompt using RTK Query
-            await updateSystemPrompt(updatedPrompt).unwrap();
+            // Update the prompt using the management hook
+            await updateSystemPrompt(updatedPrompt);
 
             // If this is for a specific conversation, make sure it's set
             if (conversationId && !conversationPrompts[conversationId]) {
                 await setConversationSystemPrompt({
                     conversationId,
                     promptId: currentPrompt.guid
-                }).unwrap();
+                });
 
                 // Also update the local state in Zustand
                 setConversationPrompt(conversationId, currentPrompt.guid);
@@ -148,8 +146,6 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                     expanded ? "bg-gray-800/60" : "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
                 )}
             >
-
-
                 {/* Collapsed view - just show the prompt title/summary when expanded too */}
                 <div
                     className="px-3 py-2 flex items-center justify-between"

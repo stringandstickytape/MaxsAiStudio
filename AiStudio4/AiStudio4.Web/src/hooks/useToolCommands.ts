@@ -2,7 +2,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { initializeToolCommands, registerToolsAsCommands } from '@/commands/toolCommands';
 import { useToolStore } from '@/stores/useToolStore';
-import { useGetToolsQuery } from '@/services/api/toolsApi';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 export function useToolCommands({
     openToolPanel,
@@ -17,9 +17,9 @@ export function useToolCommands({
 }) {
     // Use Zustand store instead of Redux
     const { activeTools, addActiveTool, removeActiveTool } = useToolStore();
-
-    // Use RTK Query to get tools
-    const { data: tools = [] } = useGetToolsQuery();
+    
+    // Use the new management hook to get tools
+    const { tools } = useToolsManagement();
 
     // Function to toggle a tool's active state
     const toggleTool = useCallback((toolId: string, activate: boolean) => {

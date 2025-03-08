@@ -3,11 +3,11 @@ import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send } from 'lucide-react';
-import { useSendMessageMutation } from '@/services/api/chatApi';
 import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConversationStore } from '@/stores/useConversationStore';
+import { useChatManagement } from '@/hooks/useChatManagement';
 import { ToolSelector } from './tools/ToolSelector';
 
 interface InputBarProps {
@@ -53,8 +53,8 @@ export function InputBar({
         getConversation 
     } = useConversationStore();
 
-    // Use the sendMessage mutation from RTK Query
-    const [sendMessage, { isLoading }] = useSendMessageMutation();
+    // Use the new chat management hook instead of RTK Query
+    const { sendMessage, isLoading } = useChatManagement();
 
     // Track cursor position for file insertion
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
