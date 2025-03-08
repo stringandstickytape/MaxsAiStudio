@@ -437,7 +437,7 @@ function App() {
                 (conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned) && "pr-80"
             )}>
                 {/* Top header - fixed height */}
-                <div className="flex-none h-[140px] bg-background">
+                <div className="flex-none h-[155px] bg-background">
                     <AppHeader
                         isMobile={isMobile}
                         selectedModel={selectedPrimaryModel}
