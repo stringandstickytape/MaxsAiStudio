@@ -219,22 +219,19 @@ export const HistoricalConversationTreeList = () => {
     };
 
     return (
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col">
             {isLoading ? (
-                <div className="p-4 text-center text-gray-400">
+                <div className="p-4 text-center">
                     Loading conversations...
                 </div>
             ) : conversations.length === 0 ? (
-                <div className="p-4 text-center text-gray-400">
+                <div className="p-4 text-center">
                     No conversations found
                 </div>
             ) : conversations.map((conversation) => (
                 <div
                     key={conversation.convGuid}
-                    className={`p-4 transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm max-w-full overflow-hidden ${conversation.highlightColour ? 'text-black' : 'text-white'}`}
-                    style={{
-                        backgroundColor: conversation.highlightColour || '#374151'
-                    }}
+                    className={`px-4 py-1 transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm max-w-full overflow-hidden ${conversation.highlightColour ? 'text-black' : 'text-white'}`}
                 >
                     {/* Make only the header clickable */}
                     <div
@@ -263,7 +260,7 @@ export const HistoricalConversationTreeList = () => {
                     {/* Tree View */}
                     {
                         expandedConversation === conversation.convGuid && (
-                            <div className="mt-3 pl-4 border-l border-gray-600 transition-all duration-200">
+                            <div className="mt-1 pl-2 border-l border-gray-600 transition-all duration-200">
                                 {treeData ?
                                     <HistoricalConversationTree
                                         treeData={treeData}
