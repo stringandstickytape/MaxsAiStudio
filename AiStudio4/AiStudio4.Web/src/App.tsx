@@ -72,14 +72,12 @@ function App() {
         conversations
     } = useConversationStore();
     
-    // Use the centralized model management hook for all model and provider interactions
+    // Use the centralized model management hook
     const {
         models,
-        providers,
         selectedPrimaryModel,
         selectedSecondaryModel,
-        handleModelSelect,
-        fetchProviders
+        handleModelSelect
     } = useModelManagement();
 
     // Initialize pinned commands to use Zustand's store
@@ -252,34 +250,37 @@ function App() {
             () => systemPromptsUpdated()
         );
 
+        // Register individual model and provider commands whenever they change
+        // Update the model commands subscription
+        const unsubscribeModels = useModelStore.subscribe(
+            (state) => state.models,
+            (models) => {
+                if (models.length > 0) {
+                    registerModelCommands(models, () => togglePanel('settings'));
+                }
+            }
+        );
+
+        // Update the provider commands subscription
+        const unsubscribeProviders = useModelStore.subscribe(
+            (state) => state.providers,
+            (providers) => {
+                if (providers.length > 0) {
+                    registerProviderCommands(providers, () => togglePanel('settings'));
+                }
+            }
+        );
+
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
         return () => {
             cleanupKeyboardShortcut();
             unsubscribe();
+            unsubscribeModels();
+            unsubscribeProviders();
         };
-    }, [togglePanel, handleModelSelect]);
-
-    // Ensure providers are loaded when needed
-    useEffect(() => {
-        // Load providers if providers panel is opened
-        if (panels.settings?.isOpen) {
-            fetchProviders();
-        }
-    }, [panels.settings?.isOpen, fetchProviders]);
-
-    // Update model and provider commands registrations
-    useEffect(() => {
-        // Register individual model and provider commands whenever they change
-        if (models.length > 0) {
-            registerModelCommands(models, () => togglePanel('settings'));
-        }
-        
-        if (providers.length > 0) {
-            registerProviderCommands(providers, () => togglePanel('settings'));
-        }
-    }, [models, providers, togglePanel]);
+    }, [models, togglePanel, handleModelSelect]);
 
     // Create initial conversation if needed
     useEffect(() => {
