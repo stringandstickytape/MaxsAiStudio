@@ -1,3 +1,4 @@
+// src/components/settings/ServiceProviderManagement.tsx
 import React, { useState, useEffect } from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useModelManagement } from '@/hooks/useModelManagement';
 
 interface ServiceProviderManagementProps {
-    providers: ServiceProvider[];
     // New props for external control
     providerToEdit?: ServiceProvider | null;
     setProviderToEdit?: React.Dispatch<React.SetStateAction<ServiceProvider | null>>;
@@ -17,21 +17,22 @@ interface ServiceProviderManagementProps {
 }
 
 export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps> = ({
-    providers,
     // Use provided state or internal state
     providerToEdit: externalProviderToEdit,
     setProviderToEdit: externalSetProviderToEdit,
     editDialogOpen: externalEditOpen,
     setEditDialogOpen: externalSetEditOpen
 }) => {
-    // Use model management hook
+    // Use model management hook to get providers and operations
     const {
+        providers,
         addProvider,
         updateProvider,
         deleteProvider,
         isLoading: storeLoading,
         error: storeError,
-        clearError
+        clearError,
+        fetchProviders
     } = useModelManagement();
 
     // Create internal state if external state is not provided
@@ -52,6 +53,12 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
 
     // Combine errors and loading states
     const displayError = error || storeError;
+    const isLoading = storeLoading || isProcessing;
+
+    // Fetch providers when component mounts
+    useEffect(() => {
+        fetchProviders();
+    }, [fetchProviders]);
 
     // Clear errors when dialogs close
     useEffect(() => {
@@ -103,9 +110,6 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         }
     };
 
-    // Use the getProviderName function from the hook
-    const { getProviderName } = useModelManagement();
-
     return (
         <>
             <div className="flex justify-between items-center mb-4">
@@ -118,7 +122,13 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                 </Button>
             </div>
 
-            {providers.length === 0 ? (
+            {isLoading && (
+                <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+            )}
+
+            {!isLoading && (!providers || providers.length === 0) ? (
                 <Card className="bg-gray-800 border-gray-700">
                     <CardContent className="pt-6 text-center text-gray-400">
                         <div className="flex flex-col items-center justify-center py-8">
@@ -137,7 +147,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
-                    {providers.map(provider => (
+                    {providers && providers.map(provider => (
                         <Card
                             key={provider.guid}
                             className="overflow-hidden bg-gray-800/80 border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm group"

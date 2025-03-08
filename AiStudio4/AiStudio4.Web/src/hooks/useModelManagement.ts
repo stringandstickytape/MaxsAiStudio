@@ -18,7 +18,7 @@ export function useModelManagement() {
   // Get access to the Zustand store
   const {
     models,
-    providers,
+    providers = [], // Provide a default empty array
     selectedPrimaryModel,
     selectedSecondaryModel,
     setModels,
@@ -57,6 +57,7 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to fetch service providers');
       }
       
+      // Ensure we're setting an array, even if data.providers is undefined
       setProviders(data.providers || []);
     } catch (err) {
       setError(`Failed to fetch providers: ${err instanceof Error ? err.message : 'Unknown error'}`);

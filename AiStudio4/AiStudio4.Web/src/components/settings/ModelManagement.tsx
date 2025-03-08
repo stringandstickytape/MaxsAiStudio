@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
-import { Model } from '@/types/settings';
+import { Model, ServiceProvider } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useModelManagement';
 
 interface ModelManagementProps {
-    providers: any[]; // We'll still get providers as props for now
+    providers: any[]; // We'll still accept this prop for backward compatibility
     // New props for external control
     modelToEdit?: Model | null;
     setModelToEdit?: React.Dispatch<React.SetStateAction<Model | null>>;
@@ -17,7 +17,7 @@ interface ModelManagementProps {
 }
 
 export const ModelManagement: React.FC<ModelManagementProps> = ({
-    providers,
+    providers: providersFromProps, // Accept but don't use
     // Use provided state or internal state
     modelToEdit: externalModelToEdit,
     setModelToEdit: externalSetModelToEdit,
@@ -27,12 +27,14 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     // Use model management hook
     const {
         models,
+        providers, // Use providers from the hook instead
         isLoading,
         error: storeError,
         addModel,
         updateModel,
         deleteModel,
-        clearError
+        clearError,
+        getProviderName
     } = useModelManagement();
 
     // Create internal state if external state is not provided
@@ -43,7 +45,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
     const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
     const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
-    const setEditOpen = externalSetEditOpen || setInternalSetEditOpen;
+    const setEditOpen = externalSetEditOpen || setInternalEditOpen;
 
     const [addOpen, setAddOpen] = useState(false);
     const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
@@ -101,11 +103,6 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         } finally {
             setIsProcessing(false);
         }
-    };
-
-    const getProviderName = (providerGuid: string): string => {
-        const provider = providers.find(p => p.guid === providerGuid);
-        return provider ? provider.friendlyName : 'Unknown Provider';
     };
 
     return (
