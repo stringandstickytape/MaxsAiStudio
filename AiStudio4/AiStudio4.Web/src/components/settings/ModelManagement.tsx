@@ -1,4 +1,3 @@
-// src/components/settings/ModelManagement.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,23 +9,43 @@ import { useModelStore } from '@/stores/useModelStore';
 
 interface ModelManagementProps {
     providers: any[]; // We'll still get providers as props for now
+    // New props for external control
+    modelToEdit?: Model | null;
+    setModelToEdit?: React.Dispatch<React.SetStateAction<Model | null>>;
+    editDialogOpen?: boolean;
+    setEditDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const ModelManagement: React.FC<ModelManagementProps> = ({ providers }) => {
+export const ModelManagement: React.FC<ModelManagementProps> = ({
+    providers,
+    // Use provided state or internal state
+    modelToEdit: externalModelToEdit,
+    setModelToEdit: externalSetModelToEdit,
+    editDialogOpen: externalEditOpen,
+    setEditDialogOpen: externalSetEditOpen
+}) => {
     // Use Zustand store
-    const { 
-        models, 
-        loading: isLoading, 
+    const {
+        models,
+        loading: isLoading,
         error: storeError,
-        addModel, 
-        updateModel, 
-        deleteModel, 
-        setError 
+        addModel,
+        updateModel,
+        deleteModel,
+        setError
     } = useModelStore();
 
-    const [editingModel, setEditingModel] = useState<Model | null>(null);
+    // Create internal state if external state is not provided
+    const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);
+    const [internalEditOpen, setInternalEditOpen] = useState(false);
+
+    // Use either external or internal state
+    const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
+    const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
+    const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
+    const setEditOpen = externalSetEditOpen || setInternalEditOpen;
+
     const [addOpen, setAddOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
     const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [error, setLocalError] = useState<string | null>(null);

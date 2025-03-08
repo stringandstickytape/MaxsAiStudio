@@ -9,10 +9,20 @@ import { useModelStore } from '@/stores/useModelStore';
 
 interface ServiceProviderManagementProps {
     providers: ServiceProvider[];
+    // New props for external control
+    providerToEdit?: ServiceProvider | null;
+    setProviderToEdit?: React.Dispatch<React.SetStateAction<ServiceProvider | null>>;
+    editDialogOpen?: boolean;
+    setEditDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps> = ({
-    providers
+    providers,
+    // Use provided state or internal state
+    providerToEdit: externalProviderToEdit,
+    setProviderToEdit: externalSetProviderToEdit,
+    editDialogOpen: externalEditOpen,
+    setEditDialogOpen: externalSetEditOpen
 }) => {
     // Use Zustand store
     const {
@@ -24,9 +34,17 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         setError
     } = useModelStore();
 
-    const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
+    // Create internal state if external state is not provided
+    const [internalEditingProvider, setInternalEditingProvider] = useState<ServiceProvider | null>(null);
+    const [internalEditOpen, setInternalEditOpen] = useState(false);
+
+    // Use either external or internal state
+    const editingProvider = externalProviderToEdit !== undefined ? externalProviderToEdit : internalEditingProvider;
+    const setEditingProvider = externalSetProviderToEdit || setInternalEditingProvider;
+    const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
+    const setEditOpen = externalSetEditOpen || setInternalEditOpen;
+
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deleteConfirmProvider, setDeleteConfirmProvider] = useState<ServiceProvider | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -37,11 +55,11 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
 
     // Clear errors when dialogs close
     useEffect(() => {
-        if (!isAddDialogOpen && !isEditDialogOpen && !isDeleteDialogOpen) {
+        if (!isAddDialogOpen && !editOpen && !isDeleteDialogOpen) {
             setLocalError(null);
             setError(null);
         }
-    }, [isAddDialogOpen, isEditDialogOpen, isDeleteDialogOpen, setError]);
+    }, [isAddDialogOpen, editOpen, isDeleteDialogOpen, setError]);
 
     const handleAddProvider = async (providerData: Omit<ServiceProvider, 'guid'>) => {
         setIsProcessing(true);
@@ -61,7 +79,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         setLocalError(null);
         try {
             await updateProvider(providerData);
-            setIsEditDialogOpen(false);
+            setEditOpen(false);
         } catch (err) {
             setLocalError(err instanceof Error ? err.message : 'Failed to update provider');
         } finally {
@@ -146,7 +164,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                             className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
                                             onClick={() => {
                                                 setEditingProvider(provider);
-                                                setIsEditDialogOpen(true);
+                                                setEditOpen(true);
                                             }}
                                         >
                                             <Pencil className="h-4 w-4" />
@@ -190,7 +208,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             </Dialog>
 
             {/* Edit Provider Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogContent className="max-w-xl bg-gray-800 border-gray-700 text-gray-100" description="Edit an existing service provider">
                     <DialogHeader>
                         <DialogTitle className="text-gray-100">Edit Provider</DialogTitle>

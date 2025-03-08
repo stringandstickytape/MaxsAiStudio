@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { useModelStore } from '@/stores/useModelStore';
+import { Model, ServiceProvider } from '@/types/settings';
+import { commandEvents } from '@/commands/settingsCommands';
 
 interface SettingsPanelProps {
     isOpen: boolean;
@@ -21,6 +23,57 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
         setProviders,
         setError
     } = useModelStore();
+
+    // State to track which tab is active
+    const [activeTab, setActiveTab] = useState('models');
+
+    // Handle dialog states for editing models and providers
+    const [editModelDialogOpen, setEditModelDialogOpen] = useState(false);
+    const [editProviderDialogOpen, setEditProviderDialogOpen] = useState(false);
+    const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
+    const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
+
+    // Listen for command events
+    useEffect(() => {
+        // Only set up listeners when the panel is open
+        if (!isOpen) return;
+
+        // Listen for tab changes
+        const unsubscribeTab = commandEvents.on('settings-tab', (tabName) => {
+            console.log(`Changing tab to: ${tabName}`);
+            if (tabName === 'models' || tabName === 'providers' || tabName === 'appearance') {
+                setActiveTab(tabName);
+            }
+        });
+
+        // Listen for model edit requests
+        const unsubscribeModel = commandEvents.on('edit-model', (modelGuid) => {
+            console.log(`Edit model requested: ${modelGuid}`);
+            const model = models.find(m => m.guid === modelGuid);
+            if (model) {
+                setActiveTab('models');
+                setModelToEdit(model);
+                setEditModelDialogOpen(true);
+            }
+        });
+
+        // Listen for provider edit requests
+        const unsubscribeProvider = commandEvents.on('edit-provider', (providerGuid) => {
+            console.log(`Edit provider requested: ${providerGuid}`);
+            const provider = providers.find(p => p.guid === providerGuid);
+            if (provider) {
+                setActiveTab('providers');
+                setProviderToEdit(provider);
+                setEditProviderDialogOpen(true);
+            }
+        });
+
+        return () => {
+            unsubscribeTab();
+            unsubscribeModel();
+            unsubscribeProvider();
+        };
+    }, [isOpen, models, providers]);
 
     // Fetch data when the panel opens
     useEffect(() => {
@@ -108,7 +161,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
                     </Button>
                 </div>
             ) : (
-                <Tabs defaultValue="models" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid grid-cols-4 mb-4 bg-gray-800 p-1">
                         <TabsTrigger
                             value="models"
@@ -133,12 +186,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
                     <TabsContent value="models" className="space-y-4">
                         <ModelManagement
                             providers={providers}
+                            modelToEdit={modelToEdit}
+                            setModelToEdit={setModelToEdit}
+                            editDialogOpen={editModelDialogOpen}
+                            setEditDialogOpen={setEditModelDialogOpen}
                         />
                     </TabsContent>
 
                     <TabsContent value="providers" className="space-y-4">
                         <ServiceProviderManagement
                             providers={providers}
+                            providerToEdit={providerToEdit}
+                            setProviderToEdit={setProviderToEdit}
+                            editDialogOpen={editProviderDialogOpen}
+                            setEditDialogOpen={setEditProviderDialogOpen}
                         />
                     </TabsContent>
 

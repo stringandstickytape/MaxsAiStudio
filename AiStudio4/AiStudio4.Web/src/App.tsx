@@ -28,6 +28,7 @@ import { useConversationStore } from '@/stores/useConversationStore';
 import { useModelStore } from '@/stores/useModelStore';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
+import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from './commands/settingsCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { useGetConfigQuery } from '@/services/api/chatApi';
@@ -216,6 +217,11 @@ function App() {
             }
         });
 
+        // Initialize settings commands with the simpler approach
+        initializeSettingsCommands({
+            openSettings: () => togglePanel('settings')
+        });
+
         // Initialize model commands
         initializeModelCommands({
             getAvailableModels: () => models.map(m => m.modelName)
@@ -238,12 +244,35 @@ function App() {
             () => systemPromptsUpdated()
         );
 
+        // Register individual model and provider commands whenever they change
+        // Update the model commands subscription
+        const unsubscribeModels = useModelStore.subscribe(
+            (state) => state.models,
+            (models) => {
+                if (models.length > 0) {
+                    registerModelCommands(models, () => togglePanel('settings'));
+                }
+            }
+        );
+
+        // Update the provider commands subscription
+        const unsubscribeProviders = useModelStore.subscribe(
+            (state) => state.providers,
+            (providers) => {
+                if (providers.length > 0) {
+                    registerProviderCommands(providers, () => togglePanel('settings'));
+                }
+            }
+        );
+
         // Set up voice input keyboard shortcut
         const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
         return () => {
             cleanupKeyboardShortcut();
             unsubscribe();
+            unsubscribeModels();
+            unsubscribeProviders();
         };
     }, [models, togglePanel]);
 
