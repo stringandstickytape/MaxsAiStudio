@@ -32,13 +32,13 @@ import { initializeSystemPromptCommands } from './commands/systemPromptCommands'
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from './commands/settingsCommands';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
-import { useGetConfigQuery } from '@/services/api/chatApi';
 import { useGetToolsQuery, useGetToolCategoriesQuery } from '@/services/api/toolsApi';
 import { useGetSystemPromptsQuery, useSetConversationSystemPromptMutation } from '@/services/api/systemPromptApi';
 import { ModelType } from '@/types/modelTypes';
 import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
+import { useModelManagement } from '@/hooks/useModelManagement';
 
 function App() {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -72,14 +72,13 @@ function App() {
         conversations
     } = useConversationStore();
     
+    // Use the centralized model management hook
     const {
         models,
-        setModels,
         selectedPrimaryModel,
         selectedSecondaryModel,
-        selectPrimaryModel,
-        selectSecondaryModel
-    } = useModelStore();
+        handleModelSelect
+    } = useModelManagement();
 
     // Initialize pinned commands to use Zustand's store
     const { fetchPinnedCommands } = usePinnedCommandsStore();
@@ -90,7 +89,6 @@ function App() {
     }, [fetchPinnedCommands]);
 
     // RTK Query hooks
-    const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
     const { data: tools } = useGetToolsQuery();
     const { data: toolCategories } = useGetToolCategoriesQuery();
     const { data: systemPrompts, isLoading: isSystemPromptsLoading } = useGetSystemPromptsQuery();
@@ -230,7 +228,9 @@ function App() {
 
         // Initialize model commands
         initializeModelCommands({
-            getAvailableModels: () => models.map(m => m.modelName)
+            getAvailableModels: () => models.map(m => m.modelName),
+            selectPrimaryModel: (modelName) => handleModelSelect('primary', modelName),
+            selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName)
         });
 
         // Initialize voice commands
@@ -280,62 +280,27 @@ function App() {
             unsubscribeModels();
             unsubscribeProviders();
         };
-    }, [models, togglePanel]);
+    }, [models, togglePanel, handleModelSelect]);
 
-    // Load models from config
+    // Create initial conversation if needed
     useEffect(() => {
-        if (configData) {
-            // Set available models
-            if (configData.models && configData.models.length > 0) {
-                // Create model objects from config data
-                const modelObjects = configData.models.map(modelName => ({
-                    guid: uuidv4(),
-                    modelName,
-                    friendlyName: modelName,
-                    providerGuid: '', // Default value, will be updated later
-                    userNotes: '',
-                    additionalParams: '',
-                    input1MTokenPrice: 0,
-                    output1MTokenPrice: 0,
-                    color: '#4f46e5',
-                    starred: false,
-                    supportsPrefill: false
-                }));
-                
-                setModels(modelObjects);
-            }
-
-            // Set primary model if available
-            if (configData.defaultModel && configData.defaultModel.length > 0) {
-                selectPrimaryModel(configData.defaultModel);
-            }
-            
-            // Set secondary model if available
-            if (configData.secondaryModel && configData.secondaryModel.length > 0) {
-                selectSecondaryModel(configData.secondaryModel);
-            }
-
-            // Create initial conversation if needed
-            if (!activeConversationId) {
-                createConversation({
-                    id: `conv_${Date.now()}`,
-                    rootMessage: {
-                        id: `msg_${uuidv4()}`,
-                        content: '',
-                        source: 'system',
-                        timestamp: Date.now()
-                    }
-                });
-            }
+        if (!activeConversationId) {
+            createConversation({
+                id: `conv_${Date.now()}`,
+                rootMessage: {
+                    id: `msg_${uuidv4()}`,
+                    content: '',
+                    source: 'system',
+                    timestamp: Date.now()
+                }
+            });
         }
-    }, [configData, activeConversationId, createConversation, setModels, selectPrimaryModel, selectSecondaryModel]);
+    }, [activeConversationId, createConversation]);
 
-    const handleModelSelect = (modelType: ModelType, modelName: string) => {
-        if (modelType === 'primary') {
-            selectPrimaryModel(modelName);
-        } else {
-            selectSecondaryModel(modelName);
-        }
+    // Handle model selection with command registration
+    const handleLocalModelSelect = (modelType: ModelType, modelName: string) => {
+        // Call the hook's handleModelSelect function
+        handleModelSelect(modelType, modelName);
 
         // When model changes, create command for quick access
         const commandId = `select-${modelType}-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -346,13 +311,7 @@ function App() {
                 description: `Change the ${modelType} model to ${modelName}`,
                 keywords: ['model', 'select', modelType, modelName],
                 section: 'model',
-                execute: () => {
-                    if (modelType === 'primary') {
-                        selectPrimaryModel(modelName);
-                    } else {
-                        selectSecondaryModel(modelName);
-                    }
-                }
+                execute: () => handleModelSelect(modelType, modelName)
             });
         }
     };
@@ -527,8 +486,8 @@ function App() {
                         secondaryModel={selectedSecondaryModel}
                         models={models.map(m => m.modelName)}
                         onToggleSidebar={() => togglePanel('sidebar')}
-                        onModelSelect={(model) => handleModelSelect('primary', model)}
-                        onSecondaryModelSelect={(model) => handleModelSelect('secondary', model)}
+                        onModelSelect={(model) => handleLocalModelSelect('primary', model)}
+                        onSecondaryModelSelect={(model) => handleLocalModelSelect('secondary', model)}
                         onToggleConversationTree={handleToggleConversationTree}
                         onToggleSettings={() => togglePanel('settings')}
                         onToggleSystemPrompts={() => togglePanel('systemPrompts')}

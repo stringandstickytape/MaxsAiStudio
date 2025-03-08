@@ -7,11 +7,12 @@ import { useModelStore } from '@/stores/useModelStore';
 
 interface ModelCommandsConfig {
     getAvailableModels: () => string[];
+    selectPrimaryModel: (modelName: string) => void;
+    selectSecondaryModel: (modelName: string) => void;
 }
 
 export function initializeModelCommands(config: ModelCommandsConfig) {
-    const { getAvailableModels } = config;
-    const modelStore = useModelStore.getState();
+    const { getAvailableModels, selectPrimaryModel, selectSecondaryModel } = config;
 
     // Create commands for selecting primary model
     const primaryModelCommands = getAvailableModels().map(modelName => ({
@@ -20,7 +21,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         description: `Set primary model to ${modelName}`,
         keywords: ['model', 'primary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
         section: 'model',
-        execute: () => modelStore.selectPrimaryModel(modelName),
+        execute: () => selectPrimaryModel(modelName),
         icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' })
     }));
 
@@ -31,7 +32,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         description: `Set secondary model to ${modelName}`,
         keywords: ['model', 'secondary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
         section: 'model',
-        execute: () => modelStore.selectSecondaryModel(modelName),
+        execute: () => selectSecondaryModel(modelName),
         icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' })
     }));
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ServiceProviderForm } from './ServiceProviderForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
-import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useModelManagement';
 
 interface ServiceProviderManagementProps {
     providers: ServiceProvider[];
@@ -24,15 +24,15 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
     editDialogOpen: externalEditOpen,
     setEditDialogOpen: externalSetEditOpen
 }) => {
-    // Use Zustand store
+    // Use model management hook
     const {
         addProvider,
         updateProvider,
         deleteProvider,
-        loading: storeLoading,
+        isLoading: storeLoading,
         error: storeError,
-        setError
-    } = useModelStore();
+        clearError
+    } = useModelManagement();
 
     // Create internal state if external state is not provided
     const [internalEditingProvider, setInternalEditingProvider] = useState<ServiceProvider | null>(null);
@@ -57,9 +57,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
     useEffect(() => {
         if (!isAddDialogOpen && !editOpen && !isDeleteDialogOpen) {
             setLocalError(null);
-            setError(null);
+            clearError();
         }
-    }, [isAddDialogOpen, editOpen, isDeleteDialogOpen, setError]);
+    }, [isAddDialogOpen, editOpen, isDeleteDialogOpen, clearError]);
 
     const handleAddProvider = async (providerData: Omit<ServiceProvider, 'guid'>) => {
         setIsProcessing(true);
@@ -102,6 +102,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             setIsProcessing(false);
         }
     };
+
+    // Use the getProviderName function from the hook
+    const { getProviderName } = useModelManagement();
 
     return (
         <>

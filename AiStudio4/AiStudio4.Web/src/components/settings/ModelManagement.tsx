@@ -5,7 +5,7 @@ import { ModelForm } from './ModelForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
 import { Model } from '@/types/settings';
-import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useModelManagement';
 
 interface ModelManagementProps {
     providers: any[]; // We'll still get providers as props for now
@@ -24,16 +24,16 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     editDialogOpen: externalEditOpen,
     setEditDialogOpen: externalSetEditOpen
 }) => {
-    // Use Zustand store
+    // Use model management hook
     const {
         models,
-        loading: isLoading,
+        isLoading,
         error: storeError,
         addModel,
         updateModel,
         deleteModel,
-        setError
-    } = useModelStore();
+        clearError
+    } = useModelManagement();
 
     // Create internal state if external state is not provided
     const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);
@@ -43,7 +43,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
     const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
     const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
-    const setEditOpen = externalSetEditOpen || setInternalEditOpen;
+    const setEditOpen = externalSetEditOpen || setInternalSetEditOpen;
 
     const [addOpen, setAddOpen] = useState(false);
     const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
@@ -58,9 +58,9 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     useEffect(() => {
         if (!addOpen && !editOpen && !deleteOpen) {
             setLocalError(null);
-            setError(null);
+            clearError();
         }
-    }, [addOpen, editOpen, deleteOpen, setError]);
+    }, [addOpen, editOpen, deleteOpen, clearError]);
 
     const handleAddModel = async (modelData: Omit<Model, 'guid'>) => {
         setIsProcessing(true);

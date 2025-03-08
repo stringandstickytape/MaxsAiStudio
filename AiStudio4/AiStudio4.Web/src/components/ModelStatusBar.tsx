@@ -8,7 +8,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useModelManagement';
 
 interface ModelStatusBarProps {
     onPrimaryClick?: () => void;
@@ -21,8 +21,8 @@ export function ModelStatusBar({
     onSecondaryClick,
     orientation = 'horizontal'
 }: ModelStatusBarProps) {
-    // Use Zustand store
-    const { selectedPrimaryModel, selectedSecondaryModel } = useModelStore();
+    // Use model management hook
+    const { selectedPrimaryModel, selectedSecondaryModel } = useModelManagement();
     
     const isVertical = orientation === 'vertical';
     
