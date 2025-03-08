@@ -166,46 +166,66 @@ export function useChatManagement() {
   }, []);
   
   // Get conversation history - first check Zustand store, then fetch from API if needed
-  const getConversation = useCallback(async (conversationId: string) => {
-    // First check if we already have this conversation in the Zustand store
-    const localConversation = conversations[conversationId];
-    if (localConversation) {
-      return {
-        id: conversationId,
-        messages: localConversation.messages
-      };
-    }
-    
-    // If not in store, fetch from API
-    try {
-      setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      
-      const response = await fetch('/api/getConversation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ conversationId })
-      });
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to get conversation');
-      }
-      
-      return data.conversation;
-    } catch (err) {
-      setError(`Failed to get conversation: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error('Error getting conversation:', err);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-  
+    // Get conversation history - first check Zustand store, then fetch from API if needed
+    const getConversation = useCallback(async (conversationId: string) => {
+        // First check if we already have this conversation in the Zustand store
+        const localConversation = conversations[conversationId];
+        if (localConversation) {
+            return {
+                id: conversationId,
+                messages: localConversation.messages
+            };
+        }
+
+        // If not in store, fetch from API
+        try {
+            setIsLoading(true);
+            const clientId = localStorage.getItem('clientId');
+
+            const response = await fetch('/api/historicalConversationTree', {  // <-- Changed endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Id': clientId || ''
+                },
+                body: JSON.stringify({ conversationId })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to get conversation');
+            }
+
+            // Check if we have treeData in the response
+            if (data.treeData && Array.isArray(data.treeData)) {
+                // Convert tree data to conversation messages format
+                const messages = data.treeData.map(node => ({
+                    id: node.id,
+                    content: node.text,
+                    source: node.source ||
+                        (node.id.includes('user') ? 'user' :
+                            node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
+                    parentId: node.parentId,
+                    timestamp: Date.now() // No timestamp in tree data, use current time
+                }));
+
+                return {
+                    id: conversationId,
+                    messages: messages,
+                    summary: data.summary || 'Untitled Conversation'
+                };
+            }
+
+            return null;
+        } catch (err) {
+            setError(`Failed to get conversation: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            console.error('Error getting conversation:', err);
+            return null;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [conversations]); 
   // Helper method to determine system prompt for a conversation
   const getSystemPromptForConversation = useCallback((conversationId: string) => {
     // Check if conversation has a specific prompt assigned

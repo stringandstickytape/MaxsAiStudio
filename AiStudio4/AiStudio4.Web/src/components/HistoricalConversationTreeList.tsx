@@ -104,26 +104,56 @@ export const HistoricalConversationTreeList = () => {
 
             // Use the hook to get the conversation data
             const conversation = await getConversation(conversationId);
-            
-            if (conversation) {
+
+            if (conversation && conversation.messages && conversation.messages.length > 0) {
+                // Sort messages by parent-child relationship
+                const sortedMessages = [...conversation.messages];
+
+                // Find the root message - either the first with no parent or the first message
+                const rootMessage = sortedMessages.find(msg => !msg.parentId) || sortedMessages[0];
+
+                // Create a new conversation in the store with the root message
+                createConversation({
+                    id: conversationId,
+                    rootMessage: {
+                        id: rootMessage.id,
+                        content: rootMessage.content,
+                        source: rootMessage.source,
+                        parentId: null,
+                        timestamp: rootMessage.timestamp
+                    }
+                });
+
+                // Add all non-root messages to the conversation
+                const nonRootMessages = sortedMessages.filter(msg => msg.id !== rootMessage.id);
+                nonRootMessages.forEach(message => {
+                    addMessage({
+                        conversationId,
+                        message: {
+                            id: message.id,
+                            content: message.content,
+                            source: message.source,
+                            parentId: message.parentId,
+                            timestamp: message.timestamp
+                        }
+                    });
+                });
+
                 // Add messageId to URL
                 window.history.pushState({}, '', `?messageId=${nodeId}`);
-                
+
                 // Set the active conversation with the selected message
                 setActiveConversation({
                     conversationId,
                     selectedMessageId: nodeId
                 });
             } else {
-                console.error('Failed to load conversation data');
+                console.error('Failed to load conversation data or empty conversation');
             }
         } catch (error) {
             console.error('Error loading conversation:', error);
         }
     };
-
-    // We don't need this helper function anymore, so removing it
-
     return (
         <div className="flex flex-col">
             {isLoading ? (
