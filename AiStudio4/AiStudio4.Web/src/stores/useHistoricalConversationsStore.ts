@@ -145,7 +145,9 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
                         nodeMap.set(node.id, {
                             id: node.id,
                             text: node.text,
-                            children: []
+                            children: [],
+                            parentId: node.parentId, // Keep parentId for easier reference
+                            source: node.source    // Keep source information if available
                         });
                     });
 
@@ -163,6 +165,19 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
                             parentNode.children.push(treeNode);
                         }
                     });
+
+                    // Store the summary from the data for future reference
+                    if (data.summary) {
+                        // Update the conversation in our store with the summary
+                        const store = get();
+                        const conversationToUpdate = store.conversations.find(c => c.convGuid === conversationId);
+                        if (conversationToUpdate) {
+                            store.addOrUpdateConversation({
+                                ...conversationToUpdate,
+                                summary: data.summary
+                            });
+                        }
+                    }
 
                     // Return the root node or the first node
                     set({ isLoading: false });

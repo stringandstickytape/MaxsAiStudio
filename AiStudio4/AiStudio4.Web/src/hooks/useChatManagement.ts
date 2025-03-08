@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
+import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
 import { v4 as uuidv4 } from 'uuid';
 import { apiClient } from '@/services/api/apiClient';
 
@@ -32,6 +33,11 @@ export function useChatManagement() {
     conversationPrompts, 
     defaultPromptId 
   } = useSystemPromptStore();
+
+  // Access Historical Conversations Store
+  const {
+    fetchConversationTree
+  } = useHistoricalConversationsStore();
 
   // Send a chat message
   const sendMessage = useCallback(async (params: SendMessageParams) => {
@@ -165,8 +171,8 @@ export function useChatManagement() {
     }
   }, []);
   
-  // Get conversation history - first check Zustand store, then fetch from API if needed
-    // Get conversation history - first check Zustand store, then fetch from API if needed
+
+    // Get conversation history - first check Zustand store, then use the historical conversations store
     const getConversation = useCallback(async (conversationId: string) => {
         // First check if we already have this conversation in the Zustand store
         const localConversation = conversations[conversationId];
@@ -177,47 +183,55 @@ export function useChatManagement() {
             };
         }
 
-        // If not in store, fetch from API
+        // If not in local store, use the historical conversations store to fetch it
         try {
             setIsLoading(true);
-            const clientId = localStorage.getItem('clientId');
 
-            const response = await fetch('/api/historicalConversationTree', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Client-Id': clientId || ''
-                },
-                body: JSON.stringify({ conversationId })
-            });
+            // Use the fetchConversationTree function from the historical conversations store
+            const treeData = await fetchConversationTree(conversationId);
 
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to get conversation');
+            if (!treeData) {
+                throw new Error('Failed to get conversation tree');
             }
 
-            // Check if we have treeData in the response
-            if (data.flatMessageStructure && Array.isArray(data.flatMessageStructure)) {
-                
-                const messages = data.flatMessageStructure.map(node => ({
+            // Convert the tree data to the format expected by the chat management
+            // We need to extract all nodes from the tree in a flat structure
+            const extractNodes = (node: any, nodes: any[] = []) => {
+                if (!node) return nodes;
+
+                nodes.push({
                     id: node.id,
-                    content: node.text,
-                    source: node.source ||
-                        (node.id.includes('user') ? 'user' :
-                            node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
-                    parentId: node.parentId,
-                    timestamp: Date.now() // No timestamp in tree data, use current time
-                }));
+                    text: node.text,
+                    parentId: node.parentId
+                });
 
-                return {
-                    id: conversationId,
-                    messages: messages,
-                    summary: data.summary || 'Untitled Conversation'
-                };
-            }
+                if (node.children && Array.isArray(node.children)) {
+                    for (const child of node.children) {
+                        extractNodes(child, nodes);
+                    }
+                }
 
-            return null;
+                return nodes;
+            };
+
+            const flatNodes = extractNodes(treeData);
+
+            // Map the flat nodes to the message format needed by the conversation
+            const messages = flatNodes.map(node => ({
+                id: node.id,
+                content: node.text,
+                source: node.source ||
+                    (node.id.includes('user') ? 'user' :
+                        node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
+                parentId: node.parentId,
+                timestamp: Date.now() // No timestamp in tree data, use current time
+            }));
+
+            return {
+                id: conversationId,
+                messages: messages,
+                summary: 'Loaded Conversation' // We might need to get this from another source
+            };
         } catch (err) {
             setError(`Failed to get conversation: ${err instanceof Error ? err.message : 'Unknown error'}`);
             console.error('Error getting conversation:', err);
@@ -225,7 +239,7 @@ export function useChatManagement() {
         } finally {
             setIsLoading(false);
         }
-    }, [conversations]); 
+    }, [conversations, fetchConversationTree]);
   // Helper method to determine system prompt for a conversation
   const getSystemPromptForConversation = useCallback((conversationId: string) => {
     // Check if conversation has a specific prompt assigned
