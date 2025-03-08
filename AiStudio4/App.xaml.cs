@@ -73,11 +73,21 @@ namespace AiStudio4
             services.AddSingleton<WebServer>();
             services.AddSingleton<WindowManager>();
             services.AddTransient<WebViewWindow>();
+
+            // Add hosted service to initialize services during startup
+            services.AddHostedService<StartupService>();
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Initialize services that need initialization
+            var toolService = _serviceProvider.GetRequiredService<IToolService>();
+            await toolService.InitializeAsync();
+
+            var systemPromptService = _serviceProvider.GetRequiredService<ISystemPromptService>();
+            await systemPromptService.InitializeAsync();
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();

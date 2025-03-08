@@ -127,10 +127,21 @@ namespace AiStudio4.Services
 
                 _logger.LogInformation("Successfully processed chat request");
 
+                var responseText = response.ResponseText;
+
+                if(response.ChosenTool != null)
+                {
+                    var tool = await _toolService.GetToolByNameAsync(response.ChosenTool);
+
+                    if(tool != null)
+                    {
+                        responseText = $"{new string('`', 3)}{tool.Filetype}\n{responseText}\n{new string('`', 3)}";
+                    }
+                }
                 return new ChatResponse
                 {
                     Success = true,
-                    ResponseText = response.ResponseText
+                    ResponseText = responseText
                 };
             }
             catch (Exception ex)

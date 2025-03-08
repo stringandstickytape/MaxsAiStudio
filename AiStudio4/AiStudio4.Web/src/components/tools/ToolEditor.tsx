@@ -31,6 +31,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   const [description, setDescription] = useState(tool?.description || '');
   const [schema, setSchema] = useState(tool?.schema || '{\n  "name": "tool_name",\n  "description": "Tool description",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "param": {\n        "type": "string",\n        "description": "Parameter description"\n      }\n    },\n    "required": ["param"]\n  }\n}');
   const [schemaType, setSchemaType] = useState<'function' | 'custom' | 'template'>(tool?.schemaType as any || 'function');
+  const [filetype, setFiletype] = useState(tool?.filetype || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(tool?.categories || []);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [validationMessage, setValidationMessage] = useState('');
@@ -90,6 +91,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         description,
         schema,
         schemaType,
+        filetype, // Include the filetype in the data being sent
         categories: selectedCategories,
         lastModified: new Date().toISOString()
       };
@@ -176,6 +178,18 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             <Label htmlFor="schema-template" className="cursor-pointer text-gray-100">Template</Label>
           </div>
         </RadioGroup>
+      </div>
+
+      <div>
+        <Label htmlFor="tool-filetype">File Type (Optional)</Label>
+        <Input
+          id="tool-filetype"
+          value={filetype}
+          onChange={(e) => setFiletype(e.target.value)}
+          placeholder="e.g., 'json', 'csv', or leave blank for any file"
+          className="bg-gray-800 border-gray-700 text-gray-100"
+          disabled={isLoading}
+        />
       </div>
 
       <div>

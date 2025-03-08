@@ -16,7 +16,14 @@ export const toolsApi = baseApi.injectEndpoints({
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch tools');
         }
-        return response.tools;
+        
+        // Ensure all tools have a filetype property, even if it's empty string
+        const tools = response.tools.map(tool => ({
+          ...tool,
+          filetype: tool.filetype || ''
+        }));
+        
+        return tools;
       },
       providesTags: (result) =>
         result
@@ -37,7 +44,11 @@ export const toolsApi = baseApi.injectEndpoints({
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch tool');
         }
-        return response.tool;
+        // Ensure tool has a filetype property, even if it's empty string
+        return {
+          ...response.tool,
+          filetype: response.tool.filetype || ''
+        };
       },
       providesTags: (result, error, id) => [{ type: 'Tools', id }],
     }),

@@ -22,6 +22,8 @@ namespace AiStudio4.AiServices
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
+        public string ChosenTool { get; set; } = null;
+
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;
 

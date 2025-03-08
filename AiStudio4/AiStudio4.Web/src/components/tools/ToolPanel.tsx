@@ -148,7 +148,9 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
   const filteredTools = tools.filter(tool => {
     const matchesSearch = searchTerm === '' || 
       tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tool.description.toLowerCase().includes(searchTerm.toLowerCase());
+      tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Add filetype to search criteria
+      (tool.filetype && tool.filetype.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = selectedCategory === null || 
       tool.categories.includes(selectedCategory);
@@ -252,6 +254,11 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
                           <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
                             {tool.schemaType}
                           </span>
+                          {tool.filetype && (
+                            <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
+                              filetype: {tool.filetype}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex space-x-1">

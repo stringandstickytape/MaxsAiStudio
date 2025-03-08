@@ -9,7 +9,8 @@ namespace AiStudio4.DataModels
 
         public TokenUsage TokenUsage { get; set; }
         public string? SuggestedNextPrompt { get; set; }
-        public TimeSpan Duration { get; internal set; }
+        public TimeSpan Duration { get; set; }
+        public string ChosenTool { get; set; }
 
         public AiResponse()
         {

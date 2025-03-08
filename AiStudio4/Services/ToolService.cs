@@ -17,20 +17,33 @@ namespace AiStudio4.Services
         private readonly string _toolsDirectory;
         private ToolLibrary _toolLibrary;
         private const string LIBRARY_FILENAME = "toolLibrary.json";
+        private bool _isInitialized = false;
 
         public ToolService(ILogger<ToolService> logger)
         {
             _logger = logger;
             _toolsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "Tools");
-            
+
             Directory.CreateDirectory(_toolsDirectory);
+
+            // We'll initialize in InitializeAsync now
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (_isInitialized)
+                return;
+
+            // Now load the tool library
             LoadToolLibrary();
+
+            _isInitialized = true;
         }
 
         private void LoadToolLibrary()
         {
             var libraryPath = Path.Combine(_toolsDirectory, LIBRARY_FILENAME);
-            
+
             if (File.Exists(libraryPath))
             {
                 try
@@ -65,19 +78,29 @@ namespace AiStudio4.Services
 
         public async Task<List<Tool>> GetAllToolsAsync()
         {
+            await EnsureInitialized();
             return await Task.FromResult(_toolLibrary.Tools);
         }
 
         public async Task<Tool> GetToolByIdAsync(string toolId)
         {
+            await EnsureInitialized();
             return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t => t.Guid == toolId));
         }
 
         public async Task<Tool> AddToolAsync(Tool tool)
         {
+            await EnsureInitialized();
+
             if (string.IsNullOrEmpty(tool.Guid))
             {
                 tool.Guid = Guid.NewGuid().ToString();
+            }
+
+            // Ensure FileType is not null
+            if (tool.Filetype == null)
+            {
+                tool.Filetype = string.Empty;
             }
 
             tool.LastModified = DateTime.UtcNow;
@@ -89,10 +112,18 @@ namespace AiStudio4.Services
 
         public async Task<Tool> UpdateToolAsync(Tool tool)
         {
+            await EnsureInitialized();
+
             var existingTool = _toolLibrary.Tools.FirstOrDefault(t => t.Guid == tool.Guid);
             if (existingTool == null)
             {
                 throw new KeyNotFoundException($"Tool with ID {tool.Guid} not found");
+            }
+
+            // Ensure FileType is not null
+            if (tool.Filetype == null)
+            {
+                tool.Filetype = string.Empty;
             }
 
             var index = _toolLibrary.Tools.IndexOf(existingTool);
@@ -105,6 +136,8 @@ namespace AiStudio4.Services
 
         public async Task<bool> DeleteToolAsync(string toolId)
         {
+            await EnsureInitialized();
+
             var tool = _toolLibrary.Tools.FirstOrDefault(t => t.Guid == toolId);
             if (tool == null)
             {
@@ -117,13 +150,30 @@ namespace AiStudio4.Services
             return await Task.FromResult(true);
         }
 
+        public async Task<Tool> GetToolByNameAsync(string toolName)
+        {
+            await EnsureInitialized();
+
+            if (string.IsNullOrEmpty(toolName))
+            {
+                return null;
+            }
+
+            // Case-insensitive search for a tool with the exact name
+            return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
+                string.Equals(t.SchemaName, toolName, StringComparison.OrdinalIgnoreCase)));
+        }
+
         public async Task<List<ToolCategory>> GetToolCategoriesAsync()
         {
+            await EnsureInitialized();
             return await Task.FromResult(_toolLibrary.Categories);
         }
 
         public async Task<ToolCategory> AddToolCategoryAsync(ToolCategory category)
         {
+            await EnsureInitialized();
+
             if (string.IsNullOrEmpty(category.Id))
             {
                 category.Id = Guid.NewGuid().ToString();
@@ -137,6 +187,8 @@ namespace AiStudio4.Services
 
         public async Task<ToolCategory> UpdateToolCategoryAsync(ToolCategory category)
         {
+            await EnsureInitialized();
+
             var existingCategory = _toolLibrary.Categories.FirstOrDefault(c => c.Id == category.Id);
             if (existingCategory == null)
             {
@@ -152,6 +204,8 @@ namespace AiStudio4.Services
 
         public async Task<bool> DeleteToolCategoryAsync(string categoryId)
         {
+            await EnsureInitialized();
+
             var category = _toolLibrary.Categories.FirstOrDefault(c => c.Id == categoryId);
             if (category == null)
             {
@@ -166,6 +220,8 @@ namespace AiStudio4.Services
 
         public async Task<bool> ValidateToolSchemaAsync(string schema)
         {
+            await EnsureInitialized();
+
             try
             {
                 var jobj = JObject.Parse(schema);
@@ -180,6 +236,8 @@ namespace AiStudio4.Services
 
         public async Task<List<Tool>> ImportToolsAsync(string json)
         {
+            await EnsureInitialized();
+
             try
             {
                 var importedTools = JsonConvert.DeserializeObject<List<Tool>>(json);
@@ -195,8 +253,14 @@ namespace AiStudio4.Services
                         tool.Guid = Guid.NewGuid().ToString();
                     }
 
+                    // Ensure FileType is not null
+                    if (tool.Filetype == null)
+                    {
+                        tool.Filetype = string.Empty;
+                    }
+
                     tool.LastModified = DateTime.UtcNow;
-                    
+
                     // Check if a tool with the same GUID already exists
                     var existingTool = _toolLibrary.Tools.FirstOrDefault(t => t.Guid == tool.Guid);
                     if (existingTool != null)
@@ -223,10 +287,12 @@ namespace AiStudio4.Services
 
         public async Task<string> ExportToolsAsync(List<string> toolIds = null)
         {
+            await EnsureInitialized();
+
             try
             {
                 List<Tool> toolsToExport;
-                
+
                 if (toolIds == null || !toolIds.Any())
                 {
                     // Export all tools
@@ -244,6 +310,14 @@ namespace AiStudio4.Services
             {
                 _logger.LogError(ex, "Error exporting tools");
                 throw;
+            }
+        }
+
+        private async Task EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                await InitializeAsync();
             }
         }
     }

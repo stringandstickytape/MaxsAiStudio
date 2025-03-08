@@ -15,7 +15,7 @@ namespace AiStudio4.AiServices
     internal class Claude : AiServiceBase
     {
         private string oneOffPreFill;
-
+        
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
 
         protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
@@ -159,6 +159,7 @@ namespace AiStudio4.AiServices
             streamProcessor.StreamingTextReceived += (s, e) => OnStreamingDataReceived(e);
 
             var result = await streamProcessor.ProcessStream(stream, cancellationToken);
+
             OnStreamingComplete();
 
             return new AiResponse
@@ -170,7 +171,8 @@ namespace AiStudio4.AiServices
                     result.OutputTokens?.ToString(),
                     result.CacheCreationInputTokens?.ToString(),
                     result.CacheReadInputTokens?.ToString()
-                )
+                ),
+                ChosenTool = streamProcessor.ChosenTool
             };
         }
 
@@ -335,6 +337,8 @@ namespace AiStudio4.AiServices
             };
         }
 
+        public string ChosenTool { get; set; } = null;
+
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens,
             ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
@@ -349,7 +353,22 @@ namespace AiStudio4.AiServices
                 var eventType = eventData["type"].ToString();
 
                 switch (eventType)
-                {
+                {/*{
+                    "type": "content_block_start",
+  "index": 0,
+  "content_block": {
+                        "type": "tool_use",
+    "id": "toolu_01FbXDHWtGJh7WqjbBEGyQxR",
+    "name": "codeblock",
+    "input": { }
+                    }*/
+                    case "content_block_start":
+                        var contentBlockType = eventData["content_block"]?["type"];
+                        if(contentBlockType.ToString() == "tool_use")
+                        {
+                            ChosenTool = eventData["content_block"]?["name"].ToString();
+                        }
+                        break;
                     case "content_block_delta":
                         var text = eventData["delta"]["text"]?.ToString() ?? eventData["delta"]["partial_json"]?.ToString();
                         Debug.WriteLine(text);

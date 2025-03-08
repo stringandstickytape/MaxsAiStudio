@@ -51,48 +51,63 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             const toggleButton = (
                 <button
                     onClick={toggleView}
-                    className="absolute right-2 top-2 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700"
+                    className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                 >
                     {isRawView ? 'Show Rendered' : 'Show Raw'}
                 </button>
+            );
+
+            const codeHeader = (
+                <div className="flex items-center justify-between bg-gray-900 px-4 py-2 rounded-t-xl border-b border-gray-700 text-sm text-gray-400">
+                    <div className="font-medium">{language}</div>
+                    {toggleButton}
+                </div>
             );
 
             // Handle diagrams first
             if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
                 return isRawView ? (
-                    <div className="relative  p-4 bg-gray-800 rounded-lg">
-                        {toggleButton}
-                        <pre>{content}</pre>
+                    <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                        {codeHeader}
+                        <div className="p-4 bg-gray-800 rounded-b-lg">
+                            <pre>{content}</pre>
+                        </div>
                     </div>
                 ) : (
-                    <div className="relative" key={mermaidKey}>
-                        {toggleButton}
-                        <DiagramComponent
-                            content={content}
-                            className="p-4 bg-gray-800 rounded-lg overflow-auto"
-                        />
+                    <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
+                        {codeHeader}
+                        <div className="p-4 bg-gray-800 rounded-b-lg">
+                            <DiagramComponent
+                                content={content}
+                                className="overflow-auto"
+                            />
+                        </div>
                     </div>
                 );
             }
 
             // Only handle regular code blocks if not a diagram
             return isRawView ? (
-                    <div className="relative p-4 bg-gray-800/40 rounded-xl backdrop-blur-sm shadow-lg border border-gray-700/30">
-                        {toggleButton}
+                <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                    {codeHeader}
+                    <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl">
                         <pre>{content}</pre>
                     </div>
-                ) : (
-                <div className="relative p-4 bg-gray-800/40 rounded-xl backdrop-blur-sm shadow-lg border border-gray-700/30 hover:bg-gray-800/50 transition-colors duration-200">
-                    {toggleButton}
-                    <SyntaxHighlighter
-                        style={nightOwl as any}
-                        language={match[1]}
-                        PreTag="div"
-                        className="rounded-lg"
-                    >
-                        {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
+                </div>
+            ) : (
+                <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                    {codeHeader}
+                    <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200">
+                        <SyntaxHighlighter
+                            style={nightOwl as any}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg"
+                        >
+                            {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                    </div>
                 </div>
             )
         },
@@ -146,8 +161,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     }
 
     return (
-            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
-                {markdownContent}
-            </ReactMarkdown>
+        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+            {markdownContent}
+        </ReactMarkdown>
     )
 }

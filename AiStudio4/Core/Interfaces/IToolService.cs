@@ -7,6 +7,11 @@ namespace AiStudio4.Core.Interfaces
     public interface IToolService
     {
         /// <summary>
+        /// Initializes the tool service, including any required migrations
+        /// </summary>
+        Task InitializeAsync();
+
+        /// <summary>
         /// Gets all available tools
         /// </summary>
         Task<List<Tool>> GetAllToolsAsync();
@@ -65,5 +70,6 @@ namespace AiStudio4.Core.Interfaces
         /// Exports tools to JSON
         /// </summary>
         Task<string> ExportToolsAsync(List<string> toolIds = null);
+        Task<Tool> GetToolByNameAsync(string toolName);
     }
 }

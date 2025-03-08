@@ -307,21 +307,44 @@ namespace AiStudio4.Services
     public class StartupService : IHostedService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<StartupService> _logger;
 
-        public StartupService(IServiceProvider serviceProvider)
+        public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger)
         {
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting initialization of services");
+
             using (var scope = _serviceProvider.CreateScope())
             {
-                var systemPromptService = scope.ServiceProvider.GetRequiredService<ISystemPromptService>();
-                await systemPromptService.InitializeAsync();
+                try
+                {
+                    // Initialize all services that need initialization
+                    _logger.LogInformation("Initializing SystemPromptService...");
+                    var systemPromptService = scope.ServiceProvider.GetRequiredService<ISystemPromptService>();
+                    await systemPromptService.InitializeAsync();
+
+                    _logger.LogInformation("Initializing ToolService...");
+                    var toolService = scope.ServiceProvider.GetRequiredService<IToolService>();
+                    await toolService.InitializeAsync();
+
+                    _logger.LogInformation("Service initialization completed");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during service initialization");
+                }
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Stopping services");
+            return Task.CompletedTask;
+        }
     }
 }
