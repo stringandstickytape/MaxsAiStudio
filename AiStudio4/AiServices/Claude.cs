@@ -199,11 +199,14 @@ namespace AiStudio4.AiServices
                 return new AiResponse { ResponseText = "error - " + errorMsg, Success = false };
             }
 
+            var chosenTool = ExtractChosenToolFromCompletion(completion);
+            
             return new AiResponse
             {
                 ResponseText = ExtractResponseTextFromCompletion(completion),
                 Success = true,
-                TokenUsage = ExtractTokenUsageFromCompletion(completion)
+                TokenUsage = ExtractTokenUsageFromCompletion(completion),
+                ChosenTool = chosenTool
             };
         }
 
@@ -241,6 +244,19 @@ namespace AiStudio4.AiServices
                 return completion["tool_calls"][0]["function"]["arguments"].ToString();
             }
             return string.Empty;
+        }
+
+        private string ExtractChosenToolFromCompletion(JObject completion)
+        {
+            if (completion["content"] != null && completion["content"][0]["type"]?.ToString() == "tool_use")
+            {
+                return completion["content"][0]["name"]?.ToString();
+            }
+            else if (completion["tool_calls"] != null && completion["tool_calls"].Any())
+            {
+                return completion["tool_calls"][0]["function"]["name"]?.ToString();
+            }
+            return null;
         }
 
         private TokenUsage ExtractTokenUsageFromCompletion(JObject completion)
