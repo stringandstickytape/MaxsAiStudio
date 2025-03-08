@@ -312,17 +312,29 @@ function App() {
     };
 
     const handleToggleConversationTree = () => {
-        // When opening the tree, use the active conversation ID
+        // Always use the activeConversationId when toggling the tree
         setSelectedConversationId(activeConversationId);
+        
         console.log('Opening conversation tree with conversation ID:', activeConversationId);
         togglePanel('conversationTree');
     };
 
     // Subscribe to Zustand store to update the conversation tree when messages change
     useEffect(() => {
+        // Keep selectedConversationId synchronized with activeConversationId
+        // This is critical for the tree view to update when historical conversations are loaded
+        if (activeConversationId && activeConversationId !== selectedConversationId) {
+            // When active conversation changes, update the selected conversation ID
+            console.log('Active conversation changed, updating selected conversation ID', {
+                old: selectedConversationId,
+                new: activeConversationId
+            });
+            setSelectedConversationId(activeConversationId);
+        }
+        
+        // Track message changes to refresh the tree when needed
         let lastMessagesLength = 0;
-        let lastActiveConversation = '';
-
+        
         // Set up subscription to conversation messages changes
         const unsubscribe = useConversationStore.subscribe(
             (state) => ({ 
@@ -330,7 +342,12 @@ function App() {
                 conversations: state.conversations 
             }),
             ({ activeId, conversations }) => {
-                if (!activeId || !selectedConversationId) return;
+                if (!activeId) return;
+                
+                // Update selectedConversationId to match activeConversationId if they differ
+                if (activeId !== selectedConversationId) {
+                    setSelectedConversationId(activeId);
+                }
                 
                 // Get current conversation messages
                 const conversation = conversations[activeId];
@@ -338,10 +355,8 @@ function App() {
                 
                 const currentMessagesLength = conversation.messages.length;
                 
-                // Only refresh when message count changes or active conversation changes
-                if (currentMessagesLength !== lastMessagesLength ||
-                    activeId !== lastActiveConversation) {
-                    
+                // Only refresh when message count changes 
+                if (currentMessagesLength !== lastMessagesLength) {
                     console.log('Conversation store updated - conversation messages changed:', {
                         oldCount: lastMessagesLength,
                         newCount: currentMessagesLength,
@@ -356,15 +371,14 @@ function App() {
                         }, 50);
                     }
                     
-                    // Update tracking variables
+                    // Update tracking variable
                     lastMessagesLength = currentMessagesLength;
-                    lastActiveConversation = activeId;
                 }
             }
         );
 
         return () => unsubscribe();
-    }, [conversationTreePanel.isOpen, selectedConversationId]);
+    }, [conversationTreePanel.isOpen, activeConversationId, selectedConversationId]);
 
     const handleOpenNewWindow = () => {
         window.open(window.location.href, '_blank');

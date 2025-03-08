@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Node,
     Edge,
@@ -21,7 +21,10 @@ interface TreeViewProps {
 export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, messages }) => {
     const [nodes, setNodes] = useState<Node[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
-    const { setActiveConversation } = useConversationStore();
+    const { setActiveConversation, getConversation } = useConversationStore();
+
+    // Add this key state to force re-renders when needed
+    const [updateKey, setUpdateKey] = useState(0);
 
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
         // Set active conversation and selected message
@@ -35,13 +38,24 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, 
         });
     };
 
+    // Get the most up-to-date messages from the conversation store
+    const currentMessages = useMemo(() => {
+        const conversation = getConversation(conversationId);
+        return conversation?.messages || messages;
+    }, [getConversation, conversationId, messages, updateKey]);
+
+    // Force a refresh when conversationId changes
     useEffect(() => {
-        console.log('Conversation tree building with message count:', messages.length);
-        if (!messages || messages.length === 0) return;
+        setUpdateKey(prev => prev + 1);
+    }, [conversationId]);
+
+    useEffect(() => {
+        console.log('Conversation tree building with message count:', currentMessages.length);
+        if (!currentMessages || currentMessages.length === 0) return;
 
         try {
             // Create a message graph from the messages
-            const graph = new MessageGraph(messages);
+            const graph = new MessageGraph(currentMessages);
 
             // Call transformToReactFlow directly with the flat message array and relationships
             const { nodes: flowNodes, edges: flowEdges } = transformToReactFlow(
@@ -59,15 +73,15 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, 
         } catch (error) {
             console.error('Error creating tree visualization:', error);
         }
-    }, [messages, conversationId]);
+    }, [currentMessages, conversationId, updateKey]);
 
     return (
         <div className="flex flex-col h-[calc(100vh-70px)] w-full">
             <div className={cn(
                 "flex-1 overflow-hidden",
-                !messages.length && "flex items-center justify-center"
+                !currentMessages.length && "flex items-center justify-center"
             )}>
-                {!messages.length ? (
+                {!currentMessages.length ? (
                     <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
                         <p>No conversation history to display</p>
                         <p className="text-sm mt-2 text-gray-500">Start a new conversation to see the tree view</p>
@@ -88,6 +102,7 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, 
                             zoomOnScroll={true}
                             panOnScroll={true}
                             panOnDrag={true}
+                            key={`flow-${conversationId}-${updateKey}`}
                         >
                             <Controls />
                         </ReactFlow>
