@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import { AppHeader } from './components/AppHeader';
@@ -428,13 +429,95 @@ function App() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+    
+    // Define panel configurations
+    const panelConfigs: PanelConfig[] = [
+        {
+            id: 'sidebar',
+            position: 'left',
+            size: '80',
+            minWidth: '320px',
+            maxWidth: '320px',
+            width: '320px',
+            zIndex: 40,
+            title: 'Conversations',
+            render: (isOpen) => isOpen ? <Sidebar wsState={wsState} /> : null
+        },
+        {
+            id: 'conversationTree',
+            position: 'right',
+            size: '80',
+            minWidth: '320px',
+            maxWidth: '320px',
+            width: '320px',
+            zIndex: 30,
+            title: 'Conversation Tree',
+            render: (isOpen) => isOpen && selectedConversationId ? (
+                <ConversationTreeView
+                    key={`tree-${selectedConversationId}-${Date.now()}`}
+                    conversationId={selectedConversationId}
+                    messages={selectedConversationId && conversations[selectedConversationId]?.messages || []}
+                />
+            ) : null
+        },
+        {
+            id: 'settings',
+            position: 'right',
+            size: '80',
+            minWidth: '320px',
+            maxWidth: '320px',
+            width: '320px',
+            zIndex: 40,
+            title: 'Settings',
+            render: (isOpen) => isOpen ? <SettingsPanel isOpen={true} /> : null
+        },
+        {
+            id: 'systemPrompts',
+            position: 'right',
+            size: '80',
+            minWidth: '320px',
+            maxWidth: '320px',
+            width: '320px',
+            zIndex: 50,
+            title: 'System Prompts',
+            render: (isOpen) => isOpen ? (
+                <SystemPromptLibrary
+                    isOpen={true}
+                    conversationId={activeConversationId || undefined}
+                    onApplyPrompt={(prompt) => {
+                        console.log("App.tsx - Applying prompt:", prompt);
+                        const conversationId = activeConversationId;
+                        const promptId = prompt?.guid || prompt?.Guid;
+
+                        if (conversationId && promptId) {
+                            console.log(`Setting conversation system prompt with conversationId=${conversationId}, promptId=${promptId}`);
+                            setConversationSystemPrompt({ conversationId, promptId });
+                            setConversationPrompt(conversationId, promptId);
+                        } else {
+                            console.error("Cannot apply prompt - missing required data:", {
+                                conversationId, promptId, prompt
+                            });
+                        }
+
+                        togglePanel('systemPrompts');
+                    }}
+                />
+            ) : null
+        }
+    ];
+    
+    // Get panel states for layout calculations
+    const hasLeftPanel = panels.sidebar?.isPinned || false;
+    const hasRightPanel = panels.conversationTree?.isPinned || 
+                           panels.settings?.isPinned || 
+                           panels.systemPrompts?.isPinned || false;
 
     return (
         <>
             <div className={cn(
                 "h-screen flex flex-col",
-                sidebarPanel.isPinned && "pl-80",
-                (conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned) && "pr-80"
+                hasLeftPanel && "pl-80",
+                hasRightPanel && "pr-80"
             )}>
                 {/* Top header - fixed height */}
                 <div className="flex-none h-[155px] bg-background">
@@ -453,8 +536,8 @@ function App() {
                         isCommandBarOpen={isCommandBarOpen}
                         setIsCommandBarOpen={setIsCommandBarOpen}
                         CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                        sidebarPinned={sidebarPanel.isPinned}
-                        rightSidebarPinned={conversationTreePanel.isPinned || settingsPanel.isPinned || systemPromptsPanel.isPinned}
+                        sidebarPinned={hasLeftPanel}
+                        rightSidebarPinned={hasRightPanel}
                         activeConversationId={activeConversationId}
                     />
                 </div>
@@ -480,107 +563,8 @@ function App() {
                 </div>
             </div>
 
-            {/* Sidebar Panel */}
-            <Panel
-                id="sidebar"
-                position="left"
-                size="80"
-                minWidth="320px"
-                maxWidth="320px"
-                width="320px"
-                zIndex={40}
-                title="Conversations"
-                isOpen={sidebarPanel.isOpen}
-                isPinned={sidebarPanel.isPinned}
-            // No need for onClose or onTogglePinned - uses store functions by default
-            >
-                <Sidebar
-                    wsState={wsState}
-                />
-            </Panel>
-
-
-            {/* Conversation Tree Panel */}
-            {selectedConversationId && (
-                <Panel
-                    id="conversationTree"
-                    position="right"
-                    size="80"
-                    minWidth="320px"
-                    maxWidth="320px"
-                    width="320px"
-                    zIndex={30}
-                    title="Conversation Tree"
-                    isOpen={conversationTreePanel.isOpen}
-                    isPinned={conversationTreePanel.isPinned}
-                >
-                    <ConversationTreeView
-                        key={`tree-${selectedConversationId}-${Date.now()}`}
-                        conversationId={selectedConversationId}
-                        messages={selectedConversationId && conversations[selectedConversationId]?.messages || []}
-                    />
-                </Panel>
-            )}
-
-            {/* Settings Panel */}
-            <Panel
-                id="settings"
-                position="right"
-                size="80"
-                minWidth="320px"
-                maxWidth="320px"
-                width="320px"
-                zIndex={40}
-                title="Settings"
-                isOpen={settingsPanel.isOpen}
-                isPinned={settingsPanel.isPinned}
-            >
-                <SettingsPanel
-                    isOpen={true}
-                />
-            </Panel>
-
-            {/* System Prompts Panel */}
-            <Panel
-                id="systemPrompts"
-                position="right"
-                size="80"
-                minWidth="320px"
-                maxWidth="320px"
-                width="320px"
-                zIndex={50}
-                title="System Prompts"
-                isOpen={systemPromptsPanel.isOpen}
-                isPinned={systemPromptsPanel.isPinned}
-            >
-                <SystemPromptLibrary
-                    isOpen={true}
-                    conversationId={activeConversationId || undefined}
-                    onApplyPrompt={(prompt) => {
-                        console.log("App.tsx - Applying prompt:", prompt);
-                        const conversationId = activeConversationId;
-
-                        // Check for guid in either camelCase or PascalCase
-                        const promptId = prompt?.guid || prompt?.Guid;
-
-                        if (conversationId && promptId) {
-                            console.log(`Setting conversation system prompt with conversationId=${conversationId}, promptId=${promptId}`);
-                            // Using RTK Query mutation
-                            setConversationSystemPrompt({ conversationId, promptId });
-                            // Also update the Zustand store
-                            setConversationPrompt(conversationId, promptId);
-                        } else {
-                            console.error("Cannot apply prompt - missing required data:", {
-                                conversationId,
-                                promptId,
-                                prompt
-                            });
-                        }
-
-                        togglePanel('systemPrompts');
-                    }}
-                />
-            </Panel>
+            {/* Add the new panel manager */}
+            <PanelManager panels={panelConfigs} />
 
             {/* Voice Input Overlay */}
             <VoiceInputOverlay
