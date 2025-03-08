@@ -192,7 +192,8 @@ namespace AiStudio4.AiServices
                                 {
                                     ResponseText = jsonResponse["args"].ToString(),
                                     Success = !cancellationToken.IsCancellationRequested,
-                                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
+                                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                                    ChosenTool = jsonResponse["name"]?.ToString()
                                 };
                             }
                         }
@@ -211,7 +212,8 @@ namespace AiStudio4.AiServices
                     {
                         ResponseText = fullResponse.ToString(),
                         Success = !cancellationToken.IsCancellationRequested,
-                        TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
+                        TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                        ChosenTool = null
                     };
                 }
                 }
@@ -235,6 +237,19 @@ namespace AiStudio4.AiServices
             return "";
         }
 
+        private string ExtractChosenToolFromCompletion(JObject completion)
+        {
+            if (completion["candidates"]?[0]?["content"]?["parts"] != null)
+            {
+                var content = completion["candidates"][0]["content"]["parts"][0];
+                if (content["functionCall"] != null)
+                {
+                    return content["functionCall"]["name"]?.ToString();
+                }
+            }
+            return null;
+        }
+
         protected override async Task<AiResponse> HandleNonStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
             HttpResponseMessage response = await client.PostAsync($"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}", content, cancellationToken);
@@ -246,12 +261,14 @@ namespace AiStudio4.AiServices
 
                 var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
                 var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+                var chosenTool = ExtractChosenToolFromCompletion(completion);
 
                 return new AiResponse
                 {
                     ResponseText = ExtractResponseText(completion),
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokens, outputTokens)
+                    TokenUsage = new TokenUsage(inputTokens, outputTokens),
+                    ChosenTool = chosenTool
                 };
             }
             else
@@ -262,7 +279,8 @@ namespace AiStudio4.AiServices
         }
 
         private string inputTokenCount = "";
-            private string outputTokenCount = "";
+        private string outputTokenCount = "";
+        private string chosenTool = null;
         private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
         {
             if (!string.IsNullOrWhiteSpace(jsonString))
@@ -278,6 +296,7 @@ namespace AiStudio4.AiServices
                         if (content["functionCall"] != null)
                         {
                             var toolResponse = JsonConvert.SerializeObject(content["functionCall"]);
+                            chosenTool = content["functionCall"]["name"]?.ToString();
                             fullResponse.Append(toolResponse);
                             OnStreamingDataReceived(toolResponse);
                         }
