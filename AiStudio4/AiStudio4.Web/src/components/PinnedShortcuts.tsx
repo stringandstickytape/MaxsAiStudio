@@ -18,6 +18,11 @@ interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
     maxShown?: number;
     className?: string;
+    /**
+     * If true, automatically adjusts the number of visible buttons based on container width
+     * (only applies to horizontal orientation)
+     */
+    autoFit?: boolean;
 }
 
 // Common icon mapping for command names
@@ -47,7 +52,8 @@ const getIconForCommand = (commandId: string, iconName?: string) => {
 export function PinnedShortcuts({
     orientation = 'horizontal',
     maxShown = 12,
-    className
+    className,
+    autoFit = true
 }: PinnedShortcutsProps) {
     // Use Zustand store instead of Redux
     const { 
@@ -70,6 +76,13 @@ export function PinnedShortcuts({
 
     // Track WebSocket connection state to handle refetching
     const wsConnectedRef = useRef<boolean>(false);
+    
+    // Refs for container and button measurements
+    const containerRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    
+    // State to track dynamic number of visible buttons
+    const [visibleCount, setVisibleCount] = useState(maxShown);
 
     // Load pinned commands from server when component mounts or clientId changes
     useEffect(() => {
@@ -135,6 +148,46 @@ export function PinnedShortcuts({
 
         return () => clearTimeout(saveTimer);
     }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, userModified]);
+    
+    // Calculate how many buttons can fit in the container
+    useEffect(() => {
+        if (!autoFit || orientation === 'vertical' || !containerRef.current || !buttonRef.current) {
+            return;
+        }
+
+        const calculateVisibleButtons = () => {
+            const containerWidth = containerRef.current?.clientWidth || 0;
+            const buttonWidth = 90 + 4; // Button width (90px) + gap (4px)
+            const dropdownWidth = 30; // Width reserved for the "more" dropdown button
+            
+            // Calculate max buttons that can fit in the available width
+            const availableWidth = containerWidth - dropdownWidth;
+            const maxFittingButtons = Math.floor(availableWidth / buttonWidth);
+            
+            // Limit to actual command count and enforce at least one button
+            const newVisibleCount = Math.min(
+                Math.max(1, maxFittingButtons), 
+                pinnedCommands.length
+            );
+            
+            if (newVisibleCount !== visibleCount) {
+                setVisibleCount(newVisibleCount);
+            }
+        };
+
+        // Calculate on mount and when resized
+        calculateVisibleButtons();
+        
+        const resizeObserver = new ResizeObserver(calculateVisibleButtons);
+        resizeObserver.observe(containerRef.current);
+        
+        return () => {
+            if (containerRef.current) {
+                resizeObserver.unobserve(containerRef.current);
+            }
+            resizeObserver.disconnect();
+        };
+    }, [autoFit, orientation, pinnedCommands.length, visibleCount]);
 
     // Override addPinnedCommand and removePinnedCommand to set userModified flag
     const handleCommandClick = (commandId: string) => {
@@ -172,10 +225,13 @@ export function PinnedShortcuts({
         }
     };
 
+    // Determine which commands to show based on autoFit or maxShown
+    const effectiveVisibleCount = (autoFit && orientation === 'horizontal') ? visibleCount : maxShown;
+    
     // Limit the number of displayed commands
-    const visibleCommands = pinnedCommands.slice(0, maxShown);
-    const hiddenCommands = pinnedCommands.slice(maxShown);
-    const hasMoreCommands = pinnedCommands.length > maxShown;
+    const visibleCommands = pinnedCommands.slice(0, effectiveVisibleCount);
+    const hiddenCommands = pinnedCommands.slice(effectiveVisibleCount);
+    const hasMoreCommands = pinnedCommands.length > effectiveVisibleCount;
 
     // Empty state - no pinned commands
     if (pinnedCommands.length === 0) {
@@ -199,16 +255,19 @@ export function PinnedShortcuts({
     }
 
     return (
-        <div className={cn(
-            "flex items-center justify-center gap-1 overflow-x-auto py-1 px-2",
-            orientation === 'vertical' ? "flex-col" : "flex-row w-full",
-            className
-        )}>
+        <div 
+            ref={containerRef}
+            className={cn(
+                "flex items-center justify-center gap-1 overflow-x-auto py-1 px-2",
+                orientation === 'vertical' ? "flex-col" : "flex-row w-full",
+                className
+            )}>
             <TooltipProvider>
                 {visibleCommands.map(command => (
                     <Tooltip key={command.id} delayDuration={300}>
                         <TooltipTrigger asChild>
                             <Button
+                                ref={command.id === visibleCommands[0]?.id ? buttonRef : null}
                                 variant="ghost"
                                 onClick={() => handleCommandClick(command.id)}
                                 onContextMenu={(e) => {
@@ -216,11 +275,13 @@ export function PinnedShortcuts({
                                     // Remove pin on right-click
                                     handlePinCommand(command.id, true);
                                 }}
-                                className="h-6 px-1.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex items-center justify-center gap-1"
+                                className="h-auto min-h-[40px] max-h-[50px] w-[90px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-start gap-1"
                             >
-                                {getIconForCommand(command.id, command.iconName)}
-                                <span className="text-xs font-medium max-w-[40px] truncate text-center">
-                                    {command.name.substring(0, 5)}
+                                <div className="flex-shrink-0">
+                                    {getIconForCommand(command.id, command.iconName)}
+                                </div>
+                                <span className="text-[10px] font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
+                                    {command.name}
                                 </span>
                             </Button>
                         </TooltipTrigger>
@@ -246,10 +307,10 @@ export function PinnedShortcuts({
                                 </DropdownMenuTrigger>
                             </TooltipTrigger>
                             <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
-                                <p>More commands ({pinnedCommands.length - maxShown})</p>
+                                <p>More commands ({pinnedCommands.length - effectiveVisibleCount})</p>
                             </TooltipContent>
                         </Tooltip>
-                        <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuContent align="end" className="w-48 max-h-[50vh] overflow-y-auto">
                             <DropdownMenuGroup>
                                 {hiddenCommands.map(command => (
                                     <DropdownMenuItem 
@@ -259,7 +320,7 @@ export function PinnedShortcuts({
                                             e.preventDefault();
                                             handlePinCommand(command.id, true);
                                         }}
-                                        className="flex items-center gap-2 text-xs"
+                                        className="flex items-center gap-1 text-xs whitespace-normal"
                                     >
                                         <span className="flex-shrink-0">{getIconForCommand(command.id, command.iconName)}</span>
                                         <span>{command.name}</span>
