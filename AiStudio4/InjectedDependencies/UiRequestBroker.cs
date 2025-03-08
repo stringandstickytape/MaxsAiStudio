@@ -50,6 +50,7 @@ namespace AiStudio4.InjectedDependencies
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList }),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _settingsManager.CurrentSettings.ServiceProviders }),
                     "conversationmessages" => await _chatManager.HandleConversationMessagesRequest(clientId, requestObject),
+                    "getConversation" => await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject),
                     "historicalConversationTree" => await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject),
                     "chat" => await _chatManager.HandleChatRequest(clientId, requestObject),
                     "getTools" => await HandleGetToolsRequest(),

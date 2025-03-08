@@ -81,9 +81,24 @@ export const HistoricalConversationTreeList = () => {
     // Handle node click to load conversation by ID
     const handleNodeClick = async (nodeId: string, conversationId: string) => {
         if (!clientId) return;
-        
+
         try {
-            // Fetch the full conversation data
+            console.log(`Loading conversation ${conversationId} with selected message ${nodeId}`);
+
+            // First check if conversation already exists in store
+            const existingConversation = currentConversations[conversationId];
+
+            if (existingConversation) {
+                console.log('Conversation already exists in store, setting as active');
+                // If conversation already exists, just set it as active with the selected message
+                setActiveConversation({
+                    conversationId,
+                    selectedMessageId: nodeId
+                });
+                return;
+            }
+
+            // Fetch the full conversation data if not in store
             const response = await fetch('/api/getConversation', {
                 method: 'POST',
                 headers: {
@@ -100,35 +115,43 @@ export const HistoricalConversationTreeList = () => {
             }
 
             const data = await response.json();
+            console.log('Received conversation data:', data);
 
             if (data.success && data.conversation && data.conversation.messages) {
                 // First create the conversation in the store
                 const messages = data.conversation.messages;
                 if (messages.length > 0) {
-                    // Find the root message
-                    const rootMessage = messages.find(msg => !msg.parentId) || messages[0];
+                    // Sort messages by timestamp to ensure proper ordering
+                    const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
+
+                    // Find the root message - either explicitly marked with no parentId or just the first message
+                    const rootMessage = sortedMessages.find(msg => !msg.parentId) || sortedMessages[0];
+                    console.log('Using root message:', rootMessage);
 
                     // Create the conversation with the root message
                     createConversation({
                         id: conversationId,
                         rootMessage: {
                             id: rootMessage.id,
-                            content: rootMessage.content,
-                            source: rootMessage.source,
+                            content: rootMessage.content || '',
+                            source: rootMessage.source || 'system',
                             parentId: null,
                             timestamp: rootMessage.timestamp || Date.now()
                         }
                     });
 
-                    // Add the rest of the messages
-                    const nonRootMessages = messages.filter(msg => msg.id !== rootMessage.id);
+                    // Add the rest of the messages in order of timestamp
+                    const nonRootMessages = sortedMessages.filter(msg => msg.id !== rootMessage.id);
+
+                    // Process messages in order to maintain parent-child relationships
                     for (const message of nonRootMessages) {
+                        console.log(`Adding message to conversation: ${message.id}, parent: ${message.parentId}`);
                         addMessage({
                             conversationId,
                             message: {
                                 id: message.id,
-                                content: message.content,
-                                source: message.source,
+                                content: message.content || '',
+                                source: message.source || 'user',
                                 parentId: message.parentId,
                                 timestamp: message.timestamp || Date.now()
                             }
@@ -136,17 +159,20 @@ export const HistoricalConversationTreeList = () => {
                     }
 
                     // Set the active conversation and selected message
-                    setActiveConversation({
-                        conversationId,
-                        selectedMessageId: nodeId
-                    });
+                    // Use a slight delay to ensure the store is updated
+                    setTimeout(() => {
+                        console.log(`Setting active conversation ${conversationId} with selected message ${nodeId}`);
+                        setActiveConversation({
+                            conversationId,
+                            selectedMessageId: nodeId
+                        });
+                    }, 50);
                 }
             }
         } catch (error) {
             console.error('Error loading conversation:', error);
         }
     };
-
     return (
         <div className="flex flex-col">
             {isLoading ? (
