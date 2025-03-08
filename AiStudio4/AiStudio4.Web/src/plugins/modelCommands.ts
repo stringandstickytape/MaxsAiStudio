@@ -3,7 +3,6 @@ import { registerCommandGroup } from '@/commands/commandRegistry';
 import { ModelType } from '@/types/modelTypes';
 import { Cpu } from 'lucide-react';
 import React from 'react';
-import { useModelStore } from '@/stores/useModelStore';
 
 interface ModelCommandsConfig {
     getAvailableModels: () => string[];
@@ -13,9 +12,11 @@ interface ModelCommandsConfig {
 
 export function initializeModelCommands(config: ModelCommandsConfig) {
     const { getAvailableModels, selectPrimaryModel, selectSecondaryModel } = config;
+    
+    const availableModels = getAvailableModels();
 
     // Create commands for selecting primary model
-    const primaryModelCommands = getAvailableModels().map(modelName => ({
+    const primaryModelCommands = availableModels.map(modelName => ({
         id: `select-primary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
         name: `${modelName} [Primary]`,
         description: `Set primary model to ${modelName}`,
@@ -26,7 +27,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     }));
 
     // Create commands for selecting secondary model
-    const secondaryModelCommands = getAvailableModels().map(modelName => ({
+    const secondaryModelCommands = availableModels.map(modelName => ({
         id: `select-secondary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
         name: `${modelName} [Secondary]`,
         description: `Set secondary model to ${modelName}`,
@@ -50,5 +51,27 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         name: 'Secondary Models',
         priority: 89,
         commands: secondaryModelCommands
+    });
+
+    // Register a generic model command category for showing model options
+    registerCommandGroup({
+        id: 'model-actions',
+        name: 'Model Actions',
+        priority: 91,
+        commands: [
+            {
+                id: 'select-model',
+                name: 'Select Model',
+                description: 'Change the active AI model',
+                keywords: ['model', 'select', 'change', 'switch', 'ai', 'configure'],
+                section: 'model',
+                icon: React.createElement(Cpu, { size: 16 }),
+                execute: () => {
+                    // This is a generic entry point that will show more specific options
+                    // It doesn't do anything itself, but will show the model-specific commands
+                    // when searching for "model"
+                }
+            }
+        ]
     });
 }

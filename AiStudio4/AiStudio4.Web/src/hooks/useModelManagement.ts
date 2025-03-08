@@ -1,18 +1,16 @@
 // src/hooks/useModelManagement.ts
 import { useState, useCallback, useEffect } from 'react';
 import { useModelStore } from '@/stores/useModelStore';
-import { useGetConfigQuery, useSetDefaultModelMutation, useSetSecondaryModelMutation } from '@/services/api/chatApi';
-import { apiClient } from '@/services/api/apiClient';
 import { Model, ServiceProvider } from '@/types/settings';
 import { ModelType } from '@/types/modelTypes';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
  * A centralized hook for managing models and providers throughout the application.
- * Combines Zustand state management with RTK Query API calls.
+ * Replaces RTK Query with direct API calls managed through Zustand state.
  */
 export function useModelManagement() {
-  // Local state for error handling
+  // Local state for loading and error handling
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,47 +23,33 @@ export function useModelManagement() {
     setModels,
     setProviders,
     selectPrimaryModel,
-    selectSecondaryModel,
-    addModel: zustandAddModel,
-    updateModel: zustandUpdateModel,
-    deleteModel: zustandDeleteModel,
-    addProvider: zustandAddProvider,
-    updateProvider: zustandUpdateProvider,
-    deleteProvider: zustandDeleteProvider,
+    selectSecondaryModel
   } = useModelStore();
 
-  // RTK Query hooks
-  const { data: configData, isLoading: isConfigLoading } = useGetConfigQuery();
-  const [setDefaultModel] = useSetDefaultModelMutation();
-  const [setSecondaryModel] = useSetSecondaryModelMutation();
-
-  // Function to fetch providers if needed
-  const fetchProviders = useCallback(async () => {
+  // Function to fetch configuration (models and default selections)
+  const fetchConfig = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.post('/api/getServiceProviders', {});
-      const data = response.data;
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/getConfig', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({})
+      });
+
+      const data = await response.json();
       
       if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch service providers');
+        throw new Error(data.error || 'Failed to fetch configuration');
       }
       
-      setProviders(data.providers || []);
-    } catch (err) {
-      setError(`Failed to fetch providers: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error('Error fetching providers:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setProviders]);
-
-  // Initialize models from config
-  useEffect(() => {
-    if (configData && !isLoading) {
-      // Set available models if they don't exist already
-      if (configData.models && configData.models.length > 0 && models.length === 0) {
+      // Handle models if they don't exist already
+      if (data.models && data.models.length > 0 && models.length === 0) {
         // Create model objects from config data
-        const modelObjects = configData.models.map(modelName => ({
+        const modelObjects = data.models.map((modelName: string) => ({
           guid: uuidv4(),
           modelName,
           friendlyName: modelName,
@@ -83,144 +67,355 @@ export function useModelManagement() {
       }
 
       // Set primary model if available and not already set
-      if (configData.defaultModel && configData.defaultModel.length > 0 &&
+      if (data.defaultModel && data.defaultModel.length > 0 &&
           selectedPrimaryModel === 'Select Model') {
-        selectPrimaryModel(configData.defaultModel);
+        selectPrimaryModel(data.defaultModel);
       }
       
       // Set secondary model if available and not already set
-      if (configData.secondaryModel && configData.secondaryModel.length > 0 &&
+      if (data.secondaryModel && data.secondaryModel.length > 0 &&
           selectedSecondaryModel === 'Select Model') {
-        selectSecondaryModel(configData.secondaryModel);
+        selectSecondaryModel(data.secondaryModel);
       }
-    }
-  }, [configData, models.length, selectedPrimaryModel, selectedSecondaryModel, selectPrimaryModel, selectSecondaryModel, setModels, isLoading]);
-
-  // Select model with API synchronization
-  const handleModelSelect = useCallback(async (modelType: ModelType, modelName: string) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Update local state first for immediate UI response
-      if (modelType === 'primary') {
-        selectPrimaryModel(modelName);
-        // Also update on the server
-        await setDefaultModel({ modelName }).unwrap();
-      } else {
-        selectSecondaryModel(modelName);
-        // Also update on the server
-        await setSecondaryModel({ modelName }).unwrap();
-      }
+      
+      return data;
     } catch (err) {
-      setError(`Failed to set ${modelType} model: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error(`Error setting ${modelType} model:`, err);
+      setError(`Failed to fetch config: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error fetching config:', err);
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [selectPrimaryModel, selectSecondaryModel, setDefaultModel, setSecondaryModel]);
+  }, [models.length, selectedPrimaryModel, selectedSecondaryModel, selectPrimaryModel, selectSecondaryModel, setModels]);
 
-  // Add a new model with error handling
-  const addModel = useCallback(async (modelData: Omit<Model, 'guid'>) => {
-    setIsLoading(true);
-    setError(null);
-    
+  // Function to fetch models
+  const fetchModels = useCallback(async () => {
     try {
-      await zustandAddModel(modelData);
-      return true;
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/getModels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({})
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch models');
+      }
+      
+      setModels(data.models || []);
+      return data.models;
+    } catch (err) {
+      setError(`Failed to fetch models: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error fetching models:', err);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setModels]);
+
+  // Function to fetch providers
+  const fetchProviders = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/getServiceProviders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({})
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch service providers');
+      }
+      
+      setProviders(data.providers || []);
+      return data.providers;
+    } catch (err) {
+      setError(`Failed to fetch providers: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error fetching providers:', err);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setProviders]);
+
+  // Add a model
+  const addModel = useCallback(async (modelData: Omit<Model, 'guid'>) => {
+    try {
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      
+      // Generate a new GUID if not provided
+      const modelWithGuid = {
+        ...modelData,
+        guid: modelData.guid || uuidv4()
+      };
+      
+      const response = await fetch('/api/addModel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify(modelWithGuid)
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to add model');
+      }
+      
+      // Refresh the models list
+      await fetchModels();
+      
+      return data.model;
     } catch (err) {
       setError(`Failed to add model: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error adding model:', err);
-      return false;
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandAddModel]);
+  }, [fetchModels]);
 
-  // Update an existing model with error handling
+  // Update a model
   const updateModel = useCallback(async (modelData: Model) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      await zustandUpdateModel(modelData);
-      return true;
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/updateModel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify(modelData)
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update model');
+      }
+      
+      // Refresh the models list
+      await fetchModels();
+      
+      return data.model;
     } catch (err) {
       setError(`Failed to update model: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error updating model:', err);
-      return false;
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandUpdateModel]);
+  }, [fetchModels]);
 
-  // Delete a model with error handling
+  // Delete a model
   const deleteModel = useCallback(async (modelGuid: string) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      await zustandDeleteModel(modelGuid);
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/deleteModel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({ modelGuid })
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to delete model');
+      }
+      
+      // Refresh the models list
+      await fetchModels();
+      
       return true;
     } catch (err) {
       setError(`Failed to delete model: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error deleting model:', err);
-      return false;
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandDeleteModel]);
+  }, [fetchModels]);
 
-  // Add a new provider with error handling
+  // Add a service provider
   const addProvider = useCallback(async (providerData: Omit<ServiceProvider, 'guid'>) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      await zustandAddProvider(providerData);
-      return true;
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      
+      // Generate a new GUID if not provided
+      const providerWithGuid = {
+        ...providerData,
+        guid: providerData.guid || uuidv4()
+      };
+      
+      const response = await fetch('/api/addServiceProvider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify(providerWithGuid)
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to add service provider');
+      }
+      
+      // Refresh the providers list
+      await fetchProviders();
+      
+      return data.provider;
     } catch (err) {
       setError(`Failed to add provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error adding provider:', err);
-      return false;
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandAddProvider]);
+  }, [fetchProviders]);
 
-  // Update an existing provider with error handling
+  // Update a service provider
   const updateProvider = useCallback(async (providerData: ServiceProvider) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      await zustandUpdateProvider(providerData);
-      return true;
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/updateServiceProvider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify(providerData)
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update service provider');
+      }
+      
+      // Refresh the providers list
+      await fetchProviders();
+      
+      return data.provider;
     } catch (err) {
       setError(`Failed to update provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error updating provider:', err);
-      return false;
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandUpdateProvider]);
+  }, [fetchProviders]);
 
-  // Delete a provider with error handling
+  // Delete a service provider
   const deleteProvider = useCallback(async (providerGuid: string) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      await zustandDeleteProvider(providerGuid);
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      const response = await fetch('/api/deleteServiceProvider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({ providerGuid })
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to delete service provider');
+      }
+      
+      // Refresh the providers list
+      await fetchProviders();
+      
       return true;
     } catch (err) {
       setError(`Failed to delete provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
       console.error('Error deleting provider:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchProviders]);
+
+  // Select model with API synchronization
+  const handleModelSelect = useCallback(async (modelType: ModelType, modelName: string) => {
+    try {
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      
+      // Update local state first for immediate UI response
+      if (modelType === 'primary') {
+        selectPrimaryModel(modelName);
+        
+        // Update on the server
+        const response = await fetch('/api/setDefaultModel', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Client-Id': clientId || ''
+          },
+          body: JSON.stringify({ modelName })
+        });
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to set default model');
+        }
+      } else {
+        selectSecondaryModel(modelName);
+        
+        // Update on the server
+        const response = await fetch('/api/setSecondaryModel', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Client-Id': clientId || ''
+          },
+          body: JSON.stringify({ modelName })
+        });
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to set secondary model');
+        }
+      }
+      
+      return true;
+    } catch (err) {
+      setError(`Failed to set ${modelType} model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error(`Error setting ${modelType} model:`, err);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [zustandDeleteProvider]);
+  }, [selectPrimaryModel, selectSecondaryModel]);
 
   // Get a provider name by GUID
   const getProviderName = useCallback((providerGuid: string): string => {
@@ -228,12 +423,20 @@ export function useModelManagement() {
     return provider ? provider.friendlyName : 'Unknown Provider';
   }, [providers]);
 
-  // Fetch providers on initial load if empty
+  // Initialize data on hook mount
   useEffect(() => {
-    if (providers.length === 0 && !isLoading) {
-      fetchProviders();
-    }
-  }, [providers.length, isLoading, fetchProviders]);
+    const initialize = async () => {
+      // Only fetch if data isn't already loaded
+      if (models.length === 0) {
+        await fetchConfig();
+      }
+      if (providers.length === 0) {
+        await fetchProviders();
+      }
+    };
+    
+    initialize();
+  }, [fetchConfig, fetchProviders, models.length, providers.length]);
 
   return {
     // State
@@ -241,10 +444,13 @@ export function useModelManagement() {
     providers,
     selectedPrimaryModel,
     selectedSecondaryModel,
-    isLoading: isLoading || isConfigLoading,
+    isLoading,
     error,
     
     // Actions
+    fetchConfig,
+    fetchModels,
+    fetchProviders,
     handleModelSelect,
     addModel,
     updateModel,
@@ -253,7 +459,6 @@ export function useModelManagement() {
     updateProvider,
     deleteProvider,
     getProviderName,
-    fetchProviders,  // Expose this so components can trigger a refresh
     clearError: () => setError(null)
   };
 }

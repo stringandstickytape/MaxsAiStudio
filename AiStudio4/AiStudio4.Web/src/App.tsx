@@ -27,6 +27,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useModelManagement'; // Add this import
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import { initializeSystemPromptCommands } from './commands/systemPromptCommands';
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from './commands/settingsCommands';
@@ -38,8 +39,6 @@ import { ModelType } from '@/types/modelTypes';
 import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
-import { useModelManagement } from '@/hooks/useModelManagement';
-
 function App() {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const { isConnected, clientId } = useWebSocket();
