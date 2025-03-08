@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Wrench } from 'lucide-react';
 import { useToolStore } from '@/stores/useToolStore';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
-import { commandRegistry } from '@/commands/commandRegistry';
+import { commandRegistry } from '@/stores/useCommandStore';
 
 interface ToolSelectorProps {
     onManageTools?: () => void;
