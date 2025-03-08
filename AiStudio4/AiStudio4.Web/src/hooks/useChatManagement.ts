@@ -182,7 +182,7 @@ export function useChatManagement() {
             setIsLoading(true);
             const clientId = localStorage.getItem('clientId');
 
-            const response = await fetch('/api/historicalConversationTree', {  // <-- Changed endpoint
+            const response = await fetch('/api/historicalConversationTree', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -198,9 +198,9 @@ export function useChatManagement() {
             }
 
             // Check if we have treeData in the response
-            if (data.treeData && Array.isArray(data.treeData)) {
-                // Convert tree data to conversation messages format
-                const messages = data.treeData.map(node => ({
+            if (data.flatMessageStructure && Array.isArray(data.flatMessageStructure)) {
+                
+                const messages = data.flatMessageStructure.map(node => ({
                     id: node.id,
                     content: node.text,
                     source: node.source ||

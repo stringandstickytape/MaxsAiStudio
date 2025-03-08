@@ -135,9 +135,9 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
 
                 const data = await response.json();
 
-                if (data.success && data.treeData) {
+                if (data.success && data.flatMessageStructure) {
                     // Convert flat array to hierarchical tree structure
-                    const flatNodes = data.treeData;
+                    const flatNodes = data.flatMessageStructure;
                     const nodeMap = new Map();
 
                     // First pass: create all nodes
