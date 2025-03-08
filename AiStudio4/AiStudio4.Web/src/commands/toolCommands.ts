@@ -1,8 +1,6 @@
 // src/commands/toolCommands.ts
 import React from 'react';
-import { commandRegistry } from './commandRegistry';
-
-import { registerCommandGroup } from './commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Tool } from '@/types/toolTypes';
 import { useToolStore } from '@/stores/useToolStore';
 
@@ -16,7 +14,9 @@ interface ToolCommandsConfig {
 
 export function initializeToolCommands(config: ToolCommandsConfig) {
   // Register main tool commands group
-  registerCommandGroup({
+  const { registerGroup } = useCommandStore.getState();
+  
+  registerGroup({
     id: 'tools',
     name: 'Tools',
     priority: 80,
@@ -77,7 +77,7 @@ export function registerToolsAsCommands(
   toggleTool: (toolId: string, activate: boolean) => void
 ) {
   // First unregister any previous tool-specific commands
-  commandRegistry.unregisterCommandGroup('tools-list');
+  useCommandStore.getState().unregisterGroup('tools-list');
   
   // Create commands for each tool
   const toolCommands = tools.map(tool => ({
@@ -100,7 +100,7 @@ export function registerToolsAsCommands(
   }));
 
   // Register all tool commands as a group
-  registerCommandGroup({
+  useCommandStore.getState().registerGroup({
     id: 'tools-list',
     name: 'Available Tools',
     priority: 75, // Just below the main tools group

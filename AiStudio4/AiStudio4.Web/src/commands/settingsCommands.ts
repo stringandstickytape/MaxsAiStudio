@@ -1,5 +1,5 @@
 // src/commands/settingsCommands.ts
-import { registerCommandGroup } from './commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -27,7 +27,9 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
     
-    registerCommandGroup({
+    const { registerGroup } = useCommandStore.getState();
+    
+    registerGroup({
         id: 'settings',
         name: 'Settings',
         priority: 85,
@@ -86,7 +88,7 @@ export function registerModelCommands(
     // Unregister previous commands to avoid duplicates
     try {
         // This might fail silently if the group doesn't exist yet, which is fine
-        commandRegistry.unregisterCommandGroup('edit-models-list');
+        useCommandStore.getState().unregisterGroup('edit-models-list');
     } catch (e) {}
 
     const modelCommands = models.map(model => ({
@@ -104,7 +106,7 @@ export function registerModelCommands(
         }
     }));
 
-    registerCommandGroup({
+    useCommandStore.getState().registerGroup({
         id: 'edit-models-list',
         name: 'Edit Models',
         priority: 50,
@@ -120,7 +122,7 @@ export function registerProviderCommands(
     // Unregister previous commands to avoid duplicates
     try {
         // This might fail silently if the group doesn't exist yet, which is fine
-        commandRegistry.unregisterCommandGroup('edit-providers-list');
+        useCommandStore.getState().unregisterGroup('edit-providers-list');
     } catch (e) {}
 
     const providerCommands = providers.map(provider => ({
@@ -138,7 +140,7 @@ export function registerProviderCommands(
         }
     }));
 
-    registerCommandGroup({
+    useCommandStore.getState().registerGroup({
         id: 'edit-providers-list',
         name: 'Edit Providers',
         priority: 49,

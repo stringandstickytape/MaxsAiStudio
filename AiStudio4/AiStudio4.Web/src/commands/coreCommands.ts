@@ -1,6 +1,6 @@
 // src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
-import { registerCommandGroup } from './commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink } from 'lucide-react';
 import React from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
@@ -19,7 +19,9 @@ export function initializeCoreCommands(
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
 
-    registerCommandGroup({
+    const { registerGroup } = useCommandStore.getState();
+    
+    registerGroup({
         id: 'conversation',
         name: 'Conversation',
         priority: 100,
@@ -66,7 +68,7 @@ export function initializeCoreCommands(
         ]
     });
 
-    registerCommandGroup({
+    registerGroup({
         id: 'view',
         name: 'View',
         priority: 90,

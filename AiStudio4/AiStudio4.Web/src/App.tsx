@@ -12,7 +12,7 @@ import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { cn } from '@/lib/utils';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
-import { commandRegistry } from './commands/commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { initializeCoreCommands } from './commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
 import { CommandBar } from './components/CommandBar';
@@ -299,8 +299,9 @@ function App() {
 
         // When model changes, create command for quick access
         const commandId = `select-${modelType}-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
-        if (!commandRegistry.getCommandById(commandId)) {
-            commandRegistry.registerCommand({
+        const commandStore = useCommandStore.getState();
+        if (!commandStore.getCommandById(commandId)) {
+            commandStore.registerCommand({
                 id: commandId,
                 name: `Set ${modelType} model to ${modelName}`,
                 description: `Change the ${modelType} model to ${modelName}`,

@@ -1,5 +1,5 @@
 // src/plugins/modelCommands.ts
-import { registerCommandGroup } from '@/commands/commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { ModelType } from '@/types/modelTypes';
 import { Cpu } from 'lucide-react';
 import React from 'react';
@@ -38,7 +38,9 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     }));
 
     // Register all primary model commands
-    registerCommandGroup({
+    const { registerGroup } = useCommandStore.getState();
+    
+    registerGroup({
         id: 'primary-models',
         name: 'Primary Models',
         priority: 90,
@@ -46,7 +48,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     });
 
     // Register all secondary model commands
-    registerCommandGroup({
+    registerGroup({
         id: 'secondary-models',
         name: 'Secondary Models',
         priority: 89,
@@ -54,7 +56,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     });
 
     // Register a generic model command category for showing model options
-    registerCommandGroup({
+    registerGroup({
         id: 'model-actions',
         name: 'Model Actions',
         priority: 91,

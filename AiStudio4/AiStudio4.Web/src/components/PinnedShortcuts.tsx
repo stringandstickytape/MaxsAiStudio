@@ -1,7 +1,7 @@
 // src/components/PinnedShortcuts.tsx
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { commandRegistry } from '@/commands/commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
@@ -191,7 +191,7 @@ export function PinnedShortcuts({
 
     // Override addPinnedCommand and removePinnedCommand to set userModified flag
     const handleCommandClick = (commandId: string) => {
-        commandRegistry.executeCommand(commandId);
+        useCommandStore.getState().executeCommand(commandId);
     };
 
     // Wrap original dispatch functions to track user modifications
@@ -204,7 +204,7 @@ export function PinnedShortcuts({
             removePinnedCommand(commandId);
         } else {
             // Get command details from registry
-            const command = commandRegistry.getCommandById(commandId);
+            const command = useCommandStore.getState().getCommandById(commandId);
             if (command) {
                 // Extract icon name from the command if it exists
                 let iconName = undefined;

@@ -1,5 +1,5 @@
 ﻿// src/commands/voiceInputCommand.ts
-import { registerCommand } from './commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Mic } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -8,7 +8,7 @@ let setVoiceInputOpen: ((isOpen: boolean) => void) | null = null;
 let setVoiceInputCallback: ((callback: (text: string) => void) => void) | null = null;
 
 export function initializeVoiceInputCommand() {
-    registerCommand({
+    useCommandStore.getState().registerCommand({
         id: 'start-voice-input',
         name: 'Voice Input',
         description: 'Use your microphone to speak instead of typing',

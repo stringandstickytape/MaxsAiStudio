@@ -1,9 +1,8 @@
 // src/commands/systemPromptCommands.ts
 import React from 'react';
-import { registerCommandGroup } from './commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { commandRegistry } from './commandRegistry';
 import { useConversationStore } from '@/stores/useConversationStore';
 
 interface SystemPromptCommandsConfig {
@@ -16,7 +15,9 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
 
-    registerCommandGroup({
+    const { registerGroup } = useCommandStore.getState();
+    
+    registerGroup({
         id: 'system-prompts',
         name: 'System Prompts',
         priority: 85,
@@ -97,7 +98,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
 // This function registers each system prompt as a command so users can quickly apply them
 export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     // Unregister any previous prompt commands to avoid duplicates
-    commandRegistry.unregisterCommandGroup('system-prompts-list');
+    useCommandStore.getState().unregisterGroup('system-prompts-list');
     
     // Get prompts from Zustand store
     const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
@@ -120,7 +121,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     }));
 
     if (promptCommands.length > 0) {
-        registerCommandGroup({
+        useCommandStore.getState().registerGroup({
             id: 'system-prompts-list',
             name: 'Available System Prompts',
             priority: 84,
