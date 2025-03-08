@@ -4,6 +4,7 @@ import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { HistoricalConversationTree } from './HistoricalConversationTree';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
+import { useChatManagement } from '@/hooks/useChatManagement';
 
 interface TreeNode {
     id: string;
@@ -79,6 +80,9 @@ export const HistoricalConversationTreeList = () => {
     };
 
     // Handle node click to load conversation by ID
+    // Use custom hook for loading conversation by ID
+    const { getConversation } = useChatManagement();
+
     const handleNodeClick = async (nodeId: string, conversationId: string) => {
         if (!clientId) return;
 
@@ -98,93 +102,20 @@ export const HistoricalConversationTreeList = () => {
                 return;
             }
 
-            // Fetch the full conversation data if not in store
-            const response = await fetch('/api/getConversation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Client-Id': clientId
-                },
-                body: JSON.stringify({
-                    conversationId
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch conversation');
-            }
-
-            const data = await response.json();
-            console.log('Received conversation data:', data);
-
-            if (data.success) {
-                // First create the conversation structure
-                let messages = [];
-
-                // The API returns treeData directly at the top level
-                if (data.treeData && Array.isArray(data.treeData)) {
-                    // Convert treeData into messages array format
-                    messages = data.treeData.map((node: any) => ({
-                        id: node.id,
-                        content: node.text,
-                        source: node.source || 'system',
-                        parentId: node.parentId,
-                        timestamp: node.timestamp || Date.now()
-                    }));
-                } else throw new Error(data.error || 'Failed to map conversation data');
-
-                if (messages.length > 0) {
-                    // Sort messages by timestamp to ensure proper ordering
-                    const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
-
-                    // Find the root message - either explicitly marked with no parentId or just the first message
-                    const rootMessage = sortedMessages.find(msg => !msg.parentId) || sortedMessages[0];
-                    console.log('Using root message:', rootMessage);
-
-                    // Create the conversation with the root message
-                    createConversation({
-                        id: conversationId,
-                        rootMessage: {
-                            id: rootMessage.id,
-                            content: rootMessage.content || '',
-                            source: rootMessage.source || 'system',
-                            parentId: null,
-                            timestamp: rootMessage.timestamp || Date.now()
-                        }
-                    });
-
-                    // Add the rest of the messages in order of timestamp
-                    const nonRootMessages = sortedMessages.filter(msg => msg.id !== rootMessage.id);
-
-                    // Process messages in order to maintain parent-child relationships
-                    for (const message of nonRootMessages) {
-                        console.log(`Adding message to conversation: ${message.id}, parent: ${message.parentId}`);
-                        addMessage({
-                            conversationId,
-                            message: {
-                                id: message.id,
-                                content: message.content || '',
-                                source: message.source || 'user',
-                                parentId: message.parentId,
-                                timestamp: message.timestamp || Date.now()
-                            }
-                        });
-                    }
-
-                    // Set the active conversation and selected message
-                    // Use a slight delay to ensure the store is updated
-                    setTimeout(() => {
-                        console.log(`Setting active conversation ${conversationId} with selected message ${nodeId}`);
-                        setActiveConversation({
-                            conversationId,
-                            selectedMessageId: nodeId
-                        });
-                    }, 50);
-                } else {
-                    console.error('No messages found in the conversation data');
-                }
+            // Use the hook to get the conversation data
+            const conversation = await getConversation(conversationId);
+            
+            if (conversation) {
+                // Add messageId to URL
+                window.history.pushState({}, '', `?messageId=${nodeId}`);
+                
+                // Set the active conversation with the selected message
+                setActiveConversation({
+                    conversationId,
+                    selectedMessageId: nodeId
+                });
             } else {
-                throw new Error(data.error || 'Failed to load conversation data');
+                console.error('Failed to load conversation data');
             }
         } catch (error) {
             console.error('Error loading conversation:', error);

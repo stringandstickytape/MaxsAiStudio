@@ -5,6 +5,7 @@ import { ServiceProviderManagement } from './settings/ServiceProviderManagement'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useModelManagement';
 import { Model, ServiceProvider } from '@/types/settings';
 import { commandEvents } from '@/commands/settingsCommands';
 
@@ -13,16 +14,16 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
-    // Use Zustand store
+    // Use ModelManagement hook instead of direct store access
     const {
         models,
         providers,
-        loading,
+        isLoading: loading,
         error,
-        setModels,
-        setProviders,
-        setError
-    } = useModelStore();
+        fetchModels,
+        fetchProviders,
+        clearError: setError
+    } = useModelManagement();
 
     // State to track which tab is active
     const [activeTab, setActiveTab] = useState('models');
@@ -82,7 +83,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
         }
     }, [isOpen]);
 
-    // Function to fetch models and providers
+    // Function to fetch models and providers using hooks
     const fetchData = async () => {
         try {
             await Promise.all([
@@ -93,46 +94,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen }) => {
             console.error('Error fetching settings data:', error);
             setError(error instanceof Error ? error.message : 'Failed to load settings');
         }
-    };
-
-    // Function to fetch models
-    const fetchModels = async () => {
-        const response = await fetch('/api/getModels', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': localStorage.getItem('clientId') || ''
-            },
-            body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to fetch models');
-        }
-
-        setModels(data.models || []);
-    };
-
-    // Function to fetch providers
-    const fetchProviders = async () => {
-        const response = await fetch('/api/getServiceProviders', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Id': localStorage.getItem('clientId') || ''
-            },
-            body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to fetch service providers');
-        }
-
-        setProviders(data.providers || []);
     };
 
     // Retry loading function
