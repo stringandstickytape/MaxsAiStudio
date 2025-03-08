@@ -16,6 +16,7 @@ interface InputBarProps {
     inputValue?: string;
     onInputChange?: (value: string) => void;
     activeTools?: string[]; // Optional override from parent
+    onManageTools?: () => void; // Add this prop for the Manage Tools button
 }
 
 export function InputBar({
@@ -23,7 +24,8 @@ export function InputBar({
     onVoiceInputClick,
     inputValue,
     onInputChange,
-    activeTools: activeToolsFromProps
+    activeTools: activeToolsFromProps,
+    onManageTools // Add this prop
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -198,9 +200,9 @@ export function InputBar({
     return (
         <div className="h-[30vh] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-6 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="h-full flex flex-col gap-2">
-                {/* Tool selector */}
+                {/* Tool selector - pass onManageTools prop */}
                 <div className="mb-2">
-                    <ToolSelector onManageTools={() => window.dispatchEvent(new CustomEvent('open-tool-panel'))} />
+                    <ToolSelector onManageTools={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-panel')))} />
                 </div>
 
                 <div className="flex-1 flex gap-2">

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Wrench } from 'lucide-react';
 import { useToolStore } from '@/stores/useToolStore';
 import { useGetToolsQuery } from '@/services/api/toolsApi';
+import { commandRegistry } from '@/commands/commandRegistry';
 
 interface ToolSelectorProps {
     onManageTools?: () => void;
@@ -30,10 +31,7 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
         // Close the popover first
         setOpen(false);
 
-        // Then call the provided handler
-        if (onManageTools) {
-            onManageTools();
-        }
+        const commandSuccess = commandRegistry.executeCommand('manage-tools');
     };
 
     return (

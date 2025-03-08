@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -167,9 +167,14 @@ function App() {
         }
     }, [systemPrompts, setPrompts]);
 
+    // Define openToolPanel function to be used both directly and via commands
+    const openToolPanel = useCallback(() => {
+        setIsToolPanelOpen(true);
+    }, []);
+    
     // Use the tool commands hook to set up tool-related commands
     const toolCommands = useToolCommands({
-        openToolPanel: () => setIsToolPanelOpen(true),
+        openToolPanel,
         createNewTool: () => {
             setIsToolPanelOpen(true);
             window.localStorage.setItem('toolPanel_action', 'create');
@@ -423,6 +428,16 @@ function App() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+    
+    // Ensure the event listener is also set up for backward compatibility
+    useEffect(() => {
+        const handleOpenToolPanel = () => openToolPanel();
+        window.addEventListener('open-tool-panel', handleOpenToolPanel);
+        
+        return () => {
+            window.removeEventListener('open-tool-panel', handleOpenToolPanel);
+        };
+    }, [openToolPanel]);
 
     return (
         <>
@@ -470,6 +485,7 @@ function App() {
                         inputValue={inputValue}
                         onInputChange={setInputValue}
                         activeTools={activeTools} // Pass activeTools from Zustand
+                        onManageTools={openToolPanel} // Pass the function to InputBar
                     />
                 </div>
             </div>

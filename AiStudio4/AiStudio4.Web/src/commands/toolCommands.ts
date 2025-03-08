@@ -22,22 +22,12 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
     priority: 80,
     commands: [
       {
-        id: 'toggle-tool-panel',
-        name: 'Toggle Tool Panel',
-        description: 'Show or hide the tool management panel',
-        shortcut: 'Ctrl+T',
-        keywords: ['tools', 'panel', 'manage', 'show', 'hide'],
-        execute: () => {
-          // Implementation: Use the passed in config to toggle the panel
-          config.openToolPanel();
-        }
-      },
-      {
         id: 'create-new-tool',
         name: 'Create New Tool',
         description: 'Open the editor to create a new tool',
         shortcut: 'Ctrl+Shift+T',
         keywords: ['tool', 'new', 'create', 'editor'],
+        section: 'utility',
         execute: () => {
           // Implementation: Trigger opening of the tool editor dialog
           config.createNewTool();
@@ -49,6 +39,7 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
         description: 'Import tools from a file or URL', 
         shortcut: 'Ctrl+I',
         keywords: ['import', 'tools', 'json'],
+        section: 'utility',
         execute: () => {
           config.importTools();
         }
@@ -59,8 +50,20 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
         description: 'Export current tools to a file',
         shortcut: 'Ctrl+E',
         keywords: ['export', 'tools', 'json'],
+        section: 'utility',
         execute: () => {
           config.exportTools();
+        }
+      },
+      {
+        id: 'manage-tools',
+        name: 'Manage Tools',
+        description: 'Open the tool management panel', 
+        shortcut: '',
+        keywords: ['manage', 'tools', 'panel', 'settings', 'configure'],
+        section: 'utility',
+        execute: () => {
+          config.openToolPanel();
         }
       }
     ]
