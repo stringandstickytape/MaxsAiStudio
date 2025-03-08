@@ -1,6 +1,7 @@
+// src/services/websocket/WebSocketService.ts
+import { dispatchWebSocketEvent } from './websocketEvents';
 import { Message } from '@/types/conversation';
 import { MessageGraph } from '@/utils/messageGraph';
-import { useConversationStore } from '@/stores/useConversationStore';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -75,6 +76,13 @@ export class WebSocketService {
     public send(message: WebSocketMessage): void {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(message));
+            
+            // Dispatch an event when a message is sent
+            dispatchWebSocketEvent('message:received', {
+                type: 'sent',
+                messageType: message.messageType,
+                content: message.content
+            });
         } else {
             console.warn('Cannot send message: WebSocket is not connected');
         }
@@ -155,9 +163,15 @@ export class WebSocketService {
         console.log('WebSocket Connected');
         this.connected = true;
         this.reconnectAttempts = 0;
+        
+        // Dispatch an event for the connection status change
+        dispatchWebSocketEvent('connection:status', {
+            type: 'connected',
+            clientId: this.clientId,
+            content: { isConnected: true, clientId: this.clientId }
+        });
+        
         this.notifyConnectionStatusChange();
-
-        // Dispatch custom event
         this.dispatchCustomWebSocketEvent('ws-connected');
     }
 
@@ -171,16 +185,52 @@ export class WebSocketService {
                 // Save clientId to localStorage when received
                 localStorage.setItem('clientId', message.content);
                 console.log('Client ID received and saved to localStorage:', message.content);
+                
+                // Dispatch an event for the client ID update
+                dispatchWebSocketEvent('connection:status', {
+                    type: 'clientId',
+                    clientId: message.content,
+                    content: { isConnected: this.connected, clientId: message.content }
+                });
+                
                 this.notifyConnectionStatusChange();
-            } else if (message.messageType === 'conversation') {
-                this.handleConversationMessage(message.content);
-            } else if (message.messageType === 'loadConversation') {
-                this.handleLoadConversation(message.content);
-            } else if (message.messageType === 'historicalConversationTree') {
-                this.handleHistoricalConversationTreeMessage(message.content);
             }
-
-            // Notify all subscribers for this message type
+            
+            // Dispatch a general message event for all messages
+            dispatchWebSocketEvent('message:received', {
+                type: message.messageType,
+                content: message.content,
+                messageType: message.messageType
+            });
+            
+            // Handle specific message types with their own events
+            if (message.messageType === 'cfrag') {
+                dispatchWebSocketEvent('stream:token', {
+                    type: 'fragment',
+                    content: message.content
+                });
+            } else if (message.messageType === 'endstream') {
+                dispatchWebSocketEvent('stream:end', {
+                    type: 'end'
+                });
+            } else if (message.messageType === 'conversation') {
+                dispatchWebSocketEvent('conversation:new', {
+                    type: 'message',
+                    content: message.content
+                });
+            } else if (message.messageType === 'loadConversation') {
+                dispatchWebSocketEvent('conversation:load', {
+                    type: 'load',
+                    content: message.content
+                });
+            } else if (message.messageType === 'historicalConversationTree') {
+                dispatchWebSocketEvent('historical:update', {
+                    type: 'tree',
+                    content: message.content
+                });
+            }
+            
+            // Still notify direct subscribers for backward compatibility
             this.notifySubscribers(message.messageType, message.content);
         } catch (error) {
             console.error('Error processing message:', error);
@@ -189,15 +239,27 @@ export class WebSocketService {
 
     private handleError = (event: Event): void => {
         console.error('WebSocket error:', event);
+        
+        // Dispatch an event for the connection error
+        dispatchWebSocketEvent('connection:status', {
+            type: 'error',
+            content: { error: event }
+        });
     }
 
     private handleClose = (): void => {
         console.log('WebSocket disconnected');
         this.socket = null;
         this.connected = false;
+        
+        // Dispatch an event for the connection close
+        dispatchWebSocketEvent('connection:status', {
+            type: 'disconnected',
+            clientId: this.clientId,
+            content: { isConnected: false, clientId: this.clientId }
+        });
+        
         this.notifyConnectionStatusChange();
-
-        // Dispatch custom event
         this.dispatchCustomWebSocketEvent('ws-disconnected');
 
         // Attempt to reconnect if not deliberately disconnected
@@ -239,170 +301,6 @@ export class WebSocketService {
                 console.error('Error in connection status handler:', error);
             }
         });
-    }
-
-    // Message type handlers
-    private handleConversationMessage(content: Message): void {
-        // Get the Zustand conversation store
-        const conversationStore = useConversationStore.getState();
-        const { activeConversationId, selectedMessageId, addMessage, createConversation, setActiveConversation } = conversationStore;
-
-        console.log('WebSocketService: Handling conversation message:', {
-            activeConversationId,
-            selectedMessageId,
-            messageId: content.id,
-            messageSource: content.source,
-            parentIdFromContent: content.parentId
-        });
-
-        if (activeConversationId) {
-            // Get the conversation
-            const conversation = conversationStore.getConversation(activeConversationId);
-
-            // Determine parentId - using explicit parentId from content first
-            let parentId = content.parentId;
-
-            // If no parentId specified but this is a user message, use selectedMessageId
-            if (!parentId && content.source === 'user') {
-                parentId = selectedMessageId;
-            }
-
-            // If still no parentId and there are messages, use the most appropriate parent
-            if (!parentId && conversation && conversation.messages.length > 0) {
-                // Use message graph to find the most appropriate parent
-                const graph = new MessageGraph(conversation.messages);
-
-                // For AI responses, set parent to the last user message if possible
-                if (content.source === 'ai') {
-                    // Find the most recent user message
-                    const userMessages = conversation.messages
-                        .filter(m => m.source === 'user')
-                        .sort((a, b) => b.timestamp - a.timestamp);
-
-                    if (userMessages.length > 0) {
-                        parentId = userMessages[0].id;
-                    } else {
-                        // Fall back to the last message
-                        parentId = conversation.messages[conversation.messages.length - 1].id;
-                    }
-                }
-            }
-
-            console.log('WebSocketService: Message parentage determined:', {
-                finalParentId: parentId,
-                messageId: content.id
-            });
-
-            addMessage({
-                conversationId: activeConversationId,
-                message: {
-                    id: content.id,
-                    content: content.content,
-                    source: content.source,
-                    parentId: parentId,
-                    timestamp: Date.now()
-                },
-                // For AI responses, set the selectedMessageId to continue the same branch
-                // Only update the selectedMessageId if this is an AI response to ensure branch continuity
-                selectedMessageId: content.source === 'ai' ? content.id : undefined
-            });
-        } else {
-            // If no active conversation, create a new one with this message as root
-            const conversationId = `conv_${Date.now()}`;
-
-            createConversation({
-                id: conversationId,
-                rootMessage: {
-                    id: content.id,
-                    content: content.content,
-                    source: content.source,
-                    parentId: null, // It's a root message
-                    timestamp: content.timestamp || Date.now()
-                }
-            });
-
-            // Set this new conversation as active
-            setActiveConversation({
-                conversationId,
-                selectedMessageId: content.id
-            });
-        }
-    }
-
-    private handleLoadConversation(content: any): void {
-        const { conversationId, messages } = content;
-        const urlParams = new URLSearchParams(window.location.search);
-        const selectedMessageId = urlParams.get('messageId');
-
-        console.log('Loading conversation:', {
-            conversationId,
-            messageCount: messages?.length,
-            selectedMessageId
-        });
-
-        if (!messages || messages.length === 0) return;
-
-        // Get the Zustand store
-        const { createConversation, addMessage, setActiveConversation } = useConversationStore.getState();
-
-        // Use MessageGraph to analyze the message relationships
-        const graph = new MessageGraph(messages);
-
-        // Find the root message - either the first with no parent or the first message
-        const rootMessages = graph.getRootMessages();
-        const rootMessage = rootMessages.length > 0 ? rootMessages[0] : messages[0];
-
-        // Create new conversation with root message
-        createConversation({
-            id: conversationId,
-            rootMessage: {
-                id: rootMessage.id,
-                content: rootMessage.content,
-                source: rootMessage.source as 'user' | 'ai' | 'system',
-                parentId: null,
-                timestamp: rootMessage.timestamp || Date.now()
-            },
-            selectedMessageId
-        });
-
-        // Add remaining messages in proper order (not roots)
-        const nonRootMessages = messages.filter(msg =>
-            msg.id !== rootMessage.id &&
-            (msg.parentId || graph.getMessagePath(msg.id).length > 1)
-        );
-
-        // Sort messages by timestamp to ensure parents are dispatched before children
-        nonRootMessages
-            .sort((a, b) => a.timestamp - b.timestamp)
-            .forEach((message) => {
-                addMessage({
-                    conversationId,
-                    message: {
-                        id: message.id,
-                        content: message.content,
-                        source: message.source as 'user' | 'ai' | 'system',
-                        parentId: message.parentId,
-                        timestamp: message.timestamp || Date.now()
-                    }
-                });
-            });
-
-        // Set active conversation and selected message
-        setActiveConversation({
-            conversationId,
-            selectedMessageId: selectedMessageId || messages[messages.length - 1].id
-        });
-    }
-
-    private handleHistoricalConversationTreeMessage(content: any): void {
-        const historicalConversation = {
-            convGuid: content.id,
-            summary: content.content,
-            fileName: `conv_${content.id}.json`,
-            lastModified: content.lastModified || new Date().toISOString(),
-            highlightColour: undefined
-        };
-        // Notify subscribers will handle this since we're just passing through the data
     }
 }
 

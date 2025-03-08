@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { webSocketService, WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
+// src/hooks/useWebSocket.ts
+import { useState, useEffect } from 'react';
+import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 interface UseWebSocketOptions {
     autoConnect?: boolean;
@@ -15,29 +17,14 @@ interface UseWebSocketResult {
 }
 
 /**
- * Hook for working with WebSocket connections
+ * Hook for working with WebSocket connections, using Zustand for state management
  */
 export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketResult {
     const { autoConnect = true, subscriptions = {} } = options;
     
-    const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>({
-        isConnected: webSocketService.isConnected(),
-        clientId: webSocketService.getClientId()
-    });
+    // Use the Zustand store for WebSocket state
+    const { isConnected, clientId, connect, disconnect, send } = useWebSocketStore();
 
-    // Handle connection status changes
-    useEffect(() => {
-        const handleConnectionStatus = (status: WebSocketConnectionStatus) => {
-            setConnectionStatus(status);
-        };
-        
-        webSocketService.onConnectionStatusChange(handleConnectionStatus);
-        
-        return () => {
-            webSocketService.offConnectionStatusChange(handleConnectionStatus);
-        };
-    }, []);
-    
     // Set up subscriptions
     useEffect(() => {
         // Subscribe to all message types in the subscriptions object
@@ -56,23 +43,18 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     // Auto-connect if enabled
     useEffect(() => {
         if (autoConnect) {
-            webSocketService.connect();
+            connect();
         }
         
         // We don't automatically disconnect to avoid disconnecting when a component using 
         // this hook unmounts but other components still need the connection
-    }, [autoConnect]);
-    
-    // Convenience wrapper for sending messages
-    const send = useCallback((messageType: string, content: any) => {
-        webSocketService.send({ messageType, content });
-    }, []);
+    }, [autoConnect, connect]);
     
     return {
-        isConnected: connectionStatus.isConnected,
-        clientId: connectionStatus.clientId,
-        connect: webSocketService.connect,
-        disconnect: webSocketService.disconnect,
+        isConnected,
+        clientId,
+        connect,
+        disconnect,
         send
     };
 }

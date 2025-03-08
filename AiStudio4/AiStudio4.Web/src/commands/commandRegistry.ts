@@ -1,133 +1,21 @@
-﻿// src/commands/commandRegistry.ts
+// src/commands/commandRegistry.ts
+// This file now serves as an adapter to maintain backward compatibility
+// with existing code that uses the commandRegistry directly
+
+import { useCommandStore, commandRegistry as storeCommandRegistry } from '@/stores/useCommandStore';
 import { Command, CommandGroup } from './types';
 
-class CommandRegistryService {
-    private groups: CommandGroup[] = [];
-    private commands: Map<string, Command> = new Map();
-    private listeners: Set<() => void> = new Set();
+// Re-export the adapter from the store
+export const commandRegistry = storeCommandRegistry;
 
-    constructor() {
-        this.registerGroup({ id: 'core', name: 'Core Actions', priority: 100, commands: [] });
-    }
-
-    registerCommand(command: Command): void {
-        if (this.commands.has(command.id)) {
-            console.warn(`Command "${command.id}" already registered. Overwriting.`);
-        }
-
-        const sectionId = command.section || 'utility';
-        let group = this.groups.find(g => g.id === sectionId);
-
-        if (!group) {
-            group = { id: sectionId, name: this.formatGroupName(sectionId), commands: [] };
-            this.groups.push(group);
-        }
-
-        group.commands.push(command);
-        this.commands.set(command.id, command);
-        this.notifyListeners();
-    }
-
-    registerGroup(group: CommandGroup): void {
-        const existingIndex = this.groups.findIndex(g => g.id === group.id);
-
-        if (existingIndex !== -1) {
-            const existingGroup = this.groups[existingIndex];
-            this.groups[existingIndex] = {
-                ...existingGroup,
-                ...group,
-                commands: [...existingGroup.commands, ...group.commands]
-            };
-        } else {
-            this.groups.push(group);
-        }
-
-        group.commands.forEach(command => this.commands.set(command.id, command));
-        this.notifyListeners();
-    }
-
-    getAllCommandGroups(): CommandGroup[] {
-        return [...this.groups].sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    }
-
-    getAllCommands(): Command[] {
-        return Array.from(this.commands.values());
-    }
-
-    getCommandById(id: string): Command | undefined {
-        return this.commands.get(id);
-    }
-
-    executeCommand(id: string, args?: any): boolean {
-        const command = this.getCommandById(id);
-        if (!command || command.disabled) return false;
-
-        try {
-            command.execute(args);
-            return true;
-        } catch (error) {
-            console.error(`Error executing "${id}":`, error);
-            return false;
-        }
-    }
-
-    unregisterCommandGroup(groupId: string): void {
-        // Remove the group and all its commands from the registry
-        const groupIndex = this.groups.findIndex(g => g.id === groupId);
-        
-        if (groupIndex === -1) {
-            return; // Group doesn't exist, nothing to unregister
-        }
-        
-        // Get all commands in this group to remove them from the command map
-        const commandsToRemove = this.groups[groupIndex].commands;
-        
-        // Remove each command from the commands map
-        commandsToRemove.forEach(command => {
-            this.commands.delete(command.id);
-        });
-        
-        // Remove the group from the groups array
-        this.groups.splice(groupIndex, 1);
-        
-        this.notifyListeners();
-    }
-
-    searchCommands(searchTerm: string): Command[] {
-        if (!searchTerm) return this.getAllCommands();
-
-        const tokens = searchTerm.toLowerCase().split(/\s+/).filter(token => token.length > 0);
-
-        return this.getAllCommands().filter(command =>
-            tokens.every(token =>
-                command.name.toLowerCase().includes(token) ||
-                command.id.toLowerCase().includes(token) ||
-                command.keywords.some(keyword => keyword.toLowerCase().includes(token)) ||
-                (command.description?.toLowerCase().includes(token) ?? false)
-            )
-        );
-    }
-
-    subscribe(listener: () => void): () => void {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
-    }
-
-    private notifyListeners(): void {
-        this.listeners.forEach(listener => listener());
-    }
-
-    private formatGroupName(id: string): string {
-        return id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    }
-}
-
-export const commandRegistry = new CommandRegistryService();
-
+// For backward compatibility, export these functions directly
 export function registerCommand(command: Command): void {
-    commandRegistry.registerCommand(command);
+  commandRegistry.registerCommand(command);
 }
 
 export function registerCommandGroup(group: CommandGroup): void {
-    commandRegistry.registerGroup(group);
+  commandRegistry.registerGroup(group);
 }
+
+// This lets us gradually migrate without breaking existing code
+export default commandRegistry;

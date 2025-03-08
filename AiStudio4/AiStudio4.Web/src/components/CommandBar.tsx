@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { commandRegistry } from '@/commands/commandRegistry';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -14,7 +14,14 @@ interface CommandBarProps {
 }
 
 export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
-    // Use Zustand store instead of Redux
+    // Use Zustand command store directly
+    const { 
+        searchCommands, 
+        executeCommand, 
+        getCommandById
+    } = useCommandStore();
+    
+    // Pinned commands store
     const { 
         pinnedCommands, 
         addPinnedCommand, 
@@ -29,18 +36,22 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
 
     // Update filtered commands whenever search term changes
     useEffect(() => {
-        const newCommands = commandRegistry.searchCommands(searchTerm);
+        const newCommands = searchCommands(searchTerm);
         setFilteredCommands(newCommands);
         setSelectedIndex(0);
         if (searchTerm && !isOpen) setIsOpen(true);
-    }, [searchTerm, isOpen, setIsOpen]);
+    }, [searchTerm, isOpen, setIsOpen, searchCommands]);
 
-    // Subscribe to command registry changes
+    // Subscribe to command store changes
     useEffect(() => {
-        return commandRegistry.subscribe(() => {
-            setFilteredCommands(commandRegistry.searchCommands(searchTerm));
-        });
-    }, [searchTerm]);
+        const unsubscribe = useCommandStore.subscribe(
+            () => {
+                setFilteredCommands(searchCommands(searchTerm));
+            }
+        );
+        
+        return () => unsubscribe();
+    }, [searchTerm, searchCommands]);
 
     // Focus input when command bar opens
     useEffect(() => {
@@ -50,10 +61,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
             // If there's already a search term in the input,
             // refresh the filtered commands
             if (searchTerm) {
-                setFilteredCommands(commandRegistry.searchCommands(searchTerm));
+                setFilteredCommands(searchCommands(searchTerm));
             }
         }
-    }, [isOpen, searchTerm]);
+    }, [isOpen, searchTerm, searchCommands]);
 
     // Monitor programmatic changes to the input value
     useEffect(() => {
@@ -63,7 +74,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 const inputValue = inputRef.current.value;
                 if (inputValue !== searchTerm) {
                     setSearchTerm(inputValue);
-                    const newCommands = commandRegistry.searchCommands(inputValue);
+                    const newCommands = searchCommands(inputValue);
                     setFilteredCommands(newCommands);
                     setSelectedIndex(0);
                 }
@@ -80,12 +91,12 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 inputElement.removeEventListener('input', handleInput);
             }
         };
-    }, [searchTerm]);
+    }, [searchTerm, searchCommands]);
 
     const handleCommandSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (filteredCommands.length && selectedIndex >= 0) {
-            commandRegistry.executeCommand(filteredCommands[selectedIndex].id);
+            executeCommand(filteredCommands[selectedIndex].id);
             setSearchTerm('');
             setIsOpen(false);
         }
@@ -104,7 +115,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     };
 
     const handleCommandClick = (commandId: string) => {
-        commandRegistry.executeCommand(commandId);
+        executeCommand(commandId);
         setSearchTerm('');
         setIsOpen(false);
     };
@@ -142,6 +153,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         await savePinnedCommands();
     };
 
+    // Group commands by section for display
     const groupedCommands = filteredCommands.reduce((acc, command) => {
         acc[command.section] = acc[command.section] || [];
         acc[command.section].push(command);
