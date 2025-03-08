@@ -10,6 +10,7 @@ import { SystemPrompt } from '@/types/systemPrompt';
 import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
@@ -32,6 +33,9 @@ export function SystemPromptLibrary({
         setPrompts,
         setCurrentPrompt
     } = useSystemPromptStore();
+    
+    // Get active conversation ID from Zustand when not provided as prop
+    const { activeConversationId: storeConversationId } = useConversationStore();
 
     // Use the management hook instead of RTK Query
     const { 
@@ -83,13 +87,14 @@ export function SystemPromptLibrary({
         }
 
         // If we have a conversation ID, set this prompt as the conversation's system prompt
-        if (conversationId) {
+        const effectiveConversationId = conversationId || storeConversationId;
+        if (effectiveConversationId) {
             try {
                 await setConversationSystemPrompt({
-                    conversationId,
+                    conversationId: effectiveConversationId,
                     promptId: prompt.guid
                 });
-                console.log(`Set conversation ${conversationId} system prompt to ${prompt.guid}`);
+                console.log(`Set conversation ${effectiveConversationId} system prompt to ${prompt.guid}`);
             } catch (error) {
                 console.error('Failed to set conversation system prompt:', error);
             }

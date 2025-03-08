@@ -8,6 +8,7 @@ import { SystemPrompt } from '@/types/systemPrompt';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface HeaderPromptComponentProps {
     conversationId?: string;
@@ -15,6 +16,8 @@ interface HeaderPromptComponentProps {
 }
 
 export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderPromptComponentProps) {
+    // Get the active conversation ID from Zustand when not provided as prop
+    const { activeConversationId: storeConversationId } = useConversationStore();
     // Use Zustand stores
     const { togglePanel } = usePanelStore();
     const { 
@@ -40,9 +43,10 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     useEffect(() => {
         let promptToUse: SystemPrompt | null = null;
 
-        if (conversationId && conversationPrompts[conversationId]) {
+        const effectiveConversationId = conversationId || storeConversationId;
+        if (effectiveConversationId && conversationPrompts[effectiveConversationId]) {
             // Find the prompt assigned to this conversation
-            promptToUse = prompts.find(p => p.guid === conversationPrompts[conversationId]) || null;
+            promptToUse = prompts.find(p => p.guid === conversationPrompts[effectiveConversationId]) || null;
         }
 
         // If no conversation prompt is set, use the default
@@ -60,7 +64,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
         if (promptToUse) {
             setPromptContent(promptToUse.content);
         }
-    }, [prompts, conversationId, conversationPrompts, defaultPromptId]);
+    }, [prompts, conversationId, storeConversationId, conversationPrompts, defaultPromptId]);
 
     const toggleExpand = () => {
         setExpanded(!expanded);
@@ -90,8 +94,8 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
             ? `${currentPrompt.content.substring(0, 60)}...`
             : currentPrompt.content;
 
-        // Show different text based on whether this is a conversation-specific or default prompt
-        if (conversationId && conversationPrompts[conversationId] === currentPrompt.guid) {
+        const effectiveConversationId = conversationId || storeConversationId;
+        if (effectiveConversationId && conversationPrompts[effectiveConversationId] === currentPrompt.guid) {
             return truncatedContent;
         } else {
             return `${truncatedContent} (Default)`;
@@ -112,15 +116,15 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
             // Update the prompt using the management hook
             await updateSystemPrompt(updatedPrompt);
 
-            // If this is for a specific conversation, make sure it's set
-            if (conversationId && !conversationPrompts[conversationId]) {
+            const effectiveConversationId = conversationId || storeConversationId;
+            if (effectiveConversationId && !conversationPrompts[effectiveConversationId]) {
                 await setConversationSystemPrompt({
-                    conversationId,
+                    conversationId: effectiveConversationId,
                     promptId: currentPrompt.guid
                 });
 
                 // Also update the local state in Zustand
-                setConversationPrompt(conversationId, currentPrompt.guid);
+                setConversationPrompt(effectiveConversationId, currentPrompt.guid);
             }
 
             setEditMode(false);

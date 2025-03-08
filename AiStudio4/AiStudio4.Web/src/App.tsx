@@ -65,7 +65,8 @@ function App() {
     const { 
         createConversation, 
         activeConversationId,
-        conversations
+        conversations,
+        setActiveConversation
     } = useConversationStore();
     
     // Use the centralized management hooks

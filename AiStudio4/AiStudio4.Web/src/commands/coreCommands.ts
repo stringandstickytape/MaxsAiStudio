@@ -50,7 +50,7 @@ export function initializeCoreCommands(
                 icon: React.createElement(RefreshCw, { size: 16 }),
                 execute: () => {
                     // Use the current store's state to get active conversation ID
-                    const { activeConversationId, createConversation } = useConversationStore.getState();
+                    const { activeConversationId, createConversation, conversations } = useConversationStore.getState();
                     
                     if (activeConversationId) {
                         const conversationId = `conv_${uuidv4()}`;

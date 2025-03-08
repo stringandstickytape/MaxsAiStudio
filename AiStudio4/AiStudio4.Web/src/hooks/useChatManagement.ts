@@ -22,7 +22,8 @@ export function useChatManagement() {
   const { 
     addMessage, 
     createConversation, 
-    activeConversationId 
+    activeConversationId,
+    conversations
   } = useConversationStore();
   
   const { 
@@ -169,8 +170,18 @@ export function useChatManagement() {
     }
   }, []);
   
-  // Get conversation history
+  // Get conversation history - first check Zustand store, then fetch from API if needed
   const getConversation = useCallback(async (conversationId: string) => {
+    // First check if we already have this conversation in the Zustand store
+    const localConversation = conversations[conversationId];
+    if (localConversation) {
+      return {
+        id: conversationId,
+        messages: localConversation.messages
+      };
+    }
+    
+    // If not in store, fetch from API
     try {
       setIsLoading(true);
       const clientId = localStorage.getItem('clientId');
@@ -232,13 +243,14 @@ export function useChatManagement() {
     
     // No prompt found
     return null;
-  }, [prompts, conversationPrompts, defaultPromptId]);
+  }, [prompts, conversationPrompts, defaultPromptId, conversations]);
   
   return {
     // State
     isLoading,
     error,
     activeConversationId,
+    conversations,
     
     // Actions
     sendMessage,

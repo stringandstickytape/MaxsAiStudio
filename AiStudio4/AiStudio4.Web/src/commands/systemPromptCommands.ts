@@ -4,6 +4,7 @@ import { registerCommandGroup } from './commandRegistry';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { commandRegistry } from './commandRegistry';
+import { useConversationStore } from '@/stores/useConversationStore';
 
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
@@ -55,10 +56,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                     // Get current prompt information from Zustand store
                     const { prompts, defaultPromptId, conversationPrompts, currentPrompt } = useSystemPromptStore.getState();
                     
-                    // Get active conversation ID from Redux store - we still need this for now
-                    // We could potentially move this to Zustand as well in the future
-                    const state = (window as any).store.getState();
-                    const currentConversationId = state.conversations.activeConversationId;
+                    const { activeConversationId: currentConversationId } = useConversationStore.getState();
                     
                     let promptToEdit = null;
 

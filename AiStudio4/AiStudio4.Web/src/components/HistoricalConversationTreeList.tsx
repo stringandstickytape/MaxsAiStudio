@@ -17,7 +17,7 @@ export const HistoricalConversationTreeList = () => {
 
     // Use Zustand stores
     const { clientId } = useWebSocketStore();
-    const { createConversation, addMessage, setActiveConversation } = useConversationStore();
+    const { createConversation, addMessage, setActiveConversation, conversations: currentConversations } = useConversationStore();
     const { 
         conversations, 
         isLoading, 

@@ -49,6 +49,7 @@ export function InputBar({
     const { 
         activeConversationId, 
         selectedMessageId,
+        conversations,
         createConversation,
         getConversation 
     } = useConversationStore();
@@ -129,12 +130,12 @@ export function InputBar({
                 
                 parentMessageId = messageId;
             } else {
-                // Use the current selected message ID from the store
+                // Use the current selected message ID from the store if available
                 parentMessageId = selectedMessageId;
                 
                 // If still no parent ID, try to find the last message in the conversation
                 if (!parentMessageId) {
-                    const conversation = getConversation(conversationId);
+                    const conversation = conversations[conversationId];
                     if (conversation && conversation.messages.length > 0) {
                         parentMessageId = conversation.messages[conversation.messages.length - 1].id;
                     }
@@ -180,6 +181,7 @@ export function InputBar({
         sendMessage, 
         activeConversationId, 
         selectedMessageId,
+        conversations,
         createConversation,
         getConversation
     ]);
