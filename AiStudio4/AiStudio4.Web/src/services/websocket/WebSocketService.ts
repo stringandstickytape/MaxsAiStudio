@@ -67,7 +67,18 @@ export class WebSocketService {
         }
 
         this.connected = false;
+        
+        // Emit a connection status change event
+        dispatchWebSocketEvent('connection:status', {
+            type: 'disconnected',
+            clientId: this.clientId,
+            content: { isConnected: false, clientId: this.clientId }
+        });
+        
         this.notifyConnectionStatusChange();
+        
+        // Reset reconnect attempts
+        this.reconnectAttempts = 0;
     }
 
     /**
@@ -81,7 +92,8 @@ export class WebSocketService {
             dispatchWebSocketEvent('message:received', {
                 type: 'sent',
                 messageType: message.messageType,
-                content: message.content
+                content: message.content,
+                timestamp: Date.now()
             });
         } else {
             console.warn('Cannot send message: WebSocket is not connected');
@@ -158,6 +170,13 @@ export class WebSocketService {
         return this.clientId;
     }
 
+    /**
+     * Get the current reconnect attempts count
+     */
+    public getReconnectAttempts(): number {
+        return this.reconnectAttempts;
+    }
+
     // Private methods for handling WebSocket events
     private handleOpen = (): void => {
         console.log('WebSocket Connected');
@@ -200,7 +219,8 @@ export class WebSocketService {
             dispatchWebSocketEvent('message:received', {
                 type: message.messageType,
                 content: message.content,
-                messageType: message.messageType
+                messageType: message.messageType,
+                timestamp: Date.now()
             });
             
             // Handle specific message types with their own events
