@@ -16,7 +16,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useDeleteSystemPromptMutation, useSetDefaultSystemPromptMutation } from '@/services/api/systemPromptApi';
+import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface SystemPromptCardProps {
     prompt: SystemPrompt;
@@ -26,24 +26,30 @@ interface SystemPromptCardProps {
 }
 
 export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemPromptCardProps) {
-    // Use Zustand store instead of Redux
+    // Use Zustand store
     const { setDefaultPromptId } = useSystemPromptStore();
+    
+    // Use management hook instead of RTK Query
+    const { 
+        deleteSystemPrompt,
+        setDefaultSystemPrompt 
+    } = useSystemPromptManagement();
     
     const [expanded, setExpanded] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-    // RTK Query mutations
-    const [deleteSystemPrompt] = useDeleteSystemPromptMutation();
-    const [setDefaultSystemPrompt] = useSetDefaultSystemPromptMutation();
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleSetDefault = async () => {
         if (!isDefault) {
             try {
-                await setDefaultSystemPrompt(prompt.guid).unwrap();
+                setIsProcessing(true);
+                await setDefaultSystemPrompt(prompt.guid);
                 // Update Zustand store
                 setDefaultPromptId(prompt.guid);
             } catch (error) {
                 console.error('Failed to set default prompt:', error);
+            } finally {
+                setIsProcessing(false);
             }
         }
     };
@@ -54,10 +60,13 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
 
     const confirmDelete = async () => {
         try {
-            await deleteSystemPrompt(prompt.guid).unwrap();
+            setIsProcessing(true);
+            await deleteSystemPrompt(prompt.guid);
             setDeleteDialogOpen(false);
         } catch (error) {
             console.error('Failed to delete prompt:', error);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -92,6 +101,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                                 size="icon"
                                 onClick={onApply}
                                 className="text-gray-300 hover:text-gray-100 hover:bg-gray-700"
+                                disabled={isProcessing}
                             >
                                 <Check className="h-4 w-4" />
                             </Button>
@@ -131,7 +141,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                                 size="icon"
                                 onClick={handleSetDefault}
                                 className={`${isDefault ? 'text-blue-400' : 'text-gray-400 hover:text-gray-100'} hover:bg-gray-700`}
-                                disabled={isDefault}
+                                disabled={isDefault || isProcessing}
                             >
                                 <Star className={`h-4 w-4 ${isDefault ? 'fill-blue-400' : ''}`} />
                             </Button>
@@ -140,6 +150,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                                 size="icon"
                                 onClick={onEdit}
                                 className="text-gray-400 hover:text-gray-100 hover:bg-gray-700"
+                                disabled={isProcessing}
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>
@@ -148,6 +159,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                                 size="icon"
                                 onClick={handleDelete}
                                 className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                disabled={isProcessing}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -165,14 +177,15 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600">
+                        <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600" disabled={isProcessing}>
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
                             className="bg-red-700 hover:bg-red-800 text-white border-red-900"
+                            disabled={isProcessing}
                         >
-                            Delete
+                            {isProcessing ? 'Deleting...' : 'Delete'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

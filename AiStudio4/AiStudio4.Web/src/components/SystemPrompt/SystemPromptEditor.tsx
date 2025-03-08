@@ -18,10 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Check } from 'lucide-react';
 import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import {
-    useCreateSystemPromptMutation,
-    useUpdateSystemPromptMutation
-} from '@/services/api/systemPromptApi';
+import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface SystemPromptEditorProps {
     initialPrompt?: SystemPrompt | null;
@@ -30,17 +27,16 @@ interface SystemPromptEditorProps {
 }
 
 export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPromptEditorProps) {
-    // Use Zustand store instead of Redux
+    // Use Zustand store
     const { setCurrentPrompt } = useSystemPromptStore();
+    
+    // Use management hook
+    const { createSystemPrompt, updateSystemPrompt } = useSystemPromptManagement();
     
     const [isCreating, setIsCreating] = useState(!initialPrompt);
     const [isProcessing, setIsProcessing] = useState(false);
     const [newTag, setNewTag] = useState('');
-    const [error, setError] = useState<string | null>(null);
-
-    // RTK Query mutations
-    const [createPrompt] = useCreateSystemPromptMutation();
-    const [updatePrompt] = useUpdateSystemPromptMutation();
+    const [error, setLocalError] = useState<string | null>(null);
 
     const form = useForm<SystemPromptFormValues>({
         defaultValues: initialPrompt ? {
@@ -83,21 +79,21 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
 
     const onSubmit = async (data: SystemPromptFormValues) => {
         setIsProcessing(true);
-        setError(null);
+        setLocalError(null);
 
         try {
             let result;
 
             if (isCreating) {
-                result = await createPrompt(data).unwrap();
+                result = await createSystemPrompt(data);
                 console.log("Created new prompt with result:", result);
             } else if (initialPrompt) {
-                result = await updatePrompt({
+                result = await updateSystemPrompt({
                     ...data,
                     guid: initialPrompt.guid,
                     createdDate: initialPrompt.createdDate,
                     modifiedDate: new Date().toISOString()
-                }).unwrap();
+                });
             }
 
             // Update the current prompt in Zustand store
@@ -116,7 +112,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
             onClose();
         } catch (err: any) {
             console.error("Error in form submission:", err);
-            setError(err?.message || 'Failed to save system prompt');
+            setLocalError(err?.message || 'Failed to save system prompt');
         } finally {
             setIsProcessing(false);
         }
@@ -124,19 +120,19 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
 
     const saveAndApply = async (data: SystemPromptFormValues) => {
         setIsProcessing(true);
-        setError(null);
+        setLocalError(null);
 
         try {
             let result;
             if (isCreating) {
-                result = await createPrompt(data).unwrap();
+                result = await createSystemPrompt(data);
             } else if (initialPrompt) {
-                result = await updatePrompt({
+                result = await updateSystemPrompt({
                     ...data,
                     guid: initialPrompt.guid,
                     createdDate: initialPrompt.createdDate,
                     modifiedDate: new Date().toISOString()
-                }).unwrap();
+                });
             }
 
             // Update the current prompt in Zustand store
@@ -152,7 +148,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
             onClose();
         } catch (err: any) {
             console.error("Error in Save & Apply:", err);
-            setError(err?.message || 'Failed to save and apply prompt');
+            setLocalError(err?.message || 'Failed to save and apply prompt');
         } finally {
             setIsProcessing(false);
         }
@@ -189,6 +185,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                     size="icon"
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-100"
+                    disabled={isProcessing}
                 >
                     <X className="h-4 w-4" />
                 </Button>
@@ -214,6 +211,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             placeholder="E.g., Technical Documentation Assistant"
                                             className="bg-gray-700 border-gray-600 text-gray-100"
                                             {...field}
+                                            disabled={isProcessing}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-gray-400">
@@ -235,6 +233,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             placeholder="You are a helpful assistant..."
                                             className="min-h-[200px] bg-gray-700 border-gray-600 text-gray-100 font-mono"
                                             {...field}
+                                            disabled={isProcessing}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-gray-400">
@@ -256,6 +255,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             placeholder="Brief description of what this prompt is for..."
                                             className="min-h-[80px] bg-gray-700 border-gray-600 text-gray-100"
                                             {...field}
+                                            disabled={isProcessing}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-gray-400">
@@ -275,12 +275,14 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                     onChange={(e) => setNewTag(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     className="flex-1 bg-gray-700 border-gray-600 text-gray-100"
+                                    disabled={isProcessing}
                                 />
                                 <Button
                                     type="button"
                                     onClick={addTag}
                                     variant="outline"
                                     className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+                                    disabled={isProcessing}
                                 >
                                     <Plus className="h-4 w-4 mr-1" /> Add
                                 </Button>
@@ -300,6 +302,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             size="icon"
                                             onClick={() => removeTag(tag)}
                                             className="h-4 w-4 p-0 hover:bg-gray-600 rounded-full"
+                                            disabled={isProcessing}
                                         >
                                             <X className="h-3 w-3" />
                                         </Button>
@@ -321,6 +324,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             checked={field.value}
                                             onCheckedChange={field.onChange}
                                             className="data-[state=checked]:bg-blue-600 border-gray-500"
+                                            disabled={isProcessing}
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">

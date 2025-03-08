@@ -11,10 +11,7 @@ import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import {
-    useGetSystemPromptsQuery,
-    useSetConversationSystemPromptMutation
-} from '@/services/api/systemPromptApi';
+import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface SystemPromptLibraryProps {
     onApplyPrompt?: (prompt: SystemPrompt) => void;
@@ -27,7 +24,7 @@ export function SystemPromptLibrary({
     isOpen,
     conversationId
 }: SystemPromptLibraryProps) {
-    // Use Zustand store instead of Redux
+    // Use Zustand store
     const { 
         prompts, 
         defaultPromptId, 
@@ -36,12 +33,12 @@ export function SystemPromptLibrary({
         setCurrentPrompt
     } = useSystemPromptStore();
 
-    // RTK Query hooks
-    const { data: serverPrompts = [], isLoading } = useGetSystemPromptsQuery(undefined, {
-        skip: !isOpen
-    });
-
-    const [setConversationSystemPrompt] = useSetConversationSystemPromptMutation();
+    // Use the management hook instead of RTK Query
+    const { 
+        prompts: serverPrompts, 
+        isLoading, 
+        setConversationSystemPrompt 
+    } = useSystemPromptManagement();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditor, setShowEditor] = useState(false);
@@ -91,7 +88,7 @@ export function SystemPromptLibrary({
                 await setConversationSystemPrompt({
                     conversationId,
                     promptId: prompt.guid
-                }).unwrap();
+                });
                 console.log(`Set conversation ${conversationId} system prompt to ${prompt.guid}`);
             } catch (error) {
                 console.error('Failed to set conversation system prompt:', error);

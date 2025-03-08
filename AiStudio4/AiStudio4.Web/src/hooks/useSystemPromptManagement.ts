@@ -207,7 +207,7 @@ export function useSystemPromptManagement() {
   }, [fetchSystemPrompts]);
   
   // Set default system prompt
-  const setDefaultSystemPromptFn = useCallback(async (promptId: string) => {
+  const setDefaultSystemPrompt = useCallback(async (promptId: string) => {
     try {
       setIsLoading(true);
       const clientId = localStorage.getItem('clientId');
@@ -274,6 +274,71 @@ export function useSystemPromptManagement() {
       setIsLoading(false);
     }
   }, [prompts]);
+
+  // Import system prompts
+  const importSystemPrompts = useCallback(async (jsonData: string) => {
+    try {
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      
+      const response = await fetch('/api/importSystemPrompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({ jsonData })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to import system prompts');
+      }
+      
+      // Refresh prompts list
+      await fetchSystemPrompts();
+      
+      return true;
+    } catch (err) {
+      setError(`Failed to import system prompts: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error importing system prompts:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchSystemPrompts]);
+
+  // Export system prompts
+  const exportSystemPrompts = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const clientId = localStorage.getItem('clientId');
+      
+      const response = await fetch('/api/exportSystemPrompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': clientId || ''
+        },
+        body: JSON.stringify({})
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to export system prompts');
+      }
+      
+      return data.json;
+    } catch (err) {
+      setError(`Failed to export system prompts: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error exporting system prompts:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
   
   // Initialize data on hook mount
   useEffect(() => {
@@ -297,8 +362,10 @@ export function useSystemPromptManagement() {
     createSystemPrompt,
     updateSystemPrompt,
     deleteSystemPrompt,
-    setDefaultSystemPrompt: setDefaultSystemPromptFn,
+    setDefaultSystemPrompt,
     getSystemPromptById,
+    importSystemPrompts,
+    exportSystemPrompts,
     clearError: () => setError(null)
   };
 }
