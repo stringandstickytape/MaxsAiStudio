@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { webSocketService, WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
-import { useEffect } from 'react';
 
 interface WebSocketStore {
   // State
