@@ -117,9 +117,22 @@ export const HistoricalConversationTreeList = () => {
             const data = await response.json();
             console.log('Received conversation data:', data);
 
-            if (data.success && data.conversation && data.conversation.messages) {
-                // First create the conversation in the store
-                const messages = data.conversation.messages;
+            if (data.success) {
+                // First create the conversation structure
+                let messages = [];
+
+                // The API returns treeData directly at the top level
+                if (data.treeData && Array.isArray(data.treeData)) {
+                    // Convert treeData into messages array format
+                    messages = data.treeData.map((node: any) => ({
+                        id: node.id,
+                        content: node.text,
+                        source: node.source || 'system',
+                        parentId: node.parentId,
+                        timestamp: node.timestamp || Date.now()
+                    }));
+                } else throw new Error(data.error || 'Failed to map conversation data');
+
                 if (messages.length > 0) {
                     // Sort messages by timestamp to ensure proper ordering
                     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
@@ -167,12 +180,19 @@ export const HistoricalConversationTreeList = () => {
                             selectedMessageId: nodeId
                         });
                     }, 50);
+                } else {
+                    console.error('No messages found in the conversation data');
                 }
+            } else {
+                throw new Error(data.error || 'Failed to load conversation data');
             }
         } catch (error) {
             console.error('Error loading conversation:', error);
         }
     };
+
+    // We don't need this helper function anymore, so removing it
+
     return (
         <div className="flex flex-col">
             {isLoading ? (
