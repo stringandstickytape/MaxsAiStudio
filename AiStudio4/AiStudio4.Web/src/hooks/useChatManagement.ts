@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { v4 as uuidv4 } from 'uuid';
+import { apiClient } from '@/services/api/apiClient';
 
 interface SendMessageParams {
   conversationId: string;
@@ -36,24 +37,18 @@ export function useChatManagement() {
   const sendMessage = useCallback(async (params: SendMessageParams) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Add a unique ID for the new message
       const newMessageId = params.parentMessageId ? uuidv4() : undefined;
       
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({
-          ...params,
-          newMessageId
-        })
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/chat', {
+        ...params,
+        newMessageId
       });
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to send message');

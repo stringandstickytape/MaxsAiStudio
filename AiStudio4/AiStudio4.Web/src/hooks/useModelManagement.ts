@@ -4,6 +4,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { Model, ServiceProvider } from '@/types/settings';
 import { ModelType } from '@/types/modelTypes';
 import { v4 as uuidv4 } from 'uuid';
+import { apiClient } from '@/services/api/apiClient';
 
 /**
  * A centralized hook for managing models and providers throughout the application.
@@ -30,17 +31,11 @@ export function useModelManagement() {
   const fetchConfig = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getConfig', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getConfig', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch configuration');
@@ -92,17 +87,11 @@ export function useModelManagement() {
   const fetchModels = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getModels', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getModels', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch models');
@@ -123,17 +112,11 @@ export function useModelManagement() {
   const fetchProviders = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getServiceProviders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getServiceProviders', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch service providers');
@@ -154,7 +137,7 @@ export function useModelManagement() {
   const addModel = useCallback(async (modelData: Omit<Model, 'guid'>) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Generate a new GUID if not provided
       const modelWithGuid = {
@@ -162,16 +145,9 @@ export function useModelManagement() {
         guid: modelData.guid || uuidv4()
       };
       
-      const response = await fetch('/api/addModel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(modelWithGuid)
-      });
-
-      const data = await response.json();
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/addModel', modelWithGuid);
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to add model');
@@ -194,17 +170,11 @@ export function useModelManagement() {
   const updateModel = useCallback(async (modelData: Model) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/updateModel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(modelData)
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/updateModel', modelData);
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to update model');
@@ -227,17 +197,11 @@ export function useModelManagement() {
   const deleteModel = useCallback(async (modelGuid: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/deleteModel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ modelGuid })
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/deleteModel', { modelGuid });
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to delete model');
@@ -260,7 +224,7 @@ export function useModelManagement() {
   const addProvider = useCallback(async (providerData: Omit<ServiceProvider, 'guid'>) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Generate a new GUID if not provided
       const providerWithGuid = {
@@ -268,16 +232,9 @@ export function useModelManagement() {
         guid: providerData.guid || uuidv4()
       };
       
-      const response = await fetch('/api/addServiceProvider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(providerWithGuid)
-      });
-
-      const data = await response.json();
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/addServiceProvider', providerWithGuid);
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to add service provider');
@@ -297,20 +254,14 @@ export function useModelManagement() {
   }, [fetchProviders]);
 
   // Update a service provider
-  const updateProvider = useCallback(async (providerData: ServiceProvider) => {
+  const updateProvider = useCallback(async (provider: ServiceProvider) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/updateServiceProvider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(providerData)
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/updateServiceProvider', provider);
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to update service provider');
@@ -333,17 +284,11 @@ export function useModelManagement() {
   const deleteProvider = useCallback(async (providerGuid: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/deleteServiceProvider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ providerGuid })
-      });
-
-      const data = await response.json();
+      setError(null);
+      
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/deleteServiceProvider', { providerGuid });
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to delete service provider');
@@ -366,23 +311,15 @@ export function useModelManagement() {
   const handleModelSelect = useCallback(async (modelType: ModelType, modelName: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Update local state first for immediate UI response
       if (modelType === 'primary') {
         selectPrimaryModel(modelName);
         
-        // Update on the server
-        const response = await fetch('/api/setDefaultModel', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Client-Id': clientId || ''
-          },
-          body: JSON.stringify({ modelName })
-        });
-
-        const data = await response.json();
+        // Update on the server using apiClient
+        const response = await apiClient.post('/api/setDefaultModel', { modelName });
+        const data = response.data;
         
         if (!data.success) {
           throw new Error(data.error || 'Failed to set default model');
@@ -390,21 +327,9 @@ export function useModelManagement() {
       } else {
         selectSecondaryModel(modelName);
         
-        // Update on the server
-        const response = await fetch('/api/setSecondaryModel', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Client-Id': clientId || ''
-          },
-          body: JSON.stringify({ modelName })
-        });
-
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to set secondary model');
-        }
+        // Update on the server using apiClient
+        const response = await apiClient.post('/api/setSecondaryModel', { modelName });
+        const data = response.data;
       }
       
       return true;

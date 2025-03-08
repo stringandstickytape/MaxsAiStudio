@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { v4 as uuidv4 } from 'uuid';
+import { apiClient } from '@/services/api/apiClient';
 
 export function useSystemPromptManagement() {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,17 +23,11 @@ export function useSystemPromptManagement() {
   const fetchSystemPrompts = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getSystemPrompts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
+      setError(null);
       
-      const data = await response.json();
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getSystemPrompts', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch system prompts');
@@ -56,23 +51,16 @@ export function useSystemPromptManagement() {
   }) => {
     try {
       setIsLoading(true);
+      setError(null);
       const { conversationId, promptId } = params;
-      const clientId = localStorage.getItem('clientId');
       
       // Update local state first for immediate UI feedback
       setConversationPrompt(conversationId, promptId);
       
-      // Then update on the server
-      const response = await fetch('/api/setConversationSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ conversationId, promptId })
-      });
+      // Then update on the server using apiClient
+      const response = await apiClient.post('/api/setConversationSystemPrompt', { conversationId, promptId });
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to set conversation system prompt');
@@ -92,7 +80,7 @@ export function useSystemPromptManagement() {
   const createSystemPrompt = useCallback(async (promptData: Omit<SystemPrompt, 'guid' | 'createdDate' | 'modifiedDate'>) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Create full prompt object
       const newPrompt = {
@@ -102,16 +90,10 @@ export function useSystemPromptManagement() {
         modifiedDate: new Date().toISOString()
       };
       
-      const response = await fetch('/api/createSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(newPrompt)
-      });
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/createSystemPrompt', newPrompt);
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to create system prompt');
@@ -135,7 +117,7 @@ export function useSystemPromptManagement() {
   const updateSystemPrompt = useCallback(async (promptData: SystemPrompt) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Update modification date
       const updatedPrompt = {
@@ -143,14 +125,8 @@ export function useSystemPromptManagement() {
         modifiedDate: new Date().toISOString()
       };
       
-      const response = await fetch('/api/updateSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(updatedPrompt)
-      });
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/updateSystemPrompt', updatedPrompt);
       
       const data = await response.json();
       

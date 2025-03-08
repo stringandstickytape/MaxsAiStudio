@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useToolStore } from '@/stores/useToolStore';
 import { Tool, ToolCategory } from '@/types/toolTypes';
 import { v4 as uuidv4 } from 'uuid';
+import { apiClient } from '@/services/api/apiClient';
 
 export function useToolsManagement() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,17 +24,11 @@ export function useToolsManagement() {
   const fetchTools = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getTools', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
+      setError(null);
       
-      const data = await response.json();
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getTools', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch tools');
@@ -59,17 +54,11 @@ export function useToolsManagement() {
   const fetchToolCategories = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
-      const response = await fetch('/api/getToolCategories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
+      setError(null);
       
-      const data = await response.json();
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/getToolCategories', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch tool categories');
@@ -90,7 +79,7 @@ export function useToolsManagement() {
   const addTool = useCallback(async (toolData: Omit<Tool, 'guid'>) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Generate a new GUID if not provided
       const toolWithGuid = {
@@ -98,16 +87,10 @@ export function useToolsManagement() {
         guid: uuidv4()
       };
       
-      const response = await fetch('/api/addTool', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify(toolWithGuid)
-      });
+      // Use apiClient instead of direct fetch
+      const response = await apiClient.post('/api/addTool', toolWithGuid);
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to add tool');
