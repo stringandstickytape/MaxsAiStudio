@@ -118,8 +118,6 @@ export function AppHeader({
                 {/* Left side - Vertical Model Selectors */}
                 <div className="flex flex-col justify-center pr-2 border-r border-gray-700/30">
                     <ModelStatusBar
-                        primaryModel={selectedModel}
-                        secondaryModel={secondaryModel}
                         onPrimaryClick={handlePrimaryModelClick}
                         onSecondaryClick={handleSecondaryModelClick}
                         orientation="vertical"

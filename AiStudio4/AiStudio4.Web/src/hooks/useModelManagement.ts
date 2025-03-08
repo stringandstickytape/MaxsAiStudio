@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useModelStore } from '@/stores/useModelStore';
 import { useGetConfigQuery, useSetDefaultModelMutation, useSetSecondaryModelMutation } from '@/services/api/chatApi';
+import { apiClient } from '@/services/api/apiClient';
 import { Model, ServiceProvider } from '@/types/settings';
 import { ModelType } from '@/types/modelTypes';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,16 +43,8 @@ export function useModelManagement() {
   const fetchProviders = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/getServiceProviders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
-        },
-        body: JSON.stringify({}),
-      });
-      
-      const data = await response.json();
+      const response = await apiClient.post('/api/getServiceProviders', {});
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch service providers');

@@ -52,6 +52,7 @@
 
 	<ItemGroup>
 	  <Folder Include="AiStudio4.Web\src\services\websocket\" />
+	  <Folder Include="AiStudio4.Web\src\store\" />
 	</ItemGroup>
 
 	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudio4.Web\dist\index.html">
