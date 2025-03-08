@@ -280,7 +280,7 @@ export function PinnedShortcuts({
                                 <div className="flex-shrink-0">
                                     {getIconForCommand(command.id, command.iconName)}
                                 </div>
-                                <span className="text-[10px] font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
+                                <span className="text-[12px] font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
                                     {command.name}
                                 </span>
                             </Button>
