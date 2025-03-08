@@ -8,13 +8,7 @@ import { Plus, Search, Edit, Trash2, Copy, Import, Download } from 'lucide-react
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToolEditor } from './ToolEditor';
 import { Tool, ToolCategory } from '@/types/toolTypes';
-import { 
-  useGetToolsQuery, 
-  useGetToolCategoriesQuery, 
-  useDeleteToolMutation,
-  useImportToolsMutation,
-  useExportToolsMutation
-} from '@/services/api/toolsApi';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 interface ToolPanelProps {
   isOpen: boolean;
@@ -22,16 +16,17 @@ interface ToolPanelProps {
 }
 
 export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
-  // RTK Query hooks
-  const { data: tools = [], isLoading: toolsLoading, refetch: refetchTools } = useGetToolsQuery(undefined, {
-    skip: !isOpen // Only fetch when panel is open
-  });
-  const { data: categories = [], refetch: refetchCategories } = useGetToolCategoriesQuery(undefined, {
-    skip: !isOpen // Only fetch when panel is open
-  });
-  const [deleteTool, { isLoading: isDeleting }] = useDeleteToolMutation();
-  const [importTools, { isLoading: isImporting }] = useImportToolsMutation();
-  const [exportTools, { isLoading: isExporting }] = useExportToolsMutation();
+  // Use tools management hook instead of RTK Query
+  const { 
+    tools, 
+    categories, 
+    isLoading: toolsLoading, 
+    fetchTools, 
+    fetchToolCategories,
+    deleteTool,
+    importTools: importToolsFn,
+    exportTools: exportToolsFn
+  } = useToolsManagement();
   
   // Use Zustand store to sync tools and categories
   const { setTools, setCategories } = useToolStore();
@@ -54,14 +49,18 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [currentTool, setCurrentTool] = useState<Tool | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   useEffect(() => {
     if (isOpen) {
-      refetchTools();
-      refetchCategories();
+      fetchTools();
+      fetchToolCategories();
     }
-  }, [isOpen, refetchTools, refetchCategories]);
+  }, [isOpen, fetchTools, fetchToolCategories]);
 
+  // Handle actions from localStorage
   useEffect(() => {
     const pendingAction = window.localStorage.getItem('toolPanel_action');
     if (pendingAction) {
@@ -69,10 +68,7 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
         handleAddTool();
       } else if (pendingAction === 'import') {
         // Trigger file input click for import
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.click();
+        handleImportTools();
       } else if (pendingAction === 'export') {
         // Handle export action
         handleExportTools();
@@ -95,10 +91,13 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
   const handleDeleteTool = async (toolId: string) => {
     if (window.confirm('Are you sure you want to delete this tool?')) {
       try {
-        await deleteTool(toolId).unwrap();
+        setIsDeleting(true);
+        await deleteTool(toolId);
       } catch (error) {
         console.error('Failed to delete tool:', error);
         alert(`Failed to delete tool: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -114,11 +113,13 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
         reader.onload = async (event) => {
           const json = event.target?.result as string;
           try {
-            await importTools(json).unwrap();
-            // Tools list will auto-update due to RTK Query cache invalidation
+            setIsImporting(true);
+            await importToolsFn(json);
           } catch (error) {
             console.error('Error importing tools:', error);
             alert(`Failed to import tools: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          } finally {
+            setIsImporting(false);
           }
         };
         reader.readAsText(file);
@@ -129,7 +130,8 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
 
   const handleExportTools = async () => {
     try {
-      const json = await exportTools(undefined).unwrap();
+      setIsExporting(true);
+      const json = await exportToolsFn();
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -142,6 +144,8 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
     } catch (error) {
       console.error('Error exporting tools:', error);
       alert(`Failed to export tools: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -149,7 +153,6 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
     const matchesSearch = searchTerm === '' || 
       tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      // Add filetype to search criteria
       (tool.filetype && tool.filetype.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = selectedCategory === null || 

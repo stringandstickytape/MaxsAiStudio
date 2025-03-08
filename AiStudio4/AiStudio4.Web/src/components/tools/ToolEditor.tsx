@@ -8,11 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tool, ToolCategory } from '@/types/toolTypes';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { 
-  useAddToolMutation, 
-  useUpdateToolMutation, 
-  useValidateToolSchemaMutation 
-} from '@/services/api/toolsApi';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 interface ToolEditorProps {
   tool: Tool | null;
@@ -21,10 +17,13 @@ interface ToolEditorProps {
 }
 
 export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
-  // RTK Query hooks
-  const [addTool, { isLoading: isAddingTool }] = useAddToolMutation();
-  const [updateTool, { isLoading: isUpdatingTool }] = useUpdateToolMutation();
-  const [validateSchema, { isLoading: isValidating }] = useValidateToolSchemaMutation();
+  // Use the tools management hook instead of RTK Query
+  const {
+    addTool,
+    updateTool,
+    validateToolSchema,
+    isLoading: isApiLoading
+  } = useToolsManagement();
   
   // Local state
   const [name, setName] = useState(tool?.name || '');
@@ -39,7 +38,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
 
   const handleValidateSchema = async () => {
     try {
-      const isValid = await validateSchema(schema).unwrap();
+      const isValid = await validateToolSchema(schema);
       setIsValid(isValid);
       setValidationMessage(isValid ? 'Schema is valid' : 'Schema is invalid');
     } catch (error) {
@@ -73,7 +72,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       // Validate schema one last time
       let isSchemaValid;
       try {
-        isSchemaValid = await validateSchema(schema).unwrap();
+        isSchemaValid = await validateToolSchema(schema);
       } catch (error) {
         console.error('Schema validation error:', error);
         isSchemaValid = false;
@@ -91,7 +90,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         description,
         schema,
         schemaType,
-        filetype, // Include the filetype in the data being sent
+        filetype,
         categories: selectedCategories,
         lastModified: new Date().toISOString()
       };
@@ -99,9 +98,9 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       if (tool) {
         toolData.guid = tool.guid;
         toolData.isBuiltIn = tool.isBuiltIn;
-        await updateTool(toolData).unwrap();
+        await updateTool(toolData);
       } else {
-        await addTool(toolData).unwrap();
+        await addTool(toolData);
       }
 
       onClose();
@@ -113,8 +112,8 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
     }
   };
 
-  // Determine loading state
-  const isLoading = isValidating || isAddingTool || isUpdatingTool || isSubmitting;
+  // Determine overall loading state
+  const isLoading = isApiLoading || isSubmitting;
 
   return (
     <div className="space-y-4">
@@ -239,7 +238,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           disabled={isLoading}
           className="bg-gray-800 border-gray-700"
         >
-          {isValidating ? 'Validating...' : 'Validate'}
+          {isLoading ? 'Validating...' : 'Validate'}
         </Button>
         <Button 
           variant="outline" 
