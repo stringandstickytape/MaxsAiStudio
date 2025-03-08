@@ -4,8 +4,15 @@ import { Button } from '@/components/ui/button';
 import { commandRegistry } from '@/commands/commandRegistry';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Pin, Command, ChevronRight, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
+import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
 import { usePinnedCommandsStore, PinnedCommand } from '@/stores/usePinnedCommandsStore';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -167,6 +174,7 @@ export function PinnedShortcuts({
 
     // Limit the number of displayed commands
     const visibleCommands = pinnedCommands.slice(0, maxShown);
+    const hiddenCommands = pinnedCommands.slice(maxShown);
     const hasMoreCommands = pinnedCommands.length > maxShown;
 
     // Empty state - no pinned commands
@@ -192,7 +200,7 @@ export function PinnedShortcuts({
 
     return (
         <div className={cn(
-            "flex items-center gap-1 overflow-x-auto py-1 px-2",
+            "flex items-center justify-center gap-1 overflow-x-auto py-1 px-2",
             orientation === 'vertical' ? "flex-col" : "flex-row w-full",
             className
         )}>
@@ -208,10 +216,10 @@ export function PinnedShortcuts({
                                     // Remove pin on right-click
                                     handlePinCommand(command.id, true);
                                 }}
-                                className="h-6 px-1.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex items-center gap-1"
+                                className="h-6 px-1.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex items-center justify-center gap-1"
                             >
                                 {getIconForCommand(command.id, command.iconName)}
-                                <span className="text-xs font-medium max-w-[40px] truncate">
+                                <span className="text-xs font-medium max-w-[40px] truncate text-center">
                                     {command.name.substring(0, 5)}
                                 </span>
                             </Button>
@@ -222,23 +230,44 @@ export function PinnedShortcuts({
                     </Tooltip>
                 ))}
 
-                {/* "More" button if there are additional commands */}
+                {/* "More" dropdown button if there are additional commands */}
                 {hasMoreCommands && (
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => commandRegistry.executeCommand('open-command-bar')}
-                                className="h-6 w-6 p-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100"
-                            >
-                                <ChevronRight className="h-3 w-3" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
-                            <p>More commands ({pinnedCommands.length - maxShown})</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    <DropdownMenu>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 p-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100"
+                                    >
+                                        <ChevronDown className="h-3 w-3" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
+                                <p>More commands ({pinnedCommands.length - maxShown})</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuGroup>
+                                {hiddenCommands.map(command => (
+                                    <DropdownMenuItem 
+                                        key={command.id}
+                                        onClick={() => handleCommandClick(command.id)}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault();
+                                            handlePinCommand(command.id, true);
+                                        }}
+                                        className="flex items-center gap-2 text-xs"
+                                    >
+                                        <span className="flex-shrink-0">{getIconForCommand(command.id, command.iconName)}</span>
+                                        <span>{command.name}</span>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
             </TooltipProvider>
         </div>

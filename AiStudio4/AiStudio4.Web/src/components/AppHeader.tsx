@@ -169,7 +169,7 @@ export function AppHeader({
 
             {/* Pinned commands bar - positioned below the main header content */}
             <div className="mt-1 border-t border-gray-700/30 pt-1 flex justify-center">
-                <div className="w-full max-w-2xl">
+                <div className="w-full">
                     <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" />
                 </div>
             </div>

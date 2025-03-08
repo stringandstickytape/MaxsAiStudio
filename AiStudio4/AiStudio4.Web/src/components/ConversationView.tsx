@@ -56,7 +56,7 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                 {messageChain.map((message) => (
                     <div key={message.id} className="">
                         <div
-                            className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} ${message.id === selectedMessageId ? 'ring-2 ring-blue-500' : ''} clear-both`}
+                            className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} clear-both`}
                         >
                             <MarkdownPane message={message.content} />
                         </div>

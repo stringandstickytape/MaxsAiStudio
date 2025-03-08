@@ -16,7 +16,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     // Create commands for selecting primary model
     const primaryModelCommands = getAvailableModels().map(modelName => ({
         id: `select-primary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
-        name: `Primary: ${modelName}`,
+        name: `${modelName} [Primary]`,
         description: `Set primary model to ${modelName}`,
         keywords: ['model', 'primary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
         section: 'model',
@@ -27,7 +27,7 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     // Create commands for selecting secondary model
     const secondaryModelCommands = getAvailableModels().map(modelName => ({
         id: `select-secondary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
-        name: `Secondary: ${modelName}`,
+        name: `${modelName} [Secondary]`,
         description: `Set secondary model to ${modelName}`,
         keywords: ['model', 'secondary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
         section: 'model',
