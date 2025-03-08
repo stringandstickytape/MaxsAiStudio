@@ -118,7 +118,7 @@ namespace AiStudio4.Services
                     ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     ToolIds = request.ToolIds ?? new List<string>(),
-                    UseStreaming = false,
+                    UseStreaming = true,
                     
                     // No need to set CustomSystemPrompt as we've already set it in the conversation object
                 };

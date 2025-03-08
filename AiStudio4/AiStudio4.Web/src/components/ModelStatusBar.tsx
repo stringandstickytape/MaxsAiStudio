@@ -25,6 +25,53 @@ export function ModelStatusBar({
     const { selectedPrimaryModel, selectedSecondaryModel } = useModelStore();
     
     const isVertical = orientation === 'vertical';
+    
+    // Helper function to break text at natural points (spaces, hyphens, etc.)
+    const findBreakPoint = (text: string) => {
+        if (!text) return { firstLine: '', secondLine: '' };
+        
+        // Look for natural break points
+        const midPoint = Math.ceil(text.length / 2);
+        
+        // Search for a space, hyphen, or other separator near the midpoint
+        let breakIndex = -1;
+        
+        // First try to find a space close to the middle
+        for (let i = 0; i < 10; i++) {
+            if (midPoint - i > 0 && /\s/.test(text[midPoint - i])) {
+                breakIndex = midPoint - i;
+                break;
+            }
+            if (midPoint + i < text.length && /\s/.test(text[midPoint + i])) {
+                breakIndex = midPoint + i;
+                break;
+            }
+        }
+        
+        // If no space found, look for other punctuation
+        if (breakIndex === -1) {
+            for (let i = 0; i < 10; i++) {
+                if (midPoint - i > 0 && /[-_.,:]/.test(text[midPoint - i])) {
+                    breakIndex = midPoint - i + 1; // Include the punctuation in the first line
+                    break;
+                }
+                if (midPoint + i < text.length && /[-_.,:]/.test(text[midPoint + i])) {
+                    breakIndex = midPoint + i + 1; // Include the punctuation in the first line
+                    break;
+                }
+            }
+        }
+        
+        // If still no good break point, just break at the midpoint
+        if (breakIndex === -1) {
+            breakIndex = midPoint;
+        }
+        
+        return {
+            firstLine: text.substring(0, breakIndex),
+            secondLine: text.substring(breakIndex).trim()
+        };
+    };
 
     return (
         <div className={cn(
@@ -40,14 +87,29 @@ export function ModelStatusBar({
                             size="sm"
                             onClick={onPrimaryClick}
                             className={cn(
-                                "bg-gradient-to-r from-blue-800/80 to-blue-700/80 hover:from-blue-800 hover:to-blue-700 text-white border-blue-700/50 flex items-center gap-2",
-                                isVertical ? "w-36 justify-between px-3" : ""
+                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors",
+                                 "justify-between" 
                             )}
                         >
-                            <Zap className="h-3.5 w-3.5 text-blue-300" />
-                            <span className="truncate">
-                                {selectedPrimaryModel !== "Select Model" ? selectedPrimaryModel : "Select Model"}
-                            </span>
+                            <div className="grid grid-rows-2 w-full h-[40px] overflow-hidden text-left">
+                                {selectedPrimaryModel !== "Select Model" ? (
+                                    selectedPrimaryModel.length > 15 ? (
+                                        <>
+                                            {/* Find a natural break point near the middle */}
+                                            <span className=" text-xs self-end">
+                                                {findBreakPoint(selectedPrimaryModel).firstLine}
+                                            </span>
+                                            <span className=" text-xs self-start">
+                                                {findBreakPoint(selectedPrimaryModel).secondLine}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span className="truncate self-center row-span-2">{selectedPrimaryModel}</span>
+                                    )
+                                ) : (
+                                    <span className="truncate self-center row-span-2">Select Model</span>
+                                )}
+                            </div>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -65,14 +127,29 @@ export function ModelStatusBar({
                             size="sm"
                             onClick={onSecondaryClick}
                             className={cn(
-                                "bg-gradient-to-r from-purple-800/80 to-purple-700/80 hover:from-purple-800 hover:to-purple-700 text-white border-purple-700/50 flex items-center gap-2",
-                                isVertical ? "w-36 justify-between px-3" : ""
+                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors",
+                                 "justify-between"
                             )}
                         >
-                            <Info className="h-3.5 w-3.5 text-purple-300" />
-                            <span className="truncate">
-                                {selectedSecondaryModel !== "Select Model" ? selectedSecondaryModel : "Select Model"}
-                            </span>
+                            <div className="grid grid-rows-2 w-full h-[40px] overflow-hidden text-left">
+                                {selectedSecondaryModel !== "Select Model" ? (
+                                    selectedSecondaryModel.length > 15 ? (
+                                        <>
+                                            {/* Find a natural break point near the middle */}
+                                            <span className=" text-xs self-end">
+                                                {findBreakPoint(selectedSecondaryModel).firstLine}
+                                            </span>
+                                            <span className=" text-xs self-start">
+                                                {findBreakPoint(selectedSecondaryModel).secondLine}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span className="truncate self-center row-span-2">{selectedSecondaryModel}</span>
+                                    )
+                                ) : (
+                                    <span className="truncate self-center row-span-2">Select Model</span>
+                                )}
+                            </div>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>

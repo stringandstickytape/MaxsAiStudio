@@ -116,7 +116,7 @@ export function AppHeader({
             {/* Main header content */}
             <div className="flex flex-1">
                 {/* Left side - Vertical Model Selectors */}
-                <div className="flex flex-col justify-center pr-4 border-r border-gray-700/30">
+                <div className="flex flex-col justify-center pr-2 border-r border-gray-700/30">
                     <ModelStatusBar
                         primaryModel={selectedModel}
                         secondaryModel={secondaryModel}
@@ -127,7 +127,7 @@ export function AppHeader({
                 </div>
 
                 {/* Middle - Command Bar and System Prompt */}
-                <div className="flex-1 flex flex-col justify-center px-4">
+                <div className="flex-1 flex flex-col justify-center px-0">
                     <div className="flex items-center justify-center">
                         {CommandBarComponent || (
                             <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl mb-2">

@@ -428,16 +428,6 @@ function App() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
-    
-    // Ensure the event listener is also set up for backward compatibility
-    useEffect(() => {
-        const handleOpenToolPanel = () => openToolPanel();
-        window.addEventListener('open-tool-panel', handleOpenToolPanel);
-        
-        return () => {
-            window.removeEventListener('open-tool-panel', handleOpenToolPanel);
-        };
-    }, [openToolPanel]);
 
     return (
         <>
@@ -495,9 +485,9 @@ function App() {
                 id="sidebar"
                 position="left"
                 size="80"
-                minWidth="300px"
-                maxWidth="360px"
-                width="320px"  // Fixed width
+                minWidth="320px"
+                maxWidth="320px"
+                width="320px"
                 zIndex={40}
                 title="Conversations"
                 isOpen={sidebarPanel.isOpen}
@@ -516,6 +506,9 @@ function App() {
                     id="conversationTree"
                     position="right"
                     size="80"
+                    minWidth="320px"
+                    maxWidth="320px"
+                    width="320px"
                     zIndex={30}
                     title="Conversation Tree"
                     isOpen={conversationTreePanel.isOpen}
@@ -534,6 +527,9 @@ function App() {
                 id="settings"
                 position="right"
                 size="80"
+                minWidth="320px"
+                maxWidth="320px"
+                width="320px"
                 zIndex={40}
                 title="Settings"
                 isOpen={settingsPanel.isOpen}
@@ -549,6 +545,9 @@ function App() {
                 id="systemPrompts"
                 position="right"
                 size="80"
+                minWidth="320px"
+                maxWidth="320px"
+                width="320px"
                 zIndex={50}
                 title="System Prompts"
                 isOpen={systemPromptsPanel.isOpen}

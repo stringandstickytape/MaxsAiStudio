@@ -198,8 +198,8 @@ export function InputBar({
     };
 
     return (
-        <div className="h-[30vh] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-6 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
-            <div className="h-full flex flex-col gap-2">
+        <div className="h-[30vh] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+            <div className="h-full flex flex-col">
                 {/* Tool selector - pass onManageTools prop */}
                 <div className="mb-2">
                     <ToolSelector onManageTools={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-panel')))} />
