@@ -1,3 +1,4 @@
+// src/components/panel.tsx
 import { ReactNode, useEffect, useRef } from 'react';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { PanelPosition, PanelState } from '@/types/ui';
@@ -21,8 +22,6 @@ interface PanelProps {
     isOpen?: boolean;
     isPinned?: boolean;
     className?: string;
-    onClose?: () => void;
-    onTogglePinned?: () => void;
 }
 
 export const Panel = ({
@@ -38,41 +37,44 @@ export const Panel = ({
     height,
     zIndex = 40,
     title,
-    isOpen,
-    isPinned,
-    className,
-    onClose,
-    onTogglePinned
+    isOpen: propIsOpen,
+    isPinned: propIsPinned,
+    className
 }: PanelProps) => {
-    const panelStore = usePanelStore();
-    const { registerPanel, togglePanel, togglePinned, getPanelState } = panelStore;
+    const { registerPanel, togglePanel, togglePinned, getPanelState, panels } = usePanelStore();
+    const initialRegistrationDone = useRef(false);
 
     // Register the panel with the store if not already registered
     useEffect(() => {
-        // Create a panel state
-        const panelState: PanelState = {
-            id,
-            isOpen: isOpen || false,
-            isPinned: isPinned || false,
-            position,
-            size,
-            zIndex,
-            title: title || id
-        };
-
-        // Register the panel
-        registerPanel(panelState);
-    }, [id, isOpen, isPinned, position, size, zIndex, title, registerPanel]);
+        if (!initialRegistrationDone.current) {
+            // Create a panel state, only set defaults if not already in store
+            const existingPanel = panels[id];
+            
+            if (!existingPanel) {
+                // Create a new panel state if it doesn't exist
+                const panelState: PanelState = {
+                    id,
+                    isOpen: propIsOpen ?? false,
+                    isPinned: propIsPinned ?? false,
+                    position,
+                    size,
+                    zIndex,
+                    title: title || id
+                };
+                
+                // Register the panel
+                registerPanel(panelState);
+            }
+            
+            initialRegistrationDone.current = true;
+        }
+    }, [id, position, size, zIndex, title, registerPanel, panels, propIsOpen, propIsPinned]);
 
     // Get the panel state from the store
     const panelState = getPanelState(id);
 
     // If no panel state, don't render
     if (!panelState) return null;
-
-    // Handle panel actions using the store if custom handlers are not provided
-    const handleClose = onClose || (() => togglePanel(id));
-    const handleTogglePinned = onTogglePinned || (() => togglePinned(id));
 
     // If not open and not pinned, don't render
     if (!panelState.isOpen && !panelState.isPinned) return null;
@@ -121,6 +123,17 @@ export const Panel = ({
             };
             break;
     }
+
+    // Handle close action
+    const handleClose = () => {
+        togglePanel(id);
+    };
+    
+    // Handle pin/unpin action
+    const handleTogglePinned = () => {
+        togglePinned(id);
+    };
+
 
     return (
         <div

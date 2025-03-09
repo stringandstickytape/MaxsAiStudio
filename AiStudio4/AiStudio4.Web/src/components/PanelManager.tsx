@@ -1,5 +1,5 @@
 // src/components/PanelManager.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Panel } from '@/components/panel';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -17,22 +17,29 @@ interface PanelManagerProps {
 
 export function PanelManager({ panels, className }: PanelManagerProps) {
   const { registerPanel, panels: panelStates } = usePanelStore();
+  const initialRegistrationDone = useRef(false);
 
-  // Register all panels on mount
+  // Register all panels on mount, only once
   useEffect(() => {
-    panels.forEach(panel => {
-      registerPanel({
-        id: panel.id,
-        position: panel.position,
-        size: panel.size,
-        zIndex: panel.zIndex,
-        title: panel.title,
-        isOpen: false,
-        isPinned: false,
+    if (!initialRegistrationDone.current) {
+      // Only register panels that don't already exist in the store
+      panels.forEach(panel => {
+        registerPanel({
+          id: panel.id,
+          position: panel.position,
+          size: panel.size,
+          zIndex: panel.zIndex,
+          title: panel.title,
+          isOpen: false,
+          isPinned: false,
+        });
       });
-    });
-  }, []);
+      
+      initialRegistrationDone.current = true;
+    }
+  }, [panels, registerPanel]);
 
+  
   return (
     <div className={cn("relative", className)}>
       {panels.map(panel => {
@@ -49,10 +56,8 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
             width={panel.width}
             zIndex={panel.zIndex}
             title={panel.title}
-            isOpen={state.isOpen}
-            isPinned={state.isPinned}
           >
-            {panel.render(state.isOpen)}
+            {panel.render(state.isOpen || state.isPinned)}
           </Panel>
         );
       })}

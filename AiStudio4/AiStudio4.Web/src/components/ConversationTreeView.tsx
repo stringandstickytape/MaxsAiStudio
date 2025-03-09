@@ -1,3 +1,4 @@
+// src/components/ConversationTreeView.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Node,
@@ -18,7 +19,10 @@ interface TreeViewProps {
     messages: Message[];
 }
 
-export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, messages }) => {
+export const ConversationTreeView: React.FC<TreeViewProps> = ({
+    conversationId,
+    messages
+}) => {
     const [nodes, setNodes] = useState<Node[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
     const { setActiveConversation, getConversation } = useConversationStore();
@@ -75,39 +79,41 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({ conversationId, 
         }
     }, [currentMessages, conversationId, updateKey]);
 
+    if (!currentMessages.length) {
+        return (
+            <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
+                <p>No conversation history to display</p>
+                <p className="text-sm mt-2 text-gray-500">Start a new conversation to see the tree view</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-[calc(100vh-70px)] w-full">
             <div className={cn(
                 "flex-1 overflow-hidden",
                 !currentMessages.length && "flex items-center justify-center"
             )}>
-                {!currentMessages.length ? (
-                    <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
-                        <p>No conversation history to display</p>
-                        <p className="text-sm mt-2 text-gray-500">Start a new conversation to see the tree view</p>
-                    </div>
-                ) : (
-                    <ReactFlowProvider>
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            fitView
-                            className="bg-[#111827]"
-                            minZoom={0.1}
-                            maxZoom={1.5}
-                            defaultZoom={0.8}
-                            attributionPosition="bottom-left"
-                            onNodeClick={onNodeClick}
-                            nodesDraggable={true}
-                            zoomOnScroll={true}
-                            panOnScroll={true}
-                            panOnDrag={true}
-                            key={`flow-${conversationId}-${updateKey}`}
-                        >
-                            <Controls />
-                        </ReactFlow>
-                    </ReactFlowProvider>
-                )}
+                <ReactFlowProvider>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        fitView
+                        className="bg-[#111827]"
+                        minZoom={0.1}
+                        maxZoom={1.5}
+                        defaultZoom={0.8}
+                        attributionPosition="bottom-left"
+                        onNodeClick={onNodeClick}
+                        nodesDraggable={true}
+                        zoomOnScroll={true}
+                        panOnScroll={true}
+                        panOnDrag={true}
+                        key={`flow-${conversationId}-${updateKey}`}
+                    >
+                        <Controls />
+                    </ReactFlow>
+                </ReactFlowProvider>
             </div>
         </div>
     );

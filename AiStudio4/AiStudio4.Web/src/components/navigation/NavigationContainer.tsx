@@ -11,6 +11,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { ToolPanel } from '@/components/tools/ToolPanel';
 
 interface NavigationContainerProps {
   children: ReactNode;
@@ -18,11 +19,12 @@ interface NavigationContainerProps {
 
 export function NavigationContainer({ children }: NavigationContainerProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
   const { isConnected, clientId } = useWebSocket();
   const wsState = { isConnected, clientId, messages: [] };
   
   // Zustand panel state
-  const { registerPanel, togglePanel, panels } = usePanelStore();
+  const { togglePanel, panels } = usePanelStore();
   
   // Conversation store
   const { activeConversationId, conversations } = useConversationStore();
@@ -33,51 +35,30 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
   // System prompt store
   const { setConversationPrompt } = useSystemPromptStore();
 
-  // Register panels
+
+
+  const openPanel = (panelId: string) => {
+    
+    // Get the current panel state
+    const panel = panels[panelId];
+    
+    // If panel exists and is not open, toggle it
+    if (panel && !panel.isOpen) {
+      togglePanel(panelId);
+    } 
+  };
+
+  // Listen for tool panel open events
   useEffect(() => {
-    registerPanel({
-      id: 'sidebar',
-      position: 'left',
-      size: '80',
-      zIndex: 40,
-      title: 'Conversations',
-      isOpen: false,
-      isPinned: false
-    });
+    const handleOpenToolPanel = () => {
+      setIsToolPanelOpen(true);
+    };
 
-    registerPanel({
-      id: 'conversationTree',
-      position: 'right',
-      size: '80',
-      zIndex: 30,
-      title: 'Conversation Tree',
-      isOpen: false,
-      isPinned: false
-    });
-
-    registerPanel({
-      id: 'settings',
-      position: 'right',
-      size: '80',
-      zIndex: 40,
-      title: 'Settings',
-      isOpen: false,
-      isPinned: false
-    });
-
-    registerPanel({
-      id: 'systemPrompts',
-      position: 'right',
-      size: '80',
-      zIndex: 50,
-      title: 'System Prompts',
-      isOpen: false,
-      isPinned: false
-    });
-  }, [registerPanel]);
-
-  // Get panel states
-  const conversationTreePanel = panels.conversationTree || { isOpen: false, isPinned: false };
+    window.addEventListener('openToolPanel', handleOpenToolPanel);
+    return () => {
+      window.removeEventListener('openToolPanel', handleOpenToolPanel);
+    };
+  }, []);
 
   // Handle toggle conversation tree
   const handleToggleConversationTree = () => {
@@ -85,7 +66,8 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
     setSelectedConversationId(activeConversationId);
     
     console.log('Opening conversation tree with conversation ID:', activeConversationId);
-    togglePanel('conversationTree');
+
+    openPanel('conversationTree');
   };
 
   // Subscribe to Zustand store to update the conversation tree when messages change
@@ -131,7 +113,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           });
           
           // Force a refresh of the tree view by briefly setting to null and back
-          if (conversationTreePanel.isOpen) {
+          if (panels.conversationTree?.isOpen) {
             setSelectedConversationId(null);
             setTimeout(() => {
               setSelectedConversationId(activeId);
@@ -145,27 +127,35 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
     );
 
     return () => unsubscribe();
-  }, [conversationTreePanel.isOpen, activeConversationId, selectedConversationId]);
+  }, [panels.conversationTree?.isOpen, activeConversationId, selectedConversationId]);
 
-  // Define panel configurations
+  // Get panel states for layout calculations
+  const hasLeftPanel = panels.sidebar?.isPinned || false;
+  const hasRightPanel = panels.conversationTree?.isPinned || 
+                       panels.settings?.isPinned || 
+                       panels.systemPrompts?.isPinned || false;
+
+  // Define panel configurations for the PanelManager
   const panelConfigs: PanelConfig[] = [
     {
       id: 'sidebar',
       position: 'left',
-      size: '80',
+      size: '320px',
       minWidth: '320px',
-      maxWidth: '320px',
+      maxWidth: '450px',
       width: '320px',
       zIndex: 40,
       title: 'Conversations',
-      render: (isOpen) => isOpen ? <Sidebar wsState={wsState} /> : null
+      render: (isOpen) => isOpen ? (
+        <Sidebar wsState={wsState} />
+      ) : null
     },
     {
       id: 'conversationTree',
       position: 'right',
-      size: '80',
+      size: '320px',
       minWidth: '320px',
-      maxWidth: '320px',
+      maxWidth: '450px',
       width: '320px',
       zIndex: 30,
       title: 'Conversation Tree',
@@ -180,26 +170,27 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
     {
       id: 'settings',
       position: 'right',
-      size: '80',
+      size: '320px',
       minWidth: '320px',
-      maxWidth: '320px',
-      width: '320px',
+      maxWidth: '450px',
+      width: '320px', 
       zIndex: 40,
       title: 'Settings',
-      render: (isOpen) => isOpen ? <SettingsPanel isOpen={true} /> : null
+      render: (isOpen) => isOpen ? (
+        <SettingsPanel />
+      ) : null
     },
     {
       id: 'systemPrompts',
       position: 'right',
-      size: '80',
+      size: '320px',
       minWidth: '320px',
-      maxWidth: '320px',
+      maxWidth: '450px',
       width: '320px',
       zIndex: 50,
       title: 'System Prompts',
       render: (isOpen) => isOpen ? (
         <SystemPromptLibrary
-          isOpen={true}
           conversationId={activeConversationId || undefined}
           onApplyPrompt={(prompt) => {
             console.log("Applying prompt:", prompt);
@@ -222,22 +213,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
       ) : null
     }
   ];
-  
-  // Get panel states for layout calculations
-  const hasLeftPanel = panels.sidebar?.isPinned || false;
-  const hasRightPanel = panels.conversationTree?.isPinned || 
-                       panels.settings?.isPinned || 
-                       panels.systemPrompts?.isPinned || false;
-
-  // Expose panel toggle handlers for child components
-  const navigationContext = {
-    toggleSidebar: () => togglePanel('sidebar'),
-    toggleConversationTree: handleToggleConversationTree,
-    toggleSettings: () => togglePanel('settings'),
-    toggleSystemPrompts: () => togglePanel('systemPrompts'),
-    hasLeftPanel,
-    hasRightPanel
-  };
 
   return (
     <>
@@ -249,8 +224,16 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         {children}
       </div>
       
-      {/* Panel manager */}
+      {/* Panel Manager to handle all panels */}
       <PanelManager panels={panelConfigs} />
+
+      {/* Tool Panel (Modal Dialog) */}
+      {isToolPanelOpen && (
+        <ToolPanel 
+          isOpen={isToolPanelOpen} 
+          onClose={() => setIsToolPanelOpen(false)}
+        />
+      )}
     </>
   );
 }

@@ -15,50 +15,60 @@ interface PanelStore {
 export const usePanelStore = create<PanelStore>((set, get) => ({
   panels: {},
   
-  togglePanel: (id) => set((state) => {
-    const panel = state.panels[id];
-    if (!panel) return state;
-
-    // Create a copy of panels first
-    const updatedPanels = { ...state.panels };
-    
-    // Update the panel state
-    updatedPanels[id] = {
-      ...panel,
-      isOpen: !panel.isOpen
-    };
-    
-    // If opening this panel and it's not pinned, close other panels on the same side
-    if (!panel.isOpen && !panel.isPinned) {
-      Object.keys(updatedPanels).forEach(key => {
-        if (key !== id && 
-            updatedPanels[key].position === panel.position && 
-            !updatedPanels[key].isPinned) {
-          updatedPanels[key] = {
-            ...updatedPanels[key],
-            isOpen: false
-          };
-        }
-      });
-    }
-    
-    return { panels: updatedPanels };
-  }),
-  
-  togglePinned: (id) => set((state) => {
-    const panel = state.panels[id];
-    if (!panel) return state;
-    
-    return {
-      panels: {
-        ...state.panels,
-        [id]: {
-          ...panel,
-          isPinned: !panel.isPinned
-        }
+  togglePanel: (id) => {
+    set((state) => {
+      const panel = state.panels[id];
+      if (!panel) {
+        return state;
       }
-    };
-  }),
+      
+      // Create a copy of panels first
+      const updatedPanels = { ...state.panels };
+      
+      // Update the panel state
+      updatedPanels[id] = {
+        ...panel,
+        isOpen: !panel.isOpen
+      };
+      
+      // If opening this panel and it's not pinned, close other panels on the same side
+      if (!panel.isOpen && !panel.isPinned) {
+        Object.keys(updatedPanels).forEach(key => {
+          if (key !== id && 
+              updatedPanels[key].position === panel.position && 
+              !updatedPanels[key].isPinned) {
+            updatedPanels[key] = {
+              ...updatedPanels[key],
+              isOpen: false
+            };
+          }
+        });
+      }
+      
+      return { panels: updatedPanels };
+    });
+  },
+  
+  togglePinned: (id) => {
+    set((state) => {
+      const panel = state.panels[id];
+      if (!panel) {
+        console.warn(`togglePinned: Panel with id ${id} not found`);
+        return state;
+      }
+      
+     
+      return {
+        panels: {
+          ...state.panels,
+          [id]: {
+            ...panel,
+            isPinned: !panel.isPinned
+          }
+        }
+      };
+    });
+  },
   
   closeAll: (except) => set((state) => {
     const updatedPanels = { ...state.panels };
@@ -95,41 +105,26 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   }),
   
   registerPanel: (panel) => set((state) => {
-    // Only update if the panel doesn't exist or has changed
-    if (!state.panels[panel.id] || 
-        JSON.stringify(state.panels[panel.id]) !== JSON.stringify(panel)) {
+
+    const existingPanel = state.panels[panel.id];
+    if (existingPanel) {
       return {
         panels: {
           ...state.panels,
-          [panel.id]: panel
+          [panel.id]: {
+            ...panel,
+            isOpen: existingPanel.isOpen,
+            isPinned: existingPanel.isPinned
+          }
         }
       };
     }
-    return state;
+    
+    return {
+      panels: {
+        ...state.panels,
+        [panel.id]: panel
+      }
+    };
   })
 }));
-
-// Debug helper for console
-export const debugPanels = () => {
-  const state = usePanelStore.getState();
-  console.group('Panel State Debug');
-  console.log('Panels:', state.panels);
-  
-  // List open panels
-  const openPanels = Object.entries(state.panels)
-    .filter(([_, panel]) => panel.isOpen)
-    .map(([id]) => id);
-  console.log('Open Panels:', openPanels);
-  
-  // List pinned panels
-  const pinnedPanels = Object.entries(state.panels)
-    .filter(([_, panel]) => panel.isPinned)
-    .map(([id]) => id);
-  console.log('Pinned Panels:', pinnedPanels);
-  
-  console.groupEnd();
-  return state;
-};
-
-// Export for console access
-(window as any).debugPanels = debugPanels;

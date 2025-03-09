@@ -9,20 +9,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
-import { usePanelStore } from '@/stores/usePanelStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface SystemPromptLibraryProps {
     onApplyPrompt?: (prompt: SystemPrompt) => void;
-    isOpen: boolean;
     conversationId?: string;
 }
 
 export function SystemPromptLibrary({
     onApplyPrompt,
-    isOpen,
     conversationId
 }: SystemPromptLibraryProps) {
     // Use Zustand store
@@ -48,9 +45,6 @@ export function SystemPromptLibrary({
     const [showEditor, setShowEditor] = useState(false);
     const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
     const [activeTab, setActiveTab] = useState('all');
-
-    // Use Zustand panel store
-    const { togglePanel } = usePanelStore();
     
     // Sync server prompts to Zustand store
     useEffect(() => {
@@ -58,10 +52,6 @@ export function SystemPromptLibrary({
             setPrompts(serverPrompts);
         }
     }, [serverPrompts, setPrompts]);
-    
-    const handleCloseLibrary = () => {
-        togglePanel('systemPrompts');
-    };
 
     const handleCreatePrompt = () => {
         setPromptToEdit(null);
@@ -129,8 +119,6 @@ export function SystemPromptLibrary({
     };
 
     const filteredPrompts = getFilteredPrompts();
-
-    if (!isOpen) return null;
 
     if (showEditor) {
         return (
