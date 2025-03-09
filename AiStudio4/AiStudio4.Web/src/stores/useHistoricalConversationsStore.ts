@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
+import { apiClient } from '@/services/api/apiClient';
 
 export interface HistoricalConversation {
     convGuid: string;
@@ -70,35 +71,27 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
             set({ isLoading: true, error: null });
             
             try {
-                const response = await fetch('/api/getAllHistoricalConversationTrees', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Client-Id': clientId
-                    },
-                    body: JSON.stringify({})
-                });
-
-                if (!response.ok) {
+                const response = await apiClient.post('/api/getAllHistoricalConversationTrees', {});
+                const data = response.data;
+                
+                if (!data.success) {
                     throw new Error('Failed to fetch historical conversations');
                 }
-
-                const data = await response.json();
-
-                if (data.success && Array.isArray(data.conversations)) {
-                    // Process and update state with the received conversations
-                    const newConversations = data.conversations.map((conv: any) => ({
-                        convGuid: conv.conversationId,
-                        summary: conv.summary || 'Untitled Conversation',
-                        fileName: `conv_${conv.conversationId}.json`,
-                        lastModified: conv.lastModified || new Date().toISOString(),
-                        highlightColour: undefined
-                    }));
-
-                    set({ conversations: newConversations, isLoading: false });
-                } else {
+                
+                if (!Array.isArray(data.conversations)) {
                     throw new Error('Invalid response format');
                 }
+                
+                // Process and update state with the received conversations
+                const newConversations = data.conversations.map((conv: any) => ({
+                    convGuid: conv.conversationId,
+                    summary: conv.summary || 'Untitled Conversation',
+                    fileName: `conv_${conv.conversationId}.json`,
+                    lastModified: conv.lastModified || new Date().toISOString(),
+                    highlightColour: undefined
+                }));
+
+                set({ conversations: newConversations, isLoading: false });
             } catch (error) {
                 console.error('Error fetching historical conversations:', error);
                 set({ 
@@ -118,80 +111,73 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
             set({ isLoading: true, error: null });
             
             try {
-                const response = await fetch('/api/historicalConversationTree', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Client-Id': clientId
-                    },
-                    body: JSON.stringify({
-                        conversationId
-                    })
+                const response = await apiClient.post('/api/historicalConversationTree', {
+                    conversationId
                 });
-
-                if (!response.ok) {
+                
+                const data = response.data;
+                
+                if (!data.success) {
                     throw new Error('Failed to fetch conversation tree');
                 }
-
-                const data = await response.json();
-
-                if (data.success && data.flatMessageStructure) {
-                    // Convert flat array to hierarchical tree structure
-                    const flatNodes = data.flatMessageStructure;
-                    const nodeMap = new Map();
-
-                    // First pass: create all nodes
-                    flatNodes.forEach((node: TreeNode) => {
-                        nodeMap.set(node.id, {
-                            id: node.id,
-                            text: node.text,
-                            children: [],
-                            parentId: node.parentId, // Keep parentId for easier reference
-                            source: node.source    // Keep source information if available
-                        });
-                    });
-
-                    // Second pass: build the tree by connecting parents and children
-                    let rootNode = null;
-                    flatNodes.forEach((node: TreeNode) => {
-                        const treeNode = nodeMap.get(node.id);
-
-                        if (!node.parentId) {
-                            // This is a root node
-                            rootNode = treeNode;
-                        } else if (nodeMap.has(node.parentId)) {
-                            // Add this node as a child of its parent
-                            const parentNode = nodeMap.get(node.parentId);
-                            parentNode.children.push(treeNode);
-                        }
-                    });
-
-                    // Store the summary from the data for future reference
-                    if (data.summary) {
-                        // Update the conversation in our store with the summary
-                        const store = get();
-                        const conversationToUpdate = store.conversations.find(c => c.convGuid === conversationId);
-                        if (conversationToUpdate) {
-                            store.addOrUpdateConversation({
-                                ...conversationToUpdate,
-                                summary: data.summary
-                            });
-                        }
-                    }
-
-                    // Return the root node or the first node
-                    set({ isLoading: false });
-                    
-                    if (rootNode) {
-                        return rootNode;
-                    } else if (flatNodes.length > 0) {
-                        // If no explicit root found, use the first node
-                        return nodeMap.get(flatNodes[0].id);
-                    } else {
-                        return null;
-                    }
-                } else {
+                
+                if (!data.flatMessageStructure) {
                     throw new Error('Invalid response format or empty tree');
+                }
+                
+                // Convert flat array to hierarchical tree structure
+                const flatNodes = data.flatMessageStructure;
+                const nodeMap = new Map();
+
+                // First pass: create all nodes
+                flatNodes.forEach((node: TreeNode) => {
+                    nodeMap.set(node.id, {
+                        id: node.id,
+                        text: node.text,
+                        children: [],
+                        parentId: node.parentId, // Keep parentId for easier reference
+                        source: node.source    // Keep source information if available
+                    });
+                });
+
+                // Second pass: build the tree by connecting parents and children
+                let rootNode = null;
+                flatNodes.forEach((node: TreeNode) => {
+                    const treeNode = nodeMap.get(node.id);
+
+                    if (!node.parentId) {
+                        // This is a root node
+                        rootNode = treeNode;
+                    } else if (nodeMap.has(node.parentId)) {
+                        // Add this node as a child of its parent
+                        const parentNode = nodeMap.get(node.parentId);
+                        parentNode.children.push(treeNode);
+                    }
+                });
+
+                // Store the summary from the data for future reference
+                if (data.summary) {
+                    // Update the conversation in our store with the summary
+                    const store = get();
+                    const conversationToUpdate = store.conversations.find(c => c.convGuid === conversationId);
+                    if (conversationToUpdate) {
+                        store.addOrUpdateConversation({
+                            ...conversationToUpdate,
+                            summary: data.summary
+                        });
+                    }
+                }
+
+                // Return the root node or the first node
+                set({ isLoading: false });
+                
+                if (rootNode) {
+                    return rootNode;
+                } else if (flatNodes.length > 0) {
+                    // If no explicit root found, use the first node
+                    return nodeMap.get(flatNodes[0].id);
+                } else {
+                    return null;
                 }
             } catch (error) {
                 console.error('Error fetching conversation tree:', error);
@@ -234,32 +220,21 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
             set({ isLoading: true, error: null });
             
             try {
-                const response = await fetch('/api/deleteConversation', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Client-Id': clientId
-                    },
-                    body: JSON.stringify({
-                        conversationId
-                    })
+                const response = await apiClient.post('/api/deleteConversation', {
+                    conversationId
                 });
-
-                if (!response.ok) {
-                    throw new Error('Failed to delete conversation');
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Remove conversation from the store
-                    set(state => ({
-                        conversations: state.conversations.filter(conv => conv.convGuid !== conversationId),
-                        isLoading: false
-                    }));
-                } else {
+                
+                const data = response.data;
+                
+                if (!data.success) {
                     throw new Error(data.error || 'Failed to delete conversation');
                 }
+                
+                // Remove conversation from the store
+                set(state => ({
+                    conversations: state.conversations.filter(conv => conv.convGuid !== conversationId),
+                    isLoading: false
+                }));
             } catch (error) {
                 console.error('Error deleting conversation:', error);
                 set({ 

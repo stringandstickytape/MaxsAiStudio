@@ -1,5 +1,5 @@
 // src/hooks/useModelManagement.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useModelStore } from '@/stores/useModelStore';
 import { Model, ServiceProvider } from '@/types/settings';
 import { ModelType } from '@/types/modelTypes';
@@ -8,12 +8,14 @@ import { apiClient } from '@/services/api/apiClient';
 
 /**
  * A centralized hook for managing models and providers throughout the application.
- * Replaces RTK Query with direct API calls managed through Zustand state.
  */
 export function useModelManagement() {
   // Local state for loading and error handling
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Use ref to track initialization state
+  const initialized = useRef(false);
 
   // Get access to the Zustand store
   const {
@@ -33,7 +35,6 @@ export function useModelManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/getConfig', {});
       const data = response.data;
       
@@ -75,7 +76,8 @@ export function useModelManagement() {
       
       return data;
     } catch (err) {
-      setError(`Failed to fetch config: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error fetching config';
+      setError(errMsg);
       console.error('Error fetching config:', err);
       return null;
     } finally {
@@ -83,13 +85,12 @@ export function useModelManagement() {
     }
   }, [models.length, selectedPrimaryModel, selectedSecondaryModel, selectPrimaryModel, selectSecondaryModel, setModels]);
 
-  // Function to fetch models
+  // Fetch models
   const fetchModels = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/getModels', {});
       const data = response.data;
       
@@ -100,7 +101,8 @@ export function useModelManagement() {
       setModels(data.models || []);
       return data.models;
     } catch (err) {
-      setError(`Failed to fetch models: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error fetching models';
+      setError(errMsg);
       console.error('Error fetching models:', err);
       return [];
     } finally {
@@ -108,13 +110,12 @@ export function useModelManagement() {
     }
   }, [setModels]);
 
-  // Function to fetch providers
+  // Fetch providers
   const fetchProviders = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/getServiceProviders', {});
       const data = response.data;
       
@@ -125,7 +126,8 @@ export function useModelManagement() {
       setProviders(data.providers || []);
       return data.providers;
     } catch (err) {
-      setError(`Failed to fetch providers: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error fetching providers';
+      setError(errMsg);
       console.error('Error fetching providers:', err);
       return [];
     } finally {
@@ -145,7 +147,6 @@ export function useModelManagement() {
         guid: modelData.guid || uuidv4()
       };
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/addModel', modelWithGuid);
       const data = response.data;
       
@@ -153,12 +154,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to add model');
       }
       
-      // Refresh the models list
+      // Refresh models list
       await fetchModels();
       
       return data.model;
     } catch (err) {
-      setError(`Failed to add model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error adding model';
+      setError(errMsg);
       console.error('Error adding model:', err);
       throw err;
     } finally {
@@ -172,7 +174,6 @@ export function useModelManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/updateModel', modelData);
       const data = response.data;
       
@@ -180,12 +181,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to update model');
       }
       
-      // Refresh the models list
+      // Refresh models list
       await fetchModels();
       
       return data.model;
     } catch (err) {
-      setError(`Failed to update model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error updating model';
+      setError(errMsg);
       console.error('Error updating model:', err);
       throw err;
     } finally {
@@ -199,7 +201,6 @@ export function useModelManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/deleteModel', { modelGuid });
       const data = response.data;
       
@@ -207,12 +208,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to delete model');
       }
       
-      // Refresh the models list
+      // Refresh models list
       await fetchModels();
       
       return true;
     } catch (err) {
-      setError(`Failed to delete model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error deleting model';
+      setError(errMsg);
       console.error('Error deleting model:', err);
       throw err;
     } finally {
@@ -232,7 +234,6 @@ export function useModelManagement() {
         guid: providerData.guid || uuidv4()
       };
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/addServiceProvider', providerWithGuid);
       const data = response.data;
       
@@ -240,12 +241,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to add service provider');
       }
       
-      // Refresh the providers list
+      // Refresh providers list
       await fetchProviders();
       
       return data.provider;
     } catch (err) {
-      setError(`Failed to add provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error adding provider';
+      setError(errMsg);
       console.error('Error adding provider:', err);
       throw err;
     } finally {
@@ -259,7 +261,6 @@ export function useModelManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/updateServiceProvider', provider);
       const data = response.data;
       
@@ -267,12 +268,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to update service provider');
       }
       
-      // Refresh the providers list
+      // Refresh providers list
       await fetchProviders();
       
       return data.provider;
     } catch (err) {
-      setError(`Failed to update provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error updating provider';
+      setError(errMsg);
       console.error('Error updating provider:', err);
       throw err;
     } finally {
@@ -286,7 +288,6 @@ export function useModelManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/deleteServiceProvider', { providerGuid });
       const data = response.data;
       
@@ -294,12 +295,13 @@ export function useModelManagement() {
         throw new Error(data.error || 'Failed to delete service provider');
       }
       
-      // Refresh the providers list
+      // Refresh providers list
       await fetchProviders();
       
       return true;
     } catch (err) {
-      setError(`Failed to delete provider: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error deleting provider';
+      setError(errMsg);
       console.error('Error deleting provider:', err);
       throw err;
     } finally {
@@ -317,7 +319,7 @@ export function useModelManagement() {
       if (modelType === 'primary') {
         selectPrimaryModel(modelName);
         
-        // Update on the server using apiClient
+        // Update on the server
         const response = await apiClient.post('/api/setDefaultModel', { modelName });
         const data = response.data;
         
@@ -327,14 +329,19 @@ export function useModelManagement() {
       } else {
         selectSecondaryModel(modelName);
         
-        // Update on the server using apiClient
+        // Update on the server
         const response = await apiClient.post('/api/setSecondaryModel', { modelName });
         const data = response.data;
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to set secondary model');
+        }
       }
       
       return true;
     } catch (err) {
-      setError(`Failed to set ${modelType} model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : `Unknown error setting ${modelType} model`;
+      setError(errMsg);
       console.error(`Error setting ${modelType} model:`, err);
       return false;
     } finally {
@@ -348,19 +355,29 @@ export function useModelManagement() {
     return provider ? provider.friendlyName : 'Unknown Provider';
   }, [providers]);
 
-  // Initialize data on hook mount
+  // Initialize data on hook mount - use refs to prevent multiple calls
   useEffect(() => {
-    const initialize = async () => {
-      // Only fetch if data isn't already loaded
-      if (models.length === 0) {
-        await fetchConfig();
-      }
-      if (providers.length === 0) {
-        await fetchProviders();
-      }
-    };
-    
-    initialize();
+    // Only run this effect once
+    if (!initialized.current) {
+      const initialize = async () => {
+        try {
+          // Only fetch if data isn't already loaded
+          if (models.length === 0) {
+            await fetchConfig();
+          }
+          if (providers.length === 0) {
+            await fetchProviders();
+          }
+          
+          // Mark as initialized after successful fetching
+          initialized.current = true;
+        } catch (error) {
+          console.error("Initialization error:", error);
+        }
+      };
+      
+      initialize();
+    }
   }, [fetchConfig, fetchProviders, models.length, providers.length]);
 
   return {

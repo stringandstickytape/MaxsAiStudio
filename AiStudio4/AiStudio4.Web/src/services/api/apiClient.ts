@@ -19,6 +19,25 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Add response interceptor to standardize error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Create standardized error object
+    const errorResponse = {
+      message: error.message || 'An unknown error occurred',
+      status: error.response?.status,
+      data: error.response?.data,
+    };
+    
+    // Console error for debugging
+    console.error('API Error:', errorResponse);
+    
+    // Return rejected promise with standardized error
+    return Promise.reject(errorResponse);
+  }
+);
+
 // Create a Zustand store for API state management
 interface ApiState {
   // Global API state

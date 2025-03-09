@@ -1,5 +1,5 @@
 // src/hooks/useSystemPromptManagement.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,6 +8,9 @@ import { apiClient } from '@/services/api/apiClient';
 export function useSystemPromptManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track initialization to prevent infinite loops
+  const initialized = useRef(false);
   
   const { 
     prompts, 
@@ -25,7 +28,6 @@ export function useSystemPromptManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/getSystemPrompts', {});
       const data = response.data;
       
@@ -36,7 +38,8 @@ export function useSystemPromptManagement() {
       setPrompts(data.prompts || []);
       return data.prompts;
     } catch (err) {
-      setError(`Failed to fetch system prompts: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error fetching system prompts';
+      setError(errMsg);
       console.error('Error fetching system prompts:', err);
       return [];
     } finally {
@@ -57,8 +60,8 @@ export function useSystemPromptManagement() {
       // Update local state first for immediate UI feedback
       setConversationPrompt(conversationId, promptId);
       
-      // Then update on the server using apiClient
-      const response = await apiClient.post('/api/setConversationSystemPrompt', { conversationId, promptId });
+      // Then update on the server
+      const response = await apiClient.post('/api/setConversationSystemPrompt', params);
       
       const data = response.data;
       
@@ -68,7 +71,8 @@ export function useSystemPromptManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to set conversation system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error setting conversation system prompt';
+      setError(errMsg);
       console.error('Error setting conversation system prompt:', err);
       throw err;
     } finally {
@@ -82,7 +86,7 @@ export function useSystemPromptManagement() {
       setIsLoading(true);
       setError(null);
       
-      // Create full prompt object
+      // Create full prompt object with dates
       const newPrompt = {
         ...promptData,
         guid: uuidv4(),
@@ -90,7 +94,6 @@ export function useSystemPromptManagement() {
         modifiedDate: new Date().toISOString()
       };
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/createSystemPrompt', newPrompt);
       
       const data = response.data;
@@ -102,10 +105,10 @@ export function useSystemPromptManagement() {
       // Refresh prompts list
       await fetchSystemPrompts();
       
-      // Return the created prompt
       return data.prompt;
     } catch (err) {
-      setError(`Failed to create system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error creating system prompt';
+      setError(errMsg);
       console.error('Error creating system prompt:', err);
       throw err;
     } finally {
@@ -125,7 +128,6 @@ export function useSystemPromptManagement() {
         modifiedDate: new Date().toISOString()
       };
       
-      // Use apiClient instead of direct fetch
       const response = await apiClient.post('/api/updateSystemPrompt', updatedPrompt);
       
       const data = await response.json();
@@ -137,10 +139,10 @@ export function useSystemPromptManagement() {
       // Refresh prompts list
       await fetchSystemPrompts();
       
-      // Return the updated prompt
       return data.prompt;
     } catch (err) {
-      setError(`Failed to update system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error updating system prompt';
+      setError(errMsg);
       console.error('Error updating system prompt:', err);
       throw err;
     } finally {
@@ -152,16 +154,9 @@ export function useSystemPromptManagement() {
   const deleteSystemPrompt = useCallback(async (promptId: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/deleteSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ promptId })
-      });
+      const response = await apiClient.post('/api/deleteSystemPrompt', { promptId });
       
       const data = await response.json();
       
@@ -174,7 +169,8 @@ export function useSystemPromptManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to delete system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error deleting system prompt';
+      setError(errMsg);
       console.error('Error deleting system prompt:', err);
       throw err;
     } finally {
@@ -186,19 +182,12 @@ export function useSystemPromptManagement() {
   const setDefaultSystemPrompt = useCallback(async (promptId: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
       // Update local state first for immediate UI response
       setDefaultPromptId(promptId);
       
-      const response = await fetch('/api/setDefaultSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ promptId })
-      });
+      const response = await apiClient.post('/api/setDefaultSystemPrompt', { promptId });
       
       const data = await response.json();
       
@@ -208,7 +197,8 @@ export function useSystemPromptManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to set default system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error setting default system prompt';
+      setError(errMsg);
       console.error('Error setting default system prompt:', err);
       throw err;
     } finally {
@@ -224,16 +214,9 @@ export function useSystemPromptManagement() {
     
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/getSystemPrompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ promptId })
-      });
+      const response = await apiClient.post('/api/getSystemPrompt', { promptId });
       
       const data = await response.json();
       
@@ -243,7 +226,8 @@ export function useSystemPromptManagement() {
       
       return data.prompt;
     } catch (err) {
-      setError(`Failed to get system prompt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error getting system prompt';
+      setError(errMsg);
       console.error('Error getting system prompt:', err);
       return null;
     } finally {
@@ -255,16 +239,9 @@ export function useSystemPromptManagement() {
   const importSystemPrompts = useCallback(async (jsonData: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/importSystemPrompts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ jsonData })
-      });
+      const response = await apiClient.post('/api/importSystemPrompts', { jsonData });
       
       const data = await response.json();
       
@@ -277,7 +254,8 @@ export function useSystemPromptManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to import system prompts: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error importing system prompts';
+      setError(errMsg);
       console.error('Error importing system prompts:', err);
       throw err;
     } finally {
@@ -289,16 +267,9 @@ export function useSystemPromptManagement() {
   const exportSystemPrompts = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/exportSystemPrompts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
+      const response = await apiClient.post('/api/exportSystemPrompts', {});
       
       const data = await response.json();
       
@@ -308,7 +279,8 @@ export function useSystemPromptManagement() {
       
       return data.json;
     } catch (err) {
-      setError(`Failed to export system prompts: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error exporting system prompts';
+      setError(errMsg);
       console.error('Error exporting system prompts:', err);
       throw err;
     } finally {
@@ -316,11 +288,14 @@ export function useSystemPromptManagement() {
     }
   }, []);
   
-  // Initialize data on hook mount
+  // Initialize data on hook mount - with initialization tracking
   useEffect(() => {
-    // Only fetch prompts if none exist in the store
-    if (prompts.length === 0) {
-      fetchSystemPrompts();
+    // Only fetch prompts if none exist in the store and we haven't initialized yet
+    if (prompts.length === 0 && !initialized.current) {
+      initialized.current = true;
+      fetchSystemPrompts().catch(err => {
+        console.error("Failed to load system prompts:", err);
+      });
     }
   }, [prompts.length, fetchSystemPrompts]);
   

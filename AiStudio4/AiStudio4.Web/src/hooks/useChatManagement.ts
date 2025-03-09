@@ -1,5 +1,5 @@
 // src/hooks/useChatManagement.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
@@ -48,7 +48,7 @@ export function useChatManagement() {
       // Add a unique ID for the new message
       const newMessageId = params.parentMessageId ? uuidv4() : undefined;
       
-      // Use apiClient instead of direct fetch
+      // Use direct API call
       const response = await apiClient.post('/api/chat', {
         ...params,
         newMessageId
@@ -60,9 +60,13 @@ export function useChatManagement() {
         throw new Error(data.error || 'Failed to send message');
       }
       
-      return { messageId: data.messageId, success: true };
+      return { 
+        messageId: data.messageId, 
+        success: true 
+      };
     } catch (err) {
-      setError(`Failed to send message: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error sending message';
+      setError(errMsg);
       console.error('Error sending message:', err);
       throw err;
     } finally {
@@ -74,18 +78,11 @@ export function useChatManagement() {
   const getConfig = useCallback(async () => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/getConfig', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({})
-      });
+      const response = await apiClient.post('/api/getConfig', {});
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to get configuration');
@@ -97,7 +94,8 @@ export function useChatManagement() {
         secondaryModel: data.secondaryModel || ''
       };
     } catch (err) {
-      setError(`Failed to get configuration: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error getting configuration';
+      setError(errMsg);
       console.error('Error getting configuration:', err);
       return {
         models: [],
@@ -113,18 +111,11 @@ export function useChatManagement() {
   const setDefaultModel = useCallback(async (modelName: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/setDefaultModel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ modelName })
-      });
+      const response = await apiClient.post('/api/setDefaultModel', { modelName });
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to set default model');
@@ -132,7 +123,8 @@ export function useChatManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to set default model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error setting default model';
+      setError(errMsg);
       console.error('Error setting default model:', err);
       return false;
     } finally {
@@ -144,18 +136,11 @@ export function useChatManagement() {
   const setSecondaryModel = useCallback(async (modelName: string) => {
     try {
       setIsLoading(true);
-      const clientId = localStorage.getItem('clientId');
+      setError(null);
       
-      const response = await fetch('/api/setSecondaryModel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': clientId || ''
-        },
-        body: JSON.stringify({ modelName })
-      });
+      const response = await apiClient.post('/api/setSecondaryModel', { modelName });
       
-      const data = await response.json();
+      const data = response.data;
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to set secondary model');
@@ -163,7 +148,8 @@ export function useChatManagement() {
       
       return true;
     } catch (err) {
-      setError(`Failed to set secondary model: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const errMsg = err instanceof Error ? err.message : 'Unknown error setting secondary model';
+      setError(errMsg);
       console.error('Error setting secondary model:', err);
       return false;
     } finally {
@@ -171,75 +157,77 @@ export function useChatManagement() {
     }
   }, []);
   
+  // Get conversation history - first check Zustand store, then use the historical conversations store
+  const getConversation = useCallback(async (conversationId: string) => {
+    // First check if we already have this conversation in the Zustand store
+    const localConversation = conversations[conversationId];
+    if (localConversation) {
+      return {
+        id: conversationId,
+        messages: localConversation.messages
+      };
+    }
 
-    // Get conversation history - first check Zustand store, then use the historical conversations store
-    const getConversation = useCallback(async (conversationId: string) => {
-        // First check if we already have this conversation in the Zustand store
-        const localConversation = conversations[conversationId];
-        if (localConversation) {
-            return {
-                id: conversationId,
-                messages: localConversation.messages
-            };
+    // If not in local store, use the historical conversations store to fetch it
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Use the fetchConversationTree function from the historical conversations store
+      const treeData = await fetchConversationTree(conversationId);
+
+      if (!treeData) {
+        throw new Error('Failed to get conversation tree');
+      }
+
+      // Convert the tree data to the format expected by the chat management
+      // We need to extract all nodes from the tree in a flat structure
+      const extractNodes = (node: any, nodes: any[] = []) => {
+        if (!node) return nodes;
+
+        nodes.push({
+          id: node.id,
+          text: node.text,
+          parentId: node.parentId
+        });
+
+        if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+            extractNodes(child, nodes);
+          }
         }
 
-        // If not in local store, use the historical conversations store to fetch it
-        try {
-            setIsLoading(true);
+        return nodes;
+      };
 
-            // Use the fetchConversationTree function from the historical conversations store
-            const treeData = await fetchConversationTree(conversationId);
+      const flatNodes = extractNodes(treeData);
 
-            if (!treeData) {
-                throw new Error('Failed to get conversation tree');
-            }
+      // Map the flat nodes to the message format needed by the conversation
+      const messages = flatNodes.map(node => ({
+        id: node.id,
+        content: node.text,
+        source: node.source ||
+          (node.id.includes('user') ? 'user' :
+            node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
+        parentId: node.parentId,
+        timestamp: Date.now() // No timestamp in tree data, use current time
+      }));
 
-            // Convert the tree data to the format expected by the chat management
-            // We need to extract all nodes from the tree in a flat structure
-            const extractNodes = (node: any, nodes: any[] = []) => {
-                if (!node) return nodes;
-
-                nodes.push({
-                    id: node.id,
-                    text: node.text,
-                    parentId: node.parentId
-                });
-
-                if (node.children && Array.isArray(node.children)) {
-                    for (const child of node.children) {
-                        extractNodes(child, nodes);
-                    }
-                }
-
-                return nodes;
-            };
-
-            const flatNodes = extractNodes(treeData);
-
-            // Map the flat nodes to the message format needed by the conversation
-            const messages = flatNodes.map(node => ({
-                id: node.id,
-                content: node.text,
-                source: node.source ||
-                    (node.id.includes('user') ? 'user' :
-                        node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
-                parentId: node.parentId,
-                timestamp: Date.now() // No timestamp in tree data, use current time
-            }));
-
-            return {
-                id: conversationId,
-                messages: messages,
-                summary: 'Loaded Conversation' // We might need to get this from another source
-            };
-        } catch (err) {
-            setError(`Failed to get conversation: ${err instanceof Error ? err.message : 'Unknown error'}`);
-            console.error('Error getting conversation:', err);
-            return null;
-        } finally {
-            setIsLoading(false);
-        }
-    }, [conversations, fetchConversationTree]);
+      return {
+        id: conversationId,
+        messages: messages,
+        summary: 'Loaded Conversation' // We might need to get this from another source
+      };
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error getting conversation';
+      setError(errMsg);
+      console.error('Error getting conversation:', err);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [conversations, fetchConversationTree]);
+  
   // Helper method to determine system prompt for a conversation
   const getSystemPromptForConversation = useCallback((conversationId: string) => {
     // Check if conversation has a specific prompt assigned
@@ -272,7 +260,7 @@ export function useChatManagement() {
     
     // No prompt found
     return null;
-  }, [prompts, conversationPrompts, defaultPromptId, conversations]);
+  }, [prompts, conversationPrompts, defaultPromptId]);
   
   return {
     // State
