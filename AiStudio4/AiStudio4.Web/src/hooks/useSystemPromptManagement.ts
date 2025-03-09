@@ -117,66 +117,66 @@ export function useSystemPromptManagement() {
   }, [fetchSystemPrompts]);
   
   // Update an existing system prompt
-  const updateSystemPrompt = useCallback(async (promptData: SystemPrompt) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Update modification date
-      const updatedPrompt = {
-        ...promptData,
-        modifiedDate: new Date().toISOString()
-      };
-      
-      const response = await apiClient.post('/api/updateSystemPrompt', updatedPrompt);
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to update system prompt');
-      }
-      
-      // Refresh prompts list
-      await fetchSystemPrompts();
-      
-      return data.prompt;
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error updating system prompt';
-      setError(errMsg);
-      console.error('Error updating system prompt:', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchSystemPrompts]);
-  
-  // Delete a system prompt
-  const deleteSystemPrompt = useCallback(async (promptId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await apiClient.post('/api/deleteSystemPrompt', { promptId });
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to delete system prompt');
-      }
-      
-      // Refresh prompts list
-      await fetchSystemPrompts();
-      
-      return true;
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error deleting system prompt';
-      setError(errMsg);
-      console.error('Error deleting system prompt:', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchSystemPrompts]);
+    const updateSystemPrompt = useCallback(async (promptData: SystemPrompt) => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            // Update modification date
+            const updatedPrompt = {
+                ...promptData,
+                modifiedDate: new Date().toISOString()
+            };
+
+            const response = await apiClient.post('/api/updateSystemPrompt', updatedPrompt);
+
+            const data = response.data; // Fix: Use response.data instead of await response.json()
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to update system prompt');
+            }
+
+            // Refresh prompts list
+            await fetchSystemPrompts();
+
+            return data.prompt;
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : 'Unknown error updating system prompt';
+            setError(errMsg);
+            console.error('Error updating system prompt:', err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [fetchSystemPrompts]);
+
+    // Delete a system prompt
+    const deleteSystemPrompt = useCallback(async (promptId: string) => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const response = await apiClient.post('/api/deleteSystemPrompt', { promptId });
+
+            const data = response.data; // Fix: Use response.data instead of await response.json()
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to delete system prompt');
+            }
+
+            // Refresh prompts list
+            await fetchSystemPrompts();
+
+            return true;
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : 'Unknown error deleting system prompt';
+            setError(errMsg);
+            console.error('Error deleting system prompt:', err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [fetchSystemPrompts]);
   
   // Set default system prompt
   const setDefaultSystemPrompt = useCallback(async (promptId: string) => {

@@ -82,7 +82,14 @@ export const ModelForm: React.FC<ModelFormProps> = ({
             name: 'color',
             label: 'Color',
             type: 'color',
-            colSpan: 2
+            colSpan: 1
+        },
+        {
+            name: 'starred',
+            label: 'Mark as Favorite',
+            type: 'checkbox',
+            description: 'Prioritize this model in selection lists',
+            colSpan: 1
         },
         {
             name: 'supportsPrefill',

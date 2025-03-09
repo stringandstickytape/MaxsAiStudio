@@ -1,3 +1,4 @@
+// src/components/settings/ModelManagement.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
     const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
     const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
-    const setEditOpen = externalSetEditOpen || setInternalSetEditOpen;
+    const setEditOpen = externalSetEditOpen || setInternalEditOpen;
 
     const [addOpen, setAddOpen] = useState(false);
     const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
@@ -98,6 +99,25 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
             setDeleteOpen(false);
         } catch (err: any) {
             setLocalError(err?.message || 'Failed to delete model');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // Handle toggling the starred status directly
+    const handleToggleStarred = async (model: Model) => {
+        setIsProcessing(true);
+        setLocalError(null);
+        try {
+            // Create updated model with toggled starred value
+            const updatedModel = {
+                ...model,
+                starred: !model.starred
+            };
+
+            await updateModel(updatedModel);
+        } catch (err: any) {
+            setLocalError(err?.message || 'Failed to update star status');
         } finally {
             setIsProcessing(false);
         }
@@ -171,11 +191,21 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                                         <Button
                                             variant="ghost"
                                             size="icon"
+                                            className={`${model.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'} hover:bg-gray-700 transition-colors`}
+                                            onClick={() => handleToggleStarred(model)}
+                                            disabled={isProcessing}
+                                        >
+                                            <Star className={`h-4 w-4 ${model.starred ? 'fill-yellow-400' : ''}`} />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
                                             className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
                                             onClick={() => {
                                                 setEditingModel(model);
                                                 setEditOpen(true);
                                             }}
+                                            disabled={isProcessing}
                                         >
                                             <Pencil className="h-4 w-4" />
                                         </Button>
@@ -187,6 +217,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                                                 setModelToDelete(model);
                                                 setDeleteOpen(true);
                                             }}
+                                            disabled={isProcessing}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
