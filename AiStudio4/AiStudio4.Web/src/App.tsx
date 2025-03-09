@@ -2,6 +2,7 @@
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatWorkspace } from './components/chat/ChatWorkspace';
+import { FontSizeProvider } from './components/FontSizeProvider';
 import { useEffect } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +27,7 @@ function App() {
     }, [activeConversationId, createConversation]);
 
     return (
-        <>
+        <FontSizeProvider>
             {/* Command initializer component to set up all commands */}
             <CommandInitializer />
             
@@ -35,7 +36,7 @@ function App() {
                 {/* Chat workspace manages the chat interface */}
                 <ChatWorkspace />
             </NavigationContainer>
-        </>
+        </FontSizeProvider>
     );
 }
 

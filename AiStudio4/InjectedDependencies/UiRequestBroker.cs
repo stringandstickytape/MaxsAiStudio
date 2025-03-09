@@ -91,6 +91,8 @@ namespace AiStudio4.InjectedDependencies
                     "addServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.AddServiceProvider),
                     "updateServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.UpdateServiceProvider, true),
                     "deleteServiceProvider" => await DeleteByGuid(_settingsManager.DeleteServiceProvider, requestObject, "providerGuid"),
+                    "getAppearanceSettings" => await HandleGetAppearanceSettingsRequest(clientId, requestObject),
+                    "saveAppearanceSettings" => await HandleSaveAppearanceSettingsRequest(clientId, requestObject),
                     _ => throw new NotImplementedException()
                 };
             }
@@ -379,6 +381,69 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error saving pinned commands: {ex.Message}");
+            }
+        }
+
+
+        #endregion
+
+
+        #region Appearance Settings Request Handlers
+        private async Task<string> HandleGetAppearanceSettingsRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var settings = _settingsManager.GetAppearanceSettings(clientId);
+                return JsonConvert.SerializeObject(new
+                {
+                    success = true,
+                    fontSize = settings.FontSize,
+                    isDarkMode = settings.IsDarkMode
+                });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving appearance settings: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSaveAppearanceSettingsRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var fontSize = requestObject["fontSize"]?.Value<int>() ?? 16;
+                var isDarkMode = requestObject["isDarkMode"]?.Value<bool>() ?? true;
+
+                var settings = new AppearanceSettings
+                {
+                    FontSize = fontSize,
+                    IsDarkMode = isDarkMode
+                };
+
+                _settingsManager.UpdateAppearanceSettings(clientId, settings);
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error saving appearance settings: {ex.Message}");
             }
         }
         #endregion

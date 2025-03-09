@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
+import { AppearanceTab } from './settings/AppearanceTab';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { useModelManagement } from '@/hooks/useModelManagement';
@@ -116,7 +117,7 @@ export const SettingsPanel: React.FC = () => {
     return (
         <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-4 mb-4 bg-gray-800 p-1">
+                <TabsList className="grid grid-cols-3 mb-4 bg-gray-800 p-1">
                     <TabsTrigger
                         value="models"
                         className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
@@ -158,14 +159,7 @@ export const SettingsPanel: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="appearance" className="space-y-4">
-                    <Card className="bg-gray-800 border-gray-700">
-                        <CardContent className="pt-6">
-                            <h3 className="text-md font-medium mb-2 text-gray-200">Theme Settings</h3>
-                            <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/50">
-                                Theme settings will go here
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <AppearanceTab />
                 </TabsContent>
             </Tabs>
 

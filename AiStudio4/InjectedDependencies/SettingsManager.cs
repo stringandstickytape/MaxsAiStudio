@@ -1,3 +1,4 @@
+using AiStudio4.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
@@ -16,6 +17,9 @@ namespace AiStudio4.InjectedDependencies
         public string EmbeddingsFilename { get; set; }
         public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";
         public string DefaultSystemPromptId { get; set; }
+
+        // Appearance settings
+        public Dictionary<string, AppearanceSettings> UserAppearanceSettings { get; set; } = new();
 
         public ApiSettings ToApiSettings() => new()
         {
@@ -165,6 +169,44 @@ namespace AiStudio4.InjectedDependencies
                 _currentSettings.ServiceProviders.Remove(providerToRemove);
                 SaveSettings();
             }
+        }
+
+        /// <summary>
+        /// Gets the appearance settings for a specific client
+        /// </summary>
+        /// <param name="clientId">The client ID</param>
+        /// <returns>The appearance settings for the client, or default settings if none exist</returns>
+        public AppearanceSettings GetAppearanceSettings(string clientId)
+        {
+            if (_currentSettings.UserAppearanceSettings == null)
+            {
+                _currentSettings.UserAppearanceSettings = new Dictionary<string, AppearanceSettings>();
+            }
+
+            if (!_currentSettings.UserAppearanceSettings.TryGetValue(clientId, out var settings))
+            {
+                settings = new AppearanceSettings();
+                _currentSettings.UserAppearanceSettings[clientId] = settings;
+                SaveSettings();
+            }
+
+            return settings;
+        }
+
+        /// <summary>
+        /// Updates the appearance settings for a specific client
+        /// </summary>
+        /// <param name="clientId">The client ID</param>
+        /// <param name="settings">The new appearance settings</param>
+        public void UpdateAppearanceSettings(string clientId, AppearanceSettings settings)
+        {
+            if (_currentSettings.UserAppearanceSettings == null)
+            {
+                _currentSettings.UserAppearanceSettings = new Dictionary<string, AppearanceSettings>();
+            }
+
+            _currentSettings.UserAppearanceSettings[clientId] = settings;
+            SaveSettings();
         }
     }
 }

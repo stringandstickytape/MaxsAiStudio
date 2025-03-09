@@ -6,6 +6,7 @@ import { initializeModelCommands } from '@/plugins/modelCommands';
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';
 import { initializeSystemPromptCommands, registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from '@/commands/settingsCommands';
+import { initializeAppearanceCommands } from '@/commands/appearanceCommands';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useModelStore } from '@/stores/useModelStore';
 import { useModelManagement } from '@/hooks/useModelManagement';
@@ -87,6 +88,14 @@ export function CommandInitializer() {
     // Initialize settings commands
     initializeSettingsCommands({
       openSettings: () => togglePanel('settings')
+    });
+
+    // Initialize appearance commands
+    initializeAppearanceCommands({
+      openAppearanceSettings: () => {
+        togglePanel('settings');
+        // The settings-tab event is emitted in the command
+      }
     });
 
     // Initialize model commands
