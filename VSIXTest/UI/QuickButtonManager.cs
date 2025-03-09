@@ -117,9 +117,7 @@ namespace VSIXTest.UI
 
             await _executeScriptAsync($"setUserPrompt({jsonFormattedAll})");
 
-            if (e.SelectedOptions.Any(x => x.Option == "Embeddings")) return;
-
-                var systemPrompt = await _executeScriptAsync($"getSystemPrompt()");
+            var systemPrompt = await _executeScriptAsync($"getSystemPrompt()");
 
             await _messageHandler.SendVsixMessageAsync(
                 new VsixMessage

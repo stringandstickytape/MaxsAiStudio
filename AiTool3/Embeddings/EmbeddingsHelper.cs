@@ -67,6 +67,8 @@ namespace AiTool3.Embeddings
             var jsonFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(x);
             var jsFiles = gitIgnoreFilterManager.FilterNonIgnoredPaths(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.js", SearchOption.AllDirectories)
                 .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.jsx", SearchOption.AllDirectories))
+                .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.ts", SearchOption.AllDirectories))
+                .Union(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.tsx", SearchOption.AllDirectories))
                 .Where(x => !x.Contains(".min.js")).ToList());
 
             var csFragmenter = new CsFragmenter();
@@ -77,7 +79,7 @@ namespace AiTool3.Embeddings
 
             foreach (var file in jsFiles)
             {
-                fragments.AddRange(webCodeFragmenter.FragmentJavaScriptCode(File.ReadAllText(file), file));
+                fragments.AddRange(lineFragmenter.FragmentCode(File.ReadAllText(file), file, 5000));
             }
 
             foreach (var file in xmlFiles)

@@ -131,14 +131,14 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
                 return isRawView ? (
-                    <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                         {codeHeader}
                         <div className="p-4 bg-gray-800 rounded-b-lg">
                             <pre>{content}</pre>
                         </div>
                     </div>
                 ) : (
-                    <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
+                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
                         {codeHeader}
                         <div className="p-4 bg-gray-800 rounded-b-lg">
                             <DiagramComponent
@@ -152,14 +152,14 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
             // Only handle regular code blocks if not a diagram
             return isRawView ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                     {codeHeader}
                     <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl">
                         <pre>{content}</pre>
                     </div>
                 </div>
             ) : (
-                <div className="relative rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                     {codeHeader}
                     <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200">
                         <SyntaxHighlighter

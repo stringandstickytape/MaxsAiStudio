@@ -169,18 +169,17 @@ namespace VSIXTest.Embeddings
             //var selectedEmbeddings = ShowEmbeddingsSelectionDialog(embeddings);
             //
 
-            var newPrompt = $"{Environment.NewLine}{Environment.NewLine}" +
-                $"Here's some related content:{Environment.NewLine}";
+            var newPrompt = $"Here's some related content:\n\n";
 
             foreach (var embedding in embeddings)
             {
                 newPrompt += $"{new string('`', 3)}" +
 
                     (embedding.Filename == null ? "" : 
-                        $"{embedding.Filename} line {embedding.LineNumber}, class {embedding.Namespace}.{embedding.Class}{Environment.NewLine}"
+                        $"{embedding.Filename} line {embedding.LineNumber}, class {embedding.Namespace}.{embedding.Class}\n"
                     ) + 
                     $"{embedding.Code}{Environment.NewLine}" +
-                    $"{new string('`', 3)}";
+                    $"{new string('`', 3)}\n\n";
             }
             prompt = newPrompt + prompt;
 
