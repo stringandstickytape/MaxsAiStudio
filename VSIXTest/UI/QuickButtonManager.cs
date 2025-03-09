@@ -146,26 +146,8 @@ namespace VSIXTest.UI
                 //    $"window.postMessage({jsonMessage}, '*');"
                 //);
 
-
-                string jsonAttach = JsonConvert.SerializeObject(new
-                {
-                    type = "attach",
-                    content = new
-                    {
-                        fileName = "example.txt",
-                        fileContent = formattedAll
-                    }
-                });
                 await _vsixChat.CoreWebView2.ExecuteScriptAsync(
-                    $"window.postMessage({jsonAttach}, '*');"
-                );
-                //
-                jsonAttach = JsonConvert.SerializeObject(new
-                {
-                    type = "send"
-                });
-                await _vsixChat.CoreWebView2.ExecuteScriptAsync(
-                    $"window.postMessage({jsonAttach}, '*');"
+                    $"window.appendToPrompt({jsonFormattedAll});"
                 );
             }
             else

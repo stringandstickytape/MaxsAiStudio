@@ -29,6 +29,8 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+
+
     // If props are provided, use them, otherwise use local state
     const [localInputText, setLocalInputText] = useState('');
 
@@ -200,6 +202,64 @@ export function InputBar({
         }
     };
 
+    useEffect(() => {
+        // Listen for append-to-prompt events
+        const handleAppendToPrompt = (event: CustomEvent<{ text: string }>) => {
+            // Get the text to append
+            const textToAppend = event.detail.text;
+
+            // Update the input text by appending the new text
+            setInputText(currentText => currentText + textToAppend);
+
+            // Focus the textarea
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+
+                // Move cursor to the end
+                setTimeout(() => {
+                    if (textareaRef.current) {
+                        const length = textareaRef.current.value.length;
+                        textareaRef.current.setSelectionRange(length, length);
+                        setCursorPosition(length);
+                    }
+                }, 0);
+            }
+        };
+
+        // Listen for set-prompt events
+        const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
+            // Get the text to set
+            const newText = event.detail.text;
+
+            // Set the input text to the new text
+            setInputText(newText);
+
+            // Focus the textarea
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+
+                // Move cursor to the end
+                setTimeout(() => {
+                    if (textareaRef.current) {
+                        const length = textareaRef.current.value.length;
+                        textareaRef.current.setSelectionRange(length, length);
+                        setCursorPosition(length);
+                    }
+                }, 0);
+            }
+        };
+
+        // Add event listeners
+        window.addEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
+        window.addEventListener('set-prompt', handleSetPrompt as EventListener);
+
+        // Clean up event listeners when component unmounts
+        return () => {
+            window.removeEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
+            window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
+        };
+    }, []); // Empty dependency array means this runs once on mount
+
     return (
         <div className="h-[30vh] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="h-full flex flex-col">
@@ -263,3 +323,34 @@ export function InputBar({
         </div>
     );
 }
+
+window.appendToPrompt = function (text) {
+    // Create a custom event with the text to append
+    const appendEvent = new CustomEvent('append-to-prompt', {
+        detail: { text: text }
+    });
+
+    // Dispatch the event for components to listen for
+    window.dispatchEvent(appendEvent);
+
+    // Log for confirmation
+    console.log(`Appended to prompt: "${text}"`);
+
+    return true; // For success feedback
+};
+
+// This function will allow you to both append and set the prompt
+window.setPrompt = function (text) {
+    // Create a custom event with the text to set
+    const setEvent = new CustomEvent('set-prompt', {
+        detail: { text: text }
+    });
+
+    // Dispatch the event for components to listen for
+    window.dispatchEvent(setEvent);
+
+    // Log for confirmation
+    console.log(`Set prompt to: "${text}"`);
+
+    return true; // For success feedback
+};
