@@ -48,26 +48,6 @@
 								"newContent": {
 									"type": "string",
 									"description": "The lines that were added, modified, or created"
-								},
-								"hunkHeader": {
-									"type": "object",
-									"description": "Information about the change context (not used for file creation)",
-									"properties": {
-										"oldStart": {
-											"type": "integer",
-											"minimum": 0,
-											"description": "Starting line number in the original file"
-										},
-										"linesToReplace": {
-											"type": "integer",
-											"minimum": 0,
-											"description": "Count of lines to replace"
-										}
-									},
-									"required": [
-										"oldStart",
-										"linesToReplace"
-									]
 								}
 							},
 							"required": [
@@ -75,7 +55,6 @@
 								"path",
 								"lineNumber",
 																			"oldContent",
-											"hunkHeader",
 											"newContent"
 							]
 						}

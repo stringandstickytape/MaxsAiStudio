@@ -59,7 +59,7 @@ namespace AiStudio4.Services
                     success = true,
                     conversationId = conversation.ConversationId,
                     summary = conversation.Summary ?? "Untitled Conversation",
-                    treeData = messagesForClient  // Flat structure with parentId references
+                    flatMessageStructure = messagesForClient 
                 });
             }
             catch (Exception ex)

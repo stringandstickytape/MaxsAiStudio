@@ -102,7 +102,6 @@ namespace AiStudio4.Services
                         summary = conversations.Summary,
                         fileName = $"conv_{conversations.ConversationId}.json",
                         lastModified = conversations.LastModified
-                        // No treeData here - it will be fetched separately when a conversation is expanded
                     }
                 };
 

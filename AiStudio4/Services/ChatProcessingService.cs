@@ -102,7 +102,7 @@ namespace AiStudio4.Services
                             ? conversation.MessageHierarchy.First().Children[0].UserMessage ?? ""
                             : "New Conversation",
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        TreeData = messagesForClient
+                        FlatMessageStructure = messagesForClient
                     });
 
                     // Get message history without tree builder
@@ -156,7 +156,7 @@ namespace AiStudio4.Services
                                             ConversationId = conversation.ConversationId,
                                             Summary = summary,
                                             LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                            TreeData = BuildFlatMessageStructure(conversation)
+                                            FlatMessageStructure = BuildFlatMessageStructure(conversation)
                                         });
                                     }
                                 }
