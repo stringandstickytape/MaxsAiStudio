@@ -1,16 +1,16 @@
-import { DiagramRenderer } from '@/components/diagrams/types';
+import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { MermaidRenderer } from '@/components/diagrams/mermaid-renderer';
 import { JsonRenderer } from '@/components/diagrams/json-renderer';
 
-class DiagramRegistry {
-    private renderers: Map<string, DiagramRenderer> = new Map();
+class CodeBlockRendererRegistry {
+    private renderers: Map<string, CodeBlockRenderer> = new Map();
 
-    register(renderer: DiagramRenderer) {
+    register(renderer: CodeBlockRenderer) {
         this.renderers.set(renderer.type, renderer);
         renderer.initialize?.();
     }
 
-    get(type: string): DiagramRenderer | undefined {
+    get(type: string): CodeBlockRenderer | undefined {
         return this.renderers.get(type);
     }
 
@@ -25,6 +25,6 @@ class DiagramRegistry {
     }
 }
 
-export const diagramRegistry = new DiagramRegistry();
-diagramRegistry.register(MermaidRenderer);
-diagramRegistry.register(JsonRenderer);
+export const codeBlockRendererRegistry = new CodeBlockRendererRegistry();
+codeBlockRendererRegistry.register(MermaidRenderer);
+codeBlockRendererRegistry.register(JsonRenderer);

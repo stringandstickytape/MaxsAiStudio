@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-export interface DiagramRenderer {
+export interface CodeBlockRenderer {
     type: string;
     initialize?: () => void;
     render: (content: string) => Promise<void>;

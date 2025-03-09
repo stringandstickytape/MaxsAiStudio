@@ -1,4 +1,4 @@
-import { DiagramRenderer } from './types';
+import { CodeBlockRenderer } from './types';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -66,7 +66,7 @@ const JsonNode = ({ data, level = 0 }: { data: any; level?: number }) => {
     );
 };
 
-export const JsonRenderer: DiagramRenderer = {
+export const JsonRenderer: CodeBlockRenderer = {
     type: 'json',
     initialize: () => {},
     render: async () => {},

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import { diagramRegistry } from '@/components/diagrams/registry'
+import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry'
 import remarkGfm from 'remark-gfm'
 interface MarkdownPaneProps {
     message: string;
@@ -28,7 +28,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
     // Re-render diagrams when content changes
     useEffect(() => {
-        diagramRegistry.renderAll();
+        codeBlockRendererRegistry.renderAll();
     }, [markdownContent, mermaidKey]);
 
     const components = {
@@ -40,7 +40,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             const content = String(children).replace(/\n$/, '');
 
             // Check if it's a supported diagram type
-            const diagramRenderer = diagramRegistry.get(language);
+            const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `${language}-${content.slice(0, 20)}`;
             const isRawView = showRawContent[blockId];
 

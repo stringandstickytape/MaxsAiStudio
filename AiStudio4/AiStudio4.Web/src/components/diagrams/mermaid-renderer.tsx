@@ -1,8 +1,8 @@
 import mermaid from 'mermaid';
-import { DiagramRenderer } from '@/components/diagrams/types';
+import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { useEffect, useRef } from 'react';
 
-export const MermaidRenderer: DiagramRenderer = {
+export const MermaidRenderer: CodeBlockRenderer = {
     type: 'mermaid',
     initialize: () => {
         // No need to initialize globally since each diagram will be in its own iframe
