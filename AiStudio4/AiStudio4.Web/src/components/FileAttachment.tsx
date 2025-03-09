@@ -18,6 +18,22 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleButtonClick = () => {
+
+        if (localStorage.getItem('isVisualStudio') === 'true') {
+            window.chrome?.webview?.postMessage({
+                type: 'send',
+                content: 'test',
+                selectedTools: '',
+                addEmbeddings: 'false'
+            });
+
+            // Reset input value so the same file can be selected again
+            if (inputRef.current) {
+                inputRef.current.value = '';
+            }
+            return;
+        }
+
         if (inputRef.current) {
             inputRef.current.click();
         }

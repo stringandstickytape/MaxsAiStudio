@@ -1,8 +1,9 @@
+// /src/components/html-renderer.tsx
 import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { useEffect, useRef } from 'react';
 
 export const HtmlRenderer: CodeBlockRenderer = {
-    type: ['html', 'htm'],
+    type: ['html', 'htm','svg'],
     initialize: () => {
         // No initialization needed
     },
@@ -101,6 +102,34 @@ export const HtmlRenderer: CodeBlockRenderer = {
             window.addEventListener('message', handleMessage);
             return () => window.removeEventListener('message', handleMessage);
         }, [content]);
+
+        // Helper method to launch the HTML in a new window
+        const launchInNewWindow = () => {
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>HTML Preview</title>
+                        <style>
+                            body {
+                                font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+                                line-height: 1.5;
+                                padding: 20px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${content}
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+            }
+        };
 
         return (
             <iframe

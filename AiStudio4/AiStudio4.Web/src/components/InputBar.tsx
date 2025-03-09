@@ -1,5 +1,5 @@
 // src/components/InputBar.tsx
-import React, { useState, KeyboardEvent, useCallback, useRef } from 'react';
+import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send } from 'lucide-react';
@@ -25,7 +25,7 @@ export function InputBar({
     inputValue,
     onInputChange,
     activeTools: activeToolsFromProps,
-    onManageTools // Add this prop
+    onManageTools 
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,7 +59,7 @@ export function InputBar({
 
     // Track cursor position for file insertion
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-
+    
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputText(e.target.value);
         // Save cursor position
@@ -76,8 +76,9 @@ export function InputBar({
 
     const handleAttachFile = (file: File, content: string) => {
         const fileName = file.name;
-        const fileType = fileName.split('.').pop() || '';
 
+        
+        // Standard behavior for web environment
         // Format text to insert
         const textToInsert = `\`\`\`${fileName}\n${content}\n\`\`\`\n`;
 

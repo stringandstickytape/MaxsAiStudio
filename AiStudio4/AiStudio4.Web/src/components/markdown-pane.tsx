@@ -1,9 +1,12 @@
+// src/markdown-pane.tsx
 import { useState, useEffect } from "react"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry'
 import remarkGfm from 'remark-gfm'
+import { ExternalLink } from 'lucide-react'
+
 interface MarkdownPaneProps {
     message: string;
 }
@@ -31,6 +34,34 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         codeBlockRendererRegistry.renderAll();
     }, [markdownContent, mermaidKey]);
 
+    // Function to launch HTML content in a new window
+    const launchHtml = (content: string) => {
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>HTML Preview</title>
+                    <style>
+                        body {
+                            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+                            line-height: 1.5;
+                            padding: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `);
+            newWindow.document.close();
+        }
+    };
+
     const components = {
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '')
@@ -55,6 +86,9 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 }
             };
 
+            // Determine if this is an HTML block that can be launched
+            const isHtmlBlock = language === 'html' || language === 'htm';
+
             const showRenderedOrRawButton = (
                 <button
                     onClick={toggleView}
@@ -64,18 +98,30 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 </button>
             );
 
+            // Launch button for HTML blocks
+            const launchButton = isHtmlBlock ? (
+                <button
+                    onClick={() => launchHtml(content)}
+                    className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+                >
+                    <ExternalLink className="h-3 w-3" />
+                    Launch
+                </button>
+            ) : null;
+
             const codeHeader = (
                 <div className="flex items-center justify-between bg-gray-900 px-4 py-2 rounded-t-xl border-b border-gray-700 text-sm text-gray-400">
                     <div className="font-medium">{language}</div>
                     <div className="flex space-x-2">
                         {isVisualStudio && (
                             <button
-                                onClick={() => window.chrome.webview.postMessage({type: 'applyNewDiff', content: content.trim()})}
+                                onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
                                 className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                             >
                                 Apply Diff
                             </button>
                         )}
+                        {launchButton}
                         {showRenderedOrRawButton}
                     </div>
                 </div>
