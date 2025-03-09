@@ -13,11 +13,18 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     const [markdownContent, setMarkdownContent] = useState<string>('')
     const [mermaidKey, setMermaidKey] = useState(0)
     const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({})
+    const [isVisualStudio, setIsVisualStudio] = useState(false);
 
     useEffect(() => {
         setMarkdownContent(message);
         setMermaidKey(prev => prev + 1); // Force re-render of Mermaid diagrams
     }, [message])
+
+    useEffect(() => {
+        const isVS = localStorage.getItem('isVisualStudio') === 'true';
+        setIsVisualStudio(isVS);
+    }, []);
+
 
     // Re-render diagrams when content changes
     useEffect(() => {
@@ -48,7 +55,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 }
             };
 
-            const toggleButton = (
+            const showRenderedOrRawButton = (
                 <button
                     onClick={toggleView}
                     className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
@@ -60,7 +67,17 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             const codeHeader = (
                 <div className="flex items-center justify-between bg-gray-900 px-4 py-2 rounded-t-xl border-b border-gray-700 text-sm text-gray-400">
                     <div className="font-medium">{language}</div>
-                    {toggleButton}
+                    <div className="flex space-x-2">
+                        {isVisualStudio && (
+                            <button
+                                onClick={() => window.chrome.webview.postMessage({type: 'applyNewDiff', content: content.trim()})}
+                                className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                            >
+                                Apply Diff
+                            </button>
+                        )}
+                        {showRenderedOrRawButton}
+                    </div>
                 </div>
             );
 
