@@ -67,7 +67,7 @@ const JsonNode = ({ data, level = 0 }: { data: any; level?: number }) => {
 };
 
 export const JsonRenderer: CodeBlockRenderer = {
-    type: 'json',
+    type: ['json'],
     initialize: () => {},
     render: async () => {},
     Component: ({ content, className }) => {

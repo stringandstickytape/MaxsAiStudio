@@ -3,7 +3,7 @@ import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { useEffect, useRef } from 'react';
 
 export const MermaidRenderer: CodeBlockRenderer = {
-    type: 'mermaid',
+    type: ['mermaid'],
     initialize: () => {
         // No need to initialize globally since each diagram will be in its own iframe
     },
@@ -54,7 +54,7 @@ export const MermaidRenderer: CodeBlockRenderer = {
                             
                             // Render the diagram
                             const element = document.getElementById('diagram');
-                            element.innerHTML = \`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+                            element.innerHTML = \`${content.replace(/`/g, '\\\`').replace(/\$/g, '\\$')}\`;
                             
                             // Adjust iframe height after rendering
                             mermaid.run().then(() => {
