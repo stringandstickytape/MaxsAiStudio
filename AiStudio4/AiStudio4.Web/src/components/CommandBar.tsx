@@ -15,24 +15,25 @@ interface CommandBarProps {
 
 export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     // Use Zustand command store directly
-    const { 
-        searchCommands, 
-        executeCommand, 
+    const {
+        searchCommands,
+        executeCommand,
         getCommandById
     } = useCommandStore();
-    
+
     // Pinned commands store
-    const { 
-        pinnedCommands, 
-        addPinnedCommand, 
-        removePinnedCommand, 
-        savePinnedCommands 
+    const {
+        pinnedCommands,
+        addPinnedCommand,
+        removePinnedCommand,
+        savePinnedCommands
     } = usePinnedCommandsStore();
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCommands, setFilteredCommands] = useState<CommandType[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Update filtered commands whenever search term changes
     useEffect(() => {
@@ -49,11 +50,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 setFilteredCommands(searchCommands(searchTerm));
             }
         );
-        
+
         return () => unsubscribe();
     }, [searchTerm, searchCommands]);
 
-    // Focus input when command bar opens
+    // Focus input only when command bar is first opened
     useEffect(() => {
         if (isOpen && inputRef.current) {
             inputRef.current.focus();
@@ -64,7 +65,34 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 setFilteredCommands(searchCommands(searchTerm));
             }
         }
-    }, [isOpen, searchTerm, searchCommands]);
+    }, [isOpen, searchCommands, searchTerm]);
+
+    // Add click-outside handler
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            console.log('Click outside handler fired');
+            console.log('isOpen:', isOpen);
+            console.log('containerRef exists:', !!containerRef.current);
+            console.log('Click was inside container:', containerRef.current?.contains(event.target as Node));
+
+            if (isOpen &&
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node)) {
+                console.log('Closing command bar');
+                setIsOpen(false);
+            } else {
+                console.log('Not closing command bar');
+            }
+        };
+
+        // Add document-wide mousedown listener for detecting outside clicks
+        document.addEventListener('mousedown', handleClickOutside);
+
+        // Clean up the listener when component unmounts or isOpen changes
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, setIsOpen]);
 
     // Monitor programmatic changes to the input value
     useEffect(() => {
@@ -161,7 +189,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     }, {} as Record<string, CommandType[]>);
 
     return (
-        <div className="relative w-full max-w-2xl">
+        <div ref={containerRef} className="relative w-full max-w-2xl">
             <form onSubmit={handleCommandSubmit}>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -177,7 +205,6 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={handleKeyDown}
                         className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
-                        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                     />
                     {isOpen ? (
                         <button
