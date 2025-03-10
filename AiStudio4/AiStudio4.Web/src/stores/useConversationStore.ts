@@ -122,7 +122,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
             source: content.source,
             parentId: parentId,
             timestamp: Date.now(),
-            tokenUsage: content.tokenUsage || null
+            tokenUsage: content.tokenUsage || null,
+            costInfo: content.costInfo || null
           },
           // For AI responses, set the selectedMessageId to continue the same branch
           // Only update the selectedMessageId if this is an AI response to ensure branch continuity
@@ -140,7 +141,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
             source: content.source,
             parentId: null, // It's a root message
             timestamp: content.timestamp || Date.now(),
-            tokenUsage: content.tokenUsage || null
+            tokenUsage: content.tokenUsage || null,
+            costInfo: content.costInfo || null
           }
         });
 
@@ -188,7 +190,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
           source: rootMessage.source as 'user' | 'ai' | 'system',
           parentId: null,
           timestamp: rootMessage.timestamp || Date.now(),
-          tokenUsage: rootMessage.tokenUsage || null
+          tokenUsage: rootMessage.tokenUsage || null,
+          costInfo: rootMessage.costInfo || null
         }
       });
 
@@ -210,7 +213,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
               source: message.source as 'user' | 'ai' | 'system',
               parentId: message.parentId,
               timestamp: message.timestamp || Date.now(),
-              tokenUsage: message.tokenUsage || null
+              tokenUsage: message.tokenUsage || null,
+              costInfo: message.costInfo || null
             }
           });
         });

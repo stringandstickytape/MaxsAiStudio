@@ -136,7 +136,8 @@ export const HistoricalConversationTreeList = () => {
                             source: message.source,
                             parentId: message.parentId,
                             timestamp: message.timestamp,
-                            tokenUsage: message.tokenUsage
+                            tokenUsage: message.tokenUsage,
+                            costInfo: message.costInfo
                         }
                     });
                 });

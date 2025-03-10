@@ -130,7 +130,7 @@ namespace AiStudio4.Services
                 var response = await aiService.FetchResponse(requestOptions);
                 
                 // Calculate cost if cost tracking is enabled and model has cost configuration
-                if (_settingsManager.CurrentSettings.TrackTokenCost && modelCostConfig != null && response.TokenUsage != null)
+                if (modelCostConfig != null && response.TokenUsage != null)
                 {
                     response.CostInfo = new Core.Models.TokenCost(
                         response.TokenUsage,

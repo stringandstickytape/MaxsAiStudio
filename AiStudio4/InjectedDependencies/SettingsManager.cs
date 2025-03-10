@@ -16,9 +16,8 @@ namespace AiStudio4.InjectedDependencies
         public bool UsePromptCaching { get; set; } = true;
         public bool StreamResponses { get; set; } = false;
         public string EmbeddingsFilename { get; set; }
-        public string EmbeddingModel { get; internal set; } = "mxbai-embed-large";
+        public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string DefaultSystemPromptId { get; set; }
-        public bool TrackTokenCost { get; set; } = true;
 
         // Appearance settings
         public Dictionary<string, AppearanceSettings> UserAppearanceSettings { get; set; } = new();

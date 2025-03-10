@@ -11,6 +11,17 @@ export interface Message {
         cacheCreationInputTokens: number;
         cacheReadInputTokens: number;
     } | null;
+    costInfo?: {
+        inputCostPer1M: number;
+        outputCostPer1M: number;
+        totalCost: number;
+        tokenUsage: {
+            inputTokens: number;
+            outputTokens: number;
+            cacheCreationInputTokens: number;
+            cacheReadInputTokens: number;
+        };
+    } | null;
 }
 
 export interface Conversation {

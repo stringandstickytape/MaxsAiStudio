@@ -213,7 +213,8 @@ export function useChatManagement() {
             node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
         parentId: node.parentId,
         timestamp: Date.now(), // No timestamp in tree data, use current time
-        tokenUsage: node.tokenUsage || null
+        tokenUsage: node.tokenUsage || null,
+        costInfo: node.costInfo || null
       }));
 
       return {
