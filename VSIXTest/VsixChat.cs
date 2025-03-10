@@ -163,7 +163,7 @@ namespace VSIXTest
         {
             if (!vsixInitialised)
             {
-                if (VsixChat.NewUi)
+                if (!VsixChat.NewUi)
                 {
                     await simpleClient.StartClientAsync();
                 }
