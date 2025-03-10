@@ -115,17 +115,11 @@ namespace VSIXTest.UI
 
             var jsonFormattedAll = JsonConvert.SerializeObject(formattedAll);
 
-            await _executeScriptAsync($"setUserPrompt({jsonFormattedAll})");
+            
 
             var systemPrompt = await _executeScriptAsync($"getSystemPrompt()");
 
-            await _messageHandler.SendVsixMessageAsync(
-                new VsixMessage
-                {
-                    MessageType = "setSystemPrompt",
-                    Content = systemPrompt
-                },
-                _simpleClient);
+
 
             var tool = GetToolType(matchingButton, e.ResponseType);
 
@@ -150,6 +144,16 @@ namespace VSIXTest.UI
             }
             else
             {
+                await _executeScriptAsync($"setUserPrompt({jsonFormattedAll})");
+
+                await _messageHandler.SendVsixMessageAsync(
+                new VsixMessage
+                {
+                    MessageType = "setSystemPrompt",
+                    Content = systemPrompt
+                },
+                _simpleClient);
+
                 await _messageHandler.SendVsixMessageAsync(
                 new VsixMessage
                 {

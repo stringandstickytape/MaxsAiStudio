@@ -1,5 +1,5 @@
 // src/components/SystemPrompt/HeaderPromptComponent.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronDown, ChevronUp, MessageSquare, Settings } from 'lucide-react';
@@ -38,6 +38,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     const [editMode, setEditMode] = useState(false);
     const [promptContent, setPromptContent] = useState('');
     const [currentPrompt, setCurrentPrompt] = useState<SystemPrompt | null>(null);
+    const promptRef = useRef<HTMLDivElement>(null);
 
     // Determine the current prompt based on conversation or default
     useEffect(() => {
@@ -65,6 +66,21 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
             setPromptContent(promptToUse.content);
         }
     }, [prompts, conversationId, storeConversationId, conversationPrompts, defaultPromptId]);
+
+    // Handle clicks outside the component
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (promptRef.current && !promptRef.current.contains(event.target as Node) && expanded) {
+                setExpanded(false);
+                setEditMode(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [expanded]);
 
     const toggleExpand = () => {
         setExpanded(!expanded);
@@ -143,7 +159,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     }
 
     return (
-        <div className="relative w-full max-w-2xl mx-auto">
+        <div className="relative w-full max-w-2xl mx-auto" ref={promptRef}>
             <div
                 className={cn(
                     "border border-gray-700/50 rounded-lg transition-all duration-300",
