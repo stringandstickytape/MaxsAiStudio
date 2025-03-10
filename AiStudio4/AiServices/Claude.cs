@@ -23,12 +23,17 @@ namespace AiStudio4.AiServices
             base.ConfigureHttpClientHeaders(apiSettings);
             client.DefaultRequestHeaders.Add("x-api-key", ApiKey);
             client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-            
-            if (apiSettings.UsePromptCaching)
-                client.DefaultRequestHeaders.Add("anthropic-beta", "prompt-caching-2024-07-31");
-            
+
+            var betaFeatures = new List<string>();
+
+            //if (apiSettings.UsePromptCaching)
+            //    betaFeatures.Add("prompt-caching-2024-07-31");
+
             if (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest")
-                client.DefaultRequestHeaders.Add("anthropic-beta", "output-128k-2025-02-19");
+                betaFeatures.Add("output-128k-2025-02-19");
+
+            if (betaFeatures.Any())
+                client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
@@ -121,6 +126,8 @@ namespace AiStudio4.AiServices
 
             var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
             //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
+
+
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 

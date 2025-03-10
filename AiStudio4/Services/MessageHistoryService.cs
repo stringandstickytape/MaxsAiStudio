@@ -49,7 +49,8 @@ namespace AiStudio4.Services
                             source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
                                     msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
                             parentId = msg.ParentId,
-                            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                            tokenUsage = msg.TokenUsage
                         };
                     }).ToList();
 

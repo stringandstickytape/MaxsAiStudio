@@ -141,7 +141,8 @@ namespace AiStudio4.Services
                 return new ChatResponse
                 {
                     Success = true,
-                    ResponseText = responseText
+                    ResponseText = responseText,
+                    TokenUsage = response.TokenUsage
                 };
             }
             catch (Exception ex)

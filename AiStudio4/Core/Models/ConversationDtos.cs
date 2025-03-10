@@ -1,3 +1,5 @@
+using SharedClasses.Providers;
+
 namespace AiStudio4.Core.Models
 {
     public class ConversationUpdateDto
@@ -8,6 +10,7 @@ namespace AiStudio4.Core.Models
         public string ParentId { get; set; }
         public long Timestamp { get; set; }
         public string Source { get; set; }
+        public TokenUsage TokenUsage { get; set; }
     }
 
     public class StreamingUpdateDto

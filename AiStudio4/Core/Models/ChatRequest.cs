@@ -1,3 +1,5 @@
+using SharedClasses.Providers;
+
 namespace AiStudio4.Core.Models
 {
     public class ChatRequest
@@ -25,5 +27,6 @@ namespace AiStudio4.Core.Models
         public bool Success { get; set; }
         public string ResponseText { get; set; }
         public string Error { get; set; }
+        public TokenUsage TokenUsage { get; set; }
     }
 }

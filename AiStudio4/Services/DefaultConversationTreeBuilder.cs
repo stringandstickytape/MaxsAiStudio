@@ -142,7 +142,8 @@ namespace AiStudio4.Services
                 Role = message.Role,
                 ParentId = message.ParentId,
                 // Don't clone children to avoid circular references
-                Children = new List<v4BranchedConversationMessage>()
+                Children = new List<v4BranchedConversationMessage>(),
+                TokenUsage = message.TokenUsage
             };
         }
 

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,7 +35,8 @@ namespace AiStudio4.InjectedDependencies
                 UserMessage = userMessage ?? string.Empty,
                 Children = new List<v4BranchedConversationMessage>(),
                 Id = newMessageId,
-                ParentId = parentMessageId
+                ParentId = parentMessageId,
+                TokenUsage = null
             };
 
             // If no parent is specified or the parent doesn't exist, add as a root message

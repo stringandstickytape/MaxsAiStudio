@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
@@ -134,6 +134,12 @@ namespace AiStudio4.Services
                     var newId = $"msg_{Guid.NewGuid()}";
                     var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
 
+                    // Store token usage information
+                    if (response.TokenUsage != null)
+                    {
+                        newAiReply.TokenUsage = response.TokenUsage;
+                    }
+
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
 
                     if (isFirstMessageInConversation)
@@ -193,7 +199,8 @@ namespace AiStudio4.Services
                         Content = newAiReply.UserMessage,
                         ParentId = chatRequest.MessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Source = "ai" // Explicitly set source as "ai"
+                        Source = "ai", // Explicitly set source as "ai"
+                        TokenUsage = newAiReply.TokenUsage,
                     });
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
@@ -223,7 +230,9 @@ namespace AiStudio4.Services
                     : msg.UserMessage ?? "[Empty Message]",
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
-                        msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system"
+                        msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                tokenUsage = msg.TokenUsage,
+
             }).ToList<object>();
         }
 
@@ -262,7 +271,8 @@ namespace AiStudio4.Services
                 UserMessage = message.UserMessage,
                 Role = message.Role,
                 ParentId = message.ParentId,
-                Children = new List<v4BranchedConversationMessage>() // Empty children list
+                Children = new List<v4BranchedConversationMessage>(), // Empty children list
+                TokenUsage = message.TokenUsage
             };
         }
     }

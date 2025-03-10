@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+using SharedClasses.Providers;
+using System.Text.Json.Serialization;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -13,6 +14,8 @@ namespace AiStudio4.InjectedDependencies
         public string Id { get; set; }
 
         // Add explicit parent reference
-        public string ParentId { get; set; }
+    public string ParentId { get; set; }
+
+        public TokenUsage TokenUsage { get; set; }
     }
 }

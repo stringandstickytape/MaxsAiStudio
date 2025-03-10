@@ -51,7 +51,8 @@ namespace AiStudio4.Services
                         : msg.UserMessage ?? "[Empty Message]",
                     parentId = msg.ParentId,
                     source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
-                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system"
+                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                    tokenUsage = msg.TokenUsage
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new
