@@ -85,3 +85,80 @@ export function ChatSpace() {
       });
     }
   };
+  
+  // Define openToolPanel function to be used in components
+  const openToolPanel = () => {
+    setIsToolPanelOpen(true);
+  };
+  
+  // Get panel states for layout calculations
+  const hasLeftPanel = panels.sidebar?.isPinned || false;
+  const hasRightPanel = panels.conversationTree?.isPinned || 
+                      panels.settings?.isPinned || 
+                      panels.systemPrompts?.isPinned || false;
+
+  return (
+    <>
+      {/* Top header - fixed height */}
+      <div className="flex-none h-[155px] bg-background">
+        <AppHeader
+          onToggleSystemPrompts={() => togglePanel('systemPrompts')}
+          isCommandBarOpen={isCommandBarOpen}
+          setIsCommandBarOpen={setIsCommandBarOpen}
+          CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
+          sidebarPinned={hasLeftPanel}
+          rightSidebarPinned={hasRightPanel}
+          activeConversationId={activeConversationId}
+        />
+      </div>
+
+      {/* Middle chat container - flexible height */}
+      <div className="flex-1 overflow-auto">
+        <ChatContainer
+          streamTokens={streamTokens}
+          isMobile={isMobile}
+        />
+      </div>
+
+      {/* Bottom input bar - fixed height */}
+      <div className="flex-none h-[30vh] bg-background border-t">
+        <InputBar
+          selectedModel={selectedPrimaryModel}
+          onVoiceInputClick={() => setVoiceInputOpen(true)}
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          activeTools={activeTools}
+          onManageTools={openToolPanel}
+        />
+      </div>
+
+      {/* Voice Input Overlay */}
+      <VoiceInputOverlay
+        isOpen={isVoiceInputOpen}
+        onClose={() => setVoiceInputOpen(false)}
+        onTranscript={handleTranscript}
+      />
+
+      {/* Tool Panel Dialog */}
+      {isToolPanelOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-100">Tool Management</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsToolPanelOpen(false)}
+                className="text-gray-400 hover:text-gray-100"
+              >
+                <span className="h-5 w-5"> </span>
+              </Button>
+            </div>
+            <div className="h-full overflow-y-auto">
+              <ToolPanel isOpen={true} onClose={() => setIsToolPanelOpen(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+ 

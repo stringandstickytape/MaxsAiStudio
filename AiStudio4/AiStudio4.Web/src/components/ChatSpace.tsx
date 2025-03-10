@@ -151,7 +151,7 @@ export function ChatSpace() {
                 onClick={() => setIsToolPanelOpen(false)}
                 className="text-gray-400 hover:text-gray-100"
               >
-                <span className="h-5 w-5">×</span>
+                <span className="h-5 w-5"> </span>
               </Button>
             </div>
             <div className="h-full overflow-y-auto">
@@ -161,5 +161,4 @@ export function ChatSpace() {
         </div>
       )}
     </>
-  );
-}
+ 
