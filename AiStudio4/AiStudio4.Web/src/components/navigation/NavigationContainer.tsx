@@ -227,13 +227,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
       {/* Panel Manager to handle all panels */}
       <PanelManager panels={panelConfigs} />
 
-      {/* Tool Panel (Modal Dialog) */}
-      {isToolPanelOpen && (
-        <ToolPanel 
-          isOpen={isToolPanelOpen} 
-          onClose={() => setIsToolPanelOpen(false)}
-        />
-      )}
+      {/* ToolPanel does NOT go here, it's a dialog not a panel :/ */}
     </>
   );
 }
