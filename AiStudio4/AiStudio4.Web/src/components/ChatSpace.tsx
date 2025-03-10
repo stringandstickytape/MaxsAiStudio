@@ -1,4 +1,4 @@
-// src/components/ChatWorkspace.tsx
+// src/components/ChatSpace.tsx
 import { useState, useEffect } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { ModelType } from '@/types/modelTypes';
 
-export function ChatWorkspace() {
+export function ChatSpace() {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { streamTokens } = useStreamTokens();
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);

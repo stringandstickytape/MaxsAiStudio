@@ -1,7 +1,7 @@
 // src/App.tsx
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
-import { ChatWorkspace } from './components/ChatWorkspace';
+import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider';
 import { useEffect } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
@@ -34,7 +34,7 @@ function App() {
             {/* Navigation container handles panels and routing */}
             <NavigationContainer>
                 {/* Chat workspace manages the chat interface */}
-                <ChatWorkspace />
+                <ChatSpace />
             </NavigationContainer>
         </FontSizeProvider>
     );
