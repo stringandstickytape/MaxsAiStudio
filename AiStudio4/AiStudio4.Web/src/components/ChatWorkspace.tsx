@@ -1,13 +1,13 @@
-// src/components/chat/ChatWorkspace.tsx
+// src/components/ChatWorkspace.tsx
 import { useState, useEffect } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
-import { AppHeader } from '../AppHeader';
-import { ChatContainer } from '../ChatContainer';
-import { InputBar } from '../InputBar';
-import { CommandBar } from '../CommandBar';
-import { VoiceInputOverlay } from '../VoiceInputOverlay';
-import { ToolPanel } from '../tools/ToolPanel';
+import { AppHeader } from './AppHeader';
+import { ChatContainer } from './ChatContainer';
+import { InputBar } from './InputBar';
+import { CommandBar } from './CommandBar';
+import { VoiceInputOverlay } from './VoiceInputOverlay';
+import { ToolPanel } from './tools/ToolPanel';
 import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { useVoiceInputState } from '@/commands/voiceInputCommand';
 import { useModelManagement } from '@/hooks/useModelManagement';

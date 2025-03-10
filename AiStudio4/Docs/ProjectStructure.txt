@@ -104,7 +104,7 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 
 ### Chat Components
 
-- **AiStudio4.Web/src/components/chat/ChatWorkspace.tsx**: Main chat workspace
+- **AiStudio4.Web/src/components/ChatWorkspace.tsx**: Main chat workspace
 - **AiStudio4.Web/src/components/ChatContainer.tsx**: Container for chat messages
 - **AiStudio4.Web/src/components/ConversationView.tsx**: Displays active conversation
 - **AiStudio4.Web/src/components/InputBar.tsx**: Input bar for sending messages

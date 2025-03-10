@@ -1,7 +1,7 @@
 // src/App.tsx
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
-import { ChatWorkspace } from './components/chat/ChatWorkspace';
+import { ChatWorkspace } from './components/ChatWorkspace';
 import { FontSizeProvider } from './components/FontSizeProvider';
 import { useEffect } from 'react';
 import { useConversationStore } from '@/stores/useConversationStore';
