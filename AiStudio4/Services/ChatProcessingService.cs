@@ -8,6 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using AiTool3.Helpers;
+using SharedClasses;
+using SharedClasses.Helpers;
 
 namespace AiStudio4.Services
 {
@@ -54,13 +58,26 @@ namespace AiStudio4.Services
 
                 try
                 {
+                    var message = (string)requestObject["message"];
+                        
+                    var matches =Regex.Matches(message, @"\[pull:(.*?)\]");
+
+                    foreach (Match match in matches)
+                    {
+                        var url = match.Groups[1].Value;
+                        var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
+                        if (extractedText != "")
+                        {
+                            message = message.Replace(match.Value, $"\n{BacktickHelper.ThreeTicks}{url}\n{extractedText}\n{BacktickHelper.ThreeTicks}\n");
+                        }
+                    }
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
                         ConversationId = (string)requestObject["conversationId"],
                         MessageId = (string)requestObject["newMessageId"],
                         ParentMessageId = (string)requestObject["parentMessageId"],
-                        Message = (string)requestObject["message"],
+                        Message = message,
                         Model = (string)requestObject["model"],
                         ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
                         SystemPromptId = (string)requestObject["systemPromptId"],
@@ -129,13 +146,13 @@ namespace AiStudio4.Services
                                 var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
                                 if (model != null)
                                 {
-                                    var message = $"Generate a concise 6 - 10 word summary of this conversation:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
+                                    var summaryMessage = $"Generate a concise 6 - 10 word summary of this conversation:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
 
                                     var summaryChatRequest = new ChatRequest
                                     {
                                         ClientId = clientId,
                                         Model = secondaryModel,
-                                        MessageHistory = new List<MessageHistoryItem> { new MessageHistoryItem { Content = message, Role = "user" } }
+                                        MessageHistory = new List<MessageHistoryItem> { new MessageHistoryItem { Content = summaryMessage, Role = "user" } }
                                     };
 
                                     var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);

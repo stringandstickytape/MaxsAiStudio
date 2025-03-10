@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using SharedClasses.Providers;
+using SharedClasses.Helpers;
 
 namespace AiTool3.Conversations
 {

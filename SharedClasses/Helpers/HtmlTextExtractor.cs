@@ -1,8 +1,13 @@
-﻿using System.Text;
+﻿using SharedClasses;
+using System;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AiTool3.Helpers
+namespace SharedClasses.Helpers
 {
-    internal class HtmlTextExtractor
+    public class HtmlTextExtractor
     {
 
         private static readonly HttpClient httpClient = new HttpClient();
@@ -76,7 +81,7 @@ namespace AiTool3.Helpers
             stringBuilder.Clear();
             foreach (var line in lines)
             {
-                if (line.Split(' ').Length >= 0 || line.Contains('$') || line.Contains('€') || line.Contains('£'))
+                if (line.Split(' ').Length >= 0 || line.Contains("$") || line.Contains("€") || line.Contains("£"))
                 {
                     stringBuilder.AppendLine(line);
                 }
@@ -88,7 +93,7 @@ namespace AiTool3.Helpers
 
         public static string QuoteFile(string filename, string fileContents)
         {
-            return $"{MaxsAiStudio.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, fileContents)}{Environment.NewLine}{MaxsAiStudio.ThreeTicks}{Environment.NewLine}";
+            return $"{BacktickHelper.ThreeTicks}{filename.Split('\\').Last()}{Environment.NewLine}{string.Join(Environment.NewLine, fileContents)}{Environment.NewLine}{BacktickHelper.ThreeTicks}{Environment.NewLine}";
         }
     }
 }

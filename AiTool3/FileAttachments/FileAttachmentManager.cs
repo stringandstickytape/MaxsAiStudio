@@ -2,6 +2,7 @@
 using AiTool3.Helpers;
 using AiTool3.UI;
 using Newtonsoft.Json.Linq;
+using SharedClasses.Helpers;
 using System.Diagnostics;
 using System.Text;
 
