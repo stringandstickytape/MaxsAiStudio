@@ -28,6 +28,16 @@ namespace AiStudio4.Core.Models
             CalculateTotalCost();
         }
 
+        public TokenCost(TokenUsage tokenUsage, Model model)
+        {
+            TokenUsage = tokenUsage;
+            InputCostPer1M = model?.input1MTokenPrice ?? 0m;
+            OutputCostPer1M = model?.output1MTokenPrice ?? 0m;
+            CalculateTotalCost();
+        }
+
+
+
         public void CalculateTotalCost()
         {
             if (TokenUsage == null) return;

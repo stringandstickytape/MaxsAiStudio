@@ -10,7 +10,6 @@ namespace AiStudio4.InjectedDependencies
     {
         public List<Model> ModelList { get; set; } = new();
         public List<ServiceProvider> ServiceProviders { get; set; } = new();
-        public List<ModelCostConfig> ModelCostConfigs { get; set; } = new();
         public float Temperature { get; set; } = 0.9f;
         public bool UseEmbeddings { get; set; } = false;
         public bool UsePromptCaching { get; set; } = true;
@@ -210,45 +209,5 @@ namespace AiStudio4.InjectedDependencies
             SaveSettings();
         }
         
-        /// <summary>
-        /// Gets the cost configuration for a specific model
-        /// </summary>
-        /// <param name="modelName">The model name</param>
-        /// <returns>The cost configuration or null if not found</returns>
-        public ModelCostConfig GetModelCostConfig(string modelName)
-        {
-            if (_currentSettings.ModelCostConfigs == null)
-            {
-                _currentSettings.ModelCostConfigs = new List<ModelCostConfig>();
-                SaveSettings();
-            }
-            
-            return _currentSettings.ModelCostConfigs.FirstOrDefault(c => c.ModelName == modelName);
-        }
-        
-        /// <summary>
-        /// Updates or adds a model cost configuration
-        /// </summary>
-        /// <param name="costConfig">The cost configuration to update or add</param>
-        public void UpdateModelCostConfig(ModelCostConfig costConfig)
-        {
-            if (_currentSettings.ModelCostConfigs == null)
-            {
-                _currentSettings.ModelCostConfigs = new List<ModelCostConfig>();
-            }
-            
-            var existing = _currentSettings.ModelCostConfigs.FirstOrDefault(c => c.ModelName == costConfig.ModelName);
-            if (existing != null)
-            {
-                var index = _currentSettings.ModelCostConfigs.IndexOf(existing);
-                _currentSettings.ModelCostConfigs[index] = costConfig;
-            }
-            else
-            {
-                _currentSettings.ModelCostConfigs.Add(costConfig);
-            }
-            
-            SaveSettings();
-        }
     }
 }

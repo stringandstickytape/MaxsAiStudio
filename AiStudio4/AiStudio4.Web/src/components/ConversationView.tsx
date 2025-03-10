@@ -61,20 +61,22 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                             <MarkdownPane message={message.content} />
                             {(message.tokenUsage || message.costInfo) && (
                                 <div className="text-xs text-gray-400 mt-2 border-t border-gray-700 pt-1">
-                                    {message.tokenUsage && (
-                                        <div className="flex flex-wrap items-center gap-x-2">
-                                            <span>Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out</span>
-                                            {(message.tokenUsage.cacheCreationInputTokens > 0 || message.tokenUsage.cacheReadInputTokens > 0) && (
-                                                <span>(Cache: {message.tokenUsage.cacheCreationInputTokens} created, {message.tokenUsage.cacheReadInputTokens} read)</span>
-                                            )}
-                                        </div>
-                                    )}
-                                    {message.costInfo && (
-                                        <div className="flex items-center gap-x-2 mt-1">
-                                            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
-                                            <span className="text-gray-500">(${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, ${message.costInfo.outputCostPer1M.toFixed(2)}/1M out)</span>
-                                        </div>
-                                    )}
+                                    <div className="flex flex-wrap items-center gap-x-4">
+                                        {message.tokenUsage && (
+                                            <div className="flex items-center gap-x-2">
+                                                <span>Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out</span>
+                                                {(message.tokenUsage.cacheCreationInputTokens > 0 || message.tokenUsage.cacheReadInputTokens > 0) && (
+                                                    <span>(Cache: {message.tokenUsage.cacheCreationInputTokens} created, {message.tokenUsage.cacheReadInputTokens} read)</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {message.costInfo && (
+                                            <div className="flex items-center gap-x-2">
+                                                <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
+                                                <span className="text-gray-500">(${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, ${message.costInfo.outputCostPer1M.toFixed(2)}/1M out)</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>

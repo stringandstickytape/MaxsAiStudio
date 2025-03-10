@@ -89,12 +89,8 @@ namespace AiStudio4
             var systemPromptService = _serviceProvider.GetRequiredService<ISystemPromptService>();
             await systemPromptService.InitializeAsync();
             
-            // Initialize default model cost configurations if none exist
+            // Get settings manager
             var settingsManager = _serviceProvider.GetRequiredService<SettingsManager>();
-            if (settingsManager.CurrentSettings.ModelCostConfigs == null || !settingsManager.CurrentSettings.ModelCostConfigs.Any())
-            {
-                InitializeDefaultModelCosts(settingsManager);
-            }
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();
@@ -114,30 +110,5 @@ namespace AiStudio4
             base.OnExit(e);
         }
         
-        private void InitializeDefaultModelCosts(SettingsManager settingsManager)
-        {
-            var defaultCosts = new List<Core.Models.ModelCostConfig>
-            {
-                // OpenAI models
-                new Core.Models.ModelCostConfig { ModelName = "gpt-4", InputCostPer1M = 30.0m, OutputCostPer1M = 60.0m },
-                new Core.Models.ModelCostConfig { ModelName = "gpt-4-turbo", InputCostPer1M = 10.0m, OutputCostPer1M = 30.0m },
-                new Core.Models.ModelCostConfig { ModelName = "gpt-3.5-turbo", InputCostPer1M = 0.5m, OutputCostPer1M = 1.5m },
-                
-                // Anthropic models
-                new Core.Models.ModelCostConfig { ModelName = "claude-2", InputCostPer1M = 8.0m, OutputCostPer1M = 24.0m },
-                new Core.Models.ModelCostConfig { ModelName = "claude-3-opus-20240229", InputCostPer1M = 15.0m, OutputCostPer1M = 75.0m },
-                new Core.Models.ModelCostConfig { ModelName = "claude-3-sonnet-20240229", InputCostPer1M = 3.0m, OutputCostPer1M = 15.0m },
-                new Core.Models.ModelCostConfig { ModelName = "claude-3-haiku-20240307", InputCostPer1M = 0.25m, OutputCostPer1M = 1.25m },
-                
-                // Llama models (default to free as they're run locally)
-                new Core.Models.ModelCostConfig { ModelName = "llama2", InputCostPer1M = 0m, OutputCostPer1M = 0m },
-                new Core.Models.ModelCostConfig { ModelName = "llama3", InputCostPer1M = 0m, OutputCostPer1M = 0m },
-                
-                // Add other models as needed
-            };
-            
-            settingsManager.CurrentSettings.ModelCostConfigs = defaultCosts;
-            settingsManager.SaveSettings();
-        }
     }
 }
