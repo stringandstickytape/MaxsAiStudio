@@ -136,7 +136,8 @@ export const useHistoricalConversationsStore = create<HistoricalConversationsSto
                         text: node.text,
                         children: [],
                         parentId: node.parentId, // Keep parentId for easier reference
-                        source: node.source    // Keep source information if available
+                        source: node.source,    // Keep source information if available
+                        tokenUsage: node.tokenUsage // Store token usage information
                     });
                 });
 

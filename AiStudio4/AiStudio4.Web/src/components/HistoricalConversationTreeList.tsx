@@ -120,7 +120,8 @@ export const HistoricalConversationTreeList = () => {
                         content: rootMessage.content,
                         source: rootMessage.source,
                         parentId: null,
-                        timestamp: rootMessage.timestamp
+                        timestamp: rootMessage.timestamp,
+                        tokenUsage: rootMessage.tokenUsage
                     }
                 });
 
@@ -134,7 +135,8 @@ export const HistoricalConversationTreeList = () => {
                             content: message.content,
                             source: message.source,
                             parentId: message.parentId,
-                            timestamp: message.timestamp
+                            timestamp: message.timestamp,
+                            tokenUsage: message.tokenUsage
                         }
                     });
                 });

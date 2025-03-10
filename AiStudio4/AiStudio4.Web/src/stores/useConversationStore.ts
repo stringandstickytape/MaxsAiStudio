@@ -121,7 +121,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
             content: content.content,
             source: content.source,
             parentId: parentId,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            tokenUsage: content.tokenUsage || null
           },
           // For AI responses, set the selectedMessageId to continue the same branch
           // Only update the selectedMessageId if this is an AI response to ensure branch continuity
@@ -138,7 +139,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
             content: content.content,
             source: content.source,
             parentId: null, // It's a root message
-            timestamp: content.timestamp || Date.now()
+            timestamp: content.timestamp || Date.now(),
+            tokenUsage: content.tokenUsage || null
           }
         });
 
@@ -185,7 +187,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
           content: rootMessage.content,
           source: rootMessage.source as 'user' | 'ai' | 'system',
           parentId: null,
-          timestamp: rootMessage.timestamp || Date.now()
+          timestamp: rootMessage.timestamp || Date.now(),
+          tokenUsage: rootMessage.tokenUsage || null
         }
       });
 
@@ -194,7 +197,7 @@ export const useConversationStore = create<ConversationState>((set, get) => {
         msg.id !== rootMessage.id &&
         (msg.parentId || graph.getMessagePath(msg.id).length > 1)
       );
-
+        
       // Sort messages by timestamp to ensure parents are dispatched before children
       nonRootMessages
         .sort((a, b) => a.timestamp - b.timestamp)
@@ -206,7 +209,8 @@ export const useConversationStore = create<ConversationState>((set, get) => {
               content: message.content,
               source: message.source as 'user' | 'ai' | 'system',
               parentId: message.parentId,
-              timestamp: message.timestamp || Date.now()
+              timestamp: message.timestamp || Date.now(),
+              tokenUsage: message.tokenUsage || null
             }
           });
         });

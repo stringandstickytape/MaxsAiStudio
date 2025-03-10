@@ -188,7 +188,9 @@ export function useChatManagement() {
         nodes.push({
           id: node.id,
           text: node.text,
-          parentId: node.parentId
+          parentId: node.parentId,
+          tokenUsage: node.tokenUsage,
+          source: node.source
         });
 
         if (node.children && Array.isArray(node.children)) {
@@ -210,7 +212,8 @@ export function useChatManagement() {
           (node.id.includes('user') ? 'user' :
             node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
         parentId: node.parentId,
-        timestamp: Date.now() // No timestamp in tree data, use current time
+        timestamp: Date.now(), // No timestamp in tree data, use current time
+        tokenUsage: node.tokenUsage || null
       }));
 
       return {

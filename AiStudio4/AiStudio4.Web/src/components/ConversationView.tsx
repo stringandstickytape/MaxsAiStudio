@@ -49,7 +49,7 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
         console.warn('No messages to display in conversation:', activeConversationId);
         return null;
     }
-
+    
     return (
         <div className="w-full">
             <div className="conversation-view w-full">
@@ -59,6 +59,14 @@ export const ConversationView = ({ streamTokens }: ConversationViewProps) => {
                             className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} clear-both`}
                         >
                             <MarkdownPane message={message.content} />
+                            {message.tokenUsage && (
+                                <div className="text-xs text-gray-400 mt-2 border-t border-gray-700 pt-1">
+                                    <span>Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out</span>
+                                    {(message.tokenUsage.cacheCreationInputTokens > 0 || message.tokenUsage.cacheReadInputTokens > 0) && (
+                                        <span className="ml-2">(Cache: {message.tokenUsage.cacheCreationInputTokens} created, {message.tokenUsage.cacheReadInputTokens} read)</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}

@@ -5,6 +5,12 @@ export interface Message {
     source: 'user' | 'ai' | 'system';
     timestamp: number;
     parentId?: string | null;
+    tokenUsage?: {
+        inputTokens: number;
+        outputTokens: number;
+        cacheCreationInputTokens: number;
+        cacheReadInputTokens: number;
+    } | null;
 }
 
 export interface Conversation {
