@@ -20,7 +20,7 @@ interface AppearanceState {
 }
 
 // Constants for font size limits
-const MIN_FONT_SIZE = 12;
+const MIN_FONT_SIZE = 8;
 const MAX_FONT_SIZE = 24;
 const DEFAULT_FONT_SIZE = 16;
 const FONT_SIZE_STEP = 1;

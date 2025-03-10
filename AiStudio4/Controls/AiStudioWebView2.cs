@@ -39,8 +39,7 @@ namespace AiStudio4.Controls
             // Register for resource handling
             //this.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
 
-            // Navigate to 127.0.0.1 - localhost won't allow websockets?
-            this.CoreWebView2.Navigate("https://127.0.0.1:35005/");
+            this.CoreWebView2.Navigate("https://localhost:35005/");
         }
         //private async void CoreWebView2_WebResourceRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs e)
         //{

@@ -76,7 +76,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
             decreaseFontSize();
             setHasChanges(true);
           }}
-          disabled={fontSize <= 12 || isLoading}
+          disabled={fontSize <= 8 || isLoading}
           className="h-8 w-8 bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
         >
           <Minus className="h-4 w-4" />
@@ -84,7 +84,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
         
         <Slider
           value={[fontSize]}
-          min={12}
+          min={8}
           max={24}
           step={1}
           onValueChange={(values) => handleFontSizeChange(values[0])}

@@ -8,18 +8,7 @@ import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 
 interface AppHeaderProps {
-    isMobile: boolean;
-    selectedModel: string;
-    secondaryModel: string;
-    models: string[];
-    onToggleSidebar: () => void;
-    onModelSelect: (model: string) => void;
-    onSecondaryModelSelect: (model: string) => void;
-    onToggleConversationTree: () => void;
-    onToggleSettings: () => void;
-    onToggleToolPanel?: () => void;
     onToggleSystemPrompts?: () => void;
-    onManageTools?: () => void;
     onExecuteCommand?: (command: string) => void;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
@@ -30,18 +19,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({
-    isMobile,
-    selectedModel,
-    secondaryModel,
-    models,
-    onToggleSidebar,
-    onModelSelect,
-    onSecondaryModelSelect,
-    onToggleConversationTree,
-    onToggleSettings,
-    onToggleToolPanel,
     onToggleSystemPrompts,
-    onManageTools,
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },

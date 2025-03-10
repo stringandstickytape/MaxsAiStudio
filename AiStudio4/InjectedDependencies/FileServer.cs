@@ -7,7 +7,6 @@ namespace AiStudio4.InjectedDependencies
 {
     public class FileServer
     {
-        private const bool DevMode = true; // Toggle this for dev/prod mode
         private readonly string _webRootPath;
         private readonly HttpClient _httpClient;
         private const string DevServerUrl = "http://localhost:5173";
@@ -20,7 +19,7 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task HandleFileRequest(HttpContext context)
         {
-            if (DevMode)
+            if (System.Diagnostics.Debugger.IsAttached)
             {
                 await ForwardToDevServer(context);
             }

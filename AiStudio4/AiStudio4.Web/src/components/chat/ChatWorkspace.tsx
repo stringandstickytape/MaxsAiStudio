@@ -102,17 +102,7 @@ export function ChatWorkspace() {
       {/* Top header - fixed height */}
       <div className="flex-none h-[155px] bg-background">
         <AppHeader
-          isMobile={isMobile}
-          selectedModel={selectedPrimaryModel}
-          secondaryModel={selectedSecondaryModel}
-          models={models.map(m => m.modelName)}
-          onToggleSidebar={() => togglePanel('sidebar')}
-          onModelSelect={(model) => handleLocalModelSelect('primary', model)}
-          onSecondaryModelSelect={(model) => handleLocalModelSelect('secondary', model)}
-          onToggleConversationTree={() => togglePanel('conversationTree')}
-          onToggleSettings={() => togglePanel('settings')}
           onToggleSystemPrompts={() => togglePanel('systemPrompts')}
-          onToggleToolPanel={openToolPanel}
           isCommandBarOpen={isCommandBarOpen}
           setIsCommandBarOpen={setIsCommandBarOpen}
           CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}

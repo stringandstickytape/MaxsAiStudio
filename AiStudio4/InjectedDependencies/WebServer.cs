@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -49,11 +50,15 @@ namespace AiStudio4.InjectedDependencies
                 options.ListenAnyIP(port, listenOptions =>
                 {
                     // Load the certificate from the file
-                    string certPath = Path.Combine(
-                        "C:\\certs",
-                        "aistudio4.pfx");
+                    string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
 
-                    listenOptions.UseHttps(certPath, "YourStrongPassword");
+                    using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                    store.Open(OpenFlags.ReadOnly);
+                    string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
+                    var cert = store.Certificates
+                        .Find(X509FindType.FindByThumbprint, thumbprint, false)[0]; //YourStrongPassword
+
+                    listenOptions.UseHttps(cert);
                 });
             });
 
