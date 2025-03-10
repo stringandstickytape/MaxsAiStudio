@@ -14,6 +14,7 @@ interface PinnedCommandsStore {
     pinnedCommands: PinnedCommand[];
     loading: boolean;
     error: string | null;
+    isDragging: boolean;
     
     // Actions
     setPinnedCommands: (commands: PinnedCommand[]) => void;
@@ -24,6 +25,7 @@ interface PinnedCommandsStore {
     savePinnedCommands: () => Promise<void>;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
+    setIsDragging: (isDragging: boolean) => void;
 }
 
 export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => ({
@@ -31,6 +33,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
     pinnedCommands: [],
     loading: false,
     error: null,
+    isDragging: false,
     
     // Actions
     setPinnedCommands: (commands) => set({ pinnedCommands: commands }),
@@ -54,6 +57,8 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
                 orderedCommands.push(command);
             }
         });
+        // Set user-modified flag to trigger save
+        window.localStorage.setItem('pinnedCommands_modified', 'true');
         return { pinnedCommands: orderedCommands };
     }),
     
@@ -119,7 +124,9 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
     
     setLoading: (loading) => set({ loading }),
     
-    setError: (error) => set({ error })
+    setError: (error) => set({ error }),
+    
+    setIsDragging: (isDragging) => set({ isDragging })
 }));
 
 // Debug helper for console
@@ -130,6 +137,7 @@ export const debugPinnedCommands = () => {
     console.log('Commands:', state.pinnedCommands);
     console.log('Loading:', state.loading);
     console.log('Error:', state.error);
+    console.log('Dragging:', state.isDragging);
     console.groupEnd();
     return state;
 };

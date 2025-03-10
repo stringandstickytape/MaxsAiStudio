@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
+import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic, GripVertical } from 'lucide-react';
 import { usePinnedCommandsStore, PinnedCommand } from '@/stores/usePinnedCommandsStore';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -51,7 +52,7 @@ const getIconForCommand = (commandId: string, iconName?: string) => {
 
 export function PinnedShortcuts({
     orientation = 'horizontal',
-    maxShown = 12,
+    maxShown = 10,
     className,
     autoFit = true
 }: PinnedShortcutsProps) {
@@ -63,6 +64,7 @@ export function PinnedShortcuts({
         fetchPinnedCommands, 
         addPinnedCommand, 
         removePinnedCommand,
+        reorderPinnedCommands,
         savePinnedCommands 
     } = usePinnedCommandsStore();
     
@@ -157,7 +159,7 @@ export function PinnedShortcuts({
 
         const calculateVisibleButtons = () => {
             const containerWidth = containerRef.current?.clientWidth || 0;
-            const buttonWidth = 90 + 4; // Button width (90px) + gap (4px)
+            const buttonWidth = 90 + 4 + 30; // Button width (90px) + gap (4px) + handle (23px)
             const dropdownWidth = 30; // Width reserved for the "more" dropdown button
             
             // Calculate max buttons that can fit in the available width
@@ -188,6 +190,30 @@ export function PinnedShortcuts({
             resizeObserver.disconnect();
         };
     }, [autoFit, orientation, pinnedCommands.length, visibleCount]);
+
+    // Handle drag end event for reordering
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination) return; // Dropped outside the list
+
+        // Clone current commands
+        const items = Array.from(pinnedCommands);
+
+        // Reorder the clone
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Get just the IDs in the new order
+        const reorderedIds = items.map(cmd => cmd.id);
+
+        // Update the store with the new order
+        reorderPinnedCommands(reorderedIds);
+
+        // Set user modified flag to trigger save
+        setUserModified(true);
+
+        // Save immediately rather than waiting for the effect
+        savePinnedCommands();
+    };
 
     // Override addPinnedCommand and removePinnedCommand to set userModified flag
     const handleCommandClick = (commandId: string) => {
@@ -255,41 +281,81 @@ export function PinnedShortcuts({
     }
 
     return (
-        <div 
-            ref={containerRef}
-            className={cn(
-                "flex items-center justify-center gap-1 overflow-x-auto py-1 px-2",
-                orientation === 'vertical' ? "flex-col" : "flex-row w-full",
-                className
-            )}>
-            <TooltipProvider>
-                {visibleCommands.map(command => (
-                    <Tooltip key={command.id} delayDuration={300}>
-                        <TooltipTrigger asChild>
-                            <Button
-                                ref={command.id === visibleCommands[0]?.id ? buttonRef : null}
-                                variant="ghost"
-                                onClick={() => handleCommandClick(command.id)}
-                                onContextMenu={(e) => {
-                                    e.preventDefault();
-                                    // Remove pin on right-click
-                                    handlePinCommand(command.id, true);
-                                }}
-                                className="h-auto min-h-[40px] max-h-[50px] w-[90px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-start gap-1"
-                            >
-                                <div className="flex-shrink-0">
-                                    {getIconForCommand(command.id, command.iconName)}
-                                </div>
-                                <span className="text-xs font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
-                                    {command.name}
-                                </span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
-                            <p>{command.name}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                ))}
+        <TooltipProvider>
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div 
+                    ref={containerRef}
+                    className={cn(
+                        "flex items-center justify-center gap-1 overflow-x-auto py-1 px-2",
+                        orientation === 'vertical' ? "flex-col" : "flex-row w-full",
+                        className
+                    )}
+                >
+                <Droppable
+                    droppableId="pinned-commands"
+                    direction={orientation === 'vertical' ? 'vertical' : 'horizontal'}
+                    isDropDisabled={false}
+                >
+                    {(provided) => (
+                        <div 
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={cn(
+                                "flex items-center gap-1",
+                                orientation === 'vertical' ? "flex-col" : "flex-row"
+                            )}
+                        >
+                            {visibleCommands.map((command, index) => (
+                                    <Draggable key={command.id} draggableId={command.id} index={index}>
+                                        {(provided, snapshot) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={cn(
+                                                    "flex items-center",
+                                                    snapshot.isDragging && "opacity-70 z-50"
+                                                )}
+                                            >
+                                                <Tooltip key={command.id} delayDuration={300}>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            ref={command.id === visibleCommands[0]?.id ? buttonRef : null}
+                                                            variant="ghost"
+                                                            onClick={() => handleCommandClick(command.id)}
+                                                            onContextMenu={(e) => {
+                                                                e.preventDefault();
+                                                                // Remove pin on right-click
+                                                                handlePinCommand(command.id, true);
+                                                            }}
+                                                            className="h-auto min-h-[40px] max-h-[50px] w-[90px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-start gap-1 relative"
+                                                        >
+                                                            <div className="flex-shrink-0">
+                                                                {getIconForCommand(command.id, command.iconName)}
+                                                            </div>
+                                                            <span className="text-xs font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
+                                                                {command.name}
+                                                            </span>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
+                                                        <p>{command.name}</p>
+                                                        <p className="text-xs text-gray-400">Drag to reorder · Right-click to unpin</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                                <div 
+                                                    {...provided.dragHandleProps}
+                                                    className="cursor-grab h-6 w-6 ml-1 text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors"
+                                                >
+                                                    <GripVertical className="h-3.5 w-3.5" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                            ))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
 
                 {/* "More" dropdown button if there are additional commands */}
                 {hasMoreCommands && (
@@ -330,7 +396,8 @@ export function PinnedShortcuts({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-            </TooltipProvider>
-        </div>
+            </div>
+        </DragDropContext>
+    </TooltipProvider>
     );
 }
