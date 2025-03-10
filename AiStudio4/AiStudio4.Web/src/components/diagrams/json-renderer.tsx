@@ -75,7 +75,7 @@ export const JsonRenderer: CodeBlockRenderer = {
             const jsonData = typeof content === 'string' ? JSON.parse(content) : content;
             
             return (
-                <div className={`${className} p-4 font-mono text-sm`}>
+                <div className={`${className} p-4 font-mono text-sm`} style={{ whiteSpace: 'break-spaces' }}>
                     <JsonNode data={jsonData} />
                 </div>
             );

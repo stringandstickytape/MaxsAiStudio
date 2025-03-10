@@ -1,104 +1,74 @@
 import mermaid from 'mermaid';
 import { CodeBlockRenderer } from '@/components/diagrams/types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const MermaidRenderer: CodeBlockRenderer = {
     type: ['mermaid'],
     initialize: () => {
-        // No need to initialize globally since each diagram will be in its own iframe
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'strict',
+            darkMode: true,
+            themeVariables: {
+                fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#e0e0e0',
+                primaryBorderColor: '#374151',
+                lineColor: '#4b5563',
+                secondaryColor: '#475569',
+                tertiaryColor: '#1f2937',
+            }
+        });
     },
-    render: async () => {
-        // Rendering will happen in each iframe independently
+    render: async (content: string, element: HTMLElement) => {
+        try {
+            const { svg } = await mermaid.render('mermaid-svg-' + Math.random().toString(36).substr(2, 9), content);
+            element.innerHTML = svg;
+        } catch (error) {
+            console.error('Failed to render mermaid diagram:', error);
+            element.innerHTML = `<div class="error">Failed to render diagram: ${error.message}</div>`;
+        }
     },
     Component: ({ content, className }) => {
-        const iframeRef = useRef(null);
+        const containerRef = useRef<HTMLDivElement>(null);
+        const [error, setError] = useState<string | null>(null);
 
         useEffect(() => {
-            if (!iframeRef.current) return;
+            if (!containerRef.current) return;
 
-            // Create the HTML content for the iframe
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        body {
-                            margin: 0;
-                            padding: 0;
-                            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-                            background-color: transparent;
-                        }
-                        .mermaid {
-                            display: flex;
-                            justify-content: center;
-                        }
-                    </style>
-                    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            mermaid.initialize({
-                                startOnLoad: true,
-                                theme: 'dark',
-                                securityLevel: 'strict', // Use strict here for better security
-                                darkMode: true,
-                                themeVariables: {
-                                    fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-                                    primaryColor: '#3b82f6',
-                                    primaryTextColor: '#e0e0e0',
-                                    primaryBorderColor: '#374151',
-                                    lineColor: '#4b5563',
-                                    secondaryColor: '#475569',
-                                    tertiaryColor: '#1f2937',
-                                }
-                            });
-                            
-                            // Render the diagram
-                            const element = document.getElementById('diagram');
-                            element.innerHTML = \`${content.replace(/`/g, '\\\`').replace(/\$/g, '\\$')}\`;
-                            
-                            // Adjust iframe height after rendering
-                            mermaid.run().then(() => {
-                                // Send message to parent with the height
-                                const height = document.body.scrollHeight;
-                                window.parent.postMessage({ type: 'resize', height: height }, '*');
-                            });
-                        });
-                    </script>
-                </head>
-                <body>
-                    <div class="mermaid" id="diagram"></div>
-                </body>
-                </html>
-            `;
+            const renderDiagram = async () => {
+                try {
+                    // Generate a unique ID for this render
+                    const id = 'mermaid-diagram-' + Math.random().toString(36).substr(2, 9);
+                    containerRef.current.innerHTML = `<div id="${id}">${content}</div>`;
 
-            // Set the srcdoc of the iframe
-            iframeRef.current.srcdoc = htmlContent;
-
-            // Handle messages from the iframe
-            const handleMessage = (event) => {
-                if (event.data && event.data.type === 'resize') {
-                    iframeRef.current.style.height = `${event.data.height}px`;
+                    // Render the diagram
+                    const { svg } = await mermaid.render(id, content);
+                    containerRef.current.innerHTML = svg;
+                    setError(null);
+                } catch (error) {
+                    console.error('Failed to render mermaid diagram:', error);
+                    setError(error.message);
                 }
             };
 
-            window.addEventListener('message', handleMessage);
-            return () => window.removeEventListener('message', handleMessage);
+            renderDiagram();
         }, [content]);
 
         return (
-            <iframe
-                ref={iframeRef}
-                sandbox="allow-scripts"
-                className={className || ''}
-                style={{
-                    width: '100%',
-                    border: 'none',
-                    overflow: 'hidden',
-                    height: '100px', // Default height, will be adjusted
-                    backgroundColor: 'transparent'
-                }}
-                title="Mermaid Diagram"
-            />
+            <div className={`flex justify-center ${className || ''}`}>
+                {error ? (
+                    <div className="text-red-500 p-2 border border-red-300 rounded">
+                        Failed to render diagram: {error}
+                    </div>
+                ) : (
+                    <div
+                        ref={containerRef}
+                        className="mermaid-container w-full"
+                    />
+                )}
+            </div>
         );
     }
 };

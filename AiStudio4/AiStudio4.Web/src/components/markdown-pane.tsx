@@ -1,4 +1,3 @@
-// src/markdown-pane.tsx
 import { useState, useEffect } from "react"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -73,17 +72,25 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             // Check if it's a supported diagram type
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `${language}-${content.slice(0, 20)}`;
+
+            // Initialize showRawContent for this block if it doesn't exist.  Default to true.
+            if (showRawContent[blockId] === undefined) {
+                setShowRawContent(prev => ({ ...prev, [blockId]: true }));
+            }
+
             const isRawView = showRawContent[blockId];
+
 
             const toggleView = () => {
                 setShowRawContent(prev => ({
                     ...prev,
-                    [blockId]: !prev[blockId]
+                    [blockId]: !prev[blockId]  // Correctly toggle the boolean value
                 }));
                 // Force re-render of diagrams when toggling back to rendered view
-                if (showRawContent[blockId]) {
-                    setMermaidKey(prev => prev + 1);
-                }
+                // No need to check showRawContent here.  The useEffect will handle the re-render.
+                setMermaidKey(prev => prev + 1);
+
+
             };
 
             // Determine if this is an HTML block that can be launched
@@ -134,7 +141,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                     <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                         {codeHeader}
                         <div className="p-4 bg-gray-800 rounded-b-lg">
-                            <pre>{content}</pre>
+                            <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                         </div>
                     </div>
                 ) : (
@@ -155,7 +162,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                     {codeHeader}
                     <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl">
-                        <pre>{content}</pre>
+                        <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                     </div>
                 </div>
             ) : (
