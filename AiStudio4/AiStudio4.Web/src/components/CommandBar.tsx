@@ -70,27 +70,19 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     // Add click-outside handler
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            console.log('Click outside handler fired');
-            console.log('isOpen:', isOpen);
-            console.log('containerRef exists:', !!containerRef.current);
-            console.log('Click was inside container:', containerRef.current?.contains(event.target as Node));
-
             if (isOpen &&
                 containerRef.current &&
                 !containerRef.current.contains(event.target as Node)) {
-                console.log('Closing command bar');
-                setIsOpen(false);
-            } else {
-                console.log('Not closing command bar');
+                    setIsOpen(false);
+                    setSearchTerm('');
             }
         };
 
-        // Add document-wide mousedown listener for detecting outside clicks
-        document.addEventListener('mousedown', handleClickOutside);
+        // Must be mouseup
+        document.addEventListener('mouseup', handleClickOutside);
 
-        // Clean up the listener when component unmounts or isOpen changes
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('mouseup', handleClickOutside);
         };
     }, [isOpen, setIsOpen]);
 
