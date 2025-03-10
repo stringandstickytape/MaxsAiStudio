@@ -11,6 +11,7 @@ namespace AiStudio4.Core.Models
         public long Timestamp { get; set; }
         public string Source { get; set; }
         public TokenUsage TokenUsage { get; set; }
+        public TokenCost CostInfo { get; set; }
     }
 
     public class StreamingUpdateDto

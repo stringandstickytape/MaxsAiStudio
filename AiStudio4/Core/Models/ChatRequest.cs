@@ -28,5 +28,6 @@ namespace AiStudio4.Core.Models
         public string ResponseText { get; set; }
         public string Error { get; set; }
         public TokenUsage TokenUsage { get; set; }
+        public TokenCost CostInfo { get; set; }
     }
 }

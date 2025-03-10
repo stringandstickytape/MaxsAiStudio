@@ -134,10 +134,16 @@ namespace AiStudio4.Services
                     var newId = $"msg_{Guid.NewGuid()}";
                     var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
 
-                    // Store token usage information
+                    // Store token usage and cost information
                     if (response.TokenUsage != null)
                     {
                         newAiReply.TokenUsage = response.TokenUsage;
+                    }
+                    
+                    // Store cost information if available
+                    if (response.CostInfo != null)
+                    {
+                        newAiReply.CostInfo = response.CostInfo;
                     }
 
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
@@ -201,6 +207,7 @@ namespace AiStudio4.Services
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Source = "ai", // Explicitly set source as "ai"
                         TokenUsage = newAiReply.TokenUsage,
+                        CostInfo = newAiReply.CostInfo
                     });
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
@@ -232,7 +239,7 @@ namespace AiStudio4.Services
                 source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
                         msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
                 tokenUsage = msg.TokenUsage,
-
+                costInfo = msg.CostInfo
             }).ToList<object>();
         }
 
@@ -272,7 +279,8 @@ namespace AiStudio4.Services
                 Role = message.Role,
                 ParentId = message.ParentId,
                 Children = new List<v4BranchedConversationMessage>(), // Empty children list
-                TokenUsage = message.TokenUsage
+                TokenUsage = message.TokenUsage,
+                CostInfo = message.CostInfo
             };
         }
     }

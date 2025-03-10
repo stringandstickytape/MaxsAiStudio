@@ -98,6 +98,10 @@ namespace AiStudio4.Services
                         }
                     }
                 }
+                
+                // Get cost configuration for the model
+                var modelCostConfig = _settingsManager.CurrentSettings.ModelCostConfigs
+                    .FirstOrDefault(c => c.ModelName == model.ModelName);
 
                 // Add all messages from history first
                 foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
@@ -124,6 +128,16 @@ namespace AiStudio4.Services
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions);
+                
+                // Calculate cost if cost tracking is enabled and model has cost configuration
+                if (_settingsManager.CurrentSettings.TrackTokenCost && modelCostConfig != null && response.TokenUsage != null)
+                {
+                    response.CostInfo = new Core.Models.TokenCost(
+                        response.TokenUsage,
+                        modelCostConfig.InputCostPer1M,
+                        modelCostConfig.OutputCostPer1M
+                    );
+                }
 
                 _logger.LogInformation("Successfully processed chat request");
 
@@ -142,7 +156,8 @@ namespace AiStudio4.Services
                 {
                     Success = true,
                     ResponseText = responseText,
-                    TokenUsage = response.TokenUsage
+                    TokenUsage = response.TokenUsage,
+                    CostInfo = response.CostInfo
                 };
             }
             catch (Exception ex)

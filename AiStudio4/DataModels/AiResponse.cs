@@ -1,4 +1,5 @@
-﻿using SharedClasses.Providers;
+﻿using AiStudio4.Core.Models;
+using SharedClasses.Providers;
 
 namespace AiStudio4.DataModels
 {
@@ -11,6 +12,7 @@ namespace AiStudio4.DataModels
         public string? SuggestedNextPrompt { get; set; }
         public TimeSpan Duration { get; set; }
         public string ChosenTool { get; set; }
+        public TokenCost CostInfo { get; set; }
 
         public AiResponse()
         {

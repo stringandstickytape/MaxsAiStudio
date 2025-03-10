@@ -43,7 +43,8 @@ namespace AiStudio4.Services
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
                             // Note: We're no longer sending children arrays to the client
-                            tokenUsage = update.TokenUsage
+                            tokenUsage = update.TokenUsage,
+                            costInfo = update.CostInfo
                         }
                     };
                     await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));

@@ -1,3 +1,4 @@
+using AiStudio4.Core.Models;
 using SharedClasses.Providers;
 using System.Text.Json.Serialization;
 
@@ -17,5 +18,6 @@ namespace AiStudio4.InjectedDependencies
     public string ParentId { get; set; }
 
         public TokenUsage TokenUsage { get; set; }
+        public TokenCost CostInfo { get; set; }
     }
 }
