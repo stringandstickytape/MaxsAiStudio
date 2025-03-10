@@ -1,14 +1,6 @@
 // src/components/ConversationTreeView.tsx
-import React, { useState, useEffect, useMemo } from 'react';
-import ReactFlow, {
-    Node,
-    Edge,
-    Position,
-    MarkerType,
-    ReactFlowProvider,
-    Controls
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import * as d3 from 'd3';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/conversation';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -19,67 +11,255 @@ interface TreeViewProps {
     messages: Message[];
 }
 
+interface TreeNode {
+    id: string;
+    content: string;
+    source: string;
+    children: TreeNode[];
+    parentId?: string;
+    depth?: number;
+    x?: number;
+    y?: number;
+}
+
 export const ConversationTreeView: React.FC<TreeViewProps> = ({
     conversationId,
     messages
 }) => {
-    const [nodes, setNodes] = useState<Node[]>([]);
-    const [edges, setEdges] = useState<Edge[]>([]);
-    const { setActiveConversation, getConversation } = useConversationStore();
-
-    // Add this key state to force re-renders when needed
     const [updateKey, setUpdateKey] = useState(0);
-
-    const onNodeClick = (_: React.MouseEvent, node: Node) => {
-        // Set active conversation and selected message
-        console.log('Tree Node clicked:', {
-            node: node.id,
-            conversationId: conversationId
-        });
-        setActiveConversation({
-            conversationId: conversationId,
-            selectedMessageId: node.id
-        });
-    };
-
-    // Get the most up-to-date messages from the conversation store
-    const currentMessages = useMemo(() => {
-        const conversation = getConversation(conversationId);
-        return conversation?.messages || messages;
-    }, [getConversation, conversationId, messages, updateKey]);
-
+    const { setActiveConversation } = useConversationStore();
+    const svgRef = useRef<SVGSVGElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+    
     // Force a refresh when conversationId changes
     useEffect(() => {
         setUpdateKey(prev => prev + 1);
     }, [conversationId]);
-
-    useEffect(() => {
-        console.log('Conversation tree building with message count:', currentMessages.length);
-        if (!currentMessages || currentMessages.length === 0) return;
-
+    
+    // Process the message data into a hierarchical structure for D3
+    const hierarchicalData = useMemo(() => {
+        if (!messages || messages.length === 0) return null;
+        
         try {
             // Create a message graph from the messages
-            const graph = new MessageGraph(currentMessages);
-
-            // Call transformToReactFlow directly with the flat message array and relationships
-            const { nodes: flowNodes, edges: flowEdges } = transformToReactFlow(
-                graph.getAllMessages(),
-                graph
-            );
-
-            console.log('Tree transformation complete:', {
-                nodeCount: flowNodes.length,
-                edgeCount: flowEdges.length
-            });
-
-            setNodes(flowNodes);
-            setEdges(flowEdges);
+            const graph = new MessageGraph(messages);
+            
+            // Get root messages
+            const rootMessages = graph.getRootMessages();
+            if (rootMessages.length === 0) return null;
+            
+            // Start with the first root message
+            const rootMessage = rootMessages[0];
+            
+            // Create a recursive function to build the tree
+            const buildTree = (message: Message, depth: number = 0): TreeNode => {
+                const node: TreeNode = {
+                    id: message.id,
+                    content: message.content,
+                    source: message.source,
+                    children: [],
+                    parentId: message.parentId,
+                    depth: depth
+                };
+                
+                // Get children from the graph
+                const childMessages = graph.getChildren(message.id);
+                node.children = childMessages.map(child => buildTree(child, depth + 1));
+                
+                return node;
+            };
+            
+            // Build the tree starting from the root
+            return buildTree(rootMessage);
         } catch (error) {
-            console.error('Error creating tree visualization:', error);
+            console.error('Error creating tree data:', error);
+            return null;
         }
-    }, [currentMessages, conversationId, updateKey]);
+    }, [messages, updateKey]);
+    
+    // Handle node click
+    const handleNodeClick = (nodeId: string) => {
+        console.log('Tree Node clicked:', {
+            node: nodeId,
+            conversationId: conversationId
+        });
+        setActiveConversation({
+            conversationId: conversationId,
+            selectedMessageId: nodeId
+        });
+    };
+    
+    // Handle zoom controls
+    const handleZoomIn = () => {
+        if (svgRef.current && zoomRef.current) {
+            d3.select(svgRef.current).transition().call(
+                zoomRef.current.scaleBy, 1.3
+            );
+        }
+    };
 
-    if (!currentMessages.length) {
+    const handleZoomOut = () => {
+        if (svgRef.current && zoomRef.current) {
+            d3.select(svgRef.current).transition().call(
+                zoomRef.current.scaleBy, 0.7
+            );
+        }
+    };
+
+    const handleCenter = () => {
+        if (svgRef.current && zoomRef.current && containerRef.current) {
+            const containerWidth = containerRef.current.clientWidth;
+
+            // Get the root node's position from the current tree data
+            const svg = d3.select(svgRef.current);
+            const rootNode = svg.select('.node').datum() as any;
+
+            if (rootNode) {
+                // Calculate the center offset based on the root node position
+                const rootX = rootNode.x || containerWidth / 2;
+                const centerX = (containerWidth / 2) - rootX;
+
+                // Apply the transform with the calculated offset
+                svg.transition().call(
+                    zoomRef.current.transform,
+                    d3.zoomIdentity.translate(centerX, 50)
+                );
+            } else {
+                // Fallback if we can't find the root node
+                svg.transition().call(
+                    zoomRef.current.transform,
+                    d3.zoomIdentity.translate(containerWidth / 2, 50)
+                );
+            }
+        }
+    };
+
+    // Render D3 visualization
+    useEffect(() => {
+        if (!svgRef.current || !containerRef.current || !hierarchicalData) return;
+        
+        // Clear previous visualization
+        d3.select(svgRef.current).selectAll('*').remove();
+        
+        // Get container dimensions
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight || 600;
+        
+        // Create SVG element
+        const svg = d3.select(svgRef.current)
+            .attr('width', containerWidth)
+            .attr('height', containerHeight);
+        
+        // Create a group for the tree
+        const g = svg.append('g');
+        
+        // Create a tree layout
+        const treeLayout = d3.tree<TreeNode>()
+            .size([containerWidth - 100, containerHeight - 150]);
+        
+        // Create hierarchy from data
+        const root = d3.hierarchy(hierarchicalData);
+        
+        // Compute the tree layout
+        const treeData = treeLayout(root);
+        
+        // Add zoom behavior
+        const zoom = d3.zoom<SVGSVGElement, unknown>()
+            .scaleExtent([0.5, 3])
+            .on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            });
+        
+        // Store zoom reference for external controls
+        zoomRef.current = zoom;
+        
+        svg.call(zoom);
+        
+        // Center the tree initially
+        const rootX = treeData.x || containerWidth / 2;
+        const centerX = (containerWidth / 2) - rootX;
+        svg.call(zoom.transform, d3.zoomIdentity.translate(centerX, 50));
+        
+        // Create links
+        g.selectAll('.link')
+            .data(treeData.links())
+            .enter().append('path')
+            .attr('class', 'link')
+            .attr('d', d3.linkVertical<d3.HierarchyPointLink<TreeNode>, d3.HierarchyPointNode<TreeNode>>()
+                .x(d => d.x) // Use standard x and y for vertical layout
+                .y(d => d.y))
+            .attr('fill', 'none')
+            .attr('stroke', '#6b7280')
+            .attr('stroke-width', 2)
+            .attr('stroke-opacity', 0.6);
+        
+        // Create node groups
+        const nodeGroups = g.selectAll('.node')
+            .data(treeData.descendants())
+            .enter().append('g')
+            .attr('class', 'node')
+            .attr('transform', d => `translate(${d.x},${d.y})`) // Standard coordinates for vertical layout
+            .attr('cursor', 'pointer')
+            .on('click', (_, d) => handleNodeClick(d.data.id));
+        
+        // Add node rectangles
+        nodeGroups.append('rect')
+            .attr('width', 200)
+            .attr('height', 70)
+            .attr('x', -100)
+            .attr('y', -35)
+            .attr('rx', 10)
+            .attr('ry', 10)
+            .attr('fill', d => {
+                const source = d.data.source;
+                if (source === 'user') return '#1e40af'; // User blue
+                if (source === 'system') return '#4B5563'; // System gray
+                return '#4f46e5'; // AI purple
+            })
+            .attr('stroke', d => {
+                const source = d.data.source;
+                if (source === 'user') return '#1e3a8a';
+                if (source === 'system') return '#374151';
+                return '#4338ca';
+            })
+            .attr('stroke-width', 1);
+        
+        // Add node labels
+        const nodeLabels = nodeGroups.append('g')
+            .attr('transform', 'translate(-90, -20)');
+        
+        // Add message source label
+        nodeLabels.append('text')
+            .attr('dy', '0.5em')
+            .attr('font-size', '10px')
+            .attr('font-weight', 'bold')
+            .attr('fill', 'white')
+            .text(d => {
+                const source = d.data.source;
+                if (source === 'user') return 'You';
+                if (source === 'system') return 'System';
+                return 'AI';
+            });
+        
+        // Add message content preview
+        nodeLabels.append('text')
+            .attr('dy', '2em')
+            .attr('font-size', '10px')
+            .attr('fill', 'white')
+            .text(d => {
+                // Truncate content
+                const content = d.data.content || '';
+                return content.length > 30 ? content.substring(0, 30) + '...' : content;
+            });
+        
+        return () => {
+            // Cleanup
+            d3.select(svgRef.current).selectAll('*').remove();
+        };
+    }, [hierarchicalData, conversationId, handleNodeClick]);
+    
+    if (!messages.length) {
         return (
             <div className="text-gray-400 text-center p-4 bg-gray-900 rounded-md shadow-inner mx-auto my-8 max-w-md border border-gray-800">
                 <p>No conversation history to display</p>
@@ -87,182 +267,50 @@ export const ConversationTreeView: React.FC<TreeViewProps> = ({
             </div>
         );
     }
-
+    
     return (
         <div className="flex flex-col h-[calc(100vh-70px)] w-full">
             <div className={cn(
-                "flex-1 overflow-hidden",
-                !currentMessages.length && "flex items-center justify-center"
-            )}>
-                <ReactFlowProvider>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        fitView
-                        className="bg-[#111827]"
-                        minZoom={0.1}
-                        maxZoom={1.5}
-                        defaultZoom={0.8}
-                        attributionPosition="bottom-left"
-                        onNodeClick={onNodeClick}
-                        nodesDraggable={true}
-                        zoomOnScroll={true}
-                        panOnScroll={true}
-                        panOnDrag={true}
-                        key={`flow-${conversationId}-${updateKey}`}
+                "flex-1 overflow-hidden relative",
+                !messages.length && "flex items-center justify-center"
+            )} ref={containerRef}>
+                <svg 
+                    ref={svgRef} 
+                    className="w-full h-full bg-[#111827]"
+                    key={`tree-${conversationId}-${updateKey}`}
+                />
+                
+                {/* Zoom Controls */}
+                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+                    <button
+                        onClick={handleCenter}
+                        className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full shadow-lg"
+                        title="Center View"
                     >
-                        <Controls />
-                    </ReactFlow>
-                </ReactFlowProvider>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-8a2 2 0 11-4 0 2 2 0 014 0z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={handleZoomIn}
+                        className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full shadow-lg"
+                        title="Zoom In"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={handleZoomOut}
+                        className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full shadow-lg"
+                        title="Zoom Out"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
-
-// Helper function that works directly with flat message arrays
-function transformToReactFlow(messages: Message[], graph: MessageGraph): { nodes: Node[]; edges: Edge[] } {
-    const nodes: Node[] = [];
-    const edges: Edge[] = [];
-
-    // Get root messages to establish top level
-    const rootMessages = graph.getRootMessages();
-
-    // Used to track node positions
-    const levelDepths: Map<string, number> = new Map();
-    const horizontalPositions: Map<string, number> = new Map();
-
-    // Calculate depth for each message using graph traversal
-    function calculateDepths() {
-        // Set depth 0 for root messages
-        rootMessages.forEach(root => {
-            levelDepths.set(root.id, 0);
-        });
-
-        // Process each message - if parent has depth, child has depth+1
-        let changed = true;
-        while (changed) {
-            changed = false;
-            messages.forEach(message => {
-                // Skip if no parent or depth already set
-                if (!message.parentId || levelDepths.has(message.id)) return;
-
-                // If parent has depth, set child depth
-                const parentDepth = levelDepths.get(message.parentId);
-                if (parentDepth !== undefined) {
-                    levelDepths.set(message.id, parentDepth + 1);
-                    changed = true;
-                }
-            });
-        }
-    }
-
-    // Assign horizontal positions to prevent overlaps
-    function assignHorizontalPositions() {
-        // Group messages by depth
-        const messagesByDepth: Map<number, Message[]> = new Map();
-
-        messages.forEach(message => {
-            const depth = levelDepths.get(message.id);
-            if (depth === undefined) return;
-
-            if (!messagesByDepth.has(depth)) {
-                messagesByDepth.set(depth, []);
-            }
-            messagesByDepth.get(depth)?.push(message);
-        });
-
-        // For each depth level, assign horizontal positions
-        const horizontalSpacing = 200;
-
-        messagesByDepth.forEach((messagesAtDepth, depth) => {
-            const levelWidth = messagesAtDepth.length * horizontalSpacing;
-            const startX = -levelWidth / 2;
-
-            messagesAtDepth.forEach((message, index) => {
-                horizontalPositions.set(message.id, startX + (index + 0.5) * horizontalSpacing);
-            });
-        });
-    }
-
-    // Calculate positions
-    calculateDepths();
-    assignHorizontalPositions();
-
-    // Create ReactFlow nodes
-    const verticalSpacing = 150;
-
-    messages.forEach(message => {
-        const depth = levelDepths.get(message.id);
-        const horizontalPos = horizontalPositions.get(message.id);
-
-        if (depth === undefined || horizontalPos === undefined) {
-            console.warn(`Missing position data for message ${message.id}`);
-            return;
-        }
-
-        // Determine if user or AI message based on the source
-        const isUserMessage = message.source === 'user';
-        const isSystemMessage = message.source === 'system';
-
-        // Create the node with appropriate styling
-        const newNode: Node = {
-            id: message.id,
-            type: 'default',
-            position: {
-                x: horizontalPos,
-                y: depth * verticalSpacing
-            },
-            data: {
-                label: (
-                    <div className="flex flex-col gap-1 max-w-[150px]">
-                        <div className="text-xs font-semibold">
-                            {isUserMessage ? 'You' : isSystemMessage ? 'System' : 'AI'}
-                        </div>
-                        <div className="text-sm truncate">
-                            {message.content?.substring(0, 30) + (message.content?.length > 30 ? '...' : '')}
-                        </div>
-                    </div>
-                )
-            },
-            style: {
-                background: isUserMessage ? '#1e40af' : isSystemMessage ? '#4B5563' : '#4f46e5',
-                color: '#ffffff',
-                border: isUserMessage ? '1px solid #1e3a8a' :
-                    isSystemMessage ? '1px solid #374151' : '1px solid #4338ca',
-                borderRadius: '10px',
-                padding: '12px',
-                width: '180px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                fontSize: '0.9rem',
-            },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-        };
-
-        nodes.push(newNode);
-    });
-
-    // Create edges based on parent-child relationships
-    messages.forEach(message => {
-        if (message.parentId) {
-            const edge: Edge = {
-                id: `${message.parentId}-${message.id}`,
-                source: message.parentId,
-                target: message.id,
-                type: 'smoothstep',
-                animated: true,
-                style: { stroke: '#6b7280', strokeWidth: 2 },
-                markerEnd: {
-                    type: MarkerType.ArrowClosed,
-                    width: 15,
-                    height: 15,
-                    color: '#6b7280',
-                },
-            };
-
-            edges.push(edge);
-        }
-    });
-
-    return { nodes, edges };
-}
