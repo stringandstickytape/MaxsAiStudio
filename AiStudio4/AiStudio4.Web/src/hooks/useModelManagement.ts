@@ -6,7 +6,6 @@ import { Model, ServiceProvider } from '@/types/settings';
 import { ModelType } from '@/types/modelTypes';
 import { createResourceHook } from './useResourceFactory';
 
-// Create resource hook for models
 const useModelResource = createResourceHook<Model>({
     endpoints: {
         fetch: '/api/getModels',
@@ -25,7 +24,6 @@ const useModelResource = createResourceHook<Model>({
     }
 });
 
-// Create resource hook for service providers
 const useProviderResource = createResourceHook<ServiceProvider>({
     endpoints: {
         fetch: '/api/getServiceProviders',
@@ -44,11 +42,7 @@ const useProviderResource = createResourceHook<ServiceProvider>({
     }
 });
 
-/**
- * A centralized hook for managing models and providers throughout the application.
- */
 export function useModelManagement() {
-    // Use the model resource hook
     const {
         isLoading: modelsLoading,
         error: modelsError,
@@ -59,7 +53,6 @@ export function useModelManagement() {
         clearError: clearModelsError
     } = useModelResource();
 
-    // Use the provider resource hook
     const {
         isLoading: providersLoading,
         error: providersError,
@@ -70,10 +63,8 @@ export function useModelManagement() {
         clearError: clearProvidersError
     } = useProviderResource();
 
-    // Use API call state utility for specialized operations
     const { executeApiCall } = useApiCallState();
 
-    // Get access to the Zustand store
     const {
         models,
         providers,
@@ -83,10 +74,8 @@ export function useModelManagement() {
         selectSecondaryModel
     } = useModelStore();
 
-    // Auto-initialize on component mount
     useEffect(() => {
         const initializeConfig = async () => {
-            // Only run once, if models are empty or still at default selection
             if (models.length === 0 ||
                 selectedPrimaryModel === 'Select Model' ||
                 selectedSecondaryModel === 'Select Model') {
@@ -97,23 +86,19 @@ export function useModelManagement() {
         initializeConfig();
     }, []);
 
-    // Function to fetch configuration (models and default selections)
     const fetchConfig = useCallback(async () => {
         return executeApiCall(async () => {
-            // Create API request function
             const getConfig = createApiRequest('/api/getConfig', 'POST');
             const data = await getConfig({});
 
             console.log('Config loaded:', data);
 
-            // Handle models if they don't exist already
             if (data.models && data.models.length > 0 && models.length === 0) {
-                // Create model objects from config data
                 const modelObjects = data.models.map((modelName: string) => ({
                     guid: crypto.randomUUID(),
                     modelName,
                     friendlyName: modelName,
-                    providerGuid: '', // Default value, will be updated later
+                    providerGuid: '',
                     userNotes: '',
                     additionalParams: '',
                     input1MTokenPrice: 0,
@@ -126,13 +111,11 @@ export function useModelManagement() {
                 useModelStore.getState().setModels(modelObjects);
             }
 
-            // Explicitly set primary model directly if available
             if (data.defaultModel && data.defaultModel.length > 0) {
                 console.log('Setting primary model to:', data.defaultModel);
                 selectPrimaryModel(data.defaultModel);
             }
 
-            // Explicitly set secondary model directly if available
             if (data.secondaryModel && data.secondaryModel.length > 0) {
                 console.log('Setting secondary model to:', data.secondaryModel);
                 selectSecondaryModel(data.secondaryModel);
@@ -142,20 +125,16 @@ export function useModelManagement() {
         });
     }, [models.length, executeApiCall, selectPrimaryModel, selectSecondaryModel]);
 
-    // Select model with API synchronization
     const handleModelSelect = useCallback(async (modelType: ModelType, modelName: string) => {
         return executeApiCall(async () => {
-            // Update local state first for immediate UI response
             if (modelType === 'primary') {
                 selectPrimaryModel(modelName);
 
-                // Update on the server
                 const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
                 await setDefaultModelRequest({ modelName });
             } else {
                 selectSecondaryModel(modelName);
 
-                // Update on the server
                 const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
                 await setSecondaryModelRequest({ modelName });
             }
@@ -164,34 +143,27 @@ export function useModelManagement() {
         });
     }, [selectPrimaryModel, selectSecondaryModel, executeApiCall]);
 
-    // Get a provider name by GUID
     const getProviderName = useCallback((providerGuid: string): string => {
         const provider = providers.find(p => p.guid === providerGuid);
         return provider ? provider.friendlyName : 'Unknown Provider';
     }, [providers]);
 
-    // Combined loading state
     const isLoading = modelsLoading || providersLoading;
 
-    // Combined error state
     const error = modelsError || providersError;
 
-    // Function to clear all errors
     const clearError = useCallback(() => {
         clearModelsError();
         clearProvidersError();
     }, [clearModelsError, clearProvidersError]);
 
     return {
-        // State
         models,
         providers,
         selectedPrimaryModel,
         selectedSecondaryModel,
         isLoading,
         error,
-
-        // Actions
         fetchConfig,
         fetchModels,
         fetchProviders,

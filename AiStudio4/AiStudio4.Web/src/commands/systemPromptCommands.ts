@@ -16,7 +16,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
 
     const { registerGroup } = useCommandStore.getState();
-    
+
     registerGroup({
         id: 'system-prompts',
         name: 'System Prompts',
@@ -32,7 +32,6 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 icon: React.createElement(MessageSquare, { size: 16 }),
                 execute: () => {
                     config.toggleLibrary();
-                    // RTK Query will handle data fetching automatically
                 }
             },
             {
@@ -54,31 +53,26 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 section: 'utility',
                 icon: React.createElement(Pencil, { size: 16 }),
                 execute: () => {
-                    // Get current prompt information from Zustand store
                     const { prompts, defaultPromptId, conversationPrompts, currentPrompt } = useSystemPromptStore.getState();
-                    
+
                     const { activeConversationId: currentConversationId } = useConversationStore.getState();
-                    
+
                     let promptToEdit = null;
 
-                    // First try to use the current prompt from the store
                     if (currentPrompt) {
                         promptToEdit = currentPrompt;
                     }
-                    // Next try to find a conversation-specific prompt
                     else if (currentConversationId) {
                         const promptId = conversationPrompts[currentConversationId];
                         if (promptId) {
                             promptToEdit = prompts.find(p => p.guid === promptId);
                         }
                     }
-                    
-                    // Fall back to default prompt
+
                     if (!promptToEdit && defaultPromptId) {
                         promptToEdit = prompts.find(p => p.guid === defaultPromptId);
                     }
-                    
-                    // Last resort: just use the first prompt
+
                     if (!promptToEdit && prompts.length > 0) {
                         promptToEdit = prompts[0];
                     }
@@ -86,7 +80,6 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                     if (promptToEdit) {
                         config.editPrompt(promptToEdit.guid);
                     } else {
-                        // If no prompts exist, create a new one
                         config.createNewPrompt();
                     }
                 }
@@ -95,12 +88,9 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
     });
 }
 
-// This function registers each system prompt as a command so users can quickly apply them
 export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
-    // Unregister any previous prompt commands to avoid duplicates
     useCommandStore.getState().unregisterGroup('system-prompts-list');
-    
-    // Get prompts from Zustand store
+
     const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
 
     const promptCommands = prompts.map(prompt => ({
@@ -114,7 +104,6 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
             className: prompt.guid === defaultPromptId ? 'text-blue-500' : undefined
         }),
         execute: () => {
-            // Set this prompt as the current prompt and open the library
             setCurrentPrompt(prompt);
             toggleLibrary();
         }
