@@ -14,46 +14,18 @@ interface ToolCommandsConfig {
 export function initializeToolCommands(config: ToolCommandsConfig) {
   const { registerGroup } = useCommandStore.getState();
   
-  registerGroup({
-    id: 'tools',
-    name: 'Tools',
-    priority: 80,
-    commands: [
-      {
-        id: 'import-tools',
-        name: 'Import Tools',
-        description: 'Import tools from a file or URL', 
-        shortcut: 'Ctrl+I',
-        keywords: ['import', 'tools', 'json'],
-        section: 'utility',
-        execute: () => {
-          config.importTools();
-        }
-      },
-      {
-        id: 'export-tools',
-        name: 'Export Tools',
-        description: 'Export current tools to a file',
-        shortcut: 'Ctrl+E',
-        keywords: ['export', 'tools', 'json'],
-        section: 'utility',
-        execute: () => {
-          config.exportTools();
-        }
-      },
-      {
-        id: 'manage-tools',
-        name: 'Manage Tools',
-        description: 'Open the tool management panel', 
-        shortcut: '',
-        keywords: ['manage', 'tools', 'panel', 'settings', 'configure'],
-        section: 'utility',
-        execute: () => {
-          config.openToolPanel();
-        }
-      }
-    ]
-  });
+    registerGroup({
+        id: 'tools',
+        name: 'Tools',
+        priority: 80,
+        commands: [
+            ['import-tools', 'Import Tools', 'Import tools from a file or URL', 'Ctrl+I', ['import', 'tools', 'json'], config.importTools],
+            ['export-tools', 'Export Tools', 'Export current tools to a file', 'Ctrl+E', ['export', 'tools', 'json'], config.exportTools],
+            ['manage-tools', 'Manage Tools', 'Open the tool management panel', '', ['manage', 'tools', 'panel', 'settings', 'configure'], config.openToolPanel]
+        ].map(([id, name, description, shortcut, keywords, fn]) => ({
+            id, name, description, shortcut, keywords, section: 'utility', execute: () => fn()
+        }))
+    });
 }
 export function registerToolsAsCommands(
   tools: Tool[], 
