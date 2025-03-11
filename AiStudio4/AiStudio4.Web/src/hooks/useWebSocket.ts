@@ -1,7 +1,8 @@
 // src/hooks/useWebSocket.ts
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { useWebSocketStatus } from '@/utils/webSocketUtils';
 
 interface UseWebSocketOptions {
     autoConnect?: boolean;
@@ -23,7 +24,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     const { autoConnect = true, subscriptions = {} } = options;
     
     // Use the Zustand store for WebSocket state
-    const { isConnected, clientId, connect, disconnect, send } = useWebSocketStore();
+    const { connect, disconnect, send } = useWebSocketStore();
+    
+    // Use the WebSocketStatus hook to track connection state
+    const { isConnected, clientId } = useWebSocketStatus();
 
     // Set up subscriptions
     useEffect(() => {

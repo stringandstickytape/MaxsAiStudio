@@ -1,5 +1,6 @@
 // src/hooks/useChatManagement.ts
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
@@ -17,8 +18,13 @@ interface SendMessageParams {
 }
 
 export function useChatManagement() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Use API call state utility
+  const { 
+    isLoading, 
+    error, 
+    executeApiCall, 
+    clearError 
+  } = useApiCallState();
   
   // Access Zustand stores
   const { 
@@ -41,120 +47,57 @@ export function useChatManagement() {
 
   // Send a chat message
   const sendMessage = useCallback(async (params: SendMessageParams) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
+    return executeApiCall(async () => {
       // Add a unique ID for the new message
       const newMessageId = params.parentMessageId ? uuidv4() : undefined;
       
-      // Use direct API call
-      const response = await apiClient.post('/api/chat', {
+      const sendMessageRequest = createApiRequest('/api/chat', 'POST');
+      const data = await sendMessageRequest({
         ...params,
         newMessageId
       });
-      
-      const data = response.data;
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to send message');
-      }
       
       return { 
         messageId: data.messageId, 
         success: true 
       };
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error sending message';
-      setError(errMsg);
-      console.error('Error sending message:', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   }, []);
   
   // Get configuration
   const getConfig = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await apiClient.post('/api/getConfig', {});
-      
-      const data = response.data;
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to get configuration');
-      }
+    return executeApiCall(async () => {
+      const getConfigRequest = createApiRequest('/api/getConfig', 'POST');
+      const data = await getConfigRequest({});
       
       return {
         models: data.models || [],
         defaultModel: data.defaultModel || '',
         secondaryModel: data.secondaryModel || ''
       };
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error getting configuration';
-      setError(errMsg);
-      console.error('Error getting configuration:', err);
-      return {
-        models: [],
-        defaultModel: '',
-        secondaryModel: ''
-      };
-    } finally {
-      setIsLoading(false);
-    }
+    }) || {
+      models: [],
+      defaultModel: '',
+      secondaryModel: ''
+    };
   }, []);
   
   // Set default model
   const setDefaultModel = useCallback(async (modelName: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await apiClient.post('/api/setDefaultModel', { modelName });
-      
-      const data = response.data;
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to set default model');
-      }
-      
+    return executeApiCall(async () => {
+      const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
+      await setDefaultModelRequest({ modelName });
       return true;
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error setting default model';
-      setError(errMsg);
-      console.error('Error setting default model:', err);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    }) || false;
   }, []);
   
   // Set secondary model
   const setSecondaryModel = useCallback(async (modelName: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await apiClient.post('/api/setSecondaryModel', { modelName });
-      
-      const data = response.data;
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to set secondary model');
-      }
-      
+    return executeApiCall(async () => {
+      const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
+      await setSecondaryModelRequest({ modelName });
       return true;
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error setting secondary model';
-      setError(errMsg);
-      console.error('Error setting secondary model:', err);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    }) || false;
   }, []);
   
   // Get conversation history - first check Zustand store, then use the historical conversations store
@@ -169,10 +112,7 @@ export function useChatManagement() {
     }
 
     // If not in local store, use the historical conversations store to fetch it
-    try {
-      setIsLoading(true);
-      setError(null);
-
+    return executeApiCall(async () => {
       // Use the fetchConversationTree function from the historical conversations store
       const treeData = await fetchConversationTree(conversationId);
 
@@ -222,14 +162,7 @@ export function useChatManagement() {
         messages: messages,
         summary: 'Loaded Conversation' // We might need to get this from another source
       };
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Unknown error getting conversation';
-      setError(errMsg);
-      console.error('Error getting conversation:', err);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   }, [conversations, fetchConversationTree]);
   
   // Helper method to determine system prompt for a conversation
@@ -280,6 +213,6 @@ export function useChatManagement() {
     setSecondaryModel,
     getConversation,
     getSystemPromptForConversation,
-    clearError: () => setError(null)
+    clearError
   };
 }
