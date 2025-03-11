@@ -1,4 +1,3 @@
-// src/components/InputBar.tsx
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,8 +14,8 @@ interface InputBarProps {
     onVoiceInputClick?: () => void;
     inputValue?: string;
     onInputChange?: (value: string) => void;
-    activeTools?: string[]; // Optional override from parent
-    onManageTools?: () => void; // Add this prop for the Manage Tools button
+    activeTools?: string[];
+    onManageTools?: () => void;
 }
 
 export function InputBar({
@@ -25,46 +24,37 @@ export function InputBar({
     inputValue,
     onInputChange,
     activeTools: activeToolsFromProps,
-    onManageTools 
+    onManageTools
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 
 
-    // If props are provided, use them, otherwise use local state
     const [localInputText, setLocalInputText] = useState('');
 
-    // Use either the props or local state
     const inputText = inputValue !== undefined ? inputValue : localInputText;
     const setInputText = onInputChange || setLocalInputText;
 
-    // Get active tools from Zustand store if not provided via props
     const { activeTools: activeToolsFromStore } = useToolStore();
-    
-    // Use props if provided, otherwise use from store
+
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
-    // Get system prompts from Zustand store
     const { conversationPrompts, defaultPromptId, prompts } = useSystemPromptStore();
-    
-    // Get conversation state from Zustand store
-    const { 
-        activeConversationId, 
+
+    const {
+        activeConversationId,
         selectedMessageId,
         conversations,
         createConversation,
-        getConversation 
+        getConversation
     } = useConversationStore();
 
-    // Use the new chat management hook instead of RTK Query
     const { sendMessage, isLoading } = useChatManagement();
 
-    // Track cursor position for file insertion
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-    
+
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputText(e.target.value);
-        // Save cursor position
         setCursorPosition(e.target.selectionStart);
     };
 
@@ -79,12 +69,9 @@ export function InputBar({
     const handleAttachFile = (file: File, content: string) => {
         const fileName = file.name;
 
-        
-        // Standard behavior for web environment
-        // Format text to insert
+
         const textToInsert = `\`\`\`${fileName}\n${content}\n\`\`\`\n`;
 
-        // Insert at cursor position or append to end
         const pos = cursorPosition !== null ? cursorPosition : inputText.length;
 
         const newText = inputText.substring(0, pos) +
@@ -93,11 +80,9 @@ export function InputBar({
 
         setInputText(newText);
 
-        // Focus back on textarea after insertion
         setTimeout(() => {
             if (textareaRef.current) {
                 textareaRef.current.focus();
-                // Move cursor to the end of the inserted text
                 const newPosition = pos + textToInsert.length;
                 textareaRef.current.setSelectionRange(newPosition, newPosition);
                 setCursorPosition(newPosition);
@@ -111,16 +96,13 @@ export function InputBar({
             let conversationId = activeConversationId;
             let parentMessageId = null;
 
-            // Determine which system prompt to use
             let systemPromptId = null;
             let systemPromptContent = null;
 
-            // If no active conversation, create a new one
             if (!conversationId) {
                 conversationId = `conv_${uuidv4()}`;
                 const messageId = `msg_${uuidv4()}`;
-                
-                // Create a new conversation in the Zustand store
+
                 createConversation({
                     id: conversationId,
                     rootMessage: {
@@ -130,13 +112,11 @@ export function InputBar({
                         timestamp: Date.now()
                     }
                 });
-                
+
                 parentMessageId = messageId;
             } else {
-                // Use the current selected message ID from the store if available
                 parentMessageId = selectedMessageId;
-                
-                // If still no parent ID, try to find the last message in the conversation
+
                 if (!parentMessageId) {
                     const conversation = conversations[conversationId];
                     if (conversation && conversation.messages.length > 0) {
@@ -145,7 +125,6 @@ export function InputBar({
                 }
             }
 
-            // Determine which system prompt to use for this conversation
             if (conversationId) {
                 systemPromptId = conversationPrompts[conversationId] || defaultPromptId;
 
@@ -157,7 +136,6 @@ export function InputBar({
                 }
             }
 
-            // Send the message using the chat API
             await sendMessage({
                 conversationId,
                 parentMessageId,
@@ -168,21 +146,20 @@ export function InputBar({
                 systemPromptContent
             });
 
-            // Clear the input after sending
             setInputText('');
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
         }
     }, [
-        selectedModel, 
-        setInputText, 
-        activeTools, 
-        conversationPrompts, 
-        defaultPromptId, 
-        prompts, 
-        sendMessage, 
-        activeConversationId, 
+        selectedModel,
+        setInputText,
+        activeTools,
+        conversationPrompts,
+        defaultPromptId,
+        prompts,
+        sendMessage,
+        activeConversationId,
         selectedMessageId,
         conversations,
         createConversation,
@@ -203,19 +180,14 @@ export function InputBar({
     };
 
     useEffect(() => {
-        // Listen for append-to-prompt events
         const handleAppendToPrompt = (event: CustomEvent<{ text: string }>) => {
-            // Get the text to append
             const textToAppend = event.detail.text;
 
-            // Update the input text by appending the new text
             setInputText(currentText => currentText + textToAppend);
 
-            // Focus the textarea
             if (textareaRef.current) {
                 textareaRef.current.focus();
 
-                // Move cursor to the end
                 setTimeout(() => {
                     if (textareaRef.current) {
                         const length = textareaRef.current.value.length;
@@ -226,19 +198,14 @@ export function InputBar({
             }
         };
 
-        // Listen for set-prompt events
         const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
-            // Get the text to set
             const newText = event.detail.text;
 
-            // Set the input text to the new text
             setInputText(newText);
 
-            // Focus the textarea
             if (textareaRef.current) {
                 textareaRef.current.focus();
 
-                // Move cursor to the end
                 setTimeout(() => {
                     if (textareaRef.current) {
                         const length = textareaRef.current.value.length;
@@ -249,27 +216,23 @@ export function InputBar({
             }
         };
 
-        // Add event listeners
         window.addEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
         window.addEventListener('set-prompt', handleSetPrompt as EventListener);
 
-        // Clean up event listeners when component unmounts
         return () => {
             window.removeEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
             window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
         };
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);
 
     return (
         <div className="h-[30vh] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="h-full flex flex-col">
-                {/* Tool selector - pass onManageTools prop */}
                 <div className="mb-2">
                     <ToolSelector onManageTools={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-panel')))} />
                 </div>
 
                 <div className="flex-1 flex gap-2">
-                    {/* Input area */}
                     <div className="relative flex-1">
                         <textarea
                             ref={textareaRef}
@@ -284,15 +247,12 @@ export function InputBar({
                         />
                     </div>
 
-                    {/* Vertical button bar */}
                     <div className="flex flex-col gap-2 justify-end">
-                        {/* File attachment button */}
                         <FileAttachment
                             onAttach={handleAttachFile}
                             disabled={isLoading}
                         />
 
-                        {/* Voice input button */}
                         {onVoiceInputClick && (
                             <Button
                                 variant="outline"
@@ -306,7 +266,6 @@ export function InputBar({
                             </Button>
                         )}
 
-                        {/* Send button */}
                         <Button
                             variant="outline"
                             size="icon"
@@ -325,32 +284,25 @@ export function InputBar({
 }
 
 window.appendToPrompt = function (text) {
-    // Create a custom event with the text to append
     const appendEvent = new CustomEvent('append-to-prompt', {
         detail: { text: text }
     });
 
-    // Dispatch the event for components to listen for
     window.dispatchEvent(appendEvent);
 
-    // Log for confirmation
     console.log(`Appended to prompt: "${text}"`);
 
-    return true; // For success feedback
+    return true;
 };
 
-// This function will allow you to both append and set the prompt
 window.setPrompt = function (text) {
-    // Create a custom event with the text to set
     const setEvent = new CustomEvent('set-prompt', {
         detail: { text: text }
     });
 
-    // Dispatch the event for components to listen for
     window.dispatchEvent(setEvent);
 
-    // Log for confirmation
     console.log(`Set prompt to: "${text}"`);
 
-    return true; // For success feedback
+    return true;
 };
