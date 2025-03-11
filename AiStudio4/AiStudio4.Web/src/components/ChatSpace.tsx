@@ -8,12 +8,10 @@ import { CommandBar } from './CommandBar';
 import { VoiceInputOverlay } from './VoiceInputOverlay';
 import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { useVoiceInputState } from '@/commands/voiceInputCommand';
-import { useModelManagement } from '@/hooks/useModelManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useToolStore } from '@/stores/useToolStore';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
-import { ModelType } from '@/types/modelTypes';
 
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -25,7 +23,7 @@ export function ChatSpace() {
   const { togglePanel } = usePanelStore();
   const { activeConvId } = useConvStore();
 
-  const { selectedPrimaryModel, handleModelSelect } = useModelManagement();
+  const { selectedPrimaryModel } = useModelManagement();
 
   const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
     setInputValue(text);

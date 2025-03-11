@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
 interface SystemPromptCardProps {
   prompt: SystemPrompt;

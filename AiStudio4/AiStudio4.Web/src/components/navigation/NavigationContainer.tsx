@@ -10,7 +10,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { ToolPanel } from '@/components/tools/ToolPanel';
 
 interface NavigationContainerProps {

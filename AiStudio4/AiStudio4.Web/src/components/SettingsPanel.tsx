@@ -5,7 +5,7 @@ import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { AppearanceTab } from './settings/AppearanceTab';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useModelManagement } from '@/hooks/useModelManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Model, ServiceProvider } from '@/types/settings';
 import { commandEvents } from '@/commands/settingsCommands';
 

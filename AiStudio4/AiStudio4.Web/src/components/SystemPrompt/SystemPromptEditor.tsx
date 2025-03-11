@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Check } from 'lucide-react';
 import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
 interface SystemPromptEditorProps {
   initialPrompt?: SystemPrompt | null;

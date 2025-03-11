@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ServiceProviderForm } from './ServiceProviderForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
-import { useModelManagement } from '@/hooks/useModelManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 
 interface ServiceProviderManagementProps {
   providers: ServiceProvider[];

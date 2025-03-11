@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useConvStore } from '@/stores/useConvStore';
 
 interface HeaderPromptComponentProps {

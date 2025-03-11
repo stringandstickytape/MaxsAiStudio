@@ -11,7 +11,7 @@ import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
+import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;

@@ -6,7 +6,7 @@ import { ModelForm } from './ModelForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
 import { Model } from '@/types/settings';
-import { useModelManagement } from '@/hooks/useModelManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 
 interface ModelManagementProps {
   providers: any[]; // We'll still get providers as props for now

@@ -2,7 +2,7 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useModelManagement } from '@/hooks/useModelManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 
 interface ModelStatusBarProps {
   onPrimaryClick?: () => void;
