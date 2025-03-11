@@ -17,142 +17,122 @@ import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 export function CommandInitializer() {
-  const { togglePanel } = usePanelStore();
-  const { models, handleModelSelect } = useModelManagement();
-  const { fetchPinnedCommands } = usePinnedCommandsStore();
-  const { fetchTools, fetchToolCategories } = useToolsManagement();
-  
-  // Handle opening a new window
-  const handleOpenNewWindow = () => {
-    window.open(window.location.href, '_blank');
-  };
-  
-  // Handle conversation tree toggle
-  const handleToggleConversationTree = () => {
-    togglePanel('conversationTree');
-  };
-  
-  // Define tool panel functions for commands
-  const openToolPanel = () => {
-    window.localStorage.setItem('toolPanel_action', 'open');
-    window.dispatchEvent(new Event('openToolPanel'));
-  };
-  
-  // Use the tool commands hook
-  useToolCommands({
-    openToolPanel,
-    createNewTool: () => {
-      window.localStorage.setItem('toolPanel_action', 'create');
-      window.dispatchEvent(new Event('openToolPanel'));
-    },
-    importTools: () => {
-      window.localStorage.setItem('toolPanel_action', 'import');
-      window.dispatchEvent(new Event('openToolPanel'));
-    },
-    exportTools: () => {
-      window.localStorage.setItem('toolPanel_action', 'export');
-      window.dispatchEvent(new Event('openToolPanel'));
-    }
-  });
+    const { togglePanel } = usePanelStore();
+    const { models, handleModelSelect } = useModelManagement();
+    const { fetchPinnedCommands } = usePinnedCommandsStore();
+    const { fetchTools, fetchToolCategories } = useToolsManagement();
 
-  // Fetch pinned commands and tools on component mount
-  useEffect(() => {
-    fetchPinnedCommands();
-    fetchTools();
-    fetchToolCategories();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories]);
-
-  // Initialize all commands
-  useEffect(() => {
-    // Initialize core commands with handlers
-    initializeCoreCommands({
-      toggleSidebar: () => togglePanel('sidebar'),
-      toggleConversationTree: handleToggleConversationTree,
-      toggleSettings: () => togglePanel('settings'),
-      openNewWindow: handleOpenNewWindow
-    });
-
-    // Initialize system prompt commands
-    initializeSystemPromptCommands({
-      toggleLibrary: () => togglePanel('systemPrompts'),
-      createNewPrompt: () => {
-        togglePanel('systemPrompts');
-        window.localStorage.setItem('systemPrompt_action', 'create');
-      },
-      editPrompt: (promptId) => {
-        togglePanel('systemPrompts');
-        window.localStorage.setItem('systemPrompt_edit', promptId);
-      }
-    });
-
-    // Initialize settings commands
-    initializeSettingsCommands({
-      openSettings: () => togglePanel('settings')
-    });
-
-    // Initialize appearance commands
-    initializeAppearanceCommands({
-      openAppearanceSettings: () => {
-        togglePanel('settings');
-        // The settings-tab event is emitted in the command
-      }
-    });
-
-    // Initialize model commands
-    initializeModelCommands({
-      getAvailableModels: () => models.map(m => m.modelName),
-      selectPrimaryModel: (modelName) => handleModelSelect('primary', modelName),
-      selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName)
-    });
-
-    // Initialize voice commands
-    initializeVoiceCommands();
-
-    // Register all system prompts as commands
-    const systemPromptsUpdated = () => {
-      registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+    const handleOpenNewWindow = () => {
+        window.open(window.location.href, '_blank');
     };
 
-    // Initial registration
-    systemPromptsUpdated();
-
-    // Set up subscription to system prompts changes
-    const unsubscribePrompts = useSystemPromptStore.subscribe(
-      (state) => state.prompts,
-      () => systemPromptsUpdated()
-    );
-
-    // Register individual model and provider commands whenever they change
-    const unsubscribeModels = useModelStore.subscribe(
-      (state) => state.models,
-      (models) => {
-        if (models.length > 0) {
-          registerModelCommands(models, () => togglePanel('settings'));
-        }
-      }
-    );
-
-    // Update the provider commands subscription
-    const unsubscribeProviders = useModelStore.subscribe(
-      (state) => state.providers,
-      (providers) => {
-        if (providers.length > 0) {
-          registerProviderCommands(providers, () => togglePanel('settings'));
-        }
-      }
-    );
-
-    // Set up voice input keyboard shortcut
-    const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
-
-    return () => {
-      cleanupKeyboardShortcut();
-      unsubscribePrompts();
-      unsubscribeModels();
-      unsubscribeProviders();
+    const handleToggleConversationTree = () => {
+        togglePanel('conversationTree');
     };
-  }, [models, togglePanel, handleModelSelect]);
 
-  // No UI to render - this is a logic-only component
-  return null;
+    const openToolPanel = () => {
+        window.localStorage.setItem('toolPanel_action', 'open');
+        window.dispatchEvent(new Event('openToolPanel'));
+    };
+
+    useToolCommands({
+        openToolPanel,
+        createNewTool: () => {
+            window.localStorage.setItem('toolPanel_action', 'create');
+            window.dispatchEvent(new Event('openToolPanel'));
+        },
+        importTools: () => {
+            window.localStorage.setItem('toolPanel_action', 'import');
+            window.dispatchEvent(new Event('openToolPanel'));
+        },
+        exportTools: () => {
+            window.localStorage.setItem('toolPanel_action', 'export');
+            window.dispatchEvent(new Event('openToolPanel'));
+        }
+    });
+
+    useEffect(() => {
+        fetchPinnedCommands();
+        fetchTools();
+        fetchToolCategories();
+    }, [fetchPinnedCommands, fetchTools, fetchToolCategories]);
+
+    useEffect(() => {
+        initializeCoreCommands({
+            toggleSidebar: () => togglePanel('sidebar'),
+            toggleConversationTree: handleToggleConversationTree,
+            toggleSettings: () => togglePanel('settings'),
+            openNewWindow: handleOpenNewWindow
+        });
+
+        initializeSystemPromptCommands({
+            toggleLibrary: () => togglePanel('systemPrompts'),
+            createNewPrompt: () => {
+                togglePanel('systemPrompts');
+                window.localStorage.setItem('systemPrompt_action', 'create');
+            },
+            editPrompt: (promptId) => {
+                togglePanel('systemPrompts');
+                window.localStorage.setItem('systemPrompt_edit', promptId);
+            }
+        });
+
+        initializeSettingsCommands({
+            openSettings: () => togglePanel('settings')
+        });
+
+        initializeAppearanceCommands({
+            openAppearanceSettings: () => {
+                togglePanel('settings');
+            }
+        });
+
+        initializeModelCommands({
+            getAvailableModels: () => models.map(m => m.modelName),
+            selectPrimaryModel: (modelName) => handleModelSelect('primary', modelName),
+            selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName)
+        });
+
+        initializeVoiceCommands();
+
+        const systemPromptsUpdated = () => {
+            registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+        };
+
+        systemPromptsUpdated();
+
+        const unsubscribePrompts = useSystemPromptStore.subscribe(
+            (state) => state.prompts,
+            () => systemPromptsUpdated()
+        );
+
+        const unsubscribeModels = useModelStore.subscribe(
+            (state) => state.models,
+            (models) => {
+                if (models.length > 0) {
+                    registerModelCommands(models, () => togglePanel('settings'));
+                }
+            }
+        );
+
+        const unsubscribeProviders = useModelStore.subscribe(
+            (state) => state.providers,
+            (providers) => {
+                if (providers.length > 0) {
+                    registerProviderCommands(providers, () => togglePanel('settings'));
+                }
+            }
+        );
+
+        const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
+
+        return () => {
+            cleanupKeyboardShortcut();
+            unsubscribePrompts();
+            unsubscribeModels();
+            unsubscribeProviders();
+        };
+    }, [models, togglePanel, handleModelSelect]);
+
+    return null;
 }

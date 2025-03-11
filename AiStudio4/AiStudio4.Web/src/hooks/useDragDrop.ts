@@ -4,9 +4,6 @@ import { DropResult } from 'react-beautiful-dnd';
 
 /**
  * Custom hook to handle drag and drop operations
- * @param items The array of items to manage
- * @param onReorder Optional callback for when items are reordered
- * @returns The handlers and state for drag and drop
  */
 export function useDragDrop<T extends { id: string }>(items: T[], onReorder?: (newItems: T[]) => void) {
   const [isDragging, setIsDragging] = useState(false);

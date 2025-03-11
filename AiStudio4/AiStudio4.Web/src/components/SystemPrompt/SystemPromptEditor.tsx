@@ -27,12 +27,10 @@ interface SystemPromptEditorProps {
 }
 
 export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPromptEditorProps) {
-    // Use Zustand store
     const { setCurrentPrompt } = useSystemPromptStore();
-    
-    // Use management hook
+
     const { createSystemPrompt, updateSystemPrompt } = useSystemPromptManagement();
-    
+
     const [isCreating, setIsCreating] = useState(!initialPrompt);
     const [isProcessing, setIsProcessing] = useState(false);
     const [newTag, setNewTag] = useState('');
@@ -54,7 +52,6 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         }
     });
 
-    // Reset form when initialPrompt changes
     useEffect(() => {
         if (initialPrompt) {
             form.reset({
@@ -96,12 +93,10 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 });
             }
 
-            // Update the current prompt in Zustand store
             if (result) {
                 setCurrentPrompt(result);
             }
 
-            // Only apply the prompt if we have a valid result with a guid
             if (result && result.guid && onApply) {
                 console.log("Applying prompt with guid:", result.guid);
                 onApply(result);
@@ -135,7 +130,6 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 });
             }
 
-            // Update the current prompt in Zustand store
             if (result) {
                 setCurrentPrompt(result);
             }

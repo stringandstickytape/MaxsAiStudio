@@ -16,19 +16,16 @@ interface HeaderPromptComponentProps {
 }
 
 export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderPromptComponentProps) {
-    // Get the active conversation ID from Zustand when not provided as prop
     const { activeConversationId: storeConversationId } = useConversationStore();
-    // Use Zustand stores
     const { togglePanel } = usePanelStore();
-    const { 
-        prompts, 
-        defaultPromptId, 
-        conversationPrompts, 
-        setConversationPrompt 
+    const {
+        prompts,
+        defaultPromptId,
+        conversationPrompts,
+        setConversationPrompt
     } = useSystemPromptStore();
 
-    // Use the management hook for API operations
-    const { 
+    const {
         updateSystemPrompt,
         setConversationSystemPrompt,
         isLoading: loading
@@ -40,34 +37,28 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     const [currentPrompt, setCurrentPrompt] = useState<SystemPrompt | null>(null);
     const promptRef = useRef<HTMLDivElement>(null);
 
-    // Determine the current prompt based on conversation or default
     useEffect(() => {
         let promptToUse: SystemPrompt | null = null;
 
         const effectiveConversationId = conversationId || storeConversationId;
         if (effectiveConversationId && conversationPrompts[effectiveConversationId]) {
-            // Find the prompt assigned to this conversation
             promptToUse = prompts.find(p => p.guid === conversationPrompts[effectiveConversationId]) || null;
         }
 
-        // If no conversation prompt is set, use the default
         if (!promptToUse && defaultPromptId) {
             promptToUse = prompts.find(p => p.guid === defaultPromptId) || null;
         }
 
-        // If still no prompt, use the first one marked as default
         if (!promptToUse) {
             promptToUse = prompts.find(p => p.isDefault) || null;
         }
 
-        // If absolutely no prompts, set null
         setCurrentPrompt(promptToUse);
         if (promptToUse) {
             setPromptContent(promptToUse.content);
         }
     }, [prompts, conversationId, storeConversationId, conversationPrompts, defaultPromptId]);
 
-    // Handle clicks outside the component
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (promptRef.current && !promptRef.current.contains(event.target as Node) && expanded) {
@@ -105,7 +96,6 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     const getPromptDisplayText = () => {
         if (!currentPrompt) return 'No system prompt set';
 
-        // Truncate the content for display
         const truncatedContent = currentPrompt.content.length > 60
             ? `${currentPrompt.content.substring(0, 60)}...`
             : currentPrompt.content;
@@ -122,14 +112,12 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
         if (!currentPrompt) return;
 
         try {
-            // Create updated prompt object
             const updatedPrompt = {
                 ...currentPrompt,
                 content: promptContent,
                 modifiedDate: new Date().toISOString()
             };
 
-            // Update the prompt using the management hook
             await updateSystemPrompt(updatedPrompt);
 
             const effectiveConversationId = conversationId || storeConversationId;
@@ -139,7 +127,6 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                     promptId: currentPrompt.guid
                 });
 
-                // Also update the local state in Zustand
                 setConversationPrompt(effectiveConversationId, currentPrompt.guid);
             }
 
@@ -166,7 +153,6 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                     expanded ? "bg-gray-800/60" : "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
                 )}
             >
-                {/* Collapsed view - just show the prompt title/summary when expanded too */}
                 <div
                     className="px-3 py-2 flex items-center justify-between"
                     onClick={!expanded ? toggleExpand : undefined}
@@ -182,7 +168,6 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
                     )}
                 </div>
 
-                {/* Expanded view appears as a dropdown */}
                 {expanded && (
                     <div className="absolute left-0 right-0 top-full mt-1 p-3 bg-gray-800/95 border border-gray-700/50 rounded-lg shadow-lg z-50">
                         <div className="flex justify-between items-center mb-2">
