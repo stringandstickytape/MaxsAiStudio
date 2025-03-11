@@ -53,13 +53,21 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
         const message = messageChain[index];
         // Calculate rough estimate based on content length
         const contentLength = message.content.length;
-        return Math.max(100, Math.min(1000, contentLength * 0.5));
+        // More accurate height estimation with character count and line breaks
+        const lineBreaks = (message.content.match(/\n/g) || []).length;
+        const baseHeight = Math.max(100, Math.min(1000, contentLength * 0.6));
+        const lineBreakHeight = lineBreaks * 20; // Estimate 20px per line break
+        return baseHeight + lineBreakHeight;
       }
       return 200; // Default for streaming tokens
     },
     overscan: 5, // Number of items to render outside of the visible window
     paddingStart: 16, // Add padding at the top
-    paddingEnd: 16 // Add padding at the bottom
+    paddingEnd: 16, // Add padding at the bottom
+    measureElement: (element) => {
+      // Get actual rendered height for more accurate virtualization
+      return element.getBoundingClientRect().height;
+    }
   });
 
   // Log message chain updates
@@ -71,7 +79,23 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
   useEffect(() => {
     if (!parentRef.current) return;
     
-    // Allow the rendered items to update their measured height
+    // Create a MutationObserver to detect when new content is added to the DOM
+    const mutationObserver = new MutationObserver(() => {
+      // Wait for the next animation frame to ensure DOM updates have completed
+      requestAnimationFrame(() => {
+        virtualizer.measure();
+      });
+    });
+    
+    // Observe the container for any changes to its children
+    mutationObserver.observe(parentRef.current, { 
+      childList: true, 
+      subtree: true,
+      characterData: true,
+      attributes: true
+    });
+    
+    // Also set up a resize observer for the parent container
     const resizeObserver = new ResizeObserver(() => {
       virtualizer.measure();
     });
@@ -79,7 +103,10 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     // Observe the parent element to detect size changes
     resizeObserver.observe(parentRef.current);
     
-    return () => resizeObserver.disconnect();
+    return () => {
+      mutationObserver.disconnect();
+      resizeObserver.disconnect();
+    };
   }, [virtualizer]);
 
   if (!activeConvId) return null;
@@ -100,11 +127,14 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             return (
               <div 
                 key="streaming-tokens"
-                className="absolute top-0 left-0 w-full"
+                className="absolute top-0 left-0 w-full" 
                 style={{
                   transform: `translateY(${virtualItem.start}px)`,
-                  height: `${virtualItem.size}px`
+                  height: `${virtualItem.size}px`,
+                  boxSizing: 'border-box'
                 }}
+                data-index={virtualItem.index}
+                ref={virtualizer.measureElement}
               >
                 <div className="p-4 mb-4 rounded bg-gray-800 clear-both break-words whitespace-normal w-full">
                   {streamTokens.map((token, index) => (
@@ -120,14 +150,17 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
           return (
             <div 
               key={message.id}
-              className="absolute top-0 left-0 w-full"
+              className="absolute top-0 left-0 w-full" 
               style={{
                 transform: `translateY(${virtualItem.start}px)`,
-                height: `${virtualItem.size}px`
+                height: `${virtualItem.size}px`,
+                boxSizing: 'border-box'
               }}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
             >
               <div
-                className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} clear-both w-full h-auto`}
+                className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} clear-both w-full h-auto overflow-hidden`}
                 style={{ minHeight: '50px' }} // Ensure minimum height for messages
               >
                 <MarkdownPane message={message.content} />
