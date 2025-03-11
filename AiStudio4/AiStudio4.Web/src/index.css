@@ -1,65 +1,18 @@
 @layer components {
-    /* Button and Interactive Element Styles */
-    .btn-primary {
-        @apply bg-blue-600 hover:bg-blue-700 text-white border-blue-500 transition-colors;
-    }
-
-    .btn-secondary {
-        @apply bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 transition-colors;
-    }
-
-    .btn-danger {
-        @apply bg-red-700 hover:bg-red-800 text-white border-red-900 transition-colors;
-    }
-
-    .btn-ghost {
-        @apply text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors;
-    }
-
-    .icon-btn {
-        @apply h-8 w-8 p-0 rounded-md flex items-center justify-center;
-    }
-
-    .card-base {
-        @apply bg-gray-800/80 border-gray-700/50 shadow-md rounded-lg overflow-hidden;
-    }
-
-    .card-hover {
-        @apply hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
-    }
-
-    .panel-bg {
-        @apply bg-gray-900 text-gray-100;
-    }
-
-    .form-item {
-        @apply mb-4 space-y-2;
-    }
-
-    .input-base {
-        @apply bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500;
-    }
-
-    .input-ghost {
-        @apply bg-gray-800/60 border-gray-700/50 text-gray-100 focus:ring-2 focus:ring-indigo-500/40;
-    }
-
-    .input-with-icon {
-        @apply pl-10 pr-4 py-2 rounded-lg;
-    }
-
-    .form-label {
-        @apply text-sm text-gray-300 font-medium;
-    }
-
-    .text-small-gray-400 {
+    /* Base Utilities */
+    .text-xs-gray {
         @apply text-xs text-gray-400;
     }
 
-    .form-description {
-        @apply text-small-gray-400 mt-1;
+    .transition-standard {
+        @apply transition-all duration-200 ease-in-out;
     }
 
+    .focus-ring {
+        @apply focus:ring-2 focus:ring-blue-500/40;
+    }
+
+    /* Layout Utilities */
     .flex-center {
         @apply flex items-center justify-center;
     }
@@ -78,6 +31,11 @@
 
     .section-spacing {
         @apply py-4 space-y-4;
+    }
+
+    /* Typography */
+    .text-small-gray-400 {
+        @apply text-xs text-gray-400;
     }
 
     .text-title {
@@ -100,18 +58,91 @@
         @apply truncate overflow-hidden text-ellipsis;
     }
 
+    /* Borders & Dividers */
     .border-subtle {
         @apply border border-gray-700/50;
     }
 
+    .divider-base {
+        @apply border-gray-700/30;
+    }
+
     .divider-h {
-        @apply w-full border-t border-gray-700/30 my-4;
+        @apply w-full border-t divider-base my-4;
     }
 
     .divider-v {
-        @apply h-full border-l border-gray-700/30 mx-4;
+        @apply h-full border-l divider-base mx-4;
     }
 
+    /* Surfaces */
+    .panel-bg {
+        @apply bg-gray-900 text-gray-100;
+    }
+
+    .card-base {
+        @apply bg-gray-800/80 border-gray-700/50 shadow-md rounded-lg overflow-hidden;
+    }
+
+    .card-hover {
+        @apply hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
+    }
+
+    /* Buttons */
+    .btn-base {
+        @apply transition-colors;
+    }
+
+    .btn-primary {
+        @apply btn-base bg-blue-600 hover:bg-blue-700 text-white border-blue-500;
+    }
+
+    .btn-secondary {
+        @apply btn-base bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600;
+    }
+
+    .btn-danger {
+        @apply btn-base bg-red-700 hover:bg-red-800 text-white border-red-900;
+    }
+
+    .btn-ghost {
+        @apply btn-base text-gray-400 hover:text-gray-100 hover:bg-gray-700;
+    }
+
+    .icon-btn {
+        @apply h-8 w-8 p-0 rounded-md flex-center;
+    }
+
+    /* Form Elements */
+    .form-item {
+        @apply mb-4 space-y-2;
+    }
+
+    .form-label {
+        @apply text-sm text-gray-300 font-medium;
+    }
+
+    .form-description {
+        @apply text-small-gray-400 mt-1;
+    }
+
+    .input-shared {
+        @apply text-gray-100;
+    }
+
+    .input-base {
+        @apply input-shared bg-gray-700 border-gray-600 focus:ring-blue-500 focus:border-blue-500;
+    }
+
+    .input-ghost {
+        @apply input-shared bg-gray-800/60 border-gray-700/50 text-gray-100 focus:ring-2 focus:ring-indigo-500/40;
+    }
+
+    .input-with-icon {
+        @apply pl-10 pr-4 py-2 rounded-lg;
+    }
+
+    /* Animations */
     .animate-hover {
         @apply transition-all duration-200 ease-in-out hover:scale-[1.02];
     }
