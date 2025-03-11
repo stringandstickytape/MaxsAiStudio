@@ -116,8 +116,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                 </button>
             ) : null;
 
-            const codeHeader = (
-                <div className="flex items-center justify-between bg-gray-900 px-4 py-2 rounded-t-xl border-b border-gray-700 text-sm text-gray-400">
+            const createCodeHeader = (isFooter = false) => (
+                <div className={`flex items-center justify-between bg-gray-900 px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} border-gray-700 text-sm text-gray-400`}>
                     <div className="font-medium">{language}</div>
                     <div className="flex space-x-2">
                         {isVisualStudio && (
@@ -139,6 +139,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                     </div>
                 </div>
             );
+            
+            const codeHeader = createCodeHeader(false);
 
             // Handle diagrams first
             if (diagramRenderer) {
@@ -166,10 +168,11 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             // Only handle regular code blocks if not a diagram
             return isRawView ? (
                 <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
-                    {codeHeader}
+                    {createCodeHeader(true)}
                     <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl">
                         <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                     </div>
+                    {codeHeader}
                 </div>
             ) : (
                 <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
@@ -184,6 +187,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                             {String(children).replace(/\n$/, '')}
                         </SyntaxHighlighter>
                     </div>
+                    {createCodeHeader(true)}
                 </div>
             )
         },
