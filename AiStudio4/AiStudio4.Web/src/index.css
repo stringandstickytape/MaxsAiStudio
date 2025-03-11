@@ -55,6 +55,70 @@
     .form-description {
         @apply text-xs text-gray-400 mt-1;
     }
+
+    .flex-center {
+        @apply flex items-center justify-center;
+    }
+
+    .flex-between {
+        @apply flex items-center justify-between;
+    }
+
+    .flex-col-full {
+        @apply flex flex-col h-full;
+    }
+
+    .grid-responsive {
+        @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+    }
+
+    .section-spacing {
+        @apply py-4 space-y-4;
+    }
+
+    .text-title {
+        @apply text-xl font-semibold text-gray-100;
+    }
+
+    .text-subtitle {
+        @apply text-sm text-gray-400 font-medium;
+    }
+
+    .text-body {
+        @apply text-sm text-gray-300;
+    }
+
+    .text-mono {
+        @apply font-mono text-xs text-gray-400;
+    }
+
+    .text-truncate {
+        @apply truncate overflow-hidden text-ellipsis;
+    }
+
+    .border-subtle {
+        @apply border border-gray-700/50;
+    }
+
+    .divider-h {
+        @apply w-full border-t border-gray-700/30 my-4;
+    }
+
+    .divider-v {
+        @apply h-full border-l border-gray-700/30 mx-4;
+    }
+
+    .animate-hover {
+        @apply transition-all duration-200 ease-in-out hover:scale-[1.02];
+    }
+
+    .fade-in {
+        @apply opacity-0 animate-[fadeIn_0.3s_ease-in-out_forwards];
+    }
+
+    .loading-spinner {
+        @apply animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-blue-500;
+    }
 }
 
 @layer base {

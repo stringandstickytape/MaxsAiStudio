@@ -42,7 +42,7 @@ export function AppearanceTab() {
       {/* Font Size Card */}
       <Card className="card-base">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg text-gray-100">Font Size</CardTitle>
+          <CardTitle className="text-title text-lg">Font Size</CardTitle>
         </CardHeader>
         <CardContent>
           <FontSizeControl 
@@ -60,12 +60,12 @@ export function AppearanceTab() {
       {/* Theme Card */}
       <Card className="card-base">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg text-gray-100">Theme</CardTitle>
+          <CardTitle className="text-title text-lg">Theme</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/50">
-            <p className="text-gray-300 mb-2">Theme settings coming soon</p>
-            <p className="text-xs text-gray-400">Additional theme options will be available in a future update.</p>
+            <p className="text-body mb-2">Theme settings coming soon</p>
+            <p className="text-subtitle">Additional theme options will be available in a future update.</p>
           </div>
         </CardContent>
       </Card>

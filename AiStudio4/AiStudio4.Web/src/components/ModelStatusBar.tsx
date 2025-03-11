@@ -86,7 +86,7 @@ export function ModelStatusBar({
                             size="sm"
                             onClick={onPrimaryClick}
                             className={cn(
-                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors",
+                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 animate-hover",
                                  "justify-between" 
                             )}
                         >
@@ -126,7 +126,7 @@ export function ModelStatusBar({
                             size="sm"
                             onClick={onSecondaryClick}
                             className={cn(
-                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors",
+                                "p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 animate-hover",
                                  "justify-between"
                             )}
                         >

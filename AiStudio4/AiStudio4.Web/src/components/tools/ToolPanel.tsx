@@ -137,8 +137,8 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Tool Library</h2>
+      <div className="flex-between mb-4">
+        <h2 className="text-title">Tool Library</h2>
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -198,11 +198,11 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="flex-center h-32">
+              <div className="loading-spinner h-8 w-8"></div>
             </div>
           ) : filteredTools.length === 0 ? (
-            <div className="text-center p-8 text-gray-400">
+              <div className="text-center p-8 text-subtitle">
               {searchTerm ? 'No tools match your search' : 'No tools available'}
             </div>
           ) : (
@@ -212,8 +212,8 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-100">{tool.name}</h3>
-                        <p className="text-sm text-gray-400">{tool.description}</p>
+                        <h3 className="text-title text-lg">{tool.name}</h3>
+                        <p className="text-body">{tool.description}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {(tool.categories || []).map(catId => {
                             const category = categories.find(c => c.id === catId);

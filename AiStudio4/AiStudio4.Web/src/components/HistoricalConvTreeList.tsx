@@ -170,7 +170,7 @@ export const HistoricalConvTreeList = () => {
             ) : convs.map((conv) => (
                 <div
                     key={conv.convGuid}
-                    className={`px-4 py-1 transition-all duration-200 relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm max-w-full overflow-hidden ${conv.highlightColour ? 'text-black' : 'text-white'}`}
+                    className={`px-4 py-1 animate-hover relative hover:shadow-lg transform hover:-translate-y-0.5 backdrop-blur-sm max-w-full overflow-hidden ${conv.highlightColour ? 'text-black' : 'text-white'}`}
                 >
                     {/* Make only the header clickable */}
                     <div

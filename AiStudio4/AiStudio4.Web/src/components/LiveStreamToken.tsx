@@ -13,7 +13,7 @@ export const LiveStreamToken: React.FC<LiveStreamTokenProps> = ({ token }) => {
 
     return (
         <span
-            className={`inline whitespace-pre-wrap transition-opacity duration-250 ease-in ${opacity === 1 ? 'opacity-100' : 'opacity-0'}`}
+            className={`inline whitespace-pre-wrap animate-hover ${opacity === 1 ? 'opacity-100' : 'opacity-0'}`}
         >
             {token}
         </span>

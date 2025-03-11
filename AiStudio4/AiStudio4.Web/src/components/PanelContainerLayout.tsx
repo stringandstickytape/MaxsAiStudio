@@ -39,7 +39,7 @@ export function PanelContainerLayout({ children }: PanelContainerLayoutProps) {
 
   return (
     <div className={cn(
-      "panel-adjusted-container h-screen",
+      "panel-adjusted-container h-screen ",
       hasLeftPanel && "has-left-panel",
       hasRightPanel && "has-right-panel"
     )}>

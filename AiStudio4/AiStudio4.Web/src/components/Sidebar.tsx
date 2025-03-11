@@ -28,7 +28,7 @@ export function Sidebar({ wsState }: SidebarProps) {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-10rem)]">
+        <div className="flex-col-full h-[calc(100vh-10rem)]">
             <div className="p-2">
                 <Button
                     onClick={handleNewChat}

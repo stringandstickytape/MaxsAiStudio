@@ -130,8 +130,8 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
 
     return (
         <>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-100">AI Models</h2>
+            <div className="flex-between mb-4">
+                <h2 className="text-title">AI Models</h2>
                 <Button
                     onClick={() => setAddOpen(true)}
                     className="flex items-center gap-2 btn-primary"
@@ -141,13 +141,13 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
             </div>
 
             {isLoading ? (
-                <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div className="flex-center py-8">
+                    <div className="loading-spinner h-8 w-8"></div>
                 </div>
             ) : models.length === 0 ? (
                 <Card className="card-base">
                     <CardContent className="pt-6 text-center text-gray-400">
-                        <div className="flex flex-col items-center justify-center py-8">
+                        <div className="flex flex-col flex-center py-8">
                             <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
                             <p>No models configured yet.</p>
                             <p className="mb-4">Add your first model to get started.</p>
@@ -169,7 +169,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                             className="card-base card-hover backdrop-blur-sm group"
                         >
                             <div
-                                className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 transition-all duration-300 group-hover:h-3"
+                                className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 animate-hover group-hover:h-3"
                                 style={{
                                     backgroundColor: model.color || '#4f46e5',
                                     from: `${model.color}80` || '#4f46e580',
@@ -184,14 +184,14 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                                                 {model.friendlyName}
                                                 {model.starred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
                                             </CardTitle>
-                                            <CardDescription className="text-gray-400 font-mono text-xs">{model.modelName}</CardDescription>
+                                            <CardDescription className="text-mono">{model.modelName}</CardDescription>
                                         </div>
                                     </div>
                                     <div className="flex flex-col space-y-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className={`${model.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'} hover:bg-gray-700 transition-colors`}
+                                            className={`${model.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'} hover:bg-gray-700 animate-hover`}
                                             onClick={() => handleToggleStarred(model)}
                                             disabled={isProcessing}
                                         >

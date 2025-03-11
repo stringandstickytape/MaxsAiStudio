@@ -32,9 +32,9 @@ interface ResizeHandleProps {
 const ResizeHandle = ({ className, direction = 'horizontal' }: ResizeHandleProps) => (
   <PanelResizeHandle
     className={cn(
-      direction === 'horizontal' 
-        ? "w-1.5 hover:w-2 transition-all duration-200 relative cursor-col-resize" 
-        : "h-1.5 hover:h-2 transition-all duration-200 relative cursor-row-resize",
+        direction === 'horizontal' 
+        ? "w-1.5 hover:w-2 animate-hover relative cursor-col-resize" 
+        : "h-1.5 hover:h-2 animate-hover relative cursor-row-resize",
       "before:absolute before:bg-gray-700/50 hover:before:bg-gray-600/80 active:before:bg-blue-500/50",
       direction === 'horizontal'
         ? "before:top-0 before:bottom-0 before:left-1/2 before:-ml-px before:w-0.5"
@@ -95,7 +95,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     return (
       <div className="flex flex-col h-full overflow-hidden">
         {/* Panel header */}
-        <div className="flex justify-between items-center p-3 border-b border-gray-700 bg-gray-800">
+        <div className="flex-between p-3 border-b border-gray-700 bg-gray-800">
           <h3 className="font-medium text-gray-100 flex-1 truncate">{panel.title}</h3>
           <div className="flex gap-1">
             <Button

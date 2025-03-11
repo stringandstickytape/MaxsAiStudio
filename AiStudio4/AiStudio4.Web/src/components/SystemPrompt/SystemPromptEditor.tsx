@@ -169,8 +169,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
     };
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="flex-none flex justify-between items-center mb-4">
+        <div className="h-full flex-col-full">
+            <div className="flex-none flex-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-100">
                     {isCreating ? 'Create New System Prompt' : 'Edit System Prompt'}
                 </h2>

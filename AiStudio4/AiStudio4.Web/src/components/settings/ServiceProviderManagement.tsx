@@ -104,8 +104,8 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
 
     return (
         <>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-100">Service Providers</h2>
+            <div className="flex-between mb-4">
+                <h2 className="text-title">Service Providers</h2>
                 <Button
                     onClick={() => setIsAddDialogOpen(true)}
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
@@ -117,7 +117,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             {providers.length === 0 ? (
                 <Card className="card-base">
                     <CardContent className="pt-6 text-center text-gray-400">
-                        <div className="flex flex-col items-center justify-center py-8">
+                            <div className="flex flex-col flex-center py-8">
                             <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
                             <p>No service providers configured yet.</p>
                             <p className="mb-4">Add your first provider to get started.</p>
@@ -153,14 +153,14 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                             <CardTitle className="flex items-center gap-2 text-gray-100 text-lg">
                                                 {provider.friendlyName}
                                             </CardTitle>
-                                            <CardDescription className="text-gray-400 font-mono text-xs">Protocol: {provider.serviceName}</CardDescription>
+                                            <CardDescription className="text-mono">Protocol: {provider.serviceName}</CardDescription>
                                         </div>
                                     </div>
                                     <div className="flex flex-col space-y-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
+                                            className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 animate-hover"
                                             onClick={() => {
                                                 setEditingProvider(provider);
                                                 setEditOpen(true);
@@ -171,7 +171,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20 animate-hover"
                                             onClick={() => {
                                                 setDeleteConfirmProvider(provider);
                                                 setIsDeleteDialogOpen(true);

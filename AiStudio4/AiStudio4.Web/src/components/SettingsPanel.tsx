@@ -92,8 +92,8 @@ export const SettingsPanel: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-32 p-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="flex-center h-32 p-4">
+                <div className="loading-spinner h-8 w-8"></div>
             </div>
         );
     }

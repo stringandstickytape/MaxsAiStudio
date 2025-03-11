@@ -84,7 +84,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                     <div className="flex justify-between items-start gap-2">
                         <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-gray-100 text-lg">{prompt.title}</h3>
+                                <h3 className="text-title text-lg">{prompt.title}</h3>
                                 {isDefault && (
                                     <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-700 text-xs">
                                         Default
@@ -92,7 +92,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                                 )}
                             </div>
                             {hasDescription && (
-                                <p className="text-gray-400 text-sm mb-2">{prompt.description}</p>
+                                <p className="text-body mb-2">{prompt.description}</p>
                             )}
                         </div>
                         <div className="flex-shrink-0">
@@ -132,7 +132,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
                     )}
 
                     <div className="mt-3 flex justify-between items-center">
-                        <div className="text-xs text-gray-500">
+                        <div className="text-mono text-gray-500">
                             {new Date(prompt.modifiedDate).toLocaleDateString()}
                         </div>
                         <div className="flex gap-1">
