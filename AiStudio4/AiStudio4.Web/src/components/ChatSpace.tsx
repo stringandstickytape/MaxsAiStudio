@@ -80,11 +80,6 @@ export function ChatSpace() {
         setIsToolPanelOpen(true);
     };
 
-    const hasLeftPanel = panels.sidebar?.isPinned || false;
-    const hasRightPanel = panels.conversationTree?.isPinned ||
-        panels.settings?.isPinned ||
-        panels.systemPrompts?.isPinned || false;
-
     return (
         <>
             <div className="flex-none h-[155px] bg-background">
@@ -93,8 +88,6 @@ export function ChatSpace() {
                     isCommandBarOpen={isCommandBarOpen}
                     setIsCommandBarOpen={setIsCommandBarOpen}
                     CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                    sidebarPinned={hasLeftPanel}
-                    rightSidebarPinned={hasRightPanel}
                     activeConversationId={activeConversationId}
                 />
             </div>
@@ -134,7 +127,7 @@ export function ChatSpace() {
                                 onClick={() => setIsToolPanelOpen(false)}
                                 className="text-gray-400 hover:text-gray-100"
                             >
-                                <span className="h-5 w-5">*</span>
+                                <span className="h-5 w-5">X</span>
                             </Button>
                         </div>
                         <div className="h-full overflow-y-auto">

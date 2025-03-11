@@ -104,7 +104,22 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     };
   }),
   
-  registerPanel: (panel) => set((state) => {
+  registerPanel: (panel) => {
+    // Check localStorage for saved panel state
+    let savedState: Partial<PanelState> = {};
+    try {
+      const savedLayout = localStorage.getItem('panel-layout');
+      if (savedLayout) {
+        const parsedLayout = JSON.parse(savedLayout);
+        if (parsedLayout[panel.id]) {
+          savedState = parsedLayout[panel.id];
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved panel state:', e);
+    }
+    
+    return set((state) => {
 
     const existingPanel = state.panels[panel.id];
     if (existingPanel) {
@@ -126,5 +141,6 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         [panel.id]: panel
       }
     };
-  })
+  });
+  }
 }));

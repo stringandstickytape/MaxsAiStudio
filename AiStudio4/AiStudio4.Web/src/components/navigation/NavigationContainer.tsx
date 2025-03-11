@@ -1,6 +1,7 @@
 // src/components/navigation/NavigationContainer.tsx
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useMemo, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
+import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '../Sidebar';
 import { ConversationTreeView } from '@/components/ConversationTreeView';
@@ -116,7 +117,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         panels.settings?.isPinned ||
         panels.systemPrompts?.isPinned || false;
 
-    const panelConfigs: PanelConfig[] = [
+    const panelConfigs: PanelConfig[] = useMemo(() => [
         {
             id: 'sidebar',
             position: 'left',
@@ -192,20 +193,17 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
                 />
             ) : null
         }
-    ];
+    ], [activeConversationId, conversations, selectedConversationId, setConversationPrompt, setConversationSystemPrompt, wsState]);
 
     return (
         <>
-            <div className={cn(
-                "h-screen flex flex-col",
-                hasLeftPanel && "pl-80",
-                hasRightPanel && "pr-80"
-            )}>
-                {children}
-            </div>
+            <PanelContainerLayout>
+                <div className="h-full flex flex-col">
+                    {children}
+                </div>
+            </PanelContainerLayout>
 
             <PanelManager panels={panelConfigs} />
-
         </>
     );
 }
