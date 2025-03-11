@@ -9,13 +9,13 @@ export interface PinnedCommand {
 }
 
 interface PinnedCommandsStore {
-  // State
+  
   pinnedCommands: PinnedCommand[];
   loading: boolean;
   error: string | null;
   isDragging: boolean;
 
-  // Actions
+  
   setPinnedCommands: (commands: PinnedCommand[]) => void;
   addPinnedCommand: (command: PinnedCommand) => void;
   removePinnedCommand: (commandId: string) => void;
@@ -28,13 +28,13 @@ interface PinnedCommandsStore {
 }
 
 export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => ({
-  // Initial state
+  
   pinnedCommands: [],
   loading: false,
   error: null,
   isDragging: false,
 
-  // Actions
+  
   setPinnedCommands: (commands) => set({ pinnedCommands: commands }),
 
   addPinnedCommand: (command) =>
@@ -59,7 +59,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
           orderedCommands.push(command);
         }
       });
-      // Set user-modified flag to trigger save
+      
       window.localStorage.setItem('pinnedCommands_modified', 'true');
       return { pinnedCommands: orderedCommands };
     }),
@@ -131,7 +131,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
   setIsDragging: (isDragging) => set({ isDragging }),
 }));
 
-// Debug helper for console
+
 export const debugPinnedCommands = () => {
   const state = usePinnedCommandsStore.getState();
   console.group('Pinned Commands Debug');
@@ -144,5 +144,6 @@ export const debugPinnedCommands = () => {
   return state;
 };
 
-// Export for console access
+
 (window as any).debugPinnedCommands = debugPinnedCommands;
+

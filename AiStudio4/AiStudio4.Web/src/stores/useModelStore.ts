@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { Model, ServiceProvider } from '@/types/settings';
 
 interface ModelStore {
-  // State
+  
   models: Model[];
   providers: ServiceProvider[];
   selectedPrimaryModel: string;
@@ -11,7 +11,7 @@ interface ModelStore {
   loading: boolean;
   error: string | null;
 
-  // Actions
+  
   setModels: (models: Model[]) => void;
   setProviders: (providers: ServiceProvider[]) => void;
   selectPrimaryModel: (modelName: string) => void;
@@ -30,7 +30,7 @@ interface ModelStore {
 }
 
 export const useModelStore = create<ModelStore>((set, get) => ({
-  // Initial state
+  
   models: [],
   providers: [],
   selectedPrimaryModel: 'Select Model',
@@ -38,7 +38,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // Actions
+  
   setModels: (models) => set({ models }),
 
   setProviders: (providers) => set({ providers }),
@@ -54,7 +54,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/addModel', {
         method: 'POST',
         headers: {
@@ -69,8 +69,8 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to add model');
       }
 
-      // Update client-side state
-      // Since the API doesn't return the new model, we'll fetch all models
+      
+      
       const fetchResponse = await fetch('/api/getModels', {
         method: 'POST',
         headers: {
@@ -88,7 +88,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       setModels(fetchData.models || []);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/updateModel', {
         method: 'POST',
         headers: {
@@ -116,11 +116,11 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to update model');
       }
 
-      // Update client-side state
+      
       setModels(models.map((m) => (m.guid === model.guid ? model : m)));
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/deleteModel', {
         method: 'POST',
         headers: {
@@ -148,11 +148,11 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to delete model');
       }
 
-      // Update client-side state
+      
       setModels(models.filter((model) => model.guid !== modelGuid));
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/addServiceProvider', {
         method: 'POST',
         headers: {
@@ -180,8 +180,8 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to add service provider');
       }
 
-      // Update client-side state
-      // Since the API doesn't return the new provider, we'll fetch all providers
+      
+      
       const fetchResponse = await fetch('/api/getServiceProviders', {
         method: 'POST',
         headers: {
@@ -199,7 +199,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       setProviders(fetchData.providers || []);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -212,7 +212,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/updateServiceProvider', {
         method: 'POST',
         headers: {
@@ -227,11 +227,11 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to update service provider');
       }
 
-      // Update client-side state
+      
       setProviders(providers.map((p) => (p.guid === provider.guid ? provider : p)));
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -244,7 +244,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     setError(null);
 
     try {
-      // API call
+      
       const response = await fetch('/api/deleteServiceProvider', {
         method: 'POST',
         headers: {
@@ -259,11 +259,11 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         throw new Error(data.error || 'Failed to delete service provider');
       }
 
-      // Update client-side state
+      
       setProviders(providers.filter((provider) => provider.guid !== providerGuid));
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
-      throw error; // Re-throw for component handling
+      throw error; 
     } finally {
       setLoading(false);
     }
@@ -274,7 +274,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
   setError: (error) => set({ error }),
 }));
 
-// Debug helper for console
+
 export const debugModelStore = () => {
   const state = useModelStore.getState();
   console.group('Model Store Debug');
@@ -288,5 +288,6 @@ export const debugModelStore = () => {
   return state;
 };
 
-// Export for console access
+
 (window as any).debugModelStore = debugModelStore;
+

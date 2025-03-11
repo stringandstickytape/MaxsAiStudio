@@ -17,26 +17,24 @@ interface UseWebSocketResult {
   send: (messageType: string, content: any) => void;
 }
 
-/**
- * Hook for working with WebSocket connections, using Zustand for state management
- */
+
 export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketResult {
   const { autoConnect = true, subscriptions = {} } = options;
 
-  // Use the Zustand store for WebSocket state
+  
   const { connect, disconnect, send } = useWebSocketStore();
 
-  // Use the WebSocketStatus hook to track connection state
+  
   const { isConnected, clientId } = useWebSocketStatus();
 
-  // Set up subscriptions
+  
   useEffect(() => {
-    // Subscribe to all message types in the subscriptions object
+    
     Object.entries(subscriptions).forEach(([messageType, handler]) => {
       webSocketService.subscribe(messageType, handler);
     });
 
-    // Clean up subscriptions on unmount
+    
     return () => {
       Object.entries(subscriptions).forEach(([messageType, handler]) => {
         webSocketService.unsubscribe(messageType, handler);
@@ -44,14 +42,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     };
   }, [subscriptions]);
 
-  // Auto-connect if enabled
+  
   useEffect(() => {
     if (autoConnect) {
       connect();
     }
 
-    // We don't automatically disconnect to avoid disconnecting when a component using
-    // this hook unmounts but other components still need the connection
+    
+    
   }, [autoConnect, connect]);
 
   return {
@@ -62,3 +60,4 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     send,
   };
 }
+

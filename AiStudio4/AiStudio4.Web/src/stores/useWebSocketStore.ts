@@ -4,13 +4,13 @@ import { webSocketService, WebSocketConnectionStatus } from '@/services/websocke
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 
 interface WebSocketStore {
-  // State
+  
   isConnected: boolean;
   clientId: string | null;
   lastMessageTime: number | null;
   reconnectAttempts: number;
 
-  // Actions
+  
   connect: () => void;
   disconnect: () => void;
   send: (messageType: string, content: any) => void;
@@ -24,9 +24,9 @@ interface WebSocketStore {
 }
 
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
-  // Set up event listeners for WebSocket events
+  
   if (typeof window !== 'undefined') {
-    // Listen for connection status changes
+    
     listenToWebSocketEvent('connection:status', (detail) => {
       if (detail.type === 'connected') {
         set({
@@ -40,20 +40,20 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       }
     });
 
-    // Listen for all messages to update lastMessageTime
+    
     listenToWebSocketEvent('message:received', (detail) => {
       set({ lastMessageTime: detail.timestamp || Date.now() });
     });
   }
 
   return {
-    // Initial state
+    
     isConnected: webSocketService.isConnected(),
     clientId: webSocketService.getClientId(),
     lastMessageTime: null,
     reconnectAttempts: webSocketService.getReconnectAttempts(),
 
-    // Actions
+    
     connect: () => {
       webSocketService.connect();
     },
@@ -100,7 +100,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
   };
 });
 
-// Debug helper for console
+
 export const debugWebSocketStore = () => {
   const state = useWebSocketStore.getState();
   console.group('WebSocket Store Debug');
@@ -112,5 +112,6 @@ export const debugWebSocketStore = () => {
   return state;
 };
 
-// Export for console access
+
 (window as any).debugWebSocketStore = debugWebSocketStore;
+

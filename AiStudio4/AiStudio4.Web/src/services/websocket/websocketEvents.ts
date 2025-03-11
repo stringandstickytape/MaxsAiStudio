@@ -16,9 +16,7 @@ export interface WebSocketEventDetail {
   messageType?: string;
 }
 
-/**
- * Dispatch a WebSocket-related event through the DOM event system
- */
+
 export const dispatchWebSocketEvent = (eventType: WebSocketEventType, detail: Partial<WebSocketEventDetail>): void => {
   const fullDetail: WebSocketEventDetail = {
     type: detail.type || '',
@@ -39,10 +37,7 @@ export const dispatchWebSocketEvent = (eventType: WebSocketEventType, detail: Pa
   console.debug(`WebSocket Event Dispatched: ${eventType}`, fullDetail);
 };
 
-/**
- * Listen for WebSocket-related events
- * Returns an unsubscribe function
- */
+
 export const listenToWebSocketEvent = (
   eventType: WebSocketEventType,
   handler: (detail: WebSocketEventDetail) => void,
@@ -55,3 +50,4 @@ export const listenToWebSocketEvent = (
   window.addEventListener(eventType, eventHandler);
   return () => window.removeEventListener(eventType, eventHandler);
 };
+

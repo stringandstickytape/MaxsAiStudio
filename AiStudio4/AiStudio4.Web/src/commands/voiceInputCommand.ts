@@ -1,4 +1,4 @@
-﻿// src/commands/voiceInputCommand.ts
+// src/commands/voiceInputCommand.ts
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Mic } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,7 +12,7 @@ export function initializeVoiceInputCommand() {
     id: 'start-voice-input',
     name: 'Voice Input',
     description: 'Use your microphone to speak instead of typing',
-    shortcut: navigator.platform.indexOf('Mac') !== -1 ? '⌥+V' : 'Alt+V',
+    shortcut: navigator.platform.indexOf('Mac') !== -1 ? '?+V' : 'Alt+V',
     keywords: [
       'voice',
       'speech',
@@ -84,3 +84,4 @@ export function setupVoiceInputKeyboardShortcut() {
   window.addEventListener('keydown', handleKeyDown);
   return () => window.removeEventListener('keydown', handleKeyDown);
 }
+

@@ -2,9 +2,7 @@
 import { useState, useCallback } from 'react';
 import { DropResult } from 'react-beautiful-dnd';
 
-/**
- * Custom hook to handle drag and drop operations
- */
+
 export function useDragDrop<T extends { id: string }>(items: T[], onReorder?: (newItems: T[]) => void) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -37,3 +35,4 @@ export function useDragDrop<T extends { id: string }>(items: T[], onReorder?: (n
     handleDragEnd,
   };
 }
+

@@ -7,7 +7,7 @@ class CodeBlockRendererRegistry {
   private renderers: Map<string, CodeBlockRenderer> = new Map();
 
   register(renderer: CodeBlockRenderer) {
-    // Register each type in the array
+    
     renderer.type.forEach((type) => {
       this.renderers.set(type, renderer);
     });
@@ -19,11 +19,11 @@ class CodeBlockRendererRegistry {
   }
 
   async renderAll() {
-    // Create a Set to avoid duplicate renderers
+    
     const uniqueRenderers = new Set(this.renderers.values());
 
     for (const renderer of uniqueRenderers) {
-      // Get all types this renderer handles
+      
       const typeSelectors = renderer.type.map((type) => `.${type}`).join(', ');
       const elements = document.querySelectorAll(typeSelectors);
 
@@ -37,3 +37,4 @@ class CodeBlockRendererRegistry {
 
 export const codeBlockRendererRegistry = new CodeBlockRendererRegistry();
 [MermaidRenderer, JsonRenderer, HtmlRenderer].forEach((renderer) => codeBlockRendererRegistry.register(renderer));
+

@@ -11,7 +11,7 @@ export function initializeCoreCommands(handlers: {
   toggleSettings: () => void;
   openNewWindow: () => void;
 }) {
-  // Get Zustand store actions
+  
   const { createConv } = useConvStore.getState();
 
   const mac = navigator.platform.indexOf('Mac') !== -1;
@@ -136,3 +136,4 @@ export function initializeCoreCommands(handlers: {
     })),
   });
 }
+

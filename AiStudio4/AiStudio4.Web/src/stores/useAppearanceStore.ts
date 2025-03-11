@@ -3,13 +3,13 @@ import { create } from 'zustand';
 import { apiClient } from '@/services/api/apiClient';
 
 interface AppearanceState {
-  // State
+  
   fontSize: number;
   isDarkMode: boolean;
   isLoading: boolean;
   error: string | null;
 
-  // Actions
+  
   increaseFontSize: () => void;
   decreaseFontSize: () => void;
   setFontSize: (size: number) => void;
@@ -19,20 +19,20 @@ interface AppearanceState {
   setError: (error: string | null) => void;
 }
 
-// Constants for font size limits
+
 const MIN_FONT_SIZE = 8;
 const MAX_FONT_SIZE = 24;
 const DEFAULT_FONT_SIZE = 16;
 const FONT_SIZE_STEP = 1;
 
 export const useAppearanceStore = create<AppearanceState>((set, get) => ({
-  // Initial state
+  
   fontSize: DEFAULT_FONT_SIZE,
-  isDarkMode: true, // Default to dark mode based on what we see in the UI
+  isDarkMode: true, 
   isLoading: false,
   error: null,
 
-  // Actions
+  
   increaseFontSize: () =>
     set((state) => {
       const newSize = Math.min(state.fontSize + FONT_SIZE_STEP, MAX_FONT_SIZE);
@@ -96,21 +96,21 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         throw new Error(data.error || 'Failed to load appearance settings');
       }
 
-      // Apply settings
+      
       const fontSize = Number(data.fontSize) || DEFAULT_FONT_SIZE;
       set({
         fontSize,
         isDarkMode: data.isDarkMode ?? true,
       });
 
-      // Apply font size to the document
+      
       document.documentElement.style.fontSize = `${fontSize}px`;
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Unknown error loading appearance settings';
       set({ error: errMsg });
       console.error('Error loading appearance settings:', err);
 
-      // Still set defaults even if there's an error
+      
       document.documentElement.style.fontSize = `${DEFAULT_FONT_SIZE}px`;
     } finally {
       set({ isLoading: false });
@@ -120,21 +120,21 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
   setError: (error) => set({ error }),
 }));
 
-// Initialize font size on load
+
 if (typeof window !== 'undefined') {
-  // Get the current font size store
+  
   const { fontSize, loadAppearanceSettings } = useAppearanceStore.getState();
 
-  // Set initial font size
+  
   document.documentElement.style.fontSize = `${fontSize}px`;
 
-  // Load settings from server
+  
   loadAppearanceSettings().catch((err) => {
     console.warn('Failed to load appearance settings:', err);
   });
 }
 
-// Export debug helper for console use
+
 export const debugAppearanceStore = () => {
   const state = useAppearanceStore.getState();
   console.group('Appearance Store Debug');
@@ -146,7 +146,8 @@ export const debugAppearanceStore = () => {
   return state;
 };
 
-// Expose debug helper in window object
+
 if (typeof window !== 'undefined') {
   (window as any).debugAppearanceStore = debugAppearanceStore;
 }
+

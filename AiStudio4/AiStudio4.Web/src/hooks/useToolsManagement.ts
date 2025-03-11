@@ -5,7 +5,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { Tool, ToolCategory } from '@/types/toolTypes';
 import { createResourceHook } from './useResourceFactory';
 
-// Create resource hook for tools
+
 const useToolResource = createResourceHook<Tool>({
   endpoints: {
     fetch: '/api/getTools',
@@ -20,7 +20,7 @@ const useToolResource = createResourceHook<Tool>({
     idField: 'guid',
     generateId: true,
     transformFetchResponse: (data) => {
-      // Ensure all tools have a filetype property
+      
       return (data.tools || []).map((tool: Tool) => ({
         ...tool,
         filetype: tool.filetype || '',
@@ -30,7 +30,7 @@ const useToolResource = createResourceHook<Tool>({
   },
 });
 
-// Create resource hook for tool categories
+
 const useToolCategoryResource = createResourceHook<ToolCategory>({
   endpoints: {
     fetch: '/api/getToolCategories',
@@ -45,7 +45,7 @@ const useToolCategoryResource = createResourceHook<ToolCategory>({
 });
 
 export function useToolsManagement() {
-  // Use the tools resource hook
+  
   const {
     isLoading: toolsLoading,
     error: toolsError,
@@ -56,7 +56,7 @@ export function useToolsManagement() {
     clearError: clearToolsError,
   } = useToolResource();
 
-  // Use the tool categories resource hook
+  
   const {
     isLoading: categoriesLoading,
     error: categoriesError,
@@ -64,13 +64,13 @@ export function useToolsManagement() {
     clearError: clearCategoriesError,
   } = useToolCategoryResource();
 
-  // Use API call state utility for specialized operations
+  
   const { executeApiCall } = useApiCallState();
 
-  // Get state from the store
+  
   const { tools, categories, activeTools, addActiveTool, removeActiveTool, clearActiveTools } = useToolStore();
 
-  // Validate a tool schema
+  
   const validateToolSchema = useCallback(
     async (schema: string) => {
       return executeApiCall(async () => {
@@ -83,7 +83,7 @@ export function useToolsManagement() {
     [executeApiCall],
   );
 
-  // Export tools
+  
   const exportTools = useCallback(
     async (toolIds?: string[]) => {
       return executeApiCall(async () => {
@@ -96,7 +96,7 @@ export function useToolsManagement() {
     [executeApiCall],
   );
 
-  // Toggle a tool's active state
+  
   const toggleTool = useCallback(
     (toolId: string, activate: boolean) => {
       if (activate) {
@@ -108,27 +108,27 @@ export function useToolsManagement() {
     [addActiveTool, removeActiveTool],
   );
 
-  // Combined loading state
+  
   const isLoading = toolsLoading || categoriesLoading;
 
-  // Combined error state
+  
   const error = toolsError || categoriesError;
 
-  // Function to clear all errors
+  
   const clearError = useCallback(() => {
     clearToolsError();
     clearCategoriesError();
   }, [clearToolsError, clearCategoriesError]);
 
   return {
-    // State
+    
     tools,
     categories,
     activeTools,
     isLoading,
     error,
 
-    // Actions
+    
     fetchTools,
     fetchToolCategories,
     addTool,
@@ -143,3 +143,4 @@ export function useToolsManagement() {
     clearError,
   };
 }
+

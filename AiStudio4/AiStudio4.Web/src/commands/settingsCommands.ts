@@ -3,7 +3,7 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';
 
-// Create a global event system for command communication
+
 type CommandEvent = 'edit-model' | 'edit-provider' | 'settings-tab';
 export const commandEvents = {
   emit: (event: CommandEvent, data: any) => {
@@ -76,14 +76,14 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
   });
 }
 
-// Register commands for each individual model in the system
+
 export function registerModelCommands(
   models: { guid: string; friendlyName: string; modelName: string }[],
   openSettings: () => void,
 ) {
-  // Unregister previous commands to avoid duplicates
+  
   try {
-    // This might fail silently if the group doesn't exist yet, which is fine
+    
     useCommandStore.getState().unregisterGroup('edit-models-list');
   } catch (e) {}
 
@@ -95,7 +95,7 @@ export function registerModelCommands(
     section: 'settings',
     icon: React.createElement(Edit, { size: 16 }),
     execute: () => {
-      // Open the settings panel and emit an event to edit this model
+      
       commandEvents.emit('settings-tab', 'models');
       commandEvents.emit('edit-model', model.guid);
       openSettings();
@@ -110,14 +110,14 @@ export function registerModelCommands(
   });
 }
 
-// Register commands for each individual provider in the system
+
 export function registerProviderCommands(
   providers: { guid: string; friendlyName: string; serviceName: string }[],
   openSettings: () => void,
 ) {
-  // Unregister previous commands to avoid duplicates
+  
   try {
-    // This might fail silently if the group doesn't exist yet, which is fine
+    
     useCommandStore.getState().unregisterGroup('edit-providers-list');
   } catch (e) {}
 
@@ -129,7 +129,7 @@ export function registerProviderCommands(
     section: 'settings',
     icon: React.createElement(Database, { size: 16 }),
     execute: () => {
-      // Open the settings panel and emit an event to edit this provider
+      
       commandEvents.emit('settings-tab', 'providers');
       commandEvents.emit('edit-provider', provider.guid);
       openSettings();
@@ -143,3 +143,4 @@ export function registerProviderCommands(
     commands: providerCommands,
   });
 }
+

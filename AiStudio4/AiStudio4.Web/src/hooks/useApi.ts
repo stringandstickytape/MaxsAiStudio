@@ -2,7 +2,7 @@
 import { useCallback, useEffect } from 'react';
 import { apiClient, useApiStore } from '@/services/api/apiClient';
 
-// Generic hook factory for API calls
+
 export function createApiHook<TParams = void, TResponse = any>(
   endpoint: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST',
@@ -14,7 +14,7 @@ export function createApiHook<TParams = void, TResponse = any>(
     onError?: (error: any) => void;
   } = {},
 ) {
-  // Return a custom hook for this endpoint
+  
   return (
     customOptions: {
       skip?: boolean;
@@ -26,13 +26,13 @@ export function createApiHook<TParams = void, TResponse = any>(
     const queryKey = options.queryKey || endpoint;
     const { queries, loading, errors, setQueryData, setLoading, setError } = useApiStore();
 
-    // Combine default params with custom params
+    
     const params = {
       ...options.defaultParams,
       ...customOptions.params,
     } as TParams;
 
-    // Execute the query
+    
     const execute = useCallback(
       async (executeParams?: TParams) => {
         const finalParams = executeParams || params;
@@ -66,7 +66,7 @@ export function createApiHook<TParams = void, TResponse = any>(
       [params, queryKey],
     );
 
-    // Auto-execute on mount if not skipped
+    
     useEffect(() => {
       if (!customOptions.skip) {
         execute();
@@ -82,3 +82,4 @@ export function createApiHook<TParams = void, TResponse = any>(
     };
   };
 }
+

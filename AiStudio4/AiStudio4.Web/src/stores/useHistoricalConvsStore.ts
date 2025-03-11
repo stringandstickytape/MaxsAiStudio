@@ -19,12 +19,12 @@ interface TreeNode {
 }
 
 interface HistoricalConvsStore {
-  // State
+  
   convs: HistoricalConv[];
   isLoading: boolean;
   error: string | null;
 
-  // Actions
+  
   fetchAllConvs: () => Promise<void>;
   fetchConvTree: (convId: string) => Promise<TreeNode | null>;
   addOrUpdateConv: (conv: HistoricalConv) => void;
@@ -33,15 +33,15 @@ interface HistoricalConvsStore {
 }
 
 export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) => {
-  // Set up event listeners for historical conv updates
+  
   if (typeof window !== 'undefined') {
     listenToWebSocketEvent('historical:update', (detail) => {
       const content = detail.content;
       if (content) {
-        // Get the current state
+        
         const store = get();
 
-        // Use the store's action to update the conv
+        
         store.addOrUpdateConv({
           convGuid: content.convId || content.convGuid,
           summary: content.summary || content.content || 'Untitled Conv',
@@ -54,12 +54,12 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
   }
 
   return {
-    // Initial state
+    
     convs: [],
     isLoading: false,
     error: null,
 
-    // Actions
+    
     fetchAllConvs: async () => {
       const clientId = localStorage.getItem('clientId');
       if (!clientId) {
@@ -81,7 +81,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           throw new Error('Invalid response format');
         }
 
-        // Process and update state with the received convs
+        
         const newConvs = data.convs.map((conv: any) => ({
           convGuid: conv.convId,
           summary: conv.summary || 'Untitled Conv',
@@ -124,40 +124,40 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           throw new Error('Invalid response format or empty tree');
         }
 
-        // Convert flat array to hierarchical tree structure
+        
         const flatNodes = data.flatMessageStructure;
         const nodeMap = new Map();
 
-        // First pass: create all nodes
+        
         flatNodes.forEach((node: TreeNode) => {
           nodeMap.set(node.id, {
             id: node.id,
             text: node.text,
             children: [],
-            parentId: node.parentId, // Keep parentId for easier reference
-            source: node.source, // Keep source information if available
-            tokenUsage: node.tokenUsage, // Store token usage information
+            parentId: node.parentId, 
+            source: node.source, 
+            tokenUsage: node.tokenUsage, 
           });
         });
 
-        // Second pass: build the tree by connecting parents and children
+        
         let rootNode = null;
         flatNodes.forEach((node: TreeNode) => {
           const treeNode = nodeMap.get(node.id);
 
           if (!node.parentId) {
-            // This is a root node
+            
             rootNode = treeNode;
           } else if (nodeMap.has(node.parentId)) {
-            // Add this node as a child of its parent
+            
             const parentNode = nodeMap.get(node.parentId);
             parentNode.children.push(treeNode);
           }
         });
 
-        // Store the summary from the data for future reference
+        
         if (data.summary) {
-          // Update the conv in our store with the summary
+          
           const store = get();
           const convToUpdate = store.convs.find((c) => c.convGuid === convId);
           if (convToUpdate) {
@@ -168,13 +168,13 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           }
         }
 
-        // Return the root node or the first node
+        
         set({ isLoading: false });
 
         if (rootNode) {
           return rootNode;
         } else if (flatNodes.length > 0) {
-          // If no explicit root found, use the first node
+          
           return nodeMap.get(flatNodes[0].id);
         } else {
           return null;
@@ -191,16 +191,16 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
     addOrUpdateConv: (conv) => {
       set((state) => {
-        // Check if conv already exists
+        
         const exists = state.convs.some((conv) => conv.convGuid === conv.convGuid);
 
         if (exists) {
-          // Update existing conv
+          
           return {
             convs: state.convs.map((conv) => (conv.convGuid === conv.convGuid ? conv : conv)),
           };
         } else {
-          // Add new conv at the beginning of the list
+          
           return {
             convs: [conv, ...state.convs],
           };
@@ -228,7 +228,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           throw new Error(data.error || 'Failed to delete conv');
         }
 
-        // Remove conv from the store
+        
         set((state) => ({
           convs: state.convs.filter((conv) => conv.convGuid !== convId),
           isLoading: false,
@@ -246,7 +246,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
   };
 });
 
-// Debug helper for console
+
 export const debugHistoricalConvs = () => {
   const state = useHistoricalConvsStore.getState();
   console.group('Historical Convs Debug');
@@ -258,5 +258,6 @@ export const debugHistoricalConvs = () => {
   return state;
 };
 
-// Export for console access
+
 (window as any).debugHistoricalConvs = debugHistoricalConvs;
+

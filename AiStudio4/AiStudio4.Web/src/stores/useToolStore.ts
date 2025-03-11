@@ -3,14 +3,14 @@ import { create } from 'zustand';
 import { Tool, ToolCategory } from '@/types/toolTypes';
 
 interface ToolStore {
-  // State
+  
   tools: Tool[];
   categories: ToolCategory[];
   activeTools: string[];
   loading: boolean;
   error: string | null;
 
-  // Actions
+  
   setTools: (tools: Tool[]) => void;
   setCategories: (categories: ToolCategory[]) => void;
   setActiveTools: (toolIds: string[]) => void;
@@ -22,14 +22,14 @@ interface ToolStore {
 }
 
 export const useToolStore = create<ToolStore>((set) => ({
-  // Initial state
+  
   tools: [],
   categories: [],
   activeTools: [],
   loading: false,
   error: null,
 
-  // Actions
+  
   setTools: (tools) => set({ tools }),
 
   setCategories: (categories) => set({ categories }),
@@ -53,7 +53,7 @@ export const useToolStore = create<ToolStore>((set) => ({
   setError: (error) => set({ error }),
 }));
 
-// Debug helper for console
+
 export const debugToolStore = () => {
   const state = useToolStore.getState();
   console.group('Tool Store Debug');
@@ -66,5 +66,6 @@ export const debugToolStore = () => {
   return state;
 };
 
-// Export for console access
+
 (window as any).debugToolStore = debugToolStore;
+

@@ -5,7 +5,7 @@ import { SystemPrompt } from '@/types/systemPrompt';
 interface SystemPromptStore {
   prompts: SystemPrompt[];
   defaultPromptId: string | null;
-  convPrompts: Record<string, string>; // convId -> promptId
+  convPrompts: Record<string, string>; 
   currentPrompt: SystemPrompt | null;
   isLibraryOpen: boolean;
   loading: boolean;
@@ -83,3 +83,4 @@ export const debugSystemPromptStore = () => {
 };
 
 (window as any).debugSystemPromptStore = debugSystemPromptStore;
+

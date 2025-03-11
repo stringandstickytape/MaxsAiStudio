@@ -3,7 +3,7 @@ import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tool } from '@/types/toolTypes';
 
-// Define some basic tool-related commands
+
 interface ToolCommandsConfig {
   openToolPanel: () => void;
   createNewTool: () => void;
@@ -60,7 +60,7 @@ export function registerToolsAsCommands(
     keywords: ['tool', ...tool.name.toLowerCase().split(' '), ...tool.description.toLowerCase().split(' ').slice(0, 5)],
     section: 'tools',
     icon: () => {
-      // Without using JSX, we'll use a simple text icon instead
+      
       return React.createElement('div', { className: 'text-blue-500 font-bold' }, 'T');
     },
     active: activeTools.includes(tool.guid),
@@ -73,7 +73,8 @@ export function registerToolsAsCommands(
   useCommandStore.getState().registerGroup({
     id: 'tools-list',
     name: 'Available Tools',
-    priority: 75, // Just below the main tools group
+    priority: 75, 
     commands: toolCommands,
   });
 }
+

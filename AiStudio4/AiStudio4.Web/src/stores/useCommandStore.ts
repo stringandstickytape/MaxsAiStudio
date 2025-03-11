@@ -3,13 +3,13 @@ import { create } from 'zustand';
 import { Command, CommandGroup, CommandSection } from '@/commands/types';
 
 interface CommandState {
-  // State
+  
   commands: Map<string, Command>;
   groups: CommandGroup[];
   lastExecutedCommand: string | null;
   searchCache: Record<string, Command[]>;
 
-  // Actions
+  
   registerCommand: (command: Command) => void;
   registerGroup: (group: CommandGroup) => void;
   unregisterCommand: (commandId: string) => void;
@@ -18,7 +18,7 @@ interface CommandState {
   searchCommands: (searchTerm: string) => Command[];
   clearSearchCache: () => void;
 
-  // Selectors
+  
   getCommandById: (id: string) => Command | undefined;
   getCommandsBySection: (section: CommandSection) => Command[];
   getAllCommands: () => Command[];
@@ -26,19 +26,19 @@ interface CommandState {
 }
 
 export const useCommandStore = create<CommandState>((set, get) => ({
-  // Initial state
+  
   commands: new Map<string, Command>(),
   groups: [],
   lastExecutedCommand: null,
   searchCache: {},
 
-  // Actions
+  
   registerCommand: (command) =>
     set((state) => {
       const newCommands = new Map(state.commands);
       newCommands.set(command.id, command);
 
-      // Also update any group this command belongs to
+      
       const updatedGroups = [...state.groups];
       for (const group of updatedGroups) {
         const commandIndex = group.commands.findIndex((cmd) => cmd.id === command.id);
@@ -50,18 +50,18 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       return {
         commands: newCommands,
         groups: updatedGroups,
-        searchCache: {}, // Clear search cache when commands change
+        searchCache: {}, 
       };
     }),
 
   registerGroup: (group) =>
     set((state) => {
-      // Check if group exists - update if it does, add if it doesn't
+      
       const existingGroupIndex = state.groups.findIndex((g) => g.id === group.id);
       let updatedGroups = [...state.groups];
 
       if (existingGroupIndex !== -1) {
-        // Update existing group
+        
         const existingGroup = state.groups[existingGroupIndex];
         updatedGroups[existingGroupIndex] = {
           ...existingGroup,
@@ -69,14 +69,14 @@ export const useCommandStore = create<CommandState>((set, get) => ({
           commands: [...group.commands],
         };
       } else {
-        // Add new group
+        
         updatedGroups.push({ ...group, commands: [...group.commands] });
       }
 
-      // Sort groups by priority
+      
       updatedGroups.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-      // Also update the commands map with all commands in the group
+      
       const newCommands = new Map(state.commands);
       for (const command of group.commands) {
         newCommands.set(command.id, command);
@@ -85,7 +85,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       return {
         groups: updatedGroups,
         commands: newCommands,
-        searchCache: {}, // Clear search cache when groups change
+        searchCache: {}, 
       };
     }),
 
@@ -94,7 +94,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       const newCommands = new Map(state.commands);
       newCommands.delete(commandId);
 
-      // Also remove from any groups
+      
       const updatedGroups = state.groups.map((group) => ({
         ...group,
         commands: group.commands.filter((cmd) => cmd.id !== commandId),
@@ -103,26 +103,26 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       return {
         commands: newCommands,
         groups: updatedGroups,
-        searchCache: {}, // Clear search cache when commands change
+        searchCache: {}, 
       };
     }),
 
   unregisterGroup: (groupId) =>
     set((state) => {
-      // Find the group to remove
+      
       const groupToRemove = state.groups.find((g) => g.id === groupId);
       if (!groupToRemove) return state;
 
-      // Get all command IDs from this group
+      
       const commandIdsToRemove = groupToRemove.commands.map((cmd) => cmd.id);
 
-      // Remove group
+      
       const updatedGroups = state.groups.filter((g) => g.id !== groupId);
 
-      // Remove commands that were only in this group
+      
       const newCommands = new Map(state.commands);
 
-      // Check if commands exist in other groups before removing
+      
       for (const commandId of commandIdsToRemove) {
         let existsInOtherGroups = false;
         for (const group of updatedGroups) {
@@ -140,7 +140,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       return {
         commands: newCommands,
         groups: updatedGroups,
-        searchCache: {}, // Clear search cache when groups change
+        searchCache: {}, 
       };
     }),
 
@@ -159,7 +159,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
   },
 
   searchCommands: (searchTerm) => {
-    // Check cache first
+    
     const { searchCache, commands } = get();
     if (searchCache[searchTerm]) {
       return searchCache[searchTerm];
@@ -191,7 +191,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
       ),
     );
 
-    // Update cache with results
+    
     set((state) => ({
       searchCache: {
         ...state.searchCache,
@@ -204,7 +204,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
 
   clearSearchCache: () => set({ searchCache: {} }),
 
-  // Selectors
+  
   getCommandById: (id) => get().commands.get(id),
 
   getCommandsBySection: (section) => {
@@ -216,7 +216,7 @@ export const useCommandStore = create<CommandState>((set, get) => ({
   getAllGroups: () => get().groups,
 }));
 
-// For backwards compatibility with existing code
+
 export const commandRegistry = {
   registerCommand: (command: Command) => useCommandStore.getState().registerCommand(command),
   registerGroup: (group: CommandGroup) => useCommandStore.getState().registerGroup(group),
@@ -231,7 +231,7 @@ export const commandRegistry = {
   },
 };
 
-// Debug helper
+
 export const debugCommandStore = () => {
   const state = useCommandStore.getState();
   console.group('Command Store Debug');
@@ -244,5 +244,6 @@ export const debugCommandStore = () => {
   return state;
 };
 
-// For console debugging
+
 (window as any).debugCommandStore = debugCommandStore;
+

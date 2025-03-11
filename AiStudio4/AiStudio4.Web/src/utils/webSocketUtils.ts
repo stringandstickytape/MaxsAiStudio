@@ -3,9 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { WebSocketEventType, WebSocketEventDetail, listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
 
-/**
- * Hook to listen for WebSocket events
- */
+
 export function useWebSocketEvent<T = any>(
   eventType: WebSocketEventType,
   onEvent?: (detail: WebSocketEventDetail) => void,
@@ -21,15 +19,13 @@ export function useWebSocketEvent<T = any>(
 
     const unsubscribe = listenToWebSocketEvent(eventType, handler);
     return unsubscribe;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [eventType, ...deps]);
 
   return eventData;
 }
 
-/**
- * Hook to track WebSocket connection status changes
- */
+
 export function useWebSocketStatus(onStatusChange?: (status: WebSocketConnectionStatus) => void) {
   const [isConnected, setIsConnected] = useState(false);
   const [clientId, setClientId] = useState<string | null>(null);
@@ -56,9 +52,7 @@ export function useWebSocketStatus(onStatusChange?: (status: WebSocketConnection
   return { isConnected, clientId };
 }
 
-/**
- * Hook for streamable WebSocket data with reconnection support
- */
+
 export function useStreamableWebSocketData<T = any>(
   eventType: WebSocketEventType,
   initialData: T[],
@@ -75,12 +69,12 @@ export function useStreamableWebSocketData<T = any>(
   }, [initialData, options]);
 
   useEffect(() => {
-    // Listen for data events
+    
     const unsubscribeData = listenToWebSocketEvent(eventType, (detail) => {
       setData((prev) => [...prev, detail.content]);
     });
 
-    // Listen for end events if reset is enabled
+    
     let unsubscribeEnd: (() => void) | undefined;
 
     if (options?.resetOnEnd) {
@@ -97,3 +91,4 @@ export function useStreamableWebSocketData<T = any>(
 
   return { data, reset };
 }
+

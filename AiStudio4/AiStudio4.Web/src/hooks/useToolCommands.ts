@@ -13,13 +13,13 @@ export function useToolCommands({
   createNewTool: () => void;
   exportTools: () => void;
 }) {
-  // Use Zustand store instead of Redux
+  
   const { activeTools, addActiveTool, removeActiveTool } = useToolStore();
 
-  // Use the new management hook to get tools
+  
   const { tools } = useToolsManagement();
 
-  // Function to toggle a tool's active state
+  
   const toggleTool = useCallback(
     (toolId: string, activate: boolean) => {
       if (activate) {
@@ -32,7 +32,7 @@ export function useToolCommands({
   );
 
   useEffect(() => {
-    // Only initialize commands once tools are loaded
+    
     if (tools.length > 0) {
       initializeToolCommands({
         openToolPanel,
@@ -40,10 +40,11 @@ export function useToolCommands({
         exportTools,
       });
 
-      // Register each individual tool as a command
+      
       registerToolsAsCommands(tools, activeTools, toggleTool);
     }
   }, [tools, activeTools, openToolPanel, createNewTool, exportTools, toggleTool]);
 
   return { toggleTool };
 }
+

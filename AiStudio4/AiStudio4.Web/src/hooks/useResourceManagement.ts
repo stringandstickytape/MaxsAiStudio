@@ -1,4 +1,4 @@
-﻿// src/hooks/useResourceManagement.ts
+// src/hooks/useResourceManagement.ts
 import { useCallback, useEffect } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useModelStore } from '@/stores/useModelStore';

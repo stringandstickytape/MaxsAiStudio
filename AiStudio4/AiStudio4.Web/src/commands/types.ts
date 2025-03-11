@@ -18,5 +18,6 @@ export interface CommandGroup {
   name: string;
   description?: string;
   commands: Command[];
-  priority?: number; // Higher numbers appear first
+  priority?: number; 
 }
+

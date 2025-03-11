@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { create } from 'zustand';
 
-// Basic axios instance with common config
+
 export const apiClient = axios.create({
   baseURL: '/',
   headers: {
@@ -10,7 +10,7 @@ export const apiClient = axios.create({
   },
 });
 
-// Add request interceptor for client ID
+
 apiClient.interceptors.request.use((config) => {
   const clientId = localStorage.getItem('clientId');
   if (clientId) {
@@ -19,33 +19,33 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor to standardize error handling
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Create standardized error object
+    
     const errorResponse = {
       message: error.message || 'An unknown error occurred',
       status: error.response?.status,
       data: error.response?.data,
     };
 
-    // Console error for debugging
+    
     console.error('API Error:', errorResponse);
 
-    // Return rejected promise with standardized error
+    
     return Promise.reject(errorResponse);
   },
 );
 
-// Create a Zustand store for API state management
+
 interface ApiState {
-  // Global API state
+  
   queries: Record<string, any>;
   loading: Record<string, boolean>;
   errors: Record<string, any>;
 
-  // Actions
+  
   setQueryData: (key: string, data: any) => void;
   setLoading: (key: string, isLoading: boolean) => void;
   setError: (key: string, error: any) => void;
@@ -87,3 +87,4 @@ export const useApiStore = create<ApiState>((set) => ({
       };
     }),
 }));
+

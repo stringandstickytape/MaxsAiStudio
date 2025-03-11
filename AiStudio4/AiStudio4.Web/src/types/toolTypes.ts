@@ -9,7 +9,7 @@ export interface Tool {
   categories: string[];
   lastModified: string;
   isBuiltIn: boolean;
-  filetype: string; // Added filetype property
+  filetype: string; 
 }
 
 export interface ToolCategory {
@@ -17,3 +17,4 @@ export interface ToolCategory {
   name: string;
   priority: number;
 }
+

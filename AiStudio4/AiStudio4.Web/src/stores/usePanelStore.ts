@@ -22,16 +22,16 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         return state;
       }
 
-      // Create a copy of panels first
+      
       const updatedPanels = { ...state.panels };
 
-      // Update the panel state
+      
       updatedPanels[id] = {
         ...panel,
         isOpen: !panel.isOpen,
       };
 
-      // If opening this panel and it's not pinned, close other panels on the same side
+      
       if (!panel.isOpen && !panel.isPinned) {
         Object.keys(updatedPanels).forEach((key) => {
           if (key !== id && updatedPanels[key].position === panel.position && !updatedPanels[key].isPinned) {
@@ -104,7 +104,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     }),
 
   registerPanel: (panel) => {
-    // Check localStorage for saved panel state
+    
     let savedState: Partial<PanelState> = {};
     try {
       const savedLayout = localStorage.getItem('panel-layout');
@@ -142,3 +142,4 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     });
   },
 }));
+
