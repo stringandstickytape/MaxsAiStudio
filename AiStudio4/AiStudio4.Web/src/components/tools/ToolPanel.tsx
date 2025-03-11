@@ -192,7 +192,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
                 placeholder="Search tools..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 bg-gray-800 border-gray-700 text-gray-100"
+                className="pl-8 input-base"
               />
             </div>
           </div>

@@ -60,7 +60,7 @@ export function ChatSpace() {
 
     return (
         <>
-            <div className="flex-none h-[155px] bg-background">
+            <div className="flex-none h-[155px]">
                 <AppHeader
                     onToggleSystemPrompts={() => togglePanel('systemPrompts')}
                     isCommandBarOpen={isCommandBarOpen}
@@ -77,7 +77,7 @@ export function ChatSpace() {
                 />
             </div>
 
-            <div className="flex-none h-[30vh] bg-background border-t">
+            <div className="flex-none h-[30vh] border-t">
                 <InputBar
                     selectedModel={selectedPrimaryModel}
                     onVoiceInputClick={() => setVoiceInputOpen(true)}

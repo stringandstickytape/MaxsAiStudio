@@ -35,6 +35,26 @@
     .form-item {
         @apply mb-4 space-y-2;
     }
+
+    .input-base {
+        @apply bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500;
+    }
+
+    .input-ghost {
+        @apply bg-gray-800/60 border-gray-700/50 text-gray-100 focus:ring-2 focus:ring-indigo-500/40;
+    }
+
+    .input-with-icon {
+        @apply pl-10 pr-4 py-2 rounded-lg;
+    }
+
+    .form-label {
+        @apply text-sm text-gray-300 font-medium;
+    }
+
+    .form-description {
+        @apply text-xs text-gray-400 mt-1;
+    }
 }
 
 @layer base {

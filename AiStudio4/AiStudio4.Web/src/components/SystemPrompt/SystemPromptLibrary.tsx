@@ -145,7 +145,7 @@ export function SystemPromptLibrary({
                         placeholder="Search prompts..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-gray-800 border-gray-700 text-gray-100"
+                        className="input-base input-with-icon"
                     />
                 </div>
 

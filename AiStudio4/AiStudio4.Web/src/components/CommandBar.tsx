@@ -195,7 +195,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/50 text-gray-100 rounded-lg shadow-inner focus:ring-2 focus:ring-indigo-500/40 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
+                        className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon"
                     />
                     {isOpen ? (
                         <button

@@ -163,7 +163,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   <Textarea
                     placeholder={field.placeholder}
                     {...formField}
-                    className={getInputStyles('textarea')}
+                    className="input-base"
                     disabled={isProcessing}
                     onChange={(e) => {
                       formField.onChange(e);
@@ -202,11 +202,11 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel className="text-gray-200">
+                  <FormLabel className="form-label">
                     {field.label}
                   </FormLabel>
                   {field.description && (
-                    <FormDescription className="text-gray-400">
+                  <FormDescription className="form-description">
                       {field.description}
                     </FormDescription>
                   )}
@@ -224,7 +224,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel className="text-gray-200">{field.label}</FormLabel>
+                <FormLabel className="form-label">{field.label}</FormLabel>
                 <Select
                   onValueChange={(value) => {
                     formField.onChange(value);
@@ -234,7 +234,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   disabled={isProcessing}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500">
+                    <SelectTrigger className="input-base">
                       <SelectValue placeholder={field.placeholder || `Select a ${field.label.toLowerCase()}`} />
                     </SelectTrigger>
                   </FormControl>
@@ -251,7 +251,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   </SelectContent>
                 </Select>
                 {field.description && (
-                  <FormDescription className="text-gray-400">
+                    <FormDescription className="form-description">
                     {field.description}
                   </FormDescription>
                 )}
@@ -269,7 +269,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel className="text-gray-200">{field.label}</FormLabel>
+                <FormLabel className="form-label">{field.label}</FormLabel>
                 <div className="flex gap-2">
                   <FormControl>
                     <Input
@@ -294,7 +294,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </div>
                 {field.description && (
-                  <FormDescription className="text-gray-400">
+                  <FormDescription className="form-description">
                     {field.description}
                   </FormDescription>
                 )}
@@ -312,7 +312,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel className="text-gray-200">{field.label}</FormLabel>
+                <FormLabel className="form-label">{field.label}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -331,7 +331,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 {field.description && (
-                  <FormDescription className="text-gray-400">
+                  <FormDescription className="form-description">
                     {field.description}
                   </FormDescription>
                 )}
@@ -350,7 +350,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel className="text-gray-200">{field.label}</FormLabel>
+                <FormLabel className="form-label">{field.label}</FormLabel>
                 <FormControl>
                   <Input
                     type={field.type}
@@ -365,7 +365,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 {field.description && (
-                  <FormDescription className="text-gray-400">
+                  <FormDescription className="form-description">
                     {field.description}
                   </FormDescription>
                 )}

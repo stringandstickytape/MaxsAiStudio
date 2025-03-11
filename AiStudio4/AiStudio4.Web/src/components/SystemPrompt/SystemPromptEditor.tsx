@@ -199,16 +199,16 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                             name="title"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-gray-200">Title</FormLabel>
+                                    <FormLabel className="form-label">Title</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="E.g., Technical Documentation Assistant"
-                                            className="bg-gray-700 border-gray-600 text-gray-100"
+                                            className="input-base"
                                             {...field}
                                             disabled={isProcessing}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-gray-400">
+                                    <FormDescription className="form-description">
                                         A short, descriptive name for this system prompt
                                     </FormDescription>
                                     <FormMessage className="text-red-400" />
@@ -221,16 +221,16 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                             name="content"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-gray-200">Prompt Content</FormLabel>
+                                    <FormLabel className="form-label">Prompt Content</FormLabel>
                                     <FormControl>
                                         <Textarea
                                             placeholder="You are a helpful assistant..."
-                                            className="min-h-[200px] bg-gray-700 border-gray-600 text-gray-100 font-mono"
+                                            className="min-h-[200px] font-mono input-base"
                                             {...field}
                                             disabled={isProcessing}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-gray-400">
+                                    <FormDescription className="form-description">
                                         The actual system prompt that will be sent to the AI
                                     </FormDescription>
                                     <FormMessage className="text-red-400" />
@@ -243,16 +243,16 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-gray-200">Description (Optional)</FormLabel>
+                                    <FormLabel className="form-label">Description (Optional)</FormLabel>
                                     <FormControl>
                                         <Textarea
                                             placeholder="Brief description of what this prompt is for..."
-                                            className="min-h-[80px] bg-gray-700 border-gray-600 text-gray-100"
+                                            className="min-h-[80px] input-base"
                                             {...field}
                                             disabled={isProcessing}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-gray-400">
+                                    <FormDescription className="form-description">
                                         A longer description explaining the purpose of this prompt
                                     </FormDescription>
                                     <FormMessage className="text-red-400" />
@@ -261,14 +261,14 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                         />
 
                         <div>
-                            <FormLabel className="text-gray-200">Tags</FormLabel>
+                            <FormLabel className="form-label">Tags</FormLabel>
                             <div className="flex gap-2 mt-1.5 mb-4">
                                 <Input
                                     placeholder="Add tag..."
                                     value={newTag}
                                     onChange={(e) => setNewTag(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className="flex-1 bg-gray-700 border-gray-600 text-gray-100"
+                                    className="flex-1 input-base"
                                     disabled={isProcessing}
                                 />
                                 <Button
@@ -303,7 +303,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                     </Badge>
                                 ))}
                             </div>
-                            <FormDescription className="text-gray-400">
+                                <FormDescription className="form-description">
                                 Tags help you organize and find your prompts more easily
                             </FormDescription>
                         </div>
@@ -322,10 +322,10 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel className="text-gray-200">
+                                        <FormLabel className="form-label">
                                             Set as Default Prompt
                                         </FormLabel>
-                                        <FormDescription className="text-gray-400">
+                                        <FormDescription className="form-description">
                                             This prompt will be used for all new convs
                                         </FormDescription>
                                     </div>

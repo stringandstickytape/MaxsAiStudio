@@ -236,7 +236,7 @@ export function InputBar({
                     <div className="relative flex-1">
                         <textarea
                             ref={textareaRef}
-                            className="w-full h-full p-4 border border-gray-700/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-gray-800/50 text-gray-100 shadow-inner transition-all duration-200 placeholder:text-gray-400"
+            className="w-full h-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
                             value={inputText}
                             onChange={handleTextAreaInput}
                             onClick={handleTextAreaClick}

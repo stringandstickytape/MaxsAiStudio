@@ -124,7 +124,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tool name"
-          className="bg-gray-800 border-gray-700 text-gray-100"
+          className="input-base"
           disabled={isLoading}
         />
       </div>
@@ -136,7 +136,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Tool description"
-          className="bg-gray-800 border-gray-700 text-gray-100"
+          className="input-base"
           disabled={isLoading}
         />
       </div>
@@ -186,7 +186,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           value={filetype}
           onChange={(e) => setFiletype(e.target.value)}
           placeholder="e.g., 'json', 'csv', or leave blank for any file"
-          className="bg-gray-800 border-gray-700 text-gray-100"
+          className="input-base"
           disabled={isLoading}
         />
       </div>
@@ -199,7 +199,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             value={schema}
             onChange={(e) => setSchema(e.target.value)}
             placeholder="Enter JSON schema..."
-            className="min-h-[200px] font-mono text-sm bg-gray-800 border-gray-700 text-gray-100"
+            className="min-h-[200px] font-mono text-sm input-base"
             disabled={isLoading}
           />
           {isValid !== null && (
