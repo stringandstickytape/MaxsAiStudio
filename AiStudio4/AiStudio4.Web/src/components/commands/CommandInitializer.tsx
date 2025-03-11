@@ -1,8 +1,8 @@
 // src/components/commands/CommandInitializer.tsx
 import { useEffect } from 'react';
 import { initializeCoreCommands } from '@/commands/coreCommands';
-import { initializeModelCommands } from '@/plugins/modelCommands';
-import { initializeVoiceCommands } from '@/plugins/voiceCommands';
+import { initializeModelCommands } from '@/commands/modelCommands';
+import { initializeVoiceCommands } from '@/commands/voiceCommands';
 import { initializeSystemPromptCommands, registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from '@/commands/settingsCommands';
 import { initializeAppearanceCommands } from '@/commands/appearanceCommands';

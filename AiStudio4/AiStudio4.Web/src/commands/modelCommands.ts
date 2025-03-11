@@ -1,4 +1,4 @@
-// src/plugins/modelCommands.ts
+// src/commands/modelCommands.ts
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Cpu } from 'lucide-react';
 import React from 'react';
