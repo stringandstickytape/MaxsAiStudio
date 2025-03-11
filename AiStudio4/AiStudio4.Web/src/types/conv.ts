@@ -1,0 +1,36 @@
+// src/types/conv.ts
+export interface Message {
+    id: string;
+    content: string;
+    source: 'user' | 'ai' | 'system';
+    timestamp: number;
+    parentId?: string | null;
+    tokenUsage?: {
+        inputTokens: number;
+        outputTokens: number;
+        cacheCreationInputTokens: number;
+        cacheReadInputTokens: number;
+    } | null;
+    costInfo?: {
+        inputCostPer1M: number;
+        outputCostPer1M: number;
+        totalCost: number;
+        tokenUsage: {
+            inputTokens: number;
+            outputTokens: number;
+            cacheCreationInputTokens: number;
+            cacheReadInputTokens: number;
+        };
+    } | null;
+}
+
+export interface Conv {
+    id: string;
+    messages: Message[];
+}
+
+export interface ConvState {
+    convs: { [convId: string]: Conv };
+    activeConvId: string | null;
+    selectedMessageId: string | null;
+}

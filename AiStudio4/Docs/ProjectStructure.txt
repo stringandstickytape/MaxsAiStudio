@@ -96,32 +96,32 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 
 ### Navigation and Layout
 
-- **AiStudio4.Web/src/components/navigation/NavigationContainer.tsx**: Main navigation container
-- **AiStudio4.Web/src/components/panel.tsx**: Configurable panel component
-- **AiStudio4.Web/src/components/PanelManager.tsx**: Manages panels layout and state
-- **AiStudio4.Web/src/components/Sidebar.tsx**: Sidebar with conv history
-- **AiStudio4.Web/src/components/AppHeader.tsx**: Application header with controls
+- **AiStudio4.Web/src/cmps/navigation/NavigationContainer.tsx**: Main navigation container
+- **AiStudio4.Web/src/cmps/panel.tsx**: Configurable panel component
+- **AiStudio4.Web/src/cmps/PanelManager.tsx**: Manages panels layout and state
+- **AiStudio4.Web/src/cmps/Sidebar.tsx**: Sidebar with conv history
+- **AiStudio4.Web/src/cmps/AppHeader.tsx**: Application header with controls
 
-### Chat Components
+### Chat cmps
 
-- **AiStudio4.Web/src/components/ChatWorkspace.tsx**: Main chat workspace
-- **AiStudio4.Web/src/components/ChatContainer.tsx**: Container for chat messages
-- **AiStudio4.Web/src/components/ConvView.tsx**: Displays active conv
-- **AiStudio4.Web/src/components/InputBar.tsx**: Input bar for sending messages
-- **AiStudio4.Web/src/components/FileAttachment.tsx**: File attachment component
-- **AiStudio4.Web/src/components/LiveStreamToken.tsx**: Component for streaming tokens
+- **AiStudio4.Web/src/cmps/ChatWorkspace.tsx**: Main chat workspace
+- **AiStudio4.Web/src/cmps/ChatContainer.tsx**: Container for chat messages
+- **AiStudio4.Web/src/cmps/ConvView.tsx**: Displays active conv
+- **AiStudio4.Web/src/cmps/InputBar.tsx**: Input bar for sending messages
+- **AiStudio4.Web/src/cmps/FileAttachment.tsx**: File attachment component
+- **AiStudio4.Web/src/cmps/LiveStreamToken.tsx**: Component for streaming tokens
 
 ### Historical Convs
 
-- **AiStudio4.Web/src/components/HistoricalConvTree.tsx**: Displays historical conv tree
-- **AiStudio4.Web/src/components/HistoricalConvTreeList.tsx**: List of historical convs
-- **AiStudio4.Web/src/components/ConvTreeView.tsx**: Visual tree view of conv
+- **AiStudio4.Web/src/cmps/HistoricalConvTree.tsx**: Displays historical conv tree
+- **AiStudio4.Web/src/cmps/HistoricalConvTreeList.tsx**: List of historical convs
+- **AiStudio4.Web/src/cmps/ConvTreeView.tsx**: Visual tree view of conv
 
 ### Command System
 
-- **AiStudio4.Web/src/components/commands/CommandInitializer.tsx**: Initializes all commands
-- **AiStudio4.Web/src/components/CommandBar.tsx**: Command palette for quick actions
-- **AiStudio4.Web/src/components/PinnedShortcuts.tsx**: Pinned command shortcuts component
+- **AiStudio4.Web/src/cmps/commands/CommandInitializer.tsx**: Initializes all commands
+- **AiStudio4.Web/src/cmps/CommandBar.tsx**: Command palette for quick actions
+- **AiStudio4.Web/src/cmps/PinnedShortcuts.tsx**: Pinned command shortcuts component
 - **AiStudio4.Web/src/commands/types.ts**: Command type definitions
 - **AiStudio4.Web/src/commands/coreCommands.ts**: Core application commands
 - **AiStudio4.Web/src/commands/toolCommands.ts**: Tool-related commands
@@ -133,38 +133,38 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 
 ### Tool System
 
-- **AiStudio4.Web/src/components/tools/ToolEditor.tsx**: Editor for creating/modifying tools
-- **AiStudio4.Web/src/components/tools/ToolPanel.tsx**: Panel for managing tools
-- **AiStudio4.Web/src/components/tools/ToolResponse.tsx**: Displays tool execution results
-- **AiStudio4.Web/src/components/tools/ToolSelector.tsx**: Component for selecting active tools
+- **AiStudio4.Web/src/cmps/tools/ToolEditor.tsx**: Editor for creating/modifying tools
+- **AiStudio4.Web/src/cmps/tools/ToolPanel.tsx**: Panel for managing tools
+- **AiStudio4.Web/src/cmps/tools/ToolResponse.tsx**: Displays tool execution results
+- **AiStudio4.Web/src/cmps/tools/ToolSelector.tsx**: Component for selecting active tools
 
 ### System Prompts
 
-- **AiStudio4.Web/src/components/SystemPrompt/SystemPromptEditor.tsx**: Editor for system prompts
-- **AiStudio4.Web/src/components/SystemPrompt/SystemPromptLibrary.tsx**: Library of system prompts
-- **AiStudio4.Web/src/components/SystemPrompt/SystemPromptCard.tsx**: Card component for system prompt
-- **AiStudio4.Web/src/components/SystemPrompt/HeaderPromptComponent.tsx**: Header prompt display
+- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptEditor.tsx**: Editor for system prompts
+- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptLibrary.tsx**: Library of system prompts
+- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptCard.tsx**: Card component for system prompt
+- **AiStudio4.Web/src/cmps/SystemPrompt/HeaderPromptComponent.tsx**: Header prompt display
 
-### Settings Components
+### Settings cmps
 
-- **AiStudio4.Web/src/components/SettingsPanel.tsx**: Master settings panel
-- **AiStudio4.Web/src/components/settings/ModelForm.tsx**: Form for adding/editing AI models
-- **AiStudio4.Web/src/components/settings/ModelManagement.tsx**: Interface for managing AI models
-- **AiStudio4.Web/src/components/settings/ServiceProviderForm.tsx**: Form for service providers
-- **AiStudio4.Web/src/components/settings/ServiceProviderManagement.tsx**: Interface for managing providers
+- **AiStudio4.Web/src/cmps/SettingsPanel.tsx**: Master settings panel
+- **AiStudio4.Web/src/cmps/settings/ModelForm.tsx**: Form for adding/editing AI models
+- **AiStudio4.Web/src/cmps/settings/ModelManagement.tsx**: Interface for managing AI models
+- **AiStudio4.Web/src/cmps/settings/ServiceProviderForm.tsx**: Form for service providers
+- **AiStudio4.Web/src/cmps/settings/ServiceProviderManagement.tsx**: Interface for managing providers
 
-### Model Components
+### Model cmps
 
-- **AiStudio4.Web/src/components/ModelStatusBar.tsx**: Displays current model selection
+- **AiStudio4.Web/src/cmps/ModelStatusBar.tsx**: Displays current model selection
 
 ### Markdown and Diagram Rendering
 
-- **AiStudio4.Web/src/components/markdown-pane.tsx**: Renders markdown content with code blocks
-- **AiStudio4.Web/src/components/diagrams/codeBlockRendererRegistry.ts**: Registry for code block renderers
-- **AiStudio4.Web/src/components/diagrams/mermaid-renderer.tsx**: Renders Mermaid diagrams
-- **AiStudio4.Web/src/components/diagrams/json-renderer.tsx**: Renders JSON data with expandable sections
-- **AiStudio4.Web/src/components/diagrams/html-renderer.tsx**: Renders HTML code blocks
-- **AiStudio4.Web/src/components/diagrams/types.ts**: Types for diagram renderers
+- **AiStudio4.Web/src/cmps/markdown-pane.tsx**: Renders markdown content with code blocks
+- **AiStudio4.Web/src/cmps/diagrams/codeBlockRendererRegistry.ts**: Registry for code block renderers
+- **AiStudio4.Web/src/cmps/diagrams/mermaid-renderer.tsx**: Renders Mermaid diagrams
+- **AiStudio4.Web/src/cmps/diagrams/json-renderer.tsx**: Renders JSON data with expandable sections
+- **AiStudio4.Web/src/cmps/diagrams/html-renderer.tsx**: Renders HTML code blocks
+- **AiStudio4.Web/src/cmps/diagrams/types.ts**: Types for diagram renderers
 
 ### Services
 
@@ -178,7 +178,7 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 - **AiStudio4.Web/src/types/settings.ts**: Types for models and service providers
 - **AiStudio4.Web/src/types/toolTypes.ts**: Types for AI tools and categories
 - **AiStudio4.Web/src/types/websocket.ts**: Types for WebSocket communication
-- **AiStudio4.Web/src/types/ui.ts**: Types for UI components and panels
+- **AiStudio4.Web/src/types/ui.ts**: Types for UI cmps and panels
 - **AiStudio4.Web/src/types/systemPrompt.ts**: Types for system prompts
 - **AiStudio4.Web/src/types/modelTypes.ts**: Types for model selection
 

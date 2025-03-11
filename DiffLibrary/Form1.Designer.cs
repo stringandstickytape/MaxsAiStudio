@@ -32,6 +32,7 @@
             button1 = new Button();
             tbRootPath = new TextBox();
             tbOutput = new TextBox();
+            button2 = new Button();
             SuspendLayout();
             // 
             // textBox1
@@ -70,11 +71,22 @@
             tbOutput.Size = new Size(716, 348);
             tbOutput.TabIndex = 4;
             // 
+            // button2
+            // 
+            button2.Location = new Point(36, 419);
+            button2.Name = "button2";
+            button2.Size = new Size(112, 34);
+            button2.TabIndex = 5;
+            button2.Text = "button2";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 846);
+            Controls.Add(button2);
             Controls.Add(tbOutput);
             Controls.Add(tbRootPath);
             Controls.Add(button1);
@@ -91,5 +103,6 @@
         private Button button1;
         private TextBox tbRootPath;
         private TextBox tbOutput;
+        private Button button2;
     }
 }
