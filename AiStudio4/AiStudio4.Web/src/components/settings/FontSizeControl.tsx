@@ -129,7 +129,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
         </Button>
       </div>
       
-      <div className="mt-4 text-xs text-gray-400">
+          <div className="mt-4 text-small-gray-400">
         <p>Adjust the font size of the entire application. Changes will be applied immediately.</p>
       </div>
     </div>

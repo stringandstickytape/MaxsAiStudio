@@ -52,8 +52,12 @@
         @apply text-sm text-gray-300 font-medium;
     }
 
+    .text-small-gray-400 {
+        @apply text-xs text-gray-400;
+    }
+
     .form-description {
-        @apply text-xs text-gray-400 mt-1;
+        @apply text-small-gray-400 mt-1;
     }
 
     .flex-center {
@@ -89,7 +93,7 @@
     }
 
     .text-mono {
-        @apply font-mono text-xs text-gray-400;
+        @apply font-mono text-small-gray-400;
     }
 
     .text-truncate {

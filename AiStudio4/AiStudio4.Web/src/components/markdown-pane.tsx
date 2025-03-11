@@ -99,7 +99,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             const showRenderedOrRawButton = (
                 <button
                     onClick={toggleView}
-                    className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                    className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                 >
                     {isRawView ? 'Show Rendered' : 'Show Raw'}
                 </button>
@@ -109,7 +109,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             const launchButton = isHtmlBlock ? (
                 <button
                     onClick={() => launchHtml(content)}
-                    className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+                    className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
                 >
                     <ExternalLink className="h-3 w-3" />
                     Launch
@@ -123,7 +123,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                         {isVisualStudio && (
                             <button
                                 onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
-                                className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                                className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                             >
                                 Apply Diff
                             </button>
@@ -131,7 +131,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                         {launchButton}
                         <button
                             onClick={() => navigator.clipboard.writeText(content)}
-                            className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                            className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
                         >
                             Copy
                         </button>

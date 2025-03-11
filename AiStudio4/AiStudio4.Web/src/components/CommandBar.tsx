@@ -246,7 +246,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                                 <div>
                                                     <div className="font-medium text-gray-200">{command.name}</div>
                                                     {command.description && (
-                                                        <div className="text-xs text-gray-400">{command.description}</div>
+                                                        <div className="text-small-gray-400">{command.description}</div>
                                                     )}
                                                 </div>
                                             </div>

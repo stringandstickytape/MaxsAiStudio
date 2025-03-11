@@ -295,7 +295,7 @@ export function PinnedShortcuts({
                                                     </TooltipTrigger>
                                                     <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
                                                         <p>{command.name}</p>
-                                                        <p className="text-xs text-gray-400">Drag handle below button to reorder · Right-click to unpin</p>
+                                                        <p className="text-small-gray-400">Drag handle below button to reorder · Right-click to unpin</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                                 <div

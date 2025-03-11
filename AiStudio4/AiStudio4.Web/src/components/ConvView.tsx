@@ -59,7 +59,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                         >
                             <MarkdownPane message={message.content} />
                             {(message.tokenUsage || message.costInfo) && (
-                                <div className="text-xs text-gray-400 mt-2 border-t border-gray-700 pt-1">
+                                <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
                                     <div className="flex flex-wrap items-center gap-x-4">
                                         {message.tokenUsage && (
                                             <div className="flex items-center gap-x-2">
