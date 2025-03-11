@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeExtension", "ChromeEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiStudio4", "AiStudio4\AiStudio4.csproj", "{AC73E8A8-A625-4FBA-9422-336F5171FF48}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiffLibrary", "DiffLibrary\DiffLibrary.csproj", "{90507F40-4350-5BBA-1F23-914A372D9AF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CleanCublas|Any CPU = CleanCublas|Any CPU
@@ -206,6 +208,30 @@ Global
 		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|arm64.Build.0 = Release|Any CPU
 		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|x86.ActiveCfg = Release|Any CPU
 		{AC73E8A8-A625-4FBA-9422-336F5171FF48}.Release|x86.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|Any CPU.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|Any CPU.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|arm64.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|arm64.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|x86.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.CleanCublas|x86.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|arm64.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Debug|x86.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|Any CPU.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|Any CPU.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|arm64.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|arm64.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|x86.ActiveCfg = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.DebugCublas|x86.Build.0 = Debug|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|arm64.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|arm64.Build.0 = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|x86.ActiveCfg = Release|Any CPU
+		{90507F40-4350-5BBA-1F23-914A372D9AF0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

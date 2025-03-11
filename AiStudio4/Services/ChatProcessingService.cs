@@ -232,9 +232,7 @@ namespace AiStudio4.Services
 
             return allMessages.Select(msg => new {
                 id = msg.Id,
-                text = msg.UserMessage?.Length > 20
-                    ? msg.UserMessage.Substring(0, 20) + "..."
-                    : msg.UserMessage ?? "[Empty Message]",
+                text = msg.UserMessage ?? "[Empty Message]",
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
                         msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",

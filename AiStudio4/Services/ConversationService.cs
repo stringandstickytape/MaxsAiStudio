@@ -46,9 +46,7 @@ namespace AiStudio4.Services
                 // Convert to the format expected by the client
                 var messagesForClient = allMessages.Select(msg => new {
                     id = msg.Id,
-                    text = msg.UserMessage?.Length > 10000
-                        ? msg.UserMessage.Substring(0, 10000) + "..."
-                        : msg.UserMessage ?? "[Empty Message]",
+                    text = msg.UserMessage ?? "[Empty Message]",
                     parentId = msg.ParentId,
                     source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
                             msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
