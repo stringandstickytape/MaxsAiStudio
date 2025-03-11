@@ -26,6 +26,13 @@ namespace AiStudio4.Controls
                     System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
                     "AiStudio4")
             };
+
+            this.WebMessageReceived += AiStudioWebView2_WebMessageReceived;
+        }
+
+        private void AiStudioWebView2_WebMessageReceived(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            
         }
 
         public async void Initialize()

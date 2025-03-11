@@ -1,7 +1,7 @@
 // src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { Plus, RefreshCw, Settings, GitBranch, ExternalLink } from 'lucide-react';
+import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 
@@ -44,6 +44,15 @@ export function initializeCoreCommands(
                         rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
                     });
                 }
+            }],
+            ['test-webview', 'Test WebView', 'Send a test message to WebView', '', ['test', 'webview', 'debug', 'message'], React.createElement(Terminal, { size: 16 }), () => {
+                window.chrome?.webview?.postMessage({
+                    type: 'send',
+                    content: 'test',
+                    selectedTools: '',
+                    addEmbeddings: 'false'
+                });
+                console.log('Test message sent to WebView');
             }]
         ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
             id, name, description, shortcut, keywords, section: 'conv', icon, execute: fn
