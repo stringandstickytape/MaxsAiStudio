@@ -7,7 +7,6 @@ import { ChatContainer } from './ChatContainer';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
 import { VoiceInputOverlay } from './VoiceInputOverlay';
-import { ToolPanel } from './tools/ToolPanel';
 import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { useVoiceInputState } from '@/commands/voiceInputCommand';
 import { useModelManagement } from '@/hooks/useModelManagement';
@@ -22,7 +21,6 @@ export function ChatSpace() {
     const { streamTokens } = useStreamTokens();
     const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
     const [inputValue, setInputValue] = useState('');
-    const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
 
     const { activeTools } = useToolStore();
     const { togglePanel, panels } = usePanelStore();
@@ -42,10 +40,10 @@ export function ChatSpace() {
     );
 
     useEffect(() => {
-        const handleOpenToolPanel = () => setIsToolPanelOpen(true);
+        const handleOpenToolPanel = () => togglePanel('toolPanel');
         window.addEventListener('openToolPanel', handleOpenToolPanel);
         return () => window.removeEventListener('openToolPanel', handleOpenToolPanel);
-    }, []);
+    }, [togglePanel]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +75,7 @@ export function ChatSpace() {
     };
 
     const openToolPanel = () => {
-        setIsToolPanelOpen(true);
+        togglePanel('toolPanel');
     };
 
     return (
@@ -116,26 +114,6 @@ export function ChatSpace() {
                 onTranscript={handleTranscript}
             />
 
-            {isToolPanelOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg w-5/6 h-5/6 max-w-6xl overflow-hidden">
-                        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-                            <h2 className="text-xl font-semibold text-gray-100">Tool Management</h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsToolPanelOpen(false)}
-                                className="text-gray-400 hover:text-gray-100"
-                            >
-                                <span className="h-5 w-5">X</span>
-                            </Button>
-                        </div>
-                        <div className="h-full overflow-y-auto">
-                            <ToolPanel isOpen={true} onClose={() => setIsToolPanelOpen(false)} />
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     );
 }

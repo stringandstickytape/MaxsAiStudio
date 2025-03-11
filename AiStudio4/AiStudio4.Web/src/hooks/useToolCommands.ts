@@ -10,7 +10,7 @@ export function useToolCommands({
     importTools,
     exportTools,
 }: {
-    openToolPanel: () => void;
+    openToolPanel: () => void; 
     createNewTool: () => void;
     importTools: () => void;
     exportTools: () => void;
@@ -33,6 +33,7 @@ export function useToolCommands({
     useEffect(() => {
         // Only initialize commands once tools are loaded
         if (tools.length > 0) {
+            
             initializeToolCommands({
                 openToolPanel,
                 createNewTool,

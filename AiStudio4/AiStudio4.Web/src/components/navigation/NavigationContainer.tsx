@@ -1,5 +1,5 @@
 // src/components/navigation/NavigationContainer.tsx
-import { useState, useEffect, useMemo, ReactNode } from 'react';
+import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { cn } from '@/lib/utils';
@@ -20,7 +20,6 @@ interface NavigationContainerProps {
 
 export function NavigationContainer({ children }: NavigationContainerProps) {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-    const [isToolPanelOpen, setIsToolPanelOpen] = useState(false);
     const { isConnected, clientId } = useWebSocket();
     const wsState = { isConnected, clientId, messages: [] };
 
@@ -34,25 +33,24 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
 
 
 
-    const openPanel = (panelId: string) => {
-
+    const openPanel = useCallback((panelId: string) => {
         const panel = panels[panelId];
 
         if (panel && !panel.isOpen) {
             togglePanel(panelId);
         }
-    };
+    }, [panels, togglePanel]);
 
     useEffect(() => {
         const handleOpenToolPanel = () => {
-            setIsToolPanelOpen(true);
+            openPanel('toolPanel');
         };
 
         window.addEventListener('openToolPanel', handleOpenToolPanel);
         return () => {
             window.removeEventListener('openToolPanel', handleOpenToolPanel);
         };
-    }, []);
+    }, [openPanel]);
 
     const handleToggleConversationTree = () => {
         setSelectedConversationId(activeConversationId);
@@ -115,7 +113,8 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
     const hasLeftPanel = panels.sidebar?.isPinned || false;
     const hasRightPanel = panels.conversationTree?.isPinned ||
         panels.settings?.isPinned ||
-        panels.systemPrompts?.isPinned || false;
+        panels.systemPrompts?.isPinned ||
+        panels.toolPanel?.isPinned || false;
 
     const panelConfigs: PanelConfig[] = useMemo(() => [
         {
@@ -191,6 +190,19 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
                         togglePanel('systemPrompts');
                     }}
                 />
+            ) : null
+        },
+        {
+            id: 'toolPanel',
+            position: 'right',
+            size: '320px',
+            minWidth: '320px',
+            maxWidth: '450px',
+            width: '320px',
+            zIndex: 60,
+            title: 'Tool Library',
+            render: (isOpen) => isOpen ? (
+                <ToolPanel isOpen={isOpen} onClose={() => togglePanel('toolPanel')} />
             ) : null
         }
     ], [activeConversationId, conversations, selectedConversationId, setConversationPrompt, setConversationSystemPrompt, wsState]);

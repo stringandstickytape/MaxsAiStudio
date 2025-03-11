@@ -11,11 +11,11 @@ import { Tool, ToolCategory } from '@/types/toolTypes';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 interface ToolPanelProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose?: () => void;
 }
 
-export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
+export function ToolPanel({ isOpen = true, onClose = () => {} }: ToolPanelProps) {
   // Use tools management hook instead of RTK Query
   const { 
     tools, 
@@ -161,7 +161,6 @@ export function ToolPanel({ isOpen, onClose }: ToolPanelProps) {
     return matchesSearch && matchesCategory;
   });
 
-  if (!isOpen) return null;
 
   // Determine loading state
   const isLoading = toolsLoading || isDeleting || isImporting || isExporting;

@@ -31,8 +31,8 @@ export function CommandInitializer() {
     };
 
     const openToolPanel = () => {
-        window.localStorage.setItem('toolPanel_action', 'open');
-        window.dispatchEvent(new Event('openToolPanel'));
+        // First try the panel system directly
+        togglePanel('toolPanel');
     };
 
     useToolCommands({
