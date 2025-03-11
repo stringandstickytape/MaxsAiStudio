@@ -87,19 +87,7 @@ export function useToolsManagement() {
     });
   }, [executeApiCall]);
   
-  // Import tools
-  const importTools = useCallback(async (jsonData: string) => {
-    return executeApiCall(async () => {
-      const importToolsRequest = createApiRequest('/api/importTools', 'POST');
-      const data = await importToolsRequest({ json: jsonData });
-      
-      // Refresh tools list
-      await fetchTools();
-      
-      return data.tools || [];
-    });
-  }, [fetchTools, executeApiCall]);
-  
+ 
   // Export tools
   const exportTools = useCallback(async (toolIds?: string[]) => {
     return executeApiCall(async () => {
@@ -146,7 +134,6 @@ export function useToolsManagement() {
     updateTool,
     deleteTool,
     validateToolSchema,
-    importTools,
     exportTools,
     toggleTool,
     addActiveTool,

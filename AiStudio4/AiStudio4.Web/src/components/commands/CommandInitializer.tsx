@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
-import { initializeVoiceCommands } from '@/commands/voiceCommands';
+import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
 import { initializeSystemPromptCommands, registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { initializeSettingsCommands, registerModelCommands, registerProviderCommands } from '@/commands/settingsCommands';
 import { initializeAppearanceCommands } from '@/commands/appearanceCommands';
@@ -38,10 +38,6 @@ export function CommandInitializer() {
         openToolPanel,
         createNewTool: () => {
             window.localStorage.setItem('toolPanel_action', 'create');
-            window.dispatchEvent(new Event('openToolPanel'));
-        },
-        importTools: () => {
-            window.localStorage.setItem('toolPanel_action', 'import');
             window.dispatchEvent(new Event('openToolPanel'));
         },
         exportTools: () => {
@@ -92,7 +88,7 @@ export function CommandInitializer() {
             selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName)
         });
 
-        initializeVoiceCommands();
+        initializeVoiceInputCommand();
 
         const systemPromptsUpdated = () => {
             registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));

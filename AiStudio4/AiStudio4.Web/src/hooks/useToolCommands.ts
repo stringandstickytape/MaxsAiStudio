@@ -8,12 +8,10 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 export function useToolCommands({
     openToolPanel,
     createNewTool,
-    importTools,
     exportTools,
 }: {
     openToolPanel: () => void; 
     createNewTool: () => void;
-    importTools: () => void;
     exportTools: () => void;
 }) {
     // Use Zustand store instead of Redux
@@ -38,14 +36,13 @@ export function useToolCommands({
             initializeToolCommands({
                 openToolPanel,
                 createNewTool,
-                importTools,
                 exportTools
             });
 
             // Register each individual tool as a command
             registerToolsAsCommands(tools, activeTools, toggleTool);
         }
-    }, [tools, activeTools, openToolPanel, createNewTool, importTools, exportTools, toggleTool]);
+    }, [tools, activeTools, openToolPanel, createNewTool, exportTools, toggleTool]);
 
     return { toggleTool };
 }

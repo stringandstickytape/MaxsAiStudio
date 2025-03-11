@@ -19,7 +19,6 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
         name: 'Tools',
         priority: 80,
         commands: [
-            ['import-tools', 'Import Tools', 'Import tools from a file or URL', 'Ctrl+I', ['import', 'tools', 'json'], config.importTools],
             ['export-tools', 'Export Tools', 'Export current tools to a file', 'Ctrl+E', ['export', 'tools', 'json'], config.exportTools],
             ['manage-tools', 'Manage Tools', 'Open the tool management panel', '', ['manage', 'tools', 'panel', 'settings', 'configure'], config.openToolPanel]
         ].map(([id, name, description, shortcut, keywords, fn]) => ({

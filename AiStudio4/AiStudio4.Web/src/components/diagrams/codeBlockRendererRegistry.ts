@@ -36,6 +36,8 @@ class CodeBlockRendererRegistry {
 }
 
 export const codeBlockRendererRegistry = new CodeBlockRendererRegistry();
-codeBlockRendererRegistry.register(MermaidRenderer);
-codeBlockRendererRegistry.register(JsonRenderer);
-codeBlockRendererRegistry.register(HtmlRenderer);
+[
+    MermaidRenderer,
+    JsonRenderer,
+    HtmlRenderer
+].forEach(renderer => codeBlockRendererRegistry.register(renderer));

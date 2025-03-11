@@ -15,75 +15,32 @@ export function initializeAppearanceCommands(config: AppearanceCommandsConfig) {
 
   const { registerGroup } = useCommandStore.getState();
   
-  registerGroup({
-    id: 'appearance',
-    name: 'Appearance',
-    priority: 80,
-    commands: [
-      {
-        id: 'open-appearance-settings',
-        name: 'Appearance Settings',
-        description: 'Open appearance and theme settings',
-        shortcut: shortcut('A'),
-        keywords: ['appearance', 'font', 'size', 'theme', 'dark', 'light', 'settings', 'customize'],
-        section: 'appearance',
-        icon: React.createElement(Settings, { size: 16 }),
-        execute: () => {
-          // Switch to appearance tab and open settings
-          commandEvents.emit('settings-tab', 'appearance');
-          config.openAppearanceSettings();
-        }
-      },
-      {
-        id: 'increase-font-size',
-        name: 'Increase Font Size',
-        description: 'Make the text larger',
-        shortcut: shortcut('+'),
-        keywords: ['font', 'size', 'larger', 'bigger', 'increase', 'zoom', 'in'],
-        section: 'appearance',
-        icon: React.createElement(ZoomIn, { size: 16 }),
-        execute: () => {
-          const { increaseFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
-          increaseFontSize();
-          // Save the change after a delay
-          setTimeout(() => {
-            saveAppearanceSettings();
-          }, 500);
-        }
-      },
-      {
-        id: 'decrease-font-size',
-        name: 'Decrease Font Size',
-        description: 'Make the text smaller',
-        shortcut: shortcut('-'),
-        keywords: ['font', 'size', 'smaller', 'decrease', 'zoom', 'out'],
-        section: 'appearance',
-        icon: React.createElement(ZoomOut, { size: 16 }),
-        execute: () => {
-          const { decreaseFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
-          decreaseFontSize();
-          // Save the change after a delay
-          setTimeout(() => {
-            saveAppearanceSettings();
-          }, 500);
-        }
-      },
-      {
-        id: 'reset-font-size',
-        name: 'Reset Font Size',
-        description: 'Reset to default font size',
-        keywords: ['font', 'size', 'reset', 'default', 'normal', 'medium'],
-        section: 'appearance',
-        icon: React.createElement(RotateCcw, { size: 16 }),
-        execute: () => {
-          const { setFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
-          setFontSize(16); // Default size
-          // Save the change after a delay
-          setTimeout(() => {
-            saveAppearanceSettings();
-          }, 500);
-        }
-      }
-    ]
-  });
+    registerGroup({
+        id: 'appearance',
+        name: 'Appearance',
+        priority: 80,
+        commands: [
+            ['open-appearance-settings', 'Appearance Settings', 'Open appearance and theme settings', shortcut('A'), ['appearance', 'font', 'size', 'theme', 'dark', 'light', 'settings', 'customize'], React.createElement(Settings, { size: 16 }), () => {
+                commandEvents.emit('settings-tab', 'appearance');
+                config.openAppearanceSettings();
+            }],
+            ['increase-font-size', 'Increase Font Size', 'Make the text larger', shortcut('+'), ['font', 'size', 'larger', 'bigger', 'increase', 'zoom', 'in'], React.createElement(ZoomIn, { size: 16 }), () => {
+                const { increaseFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
+                increaseFontSize();
+                setTimeout(() => saveAppearanceSettings(), 500);
+            }],
+            ['decrease-font-size', 'Decrease Font Size', 'Make the text smaller', shortcut('-'), ['font', 'size', 'smaller', 'decrease', 'zoom', 'out'], React.createElement(ZoomOut, { size: 16 }), () => {
+                const { decreaseFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
+                decreaseFontSize();
+                setTimeout(() => saveAppearanceSettings(), 500);
+            }],
+            ['reset-font-size', 'Reset Font Size', 'Reset to default font size', '', ['font', 'size', 'reset', 'default', 'normal', 'medium'], React.createElement(RotateCcw, { size: 16 }), () => {
+                const { setFontSize, saveAppearanceSettings } = useAppearanceStore.getState();
+                setFontSize(16);
+                setTimeout(() => saveAppearanceSettings(), 500);
+            }]
+        ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
+            id, name, description, shortcut, keywords, section: 'appearance', icon, execute: fn
+        }))
+    });
 }

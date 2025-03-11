@@ -26,15 +26,17 @@ export function initializeCoreCommands(
         name: 'Conv',
         priority: 100,
         commands: [
-            {
-                id: 'new-conv',
-                name: 'New Conv',
-                description: 'Start a new chat conv',
-                shortcut: shortcut('N'),
-                keywords: ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
-                section: 'conv',
-                icon: React.createElement(Plus, { size: 16 }),
-                execute: () => {
+            ['new-conv', 'New Conv', 'Start a new chat conv', shortcut('N'), ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'], React.createElement(Plus, { size: 16 }), () => {
+                const convId = `conv_${uuidv4()}`;
+                const messageId = `msg_${Date.now()}`;
+                createConv({
+                    id: convId,
+                    rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
+                });
+            }],
+            ['clear-conv', 'Clear Current Conv', 'Clear all messages in the current conv', '', ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'], React.createElement(RefreshCw, { size: 16 }), () => {
+                const { activeConvId, createConv } = useConvStore.getState();
+                if (activeConvId) {
                     const convId = `conv_${uuidv4()}`;
                     const messageId = `msg_${Date.now()}`;
                     createConv({
@@ -42,30 +44,10 @@ export function initializeCoreCommands(
                         rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
                     });
                 }
-            },
-            {
-                id: 'clear-conv',
-                name: 'Clear Current Conv',
-                description: 'Clear all messages in the current conv',
-                keywords: ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'],
-                section: 'conv',
-                icon: React.createElement(RefreshCw, { size: 16 }),
-                execute: () => {
-                    // Use the current store's state to get active conv ID
-                    const { activeConvId, createConv, convs } = useConvStore.getState();
-                    
-                    if (activeConvId) {
-                        const convId = `conv_${uuidv4()}`;
-                        const messageId = `msg_${Date.now()}`;
-
-                        createConv({
-                            id: convId,
-                            rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
-                        });
-                    }
-                }
-            }
-        ]
+            }]
+        ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
+            id, name, description, shortcut, keywords, section: 'conv', icon, execute: fn
+        }))
     });
 
     registerGroup({
@@ -73,41 +55,12 @@ export function initializeCoreCommands(
         name: 'View',
         priority: 90,
         commands: [
-            {
-                id: 'toggle-sidebar',
-                name: 'Conv History Toggle',
-                shortcut: shortcut('B'),
-                keywords: ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
-                section: 'view',
-                icon: React.createElement(Plus, { size: 16 }),
-                execute: handlers.toggleSidebar
-            },
-            {
-                id: 'toggle-conv-tree',
-                name: 'Conv Tree Toggle',
-                shortcut: shortcut('T'),
-                keywords: ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'],
-                section: 'view',
-                icon: React.createElement(GitBranch, { size: 16 }),
-                execute: handlers.toggleConvTree
-            },
-            {
-                id: 'toggle-settings',
-                name: 'Settings Panel Toggle',
-                shortcut: shortcut(','),
-                keywords: ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'],
-                section: 'view',
-                icon: React.createElement(Settings, { size: 16 }),
-                execute: handlers.toggleSettings
-            },
-            {
-                id: 'open-new-window',
-                name: 'Open New Window',
-                keywords: ['window', 'open', 'new', 'external', 'launch', 'create', 'instance'],
-                section: 'view',
-                icon: React.createElement(ExternalLink, { size: 16 }),
-                execute: handlers.openNewWindow
-            }
-        ]
+            ['toggle-sidebar', 'Conv History Toggle', shortcut('B'), ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'], React.createElement(Plus, { size: 16 }), handlers.toggleSidebar],
+            ['toggle-conv-tree', 'Conv Tree Toggle', shortcut('T'), ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'], React.createElement(GitBranch, { size: 16 }), handlers.toggleConvTree],
+            ['toggle-settings', 'Settings Panel Toggle', shortcut(','), ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'], React.createElement(Settings, { size: 16 }), handlers.toggleSettings],
+            ['open-new-window', 'Open New Window', '', ['window', 'open', 'new', 'external', 'launch', 'create', 'instance'], React.createElement(ExternalLink, { size: 16 }), handlers.openNewWindow]
+        ].map(([id, name, shortcut, keywords, icon, fn]) => ({
+            id, name, shortcut, keywords, section: 'view', icon, execute: fn
+        }))
     });
 }

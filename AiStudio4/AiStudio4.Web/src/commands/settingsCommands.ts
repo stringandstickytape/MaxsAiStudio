@@ -33,49 +33,16 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
         name: 'Settings',
         priority: 85,
         commands: [
-            {
-                id: 'toggle-settings-panel',
-                name: 'Settings Panel',
-                description: 'Open the settings panel',
-                shortcut: shortcut(','),
-                keywords: ['settings', 'options', 'preferences', 'configure', 'setup', 'panel'],
-                section: 'settings',
-                icon: React.createElement(Settings, { size: 16 }),
-                execute: () => {
-                    // Switch to models tab and open settings
-                    commandEvents.emit('settings-tab', 'models');
-                    config.openSettings();
-                }
-            },
-            {
-                id: 'edit-models',
-                name: 'Edit Models',
-                description: 'Manage AI models',
-                shortcut: shortcut('M'),
-                keywords: ['models', 'edit', 'manage', 'AI', 'GPT', 'configure', 'model', 'settings'],
-                section: 'settings',
-                icon: React.createElement(Book, { size: 16 }),
-                execute: () => {
-                    // Switch to models tab and open settings
-                    commandEvents.emit('settings-tab', 'models');
-                    config.openSettings();
-                }
-            },
-            {
-                id: 'edit-providers',
-                name: 'Edit Providers',
-                description: 'Manage service providers',
-                shortcut: shortcut('P'),
-                keywords: ['providers', 'edit', 'manage', 'service', 'API', 'configure', 'settings'],
-                section: 'settings',
-                icon: React.createElement(Server, { size: 16 }),
-                execute: () => {
-                    // Switch to providers tab and open settings
-                    commandEvents.emit('settings-tab', 'providers');
-                    config.openSettings();
-                }
+            ['toggle-settings-panel', 'Settings Panel', 'Open the settings panel', shortcut(','), ['settings', 'options', 'preferences', 'configure', 'setup', 'panel'], React.createElement(Settings, { size: 16 }), 'models'],
+            ['edit-models', 'Edit Models', 'Manage AI models', shortcut('M'), ['models', 'edit', 'manage', 'AI', 'GPT', 'configure', 'model', 'settings'], React.createElement(Book, { size: 16 }), 'models'],
+            ['edit-providers', 'Edit Providers', 'Manage service providers', shortcut('P'), ['providers', 'edit', 'manage', 'service', 'API', 'configure', 'settings'], React.createElement(Server, { size: 16 }), 'providers']
+        ].map(([id, name, description, shortcut, keywords, icon, tabName]) => ({
+            id, name, description, shortcut, keywords, section: 'settings', icon,
+            execute: () => {
+                commandEvents.emit('settings-tab', tabName);
+                config.openSettings();
             }
-        ]
+        }))
     });
 }
 

@@ -22,69 +22,26 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
         name: 'System Prompts',
         priority: 85,
         commands: [
-            {
-                id: 'toggle-system-prompts-library',
-                name: 'Show System Prompts Library',
-                description: 'Browse and manage your collection of system prompts',
-                shortcut: shortcut('P'),
-                keywords: ['system', 'prompt', 'library', 'collection', 'manage', 'browse'],
-                section: 'utility',
-                icon: React.createElement(MessageSquare, { size: 16 }),
-                execute: () => {
-                    config.toggleLibrary();
+            ['toggle-system-prompts-library', 'Show System Prompts Library', 'Browse and manage your collection of system prompts', shortcut('P'), ['system', 'prompt', 'library', 'collection', 'manage', 'browse'], React.createElement(MessageSquare, { size: 16 }), () => config.toggleLibrary()],
+            ['create-new-system-prompt', 'Create New System Prompt', 'Create a new custom system prompt', '', ['system', 'prompt', 'create', 'new', 'custom'], React.createElement(PlusCircle, { size: 16 }), () => config.createNewPrompt()],
+            ['edit-current-system-prompt', 'Edit Current System Prompt', 'Edit the currently active system prompt', '', ['system', 'prompt', 'edit', 'modify', 'current'], React.createElement(Pencil, { size: 16 }), () => {
+                const { prompts, defaultPromptId, convPrompts, currentPrompt } = useSystemPromptStore.getState();
+                const { activeConvId: currentConvId } = useConvStore.getState();
+                let promptToEdit = currentPrompt;
+
+                if (!promptToEdit && currentConvId) {
+                    const promptId = convPrompts[currentConvId];
+                    if (promptId) promptToEdit = prompts.find(p => p.guid === promptId);
                 }
-            },
-            {
-                id: 'create-new-system-prompt',
-                name: 'Create New System Prompt',
-                description: 'Create a new custom system prompt',
-                keywords: ['system', 'prompt', 'create', 'new', 'custom'],
-                section: 'utility',
-                icon: React.createElement(PlusCircle, { size: 16 }),
-                execute: () => {
-                    config.createNewPrompt();
-                }
-            },
-            {
-                id: 'edit-current-system-prompt',
-                name: 'Edit Current System Prompt',
-                description: 'Edit the currently active system prompt',
-                keywords: ['system', 'prompt', 'edit', 'modify', 'current'],
-                section: 'utility',
-                icon: React.createElement(Pencil, { size: 16 }),
-                execute: () => {
-                    const { prompts, defaultPromptId, convPrompts, currentPrompt } = useSystemPromptStore.getState();
 
-                    const { activeConvId: currentConvId } = useConvStore.getState();
+                if (!promptToEdit && defaultPromptId) promptToEdit = prompts.find(p => p.guid === defaultPromptId);
+                if (!promptToEdit && prompts.length > 0) promptToEdit = prompts[0];
 
-                    let promptToEdit = null;
-
-                    if (currentPrompt) {
-                        promptToEdit = currentPrompt;
-                    }
-                    else if (currentConvId) {
-                        const promptId = convPrompts[currentConvId];
-                        if (promptId) {
-                            promptToEdit = prompts.find(p => p.guid === promptId);
-                        }
-                    }
-
-                    if (!promptToEdit && defaultPromptId) {
-                        promptToEdit = prompts.find(p => p.guid === defaultPromptId);
-                    }
-
-                    if (!promptToEdit && prompts.length > 0) {
-                        promptToEdit = prompts[0];
-                    }
-
-                    if (promptToEdit) {
-                        config.editPrompt(promptToEdit.guid);
-                    } else {
-                        config.createNewPrompt();
-                    }
-                }
-            }
-        ]
+                promptToEdit ? config.editPrompt(promptToEdit.guid) : config.createNewPrompt();
+            }]
+        ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
+            id, name, description, shortcut, keywords, section: 'utility', icon, execute: fn
+        }))
     });
 }
 

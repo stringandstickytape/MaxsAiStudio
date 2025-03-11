@@ -4,7 +4,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Copy, Import, Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Copy,  Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToolEditor } from './ToolEditor';
 import { Tool } from '@/types/toolTypes';
@@ -24,7 +24,6 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     fetchTools, 
     fetchToolCategories,
     deleteTool,
-    importTools: importToolsFn,
     exportTools: exportToolsFn
   } = useToolsManagement();
   
@@ -50,7 +49,6 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [currentTool, setCurrentTool] = useState<Tool | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
   useEffect(() => {
@@ -66,10 +64,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     if (pendingAction) {
       if (pendingAction === 'create') {
         handleAddTool();
-      } else if (pendingAction === 'import') {
-        // Trigger file input click for import
-        handleImportTools();
-      } else if (pendingAction === 'export') {
+      }  else if (pendingAction === 'export') {
         // Handle export action
         handleExportTools();
       }
@@ -102,31 +97,6 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     }
   };
 
-  const handleImportTools = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          const json = event.target?.result as string;
-          try {
-            setIsImporting(true);
-            await importToolsFn(json);
-          } catch (error) {
-            console.error('Error importing tools:', error);
-            alert(`Failed to import tools: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          } finally {
-            setIsImporting(false);
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
-  };
 
   const handleExportTools = async () => {
     try {
@@ -163,7 +133,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
 
 
   // Determine loading state
-  const isLoading = toolsLoading || isDeleting || isImporting || isExporting;
+  const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
@@ -299,15 +269,6 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
       </div>
 
       <div className="flex space-x-2 mt-4">
-        <Button 
-          variant="outline" 
-          className="bg-gray-800 border-gray-700"
-          onClick={handleImportTools}
-          disabled={isImporting}
-        >
-          <Import className="h-4 w-4 mr-1" />
-          {isImporting ? 'Importing...' : 'Import'}
-        </Button>
         <Button 
           variant="outline" 
           className="bg-gray-800 border-gray-700"
