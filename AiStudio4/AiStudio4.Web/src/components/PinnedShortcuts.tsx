@@ -269,7 +269,7 @@ export function PinnedShortcuts({
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
                                                 className={cn(
-                                                    "flex items-center",
+                                                    "flex flex-col items-center",
                                                     snapshot.isDragging && "opacity-70 z-50"
                                                 )}
                                             >
@@ -295,14 +295,16 @@ export function PinnedShortcuts({
                                                     </TooltipTrigger>
                                                     <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
                                                         <p>{command.name}</p>
-                                                        <p className="text-xs text-gray-400">Drag to reorder · Right-click to unpin</p>
+                                                        <p className="text-xs text-gray-400">Drag handle below button to reorder · Right-click to unpin</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                                 <div
                                                     {...provided.dragHandleProps}
-                                                    className="cursor-grab h-6 w-6 ml-1 text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors"
+                                                    className="cursor-grab h-2 w-[90px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors"
                                                 >
-                                                    <GripVertical className="h-3.5 w-3.5" />
+                                                    <div className="w-12 flex items-center justify-center">
+                                                        <div className="h-[3px] w-8 bg-current rounded-full"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
