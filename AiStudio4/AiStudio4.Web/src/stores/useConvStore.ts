@@ -9,13 +9,13 @@ import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 interface ConvState {
   convs: Record<string, Conv>;
   activeConvId: string | null;
-  selectedMessageId: string | null;
+  slctdMsgId: string | null;
 
-  createConv: (params: { id?: string; rootMessage: Message; selectedMessageId?: string }) => void;
+  createConv: (params: { id?: string; rootMessage: Message; slctdMsgId?: string }) => void;
 
-  addMessage: (params: { convId: string; message: Message; selectedMessageId?: string | null }) => void;
+  addMessage: (params: { convId: string; message: Message; slctdMsgId?: string | null }) => void;
 
-  setActiveConv: (params: { convId: string; selectedMessageId?: string | null }) => void;
+  setActiveConv: (params: { convId: string; slctdMsgId?: string | null }) => void;
 
   getConv: (convId: string) => Conv | undefined;
   getActiveConv: () => Conv | undefined;
@@ -36,11 +36,11 @@ export const useConvStore = create<ConvState>((set, get) => {
       if (!content) return;
 
       const store = get();
-      const { activeConvId, selectedMessageId, addMessage, createConv, setActiveConv, getConv } = store;
+      const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = store;
 
       console.log('Handling conv message from event:', {
         activeConvId,
-        selectedMessageId,
+        slctdMsgId,
         messageId: content.id,
         messageSource: content.source,
         parentIdFromContent: content.parentId,
@@ -52,7 +52,7 @@ export const useConvStore = create<ConvState>((set, get) => {
         let parentId = content.parentId;
 
         if (!parentId && content.source === 'user') {
-          parentId = selectedMessageId;
+          parentId = slctdMsgId;
         }
 
         if (!parentId && conv && conv.messages.length > 0) {
@@ -87,7 +87,7 @@ export const useConvStore = create<ConvState>((set, get) => {
             tokenUsage: content.tokenUsage || null,
             costInfo: content.costInfo || null,
           },
-          selectedMessageId: content.source === 'ai' ? content.id : undefined,
+          slctdMsgId: content.source === 'ai' ? content.id : undefined,
         });
       } else {
         const convId = `conv_${Date.now()}`;
@@ -107,7 +107,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         setActiveConv({
           convId,
-          selectedMessageId: content.id,
+          slctdMsgId: content.id,
         });
       }
     });
@@ -118,12 +118,12 @@ export const useConvStore = create<ConvState>((set, get) => {
 
       const { convId, messages } = content;
       const urlParams = new URLSearchParams(window.location.search);
-      const selectedMessageId = urlParams.get('messageId');
+      const slctdMsgId = urlParams.get('messageId');
 
       console.log('Loading conv from event:', {
         convId,
         messageCount: messages?.length,
-        selectedMessageId,
+        slctdMsgId,
       });
 
       if (!messages || messages.length === 0) return;
@@ -171,7 +171,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
       setActiveConv({
         convId,
-        selectedMessageId: selectedMessageId || messages[messages.length - 1].id,
+        slctdMsgId: slctdMsgId || messages[messages.length - 1].id,
       });
     });
   }
@@ -179,9 +179,9 @@ export const useConvStore = create<ConvState>((set, get) => {
   return {
     convs: {},
     activeConvId: null,
-    selectedMessageId: null,
+    slctdMsgId: null,
 
-    createConv: ({ id = `conv_${uuidv4()}`, rootMessage, selectedMessageId }) =>
+    createConv: ({ id = `conv_${uuidv4()}`, rootMessage, slctdMsgId }) =>
       set((state) => {
         const newConv: Conv = {
           id,
@@ -194,11 +194,11 @@ export const useConvStore = create<ConvState>((set, get) => {
             [id]: newConv,
           },
           activeConvId: id,
-          selectedMessageId: selectedMessageId || rootMessage.id,
+          slctdMsgId: slctdMsgId || rootMessage.id,
         };
       }),
 
-    addMessage: ({ convId, message, selectedMessageId }) =>
+    addMessage: ({ convId, message, slctdMsgId }) =>
       set((state) => {
         const conv = state.convs[convId];
         if (!conv) {
@@ -207,8 +207,8 @@ export const useConvStore = create<ConvState>((set, get) => {
         }
 
         let updatedMessage = { ...message };
-        if (!updatedMessage.parentId && state.selectedMessageId) {
-          updatedMessage.parentId = state.selectedMessageId;
+        if (!updatedMessage.parentId && state.slctdMsgId) {
+          updatedMessage.parentId = state.slctdMsgId;
         }
 
         const updatedMessages = [...conv.messages, updatedMessage];
@@ -221,11 +221,11 @@ export const useConvStore = create<ConvState>((set, get) => {
               messages: updatedMessages,
             },
           },
-          selectedMessageId: selectedMessageId !== undefined ? selectedMessageId : state.selectedMessageId,
+          slctdMsgId: slctdMsgId !== undefined ? slctdMsgId : state.slctdMsgId,
         };
       }),
 
-    setActiveConv: ({ convId, selectedMessageId }) =>
+    setActiveConv: ({ convId, slctdMsgId }) =>
       set((state) => {
         if (!state.convs[convId]) {
           console.warn('Trying to set active conv that does not exist:', convId);
@@ -234,7 +234,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         return {
           activeConvId: convId,
-          selectedMessageId: selectedMessageId !== undefined ? selectedMessageId : state.selectedMessageId,
+          slctdMsgId: slctdMsgId !== undefined ? slctdMsgId : state.slctdMsgId,
         };
       }),
 
@@ -279,12 +279,12 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         const updatedMessages = conv.messages.filter((msg) => msg.id !== messageId);
 
-        const updatedSelectedMessageId =
-          state.selectedMessageId === messageId
+        const updatedSlctdMsgId =
+          state.slctdMsgId === messageId
             ? updatedMessages.length > 0
               ? updatedMessages[updatedMessages.length - 1].id
               : null
-            : state.selectedMessageId;
+            : state.slctdMsgId;
 
         return {
           convs: {
@@ -294,7 +294,7 @@ export const useConvStore = create<ConvState>((set, get) => {
               messages: updatedMessages,
             },
           },
-          selectedMessageId: updatedSelectedMessageId,
+          slctdMsgId: updatedSlctdMsgId,
         };
       }),
 
@@ -314,7 +314,7 @@ export const useConvStore = create<ConvState>((set, get) => {
               messages: [rootMessage],
             },
           },
-          selectedMessageId: rootMessage.id,
+          slctdMsgId: rootMessage.id,
         };
       }),
 
@@ -323,7 +323,7 @@ export const useConvStore = create<ConvState>((set, get) => {
         const { [convId]: _, ...remainingConvs } = state.convs;
 
         let newActiveId = state.activeConvId;
-        let newSelectedMessageId = state.selectedMessageId;
+        let newSlctdMsgId = state.slctdMsgId;
 
         if (state.activeConvId === convId) {
           const convIds = Object.keys(remainingConvs);
@@ -331,16 +331,16 @@ export const useConvStore = create<ConvState>((set, get) => {
 
           if (newActiveId) {
             const newActiveConv = remainingConvs[newActiveId];
-            newSelectedMessageId = newActiveConv.messages.length > 0 ? newActiveConv.messages[0].id : null;
+            newSlctdMsgId = newActiveConv.messages.length > 0 ? newActiveConv.messages[0].id : null;
           } else {
-            newSelectedMessageId = null;
+            newSlctdMsgId = null;
           }
         }
 
         return {
           convs: remainingConvs,
           activeConvId: newActiveId,
-          selectedMessageId: newSelectedMessageId,
+          slctdMsgId: newSlctdMsgId,
         };
       }),
   };
@@ -350,7 +350,7 @@ export const debugConvs = () => {
   const state = useConvStore.getState();
   console.group('Conv State Debug');
   console.log('Active:', state.activeConvId);
-  console.log('Selected Message:', state.selectedMessageId);
+  console.log('Selected Message:', state.slctdMsgId);
   console.log('All:', state.convs);
 
   Object.entries(state.convs).forEach(([id, conv]) => {

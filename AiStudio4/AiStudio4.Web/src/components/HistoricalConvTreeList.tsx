@@ -91,7 +91,7 @@ export const HistoricalConvTreeList = () => {
         // If conv already exists, just set it as active with the selected message
         setActiveConv({
           convId,
-          selectedMessageId: nodeId,
+          slctdMsgId: nodeId,
         });
         return;
       }
@@ -142,7 +142,7 @@ export const HistoricalConvTreeList = () => {
         // Set the active conv with the selected message
         setActiveConv({
           convId,
-          selectedMessageId: nodeId,
+          slctdMsgId: nodeId,
         });
       } else {
         console.error('Failed to load conv data or empty conv');

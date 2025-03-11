@@ -39,7 +39,7 @@ export function InputBar({
 
   const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
 
-  const { activeConvId, selectedMessageId, convs, createConv, getConv } = useConvStore();
+  const { activeConvId, slctdMsgId, convs, createConv, getConv } = useConvStore();
 
   const { sendMessage, isLoading } = useChatManagement();
 
@@ -105,7 +105,7 @@ export function InputBar({
 
           parentMessageId = messageId;
         } else {
-          parentMessageId = selectedMessageId;
+          parentMessageId = slctdMsgId;
 
           if (!parentMessageId) {
             const conv = convs[convId];
@@ -151,7 +151,7 @@ export function InputBar({
       prompts,
       sendMessage,
       activeConvId,
-      selectedMessageId,
+      slctdMsgId,
       convs,
       createConv,
       getConv,

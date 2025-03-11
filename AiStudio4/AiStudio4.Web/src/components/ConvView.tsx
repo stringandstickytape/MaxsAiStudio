@@ -9,7 +9,7 @@ interface ConvViewProps {
 }
 
 export const ConvView = ({ streamTokens }: ConvViewProps) => {
-  const { activeConvId, selectedMessageId, convs } = useConvStore();
+  const { activeConvId, slctdMsgId, convs } = useConvStore();
 
   // Get the message chain (active message plus its ancestors)
   const messageChain = useMemo(() => {
@@ -26,18 +26,18 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     const startingMessageId =
       streamTokens.length > 0
         ? conv.messages[conv.messages.length - 1].id
-        : selectedMessageId || conv.messages[conv.messages.length - 1].id;
+        : slctdMsgId || conv.messages[conv.messages.length - 1].id;
 
     console.log('ConvView: Building message chain from:', {
       startingMessageId,
-      selectedMessageId,
+      slctdMsgId,
       streamActive: streamTokens.length > 0,
       messageCount: conv.messages.length,
     });
 
     // Get the path from the starting message back to the root
     return graph.getMessagePath(startingMessageId);
-  }, [activeConvId, selectedMessageId, convs, streamTokens.length]);
+  }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
 
   useEffect(() => {
     console.log('Message chain updated with length:', messageChain.length);

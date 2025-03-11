@@ -83,7 +83,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     });
     setActiveConv({
       convId: convId,
-      selectedMessageId: nodeId,
+      slctdMsgId: nodeId,
     });
   };
 
