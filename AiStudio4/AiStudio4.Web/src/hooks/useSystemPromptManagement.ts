@@ -17,7 +17,7 @@ export function useSystemPromptManagement() {
   } = useApiCallState();
   
   // Use initialization utility directly without checking prompts length
-  const isInitialized = useInitialization(async () => {
+    const isInitialized = useInitializeIfEmpty(async () => {
     // Fetch prompts directly
     await fetchSystemPrompts();
   }, []);
