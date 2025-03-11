@@ -28,9 +28,3 @@ export interface Conv {
     id: string;
     messages: Message[];
 }
-
-export interface ConvState {
-    convs: { [convId: string]: Conv };
-    activeConvId: string | null;
-    selectedMessageId: string | null;
-}

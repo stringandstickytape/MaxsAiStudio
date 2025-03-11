@@ -2,7 +2,6 @@
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';
-import { usePanelStore } from '@/stores/usePanelStore';
 
 // Create a global event system for command communication
 type CommandEvent = 'edit-model' | 'edit-provider' | 'settings-tab';

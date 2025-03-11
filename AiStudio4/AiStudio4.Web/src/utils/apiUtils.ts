@@ -9,53 +9,6 @@ export function normalizeError(error: any): string {
     return 'An unknown error occurred';
 }
 
-export interface ApiOperationState {
-    isLoading: boolean;
-    error: string | null;
-    initialized: boolean;
-}
-
-export function createApiOperationHook<T = any>(options?: {
-    initializeOnMount?: boolean;
-    onError?: (error: any) => void;
-}) {
-    return function useApiOperation() {
-        const [isLoading, setIsLoading] = useState(false);
-        const [error, setError] = useState<string | null>(null);
-        const initialized = useRef(false);
-
-        const executeApiCall = useCallback(async <R>(apiCall: () => Promise<R>): Promise<R | null> => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const result = await apiCall();
-                return result;
-            } catch (err) {
-                const normalizedError = normalizeError(err);
-                setError(normalizedError);
-                if (options?.onError) options.onError(err);
-                console.error('API operation error:', err);
-                return null;
-            } finally {
-                setIsLoading(false);
-            }
-        }, []);
-
-        useEffect(() => {
-            if (options?.initializeOnMount && !initialized.current) {
-                initialized.current = true;
-            }
-        }, []);
-
-        return {
-            isLoading,
-            error,
-            initialized: initialized.current,
-            executeApiCall,
-            clearError: () => setError(null)
-        };
-    };
-}
 
 export function useApiCallState() {
     const [isLoading, setIsLoading] = useState(false);
@@ -116,26 +69,3 @@ export function createApiRequest<TParams, TResponse>(
         }
     };
 }
-
-
-export const apiTransformers = {
-    extractItems: <T>(data: any): T[] => {
-        return data.items || [];
-    },
-
-    extractProperty: <T>(propertyName: string) => (data: any): T[] => {
-        return data[propertyName] || [];
-    },
-
-    extractItem: <T>(propertyName: string = 'item') => (data: any): T => {
-        return data[propertyName] || data;
-    },
-
-    addIdsToArray: <T>(data: any[], idPrefix: string = 'item_'): Record<string, T> => {
-        return data.reduce((acc, item, index) => {
-            const id = `${idPrefix}${index}`;
-            acc[id] = { ...item, id };
-            return acc;
-        }, {} as Record<string, T>);
-    }
-};

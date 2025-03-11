@@ -1,5 +1,5 @@
 // src/components/settings/FontSizeControl.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Plus, Minus, Save } from 'lucide-react';
@@ -21,7 +21,6 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
     isLoading
   } = useAppearanceStore();
   
-  // Local state to track changes before save
   const [hasChanges, setHasChanges] = useState(false);
   
   // Handle font size changes
@@ -29,19 +28,16 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
     setFontSize(newSize);
     setHasChanges(true);
     
-    // Call onChange prop if provided
     if (onChange) {
       onChange(newSize);
     }
   };
   
-  // Handle save
   const handleSave = async () => {
     try {
       await saveAppearanceSettings();
       setHasChanges(false);
       
-      // Call onSave prop if provided
       if (onSave) {
         onSave();
       }

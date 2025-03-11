@@ -1,6 +1,5 @@
 // src/components/commands/CommandInitializer.tsx
 import { useEffect } from 'react';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/plugins/modelCommands';
 import { initializeVoiceCommands } from '@/plugins/voiceCommands';

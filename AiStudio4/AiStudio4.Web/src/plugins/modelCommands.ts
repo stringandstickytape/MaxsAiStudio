@@ -1,6 +1,5 @@
 // src/plugins/modelCommands.ts
 import { useCommandStore } from '@/stores/useCommandStore';
-import { ModelType } from '@/types/modelTypes';
 import { Cpu } from 'lucide-react';
 import React from 'react';
 
@@ -15,7 +14,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     
     const availableModels = getAvailableModels();
 
-    // Create commands for selecting primary model
     const primaryModelCommands = availableModels.map(modelName => ({
         id: `select-primary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
         name: `${modelName} [Primary]`,
@@ -26,7 +24,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' })
     }));
 
-    // Create commands for selecting secondary model
     const secondaryModelCommands = availableModels.map(modelName => ({
         id: `select-secondary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
         name: `${modelName} [Secondary]`,
@@ -37,7 +34,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' })
     }));
 
-    // Register all primary model commands
     const { registerGroup } = useCommandStore.getState();
     
     registerGroup({
@@ -47,7 +43,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         commands: primaryModelCommands
     });
 
-    // Register all secondary model commands
     registerGroup({
         id: 'secondary-models',
         name: 'Secondary Models',
@@ -55,7 +50,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
         commands: secondaryModelCommands
     });
 
-    // Register a generic model command category for showing model options
     registerGroup({
         id: 'model-actions',
         name: 'Model Actions',
@@ -69,9 +63,6 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
                 section: 'model',
                 icon: React.createElement(Cpu, { size: 16 }),
                 execute: () => {
-                    // This is a generic entry point that will show more specific options
-                    // It doesn't do anything itself, but will show the model-specific commands
-                    // when searching for "model"
                 }
             }
         ]

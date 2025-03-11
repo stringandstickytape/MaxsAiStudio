@@ -15,18 +15,14 @@ export function useDragDrop<T extends { id: string }>(items: T[], onReorder?: (n
   const handleDragEnd = useCallback((result: DropResult) => {
     setIsDragging(false);
 
-    // If the item was dropped outside the droppable area
     if (!result.destination) return;
 
-    // If it was dropped in the same position
     if (result.destination.index === result.source.index) return;
 
-    // Reorder the array
     const reorderedItems = Array.from(items);
     const [movedItem] = reorderedItems.splice(result.source.index, 1);
     reorderedItems.splice(result.destination.index, 0, movedItem);
 
-    // Call the onReorder callback with the new array
     if (onReorder) {
       onReorder(reorderedItems);
     }

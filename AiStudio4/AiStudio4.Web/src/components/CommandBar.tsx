@@ -18,7 +18,6 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     const {
         searchCommands,
         executeCommand,
-        getCommandById
     } = useCommandStore();
 
     // Pinned commands store

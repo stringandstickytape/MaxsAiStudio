@@ -1,7 +1,6 @@
 // src/components/ChatSpace.tsx
 import { useState, useEffect } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Button } from '@/components/ui/button';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
 import { InputBar } from './InputBar';
@@ -23,13 +22,11 @@ export function ChatSpace() {
     const [inputValue, setInputValue] = useState('');
 
     const { activeTools } = useToolStore();
-    const { togglePanel, panels } = usePanelStore();
+    const { togglePanel } = usePanelStore();
     const { activeConvId } = useConvStore();
 
     const {
-        models,
         selectedPrimaryModel,
-        selectedSecondaryModel,
         handleModelSelect
     } = useModelManagement();
 
@@ -56,23 +53,6 @@ export function ChatSpace() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
-
-    const handleLocalModelSelect = (modelType: ModelType, modelName: string) => {
-        handleModelSelect(modelType, modelName);
-
-        const commandId = `select-${modelType}-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
-        const commandStore = useCommandStore.getState();
-        if (!commandStore.getCommandById(commandId)) {
-            commandStore.registerCommand({
-                id: commandId,
-                name: `Set ${modelType} model to ${modelName}`,
-                description: `Change the ${modelType} model to ${modelName}`,
-                keywords: ['model', 'select', modelType, modelName],
-                section: 'model',
-                execute: () => handleModelSelect(modelType, modelName)
-            });
-        }
-    };
 
     const openToolPanel = () => {
         togglePanel('toolPanel');

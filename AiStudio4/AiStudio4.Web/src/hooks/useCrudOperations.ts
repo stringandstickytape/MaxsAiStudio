@@ -48,7 +48,6 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
         
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Unknown error creating ${resourceName}`;
         console.error(`Error creating ${resourceName}:`, err);
         throw err;
       }
@@ -68,7 +67,7 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
         
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Unknown error reading ${resourceName}`;
+        
         console.error(`Error reading ${resourceName}:`, err);
         return null;
       }
@@ -88,7 +87,7 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
         
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Unknown error updating ${resourceName}`;
+        
         console.error(`Error updating ${resourceName}:`, err);
         throw err;
       }
@@ -108,7 +107,6 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
         
         return true;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Unknown error deleting ${resourceName}`;
         console.error(`Error deleting ${resourceName}:`, err);
         throw err;
       }
@@ -128,7 +126,6 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
         
         return transformResponse(data[`${resourceName.toLowerCase()}s`] || []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Unknown error listing ${resourceName}s`;
         console.error(`Error listing ${resourceName}s:`, err);
         return [];
       }

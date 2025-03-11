@@ -40,7 +40,6 @@ export function useSystemPromptManagement() {
         currentPrompt,
         setConvPrompt,
         setDefaultPromptId,
-        setCurrentPrompt
     } = useSystemPromptStore();
 
     const { executeApiCall } = useApiCallState();

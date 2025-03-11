@@ -1,5 +1,6 @@
 // src/hooks/useToolCommands.ts
-import { useRef, useEffect, useCallback } from 'react';
+import { useEffect, useCallback
+} from 'react';
 import { initializeToolCommands, registerToolsAsCommands } from '@/commands/toolCommands';
 import { useToolStore } from '@/stores/useToolStore';
 import { useToolsManagement } from '@/hooks/useToolsManagement';

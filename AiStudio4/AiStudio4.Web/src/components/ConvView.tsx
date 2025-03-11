@@ -1,7 +1,6 @@
 import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { useEffect, useMemo } from 'react';
-import { Message } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 
@@ -10,7 +9,7 @@ interface ConvViewProps {
 }
 
 export const ConvView = ({ streamTokens }: ConvViewProps) => {
-    const { activeConvId, selectedMessageId, convs, getActiveConv } = useConvStore();
+    const { activeConvId, selectedMessageId, convs } = useConvStore();
 
     // Get the message chain (active message plus its ancestors)
     const messageChain = useMemo(() => {

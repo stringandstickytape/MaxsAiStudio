@@ -45,19 +45,6 @@ const ResizeHandle = ({ className, direction = 'horizontal' }: ResizeHandleProps
   />
 );
 
-// Old version as backup
-const OldResizeHandle = ({ className }: { className?: string }) => (
-  <PanelResizeHandle
-    className={cn(
-      "w-1.5 hover:w-2 transition-all duration-200 relative",
-      "before:absolute before:top-0 before:bottom-0 before:left-1/2 before:-ml-px before:w-0.5 before:rounded-full",
-      "before:bg-gray-700/50 hover:before:bg-gray-600/80 active:before:bg-blue-500/50",
-      "cursor-col-resize",
-      className
-    )}
-  />
-);
-
 export function PanelManager({ panels, className }: PanelManagerProps) {
   const { registerPanel, panels: panelStates, togglePanel, togglePinned } = usePanelStore();
   const initialRegistrationDone = useRef(false);

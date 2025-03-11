@@ -2,7 +2,7 @@ import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from '
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send } from 'lucide-react';
-import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
+import { FileAttachment } from './FileAttachment';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';

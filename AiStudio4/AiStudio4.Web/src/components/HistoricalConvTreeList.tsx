@@ -1,5 +1,5 @@
 // src/components/HistoricalConvTreeList.tsx
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { HistoricalConvTree } from './HistoricalConvTree';
 import { useConvStore } from '@/stores/useConvStore';

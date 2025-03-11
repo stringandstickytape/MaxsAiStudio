@@ -1,7 +1,7 @@
 // src/commands/appearanceCommands.ts
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { TextQuote, ZoomIn, ZoomOut, RotateCcw, Settings } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Settings } from 'lucide-react';
 import { useAppearanceStore } from '@/stores/useAppearanceStore';
 import { commandEvents } from '@/commands/settingsCommands';
 

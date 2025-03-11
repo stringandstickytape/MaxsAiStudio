@@ -17,19 +17,3 @@ export interface ToolCategory {
   name: string;
   priority: number;
 }
-
-export interface ToolSelectionRequest {
-  toolIds: string[];
-}
-
-export interface ToolResponse {
-  success: boolean;
-  message?: string;
-  tool?: Tool;
-  tools?: Tool[];
-}
-
-export interface ToolLibrary {
-  tools: Tool[];
-  categories: ToolCategory[];
-}

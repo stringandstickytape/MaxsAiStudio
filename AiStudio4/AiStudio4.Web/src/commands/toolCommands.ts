@@ -2,7 +2,6 @@
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tool } from '@/types/toolTypes';
-import { useToolStore } from '@/stores/useToolStore';
 
 // Define some basic tool-related commands
 interface ToolCommandsConfig {

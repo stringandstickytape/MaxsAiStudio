@@ -2,7 +2,6 @@
 import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
-import { cn } from '@/lib/utils';
 import { Sidebar } from '../Sidebar';
 import { ConvTreeView } from '@/components/ConvTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -51,14 +50,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
             window.removeEventListener('openToolPanel', handleOpenToolPanel);
         };
     }, [openPanel]);
-
-    const handleToggleConvTree = () => {
-        setSelectedConvId(activeConvId);
-
-        console.log('Opening conv tree with conv ID:', activeConvId);
-
-        openPanel('convTree');
-    };
 
     useEffect(() => {
         if (activeConvId && activeConvId !== selectedConvId) {
@@ -109,12 +100,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
 
         return () => unsubscribe();
     }, [panels.convTree?.isOpen, activeConvId, selectedConvId]);
-
-    const hasLeftPanel = panels.sidebar?.isPinned || false;
-    const hasRightPanel = panels.convTree?.isPinned ||
-        panels.settings?.isPinned ||
-        panels.systemPrompts?.isPinned ||
-        panels.toolPanel?.isPinned || false;
 
     const panelConfigs: PanelConfig[] = useMemo(() => [
         {

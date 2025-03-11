@@ -1,6 +1,5 @@
 // src/stores/useHistoricalConvsStore.ts
 import { create } from 'zustand';
-import { webSocketService } from '@/services/websocket/WebSocketService';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { apiClient } from '@/services/api/apiClient';
 

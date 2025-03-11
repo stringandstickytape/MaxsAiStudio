@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Search, Edit, Trash2, Copy, Import, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToolEditor } from './ToolEditor';
-import { Tool, ToolCategory } from '@/types/toolTypes';
+import { Tool } from '@/types/toolTypes';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 interface ToolPanelProps {
@@ -15,7 +15,7 @@ interface ToolPanelProps {
   onClose?: () => void;
 }
 
-export function ToolPanel({ isOpen = true, onClose = () => {} }: ToolPanelProps) {
+export function ToolPanel({ isOpen = true }: ToolPanelProps) {
   // Use tools management hook instead of RTK Query
   const { 
     tools, 

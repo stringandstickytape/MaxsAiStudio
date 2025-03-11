@@ -21,30 +21,17 @@ export function AppearanceTab() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const {
-    fontSize,
-    isDarkMode,
-    isLoading,
     error,
-    setFontSize,
     saveSettings,
     resetToDefaults
   } = useAppearanceManagement();
   
-  // Show success message briefly
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
   
-  // Handle save
-  const handleSave = async () => {
-    const success = await saveSettings();
-    if (success) {
-      showSuccessMessage('Appearance settings saved successfully');
-    }
-  };
-  
-  // Handle reset to defaults
+
   const handleReset = async () => {
     await resetToDefaults();
     setResetDialogOpen(false);

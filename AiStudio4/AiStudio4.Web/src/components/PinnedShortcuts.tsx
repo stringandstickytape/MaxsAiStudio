@@ -5,7 +5,7 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic, GripVertical } from 'lucide-react';
-import { usePinnedCommandsStore, PinnedCommand } from '@/stores/usePinnedCommandsStore';
+import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import {
     DropdownMenu,
     DropdownMenuContent,

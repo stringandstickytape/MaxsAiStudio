@@ -5,7 +5,6 @@ import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { AppearanceTab } from './settings/AppearanceTab';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { useModelManagement } from '@/hooks/useModelManagement';
 import { Model, ServiceProvider } from '@/types/settings';
 import { commandEvents } from '@/commands/settingsCommands';

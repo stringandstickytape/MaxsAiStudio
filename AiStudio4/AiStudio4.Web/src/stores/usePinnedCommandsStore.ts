@@ -1,6 +1,5 @@
 // src/stores/usePinnedCommandsStore.ts
 import { create } from 'zustand';
-import { Command } from '@/commands/types';
 
 export interface PinnedCommand {
     id: string;

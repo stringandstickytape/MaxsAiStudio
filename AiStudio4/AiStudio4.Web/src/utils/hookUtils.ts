@@ -41,25 +41,6 @@ export function useInitialization(initFn: () => Promise<void> | void, deps: Depe
 }
 
 /**
- * Hook to run a function after initialization has completed
- * @param initCompleted Boolean indicating if initialization is complete
- * @param fn Function to run after initialization
- * @param deps Dependencies that should trigger re-running the function
- */
-export function useAfterInitialization(
-  initCompleted: boolean,
-  fn: () => void,
-  deps: DependencyList = []
-) {
-  useEffect(() => {
-    if (initCompleted) {
-      fn();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initCompleted, ...deps]);
-}
-
-/**
  * Hook to initialize data if none exists yet
  * @param fetchFn Function to fetch the data if it doesn't exist
  * @returns Boolean indicating if initialization is complete
