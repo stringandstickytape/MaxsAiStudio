@@ -5,7 +5,7 @@ import { Mic, Send } from 'lucide-react';
 import { FileAttachment, AttachedFileDisplay } from './FileAttachment';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { ToolSelector } from './tools/ToolSelector';
 
@@ -39,15 +39,15 @@ export function InputBar({
 
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
-    const { conversationPrompts, defaultPromptId, prompts } = useSystemPromptStore();
+    const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
 
     const {
-        activeConversationId,
+        activeConvId,
         selectedMessageId,
-        conversations,
-        createConversation,
-        getConversation
-    } = useConversationStore();
+        convs,
+        createConv,
+        getConv
+    } = useConvStore();
 
     const { sendMessage, isLoading } = useChatManagement();
 
@@ -93,18 +93,18 @@ export function InputBar({
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
         try {
-            let conversationId = activeConversationId;
+            let convId = activeConvId;
             let parentMessageId = null;
 
             let systemPromptId = null;
             let systemPromptContent = null;
 
-            if (!conversationId) {
-                conversationId = `conv_${uuidv4()}`;
+            if (!convId) {
+                convId = `conv_${uuidv4()}`;
                 const messageId = `msg_${uuidv4()}`;
 
-                createConversation({
-                    id: conversationId,
+                createConv({
+                    id: convId,
                     rootMessage: {
                         id: messageId,
                         content: '',
@@ -118,15 +118,15 @@ export function InputBar({
                 parentMessageId = selectedMessageId;
 
                 if (!parentMessageId) {
-                    const conversation = conversations[conversationId];
-                    if (conversation && conversation.messages.length > 0) {
-                        parentMessageId = conversation.messages[conversation.messages.length - 1].id;
+                    const conv = convs[convId];
+                    if (conv && conv.messages.length > 0) {
+                        parentMessageId = conv.messages[conv.messages.length - 1].id;
                     }
                 }
             }
 
-            if (conversationId) {
-                systemPromptId = conversationPrompts[conversationId] || defaultPromptId;
+            if (convId) {
+                systemPromptId = convPrompts[convId] || defaultPromptId;
 
                 if (systemPromptId) {
                     const prompt = prompts.find(p => p.guid === systemPromptId);
@@ -137,7 +137,7 @@ export function InputBar({
             }
 
             await sendMessage({
-                conversationId,
+                convId,
                 parentMessageId,
                 message,
                 model: selectedModel,
@@ -155,15 +155,15 @@ export function InputBar({
         selectedModel,
         setInputText,
         activeTools,
-        conversationPrompts,
+        convPrompts,
         defaultPromptId,
         prompts,
         sendMessage,
-        activeConversationId,
+        activeConvId,
         selectedMessageId,
-        conversations,
-        createConversation,
-        getConversation
+        convs,
+        createConv,
+        getConv
     ]);
 
     const handleSend = () => {

@@ -22,19 +22,19 @@ namespace AiStudio4.Services
             _logger = logger;
         }
 
-        public async Task NotifyConversationUpdate(string clientId, ConversationUpdateDto update)
+        public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
         {
             try
             {
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (update == null) throw new ArgumentNullException(nameof(update));
 
-                // If Content is a regular conversation update
+                // If Content is a regular conv update
                 if (update.Content is string)
                 {
                     var message = new
                     {
-                        messageType = "conversation",
+                        messageType = "conv",
                         content = new
                         {
                             id = update.MessageId,
@@ -49,18 +49,18 @@ namespace AiStudio4.Services
                     };
                     await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
                 }
-                // If Content is a conversation load message
+                // If Content is a conv load message
                 else
                 {
                     await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(update.Content));
                 }
 
-                _logger.LogDebug("Sent conversation update to client {ClientId}", clientId);
+                _logger.LogDebug("Sent conv update to client {ClientId}", clientId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send conversation update to client {ClientId}", clientId);
-                throw new WebSocketNotificationException("Failed to send conversation update", ex);
+                _logger.LogError(ex, "Failed to send conv update to client {ClientId}", clientId);
+                throw new WebSocketNotificationException("Failed to send conv update", ex);
             }
         }
 
@@ -87,33 +87,33 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task NotifyConversationList(string clientId, ConversationListDto conversations)
+        public async Task NotifyConvList(string clientId, ConvListDto convs)
         {
             try
             {
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
-                if (conversations == null) throw new ArgumentNullException(nameof(conversations));
+                if (convs == null) throw new ArgumentNullException(nameof(convs));
 
                 // Format matches client expectations for WebSocket messages
                 var message = new
                 {
-                    messageType = "historicalConversationTree",
+                    messageType = "historicalConvTree",
                     content = new
                     {
-                        convGuid = conversations.ConversationId,
-                        summary = conversations.Summary,
-                        fileName = $"conv_{conversations.ConversationId}.json",
-                        lastModified = conversations.LastModified
+                        convGuid = convs.ConvId,
+                        summary = convs.Summary,
+                        fileName = $"conv_{convs.ConvId}.json",
+                        lastModified = convs.LastModified
                     }
                 };
 
                 await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
-                _logger.LogDebug("Sent conversation list to client {ClientId}", clientId);
+                _logger.LogDebug("Sent conv list to client {ClientId}", clientId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send conversation list to client {ClientId}", clientId);
-                throw new WebSocketNotificationException("Failed to send conversation list", ex);
+                _logger.LogError(ex, "Failed to send conv list to client {ClientId}", clientId);
+                throw new WebSocketNotificationException("Failed to send conv list", ex);
             }
         }
     }

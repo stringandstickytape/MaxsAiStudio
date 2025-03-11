@@ -1,9 +1,9 @@
 // src/hooks/useChatManagement.ts
 import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
+import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { v4 as uuidv4 } from 'uuid';
 import { createResourceHook } from './useResourceFactory';
 
@@ -29,7 +29,7 @@ const useChatConfigResource = createResourceHook<{
 });
 
 interface SendMessageParams {
-  conversationId: string;
+  convId: string;
   parentMessageId: string;
   message: string;
   model: string;
@@ -55,21 +55,21 @@ export function useChatManagement() {
   // Access Zustand stores
   const { 
     addMessage, 
-    createConversation, 
-    activeConversationId,
-    conversations
-  } = useConversationStore();
+    createConv, 
+    activeConvId,
+    convs
+  } = useConvStore();
   
   const { 
     prompts, 
-    conversationPrompts, 
+    convPrompts, 
     defaultPromptId 
   } = useSystemPromptStore();
 
-  // Access Historical Conversations Store
+  // Access Historical Convs Store
   const {
-    fetchConversationTree
-  } = useHistoricalConversationsStore();
+    fetchConvTree
+  } = useHistoricalConvsStore();
 
   // Send a chat message
   const sendMessage = useCallback(async (params: SendMessageParams) => {
@@ -118,24 +118,24 @@ export function useChatManagement() {
     }) || false;
   }, [executeApiCall]);
   
-  // Get conversation history - first check Zustand store, then use the historical conversations store
-  const getConversation = useCallback(async (conversationId: string) => {
-    // First check if we already have this conversation in the Zustand store
-    const localConversation = conversations[conversationId];
-    if (localConversation) {
+  // Get conv history - first check Zustand store, then use the historical convs store
+  const getConv = useCallback(async (convId: string) => {
+    // First check if we already have this conv in the Zustand store
+    const localConv = convs[convId];
+    if (localConv) {
       return {
-        id: conversationId,
-        messages: localConversation.messages
+        id: convId,
+        messages: localConv.messages
       };
     }
 
-    // If not in local store, use the historical conversations store to fetch it
+    // If not in local store, use the historical convs store to fetch it
     return executeApiCall(async () => {
-      // Use the fetchConversationTree function from the historical conversations store
-      const treeData = await fetchConversationTree(conversationId);
+      // Use the fetchConvTree function from the historical convs store
+      const treeData = await fetchConvTree(convId);
 
       if (!treeData) {
-        throw new Error('Failed to get conversation tree');
+        throw new Error('Failed to get conv tree');
       }
 
       // Convert the tree data to the format expected by the chat management
@@ -162,7 +162,7 @@ export function useChatManagement() {
 
       const flatNodes = extractNodes(treeData);
 
-      // Map the flat nodes to the message format needed by the conversation
+      // Map the flat nodes to the message format needed by the conv
       const messages = flatNodes.map(node => ({
         id: node.id,
         content: node.text,
@@ -176,19 +176,19 @@ export function useChatManagement() {
       }));
 
       return {
-        id: conversationId,
+        id: convId,
         messages: messages,
-        summary: 'Loaded Conversation' // We might need to get this from another source
+        summary: 'Loaded Conv' // We might need to get this from another source
       };
-    }, conversations, fetchConversationTree);
-  }, [conversations, fetchConversationTree, executeApiCall]);
+    }, convs, fetchConvTree);
+  }, [convs, fetchConvTree, executeApiCall]);
   
-  // Helper method to determine system prompt for a conversation
-  const getSystemPromptForConversation = useCallback((conversationId: string) => {
-    // Check if conversation has a specific prompt assigned
-    let promptId = conversationId ? conversationPrompts[conversationId] : null;
+  // Helper method to determine system prompt for a conv
+  const getSystemPromptForConv = useCallback((convId: string) => {
+    // Check if conv has a specific prompt assigned
+    let promptId = convId ? convPrompts[convId] : null;
     
-    // If no conversation-specific prompt, use default
+    // If no conv-specific prompt, use default
     if (!promptId) {
       promptId = defaultPromptId;
     }
@@ -215,22 +215,22 @@ export function useChatManagement() {
     
     // No prompt found
     return null;
-  }, [prompts, conversationPrompts, defaultPromptId]);
+  }, [prompts, convPrompts, defaultPromptId]);
   
   return {
     // State
     isLoading,
     error,
-    activeConversationId,
-    conversations,
+    activeConvId,
+    convs,
     
     // Actions
     sendMessage,
     getConfig,
     setDefaultModel,
     setSecondaryModel,
-    getConversation,
-    getSystemPromptForConversation,
+    getConv,
+    getSystemPromptForConv,
     clearError
   };
 }

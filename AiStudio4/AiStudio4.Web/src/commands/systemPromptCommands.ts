@@ -3,7 +3,7 @@ import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
@@ -53,17 +53,17 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 section: 'utility',
                 icon: React.createElement(Pencil, { size: 16 }),
                 execute: () => {
-                    const { prompts, defaultPromptId, conversationPrompts, currentPrompt } = useSystemPromptStore.getState();
+                    const { prompts, defaultPromptId, convPrompts, currentPrompt } = useSystemPromptStore.getState();
 
-                    const { activeConversationId: currentConversationId } = useConversationStore.getState();
+                    const { activeConvId: currentConvId } = useConvStore.getState();
 
                     let promptToEdit = null;
 
                     if (currentPrompt) {
                         promptToEdit = currentPrompt;
                     }
-                    else if (currentConversationId) {
-                        const promptId = conversationPrompts[currentConversationId];
+                    else if (currentConvId) {
+                        const promptId = convPrompts[currentConvId];
                         if (promptId) {
                             promptToEdit = prompts.find(p => p.guid === promptId);
                         }

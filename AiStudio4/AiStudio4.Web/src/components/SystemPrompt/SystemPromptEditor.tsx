@@ -326,7 +326,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                             Set as Default Prompt
                                         </FormLabel>
                                         <FormDescription className="text-gray-400">
-                                            This prompt will be used for all new conversations
+                                            This prompt will be used for all new convs
                                         </FormDescription>
                                     </div>
                                 </FormItem>

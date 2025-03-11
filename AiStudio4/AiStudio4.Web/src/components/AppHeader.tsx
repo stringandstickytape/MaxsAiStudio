@@ -15,7 +15,7 @@ interface AppHeaderProps {
     CommandBarComponent?: React.ReactNode;
     sidebarPinned?: boolean;
     rightSidebarPinned?: boolean;
-    activeConversationId?: string | null;
+    activeConvId?: string | null;
 }
 
 export function AppHeader({
@@ -26,7 +26,7 @@ export function AppHeader({
     CommandBarComponent,
     sidebarPinned = false,
     rightSidebarPinned = false,
-    activeConversationId = null,
+    activeConvId = null,
 }: AppHeaderProps) {
     const [commandText, setCommandText] = useState('');
 
@@ -131,7 +131,7 @@ export function AppHeader({
 
                     <div className="w-full max-w-2xl mx-auto">
                         <HeaderPromptComponent
-                            conversationId={activeConversationId || undefined}
+                            convId={activeConvId || undefined}
                             onOpenLibrary={onToggleSystemPrompts}
                         />
                     </div>

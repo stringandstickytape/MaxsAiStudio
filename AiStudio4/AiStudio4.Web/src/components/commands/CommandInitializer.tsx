@@ -26,8 +26,8 @@ export function CommandInitializer() {
         window.open(window.location.href, '_blank');
     };
 
-    const handleToggleConversationTree = () => {
-        togglePanel('conversationTree');
+    const handleToggleConvTree = () => {
+        togglePanel('convTree');
     };
 
     const openToolPanel = () => {
@@ -60,7 +60,7 @@ export function CommandInitializer() {
     useEffect(() => {
         initializeCoreCommands({
             toggleSidebar: () => togglePanel('sidebar'),
-            toggleConversationTree: handleToggleConversationTree,
+            toggleConvTree: handleToggleConvTree,
             toggleSettings: () => togglePanel('settings'),
             openNewWindow: handleOpenNewWindow
         });

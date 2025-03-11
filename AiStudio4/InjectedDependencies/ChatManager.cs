@@ -7,18 +7,18 @@ namespace AiStudio4.InjectedDependencies
 {
     public class ChatManager
     {
-        private readonly ConversationService _conversationService;
+        private readonly ConvService _convService;
         private readonly ChatProcessingService _chatProcessingService;
         private readonly MessageHistoryService _messageHistoryService;
         private readonly ILogger<ChatManager> _logger;
 
         public ChatManager(
-            ConversationService conversationService,
+            ConvService convService,
             ChatProcessingService chatProcessingService,
             MessageHistoryService messageHistoryService,
             ILogger<ChatManager> logger)
         {
-            _conversationService = conversationService;
+            _convService = convService;
             _chatProcessingService = chatProcessingService;
             _messageHistoryService = messageHistoryService;
             _logger = logger;
@@ -37,41 +37,41 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        internal async Task<string> HandleConversationMessagesRequest(string clientId, JObject? requestObject)
+        internal async Task<string> HandleConvMessagesRequest(string clientId, JObject? requestObject)
         {
             try
             {
-                return await _messageHistoryService.HandleConversationMessagesRequest(clientId, requestObject);
+                return await _messageHistoryService.HandleConvMessagesRequest(clientId, requestObject);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in HandleConversationMessagesRequest");
+                _logger.LogError(ex, "Error in HandleConvMessagesRequest");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
 
-        internal async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject? requestObject)
+        internal async Task<string> HandleHistoricalConvTreeRequest(string clientId, JObject? requestObject)
         {
             try
             {
-                return await _conversationService.HandleHistoricalConversationTreeRequest(clientId, requestObject);
+                return await _convService.HandleHistoricalConvTreeRequest(clientId, requestObject);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in HandleHistoricalConversationTreeRequest");
+                _logger.LogError(ex, "Error in HandleHistoricalConvTreeRequest");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
 
-        internal async Task<string> HandleGetAllHistoricalConversationTreesRequest(string clientId, JObject? requestObject)
+        internal async Task<string> HandleGetAllHistoricalConvTreesRequest(string clientId, JObject? requestObject)
         {
             try
             {
-                return await _conversationService.HandleGetAllHistoricalConversationTreesRequest(clientId);
+                return await _convService.HandleGetAllHistoricalConvTreesRequest(clientId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in HandleGetAllHistoricalConversationTreesRequest");
+                _logger.LogError(ex, "Error in HandleGetAllHistoricalConvTreesRequest");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }

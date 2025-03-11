@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using SharedClasses.Providers;
 using AiStudio4.DataModels;
 using System.Net.Http;
-using AiStudio4.Conversations;
+using AiStudio4.Convs;
 using System.IO;
 
 namespace AiStudio4.AiServices
@@ -31,28 +31,28 @@ namespace AiStudio4.AiServices
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                options.Conversation.systemprompt = options.CustomSystemPrompt;
+                options.Conv.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Create system message
             var systemMessage = new JObject
             {
                 ["role"] = "system",
                 ["content"] = deepseekBodge
-                    ? options.Conversation.SystemPromptWithDateTime()
+                    ? options.Conv.SystemPromptWithDateTime()
                     : new JArray(new JObject
                     {
                         ["type"] = "text",
-                        ["text"] = options.Conversation.SystemPromptWithDateTime()
+                        ["text"] = options.Conv.SystemPromptWithDateTime()
                     })
             };
 
             var messagesArray = new JArray { systemMessage };
 
-            // Add conversation messages
-            foreach (var m in options.Conversation.messages)
+            // Add conv messages
+            foreach (var m in options.Conv.messages)
             {
                 messagesArray.Add(CreateMessageObject(m));
             }
@@ -62,8 +62,8 @@ namespace AiStudio4.AiServices
 
             if (options.AddEmbeddings)
             {
-                var lastMessageContent = options.Conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessageContent);
+                var lastMessageContent = options.Conv.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conv, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessageContent);
                 ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
             }
 
@@ -76,7 +76,7 @@ namespace AiStudio4.AiServices
             return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
         {
             // The supportsLogprobs flag may be extended later if desired
             var supportsLogprobs = false;
@@ -106,7 +106,7 @@ namespace AiStudio4.AiServices
             return payload;
         }
 
-        protected override JObject CreateMessageObject(LinearConversationMessage message)
+        protected override JObject CreateMessageObject(LinearConvMessage message)
         {
             var messageContent = new JArray();
 

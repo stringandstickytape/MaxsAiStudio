@@ -12,32 +12,32 @@ namespace AiStudio4.Services
 {
     public class MessageHistoryService
     {
-        private readonly IConversationStorage _conversationStorage;
+        private readonly IConvStorage _convStorage;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<MessageHistoryService> _logger;
 
         public MessageHistoryService(
-            IConversationStorage conversationStorage,
+            IConvStorage convStorage,
             IWebSocketNotificationService notificationService,
             ILogger<MessageHistoryService> logger)
         {
-            _conversationStorage = conversationStorage;
+            _convStorage = convStorage;
             _notificationService = notificationService;
             _logger = logger;
         }
 
-        public async Task<string> HandleConversationMessagesRequest(string clientId, JObject requestObject)
+        public async Task<string> HandleConvMessagesRequest(string clientId, JObject requestObject)
         {
             try
             {
                 var messageId = requestObject["messageId"].ToString();
-                var conversation = await _conversationStorage.FindConversationByMessageId(messageId);
+                var conv = await _convStorage.FindConvByMessageId(messageId);
 
-                if (conversation != null)
+                if (conv != null)
                 {
-                    // Get all messages in the conversation for a flat structure
-                    var allMessages = new List<v4BranchedConversationMessage>();
-                    CollectAllMessages(conversation.MessageHierarchy, allMessages);
+                    // Get all messages in the conv for a flat structure
+                    var allMessages = new List<v4BranchedConvMessage>();
+                    CollectAllMessages(conv.MessageHierarchy, allMessages);
 
                     // Map to the format expected by the client
                     var messages = allMessages.Select(msg =>
@@ -46,8 +46,8 @@ namespace AiStudio4.Services
                         {
                             id = msg.Id,
                             content = msg.UserMessage,
-                            source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
-                                    msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                            source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
+                                    msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                             parentId = msg.ParentId,
                             timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                             tokenUsage = msg.TokenUsage
@@ -57,33 +57,33 @@ namespace AiStudio4.Services
                     // Sort messages by parentId relationships to ensure proper loading order
                     var sortedMessages = SortMessagesByRelationship(messages.Cast<dynamic>().ToList());
 
-                    await _notificationService.NotifyConversationUpdate(clientId, new Core.Models.ConversationUpdateDto
+                    await _notificationService.NotifyConvUpdate(clientId, new Core.Models.ConvUpdateDto
                     {
-                        ConversationId = conversation.ConversationId,
+                        ConvId = conv.ConvId,
                         MessageId = messageId,
                         Content = new
                         {
-                            messageType = "loadConversation",
+                            messageType = "loadConv",
                             content = new
                             {
-                                conversationId = conversation.ConversationId,
+                                convId = conv.ConvId,
                                 messages = sortedMessages
                             }
                         }
                     });
 
-                    return JsonConvert.SerializeObject(new { success = true, messages = sortedMessages, conversationId = conversation.ConversationId });
+                    return JsonConvert.SerializeObject(new { success = true, messages = sortedMessages, convId = conv.ConvId });
                 }
                 return JsonConvert.SerializeObject(new { success = false, error = "Message not found" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling conversation messages request");
+                _logger.LogError(ex, "Error handling conv messages request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
 
-        private void CollectAllMessages(IEnumerable<v4BranchedConversationMessage> messages, List<v4BranchedConversationMessage> allMessages)
+        private void CollectAllMessages(IEnumerable<v4BranchedConvMessage> messages, List<v4BranchedConvMessage> allMessages)
         {
             foreach (var message in messages)
             {

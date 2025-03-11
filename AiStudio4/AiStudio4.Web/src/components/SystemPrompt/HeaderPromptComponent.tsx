@@ -8,26 +8,26 @@ import { SystemPrompt } from '@/types/systemPrompt';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 
 interface HeaderPromptComponentProps {
-    conversationId?: string;
+    convId?: string;
     onOpenLibrary?: () => void;
 }
 
-export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderPromptComponentProps) {
-    const { activeConversationId: storeConversationId } = useConversationStore();
+export function HeaderPromptComponent({ convId, onOpenLibrary }: HeaderPromptComponentProps) {
+    const { activeConvId: storeConvId } = useConvStore();
     const { togglePanel } = usePanelStore();
     const {
         prompts,
         defaultPromptId,
-        conversationPrompts,
-        setConversationPrompt
+        convPrompts,
+        setConvPrompt
     } = useSystemPromptStore();
 
     const {
         updateSystemPrompt,
-        setConversationSystemPrompt,
+        setConvSystemPrompt,
         isLoading: loading
     } = useSystemPromptManagement();
 
@@ -40,9 +40,9 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
     useEffect(() => {
         let promptToUse: SystemPrompt | null = null;
 
-        const effectiveConversationId = conversationId || storeConversationId;
-        if (effectiveConversationId && conversationPrompts[effectiveConversationId]) {
-            promptToUse = prompts.find(p => p.guid === conversationPrompts[effectiveConversationId]) || null;
+        const effectiveConvId = convId || storeConvId;
+        if (effectiveConvId && convPrompts[effectiveConvId]) {
+            promptToUse = prompts.find(p => p.guid === convPrompts[effectiveConvId]) || null;
         }
 
         if (!promptToUse && defaultPromptId) {
@@ -57,7 +57,7 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
         if (promptToUse) {
             setPromptContent(promptToUse.content);
         }
-    }, [prompts, conversationId, storeConversationId, conversationPrompts, defaultPromptId]);
+    }, [prompts, convId, storeConvId, convPrompts, defaultPromptId]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -100,8 +100,8 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
             ? `${currentPrompt.content.substring(0, 60)}...`
             : currentPrompt.content;
 
-        const effectiveConversationId = conversationId || storeConversationId;
-        if (effectiveConversationId && conversationPrompts[effectiveConversationId] === currentPrompt.guid) {
+        const effectiveConvId = convId || storeConvId;
+        if (effectiveConvId && convPrompts[effectiveConvId] === currentPrompt.guid) {
             return truncatedContent;
         } else {
             return `${truncatedContent} (Default)`;
@@ -120,14 +120,14 @@ export function HeaderPromptComponent({ conversationId, onOpenLibrary }: HeaderP
 
             await updateSystemPrompt(updatedPrompt);
 
-            const effectiveConversationId = conversationId || storeConversationId;
-            if (effectiveConversationId && !conversationPrompts[effectiveConversationId]) {
-                await setConversationSystemPrompt({
-                    conversationId: effectiveConversationId,
+            const effectiveConvId = convId || storeConvId;
+            if (effectiveConvId && !convPrompts[effectiveConvId]) {
+                await setConvSystemPrompt({
+                    convId: effectiveConvId,
                     promptId: currentPrompt.guid
                 });
 
-                setConversationPrompt(effectiveConversationId, currentPrompt.guid);
+                setConvPrompt(effectiveConvId, currentPrompt.guid);
             }
 
             setEditMode(false);

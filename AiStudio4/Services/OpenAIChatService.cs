@@ -6,7 +6,7 @@ using AiStudio4.Core.Interfaces;
 using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.DataModels;
-using AiStudio4.Conversations;
+using AiStudio4.Convs;
 
 namespace AiStudio4.Services
 {
@@ -32,7 +32,7 @@ namespace AiStudio4.Services
         {
             try
             {
-                _logger.LogInformation("Processing chat request for conversation {ConversationId}", request.ConversationId);
+                _logger.LogInformation("Processing chat request for conv {ConvId}", request.ConvId);
 
                 var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
                 var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
@@ -68,20 +68,20 @@ namespace AiStudio4.Services
                         systemPromptContent = systemPrompt.Content;
                     }
                 }
-                else if (!string.IsNullOrEmpty(request.ConversationId))
+                else if (!string.IsNullOrEmpty(request.ConvId))
                 {
-                    // Use conversation-specific system prompt
-                    var systemPrompt = await _systemPromptService.GetConversationSystemPromptAsync(request.ConversationId);
+                    // Use conv-specific system prompt
+                    var systemPrompt = await _systemPromptService.GetConvSystemPromptAsync(request.ConvId);
                     if (systemPrompt != null)
                     {
                         systemPromptContent = systemPrompt.Content;
                     }
                 }
                 
-                var conversation = new LinearConversation(DateTime.Now)
+                var conv = new LinearConv(DateTime.Now)
                 {
                     systemprompt = systemPromptContent,
-                    messages = new List<LinearConversationMessage>()
+                    messages = new List<LinearConvMessage>()
                 };
 
                 // Get tools if specified
@@ -103,7 +103,7 @@ namespace AiStudio4.Services
                 // Add all messages from history first
                 foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
                 {
-                    conversation.messages.Add(new LinearConversationMessage
+                    conv.messages.Add(new LinearConvMessage
                     {
                         role = historyItem.Role,
                         content = historyItem.Content
@@ -114,14 +114,14 @@ namespace AiStudio4.Services
                 {
                     ServiceProvider = service,
                     Model = model,
-                    Conversation = conversation,
+                    Conv = conv,
                     CancellationToken = new CancellationToken(false),
                     ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     ToolIds = request.ToolIds ?? new List<string>(),
                     UseStreaming = true,
                     
-                    // No need to set CustomSystemPrompt as we've already set it in the conversation object
+                    // No need to set CustomSystemPrompt as we've already set it in the conv object
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions);

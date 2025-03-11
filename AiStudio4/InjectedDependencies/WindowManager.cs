@@ -29,7 +29,7 @@ namespace AiStudio4.InjectedDependencies
                 }
 
                 var window = _serviceProvider.GetRequiredService<WebViewWindow>();
-                window.Title = windowId.StartsWith("main-") ? "AiStudio4" : $"AiStudio4 - Conversation {windowId}";
+                window.Title = windowId.StartsWith("main-") ? "AiStudio4" : $"AiStudio4 - Conv {windowId}";
 
                 window.Closed += (s, e) =>
                 {

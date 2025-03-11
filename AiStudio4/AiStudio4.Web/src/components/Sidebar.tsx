@@ -1,22 +1,22 @@
 // src/components/Sidebar.tsx
 import { WebSocketState } from '@/types/websocket';
-import { HistoricalConversationTreeList } from './HistoricalConversationTreeList';
+import { HistoricalConvTreeList } from './HistoricalConvTreeList';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 
 interface SidebarProps {
     wsState: WebSocketState;
 }
 
 export function Sidebar({ wsState }: SidebarProps) {
-    const { createConversation } = useConversationStore();
+    const { createConv } = useConvStore();
 
     const handleNewChat = () => {
-        createConversation({
+        createConv({
             id: `conv_${Date.now()}`,
             rootMessage: {
                 id: `msg_${uuidv4()}`,
@@ -40,7 +40,7 @@ export function Sidebar({ wsState }: SidebarProps) {
                 </Button>
             </div>
             <ScrollArea className="flex-1">
-                <HistoricalConversationTreeList />
+                <HistoricalConvTreeList />
             </ScrollArea>
 
             <div className="p-3 border-t border-gray-700 bg-[#2d3748]">

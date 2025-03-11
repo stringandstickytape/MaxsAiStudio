@@ -5,7 +5,7 @@ namespace AiStudio4.Core.Models
     public class ChatRequest
     {
         public string ClientId { get; set; }
-        public string ConversationId { get; set; }
+        public string ConvId { get; set; }
         public string MessageId { get; set; }
         public string ParentMessageId { get; set; }
         public string Message { get; set; }

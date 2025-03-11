@@ -9,36 +9,36 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 
 interface SystemPromptLibraryProps {
     onApplyPrompt?: (prompt: SystemPrompt) => void;
-    conversationId?: string;
+    convId?: string;
 }
 
 export function SystemPromptLibrary({
     onApplyPrompt,
-    conversationId
+    convId
 }: SystemPromptLibraryProps) {
     // Use Zustand store
     const { 
         prompts, 
         defaultPromptId, 
-        conversationPrompts,
+        convPrompts,
         setPrompts,
         setCurrentPrompt
     } = useSystemPromptStore();
     
-    // Get active conversation ID from Zustand when not provided as prop
-    const { activeConversationId: storeConversationId } = useConversationStore();
+    // Get active conv ID from Zustand when not provided as prop
+    const { activeConvId: storeConvId } = useConvStore();
 
     // Use the management hook instead of RTK Query
     const { 
         prompts: serverPrompts, 
         isLoading, 
-        setConversationSystemPrompt 
+        setConvSystemPrompt 
     } = useSystemPromptManagement();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -76,17 +76,17 @@ export function SystemPromptLibrary({
             onApplyPrompt(prompt);
         }
 
-        // If we have a conversation ID, set this prompt as the conversation's system prompt
-        const effectiveConversationId = conversationId || storeConversationId;
-        if (effectiveConversationId) {
+        // If we have a conv ID, set this prompt as the conv's system prompt
+        const effectiveConvId = convId || storeConvId;
+        if (effectiveConvId) {
             try {
-                await setConversationSystemPrompt({
-                    conversationId: effectiveConversationId,
+                await setConvSystemPrompt({
+                    convId: effectiveConvId,
                     promptId: prompt.guid
                 });
-                console.log(`Set conversation ${effectiveConversationId} system prompt to ${prompt.guid}`);
+                console.log(`Set conv ${effectiveConvId} system prompt to ${prompt.guid}`);
             } catch (error) {
-                console.error('Failed to set conversation system prompt:', error);
+                console.error('Failed to set conv system prompt:', error);
             }
         }
     };
@@ -99,9 +99,9 @@ export function SystemPromptLibrary({
             filtered = filtered.filter(p => p.tags.includes('favorite'));
         } else if (activeTab === 'default') {
             filtered = filtered.filter(p => p.isDefault || p.guid === defaultPromptId);
-        } else if (activeTab === 'conversation' && conversationId) {
-            const conversationPromptId = conversationPrompts[conversationId];
-            filtered = filtered.filter(p => p.guid === conversationPromptId);
+        } else if (activeTab === 'conv' && convId) {
+            const convPromptId = convPrompts[convId];
+            filtered = filtered.filter(p => p.guid === convPromptId);
         }
 
         // Apply search filtering
@@ -165,8 +165,8 @@ export function SystemPromptLibrary({
                     <TabsTrigger value="default" className="data-[state=active]:bg-gray-700">
                         Default
                     </TabsTrigger>
-                    {conversationId && (
-                        <TabsTrigger value="conversation" className="data-[state=active]:bg-gray-700">
+                    {convId && (
+                        <TabsTrigger value="conv" className="data-[state=active]:bg-gray-700">
                             Current
                         </TabsTrigger>
                     )}
@@ -195,7 +195,7 @@ export function SystemPromptLibrary({
                     />
                 </TabsContent>
 
-                <TabsContent value="conversation" className="flex-1 p-4 pt-0 overflow-hidden">
+                <TabsContent value="conv" className="flex-1 p-4 pt-0 overflow-hidden">
                     <PromptList
                         prompts={filteredPrompts}
                         defaultPromptId={defaultPromptId}

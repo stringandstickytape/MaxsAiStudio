@@ -1,7 +1,6 @@
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
-using AiTool3.Conversations;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -12,76 +11,76 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
-    public class FileSystemConversationStorage : IConversationStorage
+    public class FileSystemConvStorage : IConvStorage
     {
         private readonly string _basePath;
-        private readonly ILogger<FileSystemConversationStorage> _logger;
+        private readonly ILogger<FileSystemConvStorage> _logger;
 
-        public FileSystemConversationStorage(ILogger<FileSystemConversationStorage> logger)
+        public FileSystemConvStorage(ILogger<FileSystemConvStorage> logger)
         {
             _logger = logger;
             _basePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
-                "conversations");
+                "convs");
             Directory.CreateDirectory(_basePath);
-            _logger.LogInformation("Initialized conversation storage at {BasePath}", _basePath);
+            _logger.LogInformation("Initialized conv storage at {BasePath}", _basePath);
         }
 
-        public async Task<v4BranchedConversation> LoadConversation(string conversationId)
+        public async Task<v4BranchedConv> LoadConv(string convId)
         {
             try
             {
-                var path = Path.Combine(_basePath, $"{conversationId}.json");
+                var path = Path.Combine(_basePath, $"{convId}.json");
                 if (!File.Exists(path))
                 {
-                    _logger.LogInformation("Creating new conversation with ID {ConversationId}", conversationId);
-                    return new v4BranchedConversation(conversationId);
+                    _logger.LogInformation("Creating new conv with ID {ConvId}", convId);
+                    return new v4BranchedConv(convId);
                 }
 
                 var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                 var json = await File.ReadAllTextAsync(path);
-                var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json, settings);
+                var conv = JsonConvert.DeserializeObject<v4BranchedConv>(json, settings);
 
                 // Rebuild relationships to ensure Children collections are populated correctly
-                RebuildRelationships(conversation);
+                RebuildRelationships(conv);
 
-                _logger.LogDebug("Loaded conversation {ConversationId}", conversationId);
-                return conversation;
+                _logger.LogDebug("Loaded conv {ConvId}", convId);
+                return conv;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading conversation {ConversationId}", conversationId);
-                throw new ConversationStorageException($@"Failed to load conversation {conversationId}", ex);
+                _logger.LogError(ex, "Error loading conv {ConvId}", convId);
+                throw new ConvStorageException($@"Failed to load conv {convId}", ex);
             }
         }
 
-        public async Task SaveConversation(v4BranchedConversation conversation)
+        public async Task SaveConv(v4BranchedConv conv)
         {
             try
             {
-                if (conversation == null) throw new ArgumentNullException(nameof(conversation));
+                if (conv == null) throw new ArgumentNullException(nameof(conv));
 
-                var path = Path.Combine(_basePath, $"{conversation.ConversationId}.json");
-                var json = JsonConvert.SerializeObject(conversation, new JsonSerializerSettings
+                var path = Path.Combine(_basePath, $"{conv.ConvId}.json");
+                var json = JsonConvert.SerializeObject(conv, new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                 });
 
                 await File.WriteAllTextAsync(path, json);
-                _logger.LogDebug("Saved conversation {ConversationId}", conversation.ConversationId);
+                _logger.LogDebug("Saved conv {ConvId}", conv.ConvId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving conversation {ConversationId}", conversation?.ConversationId);
-                throw new ConversationStorageException($@"Failed to save conversation {conversation?.ConversationId}", ex);
+                _logger.LogError(ex, "Error saving conv {ConvId}", conv?.ConvId);
+                throw new ConvStorageException($@"Failed to save conv {conv?.ConvId}", ex);
             }
         }
 
-        public async Task<IEnumerable<v4BranchedConversation>> GetAllConversations()
+        public async Task<IEnumerable<v4BranchedConv>> GetAllConvs()
         {
-            var conversationsWithDates = new List<(v4BranchedConversation Conversation, DateTime FileDate)>();
+            var convsWithDates = new List<(v4BranchedConv Conv, DateTime FileDate)>();
             foreach (var file in Directory.GetFiles(_basePath, "*.json"))
             {
                 try
@@ -89,52 +88,52 @@ namespace AiStudio4.Services
                     var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                     var fileInfo = new FileInfo(file);
                     var json = await File.ReadAllTextAsync(file);
-                    var conversation = JsonConvert.DeserializeObject<v4BranchedConversation>(json, settings);
+                    var conv = JsonConvert.DeserializeObject<v4BranchedConv>(json, settings);
 
-                    if (conversation != null)
+                    if (conv != null)
                     {
                         // Rebuild relationships to ensure Children collections are populated correctly
-                        RebuildRelationships(conversation);
-                        conversationsWithDates.Add((conversation, fileInfo.LastWriteTime));
+                        RebuildRelationships(conv);
+                        convsWithDates.Add((conv, fileInfo.LastWriteTime));
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error loading conversation from {File}", file);
+                    _logger.LogError(ex, "Error loading conv from {File}", file);
                     // Continue with next file
                 }
             }
 
             // Order by file creation date in descending order (newest first)
-            return conversationsWithDates
+            return convsWithDates
                 .OrderByDescending(x => x.FileDate)
-                .Select(x => x.Conversation);
+                .Select(x => x.Conv);
         }
 
-        public async Task<v4BranchedConversation> FindConversationByMessageId(string messageId)
+        public async Task<v4BranchedConv> FindConvByMessageId(string messageId)
         {
             try
             {
-                var conversations = await GetAllConversations();
-                return conversations.FirstOrDefault(c => ContainsMessage(c, messageId));
+                var convs = await GetAllConvs();
+                return convs.FirstOrDefault(c => ContainsMessage(c, messageId));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding conversation by message ID {MessageId}", messageId);
-                throw new ConversationStorageException($"Failed to find conversation containing message {messageId}", ex);
+                _logger.LogError(ex, "Error finding conv by message ID {MessageId}", messageId);
+                throw new ConvStorageException($"Failed to find conv containing message {messageId}", ex);
             }
         }
 
-        private bool ContainsMessage(v4BranchedConversation conversation, string messageId)
+        private bool ContainsMessage(v4BranchedConv conv, string messageId)
         {
             // Flatten the message hierarchy and check for the message ID
-            return GetAllMessages(conversation.MessageHierarchy)
+            return GetAllMessages(conv.MessageHierarchy)
                 .Any(m => m.Id == messageId);
         }
 
-        private List<v4BranchedConversationMessage> GetAllMessages(List<v4BranchedConversationMessage> messages)
+        private List<v4BranchedConvMessage> GetAllMessages(List<v4BranchedConvMessage> messages)
         {
-            var result = new List<v4BranchedConversationMessage>();
+            var result = new List<v4BranchedConvMessage>();
             foreach (var message in messages)
             {
                 result.Add(message);
@@ -146,10 +145,10 @@ namespace AiStudio4.Services
             return result;
         }
 
-        private void RebuildRelationships(v4BranchedConversation conversation)
+        private void RebuildRelationships(v4BranchedConv conv)
         {
             // Get all messages in a flat list
-            var allMessages = GetAllMessages(conversation.MessageHierarchy);
+            var allMessages = GetAllMessages(conv.MessageHierarchy);
 
             // Clear all Children collections
             foreach (var message in allMessages)

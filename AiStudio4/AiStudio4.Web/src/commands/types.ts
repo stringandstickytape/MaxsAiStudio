@@ -1,5 +1,5 @@
 // src/commands/types.ts
-export type CommandSection = 'conversation' | 'model' | 'view' | 'settings' | 'utility' | 'appearance';
+export type CommandSection = 'conv' | 'model' | 'view' | 'settings' | 'utility' | 'appearance';
 
 export interface Command {
     id: string;

@@ -13,7 +13,7 @@ export function PanelContainerLayout({ children }: PanelContainerLayoutProps) {
   // Determine if panels are visible/pinned
   const hasLeftPanel = panels.sidebar?.isPinned || false;
   const hasRightPanel = (
-    panels.conversationTree?.isPinned ||
+    panels.convTree?.isPinned ||
     panels.settings?.isPinned ||
     panels.systemPrompts?.isPinned
   ) || false;

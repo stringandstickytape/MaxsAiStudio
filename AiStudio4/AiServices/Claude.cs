@@ -1,4 +1,4 @@
-using AiStudio4.Conversations;
+using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
@@ -36,12 +36,12 @@ namespace AiStudio4.AiServices
                 client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
         {
             var req = new JObject
             {
                 ["model"] = modelName,
-                ["system"] = conversation.systemprompt ?? "",
+                ["system"] = conv.systemprompt ?? "",
                 ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
                 ["stream"] = useStreaming,
                 ["temperature"] = apiSettings.Temperature,
@@ -50,7 +50,7 @@ namespace AiStudio4.AiServices
             var messagesArray = new JArray();
             int userMessageCount = 0;
 
-            foreach (var message in conversation.messages)
+            foreach (var message in conv.messages)
             {
                 var contentArray = new JArray();
 
@@ -109,9 +109,9 @@ namespace AiStudio4.AiServices
 
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-                options.Conversation.systemprompt = options.CustomSystemPrompt;
+                options.Conv.systemprompt = options.CustomSystemPrompt;
 
-            var req = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
+            var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             if (options.ToolIds?.Any() == true)
             {
@@ -122,7 +122,7 @@ namespace AiStudio4.AiServices
             }
 
             if (options.AddEmbeddings)
-                await AddEmbeddingsToRequest(req, options.Conversation, options.ApiSettings, options.MustNotUseEmbedding);
+                await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
 
             var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
             //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
@@ -276,7 +276,7 @@ namespace AiStudio4.AiServices
             );
         }
 
-        private async Task AddEmbeddingsToRequest(JObject req, LinearConversation conversation, ApiSettings apiSettings, bool mustNotUseEmbedding)
+        private async Task AddEmbeddingsToRequest(JObject req, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
         {
             // Implementation commented out in original code
         }

@@ -4,8 +4,8 @@ export type WebSocketEventType =
   | 'message:received' 
   | 'stream:token' 
   | 'stream:end'
-  | 'conversation:new'
-  | 'conversation:load'
+  | 'conv:new'
+  | 'conv:load'
   | 'historical:update';
 
 export interface WebSocketEventDetail {

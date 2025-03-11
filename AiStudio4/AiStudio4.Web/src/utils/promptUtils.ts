@@ -1,5 +1,5 @@
 // src/utils/promptUtils.ts
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 
 /**
  * Utility functions for manipulating the chat prompt

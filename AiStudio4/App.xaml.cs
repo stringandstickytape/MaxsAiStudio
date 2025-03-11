@@ -52,7 +52,7 @@ namespace AiStudio4
             services.AddSingleton<IConfiguration>(configuration);
 
             // Register core services
-            services.AddSingleton<IConversationStorage, FileSystemConversationStorage>();
+            services.AddSingleton<IConvStorage, FileSystemConvStorage>();
             services.AddSingleton<IChatService, OpenAIChatService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IToolService, ToolService>();
@@ -64,7 +64,7 @@ namespace AiStudio4
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
             services.AddSingleton<WebSocketServer>();
-            services.AddSingleton<ConversationService>();
+            services.AddSingleton<ConvService>();
             services.AddSingleton<ChatProcessingService>();
             services.AddSingleton<MessageHistoryService>();
             services.AddSingleton<ChatManager>();

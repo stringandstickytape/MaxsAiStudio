@@ -1,5 +1,5 @@
 ﻿// src/utils/messageGraph.ts
-import { Message } from '@/types/conversation';
+import { Message } from '@/types/conv';
 
 export class MessageGraph {
     private messages: Map<string, Message> = new Map();

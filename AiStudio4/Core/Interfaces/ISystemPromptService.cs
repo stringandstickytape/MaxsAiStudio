@@ -11,9 +11,9 @@ namespace AiStudio4.Core.Interfaces
         Task<bool> DeleteSystemPromptAsync(string promptId);
         Task<bool> SetDefaultSystemPromptAsync(string promptId);
         Task<SystemPrompt> GetDefaultSystemPromptAsync();
-        Task<SystemPrompt> GetConversationSystemPromptAsync(string conversationId);
-        Task<bool> SetConversationSystemPromptAsync(string conversationId, string promptId);
-        Task<bool> ClearConversationSystemPromptAsync(string conversationId);
+        Task<SystemPrompt> GetConvSystemPromptAsync(string convId);
+        Task<bool> SetConvSystemPromptAsync(string convId, string promptId);
+        Task<bool> ClearConvSystemPromptAsync(string convId);
         Task InitializeAsync(); // Add this line
 
     }

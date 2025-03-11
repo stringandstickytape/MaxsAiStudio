@@ -4,13 +4,13 @@ import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider';
 import { useEffect } from 'react';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
 
 function App() {
-    // Get the conversation store functions
-    const { createConversation, activeConversationId } = useConversationStore();
+    // Get the conv store functions
+    const { createConv, activeConvId } = useConvStore();
     
     // Initialize panel persistence
     useEffect(() => {
@@ -51,10 +51,10 @@ function App() {
         };
     }, []);
     
-    // Create initial conversation if needed
+    // Create initial conv if needed
     useEffect(() => {
-        if (!activeConversationId) {
-            createConversation({
+        if (!activeConvId) {
+            createConv({
                 id: `conv_${Date.now()}`,
                 rootMessage: {
                     id: `msg_${uuidv4()}`,
@@ -64,7 +64,7 @@ function App() {
                 }
             });
         }
-    }, [activeConversationId, createConversation]);
+    }, [activeConvId, createConv]);
 
     return (
         <FontSizeProvider>

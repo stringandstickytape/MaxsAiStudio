@@ -1,4 +1,4 @@
-﻿using AiStudio4.Conversations;
+﻿using AiStudio4.Convs;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,14 +27,14 @@ namespace AiStudio4.AiServices
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                options.Conversation.systemprompt = options.CustomSystemPrompt;
+                options.Conv.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Add messages to request
             var messagesArray = new JArray();
-            foreach (var message in options.Conversation.messages)
+            foreach (var message in options.Conv.messages)
             {
                 messagesArray.Add(new JObject
                 {
@@ -48,14 +48,14 @@ namespace AiStudio4.AiServices
             ((JArray)requestPayload["messages"]).Insert(0, new JObject
             {
                 ["role"] = "system",
-                ["content"] = options.Conversation.SystemPromptWithDateTime()
+                ["content"] = options.Conv.SystemPromptWithDateTime()
             });
 
 
             if (options.AddEmbeddings)
             {
-                var lastMessage = options.Conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
+                var lastMessage = options.Conv.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conv, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
                 requestPayload["messages"].Last["content"] = newInput;
             }
 
@@ -67,7 +67,7 @@ namespace AiStudio4.AiServices
             return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConversation conversation, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
         {
             return new JObject
             {

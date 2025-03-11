@@ -5,7 +5,7 @@ import { SystemPrompt } from '@/types/systemPrompt';
 interface SystemPromptStore {
     prompts: SystemPrompt[];
     defaultPromptId: string | null;
-    conversationPrompts: Record<string, string>; // conversationId -> promptId
+    convPrompts: Record<string, string>; // convId -> promptId
     currentPrompt: SystemPrompt | null;
     isLibraryOpen: boolean;
     loading: boolean;
@@ -14,8 +14,8 @@ interface SystemPromptStore {
     setPrompts: (prompts: SystemPrompt[]) => void;
     setCurrentPrompt: (prompt: SystemPrompt | null) => void;
     setDefaultPromptId: (promptId: string) => void;
-    setConversationPrompt: (conversationId: string, promptId: string) => void;
-    clearConversationPrompt: (conversationId: string) => void;
+    setConvPrompt: (convId: string, promptId: string) => void;
+    clearConvPrompt: (convId: string) => void;
     toggleLibrary: (isOpen?: boolean) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
@@ -24,7 +24,7 @@ interface SystemPromptStore {
 export const useSystemPromptStore = create<SystemPromptStore>((set) => ({
     prompts: [],
     defaultPromptId: null,
-    conversationPrompts: {},
+    convPrompts: {},
     currentPrompt: null,
     isLibraryOpen: false,
     loading: false,
@@ -42,17 +42,17 @@ export const useSystemPromptStore = create<SystemPromptStore>((set) => ({
 
     setDefaultPromptId: (promptId) => set({ defaultPromptId: promptId }),
 
-    setConversationPrompt: (conversationId, promptId) => set((state) => ({
-        conversationPrompts: {
-            ...state.conversationPrompts,
-            [conversationId]: promptId
+    setConvPrompt: (convId, promptId) => set((state) => ({
+        convPrompts: {
+            ...state.convPrompts,
+            [convId]: promptId
         }
     })),
 
-    clearConversationPrompt: (conversationId) => set((state) => {
-        const newConversationPrompts = { ...state.conversationPrompts };
-        delete newConversationPrompts[conversationId];
-        return { conversationPrompts: newConversationPrompts };
+    clearConvPrompt: (convId) => set((state) => {
+        const newConvPrompts = { ...state.convPrompts };
+        delete newConvPrompts[convId];
+        return { convPrompts: newConvPrompts };
     }),
 
     toggleLibrary: (isOpen) => set((state) => ({
@@ -69,7 +69,7 @@ export const debugSystemPromptStore = () => {
     console.group('System Prompt Store Debug');
     console.log('Prompts:', state.prompts);
     console.log('Default Prompt ID:', state.defaultPromptId);
-    console.log('Conversation Prompts:', state.conversationPrompts);
+    console.log('Conv Prompts:', state.convPrompts);
     console.log('Current Prompt:', state.currentPrompt);
     console.log('Library Open:', state.isLibraryOpen);
     console.log('Loading:', state.loading);

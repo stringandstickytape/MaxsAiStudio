@@ -1,6 +1,6 @@
 // src/services/websocket/WebSocketService.ts
 import { dispatchWebSocketEvent } from './websocketEvents';
-import { Message } from '@/types/conversation';
+import { Message } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 
 export interface WebSocketMessage {
@@ -233,17 +233,17 @@ export class WebSocketService {
                 dispatchWebSocketEvent('stream:end', {
                     type: 'end'
                 });
-            } else if (message.messageType === 'conversation') {
-                dispatchWebSocketEvent('conversation:new', {
+            } else if (message.messageType === 'conv') {
+                dispatchWebSocketEvent('conv:new', {
                     type: 'message',
                     content: message.content
                 });
-            } else if (message.messageType === 'loadConversation') {
-                dispatchWebSocketEvent('conversation:load', {
+            } else if (message.messageType === 'loadConv') {
+                dispatchWebSocketEvent('conv:load', {
                     type: 'load',
                     content: message.content
                 });
-            } else if (message.messageType === 'historicalConversationTree') {
+            } else if (message.messageType === 'historicalConvTree') {
                 dispatchWebSocketEvent('historical:update', {
                     type: 'tree',
                     content: message.content

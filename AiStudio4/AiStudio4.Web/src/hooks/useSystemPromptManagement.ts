@@ -38,7 +38,7 @@ export function useSystemPromptManagement() {
         prompts,
         defaultPromptId,
         currentPrompt,
-        setConversationPrompt,
+        setConvPrompt,
         setDefaultPromptId,
         setCurrentPrompt
     } = useSystemPromptStore();
@@ -64,21 +64,21 @@ export function useSystemPromptManagement() {
         return updatePrompt(updatedPrompt);
     }, [updatePrompt]);
 
-    const setConversationSystemPrompt = useCallback(async (params: {
-        conversationId: string;
+    const setConvSystemPrompt = useCallback(async (params: {
+        convId: string;
         promptId: string;
     }) => {
-        const { conversationId, promptId } = params;
+        const { convId, promptId } = params;
 
-        setConversationPrompt(conversationId, promptId);
+        setConvPrompt(convId, promptId);
 
         return executeApiCall(async () => {
-            const setPromptRequest = createApiRequest('/api/setConversationSystemPrompt', 'POST');
+            const setPromptRequest = createApiRequest('/api/setConvSystemPrompt', 'POST');
             await setPromptRequest(params);
 
             return true;
         });
-    }, [setConversationPrompt, executeApiCall]);
+    }, [setConvPrompt, executeApiCall]);
 
     const setDefaultSystemPrompt = useCallback(async (promptId: string) => {
         setDefaultPromptId(promptId);
@@ -131,7 +131,7 @@ export function useSystemPromptManagement() {
         error,
 
         fetchSystemPrompts,
-        setConversationSystemPrompt,
+        setConvSystemPrompt,
         createSystemPrompt,
         updateSystemPrompt,
         deleteSystemPrompt: deletePrompt,

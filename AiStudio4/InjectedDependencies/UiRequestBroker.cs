@@ -46,12 +46,12 @@ namespace AiStudio4.InjectedDependencies
             {
                 return requestType switch
                 {
-                    "getAllHistoricalConversationTrees" => await _chatManager.HandleGetAllHistoricalConversationTreesRequest(clientId, requestObject),
+                    "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList }),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _settingsManager.CurrentSettings.ServiceProviders }),
-                    "conversationmessages" => await _chatManager.HandleConversationMessagesRequest(clientId, requestObject),
-                    "getConversation" => await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject),
-                    "historicalConversationTree" => await _chatManager.HandleHistoricalConversationTreeRequest(clientId, requestObject),
+                    "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
+                    "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
+                    "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "chat" => await _chatManager.HandleChatRequest(clientId, requestObject),
                     "getTools" => await HandleGetToolsRequest(),
                     "getTool" => await HandleGetToolRequest(requestObject),
@@ -71,9 +71,9 @@ namespace AiStudio4.InjectedDependencies
                     "updateSystemPrompt" => await HandleUpdateSystemPromptRequest(requestObject),
                     "deleteSystemPrompt" => await HandleDeleteSystemPromptRequest(requestObject),
                     "setDefaultSystemPrompt" => await HandleSetDefaultSystemPromptRequest(requestObject),
-                    "getConversationSystemPrompt" => await HandleGetConversationSystemPromptRequest(requestObject),
-                    "setConversationSystemPrompt" => await HandleSetConversationSystemPromptRequest(requestObject),
-                    "clearConversationSystemPrompt" => await HandleClearConversationSystemPromptRequest(requestObject),
+                    "getConvSystemPrompt" => await HandleGetConvSystemPromptRequest(requestObject),
+                    "setConvSystemPrompt" => await HandleSetConvSystemPromptRequest(requestObject),
+                    "clearConvSystemPrompt" => await HandleClearConvSystemPromptRequest(requestObject),
                     "pinnedCommands/get" => await HandleGetPinnedCommandsRequest(clientId, requestObject),
                     "pinnedCommands/save" => await HandleSavePinnedCommandsRequest(clientId, requestObject),
                     "getConfig" => JsonConvert.SerializeObject(new
@@ -551,54 +551,54 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        private async Task<string> HandleGetConversationSystemPromptRequest(JObject requestObject)
+        private async Task<string> HandleGetConvSystemPromptRequest(JObject requestObject)
         {
             try
             {
-                string conversationId = requestObject["conversationId"]?.ToString();
-                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                string convId = requestObject["convId"]?.ToString();
+                if (string.IsNullOrEmpty(convId)) return SerializeError("Conv ID cannot be empty");
                 
-                var prompt = await _systemPromptService.GetConversationSystemPromptAsync(conversationId);
+                var prompt = await _systemPromptService.GetConvSystemPromptAsync(convId);
                 return JsonConvert.SerializeObject(new { success = true, prompt });
             }
             catch (Exception ex)
             {
-                return SerializeError($"Error retrieving conversation system prompt: {ex.Message}");
+                return SerializeError($"Error retrieving conv system prompt: {ex.Message}");
             }
         }
 
-        private async Task<string> HandleSetConversationSystemPromptRequest(JObject requestObject)
+        private async Task<string> HandleSetConvSystemPromptRequest(JObject requestObject)
         {
             try
             {
-                string conversationId = requestObject["conversationId"]?.ToString();
+                string convId = requestObject["convId"]?.ToString();
                 string promptId = requestObject["promptId"]?.ToString();
                 
-                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                if (string.IsNullOrEmpty(convId)) return SerializeError("Conv ID cannot be empty");
                 if (string.IsNullOrEmpty(promptId)) return SerializeError("Prompt ID cannot be empty");
                 
-                var success = await _systemPromptService.SetConversationSystemPromptAsync(conversationId, promptId);
+                var success = await _systemPromptService.SetConvSystemPromptAsync(convId, promptId);
                 return JsonConvert.SerializeObject(new { success });
             }
             catch (Exception ex)
             {
-                return SerializeError($"Error setting conversation system prompt: {ex.Message}");
+                return SerializeError($"Error setting conv system prompt: {ex.Message}");
             }
         }
 
-        private async Task<string> HandleClearConversationSystemPromptRequest(JObject requestObject)
+        private async Task<string> HandleClearConvSystemPromptRequest(JObject requestObject)
         {
             try
             {
-                string conversationId = requestObject["conversationId"]?.ToString();
-                if (string.IsNullOrEmpty(conversationId)) return SerializeError("Conversation ID cannot be empty");
+                string convId = requestObject["convId"]?.ToString();
+                if (string.IsNullOrEmpty(convId)) return SerializeError("Conv ID cannot be empty");
                 
-                var success = await _systemPromptService.ClearConversationSystemPromptAsync(conversationId);
+                var success = await _systemPromptService.ClearConvSystemPromptAsync(convId);
                 return JsonConvert.SerializeObject(new { success });
             }
             catch (Exception ex)
             {
-                return SerializeError($"Error clearing conversation system prompt: {ex.Message}");
+                return SerializeError($"Error clearing conv system prompt: {ex.Message}");
             }
         }
 

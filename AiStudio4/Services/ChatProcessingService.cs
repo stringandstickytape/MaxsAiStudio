@@ -17,7 +17,7 @@ namespace AiStudio4.Services
 {
     public class ChatProcessingService
     {
-        private readonly IConversationStorage _conversationStorage;
+        private readonly IConvStorage _convStorage;
         private readonly IChatService _chatService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ChatProcessingService> _logger;
@@ -26,7 +26,7 @@ namespace AiStudio4.Services
         private readonly ISystemPromptService _systemPromptService;
 
         public ChatProcessingService(
-            IConversationStorage conversationStorage,
+            IConvStorage convStorage,
             IChatService chatService,
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
@@ -34,7 +34,7 @@ namespace AiStudio4.Services
             IToolService toolService,
             ISystemPromptService systemPromptService)
         {
-            _conversationStorage = conversationStorage;
+            _convStorage = convStorage;
             _chatService = chatService;
             _notificationService = notificationService;
             _logger = logger;
@@ -74,7 +74,7 @@ namespace AiStudio4.Services
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
-                        ConversationId = (string)requestObject["conversationId"],
+                        ConvId = (string)requestObject["convId"],
                         MessageId = (string)requestObject["newMessageId"],
                         ParentMessageId = (string)requestObject["parentMessageId"],
                         Message = message,
@@ -85,24 +85,24 @@ namespace AiStudio4.Services
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
-                    var conversation = await _conversationStorage.LoadConversation(chatRequest.ConversationId);
-                    bool isFirstMessageInConversation = conversation.MessageHierarchy.Count <= 1 &&
-                         (conversation.MessageHierarchy.Count == 0 || conversation.MessageHierarchy[0].Children.Count == 0);
+                    var conv = await _convStorage.LoadConv(chatRequest.ConvId);
+                    bool isFirstMessageInConv = conv.MessageHierarchy.Count <= 1 &&
+                         (conv.MessageHierarchy.Count == 0 || conv.MessageHierarchy[0].Children.Count == 0);
 
-                    var newUserMessage = conversation.AddNewMessage(v4BranchedConversationMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                    var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
 
-                    // Save the conversation system prompt if provided
+                    // Save the conv system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
                     {
-                        conversation.SystemPromptId = chatRequest.SystemPromptId;
-                        await _systemPromptService.SetConversationSystemPromptAsync(chatRequest.ConversationId, chatRequest.SystemPromptId);
+                        conv.SystemPromptId = chatRequest.SystemPromptId;
+                        await _systemPromptService.SetConvSystemPromptAsync(chatRequest.ConvId, chatRequest.SystemPromptId);
                     }
 
-                    await _conversationStorage.SaveConversation(conversation);
+                    await _convStorage.SaveConv(conv);
 
-                    await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
+                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
                     {
-                        ConversationId = conversation.ConversationId,
+                        ConvId = conv.ConvId,
                         MessageId = newUserMessage.Id,
                         Content = newUserMessage.UserMessage,
                         ParentId = chatRequest.ParentMessageId,
@@ -110,20 +110,20 @@ namespace AiStudio4.Services
                         Source = "user" // Explicitly set source as "user"
                     });
 
-                    // Replace tree builder with direct message processing for conversation list notification
-                    var messagesForClient = BuildFlatMessageStructure(conversation);
-                    await _notificationService.NotifyConversationList(clientId, new ConversationListDto
+                    // Replace tree builder with direct message processing for conv list notification
+                    var messagesForClient = BuildFlatMessageStructure(conv);
+                    await _notificationService.NotifyConvList(clientId, new ConvListDto
                     {
-                        ConversationId = conversation.ConversationId,
-                        Summary = conversation.MessageHierarchy.First().Children.Count > 0
-                            ? conversation.MessageHierarchy.First().Children[0].UserMessage ?? ""
-                            : "New Conversation",
+                        ConvId = conv.ConvId,
+                        Summary = conv.MessageHierarchy.First().Children.Count > 0
+                            ? conv.MessageHierarchy.First().Children[0].UserMessage ?? ""
+                            : "New Conv",
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         FlatMessageStructure = messagesForClient
                     });
 
                     // Get message history without tree builder
-                    var messageHistory = GetMessageHistory(conversation, chatRequest.MessageId);
+                    var messageHistory = GetMessageHistory(conv, chatRequest.MessageId);
                     chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
@@ -132,7 +132,7 @@ namespace AiStudio4.Services
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
                     var newId = $"msg_{Guid.NewGuid()}";
-                    var newAiReply = conversation.AddNewMessage(v4BranchedConversationMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
+                    var newAiReply = conv.AddNewMessage(v4BranchedConvMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
 
                     // Store token usage and cost information
                     if (response.TokenUsage != null)
@@ -148,7 +148,7 @@ namespace AiStudio4.Services
 
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
 
-                    if (isFirstMessageInConversation)
+                    if (isFirstMessageInConv)
                     {
                         try
                         {
@@ -158,7 +158,7 @@ namespace AiStudio4.Services
                                 var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
                                 if (model != null)
                                 {
-                                    var summaryMessage = $"Generate a concise 6 - 10 word summary of this conversation:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
+                                    var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
 
                                     var summaryChatRequest = new ChatRequest
                                     {
@@ -176,16 +176,16 @@ namespace AiStudio4.Services
                                             ? summaryResponse.ResponseText.Substring(0, 97) + "..."
                                             : summaryResponse.ResponseText;
 
-                                        conversation.Summary = summary;
-                                        await _conversationStorage.SaveConversation(conversation);
+                                        conv.Summary = summary;
+                                        await _convStorage.SaveConv(conv);
 
                                         // Update client with the new summary, using our flat structure
-                                        await _notificationService.NotifyConversationList(clientId, new ConversationListDto
+                                        await _notificationService.NotifyConvList(clientId, new ConvListDto
                                         {
-                                            ConversationId = conversation.ConversationId,
+                                            ConvId = conv.ConvId,
                                             Summary = summary,
                                             LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                            FlatMessageStructure = BuildFlatMessageStructure(conversation)
+                                            FlatMessageStructure = BuildFlatMessageStructure(conv)
                                         });
                                     }
                                 }
@@ -193,13 +193,13 @@ namespace AiStudio4.Services
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error generating conversation summary");
+                            _logger.LogError(ex, "Error generating conv summary");
                         }
                     }
 
-                    await _conversationStorage.SaveConversation(conversation);
+                    await _convStorage.SaveConv(conv);
 
-                    await _notificationService.NotifyConversationUpdate(clientId, new ConversationUpdateDto
+                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
                     {
                         MessageId = newAiReply.Id,
                         Content = newAiReply.UserMessage,
@@ -226,26 +226,26 @@ namespace AiStudio4.Services
         }
 
         // Helper method to build flat message structure for client
-        private List<object> BuildFlatMessageStructure(v4BranchedConversation conversation)
+        private List<object> BuildFlatMessageStructure(v4BranchedConv conv)
         {
-            var allMessages = conversation.GetAllMessages();
+            var allMessages = conv.GetAllMessages();
 
             return allMessages.Select(msg => new {
                 id = msg.Id,
                 text = msg.UserMessage ?? "[Empty Message]",
                 parentId = msg.ParentId,
-                source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
-                        msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
+                        msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                 tokenUsage = msg.TokenUsage,
                 costInfo = msg.CostInfo
             }).ToList<object>();
         }
 
         // Helper method to get message history without using tree builder
-        private List<v4BranchedConversationMessage> GetMessageHistory(v4BranchedConversation conversation, string messageId)
+        private List<v4BranchedConvMessage> GetMessageHistory(v4BranchedConv conv, string messageId)
         {
-            var allMessages = conversation.GetAllMessages();
-            var path = new List<v4BranchedConversationMessage>();
+            var allMessages = conv.GetAllMessages();
+            var path = new List<v4BranchedConvMessage>();
 
             // Find the target message
             var currentMessage = allMessages.FirstOrDefault(m => m.Id == messageId);
@@ -268,15 +268,15 @@ namespace AiStudio4.Services
         }
 
         // Helper method to clone a message without children to avoid circular references
-        private v4BranchedConversationMessage CloneMessage(v4BranchedConversationMessage message)
+        private v4BranchedConvMessage CloneMessage(v4BranchedConvMessage message)
         {
-            return new v4BranchedConversationMessage
+            return new v4BranchedConvMessage
             {
                 Id = message.Id,
                 UserMessage = message.UserMessage,
                 Role = message.Role,
                 ParentId = message.ParentId,
-                Children = new List<v4BranchedConversationMessage>(), // Empty children list
+                Children = new List<v4BranchedConvMessage>(), // Empty children list
                 TokenUsage = message.TokenUsage,
                 CostInfo = message.CostInfo
             };

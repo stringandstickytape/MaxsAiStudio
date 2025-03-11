@@ -1,4 +1,4 @@
-import { Message } from '@/types/conversation';
+import { Message } from '@/types/conv';
 
 /**
  * Builds a tree structure from an array of messages
@@ -37,7 +37,7 @@ export function buildMessageTree(messages: Message[], includeContent: boolean = 
     if (!rootMessage) {
         rootMessage = {
             id: 'root',
-            text: 'Conversation Root',
+            text: 'Conv Root',
             children: [],
             source: 'system',
             timestamp: Date.now()

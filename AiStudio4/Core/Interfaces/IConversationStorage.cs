@@ -4,32 +4,32 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Interfaces
 {
-    public interface IConversationStorage
+    public interface IConvStorage
     {
         /// <summary>
-        /// Loads a conversation by its ID
+        /// Loads a conv by its ID
         /// </summary>
-        /// <param name="conversationId">The ID of the conversation to load</param>
-        /// <returns>The conversation, or a new one if not found</returns>
-        Task<v4BranchedConversation> LoadConversation(string conversationId);
+        /// <param name="convId">The ID of the conv to load</param>
+        /// <returns>The conv, or a new one if not found</returns>
+        Task<v4BranchedConv> LoadConv(string convId);
 
         /// <summary>
-        /// Saves a conversation
+        /// Saves a conv
         /// </summary>
-        /// <param name="conversation">The conversation to save</param>
-        Task SaveConversation(v4BranchedConversation conversation);
+        /// <param name="conv">The conv to save</param>
+        Task SaveConv(v4BranchedConv conv);
 
         /// <summary>
-        /// Finds a conversation containing a specific message
+        /// Finds a conv containing a specific message
         /// </summary>
         /// <param name="messageId">The ID of the message to find</param>
-        /// <returns>The conversation containing the message, or null if not found</returns>
-        Task<v4BranchedConversation> FindConversationByMessageId(string messageId);
+        /// <returns>The conv containing the message, or null if not found</returns>
+        Task<v4BranchedConv> FindConvByMessageId(string messageId);
 
         /// <summary>
-        /// Gets all conversations
+        /// Gets all convs
         /// </summary>
-        /// <returns>All conversations</returns>
-        Task<IEnumerable<v4BranchedConversation>> GetAllConversations();
+        /// <returns>All convs</returns>
+        Task<IEnumerable<v4BranchedConv>> GetAllConvs();
     }
 }

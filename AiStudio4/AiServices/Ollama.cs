@@ -1,4 +1,4 @@
-﻿using AiStudio4.Conversations;
+﻿using AiStudio4.Convs;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -23,23 +23,23 @@ namespace AiStudio4.AiServices
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
-                options.Conversation.systemprompt = options.CustomSystemPrompt;
+                options.Conv.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conversation, options.UseStreaming, options.ApiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
-            // Build the prompt from the conversation
+            // Build the prompt from the conv
             var promptBuilder = new StringBuilder();
 
             // Add system prompt if present
-            if (!string.IsNullOrEmpty(options.Conversation.systemprompt))
+            if (!string.IsNullOrEmpty(options.Conv.systemprompt))
             {
-                promptBuilder.AppendLine(options.Conversation.SystemPromptWithDateTime());
+                promptBuilder.AppendLine(options.Conv.SystemPromptWithDateTime());
                 promptBuilder.AppendLine();
             }
 
-            // Add conversation messages
-            foreach (var message in options.Conversation.messages)
+            // Add conv messages
+            foreach (var message in options.Conv.messages)
             {
                 promptBuilder.AppendLine($"{message.role}: {message.content}");
                 promptBuilder.AppendLine();
@@ -61,8 +61,8 @@ namespace AiStudio4.AiServices
 
             if (options.AddEmbeddings)
             {
-                var lastMessage = options.Conversation.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(options.Conversation, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
+                var lastMessage = options.Conv.messages.Last().content;
+                var newInput = await AddEmbeddingsIfRequired(options.Conv, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessage);
                 requestPayload["prompt"] = newInput;
             }
 
@@ -74,7 +74,7 @@ namespace AiStudio4.AiServices
 
         protected override JObject CreateRequestPayload(
             string modelName,
-            LinearConversation conversation,
+            LinearConv conv,
             bool useStreaming,
             ApiSettings apiSettings)
         {

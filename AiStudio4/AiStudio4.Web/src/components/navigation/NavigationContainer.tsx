@@ -4,12 +4,12 @@ import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '../Sidebar';
-import { ConversationTreeView } from '@/components/ConversationTreeView';
+import { ConvTreeView } from '@/components/ConvTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePanelStore } from '@/stores/usePanelStore';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useSystemPromptManagement';
 import { ToolPanel } from '@/components/tools/ToolPanel';
@@ -19,17 +19,17 @@ interface NavigationContainerProps {
 }
 
 export function NavigationContainer({ children }: NavigationContainerProps) {
-    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
     const { isConnected, clientId } = useWebSocket();
     const wsState = { isConnected, clientId, messages: [] };
 
     const { togglePanel, panels } = usePanelStore();
 
-    const { activeConversationId, conversations } = useConversationStore();
+    const { activeConvId, convs } = useConvStore();
 
-    const { setConversationSystemPrompt } = useSystemPromptManagement();
+    const { setConvSystemPrompt } = useSystemPromptManagement();
 
-    const { setConversationPrompt } = useSystemPromptStore();
+    const { setConvPrompt } = useSystemPromptStore();
 
 
 
@@ -52,53 +52,53 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         };
     }, [openPanel]);
 
-    const handleToggleConversationTree = () => {
-        setSelectedConversationId(activeConversationId);
+    const handleToggleConvTree = () => {
+        setSelectedConvId(activeConvId);
 
-        console.log('Opening conversation tree with conversation ID:', activeConversationId);
+        console.log('Opening conv tree with conv ID:', activeConvId);
 
-        openPanel('conversationTree');
+        openPanel('convTree');
     };
 
     useEffect(() => {
-        if (activeConversationId && activeConversationId !== selectedConversationId) {
-            console.log('Active conversation changed, updating selected conversation ID', {
-                old: selectedConversationId,
-                new: activeConversationId
+        if (activeConvId && activeConvId !== selectedConvId) {
+            console.log('Active conv changed, updating selected conv ID', {
+                old: selectedConvId,
+                new: activeConvId
             });
-            setSelectedConversationId(activeConversationId);
+            setSelectedConvId(activeConvId);
         }
 
         let lastMessagesLength = 0;
 
-        const unsubscribe = useConversationStore.subscribe(
+        const unsubscribe = useConvStore.subscribe(
             (state) => ({
-                activeId: state.activeConversationId,
-                conversations: state.conversations
+                activeId: state.activeConvId,
+                convs: state.convs
             }),
-            ({ activeId, conversations }) => {
+            ({ activeId, convs }) => {
                 if (!activeId) return;
 
-                if (activeId !== selectedConversationId) {
-                    setSelectedConversationId(activeId);
+                if (activeId !== selectedConvId) {
+                    setSelectedConvId(activeId);
                 }
 
-                const conversation = conversations[activeId];
-                if (!conversation) return;
+                const conv = convs[activeId];
+                if (!conv) return;
 
-                const currentMessagesLength = conversation.messages.length;
+                const currentMessagesLength = conv.messages.length;
 
                 if (currentMessagesLength !== lastMessagesLength) {
-                    console.log('Conversation store updated - conversation messages changed:', {
+                    console.log('Conv store updated - conv messages changed:', {
                         oldCount: lastMessagesLength,
                         newCount: currentMessagesLength,
-                        activeConversationId: activeId
+                        activeConvId: activeId
                     });
 
-                    if (panels.conversationTree?.isOpen) {
-                        setSelectedConversationId(null);
+                    if (panels.convTree?.isOpen) {
+                        setSelectedConvId(null);
                         setTimeout(() => {
-                            setSelectedConversationId(activeId);
+                            setSelectedConvId(activeId);
                         }, 50);
                     }
 
@@ -108,10 +108,10 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         );
 
         return () => unsubscribe();
-    }, [panels.conversationTree?.isOpen, activeConversationId, selectedConversationId]);
+    }, [panels.convTree?.isOpen, activeConvId, selectedConvId]);
 
     const hasLeftPanel = panels.sidebar?.isPinned || false;
-    const hasRightPanel = panels.conversationTree?.isPinned ||
+    const hasRightPanel = panels.convTree?.isPinned ||
         panels.settings?.isPinned ||
         panels.systemPrompts?.isPinned ||
         panels.toolPanel?.isPinned || false;
@@ -125,25 +125,25 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
             maxWidth: '450px',
             width: '320px',
             zIndex: 40,
-            title: 'Conversations',
+            title: 'Convs',
             render: (isOpen) => isOpen ? (
                 <Sidebar wsState={wsState} />
             ) : null
         },
         {
-            id: 'conversationTree',
+            id: 'convTree',
             position: 'right',
             size: '320px',
             minWidth: '320px',
             maxWidth: '450px',
             width: '320px',
             zIndex: 30,
-            title: 'Conversation Tree',
-            render: (isOpen) => isOpen && selectedConversationId ? (
-                <ConversationTreeView
-                    key={`tree-${selectedConversationId}-${Date.now()}`}
-                    conversationId={selectedConversationId}
-                    messages={selectedConversationId && conversations[selectedConversationId]?.messages || []}
+            title: 'Conv Tree',
+            render: (isOpen) => isOpen && selectedConvId ? (
+                <ConvTreeView
+                    key={`tree-${selectedConvId}-${Date.now()}`}
+                    convId={selectedConvId}
+                    messages={selectedConvId && convs[selectedConvId]?.messages || []}
                 />
             ) : null
         },
@@ -171,19 +171,19 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
             title: 'System Prompts',
             render: (isOpen) => isOpen ? (
                 <SystemPromptLibrary
-                    conversationId={activeConversationId || undefined}
+                    convId={activeConvId || undefined}
                     onApplyPrompt={(prompt) => {
                         console.log("Applying prompt:", prompt);
-                        const conversationId = activeConversationId;
+                        const convId = activeConvId;
                         const promptId = prompt?.guid || prompt?.Guid;
 
-                        if (conversationId && promptId) {
-                            console.log(`Setting conversation system prompt with conversationId=${conversationId}, promptId=${promptId}`);
-                            setConversationSystemPrompt({ conversationId, promptId });
-                            setConversationPrompt(conversationId, promptId);
+                        if (convId && promptId) {
+                            console.log(`Setting conv system prompt with convId=${convId}, promptId=${promptId}`);
+                            setConvSystemPrompt({ convId, promptId });
+                            setConvPrompt(convId, promptId);
                         } else {
                             console.error("Cannot apply prompt - missing required data:", {
-                                conversationId, promptId, prompt
+                                convId, promptId, prompt
                             });
                         }
 
@@ -205,7 +205,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
                 <ToolPanel isOpen={isOpen} onClose={() => togglePanel('toolPanel')} />
             ) : null
         }
-    ], [activeConversationId, conversations, selectedConversationId, setConversationPrompt, setConversationSystemPrompt, wsState]);
+    ], [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState]);
 
     return (
         <>

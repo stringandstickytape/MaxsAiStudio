@@ -1,4 +1,4 @@
-﻿using AiStudio4.Conversations;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
@@ -68,7 +68,7 @@ namespace AiStudio4.AiServices
         public Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
-            LinearConversation conversation,
+            LinearConv conv,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -81,7 +81,7 @@ namespace AiStudio4.AiServices
         {
             // Convert to options and call the new method
             var options = AiRequestOptions.Create(
-                serviceProvider, model, conversation, base64image, base64ImageType,
+                serviceProvider, model, conv, base64image, base64ImageType,
                 cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
                 useStreaming, addEmbeddings, customSystemPrompt);
             
@@ -92,7 +92,7 @@ namespace AiStudio4.AiServices
         protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options);
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
-            LinearConversation conversation,
+            LinearConv conv,
             ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             bool addEmbeddings,
@@ -101,7 +101,7 @@ namespace AiStudio4.AiServices
             //if (!addEmbeddings) 
             return content;
             //return await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
-            //    conversation,
+            //    conv,
             //    apiSettings,
             //    content,
             //    mustNotUseEmbedding
@@ -110,7 +110,7 @@ namespace AiStudio4.AiServices
 
         protected virtual JObject CreateRequestPayload(
             string modelName,
-            LinearConversation conversation,
+            LinearConv conv,
             bool useStreaming,
             ApiSettings apiSettings)
         {
@@ -218,7 +218,7 @@ namespace AiStudio4.AiServices
             await Task.CompletedTask;
         }
 
-        protected virtual JObject CreateMessageObject(LinearConversationMessage message)
+        protected virtual JObject CreateMessageObject(LinearConvMessage message)
         {
             // Override in derived classes to implement specific message format
             return new JObject();

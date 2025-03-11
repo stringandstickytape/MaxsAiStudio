@@ -3,18 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink } from 'lucide-react';
 import React from 'react';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 
 export function initializeCoreCommands(
     handlers: {
         toggleSidebar: () => void,
-        toggleConversationTree: () => void,
+        toggleConvTree: () => void,
         toggleSettings: () => void,
         openNewWindow: () => void,
     }
 ) {
     // Get Zustand store actions
-    const { createConversation } = useConversationStore.getState();
+    const { createConv } = useConvStore.getState();
 
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
@@ -22,44 +22,44 @@ export function initializeCoreCommands(
     const { registerGroup } = useCommandStore.getState();
     
     registerGroup({
-        id: 'conversation',
-        name: 'Conversation',
+        id: 'conv',
+        name: 'Conv',
         priority: 100,
         commands: [
             {
-                id: 'new-conversation',
-                name: 'New Conversation',
-                description: 'Start a new chat conversation',
+                id: 'new-conv',
+                name: 'New Conv',
+                description: 'Start a new chat conv',
                 shortcut: shortcut('N'),
-                keywords: ['new', 'chat', 'conversation', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
-                section: 'conversation',
+                keywords: ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
+                section: 'conv',
                 icon: React.createElement(Plus, { size: 16 }),
                 execute: () => {
-                    const conversationId = `conv_${uuidv4()}`;
+                    const convId = `conv_${uuidv4()}`;
                     const messageId = `msg_${Date.now()}`;
-                    createConversation({
-                        id: conversationId,
+                    createConv({
+                        id: convId,
                         rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
                     });
                 }
             },
             {
-                id: 'clear-conversation',
-                name: 'Clear Current Conversation',
-                description: 'Clear all messages in the current conversation',
+                id: 'clear-conv',
+                name: 'Clear Current Conv',
+                description: 'Clear all messages in the current conv',
                 keywords: ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'],
-                section: 'conversation',
+                section: 'conv',
                 icon: React.createElement(RefreshCw, { size: 16 }),
                 execute: () => {
-                    // Use the current store's state to get active conversation ID
-                    const { activeConversationId, createConversation, conversations } = useConversationStore.getState();
+                    // Use the current store's state to get active conv ID
+                    const { activeConvId, createConv, convs } = useConvStore.getState();
                     
-                    if (activeConversationId) {
-                        const conversationId = `conv_${uuidv4()}`;
+                    if (activeConvId) {
+                        const convId = `conv_${uuidv4()}`;
                         const messageId = `msg_${Date.now()}`;
 
-                        createConversation({
-                            id: conversationId,
+                        createConv({
+                            id: convId,
                             rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
                         });
                     }
@@ -75,21 +75,21 @@ export function initializeCoreCommands(
         commands: [
             {
                 id: 'toggle-sidebar',
-                name: 'Conversation History Toggle',
+                name: 'Conv History Toggle',
                 shortcut: shortcut('B'),
-                keywords: ['sidebar', 'menu', 'conversations', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
+                keywords: ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
                 section: 'view',
                 icon: React.createElement(Plus, { size: 16 }),
                 execute: handlers.toggleSidebar
             },
             {
-                id: 'toggle-conversation-tree',
-                name: 'Conversation Tree Toggle',
+                id: 'toggle-conv-tree',
+                name: 'Conv Tree Toggle',
                 shortcut: shortcut('T'),
-                keywords: ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conversation', 'flow', 'thread', 'graph', 'toggle'],
+                keywords: ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'],
                 section: 'view',
                 icon: React.createElement(GitBranch, { size: 16 }),
-                execute: handlers.toggleConversationTree
+                execute: handlers.toggleConvTree
             },
             {
                 id: 'toggle-settings',

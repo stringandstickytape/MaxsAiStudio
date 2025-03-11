@@ -13,7 +13,7 @@ import { useModelManagement } from '@/hooks/useModelManagement';
 import { useToolStore } from '@/stores/useToolStore';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { usePanelStore } from '@/stores/usePanelStore';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConvStore } from '@/stores/useConvStore';
 import { ModelType } from '@/types/modelTypes';
 
 export function ChatSpace() {
@@ -24,7 +24,7 @@ export function ChatSpace() {
 
     const { activeTools } = useToolStore();
     const { togglePanel, panels } = usePanelStore();
-    const { activeConversationId } = useConversationStore();
+    const { activeConvId } = useConvStore();
 
     const {
         models,
@@ -86,7 +86,7 @@ export function ChatSpace() {
                     isCommandBarOpen={isCommandBarOpen}
                     setIsCommandBarOpen={setIsCommandBarOpen}
                     CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                    activeConversationId={activeConversationId}
+                    activeConvId={activeConvId}
                 />
             </div>
 

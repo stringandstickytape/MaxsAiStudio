@@ -1,4 +1,4 @@
-using AiStudio4.Conversations;
+using AiStudio4.Convs;
 using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,8 @@ namespace AiStudio4.DataModels
         public ServiceProvider ServiceProvider { get; set; }
         public Model Model { get; set; }
         
-        // Conversation content
-        public LinearConversation Conversation { get; set; }
+        // Conv content
+        public LinearConv Conv { get; set; }
         
         // Cancellation support
         public CancellationToken CancellationToken { get; set; } = new CancellationToken(false);
@@ -39,7 +39,7 @@ namespace AiStudio4.DataModels
         public static AiRequestOptions Create(
             ServiceProvider serviceProvider,
             Model model,
-            LinearConversation conversation,
+            LinearConv conv,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -54,7 +54,7 @@ namespace AiStudio4.DataModels
             {
                 ServiceProvider = serviceProvider,
                 Model = model,
-                Conversation = conversation,
+                Conv = conv,
                 Base64Image = base64image,
                 Base64ImageType = base64ImageType,
                 CancellationToken = cancellationToken,

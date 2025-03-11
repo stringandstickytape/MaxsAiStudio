@@ -9,16 +9,16 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 - **AiStudio4/App.xaml.cs**: Application entry point, configures services using dependency injection
 - **AiStudio4/MainWindow.xaml.cs**: Main window implementation using WebView2 control
 - **AiStudio4/Core/Interfaces/IChatService.cs**: Interface for chat processing with streaming support
-- **AiStudio4/Core/Interfaces/IConversationStorage.cs**: Interface for conversation persistence
-- **AiStudio4/Core/Interfaces/IConversationTreeBuilder.cs**: Interface for building conversation tree structures
+- **AiStudio4/Core/Interfaces/IConvStorage.cs**: Interface for conv persistence
+- **AiStudio4/Core/Interfaces/IConvTreeBuilder.cs**: Interface for building conv tree structures
 - **AiStudio4/Core/Interfaces/IToolService.cs**: Interface for managing AI tools library
 - **AiStudio4/Core/Interfaces/IWebSocketNotificationService.cs**: Interface for WebSocket notifications
 
 ### Models
 
 - **AiStudio4/Core/Models/ChatRequest.cs**: Models for chat request/response data
-- **AiStudio4/Core/Models/ConversationDtos.cs**: DTOs for conversation updates and streaming
-- **AiStudio4/Core/Models/ConversationListDto.cs**: DTO for listing conversations
+- **AiStudio4/Core/Models/ConvDtos.cs**: DTOs for conv updates and streaming
+- **AiStudio4/Core/Models/ConvListDto.cs**: DTO for listing convs
 - **AiStudio4/Core/Models/ToolModels.cs**: Models for AI tools and tool categories
 - **AiStudio4/Models/AiResponse.cs**: Model for AI response data with token usage tracking
 - **AiStudio4/Models/RequestMessage.cs**: Basic request message model
@@ -26,9 +26,9 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 ### Services
 
 - **AiStudio4/Services/ChatProcessingService.cs**: Processes chat requests and coordinates responses
-- **AiStudio4/Services/ConversationService.cs**: Manages conversation loading and tree building
-- **AiStudio4/Services/DefaultConversationTreeBuilder.cs**: Builds conversation tree structures
-- **AiStudio4/Services/FileSystemConversationStorage.cs**: Stores conversations as JSON files
+- **AiStudio4/Services/ConvService.cs**: Manages conv loading and tree building
+- **AiStudio4/Services/DefaultConvTreeBuilder.cs**: Builds conv tree structures
+- **AiStudio4/Services/FileSystemConvStorage.cs**: Stores convs as JSON files
 - **AiStudio4/Services/MessageHistoryService.cs**: Manages message history and branching
 - **AiStudio4/Services/OpenAIChatService.cs**: Implements chat processing using OpenAI-compatible API
 - **AiStudio4/Services/ToolService.cs**: Manages AI tools library (creation, retrieval, validation)
@@ -45,7 +45,7 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 - **AiStudio4/InjectedDependencies/FileServer.cs**: Serves static files with dev/prod mode support
 - **AiStudio4/InjectedDependencies/SettingsManager.cs**: Manages application settings
 - **AiStudio4/InjectedDependencies/UiRequestBroker.cs**: Handles API requests from UI
-- **AiStudio4/InjectedDependencies/v4BranchedConversation.cs**: Conversation with branching messages
+- **AiStudio4/InjectedDependencies/v4BranchedConv.cs**: Conv with branching messages
 - **AiStudio4/InjectedDependencies/WebServer.cs**: HTTP server for API and WebSocket
 - **AiStudio4/InjectedDependencies/WindowManager.cs**: Manages multiple application windows
 
@@ -69,15 +69,15 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 
 ### State Management (Zustand)
 
-- **AiStudio4.Web/src/stores/useConversationStore.ts**: Manages conversation state and message trees
+- **AiStudio4.Web/src/stores/useConvStore.ts**: Manages conv state and message trees
 - **AiStudio4.Web/src/stores/useToolStore.ts**: Manages AI tools and active tools
 - **AiStudio4.Web/src/stores/useModelStore.ts**: Manages AI models and providers
-- **AiStudio4.Web/src/stores/useSystemPromptStore.ts**: Manages system prompts for conversations
+- **AiStudio4.Web/src/stores/useSystemPromptStore.ts**: Manages system prompts for convs
 - **AiStudio4.Web/src/stores/usePanelStore.ts**: Manages panel visibility and positions
 - **AiStudio4.Web/src/stores/usePinnedCommandsStore.ts**: Manages pinned command shortcuts
 - **AiStudio4.Web/src/stores/useCommandStore.ts**: Registry for commands and command groups
 - **AiStudio4.Web/src/stores/useWebSocketStore.ts**: Manages WebSocket connection state
-- **AiStudio4.Web/src/stores/useHistoricalConversationsStore.ts**: Manages historical conversation data
+- **AiStudio4.Web/src/stores/useHistoricalConvsStore.ts**: Manages historical conv data
 
 ### Business Logic Hooks
 
@@ -99,23 +99,23 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 - **AiStudio4.Web/src/components/navigation/NavigationContainer.tsx**: Main navigation container
 - **AiStudio4.Web/src/components/panel.tsx**: Configurable panel component
 - **AiStudio4.Web/src/components/PanelManager.tsx**: Manages panels layout and state
-- **AiStudio4.Web/src/components/Sidebar.tsx**: Sidebar with conversation history
+- **AiStudio4.Web/src/components/Sidebar.tsx**: Sidebar with conv history
 - **AiStudio4.Web/src/components/AppHeader.tsx**: Application header with controls
 
 ### Chat Components
 
 - **AiStudio4.Web/src/components/ChatWorkspace.tsx**: Main chat workspace
 - **AiStudio4.Web/src/components/ChatContainer.tsx**: Container for chat messages
-- **AiStudio4.Web/src/components/ConversationView.tsx**: Displays active conversation
+- **AiStudio4.Web/src/components/ConvView.tsx**: Displays active conv
 - **AiStudio4.Web/src/components/InputBar.tsx**: Input bar for sending messages
 - **AiStudio4.Web/src/components/FileAttachment.tsx**: File attachment component
 - **AiStudio4.Web/src/components/LiveStreamToken.tsx**: Component for streaming tokens
 
-### Historical Conversations
+### Historical Convs
 
-- **AiStudio4.Web/src/components/HistoricalConversationTree.tsx**: Displays historical conversation tree
-- **AiStudio4.Web/src/components/HistoricalConversationTreeList.tsx**: List of historical conversations
-- **AiStudio4.Web/src/components/ConversationTreeView.tsx**: Visual tree view of conversation
+- **AiStudio4.Web/src/components/HistoricalConvTree.tsx**: Displays historical conv tree
+- **AiStudio4.Web/src/components/HistoricalConvTreeList.tsx**: List of historical convs
+- **AiStudio4.Web/src/components/ConvTreeView.tsx**: Visual tree view of conv
 
 ### Command System
 
@@ -174,7 +174,7 @@ Here's an updated file-by-file summary of responsibilities within the AiStudio4 
 
 ### Types
 
-- **AiStudio4.Web/src/types/conversation.ts**: Types for conversations and messages
+- **AiStudio4.Web/src/types/conv.ts**: Types for convs and messages
 - **AiStudio4.Web/src/types/settings.ts**: Types for models and service providers
 - **AiStudio4.Web/src/types/toolTypes.ts**: Types for AI tools and categories
 - **AiStudio4.Web/src/types/websocket.ts**: Types for WebSocket communication

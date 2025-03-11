@@ -6,34 +6,34 @@ using System.Linq;
 
 namespace AiStudio4.InjectedDependencies
 {
-    public class v4BranchedConversation
+    public class v4BranchedConv
     {
-        public string ConversationId { get; set; }
-        public List<v4BranchedConversationMessage> MessageHierarchy { get; set; } = new List<v4BranchedConversationMessage>();
+        public string ConvId { get; set; }
+        public List<v4BranchedConvMessage> MessageHierarchy { get; set; } = new List<v4BranchedConvMessage>();
         public string Summary { get; set; }
         public string SystemPromptId { get; set; }
 
-        public v4BranchedConversation() { }
+        public v4BranchedConv() { }
 
-        public v4BranchedConversation(string conversationId)
+        public v4BranchedConv(string convId)
         {
-            ConversationId = string.IsNullOrWhiteSpace(conversationId) ? throw new ArgumentNullException(nameof(conversationId)) : conversationId;
+            ConvId = string.IsNullOrWhiteSpace(convId) ? throw new ArgumentNullException(nameof(convId)) : convId;
         }
 
         public void Save()
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "conversations", $"{ConversationId}.json");
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "convs", $"{ConvId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
 
-        internal v4BranchedConversationMessage AddNewMessage(v4BranchedConversationMessageRole role, string newMessageId, string userMessage, string parentMessageId)
+        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId)
         {
-            var newMessage = new v4BranchedConversationMessage
+            var newMessage = new v4BranchedConvMessage
             {
                 Role = role,
                 UserMessage = userMessage ?? string.Empty,
-                Children = new List<v4BranchedConversationMessage>(),
+                Children = new List<v4BranchedConvMessage>(),
                 Id = newMessageId,
                 ParentId = parentMessageId,
                 TokenUsage = null
@@ -45,11 +45,11 @@ namespace AiStudio4.InjectedDependencies
                 // If there are no messages yet, create a system message as the root
                 if (!MessageHierarchy.Any())
                 {
-                    var systemRoot = new v4BranchedConversationMessage
+                    var systemRoot = new v4BranchedConvMessage
                     {
-                        Role = v4BranchedConversationMessageRole.System,
-                        UserMessage = "Conversation Root",
-                        Children = new List<v4BranchedConversationMessage> { newMessage },
+                        Role = v4BranchedConvMessageRole.System,
+                        UserMessage = "Conv Root",
+                        Children = new List<v4BranchedConvMessage> { newMessage },
                         Id = $"system_{Guid.NewGuid()}"
                     };
 
@@ -70,10 +70,10 @@ namespace AiStudio4.InjectedDependencies
             return newMessage;
         }
 
-        private bool AddToParent(v4BranchedConversationMessage newMessage, string parentId)
+        private bool AddToParent(v4BranchedConvMessage newMessage, string parentId)
         {
             // Helper function to recursively find and add the message to its parent
-            bool FindAndAddToParent(List<v4BranchedConversationMessage> messages)
+            bool FindAndAddToParent(List<v4BranchedConvMessage> messages)
             {
                 foreach (var message in messages)
                 {
@@ -96,15 +96,15 @@ namespace AiStudio4.InjectedDependencies
         }
 
         // Helper method to get all messages in a flat list
-        public List<v4BranchedConversationMessage> GetAllMessages()
+        public List<v4BranchedConvMessage> GetAllMessages()
         {
-            var allMessages = new List<v4BranchedConversationMessage>();
+            var allMessages = new List<v4BranchedConvMessage>();
             CollectAllMessages(MessageHierarchy, allMessages);
             return allMessages;
         }
 
-        private void CollectAllMessages(IEnumerable<v4BranchedConversationMessage> messages,
-            List<v4BranchedConversationMessage> allMessages)
+        private void CollectAllMessages(IEnumerable<v4BranchedConvMessage> messages,
+            List<v4BranchedConvMessage> allMessages)
         {
             foreach (var message in messages)
             {

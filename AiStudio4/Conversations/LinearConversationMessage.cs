@@ -1,6 +1,6 @@
 ﻿namespace AiStudio4.DataModels
 {
-    public class LinearConversationMessage
+    public class LinearConvMessage
     {
         public string role { get; set; }
         public string content { get; set; }

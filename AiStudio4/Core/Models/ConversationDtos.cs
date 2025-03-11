@@ -2,9 +2,9 @@ using SharedClasses.Providers;
 
 namespace AiStudio4.Core.Models
 {
-    public class ConversationUpdateDto
+    public class ConvUpdateDto
     {
-        public string ConversationId { get; set; }
+        public string ConvId { get; set; }
         public string MessageId { get; set; }
         public object Content { get; set; }
         public string ParentId { get; set; }

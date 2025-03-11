@@ -17,7 +17,7 @@ namespace AiStudio4.Services
     public class SystemPromptService : ISystemPromptService
     {
         private readonly string _promptsPath;
-        private readonly string _conversationPromptsPath;
+        private readonly string _convPromptsPath;
         private readonly ILogger<SystemPromptService> _logger;
         private readonly object _lockObject = new object();
         private bool _isInitialized = false;
@@ -29,13 +29,13 @@ namespace AiStudio4.Services
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
                 "systemPrompts");
-            _conversationPromptsPath = Path.Combine(
+            _convPromptsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
-                "conversationPrompts");
+                "convPrompts");
 
             Directory.CreateDirectory(_promptsPath);
-            Directory.CreateDirectory(_conversationPromptsPath);
+            Directory.CreateDirectory(_convPromptsPath);
 
             _logger.LogInformation("Initialized system prompt storage at {PromptsPath}", _promptsPath);
         }
@@ -214,11 +214,11 @@ namespace AiStudio4.Services
             }, "getting default system prompt");
         }
 
-        public async Task<SystemPrompt> GetConversationSystemPromptAsync(string conversationId)
+        public async Task<SystemPrompt> GetConvSystemPromptAsync(string convId)
         {
             try
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
                 if (!File.Exists(path))
                 {
                     return await GetDefaultSystemPromptAsync();
@@ -229,7 +229,7 @@ namespace AiStudio4.Services
 
                 if (prompt == null)
                 {
-                    await ClearConversationSystemPromptAsync(conversationId);
+                    await ClearConvSystemPromptAsync(convId);
                     return await GetDefaultSystemPromptAsync();
                 }
 
@@ -237,12 +237,12 @@ namespace AiStudio4.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting system prompt for conversation {ConversationId}", conversationId);
+                _logger.LogError(ex, "Error getting system prompt for conv {ConvId}", convId);
                 return await GetDefaultSystemPromptAsync();
             }
         }
 
-        public Task<bool> SetConversationSystemPromptAsync(string conversationId, string promptId)
+        public Task<bool> SetConvSystemPromptAsync(string convId, string promptId)
         {
             return ExecuteWithErrorHandlingAsync<bool>(async () =>
             {
@@ -252,25 +252,25 @@ namespace AiStudio4.Services
                     return false;
                 }
 
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
                 await File.WriteAllTextAsync(path, promptId);
 
                 return true;
-            }, $"setting system prompt for conversation {conversationId}");
+            }, $"setting system prompt for conv {convId}");
         }
 
-        public Task<bool> ClearConversationSystemPromptAsync(string conversationId)
+        public Task<bool> ClearConvSystemPromptAsync(string convId)
         {
             return ExecuteWithErrorHandlingAsync<bool>(() =>
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
                 if (File.Exists(path))
                 {
                     File.Delete(path);
                 }
 
                 return Task.FromResult(true);
-            }, $"clearing system prompt for conversation {conversationId}");
+            }, $"clearing system prompt for conv {convId}");
         }
 
         private async Task SavePromptAsync(SystemPrompt prompt)

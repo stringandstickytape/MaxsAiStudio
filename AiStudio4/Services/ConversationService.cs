@@ -12,120 +12,120 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Services
 {
-    public class ConversationService
+    public class ConvService
     {
-        private readonly IConversationStorage _conversationStorage;
+        private readonly IConvStorage _convStorage;
         private readonly IWebSocketNotificationService _notificationService;
-        private readonly ILogger<ConversationService> _logger;
+        private readonly ILogger<ConvService> _logger;
 
-        public ConversationService(
-            IConversationStorage conversationStorage,
+        public ConvService(
+            IConvStorage convStorage,
             IWebSocketNotificationService notificationService,
-            ILogger<ConversationService> logger)
+            ILogger<ConvService> logger)
         {
-            _conversationStorage = conversationStorage;
+            _convStorage = convStorage;
             _notificationService = notificationService;
             _logger = logger;
         }
 
-        public async Task<string> HandleHistoricalConversationTreeRequest(string clientId, JObject requestObject)
+        public async Task<string> HandleHistoricalConvTreeRequest(string clientId, JObject requestObject)
         {
             try
             {
-                var conversationId = requestObject["conversationId"].ToString();
-                var conversation = await _conversationStorage.LoadConversation(conversationId);
+                var convId = requestObject["convId"].ToString();
+                var conv = await _convStorage.LoadConv(convId);
 
-                if (conversation == null)
+                if (conv == null)
                 {
-                    return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
+                    return JsonConvert.SerializeObject(new { success = false, error = "Conv not found" });
                 }
 
                 // Get all messages in a flat structure
-                var allMessages = conversation.GetAllMessages();
+                var allMessages = conv.GetAllMessages();
 
                 // Convert to the format expected by the client
                 var messagesForClient = allMessages.Select(msg => new {
                     id = msg.Id,
                     text = msg.UserMessage ?? "[Empty Message]",
                     parentId = msg.ParentId,
-                    source = msg.Role == v4BranchedConversationMessageRole.User ? "user" :
-                            msg.Role == v4BranchedConversationMessageRole.Assistant ? "ai" : "system",
+                    source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
+                            msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                     tokenUsage = msg.TokenUsage
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
-                    conversationId = conversation.ConversationId,
-                    summary = conversation.Summary ?? "Untitled Conversation",
+                    convId = conv.ConvId,
+                    summary = conv.Summary ?? "Untitled Conv",
                     flatMessageStructure = messagesForClient 
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling historical conversation tree request");
+                _logger.LogError(ex, "Error handling historical conv tree request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
 
-        public async Task<string> HandleGetAllHistoricalConversationTreesRequest(string clientId)
+        public async Task<string> HandleGetAllHistoricalConvTreesRequest(string clientId)
         {
             try
             {
-                // Get all conversations from storage
-                var conversations = await (_conversationStorage as FileSystemConversationStorage)?.GetAllConversations();
+                // Get all convs from storage
+                var convs = await (_convStorage as FileSystemConvStorage)?.GetAllConvs();
 
-                if (conversations == null || !conversations.Any())
+                if (convs == null || !convs.Any())
                 {
-                    return JsonConvert.SerializeObject(new { success = true, conversations = new List<object>() });
+                    return JsonConvert.SerializeObject(new { success = true, convs = new List<object>() });
                 }
 
-                // Build conversation metadata for each conversation
-                var conversationList = new List<object>();
-                foreach (var conversation in conversations)
+                // Build conv metadata for each conv
+                var convList = new List<object>();
+                foreach (var conv in convs)
                 {
                     try
                     {
-                        if (conversation.MessageHierarchy?.Count > 0)
+                        if (conv.MessageHierarchy?.Count > 0)
                         {
                             // Find the first non-system message to use as summary if needed
-                            var allMessages = conversation.GetAllMessages();
+                            var allMessages = conv.GetAllMessages();
                             var firstUserMessage = allMessages
-                                .Where(m => m.Role != v4BranchedConversationMessageRole.System)
+                                .Where(m => m.Role != v4BranchedConvMessageRole.System)
                                 .OrderBy(m => m.Id)
                                 .FirstOrDefault();
 
-                            var summary = conversation.Summary ??
-                                (firstUserMessage?.UserMessage ?? "Untitled Conversation");
+                            var summary = conv.Summary ??
+                                (firstUserMessage?.UserMessage ?? "Untitled Conv");
 
-                            // For each conversation, create an entry with just the metadata
+                            // For each conv, create an entry with just the metadata
                             // No need to include full messages here
-                            conversationList.Add(new
+                            convList.Add(new
                             {
-                                conversationId = conversation.ConversationId,
-                                convGuid = conversation.ConversationId,
+                                convId = conv.ConvId,
+                                convGuid = conv.ConvId,
                                 summary = summary.Length > 150 ? summary.Substring(0, 150) + "..." : summary,
-                                fileName = $"conv_{conversation.ConversationId}.json",
+                                fileName = $"conv_{conv.ConvId}.json",
                                 lastModified = File.GetLastWriteTimeUtc(Path.Combine(
                                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                     "AiStudio4",
-                                    "conversations",
-                                    $"{conversation.ConversationId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                                    "convs",
+                                    $"{conv.ConvId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                             });
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error building metadata for conversation {ConversationId}", conversation.ConversationId);
-                        // Continue with next conversation
+                        _logger.LogError(ex, "Error building metadata for conv {ConvId}", conv.ConvId);
+                        // Continue with next conv
                     }
                 }
 
-                return JsonConvert.SerializeObject(new { success = true, conversations = conversationList });
+                return JsonConvert.SerializeObject(new { success = true, convs = convList });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling get all historical conversation trees request");
+                _logger.LogError(ex, "Error handling get all historical conv trees request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
