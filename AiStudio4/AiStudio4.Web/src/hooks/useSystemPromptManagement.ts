@@ -1,47 +1,78 @@
 // src/hooks/useSystemPromptManagement.ts
 import { useCallback } from 'react';
-import { useInitializeIfEmpty } from '@/utils/hookUtils';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { SystemPrompt } from '@/types/systemPrompt';
-import { v4 as uuidv4 } from 'uuid';
-import { apiClient } from '@/services/api/apiClient';
+import { createResourceHook } from './useResourceFactory';
+
+// Create the base resource hook for system prompts
+const useSystemPromptResource = createResourceHook<SystemPrompt>({
+  endpoints: {
+    fetch: '/api/getSystemPrompts',
+    create: '/api/createSystemPrompt',
+    update: '/api/updateSystemPrompt',
+    delete: '/api/deleteSystemPrompt'
+  },
+  storeActions: {
+    setItems: (prompts) => useSystemPromptStore.getState().setPrompts(prompts)
+  },
+  options: {
+    idField: 'guid',
+    generateId: true,
+    transformFetchResponse: (data) => data.prompts || [],
+    transformItemResponse: (data) => data.prompt
+  }
+});
 
 export function useSystemPromptManagement() {
-  // Use API call state utility
-  const { 
-    isLoading, 
-    error, 
-    executeApiCall, 
-    clearError 
-  } = useApiCallState();
+  // Use the base resource hook
+  const {
+    isLoading,
+    error,
+    fetchItems: fetchSystemPrompts,
+    createItem: createPrompt,
+    updateItem: updatePrompt,
+    deleteItem: deletePrompt,
+    clearError
+  } = useSystemPromptResource();
   
-  // Use initialization utility directly without checking prompts length
-    const isInitialized = useInitializeIfEmpty(async () => {
-    // Fetch prompts directly
-    await fetchSystemPrompts();
-  }, []);
-  
+  // Get Zustand store actions and state
   const { 
     prompts, 
     defaultPromptId,
     currentPrompt,
-    setPrompts, 
     setConversationPrompt,
     setDefaultPromptId,
     setCurrentPrompt
   } = useSystemPromptStore();
   
-  // Fetch all system prompts
-  const fetchSystemPrompts = useCallback(async () => {
-    return executeApiCall(async () => {
-      const getSystemPrompts = createApiRequest('/api/getSystemPrompts', 'POST');
-      const data = await getSystemPrompts({});
-      
-      setPrompts(data.prompts || []);
-      return data.prompts;
-    });
-  }, [setPrompts]);
+  // Use API call state for specialized operations
+  const { executeApiCall } = useApiCallState();
+  
+  // Create a system prompt with proper timestamps
+  const createSystemPrompt = useCallback(async (promptData: Omit<SystemPrompt, 'guid' | 'createdDate' | 'modifiedDate'>) => {
+    // Add timestamps to the prompt data
+    const promptWithDates = {
+      ...promptData,
+      createdDate: new Date().toISOString(),
+      modifiedDate: new Date().toISOString()
+    };
+    
+    // Use the base create function
+    return createPrompt(promptWithDates as any);
+  }, [createPrompt]);
+  
+  // Update a system prompt with updated timestamp
+  const updateSystemPrompt = useCallback(async (promptData: SystemPrompt) => {
+    // Update the modification date
+    const updatedPrompt = {
+      ...promptData,
+      modifiedDate: new Date().toISOString()
+    };
+    
+    // Use the base update function
+    return updatePrompt(updatedPrompt);
+  }, [updatePrompt]);
   
   // Set a conversation's system prompt
   const setConversationSystemPrompt = useCallback(async (params: { 
@@ -59,60 +90,7 @@ export function useSystemPromptManagement() {
       
       return true;
     });
-  }, [setConversationPrompt]);
-  
-  // Create a new system prompt
-  const createSystemPrompt = useCallback(async (promptData: Omit<SystemPrompt, 'guid' | 'createdDate' | 'modifiedDate'>) => {
-    return executeApiCall(async () => {
-      // Create full prompt object with dates
-      const newPrompt = {
-        ...promptData,
-        guid: uuidv4(),
-        createdDate: new Date().toISOString(),
-        modifiedDate: new Date().toISOString()
-      };
-      
-      const createPromptRequest = createApiRequest('/api/createSystemPrompt', 'POST');
-      const data = await createPromptRequest(newPrompt);
-      
-      // Refresh prompts list
-      await fetchSystemPrompts();
-      
-      return data.prompt;
-    });
-  }, [fetchSystemPrompts]);
-  
-  // Update an existing system prompt
-  const updateSystemPrompt = useCallback(async (promptData: SystemPrompt) => {
-    return executeApiCall(async () => {
-      // Update modification date
-      const updatedPrompt = {
-          ...promptData,
-          modifiedDate: new Date().toISOString()
-      };
-
-      const updatePromptRequest = createApiRequest('/api/updateSystemPrompt', 'POST');
-      const data = await updatePromptRequest(updatedPrompt);
-      
-      // Refresh prompts list
-      await fetchSystemPrompts();
-
-      return data.prompt;
-    });
-    }, [fetchSystemPrompts]);
-
-  // Delete a system prompt
-  const deleteSystemPrompt = useCallback(async (promptId: string) => {
-    return executeApiCall(async () => {
-      const deletePromptRequest = createApiRequest('/api/deleteSystemPrompt', 'POST');
-      await deletePromptRequest({ promptId });
-      
-      // Refresh prompts list
-      await fetchSystemPrompts();
-      
-      return true;
-    });
-    }, [fetchSystemPrompts]);
+  }, [setConversationPrompt, executeApiCall]);
   
   // Set default system prompt
   const setDefaultSystemPrompt = useCallback(async (promptId: string) => {
@@ -125,7 +103,7 @@ export function useSystemPromptManagement() {
       
       return true;
     });
-  }, [setDefaultPromptId]);
+  }, [setDefaultPromptId, executeApiCall]);
   
   // Get a specific prompt by ID
   const getSystemPromptById = useCallback(async (promptId: string) => {
@@ -139,7 +117,7 @@ export function useSystemPromptManagement() {
       
       return data.prompt;
     });
-  }, [prompts]);
+  }, [prompts, executeApiCall]);
 
   // Import system prompts
   const importSystemPrompts = useCallback(async (jsonData: string) => {
@@ -152,7 +130,7 @@ export function useSystemPromptManagement() {
       
       return true;
     });
-  }, [fetchSystemPrompts]);
+  }, [fetchSystemPrompts, executeApiCall]);
 
   // Export system prompts
   const exportSystemPrompts = useCallback(async () => {
@@ -162,9 +140,7 @@ export function useSystemPromptManagement() {
       
       return data.json;
     });
-  }, []);
-  
-  // Initialization is now handled by useInitializeIfEmpty hook
+  }, [executeApiCall]);
   
   return {
     // State
@@ -179,7 +155,7 @@ export function useSystemPromptManagement() {
     setConversationSystemPrompt,
     createSystemPrompt,
     updateSystemPrompt,
-    deleteSystemPrompt,
+    deleteSystemPrompt: deletePrompt,
     setDefaultSystemPrompt,
     getSystemPromptById,
     importSystemPrompts,

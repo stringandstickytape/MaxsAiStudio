@@ -107,7 +107,9 @@ export function createApiRequest<TParams, TResponse>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST',
   options?: {
     transformResponse?: (data: any) => TResponse;
-  }
+}
+
+
 ) {
   return async (params?: TParams): Promise<TResponse> => {
     try {
@@ -130,3 +132,41 @@ export function createApiRequest<TParams, TResponse>(
     }
   };
 }
+
+
+/**
+ * Common response transformers for API requests
+ */
+export const apiTransformers = {
+    /**
+     * Extract items property from response
+     */
+    extractItems: <T>(data: any): T[] => {
+        return data.items || [];
+    },
+
+    /**
+     * Extract a specific property from response
+     */
+    extractProperty: <T>(propertyName: string) => (data: any): T[] => {
+        return data[propertyName] || [];
+    },
+
+    /**
+     * Extract a single item from response
+     */
+    extractItem: <T>(propertyName: string = 'item') => (data: any): T => {
+        return data[propertyName] || data;
+    },
+
+    /**
+     * Add IDs and transform array to objects
+     */
+    addIdsToArray: <T>(data: any[], idPrefix: string = 'item_'): Record<string, T> => {
+        return data.reduce((acc, item, index) => {
+            const id = `${idPrefix}${index}`;
+            acc[id] = { ...item, id };
+            return acc;
+        }, {} as Record<string, T>);
+    }
+};

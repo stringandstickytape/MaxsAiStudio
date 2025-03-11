@@ -1,11 +1,32 @@
 // src/hooks/useChatManagement.ts
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useHistoricalConversationsStore } from '@/stores/useHistoricalConversationsStore';
 import { v4 as uuidv4 } from 'uuid';
-import { apiClient } from '@/services/api/apiClient';
+import { createResourceHook } from './useResourceFactory';
+
+// Create a resource hook for chat configuration
+const useChatConfigResource = createResourceHook<{
+  models: string[];
+  defaultModel: string;
+  secondaryModel: string;
+}>({
+  endpoints: {
+    fetch: '/api/getConfig'
+  },
+  storeActions: {
+    setItems: () => {} // No direct store action for config
+  },
+  options: {
+    transformFetchResponse: (data) => [{
+      models: data.models || [],
+      defaultModel: data.defaultModel || '',
+      secondaryModel: data.secondaryModel || ''
+    }]
+  }
+});
 
 interface SendMessageParams {
   conversationId: string;
@@ -25,6 +46,11 @@ export function useChatManagement() {
     executeApiCall, 
     clearError 
   } = useApiCallState();
+  
+  // Use the config resource hook
+  const {
+    fetchItems: fetchConfigData
+  } = useChatConfigResource();
   
   // Access Zustand stores
   const { 
@@ -62,25 +88,17 @@ export function useChatManagement() {
         success: true 
       };
     });
-  }, []);
+  }, [executeApiCall]);
   
   // Get configuration
   const getConfig = useCallback(async () => {
-    return executeApiCall(async () => {
-      const getConfigRequest = createApiRequest('/api/getConfig', 'POST');
-      const data = await getConfigRequest({});
-      
-      return {
-        models: data.models || [],
-        defaultModel: data.defaultModel || '',
-        secondaryModel: data.secondaryModel || ''
-      };
-    }) || {
+    const config = await fetchConfigData();
+    return config?.[0] || {
       models: [],
       defaultModel: '',
       secondaryModel: ''
     };
-  }, []);
+  }, [fetchConfigData]);
   
   // Set default model
   const setDefaultModel = useCallback(async (modelName: string) => {
@@ -89,7 +107,7 @@ export function useChatManagement() {
       await setDefaultModelRequest({ modelName });
       return true;
     }) || false;
-  }, []);
+  }, [executeApiCall]);
   
   // Set secondary model
   const setSecondaryModel = useCallback(async (modelName: string) => {
@@ -98,7 +116,7 @@ export function useChatManagement() {
       await setSecondaryModelRequest({ modelName });
       return true;
     }) || false;
-  }, []);
+  }, [executeApiCall]);
   
   // Get conversation history - first check Zustand store, then use the historical conversations store
   const getConversation = useCallback(async (conversationId: string) => {
@@ -162,8 +180,8 @@ export function useChatManagement() {
         messages: messages,
         summary: 'Loaded Conversation' // We might need to get this from another source
       };
-    });
-  }, [conversations, fetchConversationTree]);
+    }, conversations, fetchConversationTree);
+  }, [conversations, fetchConversationTree, executeApiCall]);
   
   // Helper method to determine system prompt for a conversation
   const getSystemPromptForConversation = useCallback((conversationId: string) => {

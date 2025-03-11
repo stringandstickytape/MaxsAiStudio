@@ -1,116 +1,81 @@
 // src/hooks/useToolsManagement.ts
 import { useCallback } from 'react';
-import { useInitialization } from '@/utils/hookUtils';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useToolStore } from '@/stores/useToolStore';
 import { Tool, ToolCategory } from '@/types/toolTypes';
-import { v4 as uuidv4 } from 'uuid';
-import { apiClient } from '@/services/api/apiClient';
+import { createResourceHook } from './useResourceFactory';
+
+// Create resource hook for tools
+const useToolResource = createResourceHook<Tool>({
+  endpoints: {
+    fetch: '/api/getTools',
+    create: '/api/addTool',
+    update: '/api/updateTool',
+    delete: '/api/deleteTool'
+  },
+  storeActions: {
+    setItems: (tools) => useToolStore.getState().setTools(tools)
+  },
+  options: {
+    idField: 'guid',
+    generateId: true,
+    transformFetchResponse: (data) => {
+      // Ensure all tools have a filetype property
+      return (data.tools || []).map((tool: Tool) => ({
+        ...tool,
+        filetype: tool.filetype || ''
+      }));
+    },
+    transformItemResponse: (data) => data.tool
+  }
+});
+
+// Create resource hook for tool categories
+const useToolCategoryResource = createResourceHook<ToolCategory>({
+  endpoints: {
+    fetch: '/api/getToolCategories'
+  },
+  storeActions: {
+    setItems: (categories) => useToolStore.getState().setCategories(categories)
+  },
+  options: {
+    idField: 'id',
+    transformFetchResponse: (data) => data.categories || []
+  }
+});
 
 export function useToolsManagement() {
-  // Use API call state utility
-  const { 
-    isLoading, 
-    error, 
-    executeApiCall, 
-    clearError 
-  } = useApiCallState();
+  // Use the tools resource hook
+  const {
+    isLoading: toolsLoading,
+    error: toolsError,
+    fetchItems: fetchTools,
+    createItem: addTool,
+    updateItem: updateTool,
+    deleteItem: deleteTool,
+    clearError: clearToolsError
+  } = useToolResource();
   
-  // Perform initialization with safer approach
-  const isInitialized = useInitialization(async () => {
-    // Fetch data directly without checking length
-    await fetchTools();
-    await fetchToolCategories();
-  }, []);
+  // Use the tool categories resource hook
+  const {
+    isLoading: categoriesLoading,
+    error: categoriesError,
+    fetchItems: fetchToolCategories,
+    clearError: clearCategoriesError
+  } = useToolCategoryResource();
   
+  // Use API call state utility for specialized operations
+  const { executeApiCall } = useApiCallState();
+  
+  // Get state from the store
   const { 
     tools,
     categories,
     activeTools,
-    setTools, 
-    setCategories, 
     addActiveTool,
     removeActiveTool,
     clearActiveTools 
   } = useToolStore();
-  
-  // Fetch all tools
-  const fetchTools = useCallback(async () => {
-    return executeApiCall(async () => {
-      const getTools = createApiRequest('/api/getTools', 'POST');
-      const data = await getTools({});
-      
-      // Ensure all tools have a filetype property
-      const toolsWithFiletype = data.tools.map((tool: Tool) => ({
-        ...tool,
-        filetype: tool.filetype || ''
-      }));
-      
-      setTools(toolsWithFiletype);
-      return toolsWithFiletype;
-    });
-  }, [setTools]);
-  
-  // Fetch tool categories
-  const fetchToolCategories = useCallback(async () => {
-    return executeApiCall(async () => {
-      const getToolCategories = createApiRequest('/api/getToolCategories', 'POST');
-      const data = await getToolCategories({});
-      
-      setCategories(data.categories);
-      return data.categories;
-    });
-  }, [setCategories]);
-  
-  // Add a tool
-  const addTool = useCallback(async (toolData: Omit<Tool, 'guid'>) => {
-    return executeApiCall(async () => {
-      // Generate a new GUID if not provided
-      const toolWithGuid = {
-        ...toolData,
-        guid: uuidv4()
-      };
-      
-      const addToolRequest = createApiRequest('/api/addTool', 'POST');
-      const data = await addToolRequest(toolWithGuid);
-      
-      // Refresh tools list
-      await fetchTools();
-      
-      return data.tool;
-    });
-  }, [fetchTools]);
-  
-  // Update a tool
-  const updateTool = useCallback(async (toolData: Tool) => {
-    return executeApiCall(async () => {
-      const updateToolRequest = createApiRequest('/api/updateTool', 'POST');
-      const data = await updateToolRequest(toolData);
-      
-      // Refresh tools list
-      await fetchTools();
-      
-      return data.tool;
-    });
-  }, [fetchTools]);
-  
-  // Delete a tool
-  const deleteTool = useCallback(async (toolId: string) => {
-    return executeApiCall(async () => {
-      const deleteToolRequest = createApiRequest('/api/deleteTool', 'POST');
-      await deleteToolRequest({ toolId });
-      
-      // If this tool was active, remove it
-      if (activeTools.includes(toolId)) {
-        removeActiveTool(toolId);
-      }
-      
-      // Refresh tools list
-      await fetchTools();
-      
-      return true;
-    });
-  }, [fetchTools, activeTools, removeActiveTool]);
   
   // Validate a tool schema
   const validateToolSchema = useCallback(async (schema: string) => {
@@ -120,7 +85,7 @@ export function useToolsManagement() {
       
       return data.isValid;
     });
-  }, []);
+  }, [executeApiCall]);
   
   // Import tools
   const importTools = useCallback(async (jsonData: string) => {
@@ -133,7 +98,7 @@ export function useToolsManagement() {
       
       return data.tools || [];
     });
-  }, [fetchTools]);
+  }, [fetchTools, executeApiCall]);
   
   // Export tools
   const exportTools = useCallback(async (toolIds?: string[]) => {
@@ -143,7 +108,7 @@ export function useToolsManagement() {
       
       return data.json;
     });
-  }, []);
+  }, [executeApiCall]);
   
   // Toggle a tool's active state
   const toggleTool = useCallback((toolId: string, activate: boolean) => {
@@ -154,7 +119,17 @@ export function useToolsManagement() {
     }
   }, [addActiveTool, removeActiveTool]);
   
-  // Initialization is now handled by useInitialization hook
+  // Combined loading state
+  const isLoading = toolsLoading || categoriesLoading;
+  
+  // Combined error state
+  const error = toolsError || categoriesError;
+  
+  // Function to clear all errors
+  const clearError = useCallback(() => {
+    clearToolsError();
+    clearCategoriesError();
+  }, [clearToolsError, clearCategoriesError]);
   
   return {
     // State
