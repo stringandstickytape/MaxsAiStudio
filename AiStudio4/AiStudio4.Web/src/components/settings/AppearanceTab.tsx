@@ -40,7 +40,7 @@ export function AppearanceTab() {
   return (
     <div className="space-y-4">
       {/* Font Size Card */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="card-base">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg text-gray-100">Font Size</CardTitle>
         </CardHeader>
@@ -58,7 +58,7 @@ export function AppearanceTab() {
       </Card>
       
       {/* Theme Card */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="card-base">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg text-gray-100">Theme</CardTitle>
         </CardHeader>
@@ -87,7 +87,7 @@ export function AppearanceTab() {
         <Button
           variant="outline"
           onClick={() => setResetDialogOpen(true)}
-          className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600 flex items-center gap-1"
+          className="btn-secondary flex items-center gap-1"
         >
           <RefreshCw className="h-4 w-4" />
           <span>Reset to Defaults</span>
@@ -104,12 +104,12 @@ export function AppearanceTab() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600">
+            <AlertDialogCancel className="btn-secondary">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleReset}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="btn-danger"
             >
               Reset
             </AlertDialogAction>

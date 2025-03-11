@@ -236,14 +236,14 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           variant="outline" 
           onClick={handleValidateSchema}
           disabled={isLoading}
-          className="bg-gray-800 border-gray-700"
+          className="btn-secondary"
         >
           {isLoading ? 'Validating...' : 'Validate'}
         </Button>
         <Button 
           variant="outline" 
           onClick={onClose} 
-          className="bg-gray-800 border-gray-700"
+          className="btn-secondary"
           disabled={isLoading}
         >
           Cancel
@@ -251,6 +251,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         <Button 
           onClick={handleSubmit}
           disabled={isLoading}
+          className="btn-primary"
         >
           {isLoading ? (
             <span className="flex items-center">

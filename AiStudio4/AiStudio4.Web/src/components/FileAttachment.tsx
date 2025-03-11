@@ -1,4 +1,4 @@
-﻿// src/components/FileAttachment.tsx
+// src/components/FileAttachment.tsx
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, X } from 'lucide-react';
@@ -91,7 +91,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 type="button"
                 onClick={handleButtonClick}
                 disabled={disabled}
-                className="bg-gray-800 border-gray-700 text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                 aria-label="Attach file"
             >
                 <Paperclip className="h-5 w-5" />

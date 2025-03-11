@@ -115,7 +115,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             </div>
 
             {providers.length === 0 ? (
-                <Card className="bg-gray-800 border-gray-700">
+                <Card className="card-base">
                     <CardContent className="pt-6 text-center text-gray-400">
                         <div className="flex flex-col items-center justify-center py-8">
                             <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
@@ -136,7 +136,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                     {providers.map(provider => (
                         <Card
                             key={provider.guid}
-                            className="overflow-hidden bg-gray-800/80 border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm group"
+                            className="card-base card-hover backdrop-blur-sm group"
                         >
                             <div
                                 className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 transition-all duration-300 group-hover:h-3"

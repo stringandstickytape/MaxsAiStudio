@@ -144,7 +144,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
             variant="outline"
             size="sm"
             onClick={handleAddTool}
-            className="flex items-center space-x-1 bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50"
+            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
           >
             <Plus className="h-4 w-4" />
             <span>New Tool</span>
@@ -154,7 +154,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <div className="md:col-span-1">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="card-base">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Categories</CardTitle>
             </CardHeader>
@@ -208,7 +208,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
           ) : (
             <div className="space-y-3">
               {filteredTools.map(tool => (
-                <Card key={tool.guid} className="bg-gray-800 border-gray-700">
+                <Card key={tool.guid} className="card-base">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div>
@@ -271,7 +271,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
       <div className="flex space-x-2 mt-4">
         <Button 
           variant="outline" 
-          className="bg-gray-800 border-gray-700"
+          className="btn-secondary"
           onClick={handleExportTools}
           disabled={isExporting}
         >

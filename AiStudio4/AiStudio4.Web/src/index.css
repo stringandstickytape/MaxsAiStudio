@@ -1,3 +1,42 @@
+@layer components {
+    /* Button and Interactive Element Styles */
+    .btn-primary {
+        @apply bg-blue-600 hover:bg-blue-700 text-white border-blue-500 transition-colors;
+    }
+
+    .btn-secondary {
+        @apply bg-gray-800 hover:bg-gray-700 text-gray-200 border-gray-600 transition-colors;
+    }
+
+    .btn-danger {
+        @apply bg-red-700 hover:bg-red-800 text-white border-red-900 transition-colors;
+    }
+
+    .btn-ghost {
+        @apply text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors;
+    }
+
+    .icon-btn {
+        @apply h-8 w-8 p-0 rounded-md flex items-center justify-center;
+    }
+
+    .card-base {
+        @apply bg-gray-800/80 border-gray-700/50 shadow-md rounded-lg overflow-hidden;
+    }
+
+    .card-hover {
+        @apply hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
+    }
+
+    .panel-bg {
+        @apply bg-gray-900 text-gray-100;
+    }
+
+    .form-item {
+        @apply mb-4 space-y-2;
+    }
+}
+
 @layer base {
     :root {
         --chart-1: 12 76% 61%;

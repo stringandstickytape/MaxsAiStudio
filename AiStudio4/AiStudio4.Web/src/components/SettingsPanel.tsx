@@ -102,11 +102,11 @@ export const SettingsPanel: React.FC = () => {
         return (
             <div className="text-red-400 p-4 bg-red-950/30 border border-red-800/50 rounded-md m-4">
                 {error}
-                <Button
-                    className="mt-2 w-full bg-gray-800 hover:bg-gray-700 text-gray-100"
-                    variant="outline"
-                    onClick={handleRetry}
-                >
+                    <Button
+                        className="mt-2 w-full btn-secondary"
+                        variant="outline"
+                        onClick={handleRetry}
+                    >
                     Retry
                 </Button>
             </div>

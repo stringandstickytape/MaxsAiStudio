@@ -238,7 +238,7 @@ function PromptList({ prompts, defaultPromptId, onEdit, onApply, isLoading }: Pr
 
     if (prompts.length === 0) {
         return (
-            <Card className="bg-gray-800/60 border-gray-700/50 text-center p-8">
+            <Card className="card-base text-center p-8">
                 <CardContent>
                     <p className="text-gray-400">No prompts found</p>
                 </CardContent>

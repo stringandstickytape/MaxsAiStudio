@@ -258,7 +258,7 @@ export function InputBar({
                                 variant="outline"
                                 size="icon"
                                 onClick={onVoiceInputClick}
-                                className="bg-gray-800 border-gray-700 text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                                 aria-label="Voice input"
                                 disabled={isLoading}
                             >
@@ -270,7 +270,7 @@ export function InputBar({
                             variant="outline"
                             size="icon"
                             onClick={handleSend}
-                            className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500 transition-colors"
+                            className="btn-primary icon-btn"
                             aria-label="Send message"
                             disabled={isLoading}
                         >

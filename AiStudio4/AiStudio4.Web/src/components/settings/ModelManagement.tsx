@@ -134,7 +134,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                 <h2 className="text-xl font-semibold text-gray-100">AI Models</h2>
                 <Button
                     onClick={() => setAddOpen(true)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="flex items-center gap-2 btn-primary"
                 >
                     <PlusCircle className="h-4 w-4" /> Add Model
                 </Button>
@@ -145,7 +145,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 </div>
             ) : models.length === 0 ? (
-                <Card className="bg-gray-800 border-gray-700">
+                <Card className="card-base">
                     <CardContent className="pt-6 text-center text-gray-400">
                         <div className="flex flex-col items-center justify-center py-8">
                             <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
@@ -166,7 +166,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                     {models.map(model => (
                         <Card
                             key={model.guid}
-                            className="overflow-hidden bg-gray-800/80 border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm group"
+                            className="card-base card-hover backdrop-blur-sm group"
                         >
                             <div
                                 className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 transition-all duration-300 group-hover:h-3"
@@ -200,7 +200,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
+                                            className="btn-ghost icon-btn"
                                             onClick={() => {
                                                 setEditingModel(model);
                                                 setEditOpen(true);
@@ -212,7 +212,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+                                            className="btn-danger icon-btn"
                                             onClick={() => {
                                                 setModelToDelete(model);
                                                 setDeleteOpen(true);

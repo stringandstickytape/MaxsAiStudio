@@ -339,14 +339,14 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                 onClick={onClose}
                                 variant="outline"
                                 disabled={isProcessing}
-                                className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+                                className="btn-secondary"
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isProcessing}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                className="btn-primary"
                             >
                                 {isProcessing ? (
                                     <span className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                                     type="button"
                                     onClick={form.handleSubmit(saveAndApply)}
                                     disabled={isProcessing}
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="btn-primary bg-green-600 hover:bg-green-700"
                                 >
                                     <span className="flex items-center gap-2">
                                         <Check className="h-4 w-4" />

@@ -79,7 +79,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
 
     return (
         <>
-            <Card className="bg-gray-800/80 border-gray-700/50 hover:border-gray-600 shadow-md hover:shadow-lg transition-all overflow-hidden">
+            <Card className="card-base card-hover hover:border-gray-600">
                 <CardContent className="p-4">
                     <div className="flex justify-between items-start gap-2">
                         <div className="flex-1">
