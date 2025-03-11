@@ -32,7 +32,21 @@ namespace AiStudio4.Controls
 
         private void AiStudioWebView2_WebMessageReceived(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
-            
+            try
+            {
+                string jsonMessage = e.WebMessageAsJson;
+
+                dynamic message = Newtonsoft.Json.JsonConvert.DeserializeObject(jsonMessage);
+
+                if (message != null && message.type != null && message.type.ToString().ToLower() == "exit")
+                {
+                    Application.Current.Shutdown();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing WebView message: {ex.Message}");
+            }
         }
 
         public async void Initialize()

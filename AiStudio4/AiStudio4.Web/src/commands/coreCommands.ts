@@ -60,18 +60,15 @@ export function initializeCoreCommands(handlers: {
         },
       ],
       [
-        'test-webview',
-        'Test WebView',
-        'Send a test message to WebView',
+        'exit-app',
+        'Exit the application',
+        'Closes the application on the Windows desktop',
         '',
-        ['test', 'webview', 'debug', 'message'],
+        ['close', 'quit', 'exit', 'end'],
         React.createElement(Terminal, { size: 16 }),
         () => {
           window.chrome?.webview?.postMessage({
-            type: 'send',
-            content: 'test',
-            selectedTools: '',
-            addEmbeddings: 'false',
+            type: 'exit',
           });
           console.log('Test message sent to WebView');
         },
