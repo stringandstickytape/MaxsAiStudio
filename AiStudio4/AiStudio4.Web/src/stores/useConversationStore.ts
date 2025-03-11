@@ -1,4 +1,4 @@
-/ src/stores / useConversationStore.ts
+// src/stores/useConversationStore.ts
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, Conversation } from '@/types/conversation';

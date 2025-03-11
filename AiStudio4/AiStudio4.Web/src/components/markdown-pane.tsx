@@ -129,6 +129,12 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
                             </button>
                         )}
                         {launchButton}
+                        <button
+                            onClick={() => navigator.clipboard.writeText(content)}
+                            className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                        >
+                            Copy
+                        </button>
                         {showRenderedOrRawButton}
                     </div>
                 </div>
