@@ -19,18 +19,36 @@ class CodeBlockRendererRegistry {
   }
 
   async renderAll() {
-    
+    // Optimization with fallback to ensure layout rendering
     const uniqueRenderers = new Set(this.renderers.values());
-
+    
     for (const renderer of uniqueRenderers) {
-      
-      const typeSelectors = renderer.type.map((type) => `.${type}`).join(', ');
+      // Support both class-based and data-attribute selectors for compatibility
+      const typeSelectors = renderer.type.map((type) => `.${type}, [data-type="${type}"]`).join(', ');
       const elements = document.querySelectorAll(typeSelectors);
-
-      elements.forEach(async (element) => {
-        const content = element.getAttribute('data-content') || '';
-        await renderer.render(content);
-      });
+      
+      if (elements.length > 0) {
+        // Process in batches to avoid blocking the main thread
+        const batchSize = 5;
+        for (let i = 0; i < elements.length; i += batchSize) {
+          const batch = Array.from(elements).slice(i, i + batchSize);
+          
+          // Process batch
+          await Promise.all(batch.map(async (element) => {
+            const content = element.getAttribute('data-content') || '';
+            try {
+              await renderer.render(content, element as HTMLElement);
+            } catch (error) {
+              console.error('Failed to render diagram:', error);
+            }
+          }));
+          
+          // Small delay to allow UI to breathe
+          if (i + batchSize < elements.length) {
+            await new Promise(resolve => setTimeout(resolve, 10));
+          }
+        }
+      }
     }
   }
 }

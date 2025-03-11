@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -10,25 +11,33 @@ interface MarkdownPaneProps {
   message: string;
 }
 
-export function MarkdownPane({ message }: MarkdownPaneProps) {
+export const MarkdownPane = React.memo(function MarkdownPane({ message }: MarkdownPaneProps) {
   const [markdownContent, setMarkdownContent] = useState<string>('');
   const [mermaidKey, setMermaidKey] = useState(0);
   const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
   const [isVisualStudio, setIsVisualStudio] = useState(false);
 
   useEffect(() => {
-    setMarkdownContent(message);
-    setMermaidKey((prev) => prev + 1); // Force re-render of Mermaid diagrams
-  }, [message]);
+    // Only update if the message actually changed
+    if (message !== markdownContent) {
+      setMarkdownContent(message);
+      setMermaidKey((prev) => prev + 1); // Force re-render of Mermaid diagrams
+    }
+  }, [message, markdownContent]);
 
   useEffect(() => {
     const isVS = localStorage.getItem('isVisualStudio') === 'true';
     setIsVisualStudio(isVS);
   }, []);
 
-  // Re-render diagrams when content changes
+  // Simplified rendering approach that preserves layout while improving performance
   useEffect(() => {
-    codeBlockRendererRegistry.renderAll();
+    // Re-render diagrams only when content changes or mermaid diagrams need refresh
+    const timer = setTimeout(() => {
+      codeBlockRendererRegistry.renderAll();
+    }, 50); // Small delay to ensure DOM is ready
+    
+    return () => clearTimeout(timer);
   }, [markdownContent, mermaidKey]);
 
   // Function to launch HTML content in a new window
@@ -59,7 +68,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     }
   };
 
-  const components = {
+  // Memoize components to prevent recreation on every render
+  const components = useMemo(() => ({
     code({ className, children }: any) {
       const match = /language-(\w+)/.exec(className || '');
       if (!match) return <code className={className}>{children}</code>;
@@ -78,15 +88,16 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
 
       const isRawView = showRawContent[blockId];
 
-      const toggleView = () => {
+      // Memoize the toggle function to prevent recreation on every render
+      const toggleView = useCallback(() => {
         setShowRawContent((prev) => ({
           ...prev,
           [blockId]: !prev[blockId], // Correctly toggle the boolean value
         }));
         // Force re-render of diagrams when toggling back to rendered view
-        // No need to check showRawContent here.  The useEffect will handle the re-render.
+        // No need to check showRawContent here. The useEffect will handle the re-render.
         setMermaidKey((prev) => prev + 1);
-      };
+      }, [blockId]);
 
       // Determine if this is an HTML block that can be launched
       const isHtmlBlock = language === 'html' || language === 'htm';
@@ -111,7 +122,8 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         </button>
       ) : null;
 
-      const createCodeHeader = (isFooter = false) => (
+      // Memoize header creation function
+      const createCodeHeader = useCallback((isFooter = false) => (
         <div
           className={`flex items-center justify-between bg-gray-900 px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} border-gray-700 text-sm text-gray-400`}
         >
@@ -135,7 +147,7 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
             {showRenderedOrRawButton}
           </div>
         </div>
-      );
+      ), [language, content, isVisualStudio]);
 
       const codeHeader = createCodeHeader(false);
 
@@ -152,9 +164,10 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         ) : (
           <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
             {codeHeader}
-            <div className="p-4 bg-gray-800 rounded-b-lg">
-              <DiagramComponent content={content} className="overflow-auto" />
-            </div>
+          <div className="p-4 bg-gray-800 rounded-b-lg diagram-container" data-type={renderer.type[0]} data-content={content}>
+            {/* Maintain both rendered component and lazy-loading data attributes */}
+            <DiagramComponent content={content} className="overflow-auto" />
+          </div>
           </div>
         );
       }
@@ -172,9 +185,20 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
         <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
           {codeHeader}
           <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200">
-            <SyntaxHighlighter style={nightOwl as any} language={match[1]} PreTag="div" className="rounded-lg">
-              {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
+          <SyntaxHighlighter 
+            style={nightOwl as any} 
+            language={match[1]} 
+            PreTag="div" 
+            className="rounded-lg"
+            // Add performance optimizations for SyntaxHighlighter
+            wrapLines={false}
+            wrapLongLines={false}
+            showLineNumbers={false}
+            useInlineStyles={true}
+            customStyle={{ display: 'block', width: '100%', overflow: 'auto' }}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
           </div>
           {createCodeHeader(true)}
         </div>
@@ -201,11 +225,11 @@ export function MarkdownPane({ message }: MarkdownPaneProps) {
     tr: ({ children }: any) => <tr>{children}</tr>,
     th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
     td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-  };
+  }), [showRawContent, mermaidKey, isVisualStudio]);
 
   return (
     <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
       {markdownContent}
     </ReactMarkdown>
   );
-}
+});
