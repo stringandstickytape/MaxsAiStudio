@@ -53,13 +53,13 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   generateUuid = true,
   uuidField = 'guid',
   layout = 'single',
-  className
+  className,
 }) => {
   // Create default values from field definitions
   const getDefaultValues = () => {
     const defaultValues: Record<string, any> = {};
-    
-    fields.forEach(field => {
+
+    fields.forEach((field) => {
       switch (field.type) {
         case 'checkbox':
           defaultValues[field.name] = false;
@@ -71,12 +71,12 @@ export const GenericForm: React.FC<GenericFormProps> = ({
           defaultValues[field.name] = '';
       }
     });
-    
+
     return defaultValues;
   };
-  
+
   const form = useForm({
-    defaultValues: initialValues || getDefaultValues()
+    defaultValues: initialValues || getDefaultValues(),
   });
 
   useEffect(() => {
@@ -93,8 +93,9 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   };
 
   const getInputStyles = (type: FieldType) => {
-    const baseStyles = "bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500";
-    
+    const baseStyles =
+      'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500';
+
     // Add any type-specific styles here
     switch (type) {
       case 'color':
@@ -110,10 +111,10 @@ export const GenericForm: React.FC<GenericFormProps> = ({
       // First, identify fields that should be in the same row (full width fields will be alone)
       const rows: FormFieldDefinition[][] = [];
       let currentRow: FormFieldDefinition[] = [];
-      
-      fields.forEach(field => {
+
+      fields.forEach((field) => {
         const span = field.colSpan || 1;
-        
+
         // If this is a full-width field or would overflow the row, start a new row
         if (span === 2 || currentRow.length + span > 2) {
           if (currentRow.length > 0) {
@@ -129,22 +130,25 @@ export const GenericForm: React.FC<GenericFormProps> = ({
           }
         }
       });
-      
+
       // Add any remaining fields
       if (currentRow.length > 0) {
         rows.push(currentRow);
       }
-      
+
       // Render rows
       return rows.map((rowFields, rowIndex) => (
-        <div key={`row-${rowIndex}`} className={`grid grid-cols-${rowFields.length === 1 && rowFields[0].colSpan === 2 ? '1' : '2'} gap-4`}>
-          {rowFields.map(field => renderField(field))}
+        <div
+          key={`row-${rowIndex}`}
+          className={`grid grid-cols-${rowFields.length === 1 && rowFields[0].colSpan === 2 ? '1' : '2'} gap-4`}
+        >
+          {rowFields.map((field) => renderField(field))}
         </div>
       ));
     }
-    
+
     // Single column layout
-    return fields.map(field => renderField(field));
+    return fields.map((field) => renderField(field));
   };
 
   // Render individual form field based on type
@@ -171,17 +175,13 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                     }}
                   />
                 </FormControl>
-                {field.description && (
-                  <FormDescription className="text-gray-400">
-                    {field.description}
-                  </FormDescription>
-                )}
+                {field.description && <FormDescription className="text-gray-400">{field.description}</FormDescription>}
                 <FormMessage className="text-red-400" />
               </FormItem>
             )}
           />
         );
-          
+
       case 'checkbox':
         return (
           <FormField
@@ -202,20 +202,16 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel className="form-label">
-                    {field.label}
-                  </FormLabel>
+                  <FormLabel className="form-label">{field.label}</FormLabel>
                   {field.description && (
-                  <FormDescription className="form-description">
-                      {field.description}
-                    </FormDescription>
+                    <FormDescription className="form-description">{field.description}</FormDescription>
                   )}
                 </div>
               </FormItem>
             )}
           />
         );
-          
+
       case 'select':
         return (
           <FormField
@@ -239,7 +235,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-gray-800 border-gray-700 text-gray-100">
-                    {field.options?.map(option => (
+                    {field.options?.map((option) => (
                       <SelectItem
                         key={option.value}
                         value={option.value}
@@ -251,16 +247,14 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   </SelectContent>
                 </Select>
                 {field.description && (
-                    <FormDescription className="form-description">
-                    {field.description}
-                  </FormDescription>
+                  <FormDescription className="form-description">{field.description}</FormDescription>
                 )}
                 <FormMessage className="text-red-400" />
               </FormItem>
             )}
           />
         );
-          
+
       case 'color':
         return (
           <FormField
@@ -294,16 +288,14 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </div>
                 {field.description && (
-                  <FormDescription className="form-description">
-                    {field.description}
-                  </FormDescription>
+                  <FormDescription className="form-description">{field.description}</FormDescription>
                 )}
                 <FormMessage className="text-red-400" />
               </FormItem>
             )}
           />
         );
-          
+
       case 'number':
         return (
           <FormField
@@ -316,7 +308,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                 <FormControl>
                   <Input
                     type="number"
-                    step={field.step || "1"}
+                    step={field.step || '1'}
                     min={field.min}
                     max={field.max}
                     placeholder={field.placeholder}
@@ -331,16 +323,14 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 {field.description && (
-                  <FormDescription className="form-description">
-                    {field.description}
-                  </FormDescription>
+                  <FormDescription className="form-description">{field.description}</FormDescription>
                 )}
                 <FormMessage className="text-red-400" />
               </FormItem>
             )}
           />
         );
-          
+
       // Default is text input (includes password)
       default:
         return (
@@ -365,9 +355,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                   />
                 </FormControl>
                 {field.description && (
-                  <FormDescription className="form-description">
-                    {field.description}
-                  </FormDescription>
+                  <FormDescription className="form-description">{field.description}</FormDescription>
                 )}
                 <FormMessage className="text-red-400" />
               </FormItem>
@@ -387,18 +375,14 @@ export const GenericForm: React.FC<GenericFormProps> = ({
             <Button
               type="button"
               onClick={onCancel}
-              variant="outline" 
+              variant="outline"
               disabled={isProcessing}
               className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
             >
               {cancelButtonText}
             </Button>
           )}
-          <Button
-            type="submit"
-            disabled={isProcessing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button type="submit" disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 text-white">
             {isProcessing ? 'Processing...' : submitButtonText}
           </Button>
         </div>

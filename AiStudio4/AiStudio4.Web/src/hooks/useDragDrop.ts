@@ -12,25 +12,28 @@ export function useDragDrop<T extends { id: string }>(items: T[], onReorder?: (n
     setIsDragging(true);
   }, []);
 
-  const handleDragEnd = useCallback((result: DropResult) => {
-    setIsDragging(false);
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      setIsDragging(false);
 
-    if (!result.destination) return;
+      if (!result.destination) return;
 
-    if (result.destination.index === result.source.index) return;
+      if (result.destination.index === result.source.index) return;
 
-    const reorderedItems = Array.from(items);
-    const [movedItem] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, movedItem);
+      const reorderedItems = Array.from(items);
+      const [movedItem] = reorderedItems.splice(result.source.index, 1);
+      reorderedItems.splice(result.destination.index, 0, movedItem);
 
-    if (onReorder) {
-      onReorder(reorderedItems);
-    }
-  }, [items, onReorder]);
+      if (onReorder) {
+        onReorder(reorderedItems);
+      }
+    },
+    [items, onReorder],
+  );
 
   return {
     isDragging,
     handleDragStart,
-    handleDragEnd
+    handleDragEnd,
   };
 }

@@ -9,7 +9,7 @@ interface ToolStore {
   activeTools: string[];
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   setTools: (tools: Tool[]) => void;
   setCategories: (categories: ToolCategory[]) => void;
@@ -28,29 +28,29 @@ export const useToolStore = create<ToolStore>((set) => ({
   activeTools: [],
   loading: false,
   error: null,
-  
+
   // Actions
   setTools: (tools) => set({ tools }),
-  
+
   setCategories: (categories) => set({ categories }),
-  
+
   setActiveTools: (toolIds) => set({ activeTools: toolIds }),
-  
-  addActiveTool: (toolId) => set((state) => ({
-    activeTools: state.activeTools.includes(toolId)
-      ? state.activeTools
-      : [...state.activeTools, toolId]
-  })),
-  
-  removeActiveTool: (toolId) => set((state) => ({
-    activeTools: state.activeTools.filter(id => id !== toolId)
-  })),
-  
+
+  addActiveTool: (toolId) =>
+    set((state) => ({
+      activeTools: state.activeTools.includes(toolId) ? state.activeTools : [...state.activeTools, toolId],
+    })),
+
+  removeActiveTool: (toolId) =>
+    set((state) => ({
+      activeTools: state.activeTools.filter((id) => id !== toolId),
+    })),
+
   clearActiveTools: () => set({ activeTools: [] }),
-  
+
   setLoading: (loading) => set({ loading }),
-  
-  setError: (error) => set({ error })
+
+  setError: (error) => set({ error }),
 }));
 
 // Debug helper for console

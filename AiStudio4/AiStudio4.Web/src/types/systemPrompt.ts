@@ -11,7 +11,6 @@ export interface SystemPrompt {
   tags: string[];
 }
 
-
 export interface SystemPromptFormValues {
   title: string;
   content: string;
@@ -19,5 +18,3 @@ export interface SystemPromptFormValues {
   tags: string[];
   isDefault?: boolean;
 }
-
-

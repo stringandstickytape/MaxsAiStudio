@@ -9,7 +9,7 @@ interface WebSocketStore {
   clientId: string | null;
   lastMessageTime: number | null;
   reconnectAttempts: number;
-  
+
   // Actions
   connect: () => void;
   disconnect: () => void;
@@ -31,7 +31,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       if (detail.type === 'connected') {
         set({
           isConnected: true,
-          reconnectAttempts: 0
+          reconnectAttempts: 0,
         });
       } else if (detail.type === 'disconnected') {
         set({ isConnected: false });
@@ -39,64 +39,64 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
         set({ clientId: detail.clientId });
       }
     });
-    
+
     // Listen for all messages to update lastMessageTime
     listenToWebSocketEvent('message:received', (detail) => {
       set({ lastMessageTime: detail.timestamp || Date.now() });
     });
   }
-  
+
   return {
     // Initial state
     isConnected: webSocketService.isConnected(),
     clientId: webSocketService.getClientId(),
     lastMessageTime: null,
     reconnectAttempts: webSocketService.getReconnectAttempts(),
-    
+
     // Actions
     connect: () => {
       webSocketService.connect();
     },
-    
+
     disconnect: () => {
       webSocketService.disconnect();
     },
-    
+
     send: (messageType, content) => {
       webSocketService.send({ messageType, content });
       set({ lastMessageTime: Date.now() });
     },
-    
+
     updateConnectionStatus: (status) => {
       set({
         isConnected: status.isConnected,
-        clientId: status.clientId
+        clientId: status.clientId,
       });
     },
-    
+
     updateLastMessageTime: (time) => {
       set({ lastMessageTime: time });
     },
-    
+
     setConnected: (isConnected) => {
       set({ isConnected });
     },
-    
+
     setClientId: (clientId) => {
       set({ clientId });
     },
-    
+
     setReconnectAttempts: (attempts) => {
       set({ reconnectAttempts: attempts });
     },
-    
+
     incrementReconnectAttempts: () => {
       set((state) => ({ reconnectAttempts: state.reconnectAttempts + 1 }));
     },
-    
+
     resetReconnectAttempts: () => {
       set({ reconnectAttempts: 0 });
-    }
+    },
   };
 });
 

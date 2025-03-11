@@ -7,7 +7,7 @@ import { useAppearanceStore } from '@/stores/useAppearanceStore';
  */
 export function useAppearanceManagement() {
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   // Get store state and actions
   const {
     fontSize,
@@ -20,18 +20,18 @@ export function useAppearanceManagement() {
     toggleDarkMode,
     saveAppearanceSettings,
     loadAppearanceSettings,
-    setError
+    setError,
   } = useAppearanceStore();
-  
+
   // Function to apply settings to the document
   const applySettings = useCallback(() => {
     // Apply font size to the root element
     document.documentElement.style.fontSize = `${fontSize}px`;
-    
+
     // We could apply dark mode here if needed
     // document.documentElement.classList.toggle('dark', isDarkMode);
   }, [fontSize, isDarkMode]);
-  
+
   // Load settings on mount
   useEffect(() => {
     if (!isInitialized) {
@@ -40,20 +40,20 @@ export function useAppearanceManagement() {
           applySettings();
           setIsInitialized(true);
         })
-        .catch(err => {
+        .catch((err) => {
           console.error('Failed to load appearance settings:', err);
           setIsInitialized(true);
         });
     }
   }, [loadAppearanceSettings, applySettings, isInitialized]);
-  
+
   // Apply settings whenever they change
   useEffect(() => {
     if (isInitialized) {
       applySettings();
     }
   }, [fontSize, isDarkMode, applySettings, isInitialized]);
-  
+
   // Function to save settings
   const saveSettings = useCallback(async () => {
     try {
@@ -63,13 +63,13 @@ export function useAppearanceManagement() {
       return false;
     }
   }, [saveAppearanceSettings]);
-  
+
   // Reset to defaults
   const resetToDefaults = useCallback(async () => {
     setFontSize(16);
     await saveSettings();
   }, [setFontSize, saveSettings]);
-  
+
   return {
     // State
     fontSize,
@@ -77,7 +77,7 @@ export function useAppearanceManagement() {
     isLoading,
     error,
     isInitialized,
-    
+
     // Actions
     setFontSize,
     increaseFontSize,
@@ -85,6 +85,6 @@ export function useAppearanceManagement() {
     toggleDarkMode,
     saveSettings,
     resetToDefaults,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
   };
 }

@@ -12,32 +12,26 @@ interface FontSizeControlProps {
 
 export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
   // Use appearance store
-  const { 
-    fontSize, 
-    setFontSize, 
-    increaseFontSize, 
-    decreaseFontSize, 
-    saveAppearanceSettings,
-    isLoading
-  } = useAppearanceStore();
-  
+  const { fontSize, setFontSize, increaseFontSize, decreaseFontSize, saveAppearanceSettings, isLoading } =
+    useAppearanceStore();
+
   const [hasChanges, setHasChanges] = useState(false);
-  
+
   // Handle font size changes
   const handleFontSizeChange = (newSize: number) => {
     setFontSize(newSize);
     setHasChanges(true);
-    
+
     if (onChange) {
       onChange(newSize);
     }
   };
-  
+
   const handleSave = async () => {
     try {
       await saveAppearanceSettings();
       setHasChanges(false);
-      
+
       if (onSave) {
         onSave();
       }
@@ -45,7 +39,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
       console.error('Failed to save font size:', error);
     }
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
@@ -63,7 +57,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
           </Button>
         )}
       </div>
-      
+
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
@@ -77,7 +71,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
         >
           <Minus className="h-4 w-4" />
         </Button>
-        
+
         <Slider
           value={[fontSize]}
           min={8}
@@ -87,7 +81,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
           disabled={isLoading}
           className="flex-1"
         />
-        
+
         <Button
           variant="outline"
           size="icon"
@@ -101,7 +95,7 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-      
+
       <div className="grid grid-cols-3 gap-2 mt-2">
         <Button
           variant="outline"
@@ -128,8 +122,8 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
           Large
         </Button>
       </div>
-      
-          <div className="mt-4 text-small-gray-400">
+
+      <div className="mt-4 text-small-gray-400">
         <p>Adjust the font size of the entire application. Changes will be applied immediately.</p>
       </div>
     </div>

@@ -16,23 +16,23 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
     deleteEndpoint?: string;
     listEndpoint?: string;
     transformResponse?: (data: any) => any;
-  } = {}
+  } = {},
 ) {
   // Default ID field is 'guid'
   const idField = options.idField || 'guid';
-  
+
   // Default endpoints based on resourceName
   const endpoints = {
     create: options.createEndpoint || `/api/create${resourceName}`,
     read: options.readEndpoint || `/api/get${resourceName}`,
     update: options.updateEndpoint || `/api/update${resourceName}`,
     delete: options.deleteEndpoint || `/api/delete${resourceName}`,
-    list: options.listEndpoint || `/api/get${resourceName}s`
+    list: options.listEndpoint || `/api/get${resourceName}s`,
   };
-  
+
   // Transform response data if provided
   const transformResponse = options.transformResponse || ((data) => data);
-  
+
   return {
     /**
      * Create a new resource
@@ -41,18 +41,18 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
       try {
         const response = await apiClient.post(endpoints.create, params);
         const data = response.data;
-        
+
         if (!data.success) {
           throw new Error(data.error || `Failed to create ${resourceName}`);
         }
-        
+
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
         console.error(`Error creating ${resourceName}:`, err);
         throw err;
       }
     },
-    
+
     /**
      * Read a specific resource by ID
      */
@@ -60,19 +60,18 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
       try {
         const response = await apiClient.post(endpoints.read, { [`${resourceName.toLowerCase()}Id`]: id });
         const data = response.data;
-        
+
         if (!data.success) {
           throw new Error(data.error || `Failed to get ${resourceName}`);
         }
-        
+
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
-        
         console.error(`Error reading ${resourceName}:`, err);
         return null;
       }
     },
-    
+
     /**
      * Update an existing resource
      */
@@ -80,19 +79,18 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
       try {
         const response = await apiClient.post(endpoints.update, params);
         const data = response.data;
-        
+
         if (!data.success) {
           throw new Error(data.error || `Failed to update ${resourceName}`);
         }
-        
+
         return transformResponse(data[resourceName.toLowerCase()] || data);
       } catch (err) {
-        
         console.error(`Error updating ${resourceName}:`, err);
         throw err;
       }
     },
-    
+
     /**
      * Delete a resource by ID
      */
@@ -100,18 +98,18 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
       try {
         const response = await apiClient.post(endpoints.delete, { [`${resourceName.toLowerCase()}Id`]: id });
         const data = response.data;
-        
+
         if (!data.success) {
           throw new Error(data.error || `Failed to delete ${resourceName}`);
         }
-        
+
         return true;
       } catch (err) {
         console.error(`Error deleting ${resourceName}:`, err);
         throw err;
       }
     },
-    
+
     /**
      * List all resources
      */
@@ -119,17 +117,17 @@ export function createCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdatePa
       try {
         const response = await apiClient.post(endpoints.list, params);
         const data = response.data;
-        
+
         if (!data.success) {
           throw new Error(data.error || `Failed to list ${resourceName}s`);
         }
-        
+
         return transformResponse(data[`${resourceName.toLowerCase()}s`] || []);
       } catch (err) {
         console.error(`Error listing ${resourceName}s:`, err);
         return [];
       }
-    }
+    },
   };
 }
 
@@ -146,14 +144,14 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
     deleteEndpoint?: string;
     listEndpoint?: string;
     transformResponse?: (data: any) => any;
-  } = {}
+  } = {},
 ) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Create the CRUD operations
   const crudOperations = createCrudOperations<T, CreateParams, UpdateParams, IdType>(resourceName, options);
-  
+
   // Wrap the operations with loading and error state
   const wrappedOperations = {
     create: useCallback(async (params: CreateParams): Promise<T> => {
@@ -170,7 +168,7 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
         setIsLoading(false);
       }
     }, []),
-    
+
     read: useCallback(async (id: IdType): Promise<T | null> => {
       try {
         setIsLoading(true);
@@ -184,7 +182,7 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
         setIsLoading(false);
       }
     }, []),
-    
+
     update: useCallback(async (params: UpdateParams): Promise<T> => {
       try {
         setIsLoading(true);
@@ -198,7 +196,7 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
         setIsLoading(false);
       }
     }, []),
-    
+
     delete: useCallback(async (id: IdType): Promise<boolean> => {
       try {
         setIsLoading(true);
@@ -212,7 +210,7 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
         setIsLoading(false);
       }
     }, []),
-    
+
     list: useCallback(async (params: any = {}): Promise<T[]> => {
       try {
         setIsLoading(true);
@@ -225,13 +223,13 @@ export function useCrudOperations<T, CreateParams = Omit<T, 'guid'>, UpdateParam
       } finally {
         setIsLoading(false);
       }
-    }, [])
+    }, []),
   };
-  
+
   return {
     ...wrappedOperations,
     isLoading,
     error,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
   };
 }

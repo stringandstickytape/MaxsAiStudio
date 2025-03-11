@@ -10,12 +10,12 @@ import { useRef, useEffect, DependencyList } from 'react';
 export function useInitialization(initFn: () => Promise<void> | void, deps: DependencyList = []) {
   const initialized = useRef(false);
   const initializing = useRef(false);
-  
+
   useEffect(() => {
     // Only run if not already initialized or initializing
     if (!initialized.current && !initializing.current) {
       initializing.current = true;
-      
+
       const runInit = async () => {
         try {
           await initFn();
@@ -26,17 +26,17 @@ export function useInitialization(initFn: () => Promise<void> | void, deps: Depe
           initializing.current = false;
         }
       };
-      
+
       // Execute initialization
       runInit();
     }
-    
+
     // Cleanup function
     return () => {
       // No cleanup needed, but this satisfies the eslint rule
     };
   }, []); // Empty dependency array - we only want to run this once
-  
+
   return initialized.current;
 }
 

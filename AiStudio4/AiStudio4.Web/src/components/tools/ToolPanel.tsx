@@ -4,7 +4,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Copy,  Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Copy, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToolEditor } from './ToolEditor';
 import { Tool } from '@/types/toolTypes';
@@ -17,16 +17,16 @@ interface ToolPanelProps {
 
 export function ToolPanel({ isOpen = true }: ToolPanelProps) {
   // Use tools management hook instead of RTK Query
-  const { 
-    tools, 
-    categories, 
-    isLoading: toolsLoading, 
-    fetchTools, 
+  const {
+    tools,
+    categories,
+    isLoading: toolsLoading,
+    fetchTools,
     fetchToolCategories,
     deleteTool,
-    exportTools: exportToolsFn
+    exportTools: exportToolsFn,
   } = useToolsManagement();
-  
+
   // Use Zustand store to sync tools and categories
   const { setTools, setCategories } = useToolStore();
 
@@ -42,7 +42,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
       setCategories(categories);
     }
   }, [categories, setCategories]);
-  
+
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
   const [currentTool, setCurrentTool] = useState<Tool | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  
+
   useEffect(() => {
     if (isOpen) {
       fetchTools();
@@ -64,7 +64,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     if (pendingAction) {
       if (pendingAction === 'create') {
         handleAddTool();
-      }  else if (pendingAction === 'export') {
+      } else if (pendingAction === 'export') {
         // Handle export action
         handleExportTools();
       }
@@ -97,7 +97,6 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     }
   };
 
-
   const handleExportTools = async () => {
     try {
       setIsExporting(true);
@@ -119,18 +118,17 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     }
   };
 
-  const filteredTools = tools.filter(tool => {
-    const matchesSearch = searchTerm === '' || 
+  const filteredTools = tools.filter((tool) => {
+    const matchesSearch =
+      searchTerm === '' ||
       tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (tool.filetype && tool.filetype.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === null || 
-      tool.categories.includes(selectedCategory);
-    
+
+    const matchesCategory = selectedCategory === null || tool.categories.includes(selectedCategory);
+
     return matchesSearch && matchesCategory;
   });
-
 
   // Determine loading state
   const isLoading = toolsLoading || isDeleting || isExporting;
@@ -161,17 +159,17 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
             <CardContent className="p-2">
               <div className="space-y-1">
                 <Button
-                  variant={selectedCategory === null ? "default" : "ghost"}
+                  variant={selectedCategory === null ? 'default' : 'ghost'}
                   size="sm"
                   className="w-full justify-start"
                   onClick={() => setSelectedCategory(null)}
                 >
                   All Tools
                 </Button>
-                {categories.map(category => (
+                {categories.map((category) => (
                   <Button
                     key={category.id}
-                    variant={selectedCategory === category.id ? "default" : "ghost"}
+                    variant={selectedCategory === category.id ? 'default' : 'ghost'}
                     size="sm"
                     className="w-full justify-start"
                     onClick={() => setSelectedCategory(category.id)}
@@ -202,12 +200,12 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
               <div className="loading-spinner h-8 w-8"></div>
             </div>
           ) : filteredTools.length === 0 ? (
-              <div className="text-center p-8 text-subtitle">
+            <div className="text-center p-8 text-subtitle">
               {searchTerm ? 'No tools match your search' : 'No tools available'}
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredTools.map(tool => (
+              {filteredTools.map((tool) => (
                 <Card key={tool.guid} className="card-base">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
@@ -215,17 +213,15 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
                         <h3 className="text-title text-lg">{tool.name}</h3>
                         <p className="text-body">{tool.description}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {(tool.categories || []).map(catId => {
-                            const category = categories.find(c => c.id === catId);
+                          {(tool.categories || []).map((catId) => {
+                            const category = categories.find((c) => c.id === catId);
                             return category ? (
                               <span key={catId} className="text-xs px-2 py-1 bg-gray-700 rounded-full">
                                 {category.name}
                               </span>
                             ) : null;
                           })}
-                          <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
-                            {tool.schemaType}
-                          </span>
+                          <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">{tool.schemaType}</span>
                           {tool.filetype && (
                             <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
                               filetype: {tool.filetype}
@@ -242,11 +238,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:text-gray-100"
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100">
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button
@@ -269,12 +261,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
       </div>
 
       <div className="flex space-x-2 mt-4">
-        <Button 
-          variant="outline" 
-          className="btn-secondary"
-          onClick={handleExportTools}
-          disabled={isExporting}
-        >
+        <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
           <Download className="h-4 w-4 mr-1" />
           {isExporting ? 'Exporting...' : 'Export'}
         </Button>
@@ -285,11 +272,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
           <DialogHeader>
             <DialogTitle>{currentTool ? 'Edit Tool' : 'Create Tool'}</DialogTitle>
           </DialogHeader>
-          <ToolEditor 
-            tool={currentTool} 
-            onClose={() => setIsEditorOpen(false)} 
-            categories={categories} 
-          />
+          <ToolEditor tool={currentTool} onClose={() => setIsEditorOpen(false)} categories={categories} />
         </DialogContent>
       </Dialog>
     </div>

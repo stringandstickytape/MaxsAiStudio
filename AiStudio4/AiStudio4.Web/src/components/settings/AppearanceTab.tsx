@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FontSizeControl } from './FontSizeControl';
 import { useAppearanceManagement } from '@/hooks/useAppearanceManagement';
 import { RefreshCw } from 'lucide-react';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,24 +19,20 @@ import {
 export function AppearanceTab() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
-  const {
-    error,
-    resetToDefaults
-  } = useAppearanceManagement();
-  
+
+  const { error, resetToDefaults } = useAppearanceManagement();
+
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
-  
 
   const handleReset = async () => {
     await resetToDefaults();
     setResetDialogOpen(false);
     showSuccessMessage('Settings reset to defaults');
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Font Size Card */}
@@ -45,7 +41,7 @@ export function AppearanceTab() {
           <CardTitle className="text-title text-lg">Font Size</CardTitle>
         </CardHeader>
         <CardContent>
-          <FontSizeControl 
+          <FontSizeControl
             onChange={() => {
               // Clear success message when changes are made
               setSuccessMessage(null);
@@ -56,7 +52,7 @@ export function AppearanceTab() {
           />
         </CardContent>
       </Card>
-      
+
       {/* Theme Card */}
       <Card className="card-base">
         <CardHeader className="pb-2">
@@ -69,20 +65,14 @@ export function AppearanceTab() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Reset Settings Button */}
       <div className="flex justify-between mt-6">
         <div className="flex-1">
           {successMessage && (
-            <div className="bg-green-900/30 text-green-400 py-2 px-3 rounded-md text-sm">
-              {successMessage}
-            </div>
+            <div className="bg-green-900/30 text-green-400 py-2 px-3 rounded-md text-sm">{successMessage}</div>
           )}
-          {error && (
-            <div className="bg-red-900/30 text-red-400 py-2 px-3 rounded-md text-sm">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-900/30 text-red-400 py-2 px-3 rounded-md text-sm">{error}</div>}
         </div>
         <Button
           variant="outline"
@@ -93,7 +83,7 @@ export function AppearanceTab() {
           <span>Reset to Defaults</span>
         </Button>
       </div>
-      
+
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent className="bg-gray-800 border-gray-700 text-gray-100">
@@ -104,13 +94,8 @@ export function AppearanceTab() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="btn-secondary">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReset}
-              className="btn-danger"
-            >
+            <AlertDialogCancel className="btn-secondary">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset} className="btn-danger">
               Reset
             </AlertDialogAction>
           </AlertDialogFooter>

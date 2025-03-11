@@ -11,10 +11,10 @@ const useToolResource = createResourceHook<Tool>({
     fetch: '/api/getTools',
     create: '/api/addTool',
     update: '/api/updateTool',
-    delete: '/api/deleteTool'
+    delete: '/api/deleteTool',
   },
   storeActions: {
-    setItems: (tools) => useToolStore.getState().setTools(tools)
+    setItems: (tools) => useToolStore.getState().setTools(tools),
   },
   options: {
     idField: 'guid',
@@ -23,25 +23,25 @@ const useToolResource = createResourceHook<Tool>({
       // Ensure all tools have a filetype property
       return (data.tools || []).map((tool: Tool) => ({
         ...tool,
-        filetype: tool.filetype || ''
+        filetype: tool.filetype || '',
       }));
     },
-    transformItemResponse: (data) => data.tool
-  }
+    transformItemResponse: (data) => data.tool,
+  },
 });
 
 // Create resource hook for tool categories
 const useToolCategoryResource = createResourceHook<ToolCategory>({
   endpoints: {
-    fetch: '/api/getToolCategories'
+    fetch: '/api/getToolCategories',
   },
   storeActions: {
-    setItems: (categories) => useToolStore.getState().setCategories(categories)
+    setItems: (categories) => useToolStore.getState().setCategories(categories),
   },
   options: {
     idField: 'id',
-    transformFetchResponse: (data) => data.categories || []
-  }
+    transformFetchResponse: (data) => data.categories || [],
+  },
 });
 
 export function useToolsManagement() {
@@ -53,72 +53,73 @@ export function useToolsManagement() {
     createItem: addTool,
     updateItem: updateTool,
     deleteItem: deleteTool,
-    clearError: clearToolsError
+    clearError: clearToolsError,
   } = useToolResource();
-  
+
   // Use the tool categories resource hook
   const {
     isLoading: categoriesLoading,
     error: categoriesError,
     fetchItems: fetchToolCategories,
-    clearError: clearCategoriesError
+    clearError: clearCategoriesError,
   } = useToolCategoryResource();
-  
+
   // Use API call state utility for specialized operations
   const { executeApiCall } = useApiCallState();
-  
+
   // Get state from the store
-  const { 
-    tools,
-    categories,
-    activeTools,
-    addActiveTool,
-    removeActiveTool,
-    clearActiveTools 
-  } = useToolStore();
-  
+  const { tools, categories, activeTools, addActiveTool, removeActiveTool, clearActiveTools } = useToolStore();
+
   // Validate a tool schema
-  const validateToolSchema = useCallback(async (schema: string) => {
-    return executeApiCall(async () => {
-      const validateSchemaRequest = createApiRequest('/api/validateToolSchema', 'POST');
-      const data = await validateSchemaRequest({ schema });
-      
-      return data.isValid;
-    });
-  }, [executeApiCall]);
-  
- 
+  const validateToolSchema = useCallback(
+    async (schema: string) => {
+      return executeApiCall(async () => {
+        const validateSchemaRequest = createApiRequest('/api/validateToolSchema', 'POST');
+        const data = await validateSchemaRequest({ schema });
+
+        return data.isValid;
+      });
+    },
+    [executeApiCall],
+  );
+
   // Export tools
-  const exportTools = useCallback(async (toolIds?: string[]) => {
-    return executeApiCall(async () => {
-      const exportToolsRequest = createApiRequest('/api/exportTools', 'POST');
-      const data = await exportToolsRequest({ toolIds });
-      
-      return data.json;
-    });
-  }, [executeApiCall]);
-  
+  const exportTools = useCallback(
+    async (toolIds?: string[]) => {
+      return executeApiCall(async () => {
+        const exportToolsRequest = createApiRequest('/api/exportTools', 'POST');
+        const data = await exportToolsRequest({ toolIds });
+
+        return data.json;
+      });
+    },
+    [executeApiCall],
+  );
+
   // Toggle a tool's active state
-  const toggleTool = useCallback((toolId: string, activate: boolean) => {
-    if (activate) {
-      addActiveTool(toolId);
-    } else {
-      removeActiveTool(toolId);
-    }
-  }, [addActiveTool, removeActiveTool]);
-  
+  const toggleTool = useCallback(
+    (toolId: string, activate: boolean) => {
+      if (activate) {
+        addActiveTool(toolId);
+      } else {
+        removeActiveTool(toolId);
+      }
+    },
+    [addActiveTool, removeActiveTool],
+  );
+
   // Combined loading state
   const isLoading = toolsLoading || categoriesLoading;
-  
+
   // Combined error state
   const error = toolsError || categoriesError;
-  
+
   // Function to clear all errors
   const clearError = useCallback(() => {
     clearToolsError();
     clearCategoriesError();
   }, [clearToolsError, clearCategoriesError]);
-  
+
   return {
     // State
     tools,
@@ -126,7 +127,7 @@ export function useToolsManagement() {
     activeTools,
     isLoading,
     error,
-    
+
     // Actions
     fetchTools,
     fetchToolCategories,
@@ -139,6 +140,6 @@ export function useToolsManagement() {
     addActiveTool,
     removeActiveTool,
     clearActiveTools,
-    clearError
+    clearError,
   };
 }

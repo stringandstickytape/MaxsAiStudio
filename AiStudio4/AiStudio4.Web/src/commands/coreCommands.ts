@@ -5,71 +5,134 @@ import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lu
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 
-export function initializeCoreCommands(
-    handlers: {
-        toggleSidebar: () => void,
-        toggleConvTree: () => void,
-        toggleSettings: () => void,
-        openNewWindow: () => void,
-    }
-) {
-    // Get Zustand store actions
-    const { createConv } = useConvStore.getState();
+export function initializeCoreCommands(handlers: {
+  toggleSidebar: () => void;
+  toggleConvTree: () => void;
+  toggleSettings: () => void;
+  openNewWindow: () => void;
+}) {
+  // Get Zustand store actions
+  const { createConv } = useConvStore.getState();
 
-    const mac = navigator.platform.indexOf('Mac') !== -1;
-    const shortcut = (key: string) => mac ? `⌘+${key}` : `Ctrl+${key}`;
+  const mac = navigator.platform.indexOf('Mac') !== -1;
+  const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
-    const { registerGroup } = useCommandStore.getState();
-    
-    registerGroup({
-        id: 'conv',
-        name: 'Conv',
-        priority: 100,
-        commands: [
-            ['new-conv', 'New Conv', 'Start a new chat conv', shortcut('N'), ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'], React.createElement(Plus, { size: 16 }), () => {
-                const convId = `conv_${uuidv4()}`;
-                const messageId = `msg_${Date.now()}`;
-                createConv({
-                    id: convId,
-                    rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
-                });
-            }],
-            ['clear-conv', 'Clear Current Conv', 'Clear all messages in the current conv', '', ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'], React.createElement(RefreshCw, { size: 16 }), () => {
-                const { activeConvId, createConv } = useConvStore.getState();
-                if (activeConvId) {
-                    const convId = `conv_${uuidv4()}`;
-                    const messageId = `msg_${Date.now()}`;
-                    createConv({
-                        id: convId,
-                        rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() }
-                    });
-                }
-            }],
-            ['test-webview', 'Test WebView', 'Send a test message to WebView', '', ['test', 'webview', 'debug', 'message'], React.createElement(Terminal, { size: 16 }), () => {
-                window.chrome?.webview?.postMessage({
-                    type: 'send',
-                    content: 'test',
-                    selectedTools: '',
-                    addEmbeddings: 'false'
-                });
-                console.log('Test message sent to WebView');
-            }]
-        ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
-            id, name, description, shortcut, keywords, section: 'conv', icon, execute: fn
-        }))
-    });
+  const { registerGroup } = useCommandStore.getState();
 
-    registerGroup({
-        id: 'view',
-        name: 'View',
-        priority: 90,
-        commands: [
-            ['toggle-sidebar', 'Conv History Toggle', shortcut('B'), ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'], React.createElement(Plus, { size: 16 }), handlers.toggleSidebar],
-            ['toggle-conv-tree', 'Conv Tree Toggle', shortcut('T'), ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'], React.createElement(GitBranch, { size: 16 }), handlers.toggleConvTree],
-            ['toggle-settings', 'Settings Panel Toggle', shortcut(','), ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'], React.createElement(Settings, { size: 16 }), handlers.toggleSettings],
-            ['open-new-window', 'Open New Window', '', ['window', 'open', 'new', 'external', 'launch', 'create', 'instance'], React.createElement(ExternalLink, { size: 16 }), handlers.openNewWindow]
-        ].map(([id, name, shortcut, keywords, icon, fn]) => ({
-            id, name, shortcut, keywords, section: 'view', icon, execute: fn
-        }))
-    });
+  registerGroup({
+    id: 'conv',
+    name: 'Conv',
+    priority: 100,
+    commands: [
+      [
+        'new-conv',
+        'New Conv',
+        'Start a new chat conv',
+        shortcut('N'),
+        ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
+        React.createElement(Plus, { size: 16 }),
+        () => {
+          const convId = `conv_${uuidv4()}`;
+          const messageId = `msg_${Date.now()}`;
+          createConv({
+            id: convId,
+            rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
+          });
+        },
+      ],
+      [
+        'clear-conv',
+        'Clear Current Conv',
+        'Clear all messages in the current conv',
+        '',
+        ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'],
+        React.createElement(RefreshCw, { size: 16 }),
+        () => {
+          const { activeConvId, createConv } = useConvStore.getState();
+          if (activeConvId) {
+            const convId = `conv_${uuidv4()}`;
+            const messageId = `msg_${Date.now()}`;
+            createConv({
+              id: convId,
+              rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
+            });
+          }
+        },
+      ],
+      [
+        'test-webview',
+        'Test WebView',
+        'Send a test message to WebView',
+        '',
+        ['test', 'webview', 'debug', 'message'],
+        React.createElement(Terminal, { size: 16 }),
+        () => {
+          window.chrome?.webview?.postMessage({
+            type: 'send',
+            content: 'test',
+            selectedTools: '',
+            addEmbeddings: 'false',
+          });
+          console.log('Test message sent to WebView');
+        },
+      ],
+    ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
+      id,
+      name,
+      description,
+      shortcut,
+      keywords,
+      section: 'conv',
+      icon,
+      execute: fn,
+    })),
+  });
+
+  registerGroup({
+    id: 'view',
+    name: 'View',
+    priority: 90,
+    commands: [
+      [
+        'toggle-sidebar',
+        'Conv History Toggle',
+        shortcut('B'),
+        ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
+        React.createElement(Plus, { size: 16 }),
+        handlers.toggleSidebar,
+      ],
+      [
+        'toggle-conv-tree',
+        'Conv Tree Toggle',
+        shortcut('T'),
+        ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'],
+        React.createElement(GitBranch, { size: 16 }),
+        handlers.toggleConvTree,
+      ],
+      [
+        'toggle-settings',
+        'Settings Panel Toggle',
+        shortcut(','),
+        ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'],
+        React.createElement(Settings, { size: 16 }),
+        handlers.toggleSettings,
+      ],
+      [
+        'open-new-window',
+        'Open New Window',
+        '',
+        ['window', 'open', 'new', 'external', 'launch', 'create', 'instance'],
+        React.createElement(ExternalLink, { size: 16 }),
+        handlers.openNewWindow,
+      ],
+    ].map(([id, name, shortcut, keywords, icon, fn]) => ({
+      id,
+      name,
+      shortcut,
+      keywords,
+      section: 'view',
+      icon,
+      execute: fn,
+    })),
+  });
 }

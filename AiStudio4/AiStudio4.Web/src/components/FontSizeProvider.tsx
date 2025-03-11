@@ -8,26 +8,25 @@ import { useAppearanceStore } from '@/stores/useAppearanceStore';
  */
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   const { fontSize, loadAppearanceSettings } = useAppearanceStore();
-  
+
   // Load settings on mount and apply font size
   useEffect(() => {
     // Apply initial font size
     document.documentElement.style.fontSize = `${fontSize}px`;
-    
+
     // Load settings from server
-    loadAppearanceSettings()
-      .catch(err => {
-        console.warn('Failed to load appearance settings:', err);
-      });
-      
+    loadAppearanceSettings().catch((err) => {
+      console.warn('Failed to load appearance settings:', err);
+    });
+
     // Setup effect to dynamically apply font size changes
     const unsubscribe = useAppearanceStore.subscribe(
-      state => state.fontSize,
+      (state) => state.fontSize,
       (newFontSize) => {
         document.documentElement.style.fontSize = `${newFontSize}px`;
-      }
+      },
     );
-    
+
     // Clean up subscription on unmount
     return () => {
       unsubscribe();

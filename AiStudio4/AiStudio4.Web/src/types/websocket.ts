@@ -1,5 +1,5 @@
 export interface WebSocketState {
-    isConnected: boolean;
-    clientId: string | null;
-    messages: string[];
+  isConnected: boolean;
+  clientId: string | null;
+  messages: string[];
 }

@@ -18,18 +18,18 @@ interface ToolEditorProps {
 
 export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   // Use the tools management hook instead of RTK Query
-  const {
-    addTool,
-    updateTool,
-    validateToolSchema,
-    isLoading: isApiLoading
-  } = useToolsManagement();
-  
+  const { addTool, updateTool, validateToolSchema, isLoading: isApiLoading } = useToolsManagement();
+
   // Local state
   const [name, setName] = useState(tool?.name || '');
   const [description, setDescription] = useState(tool?.description || '');
-  const [schema, setSchema] = useState(tool?.schema || '{\n  "name": "tool_name",\n  "description": "Tool description",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "param": {\n        "type": "string",\n        "description": "Parameter description"\n      }\n    },\n    "required": ["param"]\n  }\n}');
-  const [schemaType, setSchemaType] = useState<'function' | 'custom' | 'template'>(tool?.schemaType as any || 'function');
+  const [schema, setSchema] = useState(
+    tool?.schema ||
+      '{\n  "name": "tool_name",\n  "description": "Tool description",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "param": {\n        "type": "string",\n        "description": "Parameter description"\n      }\n    },\n    "required": ["param"]\n  }\n}',
+  );
+  const [schemaType, setSchemaType] = useState<'function' | 'custom' | 'template'>(
+    (tool?.schemaType as any) || 'function',
+  );
   const [filetype, setFiletype] = useState(tool?.filetype || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(tool?.categories || []);
   const [isValid, setIsValid] = useState<boolean | null>(null);
@@ -48,10 +48,8 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   };
 
   const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   };
 
@@ -77,7 +75,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         console.error('Schema validation error:', error);
         isSchemaValid = false;
       }
-      
+
       if (!isSchemaValid) {
         if (!confirm('Schema validation failed. Save anyway?')) {
           setIsSubmitting(false);
@@ -92,7 +90,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         schemaType,
         filetype,
         categories: selectedCategories,
-        lastModified: new Date().toISOString()
+        lastModified: new Date().toISOString(),
       };
 
       if (tool) {
@@ -143,38 +141,44 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
 
       <div>
         <Label>Schema Type</Label>
-        <RadioGroup 
-          value={schemaType} 
+        <RadioGroup
+          value={schemaType}
           onValueChange={(value) => setSchemaType(value as 'function' | 'custom' | 'template')}
           className="flex space-x-4 mt-2"
           disabled={isLoading}
         >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem 
-              value="function" 
-              id="schema-function" 
+            <RadioGroupItem
+              value="function"
+              id="schema-function"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
               disabled={isLoading}
             />
-            <Label htmlFor="schema-function" className="cursor-pointer text-gray-100">Function</Label>
+            <Label htmlFor="schema-function" className="cursor-pointer text-gray-100">
+              Function
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem 
-              value="custom" 
-              id="schema-custom" 
+            <RadioGroupItem
+              value="custom"
+              id="schema-custom"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
               disabled={isLoading}
             />
-            <Label htmlFor="schema-custom" className="cursor-pointer text-gray-100">Custom</Label>
+            <Label htmlFor="schema-custom" className="cursor-pointer text-gray-100">
+              Custom
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem 
-              value="template" 
-              id="schema-template" 
+            <RadioGroupItem
+              value="template"
+              id="schema-template"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
               disabled={isLoading}
             />
-            <Label htmlFor="schema-template" className="cursor-pointer text-gray-100">Template</Label>
+            <Label htmlFor="schema-template" className="cursor-pointer text-gray-100">
+              Template
+            </Label>
           </div>
         </RadioGroup>
       </div>
@@ -204,11 +208,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           />
           {isValid !== null && (
             <div className={`mt-2 flex items-center space-x-2 ${isValid ? 'text-green-400' : 'text-red-400'}`}>
-              {isValid ? (
-                <CheckCircle2 className="h-4 w-4" />
-              ) : (
-                <AlertCircle className="h-4 w-4" />
-              )}
+              {isValid ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
               <span>{validationMessage}</span>
             </div>
           )}
@@ -218,10 +218,10 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       <div>
         <Label>Categories</Label>
         <div className="mt-2 flex flex-wrap gap-2">
-          {categories.map(category => (
+          {categories.map((category) => (
             <Badge
               key={category.id}
-              variant={selectedCategories.includes(category.id) ? "default" : "outline"}
+              variant={selectedCategories.includes(category.id) ? 'default' : 'outline'}
               className={`cursor-pointer ${selectedCategories.includes(category.id) ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={() => !isLoading && handleCategoryToggle(category.id)}
             >
@@ -232,37 +232,34 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
-        <Button 
-          variant="outline" 
-          onClick={handleValidateSchema}
-          disabled={isLoading}
-          className="btn-secondary"
-        >
+        <Button variant="outline" onClick={handleValidateSchema} disabled={isLoading} className="btn-secondary">
           {isLoading ? 'Validating...' : 'Validate'}
         </Button>
-        <Button 
-          variant="outline" 
-          onClick={onClose} 
-          className="btn-secondary"
-          disabled={isLoading}
-        >
+        <Button variant="outline" onClick={onClose} className="btn-secondary" disabled={isLoading}>
           Cancel
         </Button>
-        <Button 
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="btn-primary"
-        >
+        <Button onClick={handleSubmit} disabled={isLoading} className="btn-primary">
           {isLoading ? (
             <span className="flex items-center">
-              <svg className="loading-spinner -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="loading-spinner -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               {tool ? 'Updating...' : 'Creating...'}
             </span>
+          ) : tool ? (
+            'Update'
           ) : (
-            tool ? 'Update' : 'Create'
+            'Create'
           )}
         </Button>
       </div>

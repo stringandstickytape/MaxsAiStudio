@@ -16,84 +16,75 @@ import { useConvStore } from '@/stores/useConvStore';
 import { ModelType } from '@/types/modelTypes';
 
 export function ChatSpace() {
-    const isMobile = useMediaQuery("(max-width: 768px)");
-    const { streamTokens } = useStreamTokens();
-    const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
-    const [inputValue, setInputValue] = useState('');
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const { streamTokens } = useStreamTokens();
+  const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
-    const { activeTools } = useToolStore();
-    const { togglePanel } = usePanelStore();
-    const { activeConvId } = useConvStore();
+  const { activeTools } = useToolStore();
+  const { togglePanel } = usePanelStore();
+  const { activeConvId } = useConvStore();
 
-    const {
-        selectedPrimaryModel,
-        handleModelSelect
-    } = useModelManagement();
+  const { selectedPrimaryModel, handleModelSelect } = useModelManagement();
 
-    const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState(
-        (text) => {
-            setInputValue(text);
-        }
-    );
+  const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
+    setInputValue(text);
+  });
 
-    useEffect(() => {
-        const handleOpenToolPanel = () => togglePanel('toolPanel');
-        window.addEventListener('openToolPanel', handleOpenToolPanel);
-        return () => window.removeEventListener('openToolPanel', handleOpenToolPanel);
-    }, [togglePanel]);
+  useEffect(() => {
+    const handleOpenToolPanel = () => togglePanel('toolPanel');
+    window.addEventListener('openToolPanel', handleOpenToolPanel);
+    return () => window.removeEventListener('openToolPanel', handleOpenToolPanel);
+  }, [togglePanel]);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                setIsCommandBarOpen(prev => !prev);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
-    const openToolPanel = () => {
-        togglePanel('toolPanel');
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandBarOpen((prev) => !prev);
+      }
     };
 
-    return (
-        <>
-            <div className="flex-none h-[155px]">
-                <AppHeader
-                    onToggleSystemPrompts={() => togglePanel('systemPrompts')}
-                    isCommandBarOpen={isCommandBarOpen}
-                    setIsCommandBarOpen={setIsCommandBarOpen}
-                    CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                    activeConvId={activeConvId}
-                />
-            </div>
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-            <div className="flex-1 overflow-auto">
-                <ChatContainer
-                    streamTokens={streamTokens}
-                    isMobile={isMobile}
-                />
-            </div>
+  const openToolPanel = () => {
+    togglePanel('toolPanel');
+  };
 
-            <div className="flex-none h-[30vh] border-t">
-                <InputBar
-                    selectedModel={selectedPrimaryModel}
-                    onVoiceInputClick={() => setVoiceInputOpen(true)}
-                    inputValue={inputValue}
-                    onInputChange={setInputValue}
-                    activeTools={activeTools}
-                    onManageTools={openToolPanel}
-                />
-            </div>
+  return (
+    <>
+      <div className="flex-none h-[155px]">
+        <AppHeader
+          onToggleSystemPrompts={() => togglePanel('systemPrompts')}
+          isCommandBarOpen={isCommandBarOpen}
+          setIsCommandBarOpen={setIsCommandBarOpen}
+          CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
+          activeConvId={activeConvId}
+        />
+      </div>
 
-            <VoiceInputOverlay
-                isOpen={isVoiceInputOpen}
-                onClose={() => setVoiceInputOpen(false)}
-                onTranscript={handleTranscript}
-            />
+      <div className="flex-1 overflow-auto">
+        <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
+      </div>
 
-        </>
-    );
+      <div className="flex-none h-[30vh] border-t">
+        <InputBar
+          selectedModel={selectedPrimaryModel}
+          onVoiceInputClick={() => setVoiceInputOpen(true)}
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          activeTools={activeTools}
+          onManageTools={openToolPanel}
+        />
+      </div>
+
+      <VoiceInputOverlay
+        isOpen={isVoiceInputOpen}
+        onClose={() => setVoiceInputOpen(false)}
+        onTranscript={handleTranscript}
+      />
+    </>
+  );
 }
