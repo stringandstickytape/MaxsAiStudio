@@ -22,83 +22,30 @@ export const ModelForm: React.FC<ModelFormProps> = ({
         label: provider.friendlyName
     }));
 
-    // Define form fields
-    const fields: FormFieldDefinition[] = [
-        {
-            name: 'friendlyName',
-            label: 'Friendly Name',
-            type: 'text',
-            placeholder: 'e.g., GPT-4 Turbo',
-            colSpan: 1
-        },
-        {
-            name: 'modelName',
-            label: 'Model Name',
-            type: 'text',
-            placeholder: 'e.g., gpt-4-turbo',
-            colSpan: 1
-        },
-        {
-            name: 'providerGuid',
-            label: 'Service Provider',
-            type: 'select',
-            options: providerOptions,
-            colSpan: 2
-        },
-        {
-            name: 'input1MTokenPrice',
-            label: 'Input Token Price (per 1M)',
-            type: 'number',
-            placeholder: '0.00',
-            step: '0.01',
-            min: 0,
-            colSpan: 1
-        },
-        {
-            name: 'output1MTokenPrice',
-            label: 'Output Token Price (per 1M)',
-            type: 'number',
-            placeholder: '0.00',
-            step: '0.01',
-            min: 0,
-            colSpan: 1
-        },
-        {
-            name: 'userNotes',
-            label: 'Notes',
-            type: 'text',
-            placeholder: 'Any additional notes about this model',
-            colSpan: 2
-        },
-        {
-            name: 'additionalParams',
-            label: 'Additional Parameters (JSON)',
-            type: 'text',
-            placeholder: '{"temperature": 0.7}',
-            description: 'Optional JSON parameters to include with requests to this model',
-            colSpan: 2
-        },
-        {
-            name: 'color',
-            label: 'Color',
-            type: 'color',
-            colSpan: 1
-        },
-        {
-            name: 'starred',
-            label: 'Mark as Favorite',
-            type: 'checkbox',
-            description: 'Prioritize this model in selection lists',
-            colSpan: 1
-        },
-        {
-            name: 'supportsPrefill',
-            label: 'Supports Prefill',
-            type: 'checkbox',
-            description: 'This model supports prefilling content',
-            colSpan: 2
-        }
+    const fieldDefinitions = [
+        ['friendlyName', 'Friendly Name', 'text', 'e.g., GPT-4 Turbo', undefined, undefined, undefined, 1],
+        ['modelName', 'Model Name', 'text', 'e.g., gpt-4-turbo', undefined, undefined, undefined, 1],
+        ['providerGuid', 'Service Provider', 'select', undefined, providerOptions, undefined, undefined, 2],
+        ['input1MTokenPrice', 'Input Token Price (per 1M)', 'number', '0.00', undefined, '0.01', 0, 1],
+        ['output1MTokenPrice', 'Output Token Price (per 1M)', 'number', '0.00', undefined, '0.01', 0, 1],
+        ['userNotes', 'Notes', 'text', 'Any additional notes about this model', undefined, undefined, undefined, 2],
+        ['additionalParams', 'Additional Parameters (JSON)', 'text', '{"temperature": 0.7}', undefined, undefined, 'Optional JSON parameters to include with requests to this model', 2],
+        ['color', 'Color', 'color', undefined, undefined, undefined, undefined, 1],
+        ['starred', 'Mark as Favorite', 'checkbox', undefined, undefined, undefined, 'Prioritize this model in selection lists', 1],
+        ['supportsPrefill', 'Supports Prefill', 'checkbox', undefined, undefined, undefined, 'This model supports prefilling content', 2]
     ];
+
+    const fields: FormFieldDefinition[] = fieldDefinitions.map(([name, label, type, placeholder, options, step, description, colSpan]) => {
+        const field: FormFieldDefinition = { name, label, type, colSpan } as FormFieldDefinition;
+
+        if (placeholder) field.placeholder = placeholder;
+        if (options) field.options = options;
+        if (step) field.step = step;
+        if (type === 'number') field.min = 0;
+        if (description) field.description = description;
+
+        return field;
+    });
 
     // Use default values if initialValues is not provided
     const defaultValues = initialValues || {

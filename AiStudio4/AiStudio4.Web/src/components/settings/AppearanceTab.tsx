@@ -22,7 +22,6 @@ export function AppearanceTab() {
   
   const {
     error,
-    saveSettings,
     resetToDefaults
   } = useAppearanceManagement();
   

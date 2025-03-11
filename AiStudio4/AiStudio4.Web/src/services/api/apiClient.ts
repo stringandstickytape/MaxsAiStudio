@@ -13,7 +13,7 @@ export const apiClient = axios.create({
 // Add request interceptor for client ID
 apiClient.interceptors.request.use((config) => {
   const clientId = localStorage.getItem('clientId');
-  if (clientId) {
+    if (clientId) {
     config.headers['X-Client-Id'] = clientId;
   }
   return config;

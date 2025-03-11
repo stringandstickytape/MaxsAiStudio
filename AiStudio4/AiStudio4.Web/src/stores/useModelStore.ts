@@ -59,7 +59,6 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
         },
         body: JSON.stringify(modelData),
       });
@@ -76,7 +75,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify({}),
       });
@@ -108,7 +107,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify(model),
       });
@@ -143,7 +142,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify({ modelGuid }),
       });
@@ -176,7 +175,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify(providerData),
       });
@@ -193,7 +192,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify({}),
       });
@@ -225,7 +224,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify(provider),
       });
@@ -260,7 +259,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+          
         },
         body: JSON.stringify({ providerGuid }),
       });

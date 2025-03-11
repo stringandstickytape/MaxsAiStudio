@@ -29,7 +29,6 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         addProvider,
         updateProvider,
         deleteProvider,
-        isLoading: storeLoading,
         error: storeError,
         clearError
     } = useModelManagement();
@@ -102,9 +101,6 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
             setIsProcessing(false);
         }
     };
-
-    // Use the getProviderName function from the hook
-    const { getProviderName } = useModelManagement();
 
     return (
         <>
