@@ -41,11 +41,13 @@ namespace AiStudio4.AiServices
             var req = new JObject
             {
                 ["model"] = modelName,
-                ["system"] = conv.systemprompt ?? "",
                 ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
                 ["stream"] = useStreaming,
                 ["temperature"] = apiSettings.Temperature,
             };
+
+            if (!string.IsNullOrWhiteSpace(conv.systemprompt))
+                req["system"] = conv.systemprompt;
 
             var messagesArray = new JArray();
             int userMessageCount = 0;
