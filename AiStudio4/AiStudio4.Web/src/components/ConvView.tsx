@@ -1,6 +1,7 @@
 import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
-import { Clipboard } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Clipboard, Pencil, Check, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -10,7 +11,8 @@ interface ConvViewProps {
 }
 
 export const ConvView = ({ streamTokens }: ConvViewProps) => {
-    const { activeConvId, slctdMsgId, convs } = useConvStore();
+    const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
+    const [editContent, setEditContent] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
     const [visibleCount, setVisibleCount] = useState(20); // Start with 20 messages
     const [isAtBottom, setIsAtBottom] = useState(true);
@@ -185,15 +187,62 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                         className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
                             } shadow-md w-full relative group`}
                     >
-                        <MarkdownPane message={message.content} />
+                        {editingMessageId === message.id ? (
+                            <div className="w-full">
+                                <Textarea 
+                                    value={editContent} 
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                    className="w-full h-40 bg-gray-700 border-gray-600 text-white mb-2 font-mono text-sm"
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        onClick={() => {
+                                            if (activeConvId) {
+                                                updateMessage({
+                                                    convId: activeConvId,
+                                                    messageId: message.id,
+                                                    content: editContent
+                                                });
+                                                cancelEditMessage();
+                                            }
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 p-1.5 rounded-full"
+                                        title="Save edits"
+                                    >
+                                        <Check size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => cancelEditMessage()}
+                                        className="bg-gray-700 hover:bg-gray-600 p-1.5 rounded-full"
+                                        title="Cancel editing"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <MarkdownPane message={message.content} />
+                        )}
                         
-                        <button
-                            onClick={() => navigator.clipboard.writeText(message.content)}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-white p-1.5 rounded-full bg-gray-700 bg-opacity-0 hover:bg-opacity-80 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                            title="Copy message"
-                        >
-                            <Clipboard size={16} />
-                        </button>
+                        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                            <button
+                                onClick={() => navigator.clipboard.writeText(message.content)}
+                                className="text-gray-400 hover:text-white p-1.5 rounded-full bg-gray-700 bg-opacity-0 hover:bg-opacity-80 transition-all duration-200"
+                                title="Copy message"
+                            >
+                                <Clipboard size={16} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    editMessage(message.id);
+                                    setEditContent(message.content);
+                                }}
+                                className="text-gray-400 hover:text-white p-1.5 rounded-full bg-gray-700 bg-opacity-0 hover:bg-opacity-80 transition-all duration-200"
+                                title="Edit raw message"
+                            >
+                                <Pencil size={16} />
+                            </button>
+                        </div>
 
                         {/* Token usage info */}
                         {(message.tokenUsage || message.costInfo) && (

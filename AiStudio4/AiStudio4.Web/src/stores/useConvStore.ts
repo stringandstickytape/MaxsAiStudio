@@ -10,6 +10,7 @@ interface ConvState {
   convs: Record<string, Conv>;
   activeConvId: string | null;
   slctdMsgId: string | null;
+  editingMessageId: string | null;
 
   createConv: (params: { id?: string; rootMessage: Message; slctdMsgId?: string }) => void;
 
@@ -27,6 +28,9 @@ interface ConvState {
   clearConv: (convId: string) => void;
 
   deleteConv: (convId: string) => void;
+  
+  editMessage: (messageId: string | null) => void;
+  cancelEditMessage: () => void;
 }
 
 export const useConvStore = create<ConvState>((set, get) => {
@@ -180,6 +184,7 @@ export const useConvStore = create<ConvState>((set, get) => {
     convs: {},
     activeConvId: null,
     slctdMsgId: null,
+    editingMessageId: null,
 
     createConv: ({ id = `conv_${uuidv4()}`, rootMessage, slctdMsgId }) =>
       set((state) => {
@@ -318,31 +323,42 @@ export const useConvStore = create<ConvState>((set, get) => {
         };
       }),
 
-    deleteConv: (convId) =>
-      set((state) => {
-        const { [convId]: _, ...remainingConvs } = state.convs;
+      deleteConv: (convId) =>
+          set((state) => {
+              const { [convId]: _, ...remainingConvs } = state.convs;
 
-        let newActiveId = state.activeConvId;
-        let newSlctdMsgId = state.slctdMsgId;
+              let newActiveId = state.activeConvId;
+              let newSlctdMsgId = state.slctdMsgId;
 
-        if (state.activeConvId === convId) {
-          const convIds = Object.keys(remainingConvs);
-          newActiveId = convIds.length > 0 ? convIds[0] : null;
+              if (state.activeConvId === convId) {
+                  const convIds = Object.keys(remainingConvs);
+                  newActiveId = convIds.length > 0 ? convIds[0] : null;
 
-          if (newActiveId) {
-            const newActiveConv = remainingConvs[newActiveId];
-            newSlctdMsgId = newActiveConv.messages.length > 0 ? newActiveConv.messages[0].id : null;
-          } else {
-            newSlctdMsgId = null;
-          }
-        }
+                  if (newActiveId) {
+                      const newActiveConv = remainingConvs[newActiveId];
+                      newSlctdMsgId = newActiveConv.messages.length > 0 ? newActiveConv.messages[0].id : null;
+                  } else {
+                      newSlctdMsgId = null;
+                  }
+              }
 
-        return {
-          convs: remainingConvs,
-          activeConvId: newActiveId,
-          slctdMsgId: newSlctdMsgId,
-        };
-      }),
+              return {
+                  convs: remainingConvs,
+                  activeConvId: newActiveId,
+                  slctdMsgId: newSlctdMsgId,
+              };
+          }),
+
+      // Move these outside of deleteConv return statement, making them top-level functions in the store
+      editMessage: (messageId) =>
+          set(() => ({
+              editingMessageId: messageId,
+          })),
+
+      cancelEditMessage: () =>
+          set(() => ({
+              editingMessageId: null,
+          })),
   };
 });
 
