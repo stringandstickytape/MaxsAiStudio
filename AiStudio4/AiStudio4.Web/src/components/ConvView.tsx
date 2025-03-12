@@ -1,203 +1,236 @@
 import { MarkdownPane } from '@/components/markdown-pane';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 
 interface ConvViewProps {
-  streamTokens: string[]; // Receive the array of tokens
+    streamTokens: string[]; // Receive the array of tokens
 }
 
 export const ConvView = ({ streamTokens }: ConvViewProps) => {
-  const { activeConvId, slctdMsgId, convs } = useConvStore();
-  
-  // Reference for the parent container
-  const parentRef = useRef<HTMLDivElement>(null);
+    const { activeConvId, slctdMsgId, convs } = useConvStore();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [visibleCount, setVisibleCount] = useState(20); // Start with 20 messages
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+    const lastScrollHeightRef = useRef<number>(0);
+    const lastScrollTopRef = useRef<number>(0);
 
-  // Get the message chain (active message plus its ancestors)
-  const messageChain = useMemo(() => {
-    if (!activeConvId) return [];
+    // Get the message chain (active message plus its ancestors)
+    const messageChain = useMemo(() => {
+        if (!activeConvId) return [];
 
-    const conv = convs[activeConvId];
-    if (!conv || !conv.messages.length) return [];
+        const conv = convs[activeConvId];
+        if (!conv || !conv.messages.length) return [];
 
-    // Create a message graph from the conv messages
-    const graph = new MessageGraph(conv.messages);
+        // Create a message graph from the conv messages
+        const graph = new MessageGraph(conv.messages);
 
-    // If we're actively streaming (generating new messages), always use the most recent message
-    // Otherwise, if we have a selected message ID, use that as the starting point for the message chain
-    const startingMessageId =
-      streamTokens.length > 0
-        ? conv.messages[conv.messages.length - 1].id
-        : slctdMsgId || conv.messages[conv.messages.length - 1].id;
+        // If we're actively streaming (generating new messages), always use the most recent message
+        // Otherwise, if we have a selected message ID, use that as the starting point for the message chain
+        const startingMessageId =
+            streamTokens.length > 0
+                ? conv.messages[conv.messages.length - 1].id
+                : slctdMsgId || conv.messages[conv.messages.length - 1].id;
 
-    console.log('ConvView: Building message chain from:', {
-      startingMessageId,
-      slctdMsgId,
-      streamActive: streamTokens.length > 0,
-      messageCount: conv.messages.length,
-    });
+        console.log('ConvView: Building message chain from:', {
+            startingMessageId,
+            slctdMsgId,
+            streamActive: streamTokens.length > 0,
+            messageCount: conv.messages.length,
+        });
 
-    // Get the path from the starting message back to the root
-    return graph.getMessagePath(startingMessageId);
-  }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
+        // Get the path from the starting message back to the root
+        return graph.getMessagePath(startingMessageId);
+    }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
 
-  // Virtualized list setup for better performance with large conversations
-  const virtualizer = useVirtualizer({
-    count: messageChain.length + (streamTokens.length > 0 ? 1 : 0),
-    getScrollElement: () => parentRef.current,
-    estimateSize: (index) => {
-      // Use more adaptive size estimates based on content length
-      if (index < messageChain.length) {
-        const message = messageChain[index];
-        // Calculate rough estimate based on content length
-        const contentLength = message.content.length;
-        // More accurate height estimation with character count and line breaks
-        const lineBreaks = (message.content.match(/\n/g) || []).length;
-        const baseHeight = Math.max(100, Math.min(1000, contentLength * 0.6));
-        const lineBreakHeight = lineBreaks * 20; // Estimate 20px per line break
-        return baseHeight + lineBreakHeight;
-      }
-      return 200; // Default for streaming tokens
-    },
-    overscan: 5, // Number of items to render outside of the visible window
-    paddingStart: 16, // Add padding at the top
-    paddingEnd: 16, // Add padding at the bottom
-    measureElement: (element) => {
-      // Get actual rendered height for more accurate virtualization
-      return element.getBoundingClientRect().height;
-    }
-  });
+    // Reset visible count when message chain changes (new conversation or thread)
+    useEffect(() => {
+        setVisibleCount(Math.min(20, messageChain.length));
+        setAutoScrollEnabled(true);
 
-  // Log message chain updates
-  useEffect(() => {
-    console.log('Message chain updated with length:', messageChain.length);
-  }, [messageChain]);
-  
-  // Measure rendered items to improve virtualization accuracy
-  useEffect(() => {
-    if (!parentRef.current) return;
-    
-    // Create a MutationObserver to detect when new content is added to the DOM
-    const mutationObserver = new MutationObserver(() => {
-      // Wait for the next animation frame to ensure DOM updates have completed
-      requestAnimationFrame(() => {
-        virtualizer.measure();
-      });
-    });
-    
-    // Observe the container for any changes to its children
-    mutationObserver.observe(parentRef.current, { 
-      childList: true, 
-      subtree: true,
-      characterData: true,
-      attributes: true
-    });
-    
-    // Also set up a resize observer for the parent container
-    const resizeObserver = new ResizeObserver(() => {
-      virtualizer.measure();
-    });
-    
-    // Observe the parent element to detect size changes
-    resizeObserver.observe(parentRef.current);
-    
-    return () => {
-      mutationObserver.disconnect();
-      resizeObserver.disconnect();
+        // Reset scroll position when conversation changes
+        if (containerRef.current) {
+            containerRef.current.scrollTop = 0;
+        }
+    }, [activeConvId, slctdMsgId]);
+
+    // Auto-scroll to bottom for new messages
+    useEffect(() => {
+        if (!containerRef.current || !autoScrollEnabled) return;
+
+        const scrollToBottom = () => {
+            if (containerRef.current) {
+                containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            }
+        };
+
+        // Scroll when new messages are added or when streaming
+        if (messageChain.length > 0 || streamTokens.length > 0) {
+            scrollToBottom();
+
+            // Also try scrolling after images and other content has loaded
+            setTimeout(scrollToBottom, 100);
+        }
+    }, [messageChain.length, streamTokens.length, autoScrollEnabled]);
+
+    // Load more messages when scrolling up
+    const handleScroll = () => {
+        if (!containerRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+
+        // Detect scroll direction
+        const isScrollingUp = scrollTop < lastScrollTopRef.current;
+        lastScrollTopRef.current = scrollTop;
+
+        // Check if we're at the bottom (with a small threshold)
+        const bottom = scrollHeight - scrollTop - clientHeight;
+        const bottomThreshold = 50;
+        setIsAtBottom(bottom < bottomThreshold);
+
+        // If scrolling up and near the top, load more messages
+        if (isScrollingUp && scrollTop < 200) {
+            if (visibleCount < messageChain.length) {
+                // Store current position for scroll restoration
+                const previousScrollHeight = scrollHeight;
+
+                // Increase visible messages
+                setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
+
+                // Store height for position adjustment after render
+                lastScrollHeightRef.current = previousScrollHeight;
+            }
+        }
+
+        // Toggle auto-scroll based on whether user has manually scrolled away from bottom
+        if (bottom > bottomThreshold && autoScrollEnabled) {
+            setAutoScrollEnabled(false);
+        }
     };
-  }, [virtualizer]);
 
-  if (!activeConvId) return null;
-  if (!messageChain.length) {
-    console.warn('No messages to display in conv:', activeConvId);
-    return null;
-  }
+    // Maintain scroll position when loading more messages at the top
+    useEffect(() => {
+        if (!containerRef.current || lastScrollHeightRef.current === 0) return;
 
-  return (
-    <div className="w-full h-full overflow-auto" ref={parentRef}>
-      <div className="conv-view w-full relative pb-4" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        {/* Render only visible messages using virtualization */}
-        {virtualizer.getVirtualItems().map((virtualItem) => {
-          // Check if this is the streaming tokens item (last one)
-          const isStreamingItem = streamTokens.length > 0 && virtualItem.index === messageChain.length;
-          
-          if (isStreamingItem) {
-            return (
-              <div 
-                key="streaming-tokens"
-                className="absolute top-0 left-0 w-full" 
-                style={{
-                  transform: `translateY(${virtualItem.start}px)`,
-                  height: `${virtualItem.size}px`,
-                  boxSizing: 'border-box'
+        // Get new scroll height
+        const newScrollHeight = containerRef.current.scrollHeight;
+
+        // Calculate how much content was added
+        const addedHeight = newScrollHeight - lastScrollHeightRef.current;
+
+        // Adjust scroll position to maintain relative position
+        if (addedHeight > 0) {
+            containerRef.current.scrollTop = addedHeight;
+        }
+
+        // Reset reference
+        lastScrollHeightRef.current = 0;
+    }, [visibleCount]);
+
+    // Button to re-enable auto-scrolling
+    const ScrollToBottomButton = () => {
+        if (isAtBottom || autoScrollEnabled) return null;
+
+        return (
+            <button
+                className="fixed bottom-[250px] right-[30px] bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg z-10"
+                onClick={() => {
+                    if (containerRef.current) {
+                        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+                        setAutoScrollEnabled(true);
+                    }
                 }}
-                data-index={virtualItem.index}
-                ref={virtualizer.measureElement}
-              >
-                <div className="p-4 mb-4 rounded bg-gray-800 clear-both break-words whitespace-normal w-full">
-                  {streamTokens.map((token, index) => (
-                    <LiveStreamToken key={index} token={token} />
-                  ))}
-                </div>
-              </div>
-            );
-          }
-          
-          // Regular message item
-          const message = messageChain[virtualItem.index];
-          return (
-            <div 
-              key={message.id}
-              className="absolute top-0 left-0 w-full" 
-              style={{
-                transform: `translateY(${virtualItem.start}px)`,
-                height: `${virtualItem.size}px`,
-                boxSizing: 'border-box'
-              }}
-              data-index={virtualItem.index}
-              ref={virtualizer.measureElement}
             >
-              <div
-                className={`px-4 mb-4 rounded block cursor-pointer ${message.source === 'user' ? ' bg-blue-800' : ' bg-gray-800'} clear-both w-full h-auto overflow-hidden`}
-                style={{ minHeight: '50px' }} // Ensure minimum height for messages
-              >
-                <MarkdownPane message={message.content} />
-                {(message.tokenUsage || message.costInfo) && (
-                  <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
-                    <div className="flex flex-wrap items-center gap-x-4">
-                      {message.tokenUsage && (
-                        <div className="flex items-center gap-x-2">
-                          <span>
-                            Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out
-                          </span>
-                          {(message.tokenUsage.cacheCreationInputTokens > 0 ||
-                            message.tokenUsage.cacheReadInputTokens > 0) && (
-                            <span>
-                              (Cache: {message.tokenUsage.cacheCreationInputTokens} created,{' '}
-                              {message.tokenUsage.cacheReadInputTokens} read)
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {message.costInfo && (
-                        <div className="flex items-center gap-x-2">
-                          <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
-                          <span className="text-gray-500">
-                            (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
-                            {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </button>
+        );
+    };
+
+    if (!activeConvId) return null;
+    if (!messageChain.length) {
+        console.warn('No messages to display in conv:', activeConvId);
+        return null;
+    }
+
+    // Calculate which messages to display
+    const visibleMessages = messageChain.slice(-visibleCount);
+    const hasMoreToLoad = visibleCount < messageChain.length;
+
+    return (
+        <div
+            className="w-full h-full overflow-auto"
+            ref={containerRef}
+            onScroll={handleScroll}
+        >
+            <div className="conversation-container flex flex-col gap-4 p-4">
+                {/* "Load More" button if there are more messages to load */}
+                {hasMoreToLoad && (
+                    <button
+                        className="self-center bg-gray-700 hover:bg-gray-600 text-white rounded-full px-4 py-2 my-2 text-sm"
+                        onClick={() => setVisibleCount(prev => Math.min(prev + 10, messageChain.length))}
+                    >
+                        Load More Messages ({messageChain.length - visibleCount} remaining)
+                    </button>
                 )}
-              </div>
+
+                {/* Visible messages */}
+                {visibleMessages.map((message) => (
+                    <div
+                        key={message.id}
+                        className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
+                            } shadow-md w-full`}
+                    >
+                        <MarkdownPane message={message.content} />
+
+                        {/* Token usage info */}
+                        {(message.tokenUsage || message.costInfo) && (
+                            <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
+                                <div className="flex flex-wrap items-center gap-x-4">
+                                    {message.tokenUsage && (
+                                        <div className="flex items-center gap-x-2">
+                                            <span>
+                                                Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out
+                                            </span>
+                                            {(message.tokenUsage.cacheCreationInputTokens > 0 ||
+                                                message.tokenUsage.cacheReadInputTokens > 0) && (
+                                                    <span>
+                                                        (Cache: {message.tokenUsage.cacheCreationInputTokens} created,{' '}
+                                                        {message.tokenUsage.cacheReadInputTokens} read)
+                                                    </span>
+                                                )}
+                                        </div>
+                                    )}
+                                    {message.costInfo && (
+                                        <div className="flex items-center gap-x-2">
+                                            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
+                                            <span className="text-gray-500">
+                                                (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
+                                                {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+
+                {/* Streaming tokens */}
+                {streamTokens.length > 0 && (
+                    <div className="p-4 mb-4 rounded-lg bg-gray-800 shadow-md">
+                        {streamTokens.map((token, index) => (
+                            <LiveStreamToken key={index} token={token} />
+                        ))}
+                    </div>
+                )}
             </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+
+            {/* Scroll to bottom button */}
+            <ScrollToBottomButton />
+        </div>
+    );
 };

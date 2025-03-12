@@ -1,6 +1,5 @@
 // src/components/CommandBar.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useCommandStore } from '@/stores/useCommandStore';
@@ -175,10 +174,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     <div ref={containerRef} className="relative w-full max-w-2xl">
       <form onSubmit={handleCommandSubmit}>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Command className="h-4 w-4 text-gray-400" />
-          </div>
-          <Input
+         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Command className="h-4 w-4 text-gray-400" />
+        </div>
+        <Input
             ref={inputRef}
             id="command-input"
             autoComplete="off"
@@ -187,8 +186,8 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon"
-          />
+            className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon pl-9"
+        />
           {isOpen ? (
             <button
               type="button"
@@ -222,74 +221,66 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
           )}
         </div>
       </form>
-      {isOpen && (searchTerm || filteredCommands.length) && createPortal(
-        <div className="fixed z-50" style={{
-          top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + 8 : 0,
-          left: inputRef.current ? inputRef.current.getBoundingClientRect().left : 0,
-          width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto',
-          maxWidth: '100vw'
-        }}>
-          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden max-h-96 overflow-y-auto">
-            {Object.entries(groupedCommands).map(([section, commands]) => (
-              <div key={section} className="border-t border-gray-700 first:border-t-0">
-                <div className="px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-900/70">
-                  {section.charAt(0).toUpperCase() + section.slice(1)}
-                </div>
-                <div>
-                  {commands.map((command, index) => {
-                    const isSelected = filteredCommands.indexOf(command) === selectedIndex;
-                    const isPinned = pinnedCommands.some((cmd) => cmd.id === command.id);
+      {isOpen && (searchTerm || filteredCommands.length) && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-96 overflow-y-auto">
+          {Object.entries(groupedCommands).map(([section, commands]) => (
+            <div key={section} className="border-t border-gray-700 first:border-t-0">
+              <div className="px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-900/70">
+                {section.charAt(0).toUpperCase() + section.slice(1)}
+              </div>
+              <div>
+                {commands.map((command, index) => {
+                  const isSelected = filteredCommands.indexOf(command) === selectedIndex;
+                  const isPinned = pinnedCommands.some((cmd) => cmd.id === command.id);
 
-                    return (
-                      <div
-                        key={command.id}
-                        className={cn(
-                          'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
-                          isSelected && 'bg-gray-700/70',
-                        )}
-                        onClick={() => handleCommandClick(command.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          {command.icon && <div className="text-gray-400">{command.icon}</div>}
-                          <div>
-                            <div className="font-medium text-gray-200">{command.name}</div>
-                            {command.description && <div className="text-small-gray-400">{command.description}</div>}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div
-                                  onClick={(e) => handlePinCommand(e, command)}
-                                  className={cn(
-                                    'p-1 rounded hover:bg-gray-600/50 cursor-pointer',
-                                    isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
-                                  )}
-                                >
-                                  <Pin className="h-3.5 w-3.5" fill={isPinned ? 'currentColor' : 'none'} />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="top">
-                                <p>{isPinned ? 'Unpin command' : 'Pin to shortcuts'}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          {command.shortcut && (
-                            <kbd className="px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
-                              {command.shortcut}
-                            </kbd>
-                          )}
+                  return (
+                    <div
+                      key={command.id}
+                      className={cn(
+                        'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
+                        isSelected && 'bg-gray-700/70',
+                      )}
+                      onClick={() => handleCommandClick(command.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {command.icon && <div className="text-gray-400">{command.icon}</div>}
+                        <div>
+                          <div className="font-medium text-gray-200">{command.name}</div>
+                          {command.description && <div className="text-small-gray-400">{command.description}</div>}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                onClick={(e) => handlePinCommand(e, command)}
+                                className={cn(
+                                  'p-1 rounded hover:bg-gray-600/50 cursor-pointer',
+                                  isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
+                                )}
+                              >
+                                <Pin className="h-3.5 w-3.5" fill={isPinned ? 'currentColor' : 'none'} />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p>{isPinned ? 'Unpin command' : 'Pin to shortcuts'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        {command.shortcut && (
+                          <kbd className="px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
+                            {command.shortcut}
+                          </kbd>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </div>,
-        document.body
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

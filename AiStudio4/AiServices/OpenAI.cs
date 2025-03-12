@@ -9,12 +9,17 @@ using AiStudio4.DataModels;
 using System.Net.Http;
 using AiStudio4.Convs;
 using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using AiStudio4.Core.Tools; // added for tool support
 
 namespace AiStudio4.AiServices
 {
     internal class OpenAI : AiServiceBase
     {
-        private bool deepseekBodge;
+        private bool deepseekBodge; // Field to store the name of the tool chosen via tool_calls (if any) private string chosenTool;
 
         public OpenAI() { }
 
@@ -27,7 +32,7 @@ namespace AiStudio4.AiServices
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
             deepseekBodge = ApiUrl.Contains("deepseek");
-            
+
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
@@ -51,20 +56,33 @@ namespace AiStudio4.AiServices
 
             var messagesArray = new JArray { systemMessage };
 
-            // Add conv messages
+            // Add conversation messages
             foreach (var m in options.Conv.messages)
             {
                 messagesArray.Add(CreateMessageObject(m));
             }
             requestPayload["messages"] = messagesArray;
 
+            // Add tools into the request if any tool IDs were specified.
             AddToolsToRequest(requestPayload, options.ToolIds);
 
             if (options.AddEmbeddings)
             {
                 var lastMessageContent = options.Conv.messages.Last().content;
                 var newInput = await AddEmbeddingsIfRequired(options.Conv, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessageContent);
-                ((JArray)requestPayload["messages"]).Last["content"].Last["text"] = newInput;
+                // Adjust the content structure based on the deepseek flag.
+                if (deepseekBodge)
+                {
+                    ((JArray)requestPayload["messages"]).Last["content"] = newInput;
+                }
+                else
+                {
+                    var lastContentArray = ((JArray)requestPayload["messages"]).Last["content"] as JArray;
+                    if (lastContentArray != null && lastContentArray.Count > 0)
+                    {
+                        lastContentArray.Last["text"] = newInput;
+                    }
+                }
             }
 
             var json = JsonConvert.SerializeObject(requestPayload, new JsonSerializerSettings
@@ -92,7 +110,7 @@ namespace AiStudio4.AiServices
                 //["reasoning_effort"] = "lolz"
             };
 
-            foreach(var entry in additionalParamsDict)
+            foreach (var entry in additionalParamsDict)
             {
                 payload[entry.Key] = entry.Value;
             }
@@ -135,60 +153,27 @@ namespace AiStudio4.AiServices
             };
         }
 
-        protected override void AddToolsToRequest(JObject request, List<string> toolIDs)
+        // --------------------- TOOL SUPPORT ---------------------
+        // In this override we mirror the pattern used by Claude.cs:
+        // If any toolIDs are supplied, we initialize the "tools" array on the request and use the ToolRequestBuilder
+        // to insert the tool details. The current GetToolFormat() method returns ToolFormat.OpenAI.
+        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
         {
-            //if (toolIDs == null || !toolIDs.Any())
-            //    return;
-            //
-            //var toolObj = ToolManager.Tools.First(x => x.Name == toolIDs[0]);
-            //var firstLine = toolObj.FullText.Split('\n')[0]
-            //    .Replace("//", "")
-            //    .Replace(" ", "")
-            //    .Replace("\r", "")
-            //    .Replace("\n", "");
-            //
-            //var toolManager = new ToolManager();
-            //var colorSchemeTool = toolManager.Tools.First(x => x.InternalName == firstLine);
-            //// Remove comment header
-            //var colorSchemeToolText = Regex.Replace(colorSchemeTool.FullText, @"^//.*\n", string.Empty, RegexOptions.Multiline);
-            //var schema = JObject.Parse(colorSchemeToolText);
-            //
-            //if (deepseekBodge)
-            //{
-            //    // Wrap tool details for deepseek requests
-            //    var wrappedTool = new JObject
-            //    {
-            //        ["type"] = "function",
-            //        ["function"] = schema
-            //    };
-            //
-            //    wrappedTool["function"]["parameters"] = wrappedTool["function"]["input_schema"];
-            //    // Remove the original "input_schema" property
-            //    foreach (var c in wrappedTool["function"].Children().OfType<JProperty>().ToList())
-            //    {
-            //        if (c.Name == "input_schema")
-            //            c.Remove();
-            //    }
-            //
-            //    request["tools"] = new JArray { wrappedTool };
-            //    request["tool_choice"] = wrappedTool;
-            //}
-            //else
-            //{
-            //    // Change key name from "input_schema" to "schema"
-            //    schema["schema"] = schema["input_schema"];
-            //    schema.Remove("input_schema");
-            //
-            //    request["response_format"] = new JObject
-            //    {
-            //        ["type"] = "json_schema",
-            //        ["json_schema"] = schema
-            //    };
-            //
-            //    request.Remove("tools");
-            //    request.Remove("tool_choice");
-            //}
+            if (toolIDs == null || !toolIDs.Any())
+                return;
+
+            if (req["tools"] == null)
+                req["tools"] = new JArray();
+
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            foreach (var toolId in toolIDs)
+            {
+                toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+            }
         }
+
+        protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;
+        // --------------------- END TOOL SUPPORT ---------------------
 
         protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
@@ -203,6 +188,8 @@ namespace AiStudio4.AiServices
             int inputTokens = 0;
             int outputTokens = 0;
             string leftovers = null;
+            // Reset chosenTool for this response
+            ChosenTool = null;
 
             while ((charsRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
@@ -233,10 +220,13 @@ namespace AiStudio4.AiServices
             {
                 ResponseText = responseBuilder.ToString(),
                 Success = true,
-                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString())
+                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                ChosenTool = ChosenTool
             };
         }
 
+        // In this method we update the response as streaming data is received.
+        // In addition to appending text we check for the presence of a tool_call.
         private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
         {
             if (line.Length < 6)
@@ -247,13 +237,13 @@ namespace AiStudio4.AiServices
 
             if (line.StartsWith("data: "))
             {
-                var jsonData = line["data: ".Length..].Trim();
+                var jsonData = line.Substring("data: ".Length).Trim();
                 if (jsonData.Equals("[DONE]"))
                     return string.Empty;
 
                 try
                 {
-                    // Validate JSON format briefly using System.Text.Json
+                    // Validate JSON using System.Text.Json briefly
                     try
                     {
                         using (JsonDocument.Parse(jsonData)) { }
@@ -270,9 +260,12 @@ namespace AiStudio4.AiServices
                         var content = chunk["choices"]?[0]?["delta"]?["content"]?.ToString();
                         if (string.IsNullOrEmpty(content))
                         {
-                            // Check for tool_calls if present
+                            // If no text content is returned check if a tool call exists.
                             if (chunk["choices"]?[0]?["delta"]?["tool_calls"] is JArray toolCalls && toolCalls.Any())
                             {
+                                // Save the name of the chosen tool if not already set.
+                                if (string.IsNullOrEmpty(ChosenTool))
+                                    ChosenTool = toolCalls[0]["function"]?["name"]?.ToString();
                                 content = toolCalls[0]["function"]?["arguments"]?.ToString();
                             }
                         }
@@ -286,7 +279,7 @@ namespace AiStudio4.AiServices
                     }
                     else
                     {
-                        // Update token counts if available
+                        // Update token counts if available.
                         if (chunk["usage"] is JObject usage && usage.HasValues)
                         {
                             inputTokens = usage["prompt_tokens"]?.Value<int>() ?? inputTokens;
@@ -294,14 +287,14 @@ namespace AiStudio4.AiServices
                         }
                         else
                         {
-                            return line; // left-overs
+                            return line; // return leftovers if tokens not updated.
                         }
                         return string.Empty;
                     }
                 }
                 catch (Newtonsoft.Json.JsonException)
                 {
-                    return line; // left-overs on JSON parse error
+                    return line; // return leftover line on JSON parse error.
                 }
             }
             return line;
@@ -316,9 +309,12 @@ namespace AiStudio4.AiServices
             var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
 
             string responseText = string.Empty;
+            string chosenToolLocal = null;
             var message = jsonResponse["choices"]?[0]?["message"];
             if (message?["tool_calls"] is JArray toolCalls && toolCalls.Any())
             {
+                // Extract tool call details
+                chosenToolLocal = toolCalls[0]?["function"]?["name"]?.ToString();
                 responseText = toolCalls[0]?["function"]?["arguments"]?.ToString();
             }
             else
@@ -330,7 +326,8 @@ namespace AiStudio4.AiServices
             {
                 ResponseText = responseText,
                 Success = true,
-                TokenUsage = ExtractTokenUsage(jsonResponse)
+                TokenUsage = ExtractTokenUsage(jsonResponse),
+                ChosenTool = chosenToolLocal
             };
         }
 

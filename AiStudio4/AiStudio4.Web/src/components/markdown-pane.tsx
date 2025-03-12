@@ -164,7 +164,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         ) : (
           <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
             {codeHeader}
-          <div className="p-4 bg-gray-800 rounded-b-lg diagram-container" data-type={renderer.type[0]} data-content={content}>
+          <div className="p-4 bg-gray-800 rounded-b-lg diagram-container" data-type={diagramRenderer.type[0]} data-content={content}>
             {/* Maintain both rendered component and lazy-loading data attributes */}
             <DiagramComponent content={content} className="overflow-auto" />
           </div>
