@@ -89,3 +89,13 @@ export const useApiStore = create<ApiState>((set) => ({
     }),
 }));
 
+// API function to update a message on the server
+export async function updateMessage(params: { convId: string; messageId: string; content: string }) {
+  try {
+    const response = await apiClient.post('/api/updateMessage', params);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating message:', error);
+    throw error;
+  }
+}

@@ -19,6 +19,7 @@ namespace AiStudio4.InjectedDependencies
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly IPinnedCommandService _pinnedCommandService;
+        private readonly IConvStorage _convStorage;
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -27,7 +28,9 @@ namespace AiStudio4.InjectedDependencies
             ChatManager chatManager,
             IToolService toolService,
             ISystemPromptService systemPromptService,
-            IPinnedCommandService pinnedCommandService)
+            IPinnedCommandService pinnedCommandService,
+            IConvStorage convStorage
+            )
         {
             _configuration = configuration;
             _settingsManager = settingsManager;
@@ -36,6 +39,7 @@ namespace AiStudio4.InjectedDependencies
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _pinnedCommandService = pinnedCommandService;
+            _convStorage = convStorage;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -93,6 +97,7 @@ namespace AiStudio4.InjectedDependencies
                     "deleteServiceProvider" => await DeleteByGuid(_settingsManager.DeleteServiceProvider, requestObject, "providerGuid"),
                     "getAppearanceSettings" => await HandleGetAppearanceSettingsRequest(clientId, requestObject),
                     "saveAppearanceSettings" => await HandleSaveAppearanceSettingsRequest(clientId, requestObject),
+                    "updateMessage" => await HandleUpdateMessageRequest(clientId, requestObject),
                     _ => throw new NotImplementedException()
                 };
             }
@@ -603,6 +608,64 @@ namespace AiStudio4.InjectedDependencies
         }
 
 
+        #endregion
+
+        #region Message Editing Request Handlers
+        private async Task<string> HandleUpdateMessageRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                string convId = requestObject["convId"]?.ToString();
+                string messageId = requestObject["messageId"]?.ToString();
+                string content = requestObject["content"]?.ToString();
+
+                if (string.IsNullOrEmpty(convId))
+                    return SerializeError("Conversation ID cannot be empty");
+
+                if (string.IsNullOrEmpty(messageId))
+                    return SerializeError("Message ID cannot be empty");
+
+                if (content == null) // Allow empty content but not null
+                    return SerializeError("Message content cannot be null");
+
+                // Load the conversation
+                var conv = await _convStorage.LoadConv(convId);
+                if (conv == null)
+                    return SerializeError($"Conversation with ID {convId} not found");
+
+                // Find the message in the conversation
+                var allMessages = conv.GetAllMessages();
+                var messageToUpdate = allMessages.FirstOrDefault(m => m.Id == messageId);
+
+                if (messageToUpdate == null)
+                    return SerializeError($"Message with ID {messageId} not found in conversation {convId}");
+
+                // Update the message content
+                messageToUpdate.UserMessage = content;
+
+                // Save the updated conversation
+                await _convStorage.SaveConv(conv);
+
+                // Notify the client about the update
+                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                {
+                    type = "conv:update",
+                    content = new
+                    {
+                        messageId,
+                        content,
+                        convId,
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    }
+                }));
+
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error updating message: {ex.Message}");
+            }
+        }
         #endregion
     }
 }

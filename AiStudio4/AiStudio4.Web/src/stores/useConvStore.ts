@@ -266,6 +266,12 @@ export const useConvStore = create<ConvState>((set, get) => {
           content,
         };
 
+        // Persist the change to the server
+        import('../services/api/apiClient').then(({ updateMessage }) => {
+          updateMessage({ convId, messageId, content })
+            .catch(error => console.error('Failed to update message on server:', error));
+        });
+
         return {
           convs: {
             ...state.convs,
