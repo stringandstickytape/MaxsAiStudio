@@ -1,5 +1,6 @@
 // src/components/CommandBar.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useCommandStore } from '@/stores/useCommandStore';
@@ -221,7 +222,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
           )}
         </div>
       </form>
-      {isOpen && (searchTerm || filteredCommands.length) && (
+          {isOpen && (searchTerm || filteredCommands.length) && createPortal(
+              <div className="fixed z-50" style={{
+                  top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + 8 : 0,
+                  left: inputRef.current ? inputRef.current.getBoundingClientRect().left : 0,
+                  width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto',
+                  maxWidth: '100vw'
+              }}>
         <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-96 overflow-y-auto">
           {Object.entries(groupedCommands).map(([section, commands]) => (
             <div key={section} className="border-t border-gray-700 first:border-t-0">
@@ -280,7 +287,9 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
               </div>
             </div>
           ))}
-        </div>
+                  </div>
+              </div>,
+              document.body
       )}
     </div>
   );
