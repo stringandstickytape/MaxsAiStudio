@@ -76,39 +76,37 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   }, [messages, updateKey]);
 
   // Handle node click
-  const handleNodeClick = (nodeId: string, nodeSource: string, nodeContent: string) => {
-    console.log('Tree Node clicked:', {
-      node: nodeId,
-      convId: convId,
-      source: nodeSource
-    });
-    
-    if (nodeSource === 'user') {
-      // When clicking a user message:
-      // 1. Load the message content into the input area
-      window.setPrompt(nodeContent);
-      
-      // 2. Find the parent message (AI response) to set as context
-      const conv = convs[convId];
-      if (conv) {
-        const message = conv.messages.find(msg => msg.id === nodeId);
-        if (message && message.parentId) {
-          // Set the parent message as the selected message
-          setActiveConv({
+    const handleNodeClick = (nodeId: string, nodeSource: string, nodeContent: string) => {
+        console.log('Tree Node clicked:', {
+            node: nodeId,
             convId: convId,
-            slctdMsgId: message.parentId,
-          });
-          return;
+            source: nodeSource
+        });
+
+        if (nodeSource === 'user') {
+            window.setPrompt(nodeContent);
+
+            const conv = convs[convId];
+            if (conv) {
+                const message = conv.messages.find(msg => msg.id === nodeId);
+                if (message && message.parentId) {
+                    setActiveConv({
+                        convId: convId,
+                        slctdMsgId: message.parentId,
+                    });
+                    return;
+                }
+            }
+        } else {
+
+            window.setPrompt("");
         }
-      }
-    }
-    
-    // Default behavior for non-user messages or if parent not found
-    setActiveConv({
-      convId: convId,
-      slctdMsgId: nodeId,
-    });
-  };
+
+        setActiveConv({
+            convId: convId,
+            slctdMsgId: nodeId,
+        });
+    };
 
   // Handle zoom controls
   const handleZoomIn = () => {
