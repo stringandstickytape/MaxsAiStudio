@@ -24,6 +24,13 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
 
     // Call the parent's onNodeClick handler
     onNodeClick(node.id);
+
+    // Check if this is a user message - if so, load it into input area
+    if (node.text.startsWith('User:')) {
+      // Extract the content without the 'User:' prefix
+      const userContent = node.text.substring(5).trim();
+      window.setPrompt(userContent);
+    }
   };
 
   const toggleNode = (nodeId: string, event: React.MouseEvent) => {

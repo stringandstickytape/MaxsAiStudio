@@ -24,7 +24,7 @@ interface TreeNode {
 
 export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   const [updateKey, setUpdateKey] = useState(0);
-  const { setActiveConv } = useConvStore();
+  const { setActiveConv, convs } = useConvStore();
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -76,11 +76,34 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   }, [messages, updateKey]);
 
   // Handle node click
-  const handleNodeClick = (nodeId: string) => {
+  const handleNodeClick = (nodeId: string, nodeSource: string, nodeContent: string) => {
     console.log('Tree Node clicked:', {
       node: nodeId,
       convId: convId,
+      source: nodeSource
     });
+    
+    if (nodeSource === 'user') {
+      // When clicking a user message:
+      // 1. Load the message content into the input area
+      window.setPrompt(nodeContent);
+      
+      // 2. Find the parent message (AI response) to set as context
+      const conv = convs[convId];
+      if (conv) {
+        const message = conv.messages.find(msg => msg.id === nodeId);
+        if (message && message.parentId) {
+          // Set the parent message as the selected message
+          setActiveConv({
+            convId: convId,
+            slctdMsgId: message.parentId,
+          });
+          return;
+        }
+      }
+    }
+    
+    // Default behavior for non-user messages or if parent not found
     setActiveConv({
       convId: convId,
       slctdMsgId: nodeId,
@@ -193,7 +216,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .attr('class', 'node')
       .attr('transform', (d) => `translate(${d.x},${d.y})`) // Standard coordinates for vertical layout
       .attr('cursor', 'pointer')
-      .on('click', (_, d) => handleNodeClick(d.data.id));
+      .on('click', (_, d) => handleNodeClick(d.data.id, d.data.source, d.data.content));
 
     // Add node rectangles
     nodeGroups
@@ -251,7 +274,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       // Cleanup
       d3.select(svgRef.current).selectAll('*').remove();
     };
-  }, [hierarchicalData, convId, handleNodeClick]);
+  }, [hierarchicalData, convId]);
 
   if (!messages.length) {
     return (

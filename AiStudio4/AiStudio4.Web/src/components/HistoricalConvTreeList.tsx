@@ -96,14 +96,27 @@ export const HistoricalConvTreeList = () => {
 
       // First check if conv already exists in store
       const existingConv = currentConvs[convId];
-
+      
       if (existingConv) {
-        console.log('Conv already exists in store, setting as active');
-        // If conv already exists, just set it as active with the selected message
-        setActiveConv({
-          convId,
-          slctdMsgId: nodeId,
-        });
+        // Find the selected message to determine if it's a user message
+        const selectedMessage = existingConv.messages.find(msg => msg.id === nodeId);
+        
+        // Find the parent message (AI response) to set as context
+        if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
+          // Set the slctdMsgId to the parent message instead of the clicked message
+          // This effectively rewinds the conversation to before this user message
+          setActiveConv({
+            convId,
+            slctdMsgId: selectedMessage.parentId,
+          });
+        } else {
+          console.log('Conv already exists in store, setting as active');
+          // If it's not a user message or doesn't have a parent, proceed normally
+          setActiveConv({
+            convId,
+            slctdMsgId: nodeId,
+          });
+        }
         return;
       }
 
@@ -145,14 +158,29 @@ export const HistoricalConvTreeList = () => {
           });
         });
 
-        // Add messageId to URL
-        window.history.pushState({}, '', `?messageId=${nodeId}`);
-
-        // Set the active conv with the selected message
-        setActiveConv({
-          convId,
-          slctdMsgId: nodeId,
-        });
+        // Find the selected message to determine if it's a user message
+        const selectedMessage = conv.messages.find(msg => msg.id === nodeId);
+        
+        // Find the parent message (AI response) to set as context
+        if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
+          // Add messageId to URL (parent message ID)
+          window.history.pushState({}, '', `?messageId=${selectedMessage.parentId}`);
+          
+          // Set the active conv with the parent message as context
+          setActiveConv({
+            convId,
+            slctdMsgId: selectedMessage.parentId,
+          });
+        } else {
+          // Add messageId to URL
+          window.history.pushState({}, '', `?messageId=${nodeId}`);
+          
+          // Set the active conv with the selected message
+          setActiveConv({
+            convId,
+            slctdMsgId: nodeId,
+          });
+        }
       } else {
         console.error('Failed to load conv data or empty conv');
       }
