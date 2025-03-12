@@ -28,7 +28,7 @@ export function Sidebar({ wsState }: SidebarProps) {
   };
 
   return (
-    <div className="flex-col-full h-[calc(100vh-10rem)] bg-gray-900 border-r border-gray-800">
+    <div className="flex-col-full h-full bg-gray-900 border-r border-gray-800">
       <div className="p-2 border-b border-gray-800">
         <Button
           onClick={handleNewChat}
