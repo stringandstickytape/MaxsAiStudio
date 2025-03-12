@@ -1,5 +1,6 @@
 import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
+import { Clipboard } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -182,9 +183,17 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                     <div
                         key={message.id}
                         className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
-                            } shadow-md w-full`}
+                            } shadow-md w-full relative group`}
                     >
                         <MarkdownPane message={message.content} />
+                        
+                        <button
+                            onClick={() => navigator.clipboard.writeText(message.content)}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-white p-1.5 rounded-full bg-gray-700 bg-opacity-0 hover:bg-opacity-80 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                            title="Copy message"
+                        >
+                            <Clipboard size={16} />
+                        </button>
 
                         {/* Token usage info */}
                         {(message.tokenUsage || message.costInfo) && (

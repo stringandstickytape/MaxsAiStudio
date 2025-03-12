@@ -1,198 +1,286 @@
-﻿# File Responsibility Summary for AiStudio4
+﻿This application is a full‐featured, React/TypeScript–based chat and AI tool management system built using modern libraries such as Zustand (for state management), Axios (for API calls), and WebSockets (for real-time communications). It is architected in a modular way using a “feature–driven” file structure with clearly separated concerns. In what follows we describe its overall architecture and data flows, then list and explain the purpose and interconnection of every major file or group of files.
 
-Here's an updated file-by-file summary of responsibilities within the AiStudio4 project:
+─────────────────────────────
 
-## Backend (C#)
+OVERVIEW
+─────────────────────────────
+• The app provides an interactive chat workspace where users can converse with AI models.
+• It supports features to manage system prompts, configure appearance (for example, font size or theme), and manage external “tools” (custom functions or templates).
+• It supports real–time updates via WebSocket connections (for streaming message tokens, conversation updates, and state changes).
+• It uses a command–based interface that lets the user invoke actions via keyboard shortcuts or a command palette; commands are registered in dedicated “commands” files and stored in a Zustand–based CommandStore.
+• The UI is split into several pane areas (chat area, sidebar, settings panel, tools panel, etc.) that are arranged and managed by a panel–management system (using react–resizable–panels) coordinated via a dedicated PanelStore.
+─────────────────────────────
+2. PROJECT STRUCTURE
+─────────────────────────────
+The source code is organized into several folders that separate the types, services, UI components, custom hooks, state stores, commands, and utilities. Here is an overview:
 
-### Core Structure and Interfaces
+A. types/
+ • conv.ts – Defines the Message and Conv interfaces (and related token/cost fields) that form the building blocks of conversation data.
+ • modelTypes.ts – Declares a simple type alias (for example, for distinguishing primary versus secondary models).
+ • settings.ts – Contains type definitions for service providers and models, including pricing, color, and preferences.
+ • systemPrompt.ts – Specifies the structure for system prompts (the predesigned AI system messages) and a related form–values interface.
+ • toolTypes.ts – Defines types for “tools” and their categories.
+ • ui.ts – Declares UI–related types (e.g. for panel positions and panel states).
+ • websocket.ts – Defines the shape of the WebSocket state object.
 
-- **AiStudio4/App.xaml.cs**: Application entry point, configures services using dependency injection
-- **AiStudio4/MainWindow.xaml.cs**: Main window implementation using WebView2 control
-- **AiStudio4/Core/Interfaces/IChatService.cs**: Interface for chat processing with streaming support
-- **AiStudio4/Core/Interfaces/IConvStorage.cs**: Interface for conv persistence
-- **AiStudio4/Core/Interfaces/IConvTreeBuilder.cs**: Interface for building conv tree structures
-- **AiStudio4/Core/Interfaces/IToolService.cs**: Interface for managing AI tools library
-- **AiStudio4/Core/Interfaces/IWebSocketNotificationService.cs**: Interface for WebSocket notifications
+B. services/
+ 1. websocket/
+  • websocketEvents.ts – Provides helper functions to dispatch and listen for WebSocket custom events (such as connection status, stream tokens, new conversation messages, etc.).
+  • WebSocketService.ts – Implements the WebSocket connection manager. It handles connecting to the server (including auto–reconnection strategies), sending JSON messages, interpreting incoming messages (dispatching them via the event system), and maintaining local status (e.g. clientId, connection status).
+ 2. api/
+  • apiClient.ts – Configures the Axios instance for making HTTP requests to the backend. It sets common headers (including adding the client ID from localStorage) and global request/response interceptors for error logging.
 
-### Models
+C. components/
+This folder is very large and subdivided by feature.
 
-- **AiStudio4/Core/Models/ChatRequest.cs**: Models for chat request/response data
-- **AiStudio4/Core/Models/ConvDtos.cs**: DTOs for conv updates and streaming
-- **AiStudio4/Core/Models/ConvListDto.cs**: DTO for listing convs
-- **AiStudio4/Core/Models/ToolModels.cs**: Models for AI tools and tool categories
-- **AiStudio4/Models/AiResponse.cs**: Model for AI response data with token usage tracking
-- **AiStudio4/Models/RequestMessage.cs**: Basic request message model
+ • settings/
+  – AppearanceTab.tsx and FontSizeControl.tsx: UI for appearance settings that allow the user to change the font size (and other appearance aspects) interactively.
+  – ModelForm.tsx and ModelManagement.tsx: Components to display, add, edit, and delete AI model configurations.
+  – ServiceProviderForm.tsx and ServiceProviderManagement.tsx: Similar functionality but for managing service provider settings (API URL, API Key, etc.).
+ • diagrams/
+  – codeBlockRendererRegistry.ts – Implements a registry for “code block renderers.” The registry associates a set of languages (like mermaid, JSON, HTML) with their corresponding renderer components.
+  – mermaid-renderer.tsx, json-renderer.tsx, html-renderer.tsx, and types.ts – Implement renderers for specialized content: rendering diagrams using Mermaid syntax, displaying formatted JSON data, or embedding raw HTML in iframes.  • navigation/
+  – NavigationContainer.tsx – The high–level component controlling overall layout. It imports sidebar, conversation tree, settings panel, tool panel and ties them together; it also manages panel toggles.
+ • SystemPrompt (folder)
+  – SystemPromptCard.tsx – Displays an individual system prompt in a card view and provides buttons for applying, editing, or deleting the prompt.
+  – SystemPromptEditor.tsx – A form for editing or creating system prompts.
+ • common/
+  – GenericForm.tsx – A reusable, dynamic form component that renders form fields based on provided definitions.
+ • commands/
+  – CommandInitializer.tsx – At application start–up, this component initializes and registers core application commands (and more), by calling various “initialize” functions.
+ • tools/
+  – ToolEditor.tsx – A form for editing or creating a tool definition.
+  – ToolPanel.tsx – Displays available tools and integrates with a “ToolSelector” to allow users to toggle tool activation.
+  – ToolSelector.tsx – A compact UI element that shows active tools and allows the user to add new ones via a popover.  • UI Layout and Chat Flow Components
+  – AppHeader.tsx – The header bar at the top of the application. It includes the command bar, model selection triggers, and prompts.
+  – ChatContainer.tsx – Wraps the conversation view (ConvView) inside a scrollable container; it handles auto–scrolling upon new message tokens.
+  – ChatSpace.tsx – The overall chat “workspace” that puts together the header, chat container, and input bar.
+  – CommandBar.tsx – A command palette component that allows the user to type and select commands (with integrated search, keyboard navigation, and pinning).
+  – ConvTreeView.tsx – Uses D3 to render a hierarchical tree view of conversation messages (showing parent/child relationships).
+  – ConvView.tsx – Renders the main conversation messages in markdown using the MarkdownPane component; it also displays real–time streaming tokens.
+  – FileAttachment.tsx – A component that manages file selection and reading through an invisible file input; used to attach files (e.g. code or text) to messages.
+  – FontSizeProvider.tsx – A wrapper that applies global font–size settings taken from the Appearance store to the <html> element.
+  – HistoricalConvTree.tsx and HistoricalConvTreeList.tsx – Components that display historical conversation trees (for browsing past conversations).
+  – Sidebar.tsx – The left–hand sidebar that provides access to conversation history and a “New Chat” button, and shows WebSocket connection status.
+  – VoiceInputOverlay.tsx – A full–screen overlay that enables voice input; it leverages the Web Speech API to capture microphone input.   – HeaderPromptComponent.tsx and SystemPromptLibrary.tsx – Related to system prompts. The header component shows a summarized version of the active system prompt and allows its quick editing or library access; the library view provides browsing, editing, and applying prompts.
 
-### Services
+D. hooks/
+Custom hooks abstract many behaviors and resources:  • use-media-query.ts – A hook that returns whether a given CSS media query matches (used for determining mobile vs. desktop layout).
+ • useApi.ts – Provides integration with the Axios–based API client; it also uses Zustand (with zustand’s “store”) to cache API responses and track loading errors.
+ • useAppearanceManagement.ts – Wraps the Appearance store functionality (for font size and dark mode) and exposes functions such as saving settings or resetting defaults.
+ • useChatManagement.ts – Manages chat operations (sending messages, fetching configuration, setting models for conversation, and loading conversation trees) by wrapping API calls and interfacing with the ConvStore.
+ • useCrudOperations.ts – A generic hook that returns Create/Read/Update/Delete methods by combining API utilities and state actions.
+ • useDragDrop.ts – A helper hook for integrating react-beautiful-dnd in components such as the pinned commands list.
+ • useMessageGraph.ts – Wraps construction of a MessageGraph (from our utilities) that turns flat message arrays into a graph structure, used for conversation threads and tree views.
+ • useResourceFactory.ts – A factory that builds resource hooks (for fetching and updating resources like models, providers, or tools) in a generic, unified way.
+ • useResourceManagement.ts – Combines various resource hooks (for models, system prompts, providers) into higher-level “management” hooks used by settings components.
+ • useStreamTokens.ts – Listens for streaming tokens (from a WebSocket event named “stream:token”) and accumulates them into an array for rendering in the chat view.
+ • useToolCommands.ts – Connects the tools system with the command registry so that tool actions are available as commands.
+ • useToolsManagement.ts – Provides resource operations and additional helper functions for tools (fetching tools, validating schemas, exporting tools, and toggling active tool selections).
+ • useVoiceInput.ts – Wraps the browser’s Web Speech API to offer an easy-to-use hook for voice input (managing recognition, interim and final transcripts, error reporting, etc.).
+ • useWebSocket.ts – A hook that abstracts WebSocket connectivity based on our WebSocketService and provides functions to connect, disconnect, and send messages.
 
-- **AiStudio4/Services/ChatProcessingService.cs**: Processes chat requests and coordinates responses
-- **AiStudio4/Services/ConvService.cs**: Manages conv loading and tree building
-- **AiStudio4/Services/DefaultConvTreeBuilder.cs**: Builds conv tree structures
-- **AiStudio4/Services/FileSystemConvStorage.cs**: Stores convs as JSON files
-- **AiStudio4/Services/MessageHistoryService.cs**: Manages message history and branching
-- **AiStudio4/Services/OpenAIChatService.cs**: Implements chat processing using OpenAI-compatible API
-- **AiStudio4/Services/ToolService.cs**: Manages AI tools library (creation, retrieval, validation)
-- **AiStudio4/Services/WebSocketNotificationService.cs**: Sends notifications to clients via WebSocket
+E. stores/
+The application uses Zustand to hold local state in many domains:  • useAppearanceStore.ts – Holds visual appearance preferences (font size, dark mode flag, loading state, errors) and updates the document’s font size.
+ • useCommandStore.ts – The central registry for application commands. Commands are registered (with properties like id, name, description, shortcut, keywords, section, icon, and execute callback) and later searched and executed by the command bar.
+ • useConvStore.ts – Stores conversation data (conversations identified by an ID, the active conversation, the selected message within that conversation) and provides methods to create, update, or delete messages and conversations.
+ • useHistoricalConvsStore.ts – Maintains a list of historical conversations (conv summaries) and provides methods to fetch conversation trees from the server.
+ • useModelStore.ts – Maintains the list of available AI models and corresponding service providers, as well as which model is currently selected as primary or secondary.
+ • usePanelStore.ts – Manages panel states (for sidebar, settings panels, tool panel, etc.) including whether they are open, pinned, their sizes and positions.
+ • usePinnedCommandsStore.ts – Stores commands that the user pins for quick access (including their ordering, loading state, and error states).
+ • useToolStore.ts – Holds the list of available tools, tool categories, active tools, and provides functions to update these lists.
+ • useWebSocketStore.ts – Monitors the status of the WebSocket connection (connected flag, clientId, reconnect attempts, last message time).
+ • useSystemPromptStore.ts – Holds the list of system prompts along with the “default” prompt ID, a mapping between conversations and their chosen prompts, and the currently selected prompt.
 
-### Exceptions
+F. commands/
+There is a wide-ranging command system that lets the user perform actions via shortcuts or command palette:  • appearanceCommands.ts – Registers commands to adjust appearance settings (like increasing, decreasing, or resetting font size).
+ • coreCommands.ts – Registers core (global) commands such as creating new conversations, clearing them, or even exiting the app (in desktop contexts).
+ • modelCommands.ts – Dynamically generates commands for choosing a primary or secondary AI model from a list of available models.
+ • settingsCommands.ts – Registers commands to open the settings panel and to dispatch events that drive editing of models and service providers. Also used to send custom events via the commandEvents emitter.
+ • systemPromptCommands.ts – Registers commands to toggle the system prompt library, create a new system prompt, or edit the current prompt. It also automatically builds a list of available prompts as commands.
+ • toolCommands.ts – Registers high-level tools–related commands (such as exporting tools, opening the tool panel) and also provides a function to register each tool as a command so that users can toggle tools on/off.
+ • types.ts – Defines common types shared by commands (such as the Command and CommandGroup interfaces).
+ • voiceInputCommand.ts – Registers the voice input command that, when invoked, opens the voice input overlay.
 
-- **AiStudio4/Core/Exceptions/*.cs**: Various exception types for specific failure scenarios
+G. utils/
+General utilities help abstract common behavior:
+ • apiUtils.ts – Contains functions for normalizing errors and for wrapping Axios API calls into promises that update a global API–store (using a Zustand store named useApiStore).
+ • hookUtils.ts – Provides helper hooks such as useInitialization to run an effect or initialization function only once.
+ • messageGraph.ts – Implements a MessageGraph class that builds a parent–child graph from flat arrays of messages (used in conversation trees and for getting message paths).
+ • promptUtils.ts – Provides helper functions to manipulate system prompt text (for example, appending or replacing text in the prompt with a global function on window).
+ • treeUtils.ts – Functions to build hierarchical “tree” representations out of conversation messages – these utilities support historical conversation trees and debug views.
+ • webSocketUtils.ts – Contains hooks for listening to and managing WebSocket events, such as a hook for retrieving streamed tokens (“stream:token”) and another for monitoring the connection status.
 
-### Injected Dependencies
+H. lib/
+ • utils.ts – A simple utility that combines class names (using clsx and tailwind–merge) into a convenient “cn” helper used across components.
 
-- **AiStudio4/InjectedDependencies/ChatManager.cs**: Coordinates chat-related services
-- **AiStudio4/InjectedDependencies/DefaultSettings.cs**: Default model configuration
-- **AiStudio4/InjectedDependencies/FileServer.cs**: Serves static files with dev/prod mode support
-- **AiStudio4/InjectedDependencies/SettingsManager.cs**: Manages application settings
-- **AiStudio4/InjectedDependencies/UiRequestBroker.cs**: Handles API requests from UI
-- **AiStudio4/InjectedDependencies/v4BranchedConv.cs**: Conv with branching messages
-- **AiStudio4/InjectedDependencies/WebServer.cs**: HTTP server for API and WebSocket
-- **AiStudio4/InjectedDependencies/WindowManager.cs**: Manages multiple application windows
+I. Main entry points
+ • index.css – Main stylesheet that brings together Tailwind CSS directives, custom component styles, and utility classes.
+ • main.tsx – The entry point that uses ReactDOM’s createRoot to render the App component.
+ • App.tsx – The root component which wraps the application in the FontSizeProvider (to apply appearance settings), initializes the command system via CommandInitializer, and then renders the NavigationContainer with the ChatSpace inside.
 
-### WebSocket
+─────────────────────────────
+3. MAJOR DATA FLOWS AND FUNCTIONALITY
+─────────────────────────────
 
-- **AiStudio4/InjectedDependencies/WebSocket/WebSocketMessageHandler.cs**: Handles WebSocket message sending
-- **AiStudio4/InjectedDependencies/WebSocket/WebSocketConnectionManager.cs**: Manages WebSocket connections
-- **AiStudio4/InjectedDependencies/WebSocketServer.cs**: WebSocket server implementation
+A. Chat and Conversation Flow
+ • Incoming chat messages (typically from the AI service) are received via WebSocket managed by WebSocketService.
+ • Received messages are dispatched using websocketEvents and then processed by useConvStore in response to “conv:new” or “conv:load” events.
+ • The ConvStore maintains an object mapping conversation IDs to Conv objects (which hold an array of Messages).
+ • The ChatSpace component – which is composed of several parts (AppHeader, ChatContainer, InputBar) – reads the current conversation from the conv store.
+ • ChatContainer automatically scrolls (via useEffect) as new messages stream in through the useStreamTokens hook.
+ • ConvView then renders the conversation using MarkdownPane (facilitating syntax–highlighted code blocks, diagrams, etc.) and LiveStreamToken components to show real–time token output.
 
-### Controls
+B. Appearance and Theming
+ • Appearance settings (font size and dark mode) are handled by useAppearanceStore.
+ • The FontSizeProvider component (wrapped around the App) applies the current fontSize to document.documentElement.
+ • The AppearanceTab and FontSizeControl components (inside settings/) let users adjust these preferences.
+ • When a user makes a change, functions from the Appearance store update the CSS variable and then trigger a saveAppearanceSettings API call.
 
-- **AiStudio4/Controls/AiStudioWebView2.cs**: WebView2 control for hosting the UI
+C. Models and Service Providers (Settings)
+ • The types in settings.ts define both Model and ServiceProvider data structures.
+ • The UI for editing these is implemented in files under settings/ (ModelForm, ModelManagement, ServiceProviderForm, ServiceProviderManagement).
+ • A combination of resource hooks (built on top of useCrudOperations and useResourceFactory) and the ModelStore (useModelStore) allow the app to add, update, or delete models and providers.
+ • The commands system (in settingsCommands.ts and modelCommands.ts) registers commands to open dialogs for editing models or providers.
 
-## Frontend (TypeScript/React)
+D. System Prompts
+ • System prompts (the default “instructions” for the AI) are stored in the systemPrompt store (useSystemPromptStore).
+ • The HeaderPromptComponent shows a brief version of the active system prompt; the SystemPromptLibrary lets users browse, create, edit, or apply prompts.
+ • When a prompt is applied, events are dispatched and the conv store is updated with the appropriate system prompt ID.
 
-### Core Application
+E. Tools
+ • Tools are extra functionalities that can be activated when chatting.
+ • The tool management is handled in useToolStore and via resource hooks in useToolsManagement.
+ • The ToolPanel displays available tools using the ToolEditor and ToolSelector components.
+ • The toolCommands.ts file registers commands to export or manage tools and integrates with the CommandStore so that tools appear as commands and can be toggled.
 
-- **AiStudio4.Web/src/App.tsx**: Main application component with layout and hooks initialization
-- **AiStudio4.Web/src/main.tsx**: Entry point that renders the App component
-- **AiStudio4.Web/src/index.css**: Global styles and Tailwind configuration
+F. Command System
+ • The useCommandStore (in stores/useCommandStore.ts) is the central registry for application commands.
+ • Various “initialize” functions under commands/ (coreCommands.ts, appearanceCommands.ts, modelCommands.ts, settingsCommands.ts, systemPromptCommands.ts, toolCommands.ts, voiceInputCommand.ts) register command groups with properties such as id, name, description, shortcut keys, keywords, icons, and callback functions (execute).
+ • The CommandInitializer component (in components/commands/) runs at startup and calls all these functions so that the commands are available throughout the application.
+ • The CommandBar component provides a searchable overlay. It queries the command store (using searchCommands) and supports keyboard navigation and pinning of commands (via the pinned commands store).
 
-### State Management (Zustand)
+G. Panels and Layout
+ • The NavigationContainer component orchestrates the layout of the application, putting together the Sidebar, ConvTreeView, SettingsPanel, and ToolPanel.
+ • The PanelStore (usePanelStore) holds the state for each panel (open/closed, pinned, size, position).
+ • The PanelContainerLayout and PanelManager components (in components/) work together to render panels using a resizable–panel system.
+ • Panels are toggled via commands and UI interactions (e.g. from the AppHeader and Sidebar).
 
-- **AiStudio4.Web/src/stores/useConvStore.ts**: Manages conv state and message trees
-- **AiStudio4.Web/src/stores/useToolStore.ts**: Manages AI tools and active tools
-- **AiStudio4.Web/src/stores/useModelStore.ts**: Manages AI models and providers
-- **AiStudio4.Web/src/stores/useSystemPromptStore.ts**: Manages system prompts for convs
-- **AiStudio4.Web/src/stores/usePanelStore.ts**: Manages panel visibility and positions
-- **AiStudio4.Web/src/stores/usePinnedCommandsStore.ts**: Manages pinned command shortcuts
-- **AiStudio4.Web/src/stores/useCommandStore.ts**: Registry for commands and command groups
-- **AiStudio4.Web/src/stores/useWebSocketStore.ts**: Manages WebSocket connection state
-- **AiStudio4.Web/src/stores/useHistoricalConvsStore.ts**: Manages historical conv data
+H. WebSockets and API Integration
+ • The apiClient (in services/api/apiClient.ts) is configured with Axios to perform HTTP calls to endpoints.
+ • Helper utilities in utils/apiUtils.ts and hooks like useApi.ts abstract API calls.
+ • The WebSocketService (and its event helper, websocketEvents.ts) manages the lifecycle of the WebSocket connection. It automatically dispatches status and message events which are then consumed by zustand stores (for conversation updates) and by hooks (useWebSocketStatus, useStreamableWebSocketData).
 
-### Business Logic Hooks
+I. File Attachments and Voice Input
+ • The FileAttachment component enables users to attach files to their messages. It reads file content and then calls a callback with the file and its text content.
+ • The VoiceInputOverlay component uses the browser’s Web Speech API (wrapped by the custom hook useVoiceInput) to capture voice input. It displays a full–screen overlay with microphone and transcript controls.
 
-- **AiStudio4.Web/src/hooks/useModelManagement.ts**: Logic for managing models and providers
-- **AiStudio4.Web/src/hooks/useSystemPromptManagement.ts**: Logic for managing system prompts
-- **AiStudio4.Web/src/hooks/useChatManagement.ts**: Logic for sending and managing chat messages
-- **AiStudio4.Web/src/hooks/useToolsManagement.ts**: Logic for managing AI tools
-- **AiStudio4.Web/src/hooks/useWebSocket.ts**: Logic for WebSocket connection management
-- **AiStudio4.Web/src/hooks/useStreamTokens.ts**: Logic for handling streaming tokens
-- **AiStudio4.Web/src/hooks/useVoiceInput.ts**: Logic for voice input functionality
-- **AiStudio4.Web/src/hooks/useToolCommands.ts**: Logic for tool command registration
-- **AiStudio4.Web/src/hooks/useMutation.ts**: Generic hook for API mutations
-- **AiStudio4.Web/src/hooks/useApi.ts**: Generic hook for API calls
-- **AiStudio4.Web/src/hooks/useMessageGraph.ts**: Hook for creating message relationship graphs
-- **AiStudio4.Web/src/hooks/use-media-query.ts**: Hook for responsive design
+─────────────────────────────
+4. FILES & HOW THEY LINK
+─────────────────────────────
 
-### Navigation and Layout
+Below is a non–exhaustive list of files (organized by directory) with brief notes on what they do and how they interact with others:
 
-- **AiStudio4.Web/src/cmps/navigation/NavigationContainer.tsx**: Main navigation container
-- **AiStudio4.Web/src/cmps/panel.tsx**: Configurable panel component
-- **AiStudio4.Web/src/cmps/PanelManager.tsx**: Manages panels layout and state
-- **AiStudio4.Web/src/cmps/Sidebar.tsx**: Sidebar with conv history
-- **AiStudio4.Web/src/cmps/AppHeader.tsx**: Application header with controls
+▸ src/types/
+ – conv.ts: Defines the Message interface (with id, content, source, token usage, cost info) and the Conv interface (id and messages array). Used by the conversation store (useConvStore) and components like ConvView and ConvTreeView.
+ – modelTypes.ts: Defines types for model selection (primary vs. secondary) used by settings and model management commands.
+ – settings.ts: Contains interfaces for ServiceProvider and Model. These types are used in settings–related forms (ModelForm.tsx, ServiceProviderForm.tsx) and stored in useModelStore.
+ – systemPrompt.ts: Defines the SystemPrompt and SystemPromptFormValues interfaces. Code in SystemPrompt components uses these types to manage prompt content.
+ – toolTypes.ts: Defines the shape of a Tool and a ToolCategory. Used by ToolPanel, ToolEditor, and in the useToolsManagement hook.
+ – ui.ts: Declares UI helper types (e.g. PanelState, PanelPosition). Used by PanelManager.tsx and PanelContainerLayout.tsx to control panel appearance.
+ – websocket.ts: Defines the WebSocketState interface used by Sidebar.tsx and WebSocketStore.
 
-### Chat cmps
+▸ src/services/websocket/
+ – websocketEvents.ts: Implements dispatchWebSocketEvent and listenToWebSocketEvent. All WebSocket–related events are funneled through this file.
+ – WebSocketService.ts: Encapsulates WebSocket connection logic (connect, disconnect, send, message handlers). It dispatches events that the rest of the app listens to via websocketEvents.ts.
 
-- **AiStudio4.Web/src/cmps/ChatWorkspace.tsx**: Main chat workspace
-- **AiStudio4.Web/src/cmps/ChatContainer.tsx**: Container for chat messages
-- **AiStudio4.Web/src/cmps/ConvView.tsx**: Displays active conv
-- **AiStudio4.Web/src/cmps/InputBar.tsx**: Input bar for sending messages
-- **AiStudio4.Web/src/cmps/FileAttachment.tsx**: File attachment component
-- **AiStudio4.Web/src/cmps/LiveStreamToken.tsx**: Component for streaming tokens
+▸ src/services/api/
+ – apiClient.ts: Configures the Axios client with a base URL, JSON headers, and request/response interceptors. All API calls (from resource hooks or CRUD operations) use this client.
 
-### Historical Convs
+▸ src/components/
+ • settings folders (AppearanceTab.tsx, FontSizeControl.tsx, ModelForm.tsx, ModelManagement.tsx, ServiceProviderForm.tsx, ServiceProviderManagement.tsx):
+  – These files implement settings UIs for appearance, model, and provider management. They use GenericForm.tsx from the common folder and hook into resource hooks (via useResourceManagement) and Zustand stores (useModelStore).
+ • diagrams folder (codeBlockRendererRegistry.ts, mermaid-renderer.tsx, json-renderer.tsx, html-renderer.tsx, types.ts):
+  – Implements rendering logic for code/diagram blocks that appear in messages. The MarkdownPane component (in src/components/markdown-pane.tsx) uses this registry to decide how to render code blocks (for example, for Mermaid diagrams).
+ • navigation (NavigationContainer.tsx):
+  – It organizes the main layout by including the Sidebar, ConvTreeView, SettingsPanel, and ToolPanel. It uses Zustand state from usePanelStore, useConvStore, and useSystemPromptStore to control which panels are open and update the current conversation.
+ • SystemPrompt folder (SystemPromptCard.tsx, SystemPromptEditor.tsx):
+  – These files let users view, edit, and apply system prompts. They interact with useSystemPromptStore and useSystemPromptManagement.
+ • common/GenericForm.tsx:
+  – A reusable form builder that uses react-hook-form to generate forms based on piped–in field definitions. Used by multiple settings forms.
+ • commands/CommandInitializer.tsx:
+  – Bootstraps the command–system on startup by invoking “initialize…” functions from various commands files.
+ • tools/ (ToolEditor.tsx, ToolPanel.tsx, ToolSelector.tsx):
+  – Manage the UI and editing of tools. They are tied into the command system via toolCommands.ts and the tool store (useToolStore), and managed with resource hooks from useToolsManagement.
+ • AppHeader.tsx:
+  – The header bar which contains the command bar (CommandBar.tsx), model buttons (via ModelStatusBar), and possibly the system prompt preview.
+ • ChatContainer.tsx and ChatSpace.tsx:
+  – The chat workspace. ChatContainer wraps ConvView (which renders conversation messages in markdown) and auto–scrolls on new messages produced from useStreamTokens; ChatSpace ties together the header, chat, and input bar.
+ • CommandBar.tsx:
+  – Implements a command palette that listens to keystrokes, queries the CommandStore (useCommandStore) for matching commands, and allows users to execute or pin commands.
+ • ConvTreeView.tsx:
+  – Uses D3.js to build a visual tree view of conversation messages. It gets a hierarchical structure from the MessageGraph (from utils/messageGraph.ts).
+ • ConvView.tsx:
+  – Renders conversation messages (using MarkdownPane for markdown rendering and LiveStreamToken for streaming tokens) based on data from useConvStore.
+ • FileAttachment.tsx:
+  – Provides a button to trigger a hidden file input so that the user can attach files to messages (reads file as text and then calls a callback).
+ • FontSizeProvider.tsx:
+  – A context/wrapper component that applies the current font size from useAppearanceStore to the document element.
+ • HistoricalConvTree.tsx and HistoricalConvTreeList.tsx:
+  – Display historical conversations as a tree structure (similar to ConvTreeView but for past convs).
+ • Sidebar.tsx:
+  – Implements the left sidebar that includes a “New Chat” button (which calls createConv from useConvStore) and a list of historical convs by including HistoricalConvTreeList. It also displays WebSocket connection status (using the state from WebSocketStore).
+ • VoiceInputOverlay.tsx:
+  – Renders a modal overlay that uses the custom hook useVoiceInput to capture speech from the microphone and transcribe it.  • HeaderPromptComponent.tsx and SystemPromptLibrary.tsx:
+  – Provide the UI for viewing and managing system prompts; the header component provides a condensed view, while the library lets the user search, edit, or create prompts.  • markdown-pane.tsx:
+  – Renders markdown content using ReactMarkdown along with a SyntaxHighlighter for code blocks. It integrates with the code block renderer registry to support special renderers (diagrams, HTML content).  • ModelStatusBar.tsx:
+  – Displays the currently selected primary and secondary models in a compact (vertical or horizontal) layout and uses a helper (findBreakPoint function) to break long names into two lines if needed.  • PanelContainerLayout.tsx and PanelManager.tsx:
+  – They work together to lay out and manage the various resizable panels on the screen. PanelManager reads panel definitions from usePanelStore and renders them (with controls to pin/close panels).
+ • PinnedShortcuts.tsx:
+  – Implements the “pinned commands” bar that shows user–pinned command shortcuts. It uses react–beautiful–dnd for drag–and–drop reordering.  • App.tsx:
+  – The main application root. It wraps the whole UI with the FontSizeProvider, calls the CommandInitializer component, and wraps the workspace inside NavigationContainer.  • Index files
+  – main.tsx creates the React root and renders App.
+  – index.css defines the core CSS styles, custom Tailwind layers, and base utilities used by the entire UI.
 
-- **AiStudio4.Web/src/cmps/HistoricalConvTree.tsx**: Displays historical conv tree
-- **AiStudio4.Web/src/cmps/HistoricalConvTreeList.tsx**: List of historical convs
-- **AiStudio4.Web/src/cmps/ConvTreeView.tsx**: Visual tree view of conv
+▸ src/utils/
+ • apiUtils.ts – Contains helper functions to standardize API requests (wraps Axios calls, normalizes errors) for use in resource hooks and CRUD operations.
+ • hookUtils.ts – Provides custom hooks to run initialization routines only once.
+ • messageGraph.ts – Defines a MessageGraph class that converts a flat array of messages into a graph based on parentId relationships. This is used in both ConvTreeView and to find message paths.
+ • promptUtils.ts – Exposes global window functions (such as appendToPrompt and getPromptText) to conveniently modify or retrieve the current system prompt.
+ • treeUtils.ts – Contains functions to build “tree” structures from conversation messages (for historical conv trees and debugging).
+ • webSocketUtils.ts – Provides hooks (e.g. useWebSocketEvent, useWebSocketStatus, useStreamableWebSocketData) to subscribe to and manage WebSocket events.
 
-### Command System
+▸ src/stores/
+Each “use*Store” file uses Zustand to hold domain–specific state. For example:
+ – useAppearanceStore.ts manages font size and dark mode.
+ – useCommandStore.ts holds the registered commands and command groups.
+ – useConvStore.ts holds current conversation(s) and provides methods to create, update, and delete messages.
+ – useHistoricalConvsStore.ts tracks historical conversation summaries and trees.
+ – useModelStore.ts holds information about models and providers.
+ – usePanelStore.ts tracks which UI panels (sidebar, settings, tool panel, etc.) are open, their sizes, and whether they’re pinned.
+ – usePinnedCommandsStore.ts tracks which commands are pinned by the user.
+ – useToolStore.ts manages the list of tools and active tools.
+ – useWebSocketStore.ts holds WebSocket connection states.
+ – useSystemPromptStore.ts stores the list of system prompts, the default prompt, and which prompt is currently applied to each conversation.
 
-- **AiStudio4.Web/src/cmps/commands/CommandInitializer.tsx**: Initializes all commands
-- **AiStudio4.Web/src/cmps/CommandBar.tsx**: Command palette for quick actions
-- **AiStudio4.Web/src/cmps/PinnedShortcuts.tsx**: Pinned command shortcuts component
-- **AiStudio4.Web/src/commands/types.ts**: Command type definitions
-- **AiStudio4.Web/src/commands/coreCommands.ts**: Core application commands
-- **AiStudio4.Web/src/commands/toolCommands.ts**: Tool-related commands
-- **AiStudio4.Web/src/commands/voiceInputCommand.ts**: Voice input commands
-- **AiStudio4.Web/src/commands/systemPromptCommands.ts**: System prompt commands
-- **AiStudio4.Web/src/commands/settingsCommands.ts**: Settings-related commands
-- **AiStudio4.Web/src/plugins/modelCommands.ts**: Model selection commands
-- **AiStudio4.Web/src/plugins/voiceCommands.ts**: Voice input command initialization
+▸ src/hooks/
+Custom hooks wrap logic related to media queries, API calls, resource management, chat management, drag–and–drop, voice input, WebSocket connectivity, and more. They are used by UI components to abstract away lower–level code and ensure reusability.
 
-### Tool System
+▸ src/commands/
+These files set up the command system and define both static commands (for appearance, core functions, etc.) and dynamic commands (such as model or system prompt commands that are built based on available models or prompts). The command events (in commandEvents) let different parts of the app emit and listen for events so that when a command (like “edit-model” or “toggle-system-prompts-library”) is executed, the appropriate UI panel opens.
 
-- **AiStudio4.Web/src/cmps/tools/ToolEditor.tsx**: Editor for creating/modifying tools
-- **AiStudio4.Web/src/cmps/tools/ToolPanel.tsx**: Panel for managing tools
-- **AiStudio4.Web/src/cmps/tools/ToolResponse.tsx**: Displays tool execution results
-- **AiStudio4.Web/src/cmps/tools/ToolSelector.tsx**: Component for selecting active tools
+─────────────────────────────
+5. FUNCTIONALITY FLOWS AND INTERACTIONS
+─────────────────────────────
+• When a user sends a chat message through the InputBar component, the message is sent via the useChatManagement hook which calls an API endpoint (using createApiRequest via useApiCallState) and then updates the conv store through addMessage. In parallel, the WebSocketService dispatches “stream:token” events that are consumed by the useStreamTokens hook to show live-updating token output.
+• When the user adjusts appearance (using FontSizeControl in the AppearanceTab), the new font size is both set in the Appearance store (useAppearanceStore) and immediately applied via the FontSizeProvider, then saved via an API call in apiClient.
+• In the settings area, models and service providers can be added, updated, or removed using forms built with GenericForm. These forms use resource hooks (via useResourceFactory and useCrudOperations) that use the Axios apiClient and then update Zustand stores (useModelStore) accordingly.
+• The CommandInitializer runs on application startup and calls initialization routines from files like coreCommands.ts, appearanceCommands.ts, modelCommands.ts, settingsCommands.ts, systemPromptCommands.ts, and toolCommands.ts. In addition, the voice input command is initialized (via voiceInputCommand.ts).
+• The CommandBar component is used to search and execute commands. It queries the CommandStore by filtering through the registered commands based on search tokens entered by the user. Commands may then toggle UI panels (for example, opening the settings, conv tree, tool panel, etc.).
+• Panel layout is managed by NavigationContainer which reads the current panel state from the PanelStore. The PanelManager and PanelContainerLayout use react–resizable–panels to render the left sidebar (for conv history), right panels (for settings, conv tree, etc.), and top/bottom panels if needed. Changes to panel state (open, closed, resized, pinned) are saved into localStorage and rehydrated on startup.
+• System prompts can be created or edited via SystemPromptEditor and are stored in useSystemPromptStore. When a new conversation is created or a prompt applied, the conv store is updated so that the conversation uses the designated system prompt. The header (HeaderPromptComponent) displays a summary of the active prompt.
 
-### System Prompts
-
-- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptEditor.tsx**: Editor for system prompts
-- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptLibrary.tsx**: Library of system prompts
-- **AiStudio4.Web/src/cmps/SystemPrompt/SystemPromptCard.tsx**: Card component for system prompt
-- **AiStudio4.Web/src/cmps/SystemPrompt/HeaderPromptComponent.tsx**: Header prompt display
-
-### Settings cmps
-
-- **AiStudio4.Web/src/cmps/SettingsPanel.tsx**: Master settings panel
-- **AiStudio4.Web/src/cmps/settings/ModelForm.tsx**: Form for adding/editing AI models
-- **AiStudio4.Web/src/cmps/settings/ModelManagement.tsx**: Interface for managing AI models
-- **AiStudio4.Web/src/cmps/settings/ServiceProviderForm.tsx**: Form for service providers
-- **AiStudio4.Web/src/cmps/settings/ServiceProviderManagement.tsx**: Interface for managing providers
-
-### Model cmps
-
-- **AiStudio4.Web/src/cmps/ModelStatusBar.tsx**: Displays current model selection
-
-### Markdown and Diagram Rendering
-
-- **AiStudio4.Web/src/cmps/markdown-pane.tsx**: Renders markdown content with code blocks
-- **AiStudio4.Web/src/cmps/diagrams/codeBlockRendererRegistry.ts**: Registry for code block renderers
-- **AiStudio4.Web/src/cmps/diagrams/mermaid-renderer.tsx**: Renders Mermaid diagrams
-- **AiStudio4.Web/src/cmps/diagrams/json-renderer.tsx**: Renders JSON data with expandable sections
-- **AiStudio4.Web/src/cmps/diagrams/html-renderer.tsx**: Renders HTML code blocks
-- **AiStudio4.Web/src/cmps/diagrams/types.ts**: Types for diagram renderers
-
-### Services
-
-- **AiStudio4.Web/src/services/api/apiClient.ts**: API client with Zustand store
-- **AiStudio4.Web/src/services/websocket/WebSocketService.ts**: WebSocket communication manager
-- **AiStudio4.Web/src/services/websocket/websocketEvents.ts**: WebSocket event dispatching system
-
-### Types
-
-- **AiStudio4.Web/src/types/conv.ts**: Types for convs and messages
-- **AiStudio4.Web/src/types/settings.ts**: Types for models and service providers
-- **AiStudio4.Web/src/types/toolTypes.ts**: Types for AI tools and categories
-- **AiStudio4.Web/src/types/websocket.ts**: Types for WebSocket communication
-- **AiStudio4.Web/src/types/ui.ts**: Types for UI cmps and panels
-- **AiStudio4.Web/src/types/systemPrompt.ts**: Types for system prompts
-- **AiStudio4.Web/src/types/modelTypes.ts**: Types for model selection
-
-### Utilities
-
-- **AiStudio4.Web/src/lib/utils.ts**: Utility functions for classnames and styling
-- **AiStudio4.Web/src/utils/treeUtils.ts**: Utilities for building message trees
-- **AiStudio4.Web/src/utils/messageGraph.ts**: Utilities for message relationship graphs
-- **AiStudio4.Web/src/utils/promptUtils.ts**: Utilities for manipulating prompts
-
-## External Libraries (AiTool3)
-
-- **AiTool3/AiServices/AiServiceBase.cs**: Base class for AI service implementations
-- **AiTool3/AiServices/AiServiceResolver.cs**: Resolves AI service implementations
-- **AiTool3/AiServices/Claude.cs**: Claude AI service implementation
-- **AiTool3/AiServices/ServiceProviderManager.cs**: Manages AI service providers
-- **AiTool3/Settings/SettingsSet.cs**: Configuration settings for AI tools
+─────────────────────────────
+6. CONCLUSION
+─────────────────────────────
+This application’s architecture reflects a modern, modular design that separates data types, UI components, service layers (for API and WebSocket communications), state management (Zustand stores), and custom hooks. The use of a command registry enables a flexible keyboard– and palette–driven interface. The panel management system creates a dynamic, responsive layout where the sidebar, chat workspace, settings, and tool panels interact seamlessly. Data flows from the back–end API and WebSocket service (via apiClient and WebSocketService) into the Zustand stores and are then displayed by the components (like ChatSpace, ConvView, Sidebar, etc.). New messages, user commands, and configuration updates are interconnected throughout using custom hooks and events. In short, every file plays a role in ensuring that messages are received, processed, and displayed; user settings and preferences are applied and persisted; and the command and panel system allows deep customization and productivity in a single integrated UI.

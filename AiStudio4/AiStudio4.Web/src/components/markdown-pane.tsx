@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';
 import remarkGfm from 'remark-gfm';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Clipboard } from 'lucide-react';
 
 interface MarkdownPaneProps {
   message: string;
