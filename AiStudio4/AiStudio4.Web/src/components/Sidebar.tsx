@@ -28,8 +28,8 @@ export function Sidebar({ wsState }: SidebarProps) {
   };
 
   return (
-    <div className="flex-col-full h-[calc(100vh-10rem)]">
-      <div className="p-2">
+    <div className="flex-col-full h-[calc(100vh-10rem)] bg-gray-900 border-r border-gray-800">
+      <div className="p-2 border-b border-gray-800">
         <Button
           onClick={handleNewChat}
           className="flex items-center gap-2 bg-[#374151] hover:bg-[#4B5563] text-gray-100 border-gray-600 w-full"
@@ -39,11 +39,11 @@ export function Sidebar({ wsState }: SidebarProps) {
           New Chat
         </Button>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 bg-gray-900">
         <HistoricalConvTreeList />
       </ScrollArea>
 
-      <div className="p-3 border-t border-gray-700 bg-[#2d3748]">
+      <div className="p-3 border-t border-gray-800 bg-[#1f2937]">
         <div className="flex items-center space-x-2">
           <div
             className={cn('w-2 h-2 rounded-full shadow-glow', wsState.isConnected ? 'bg-green-500' : 'bg-red-500')}
