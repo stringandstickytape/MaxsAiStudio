@@ -152,7 +152,6 @@ namespace AiStudio4.Services
                 {
                     Success = true,
                     ResponseText = responseText,
-                    TokenUsage = response.TokenUsage,
                     CostInfo = response.CostInfo
                 };
             }

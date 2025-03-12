@@ -15,7 +15,7 @@ export class MessageGraph {
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
 
     for (const message of sortedMessages) {
-      this.addMessage(message);
+      this.addMessage(message);``
     }
   }
 

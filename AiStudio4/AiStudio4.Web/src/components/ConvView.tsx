@@ -5,6 +5,7 @@ import { Clipboard, Pencil, Check, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
+import { formatModelDisplay } from '@/utils/modelUtils';
 
 interface ConvViewProps {
     streamTokens: string[]; // Receive the array of tokens
@@ -270,6 +271,11 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                                                 (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
                                                 {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
                                             </span>
+                                            {message.costInfo.modelGuid && (
+                                                <span className="ml-1 text-gray-400 text-xs font-medium bg-gray-700 px-2 py-0.5 rounded-full">
+                                                    {formatModelDisplay(message.costInfo.modelGuid)}
+                                                </span>
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -15,6 +15,7 @@ export interface Message {
       cacheCreationInputTokens: number;
       cacheReadInputTokens: number;
     };
+    modelGuid?: string;
   } | null;
 }
 
