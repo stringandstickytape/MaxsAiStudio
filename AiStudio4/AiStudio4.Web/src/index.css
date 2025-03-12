@@ -144,7 +144,7 @@
 
     /* Animations */
     .animate-hover {
-        @apply transition-all duration-200 ease-in-out hover:scale-[1.02];
+        @apply transition-all duration-200 ease-in-out;
     }
 
     .fade-in {
