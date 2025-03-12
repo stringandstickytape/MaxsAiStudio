@@ -1,9 +1,11 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using static DiffLibrary.ChangesetProcessor;
 
 namespace DiffLibrary
 {
@@ -57,8 +59,38 @@ namespace DiffLibrary
 				Log.AppendLine("Changeset JSON content is empty");
 			}
 
-			var changeset = JsonSerializer.Deserialize<ChangesetRoot>(jsonContent);
-			if (changeset == null || changeset.changeset == null || changeset.changeset.files == null)
+			ChangesetRoot changeset;
+
+            //var options = new JsonSerializerOptions
+            //{
+            //    AllowTrailingCommas = true,
+            //    ReadCommentHandling = JsonCommentHandling.Skip,
+            //    PropertyNameCaseInsensitive = true
+            //};
+            //
+            //
+            //options.Converters.Add(new NewlineHandlingJsonConverter());
+            //
+            //try
+            //{
+            //	changeset = JsonSerializer.Deserialize<ChangesetRoot>(jsonContent, options);
+            //}
+            //catch
+            //{
+            //    changeset = JsonSerializer.Deserialize<ChangesetRoot>(jsonContent.Replace("\r\n","\n"), options);
+            //}
+
+            // Configure Json.NET to be more lenient
+            var settings = new JsonSerializerSettings
+            {
+                // Allow special characters in strings
+                StringEscapeHandling = StringEscapeHandling.Default
+            };
+
+            // Deserialize with Newtonsoft.Json
+            changeset = JsonConvert.DeserializeObject<ChangesetRoot>(jsonContent.Replace("\r\n","\n"), settings);
+
+            if (changeset == null || changeset.changeset == null || changeset.changeset.files == null)
 			{
 				Log.AppendLine("Invalid changeset format");
 			}
@@ -67,11 +99,13 @@ namespace DiffLibrary
 			return true;
 		}
 
-	/// <summary>
-	/// Applies all changes in a changeset.
-	/// </summary>
-	/// <param name="changeset">The changeset to apply.</param>
-	private void ApplyChangeset(Changeset changeset)
+
+
+        /// <summary>
+        /// Applies all changes in a changeset.
+        /// </summary>
+        /// <param name="changeset">The changeset to apply.</param>
+        private void ApplyChangeset(Changeset changeset)
 	{
 		foreach (var fileChange in changeset.files)
 		{
