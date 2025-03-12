@@ -272,8 +272,16 @@ export function PinnedShortcuts({
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
-                                                className={cn('flex flex-col items-center', snapshot.isDragging && 'opacity-70 z-50')}
+                                                className={cn('flex flex-col items-center group', snapshot.isDragging && 'opacity-70 z-50')}
                                             >
+                                                <div
+                                                    {...provided.dragHandleProps}
+                                                    className="cursor-grab h-2 w-[90px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <div className="w-12 flex items-center justify-center">
+                                                        <div className="h-[3px] w-8 bg-current rounded-full"></div>
+                                                    </div>
+                                                </div>
                                                 <Tooltip key={command.id} delayDuration={300}>
                                                     <TooltipTrigger asChild>
                                                         <Button
@@ -295,18 +303,10 @@ export function PinnedShortcuts({
                                                     <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
                                                         <p>{command.name}</p>
                                                         <p className="text-small-gray-400">
-                                                            Drag handle below button to reorder · Right-click to unpin
+                                                            Drag handle above button to reorder · Right-click to unpin
                                                         </p>
                                                     </TooltipContent>
                                                 </Tooltip>
-                                                <div
-                                                    {...provided.dragHandleProps}
-                                                    className="cursor-grab h-2 w-[90px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors"
-                                                >
-                                                    <div className="w-12 flex items-center justify-center">
-                                                        <div className="h-[3px] w-8 bg-current rounded-full"></div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         )}
                                     </Draggable>

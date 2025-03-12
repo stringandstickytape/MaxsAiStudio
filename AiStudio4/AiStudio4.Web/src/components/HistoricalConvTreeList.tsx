@@ -180,7 +180,6 @@ export const HistoricalConvTreeList = () => {
                   >
                     {conv.summary}
                   </div>
-                  <div className="text-xs opacity-70">{new Date(conv.lastModified).toLocaleDateString()}</div>
                 </div>
               </div>
               <div className="text-sm flex-shrink-0 ml-2">{expandedConv === conv.convGuid ? '▼' : '▶'}</div>
