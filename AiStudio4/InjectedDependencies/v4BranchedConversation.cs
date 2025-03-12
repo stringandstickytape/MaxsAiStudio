@@ -37,21 +37,18 @@ namespace AiStudio4.InjectedDependencies
                 ParentId = parentMessageId,
             };
 
-            // If no parent is specified and no messages exist, create a system message as the root
-            if (string.IsNullOrEmpty(parentMessageId) && !Messages.Any())
+            // If no messages exist, create a system message as the root
+            if (!Messages.Any())
             {
                 var systemRoot = new v4BranchedConvMessage
                 {
                     Role = v4BranchedConvMessageRole.System,
-                    UserMessage = "Conv Root",
-                    Id = $"system_{Guid.NewGuid()}"
+                    UserMessage = "Conversation Root",
+                    Id = newMessage.ParentId
                 };
                 
                 // Add system root to messages
                 Messages.Add(systemRoot);
-                
-                // Set the parent of the new message to the system root
-                newMessage.ParentId = systemRoot.Id;
             }
             
             // Add the new message to our flat list
