@@ -115,7 +115,6 @@ export const HistoricalConvTreeList = () => {
             source: rootMessage.source,
             parentId: null,
             timestamp: rootMessage.timestamp,
-            tokenUsage: rootMessage.tokenUsage,
           },
         });
 
@@ -130,7 +129,6 @@ export const HistoricalConvTreeList = () => {
               source: message.source,
               parentId: message.parentId,
               timestamp: message.timestamp,
-              tokenUsage: message.tokenUsage,
               costInfo: message.costInfo,
             },
           });

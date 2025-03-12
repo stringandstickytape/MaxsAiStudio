@@ -50,7 +50,7 @@ namespace AiStudio4.Services
                     parentId = msg.ParentId,
                     source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                             msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
-                    tokenUsage = msg.TokenUsage
+                    costInfo = msg.CostInfo
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new

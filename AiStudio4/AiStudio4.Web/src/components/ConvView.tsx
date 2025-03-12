@@ -250,20 +250,21 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                                 <div className="flex flex-wrap items-center gap-x-4">
                                     {message.tokenUsage && (
                                         <div className="flex items-center gap-x-2">
-                                            <span>
-                                                Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out
-                                            </span>
-                                            {(message.tokenUsage.cacheCreationInputTokens > 0 ||
-                                                message.tokenUsage.cacheReadInputTokens > 0) && (
-                                                    <span>
-                                                        (Cache: {message.tokenUsage.cacheCreationInputTokens} created,{' '}
-                                                        {message.tokenUsage.cacheReadInputTokens} read)
-                                                    </span>
-                                                )}
+
                                         </div>
                                     )}
                                     {message.costInfo && (
                                         <div className="flex items-center gap-x-2">
+                                            <span>
+                                                Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
+                                            </span>
+                                            {(message.costInfo.tokenUsage.cacheCreationInputTokens > 0 ||
+                                                message.costInfo.tokenUsage.cacheReadInputTokens > 0) && (
+                                                    <span>
+                                                    (Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
+                                                    {message.costInfo.tokenUsage.cacheReadInputTokens} read)
+                                                    </span>
+                                                )}
                                             <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
                                             <span className="text-gray-500">
                                                 (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $

@@ -135,12 +135,6 @@ namespace AiStudio4.Services
                     var newId = $"msg_{Guid.NewGuid()}";
                     var newAiReply = conv.AddNewMessage(v4BranchedConvMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
 
-                    // Store token usage and cost information
-                    if (response.TokenUsage != null)
-                    {
-                        newAiReply.TokenUsage = response.TokenUsage;
-                    }
-                    
                     // Store cost information if available
                     if (response.CostInfo != null)
                     {
@@ -207,7 +201,6 @@ namespace AiStudio4.Services
                         ParentId = chatRequest.MessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Source = "ai", // Explicitly set source as "ai"
-                        TokenUsage = newAiReply.TokenUsage,
                         CostInfo = newAiReply.CostInfo
                     });
 
@@ -237,7 +230,6 @@ namespace AiStudio4.Services
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
-                tokenUsage = msg.TokenUsage,
                 costInfo = msg.CostInfo
             }).ToList<object>();
         }
@@ -277,7 +269,6 @@ namespace AiStudio4.Services
                 UserMessage = message.UserMessage,
                 Role = message.Role,
                 ParentId = message.ParentId,
-                TokenUsage = message.TokenUsage,
                 CostInfo = message.CostInfo
             };
         }

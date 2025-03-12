@@ -35,7 +35,6 @@ namespace AiStudio4.InjectedDependencies
                 UserMessage = userMessage ?? string.Empty,
                 Id = newMessageId,
                 ParentId = parentMessageId,
-                TokenUsage = null
             };
 
             // If no parent is specified and no messages exist, create a system message as the root

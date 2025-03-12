@@ -15,6 +15,9 @@ namespace AiStudio4.Core.Models
         // Reference to the token usage for convenience
         public TokenUsage TokenUsage { get; set; }
 
+        // Model GUID used to process this request
+        public string ModelGuid { get; set; }
+
         public TokenCost()
         {
             TokenUsage = new TokenUsage("", "");
@@ -33,6 +36,7 @@ namespace AiStudio4.Core.Models
             TokenUsage = tokenUsage;
             InputCostPer1M = model?.input1MTokenPrice ?? 0m;
             OutputCostPer1M = model?.output1MTokenPrice ?? 0m;
+            ModelGuid = model?.Guid ?? string.Empty;
             CalculateTotalCost();
         }
 

@@ -16,7 +16,6 @@ namespace AiStudio4.InjectedDependencies
         // Add explicit parent reference
     public string ParentId { get; set; }
 
-        public TokenUsage TokenUsage { get; set; }
         public TokenCost CostInfo { get; set; }
     }
 }

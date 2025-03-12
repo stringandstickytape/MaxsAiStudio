@@ -49,7 +49,7 @@ namespace AiStudio4.Services
                                     msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                             parentId = msg.ParentId,
                             timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            tokenUsage = msg.TokenUsage
+                            costInfo = msg.CostInfo
                         };
                     }).ToList();
 

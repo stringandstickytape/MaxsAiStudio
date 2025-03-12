@@ -148,8 +148,8 @@ export function useChatManagement() {
               id: node.id,
               text: node.text,
               parentId: node.parentId,
-              tokenUsage: node.tokenUsage,
               source: node.source,
+              costInfo: node.costInfo
             });
 
             if (node.children && Array.isArray(node.children)) {
@@ -172,7 +172,6 @@ export function useChatManagement() {
               (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
             parentId: node.parentId,
             timestamp: Date.now(), 
-            tokenUsage: node.tokenUsage || null,
             costInfo: node.costInfo || null,
           }));
 

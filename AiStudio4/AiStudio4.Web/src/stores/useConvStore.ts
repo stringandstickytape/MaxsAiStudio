@@ -88,7 +88,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             source: content.source,
             parentId: parentId,
             timestamp: Date.now(),
-            tokenUsage: content.tokenUsage || null,
             costInfo: content.costInfo || null,
           },
           slctdMsgId: content.source === 'ai' ? content.id : undefined,
@@ -104,7 +103,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             source: content.source,
             parentId: null,
             timestamp: content.timestamp || Date.now(),
-            tokenUsage: content.tokenUsage || null,
             costInfo: content.costInfo || null,
           },
         });
@@ -147,7 +145,6 @@ export const useConvStore = create<ConvState>((set, get) => {
           source: rootMessage.source as 'user' | 'ai' | 'system',
           parentId: null,
           timestamp: rootMessage.timestamp || Date.now(),
-          tokenUsage: rootMessage.tokenUsage || null,
           costInfo: rootMessage.costInfo || null,
         },
       });
@@ -167,7 +164,6 @@ export const useConvStore = create<ConvState>((set, get) => {
               source: message.source as 'user' | 'ai' | 'system',
               parentId: message.parentId,
               timestamp: message.timestamp || Date.now(),
-              tokenUsage: message.tokenUsage || null,
               costInfo: message.costInfo || null,
             },
           });

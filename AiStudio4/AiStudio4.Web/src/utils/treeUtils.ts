@@ -16,8 +16,8 @@ export function buildMessageTree(messages: Message[], includeContent: boolean = 
       children: [] as any[],
       source: msg.source,
       timestamp: msg.timestamp,
-      parentId: msg.parentId,
-      tokenUsage: msg.tokenUsage,
+        parentId: msg.parentId,
+      costInfo: msg.costInfo
     };
     messageMap.set(msg.id, node);
 

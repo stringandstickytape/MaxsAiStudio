@@ -136,7 +136,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             children: [],
             parentId: node.parentId, 
             source: node.source, 
-            tokenUsage: node.tokenUsage, 
+            costInfo: node.costInfo
           });
         });
 
