@@ -9,7 +9,7 @@ namespace AiStudio4.InjectedDependencies
     public class v4BranchedConv
     {
         public string ConvId { get; set; }
-        public List<v4BranchedConvMessage> MessageHierarchy { get; set; } = new List<v4BranchedConvMessage>();
+        public List<v4BranchedConvMessage> Messages { get; set; } = new List<v4BranchedConvMessage>();
         public string Summary { get; set; }
         public string SystemPromptId { get; set; }
 
@@ -33,87 +33,37 @@ namespace AiStudio4.InjectedDependencies
             {
                 Role = role,
                 UserMessage = userMessage ?? string.Empty,
-                Children = new List<v4BranchedConvMessage>(),
                 Id = newMessageId,
                 ParentId = parentMessageId,
                 TokenUsage = null
             };
 
-            // If no parent is specified or the parent doesn't exist, add as a root message
-            if (string.IsNullOrEmpty(parentMessageId) || !AddToParent(newMessage, parentMessageId))
+            // If no parent is specified and no messages exist, create a system message as the root
+            if (string.IsNullOrEmpty(parentMessageId) && !Messages.Any())
             {
-                // If there are no messages yet, create a system message as the root
-                if (!MessageHierarchy.Any())
+                var systemRoot = new v4BranchedConvMessage
                 {
-                    var systemRoot = new v4BranchedConvMessage
-                    {
-                        Role = v4BranchedConvMessageRole.System,
-                        UserMessage = "Conv Root",
-                        Children = new List<v4BranchedConvMessage> { newMessage },
-                        Id = $"system_{Guid.NewGuid()}"
-                    };
-
-                    // Set the parent of the new message to the system root
-                    newMessage.ParentId = systemRoot.Id;
-
-                    MessageHierarchy.Add(systemRoot);
-                }
-                else
-                {
-                    // Add as child of the first root message
-                    var root = MessageHierarchy.First();
-                    root.Children.Add(newMessage);
-                    newMessage.ParentId = root.Id;
-                }
+                    Role = v4BranchedConvMessageRole.System,
+                    UserMessage = "Conv Root",
+                    Id = $"system_{Guid.NewGuid()}"
+                };
+                
+                // Add system root to messages
+                Messages.Add(systemRoot);
+                
+                // Set the parent of the new message to the system root
+                newMessage.ParentId = systemRoot.Id;
             }
-
+            
+            // Add the new message to our flat list
+            Messages.Add(newMessage);
+            
             return newMessage;
         }
 
-        private bool AddToParent(v4BranchedConvMessage newMessage, string parentId)
-        {
-            // Helper function to recursively find and add the message to its parent
-            bool FindAndAddToParent(List<v4BranchedConvMessage> messages)
-            {
-                foreach (var message in messages)
-                {
-                    if (message.Id == parentId)
-                    {
-                        message.Children.Add(newMessage);
-                        return true;
-                    }
-
-                    if (message.Children.Any() && FindAndAddToParent(message.Children))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            return FindAndAddToParent(MessageHierarchy);
-        }
-
-        // Helper method to get all messages in a flat list
         public List<v4BranchedConvMessage> GetAllMessages()
         {
-            var allMessages = new List<v4BranchedConvMessage>();
-            CollectAllMessages(MessageHierarchy, allMessages);
-            return allMessages;
-        }
-
-        private void CollectAllMessages(IEnumerable<v4BranchedConvMessage> messages,
-            List<v4BranchedConvMessage> allMessages)
-        {
-            foreach (var message in messages)
-            {
-                allMessages.Add(message);
-                if (message.Children.Any())
-                {
-                    CollectAllMessages(message.Children, allMessages);
-                }
-            }
+            return Messages;
         }
     }
 }

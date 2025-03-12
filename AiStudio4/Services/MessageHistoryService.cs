@@ -35,9 +35,8 @@ namespace AiStudio4.Services
 
                 if (conv != null)
                 {
-                    // Get all messages in the conv for a flat structure
-                    var allMessages = new List<v4BranchedConvMessage>();
-                    CollectAllMessages(conv.MessageHierarchy, allMessages);
+                    // Get all messages from the flat structure
+                    var allMessages = conv.Messages;
 
                     // Map to the format expected by the client
                     var messages = allMessages.Select(msg =>
@@ -83,17 +82,7 @@ namespace AiStudio4.Services
             }
         }
 
-        private void CollectAllMessages(IEnumerable<v4BranchedConvMessage> messages, List<v4BranchedConvMessage> allMessages)
-        {
-            foreach (var message in messages)
-            {
-                allMessages.Add(message);
-                if (message.Children != null && message.Children.Any())
-                {
-                    CollectAllMessages(message.Children, allMessages);
-                }
-            }
-        }
+        // No longer needed with flat message structure
 
         private List<dynamic> SortMessagesByRelationship(List<dynamic> messages)
         {

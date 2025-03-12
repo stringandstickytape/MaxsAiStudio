@@ -41,9 +41,12 @@ namespace AiStudio4.Services
                 var settings = new JsonSerializerSettings { MaxDepth = 10240 };
                 var json = await File.ReadAllTextAsync(path);
                 var conv = JsonConvert.DeserializeObject<v4BranchedConv>(json, settings);
-
-                // Rebuild relationships to ensure Children collections are populated correctly
-                RebuildRelationships(conv);
+                
+                // Handle backward compatibility with old hierarchical structure
+                if (conv.Messages == null || !conv.Messages.Any())
+                {
+                    conv.Messages = new List<v4BranchedConvMessage>();
+                }
 
                 _logger.LogDebug("Loaded conv {ConvId}", convId);
                 return conv;
@@ -92,8 +95,11 @@ namespace AiStudio4.Services
 
                     if (conv != null)
                     {
-                        // Rebuild relationships to ensure Children collections are populated correctly
-                        RebuildRelationships(conv);
+                        // Handle backward compatibility with old hierarchical structure
+                        if (conv.Messages == null || !conv.Messages.Any())
+                        {
+                            conv.Messages = new List<v4BranchedConvMessage>();
+                        }
                         convsWithDates.Add((conv, fileInfo.LastWriteTime));
                     }
                 }
@@ -126,45 +132,10 @@ namespace AiStudio4.Services
 
         private bool ContainsMessage(v4BranchedConv conv, string messageId)
         {
-            // Flatten the message hierarchy and check for the message ID
-            return GetAllMessages(conv.MessageHierarchy)
-                .Any(m => m.Id == messageId);
+            // Check if any message in the flat structure has the given ID
+            return conv.Messages.Any(m => m.Id == messageId);
         }
 
-        private List<v4BranchedConvMessage> GetAllMessages(List<v4BranchedConvMessage> messages)
-        {
-            var result = new List<v4BranchedConvMessage>();
-            foreach (var message in messages)
-            {
-                result.Add(message);
-                if (message.Children.Any())
-                {
-                    result.AddRange(GetAllMessages(message.Children));
-                }
-            }
-            return result;
-        }
-
-        private void RebuildRelationships(v4BranchedConv conv)
-        {
-            // Get all messages in a flat list
-            var allMessages = GetAllMessages(conv.MessageHierarchy);
-
-            // Clear all Children collections
-            foreach (var message in allMessages)
-            {
-                message.Children.Clear();
-            }
-
-            // Rebuild Children collections based on ParentId
-            foreach (var message in allMessages.Where(m => !string.IsNullOrEmpty(m.ParentId)))
-            {
-                var parent = allMessages.FirstOrDefault(m => m.Id == message.ParentId);
-                if (parent != null)
-                {
-                    parent.Children.Add(message);
-                }
-            }
-        }
+        // Methods removed as they're no longer needed with flat structure
     }
 }

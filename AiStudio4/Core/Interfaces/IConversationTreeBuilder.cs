@@ -5,12 +5,6 @@ namespace AiStudio4.Core.Interfaces
 {
     public interface IConvTreeBuilder
     {
-        /// <summary>
-        /// Builds a tree representation of a conv for historical view
-        /// </summary>
-        /// <param name="conv">The conv to build a tree from</param>
-        /// <returns>A dynamic object representing the tree structure</returns>
-        dynamic BuildHistoricalConvTree(v4BranchedConv conv);
 
         /// <summary>
         /// Gets the message history path from a specific message back to the root

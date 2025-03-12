@@ -86,8 +86,9 @@ namespace AiStudio4.Services
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
                     var conv = await _convStorage.LoadConv(chatRequest.ConvId);
-                    bool isFirstMessageInConv = conv.MessageHierarchy.Count <= 1 &&
-                         (conv.MessageHierarchy.Count == 0 || conv.MessageHierarchy[0].Children.Count == 0);
+                    // Check if this is the first non-system message in the conversation
+                    bool isFirstMessageInConv = conv.Messages.Count <= 1 ||
+                        (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
 
                     var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
 
@@ -115,8 +116,8 @@ namespace AiStudio4.Services
                     await _notificationService.NotifyConvList(clientId, new ConvListDto
                     {
                         ConvId = conv.ConvId,
-                        Summary = conv.MessageHierarchy.First().Children.Count > 0
-                            ? conv.MessageHierarchy.First().Children[0].UserMessage ?? ""
+                        Summary = conv.Messages.Count > 1
+                            ? conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage ?? "New Conv"
                             : "New Conv",
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         FlatMessageStructure = messagesForClient
@@ -267,7 +268,7 @@ namespace AiStudio4.Services
             return path;
         }
 
-        // Helper method to clone a message without children to avoid circular references
+        // Helper method to clone a message
         private v4BranchedConvMessage CloneMessage(v4BranchedConvMessage message)
         {
             return new v4BranchedConvMessage
@@ -276,7 +277,6 @@ namespace AiStudio4.Services
                 UserMessage = message.UserMessage,
                 Role = message.Role,
                 ParentId = message.ParentId,
-                Children = new List<v4BranchedConvMessage>(), // Empty children list
                 TokenUsage = message.TokenUsage,
                 CostInfo = message.CostInfo
             };

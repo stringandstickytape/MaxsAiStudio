@@ -86,11 +86,10 @@ namespace AiStudio4.Services
                 {
                     try
                     {
-                        if (conv.MessageHierarchy?.Count > 0)
+                        if (conv.Messages?.Count > 0)
                         {
                             // Find the first non-system message to use as summary if needed
-                            var allMessages = conv.GetAllMessages();
-                            var firstUserMessage = allMessages
+                            var firstUserMessage = conv.Messages
                                 .Where(m => m.Role != v4BranchedConvMessageRole.System)
                                 .OrderBy(m => m.Id)
                                 .FirstOrDefault();
