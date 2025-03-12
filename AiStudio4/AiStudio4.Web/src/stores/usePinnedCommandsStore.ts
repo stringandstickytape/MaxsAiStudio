@@ -1,5 +1,6 @@
 // src/stores/usePinnedCommandsStore.ts
 import { create } from 'zustand';
+import { webSocketService } from '@/services/websocket/WebSocketService';
 
 export interface PinnedCommand {
   id: string;
@@ -75,7 +76,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+            'X-Client-Id': webSocketService.getClientId() || '',
         },
         body: JSON.stringify({}),
       });
@@ -106,7 +107,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Client-Id': localStorage.getItem('clientId') || '',
+            'X-Client-Id': webSocketService.getClientId() || '',
         },
         body: JSON.stringify({ pinnedCommands }),
       });

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.WebSockets;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +44,13 @@ namespace AiStudio4.InjectedDependencies
         public async Task StartAsync()
         {
             var builder = WebApplication.CreateBuilder();
+            builder.WebHost.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddFilter("Microsoft.AspNetCore", LogLevel.Error);
+                logging.AddFilter("Microsoft.Hosting", LogLevel.Error);
+                logging.AddFilter("Microsoft.Extensions", LogLevel.Error);
+            });
             var port = _configuration.GetValue("WebServer:Port", 35005);
 
             // Configure Kestrel for HTTPS

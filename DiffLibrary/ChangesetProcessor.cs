@@ -178,7 +178,7 @@ namespace DiffLibrary
         ValidateAndPrepareFilePath(resolvedPath);
 
             string fileContent = File.ReadAllText(resolvedPath);
-			string updatedContent = _textReplacer.ReplaceTextAtHint(fileContent, change.oldContent, change.oldContent + change.newContent, change.lineNumber);
+			string updatedContent = _textReplacer.ReplaceTextAtHint(fileContent, change.oldContent ?? "", change.oldContent + change.newContent, change.lineNumber);
 
 			if (fileContent == updatedContent)
 			{
@@ -237,6 +237,8 @@ namespace DiffLibrary
 			if (File.Exists(resolvedNewPath))
 			{
 				Log.AppendLine($"Target file already exists: {resolvedNewPath}");
+				File.Delete(resolvedNewPath);
+			
 			}
 			
 			File.Move(resolvedOldPath, resolvedNewPath);
@@ -439,7 +441,7 @@ namespace DiffLibrary
 			private int FindMatchPosition(List<string> sourceLines, List<string> oldLines, int lineHint)
 			{
 				if (oldLines.Count == 0 || sourceLines.Count == 0)
-					return -1;
+					return lineHint;
 
 				// Handle special case - empty pattern matches at any position
 				if (oldLines.Count == 1 && oldLines[0] == "")

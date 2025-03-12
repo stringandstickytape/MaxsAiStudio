@@ -37,20 +37,43 @@ namespace AiStudio4.InjectedDependencies
             }
 
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var clientId = Guid.NewGuid().ToString();
-
-            _connectionManager.AddConnection(clientId, webSocket);
-
-            var json = JsonConvert.SerializeObject(new { messageType = "clientId", content = clientId});
-            await _messageHandler.SendToClientAsync(clientId, json);
+            string clientId = null;
 
             try
             {
-                await _messageHandler.HandleIncomingMessages(clientId, webSocket);
+                var buffer = new byte[1024 * 4];
+                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                if (result.MessageType == WebSocketMessageType.Text)
+                {
+                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    var jsonMessage = JsonConvert.DeserializeObject<dynamic>(message);
+
+                    if (jsonMessage.messageType == "identify" && jsonMessage.clientId != null)
+                    {
+                        clientId = jsonMessage.clientId.ToString();
+                        System.Diagnostics.Debug.WriteLine($"Client identified with ID: {clientId}");
+
+                        _connectionManager.AddConnection(clientId, webSocket);
+
+                        await _messageHandler.HandleIncomingMessages(clientId, webSocket);
+                    }
+                    else
+                    {
+                        await webSocket.CloseAsync(
+                            WebSocketCloseStatus.ProtocolError,
+                            "First message must be identification",
+                            CancellationToken.None);
+                    }
+                }
             }
             finally
             {
-                _connectionManager.RemoveConnection(clientId);
+                if (clientId != null)
+                {
+                    _connectionManager.RemoveConnection(clientId);
+                }
+
                 if (webSocket.State == WebSocketState.Open)
                 {
                     await webSocket.CloseAsync(

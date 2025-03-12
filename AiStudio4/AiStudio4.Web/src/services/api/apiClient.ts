@@ -1,6 +1,7 @@
 // src/services/api/apiClient.ts
 import axios from 'axios';
 import { create } from 'zustand';
+import { webSocketService } from '../websocket/WebSocketService';
 
 
 export const apiClient = axios.create({
@@ -12,10 +13,10 @@ export const apiClient = axios.create({
 
 
 apiClient.interceptors.request.use((config) => {
-  const clientId = localStorage.getItem('clientId');
-  if (clientId) {
-    config.headers['X-Client-Id'] = clientId;
-  }
+    const clientId = webSocketService.getClientId();
+    if (clientId) {
+        config.headers['X-Client-Id'] = clientId;
+    }
   return config;
 });
 
