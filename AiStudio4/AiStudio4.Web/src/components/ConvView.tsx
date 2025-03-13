@@ -185,9 +185,9 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                 {visibleMessages.map((message) => (
                     <div
                         key={message.id}
-                        className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
-                            } shadow-md w-full group`}
+                        className="w-full group flex flex-col relative"
                     >
+                        <div className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'} shadow-md w-full`}>
                         {editingMessageId === message.id ? (
                             <div className="w-full">
                                 <Textarea 
@@ -225,6 +225,8 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                             <MarkdownPane message={message.content} />
                         )}
                         
+                        </div>
+
                         <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
                             <button
                                 onClick={() => navigator.clipboard.writeText(message.content)}

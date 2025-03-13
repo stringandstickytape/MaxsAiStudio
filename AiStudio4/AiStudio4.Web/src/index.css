@@ -154,6 +154,22 @@
     .loading-spinner {
         @apply animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-blue-500;
     }
+
+
+
+    .app-container {
+        position: relative;
+    }
+
+    .header-section {
+        position: relative;
+        z-index: 2;
+    }
+
+    .content-section {
+        position: relative;
+        z-index: 1;
+    }
 }
 
 @layer base {
