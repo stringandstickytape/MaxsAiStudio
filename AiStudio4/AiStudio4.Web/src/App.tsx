@@ -24,7 +24,6 @@ function App() {
       const savedLayout = localStorage.getItem('panel-layout');
       if (savedLayout) {
         const savedPanels = JSON.parse(savedLayout);
-        const { panels } = usePanelStore.getState();
         
         // Look for panels that should be closed but aren't
         let needsFix = false;
@@ -32,7 +31,6 @@ function App() {
         Object.keys(savedPanels).forEach(id => {
           // If a panel is not pinned but is marked as open in saved state, fix it
           if (savedPanels[id]?.isOpen === true && savedPanels[id]?.isPinned === false) {
-            console.warn(`Found stale panel state for ${id} - fixing...`);
             savedPanels[id].isOpen = false;
             needsFix = true;
           }
@@ -40,7 +38,6 @@ function App() {
         
         if (needsFix) {
           localStorage.setItem('panel-layout', JSON.stringify(savedPanels));
-          console.log('Fixed and saved corrected panel state');
         }
       }
     } catch (error) {
@@ -57,21 +54,12 @@ function App() {
     try {
       const savedLayout = localStorage.getItem('panel-layout');
       if (savedLayout) {
-        console.log('%c📋 Loading saved panel layout from localStorage', 'color: #8b5cf6; font-weight: bold');
         const { panels } = usePanelStore.getState();
         const savedPanels = JSON.parse(savedLayout);
-        
-        console.log('Saved panels state:', savedPanels);
-        console.log('Current panels state before merge:', panels);
 
         // Merge saved state into current panels
         Object.keys(savedPanels).forEach((panelId) => {
           if (panels[panelId]) {
-            console.log(`Merging saved state for panel ${panelId}:`, {
-              current: { isOpen: panels[panelId].isOpen, isPinned: panels[panelId].isPinned },
-              saved: { isOpen: savedPanels[panelId].isOpen, isPinned: savedPanels[panelId].isPinned }
-            });
-            
             usePanelStore.setState((state) => ({
               panels: {
                 ...state.panels,
@@ -81,13 +69,8 @@ function App() {
                 },
               },
             }));
-          } else {
-            console.log(`Panel ${panelId} from saved state not found in current panels`);
           }
         });
-        
-        // Enable debug tools
-        usePanelStore.getState().debugPanelState();
       }
     } catch (error) {
       console.error('Failed to load panel layout:', error);

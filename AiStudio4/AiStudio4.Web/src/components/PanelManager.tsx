@@ -111,7 +111,6 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
                 size="icon"
                 className="h-8 w-8 text-gray-400 hover:text-gray-100"
                 onClick={() => {
-                  console.log(`%c📋 Closing panel ${panel.id} via X button`, 'color: #ef4444; font-weight: bold');
                   // Explicitly set both isOpen and isPinned to false in the store
                   usePanelStore.setState(state => ({
                     panels: {
@@ -126,19 +125,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
                   
                   // Use the dedicated saveState method to persist changes
                   requestAnimationFrame(() => {
-                    const success = usePanelStore.getState().saveState();
-                    
-                    if (success) {
-                      // Verify the saved state for confirmation
-                      const savedLayout = localStorage.getItem('panel-layout');
-                      if (savedLayout) {
-                        const parsed = JSON.parse(savedLayout);
-                        console.log(`Verified ${panel.id} saved state:`, {
-                          isOpen: parsed[panel.id]?.isOpen,
-                          isPinned: parsed[panel.id]?.isPinned
-                        });
-                      }
-                    }
+                    usePanelStore.getState().saveState();
                   });
                 }}
                 title="Close panel"

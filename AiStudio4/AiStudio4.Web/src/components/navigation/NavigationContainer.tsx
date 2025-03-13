@@ -54,11 +54,8 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
 
   useEffect(() => {
     if (activeConvId && activeConvId !== selectedConvId) {
-      console.log('Active conv changed, updating selected conv ID', {
-        old: selectedConvId,
-        new: activeConvId,
-      });
       setSelectedConvId(activeConvId);
+
     }
 
     let lastMessagesLength = 0;
@@ -81,11 +78,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         const currentMessagesLength = conv.messages.length;
 
         if (currentMessagesLength !== lastMessagesLength) {
-          console.log('Conv store updated - conv messages changed:', {
-            oldCount: lastMessagesLength,
-            newCount: currentMessagesLength,
-            activeConvId: activeId,
-          });
 
           if (panels.convTree?.isOpen) {
             setSelectedConvId(null);
@@ -158,19 +150,16 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
             <SystemPromptLibrary
               convId={activeConvId || undefined}
               onApplyPrompt={(prompt) => {
-                console.log('Applying prompt:', prompt);
                 const convId = activeConvId;
                 const promptId = prompt?.guid || prompt?.Guid;
 
                 if (convId && promptId) {
-                  console.log(`Setting conv system prompt with convId=${convId}, promptId=${promptId}`);
                   setConvSystemPrompt({ convId, promptId });
                   setConvPrompt(convId, promptId);
                 } else {
                   console.error('Cannot apply prompt - missing required data:', {
                     convId,
-                    promptId,
-                    prompt,
+                    promptId
                   });
                 }
 
