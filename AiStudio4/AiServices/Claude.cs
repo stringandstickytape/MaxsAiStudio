@@ -51,6 +51,7 @@ namespace AiStudio4.AiServices
 
             var messagesArray = new JArray();
             int userMessageCount = 0;
+            int totalUserMessages = conv.messages.Count(m => m.role.ToLower() == "user");
 
             foreach (var message in conv.messages)
             {
@@ -82,12 +83,18 @@ namespace AiStudio4.AiServices
                     ["content"] = contentArray
                 };
 
-                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user" && userMessageCount < 4)
+                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user")
                 {
-                    messageObject["content"][0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
                     userMessageCount++;
                 }
 
+                // Add cache_control to the last 4 user messages
+                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user" && 
+                    (totalUserMessages - userMessageCount) < 4)
+                {
+                    messageObject["content"][0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
+                }
+                
                 messagesArray.Add(messageObject);
             }
 

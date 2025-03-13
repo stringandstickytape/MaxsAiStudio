@@ -65,20 +65,20 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     const isExpanded = expandedNodes[node.id] ?? true; // Default to expanded if not in state
 
     return (
-      <div key={node.id} className="my-1.5 transition-all duration-200 ease-in-out">
+      <div key={node.id} className="my-1 transition-all duration-200 ease-in-out">
         <div 
-          className="flex items-center p-2 rounded-md hover:bg-gray-700/70 group transition-all duration-150"
+          className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-700/70 group transition-all duration-150"
           onClick={() => handleNodeClick(node)}
         >
           {hasChildren ? (
             <div 
-              className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer mr-2"
+              className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer mr-1"
               onClick={(e) => toggleNode(node.id, e)}
             >
-              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </div>
           ) : (
-            <MessageCircle size={14} className="w-5 h-5 mr-2 text-gray-500 opacity-70" />
+            <MessageCircle size={12} className="w-4 h-4 mr-1 text-gray-500 opacity-70" />
           )}
           <div
             className="text-sm text-gray-300 group-hover:text-white cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-full transition-colors duration-150"
@@ -88,7 +88,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
           </div>
         </div>
         {hasChildren && isExpanded && (
-          <div className="pl-5 mt-1 border-l border-gray-700/50 ml-2.5">
+          <div className="pl-2 mt-1 border-l border-gray-700/50 ml-2.5">
             {children.map((child) => renderTree(child))}
           </div>
         )}
@@ -96,5 +96,5 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     );
   };
 
-  return <div className="px-1 py-2">{renderTree(treeData)}</div>;
+  return <div className="px-0.5 py-1">{renderTree(treeData)}</div>;
 };
