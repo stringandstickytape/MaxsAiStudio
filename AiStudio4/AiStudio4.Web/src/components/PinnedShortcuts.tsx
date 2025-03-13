@@ -120,20 +120,20 @@ export function PinnedShortcuts({
 
     const [userModified, setUserModified] = useState(false);
 
+    const isModified = usePinnedCommandsStore(state => state.isModified);
+    
     useEffect(() => {
-        if (loading || !initialLoadComplete || !userModified) {
+        if (loading || !initialLoadComplete || !isModified) {
             return;
         }
 
-        setUserModified(false);
-
         const saveTimer = setTimeout(() => {
-            console.log('Saving user-modified pinned commands');
+            console.log('Saving modified pinned commands to server');
             savePinnedCommands();
         }, 1000);
 
         return () => clearTimeout(saveTimer);
-    }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, userModified]);
+    }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, isModified]);
 
     useEffect(() => {
         if (!autoFit || orientation === 'vertical' || !containerRef.current || !buttonRef.current) {
@@ -206,6 +206,8 @@ export function PinnedShortcuts({
 
         if (isCurrentlyPinned) {
             removePinnedCommand(commandId);
+            // Explicitly save to server after removing a pinned command
+            savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
         } else {
             const command = useCommandStore.getState().getCommandById(commandId);
             if (command) {

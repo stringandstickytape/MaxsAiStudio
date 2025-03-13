@@ -15,6 +15,7 @@ interface PinnedCommandsStore {
   loading: boolean;
   error: string | null;
   isDragging: boolean;
+  isModified: boolean;
 
   
   setPinnedCommands: (commands: PinnedCommand[]) => void;
@@ -26,6 +27,7 @@ interface PinnedCommandsStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setIsDragging: (isDragging: boolean) => void;
+  setIsModified: (isModified: boolean) => void;
 }
 
 export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => ({
@@ -34,22 +36,26 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
   loading: false,
   error: null,
   isDragging: false,
+  isModified: false,
 
   
-  setPinnedCommands: (commands) => set({ pinnedCommands: commands }),
+  setPinnedCommands: (commands) => set({ pinnedCommands: commands, isModified: false }),
 
   addPinnedCommand: (command) =>
     set((state) => {
       if (state.pinnedCommands.some((cmd) => cmd.id === command.id)) {
         return state;
       }
-      return { pinnedCommands: [...state.pinnedCommands, command] };
+      return { pinnedCommands: [...state.pinnedCommands, command], isModified: true };
     }),
 
   removePinnedCommand: (commandId) =>
     set((state) => ({
       pinnedCommands: state.pinnedCommands.filter((cmd) => cmd.id !== commandId),
+      isModified: true,
     })),
+    
+  setIsModified: (isModified) => set({ isModified }),
 
   reorderPinnedCommands: (commandIds) =>
     set((state) => {
@@ -61,8 +67,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
         }
       });
       
-      window.localStorage.setItem('pinnedCommands_modified', 'true');
-      return { pinnedCommands: orderedCommands };
+      return { pinnedCommands: orderedCommands, isModified: true };
     }),
 
   fetchPinnedCommands: async () => {
@@ -97,7 +102,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
   },
 
   savePinnedCommands: async () => {
-    const { pinnedCommands, setLoading, setError } = get();
+    const { pinnedCommands, setLoading, setError, setIsModified } = get();
 
     setLoading(true);
     setError(null);
@@ -117,9 +122,14 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
       if (!data.success) {
         throw new Error(data.error || 'Failed to save pinned commands');
       }
+      
+      // Reset modified state after successful save
+      setIsModified(false);
+      return true;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
       console.error('Error saving pinned commands:', error);
+      return false;
     } finally {
       setLoading(false);
     }
