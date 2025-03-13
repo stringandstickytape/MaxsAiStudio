@@ -28,3 +28,4 @@ export function ChatContainer({ isMobile, streamTokens }: ChatContainerProps) {
     </div>
   );
 }
+

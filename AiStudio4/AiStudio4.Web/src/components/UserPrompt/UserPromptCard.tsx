@@ -38,7 +38,7 @@ export function UserPromptCard({ prompt, onEdit, onApply }: UserPromptCardProps)
       await setFavoriteUserPrompt(prompt.guid, !prompt.isFavorite);
     } catch (error) {
       console.error('Failed to toggle favorite status:', error);
-      // Revert the UI change if API call fails
+      
       toggleFavorite(prompt.guid);
     } finally {
       setIsProcessing(false);
@@ -181,3 +181,4 @@ export function UserPromptCard({ prompt, onEdit, onApply }: UserPromptCardProps)
     </>
   );
 }
+

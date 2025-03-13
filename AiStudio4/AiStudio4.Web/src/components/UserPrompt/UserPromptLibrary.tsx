@@ -16,7 +16,7 @@ interface UserPromptLibraryProps {
 }
 
 export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
-  // Use the management hook
+  
   const { prompts, favoritePromptIds, isLoading, fetchUserPrompts } = useUserPromptManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +24,7 @@ export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
   const [promptToEdit, setPromptToEdit] = useState<UserPrompt | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Fetch prompts on mount
+  
   useEffect(() => {
     fetchUserPrompts();
   }, [fetchUserPrompts]);
@@ -53,12 +53,12 @@ export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
   const getFilteredPrompts = () => {
     let filtered = prompts;
 
-    // Apply active tab filtering
+    
     if (activeTab === 'favorites') {
       filtered = filtered.filter((p) => p.isFavorite);
     }
 
-    // Apply search filtering
+    
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -187,3 +187,4 @@ function PromptList({ prompts, onEdit, onApply, isLoading }: PromptListProps) {
     </ScrollArea>
   );
 }
+

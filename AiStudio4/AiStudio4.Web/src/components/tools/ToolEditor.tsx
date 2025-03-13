@@ -17,10 +17,10 @@ interface ToolEditorProps {
 }
 
 export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
-  // Use the tools management hook instead of RTK Query
+  
   const { addTool, updateTool, validateToolSchema, isLoading: isApiLoading } = useToolsManagement();
 
-  // Local state
+  
   const [name, setName] = useState(tool?.name || '');
   const [description, setDescription] = useState(tool?.description || '');
   const [schema, setSchema] = useState(
@@ -54,7 +54,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   };
 
   const handleSubmit = async () => {
-    // Validate form
+    
     if (!name.trim()) {
       alert('Tool name is required');
       return;
@@ -67,7 +67,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
 
     setIsSubmitting(true);
     try {
-      // Validate schema one last time
+      
       let isSchemaValid;
       try {
         isSchemaValid = await validateToolSchema(schema);
@@ -110,7 +110,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
     }
   };
 
-  // Determine overall loading state
+  
   const isLoading = isApiLoading || isSubmitting;
 
   return (
@@ -266,3 +266,4 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
     </div>
   );
 }
+

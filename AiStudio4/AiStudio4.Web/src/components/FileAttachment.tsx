@@ -22,7 +22,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabl
         addEmbeddings: 'false',
       });
 
-      // Reset input value so the same file can be selected again
+      
       if (inputRef.current) {
         inputRef.current.value = '';
       }
@@ -39,19 +39,19 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabl
     if (!file) return;
 
     try {
-      // Read file as text
+      
       const text = await readFileAsText(file);
 
-      // Pass file and content to parent component
+      
       onAttach(file, text);
 
-      // Reset input value so the same file can be selected again
+      
       if (inputRef.current) {
         inputRef.current.value = '';
       }
     } catch (error) {
       console.error('Error reading file:', error);
-      // You could show a toast notification here
+      
     }
   };
 
@@ -95,7 +95,6 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabl
   );
 };
 
-// Component to display attached files
 interface AttachedFileProps {
   filename: string;
   onRemove: () => void;
@@ -116,3 +115,4 @@ export const AttachedFileDisplay: React.FC<AttachedFileProps> = ({ filename, onR
     </div>
   );
 };
+

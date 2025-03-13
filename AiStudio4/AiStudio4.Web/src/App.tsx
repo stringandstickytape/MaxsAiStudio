@@ -9,28 +9,27 @@ import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
 
-// Event name constants for better consistency
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
   VISIBILITY_CHANGE: 'visibilitychange'
 };
 
 function App() {
-  // Get the conv store functions
+  
   const { createConv, activeConvId } = useConvStore();
   
-  // Function to check for stale panel data
+  
   const checkAndFixPanelData = () => {
     try {
       const savedLayout = localStorage.getItem('panel-layout');
       if (savedLayout) {
         const savedPanels = JSON.parse(savedLayout);
         
-        // Look for panels that should be closed but aren't
+        
         let needsFix = false;
         
         Object.keys(savedPanels).forEach(id => {
-          // If a panel is not pinned but is marked as open in saved state, fix it
+          
           if (savedPanels[id]?.isOpen === true && savedPanels[id]?.isPinned === false) {
             savedPanels[id].isOpen = false;
             needsFix = true;
@@ -46,19 +45,19 @@ function App() {
     }
   };
 
-  // Initialize panel persistence
+  
   useEffect(() => {
-    // First check and fix any stale panel data
+    
     checkAndFixPanelData();
     
-    // Load panel layout from local storage directly
+    
     try {
       const savedLayout = localStorage.getItem('panel-layout');
       if (savedLayout) {
         const { panels } = usePanelStore.getState();
         const savedPanels = JSON.parse(savedLayout);
 
-        // Merge saved state into current panels
+        
         Object.keys(savedPanels).forEach((panelId) => {
           if (panels[panelId]) {
             usePanelStore.setState((state) => ({
@@ -77,37 +76,37 @@ function App() {
       console.error('Failed to load panel layout:', error);
     }
 
-    // We'll save on specific actions instead of using a timer
+    
 
-    // Save panel layout on unmount
-    // Setup event listeners for saving panel state when page is about to be closed
+    
+    
     const handleBeforeUnload = () => {
       usePanelStore.getState().saveState();
     };
     
-    // Save state when tab visibility changes (user switches tabs/minimizes)
+    
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         usePanelStore.getState().saveState();
       }
     };
     
-    // Add event listeners
+    
     window.addEventListener(PANEL_EVENTS.BEFORE_UNLOAD, handleBeforeUnload);
     document.addEventListener(PANEL_EVENTS.VISIBILITY_CHANGE, handleVisibilityChange);
     
-    // Cleanup function
+    
     return () => {
-      // Remove event listeners
+      
       window.removeEventListener(PANEL_EVENTS.BEFORE_UNLOAD, handleBeforeUnload);
       document.removeEventListener(PANEL_EVENTS.VISIBILITY_CHANGE, handleVisibilityChange);
       
-      // Final save on unmount
+      
       usePanelStore.getState().saveState();
     };
   }, []);
 
-  // Create initial conv if needed
+  
   useEffect(() => {
     if (!activeConvId) {
       createConv({
@@ -124,20 +123,19 @@ function App() {
 
   return (
     <FontSizeProvider>
-      {/* Command initializer component to set up all commands */}
+      
       <CommandInitializer />
       
-      {/* Dedicated plugin for command registration */}
+      
       <CommandInitializationPlugin />
 
-      {/* Navigation container handles panels and routing */}
+      
       <NavigationContainer>
-        {/* Chat workspace manages the chat interface */}
+        
         <ChatSpace />
       </NavigationContainer>
     </FontSizeProvider>
   );
 }
 
-// Export the App component directly, no Redux Provider needed
 export default App;

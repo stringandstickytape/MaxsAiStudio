@@ -9,10 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { v4 as uuidv4 } from 'uuid';
 
-// Define field types
 export type FieldType = 'text' | 'password' | 'textarea' | 'number' | 'checkbox' | 'select' | 'color';
 
-// Field definition
 export interface FormFieldDefinition {
   name: string;
   label: string;
@@ -23,9 +21,9 @@ export interface FormFieldDefinition {
   min?: number;
   max?: number;
   step?: number;
-  options?: { value: string; label: string }[]; // For select fields
-  colSpan?: number; // For layout control: 1 = half width, 2 = full width
-  onChange?: (value: any) => void; // For custom field change handling
+  options?: { value: string; label: string }[]; 
+  colSpan?: number; 
+  onChange?: (value: any) => void; 
 }
 
 interface GenericFormProps {
@@ -55,7 +53,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   layout = 'single',
   className,
 }) => {
-  // Create default values from field definitions
+  
   const getDefaultValues = () => {
     const defaultValues: Record<string, any> = {};
 
@@ -96,7 +94,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     const baseStyles =
       'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500';
 
-    // Add any type-specific styles here
+    
     switch (type) {
       case 'color':
         return 'w-12 h-8 p-1 bg-transparent';
@@ -105,17 +103,17 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     }
   };
 
-  // Group fields for grid layout
+  
   const renderFormFields = () => {
     if (layout === 'grid') {
-      // First, identify fields that should be in the same row (full width fields will be alone)
+      
       const rows: FormFieldDefinition[][] = [];
       let currentRow: FormFieldDefinition[] = [];
 
       fields.forEach((field) => {
         const span = field.colSpan || 1;
 
-        // If this is a full-width field or would overflow the row, start a new row
+        
         if (span === 2 || currentRow.length + span > 2) {
           if (currentRow.length > 0) {
             rows.push([...currentRow]);
@@ -131,12 +129,12 @@ export const GenericForm: React.FC<GenericFormProps> = ({
         }
       });
 
-      // Add any remaining fields
+      
       if (currentRow.length > 0) {
         rows.push(currentRow);
       }
 
-      // Render rows
+      
       return rows.map((rowFields, rowIndex) => (
         <div
           key={`row-${rowIndex}`}
@@ -147,11 +145,11 @@ export const GenericForm: React.FC<GenericFormProps> = ({
       ));
     }
 
-    // Single column layout
+    
     return fields.map((field) => renderField(field));
   };
 
-  // Render individual form field based on type
+  
   const renderField = (field: FormFieldDefinition) => {
     switch (field.type) {
       case 'textarea':
@@ -331,7 +329,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
           />
         );
 
-      // Default is text input (includes password)
+      
       default:
         return (
           <FormField
@@ -390,3 +388,4 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     </Form>
   );
 };
+

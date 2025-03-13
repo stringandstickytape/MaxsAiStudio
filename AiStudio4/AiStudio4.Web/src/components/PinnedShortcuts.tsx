@@ -19,10 +19,7 @@ interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
     maxShown?: number;
     className?: string;
-    /**
-     * If true, automatically adjusts the number of visible buttons based on container width
-     * (only applies to horizontal orientation)
-     */
+    
     autoFit?: boolean;
 }
 

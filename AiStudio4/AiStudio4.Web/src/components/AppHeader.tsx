@@ -46,21 +46,21 @@ export function AppHeader({
         }
     }, [isCommandBarOpen]);
 
-    // Handle model selection via commands
+    
     const handlePrimaryModelClick = () => {
         setIsCommandBarOpen(true);
         setTimeout(() => {
             const element = document.getElementById('command-input') as HTMLInputElement;
             if (element) {
                 element.focus();
-                // Pre-populate with the command to select primary model
+                
                 element.value = 'select primary model';
 
-                // Trigger input event manually to update filtered commands
+                
                 const inputEvent = new Event('input', { bubbles: true });
                 element.dispatchEvent(inputEvent);
 
-                // Also update the state
+                
                 setCommandText('select primary model');
             }
         }, 100);
@@ -72,14 +72,14 @@ export function AppHeader({
             const element = document.getElementById('command-input') as HTMLInputElement;
             if (element) {
                 element.focus();
-                // Pre-populate with the command to select secondary model
+                
                 element.value = 'select secondary model';
 
-                // Trigger input event manually to update filtered commands
+                
                 const inputEvent = new Event('input', { bubbles: true });
                 element.dispatchEvent(inputEvent);
 
-                // Also update the state
+                
                 setCommandText('select secondary model');
             }
         }, 100);
@@ -94,9 +94,9 @@ export function AppHeader({
                     rightSidebarPinned ? 'right-80' : 'right-0',
                 )}
             >
-                {/* Main header content */}
+                
                 <div className="flex flex-1">
-                    {/* Left side - Vertical Model Selectors */}
+                    
                     <div className="flex flex-col justify-center pr-2 border-r border-gray-700/30">
                         <ModelStatusBar
                             onPrimaryClick={handlePrimaryModelClick}
@@ -105,7 +105,7 @@ export function AppHeader({
                         />
                     </div>
 
-                    {/* Middle - Command Bar and System Prompt */}
+                    
                     <div className="flex-1 flex flex-col justify-center px-0">
                         <div className="flex items-center justify-center">
                             {CommandBarComponent || (
@@ -137,13 +137,13 @@ export function AppHeader({
                         </div>
                     </div>
 
-                    {/* Right side - Empty space for layout balance */}
+                    
                     <div className="flex flex-col justify-center pl-4 border-l border-gray-700/30 w-[130px]">
-                        {/* Intentionally left empty for balance */}
+                        
                     </div>
                 </div>
 
-                {/* Pinned commands bar - positioned below the main header content */}
+                
                 <div className="mt-1 border-t border-gray-700/30 pt-1 flex justify-center">
                     <div className="w-full">
                         <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" />

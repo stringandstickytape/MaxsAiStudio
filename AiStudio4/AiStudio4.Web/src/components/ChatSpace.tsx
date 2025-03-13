@@ -35,19 +35,19 @@ export function ChatSpace() {
     return () => window.removeEventListener('openToolPanel', handleOpenToolPanel);
   }, [togglePanel]);
   
-  // Effect for loading message content when slctdMsgId changes
+  
   useEffect(() => {
     if (activeConvId && slctdMsgId && convs[activeConvId]) {
       const conv = convs[activeConvId];
-      // Find the next user message after the selected message
+      
       const messages = conv.messages;
       const slctdMsgIndex = messages.findIndex(msg => msg.id === slctdMsgId);
       
       if (slctdMsgIndex >= 0) {
-        // Check if there's a user message right after the selected message
+        
         const nextIndex = slctdMsgIndex + 1;
         if (nextIndex < messages.length && messages[nextIndex].source === 'user') {
-          // Load this user message content into the input
+          
           setInputValue(messages[nextIndex].content);
         }
       }

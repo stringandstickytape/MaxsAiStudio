@@ -9,7 +9,7 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 
 interface ServiceProviderManagementProps {
   providers: ServiceProvider[];
-  // New props for external control
+  
   providerToEdit?: ServiceProvider | null;
   setProviderToEdit?: React.Dispatch<React.SetStateAction<ServiceProvider | null>>;
   editDialogOpen?: boolean;
@@ -18,20 +18,20 @@ interface ServiceProviderManagementProps {
 
 export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps> = ({
   providers,
-  // Use provided state or internal state
+  
   providerToEdit: externalProviderToEdit,
   setProviderToEdit: externalSetProviderToEdit,
   editDialogOpen: externalEditOpen,
   setEditDialogOpen: externalSetEditOpen,
 }) => {
-  // Use model management hook
+  
   const { addProvider, updateProvider, deleteProvider, error: storeError, clearError } = useModelManagement();
 
-  // Create internal state if external state is not provided
+  
   const [internalEditingProvider, setInternalEditingProvider] = useState<ServiceProvider | null>(null);
   const [internalEditOpen, setInternalEditOpen] = useState(false);
 
-  // Use either external or internal state
+  
   const editingProvider = externalProviderToEdit !== undefined ? externalProviderToEdit : internalEditingProvider;
   const setEditingProvider = externalSetProviderToEdit || setInternalEditingProvider;
   const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
@@ -43,10 +43,10 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);
 
-  // Combine errors and loading states
+  
   const displayError = error || storeError;
 
-  // Clear errors when dialogs close
+  
   useEffect(() => {
     if (!isAddDialogOpen && !editOpen && !isDeleteDialogOpen) {
       setLocalError(null);
@@ -181,7 +181,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         </div>
       )}
 
-      {/* Add Provider Dialog */}
+      
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent
           className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
@@ -199,7 +199,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Provider Dialog */}
+      
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent
           className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
@@ -224,7 +224,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent
           className="bg-gray-800 border-gray-700 text-gray-100"
@@ -265,3 +265,4 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
     </>
   );
 };
+

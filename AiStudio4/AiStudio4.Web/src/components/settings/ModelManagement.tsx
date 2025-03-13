@@ -9,8 +9,8 @@ import { Model } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 
 interface ModelManagementProps {
-  providers: any[]; // We'll still get providers as props for now
-  // New props for external control
+  providers: any[]; 
+  
   modelToEdit?: Model | null;
   setModelToEdit?: React.Dispatch<React.SetStateAction<Model | null>>;
   editDialogOpen?: boolean;
@@ -19,20 +19,20 @@ interface ModelManagementProps {
 
 export const ModelManagement: React.FC<ModelManagementProps> = ({
   providers,
-  // Use provided state or internal state
+  
   modelToEdit: externalModelToEdit,
   setModelToEdit: externalSetModelToEdit,
   editDialogOpen: externalEditOpen,
   setEditDialogOpen: externalSetEditOpen,
 }) => {
-  // Use model management hook
+  
   const { models, isLoading, error: storeError, addModel, updateModel, deleteModel, clearError } = useModelManagement();
 
-  // Create internal state if external state is not provided
+  
   const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);
   const [internalEditOpen, setInternalEditOpen] = useState(false);
 
-  // Use either external or internal state
+  
   const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
   const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
   const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
@@ -44,10 +44,10 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   const [error, setLocalError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Combine errors from store and local state
+  
   const displayError = error || storeError;
 
-  // Clear error when dialog closes
+  
   useEffect(() => {
     if (!addOpen && !editOpen && !deleteOpen) {
       setLocalError(null);
@@ -96,12 +96,12 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     }
   };
 
-  // Handle toggling the starred status directly
+  
   const handleToggleStarred = async (model: Model) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
-      // Create updated model with toggled starred value
+      
       const updatedModel = {
         ...model,
         starred: !model.starred,
@@ -246,7 +246,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         </div>
       )}
 
-      {/* Add Model Dialog */}
+      
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-xl bg-gray-800 border-gray-700 text-gray-100" description="Add a new AI model">
           <DialogHeader>
@@ -261,7 +261,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Model Dialog */}
+      
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent
           className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
@@ -287,7 +287,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent
           className="bg-gray-800 border-gray-700 text-gray-100"
@@ -328,3 +328,4 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     </>
   );
 };
+

@@ -5,10 +5,10 @@ import { useEffect, useRef } from 'react';
 export const HtmlRenderer: CodeBlockRenderer = {
   type: ['html', 'htm', 'svg'],
   initialize: () => {
-    // No initialization needed
+    
   },
   render: async () => {
-    // Rendering will happen in each iframe independently
+    
   },
   Component: ({ content, className }) => {
     const iframeRef = useRef(null);
@@ -16,7 +16,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
     useEffect(() => {
       if (!iframeRef.current) return;
 
-      // Set up default CSS for the HTML iframe
+      
       const styleTag = `
                 <style>
                     body {
@@ -26,7 +26,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
                         color: #e0e0e0;
                         background-color: transparent;
                     }
-                    /* Default dark mode styling for common elements */
+                    
                     a { color: #3b82f6; }
                     a:hover { color: #60a5fa; }
                     button, input, select, textarea {
@@ -45,7 +45,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
                 </style>
             `;
 
-      // Create the HTML content for the iframe
+      
       const htmlContent = `
                 <!DOCTYPE html>
                 <html>
@@ -55,15 +55,15 @@ export const HtmlRenderer: CodeBlockRenderer = {
                     ${styleTag}
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            // Adjust iframe height after rendering
+                            
                             const height = document.body.scrollHeight;
                             window.parent.postMessage({ type: 'resize', height: height }, '*');
                             
-                            // Handle clicks on links to prevent navigation
+                            
                             document.addEventListener('click', function(e) {
                                 if (e.target.tagName === 'A' && e.target.getAttribute('href')) {
                                     e.preventDefault();
-                                    // Can optionally send a message to parent to handle link clicks
+                                    
                                     window.parent.postMessage({ 
                                         type: 'linkClicked', 
                                         href: e.target.getAttribute('href') 
@@ -71,7 +71,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
                                 }
                             });
 
-                            // Adjust height on window resize
+                            
                             window.addEventListener('resize', function() {
                                 const height = document.body.scrollHeight;
                                 window.parent.postMessage({ type: 'resize', height: height }, '*');
@@ -85,16 +85,16 @@ export const HtmlRenderer: CodeBlockRenderer = {
                 </html>
             `;
 
-      // Set the srcdoc of the iframe
+      
       iframeRef.current.srcdoc = htmlContent;
 
-      // Handle messages from the iframe
+      
       const handleMessage = (event) => {
         if (event.data && event.data.type === 'resize') {
-          // Add a small buffer to avoid scrollbars
+          
           iframeRef.current.style.height = `${event.data.height + 20}px`;
         } else if (event.data && event.data.type === 'linkClicked') {
-          // Handle link clicks if needed
+          
           console.log('Link clicked in HTML preview:', event.data.href);
         }
       };
@@ -103,7 +103,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
       return () => window.removeEventListener('message', handleMessage);
     }, [content]);
 
-    // Helper method to launch the HTML in a new window
+    
     const launchInNewWindow = () => {
       const newWindow = window.open('', '_blank');
       if (newWindow) {
@@ -140,7 +140,7 @@ export const HtmlRenderer: CodeBlockRenderer = {
           width: '100%',
           border: 'none',
           overflow: 'hidden',
-          height: '100px', // Default height, will be adjusted
+          height: '100px', 
           backgroundColor: 'transparent',
         }}
         title="HTML Preview"
@@ -148,3 +148,4 @@ export const HtmlRenderer: CodeBlockRenderer = {
     );
   },
 };
+

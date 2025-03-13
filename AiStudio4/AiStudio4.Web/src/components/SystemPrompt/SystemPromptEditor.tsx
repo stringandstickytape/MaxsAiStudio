@@ -367,3 +367,4 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
     </div>
   );
 }
+

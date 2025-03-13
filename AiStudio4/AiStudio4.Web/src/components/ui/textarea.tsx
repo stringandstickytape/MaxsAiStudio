@@ -12,7 +12,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const [lineCount, setLineCount] = React.useState(1);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
     
-    // Combine refs
+    
     const handleRefs = (el: HTMLTextAreaElement | null) => {
       textareaRef.current = el;
       if (typeof ref === 'function') {
@@ -22,7 +22,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       }
     };
     
-    // Calculate line count efficiently using a debounced approach
+    
     const updateLineCount = React.useCallback(() => {
       if (textareaRef.current) {
         const text = textareaRef.current.value;
@@ -31,7 +31,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       }
     }, []);
     
-    // Use a debounced event handler to avoid performance issues
+    
     const debouncedUpdate = React.useMemo(() => {
       let timeoutId: NodeJS.Timeout;
       return () => {
@@ -42,10 +42,10 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     
     React.useEffect(() => {
       if (showLineCount && textareaRef.current) {
-        // Set initial line count
+        
         updateLineCount();
         
-        // Add event listeners
+        
         const textarea = textareaRef.current;
         textarea.addEventListener('input', debouncedUpdate);
         textarea.addEventListener('keydown', debouncedUpdate);

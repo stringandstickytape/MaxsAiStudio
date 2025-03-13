@@ -14,20 +14,20 @@ interface HistoricalConvTreeProps {
 }
 
 export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData, onNodeClick }) => {
-  // Use Zustand store
+  
   const { clientId } = useWebSocketStore();
   const [expandedNodes, setExpandedNodes] = React.useState<Record<string, boolean>>({});
 
   const handleNodeClick = async (node: TreeNode) => {
-    // Add messageId to URL when loading conv
+    
     window.history.pushState({}, '', `?messageId=${node.id}`);
 
-    // Call the parent's onNodeClick handler
+    
     onNodeClick(node.id);
 
-    // Check if this is a user message - if so, load it into input area
+    
     if (node.text.startsWith('User:')) {
-      // Extract the content without the 'User:' prefix
+      
       const userContent = node.text.substring(5).trim();
       window.setPrompt(userContent);
     }
@@ -41,13 +41,13 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     }));
   };
 
-  // Initialize all nodes as expanded when the tree data changes
+  
   React.useEffect(() => {
     if (treeData) {
       const expandAllNodes = (node: TreeNode, expandedState: Record<string, boolean>) => {
         expandedState[node.id] = true;
         
-        // Process children if they exist
+        
         const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
         children.forEach(child => expandAllNodes(child, expandedState));
         
@@ -59,10 +59,10 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
   }, [treeData]);
 
   const renderTree = (node: TreeNode): JSX.Element => {
-    // Ensure children is always an array
+    
     const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
     const hasChildren = children.length > 0;
-    const isExpanded = expandedNodes[node.id] ?? true; // Default to expanded if not in state
+    const isExpanded = expandedNodes[node.id] ?? true; 
 
     return (
       <div key={node.id} className="my-1 transition-all duration-200 ease-in-out ">

@@ -11,22 +11,22 @@ interface ModelStatusBarProps {
 }
 
 export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation = 'horizontal' }: ModelStatusBarProps) {
-  // Use model management hook
+  
   const { selectedPrimaryModel, selectedSecondaryModel } = useModelManagement();
 
   const isVertical = orientation === 'vertical';
 
-  // Helper function to break text at natural points (spaces, hyphens, etc.)
+  
   const findBreakPoint = (text: string) => {
     if (!text) return { firstLine: '', secondLine: '' };
 
-    // Look for natural break points
+    
     const midPoint = Math.ceil(text.length / 2);
 
-    // Search for a space, hyphen, or other separator near the midpoint
+    
     let breakIndex = -1;
 
-    // First try to find a space close to the middle
+    
     for (let i = 0; i < 10; i++) {
       if (midPoint - i > 0 && /\s/.test(text[midPoint - i])) {
         breakIndex = midPoint - i;
@@ -38,21 +38,21 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
       }
     }
 
-    // If no space found, look for other punctuation
+    
     if (breakIndex === -1) {
       for (let i = 0; i < 10; i++) {
         if (midPoint - i > 0 && /[-_.,:]/.test(text[midPoint - i])) {
-          breakIndex = midPoint - i + 1; // Include the punctuation in the first line
+          breakIndex = midPoint - i + 1; 
           break;
         }
         if (midPoint + i < text.length && /[-_.,:]/.test(text[midPoint + i])) {
-          breakIndex = midPoint + i + 1; // Include the punctuation in the first line
+          breakIndex = midPoint + i + 1; 
           break;
         }
       }
     }
 
-    // If still no good break point, just break at the midpoint
+    
     if (breakIndex === -1) {
       breakIndex = midPoint;
     }
@@ -65,7 +65,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
 
   return (
     <div className={cn('flex gap-2', isVertical ? 'flex-col' : 'items-center')}>
-      {/* Primary Model */}
+      
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -82,7 +82,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
                 {selectedPrimaryModel !== 'Select Model' ? (
                   selectedPrimaryModel.length > 15 ? (
                     <>
-                      {/* Find a natural break point near the middle */}
+                      
                       <span className=" text-xs self-end">{findBreakPoint(selectedPrimaryModel).firstLine}</span>
                       <span className=" text-xs self-start">{findBreakPoint(selectedPrimaryModel).secondLine}</span>
                     </>
@@ -101,7 +101,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
         </Tooltip>
       </TooltipProvider>
 
-      {/* Secondary Model */}
+      
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -118,7 +118,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
                 {selectedSecondaryModel !== 'Select Model' ? (
                   selectedSecondaryModel.length > 15 ? (
                     <>
-                      {/* Find a natural break point near the middle */}
+                      
                       <span className=" text-xs self-end">{findBreakPoint(selectedSecondaryModel).firstLine}</span>
                       <span className=" text-xs self-start">{findBreakPoint(selectedSecondaryModel).secondLine}</span>
                     </>
@@ -139,3 +139,4 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
     </div>
   );
 }
+

@@ -35,7 +35,7 @@ export function AppearanceTab() {
 
   return (
     <div className="space-y-4">
-      {/* Font Size Card */}
+      
       <Card className="card-base">
         <CardHeader className="pb-2">
           <CardTitle className="text-title text-lg">Font Size</CardTitle>
@@ -43,7 +43,7 @@ export function AppearanceTab() {
         <CardContent>
           <FontSizeControl
             onChange={() => {
-              // Clear success message when changes are made
+              
               setSuccessMessage(null);
             }}
             onSave={() => {
@@ -53,7 +53,7 @@ export function AppearanceTab() {
         </CardContent>
       </Card>
 
-      {/* Theme Card */}
+      
       <Card className="card-base">
         <CardHeader className="pb-2">
           <CardTitle className="text-title text-lg">Theme</CardTitle>
@@ -66,7 +66,7 @@ export function AppearanceTab() {
         </CardContent>
       </Card>
 
-      {/* Reset Settings Button */}
+      
       <div className="flex justify-between mt-6">
         <div className="flex-1">
           {successMessage && (
@@ -84,7 +84,7 @@ export function AppearanceTab() {
         </Button>
       </div>
 
-      {/* Reset Confirmation Dialog */}
+      
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent className="bg-gray-800 border-gray-700 text-gray-100">
           <AlertDialogHeader>
@@ -104,3 +104,4 @@ export function AppearanceTab() {
     </div>
   );
 }
+

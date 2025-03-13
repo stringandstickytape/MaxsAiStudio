@@ -14,10 +14,10 @@ interface ToolSelectorProps {
 }
 
 export function ToolSelector({ onManageTools }: ToolSelectorProps) {
-  // Use Zustand store
+  
   const { activeTools, addActiveTool, removeActiveTool } = useToolStore();
 
-  // Use the tools management hook
+  
   const { tools } = useToolsManagement();
 
   const [open, setOpen] = useState(false);
@@ -31,12 +31,12 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
   };
 
   const handleManageTools = () => {
-    // Close the popover first
+    
     setOpen(false);
 
     const commandSuccess = commandRegistry.executeCommand('manage-tools');
 
-    // If command execution fails or onManageTools is provided, call it
+    
     if (!commandSuccess && onManageTools) {
       onManageTools();
     }
@@ -106,3 +106,4 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
     </div>
   );
 }
+

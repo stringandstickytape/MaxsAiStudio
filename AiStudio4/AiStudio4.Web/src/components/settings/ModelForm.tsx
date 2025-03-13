@@ -11,7 +11,7 @@ interface ModelFormProps {
 }
 
 export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, onSubmit, isProcessing }) => {
-  // Create provider options for select field
+  
   const providerOptions = providers.map((provider) => ({
     value: provider.guid,
     label: provider.friendlyName,
@@ -71,7 +71,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     },
   );
 
-  // Use default values if initialValues is not provided
+  
   const defaultValues = initialValues || {
     guid: '',
     modelName: '',
@@ -96,3 +96,4 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     />
   );
 };
+

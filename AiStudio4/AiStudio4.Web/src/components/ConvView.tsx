@@ -8,31 +8,31 @@ import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
 
 interface ConvViewProps {
-    streamTokens: string[]; // Receive the array of tokens
+    streamTokens: string[]; 
 }
 
 export const ConvView = ({ streamTokens }: ConvViewProps) => {
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     const [editContent, setEditContent] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
-    const [visibleCount, setVisibleCount] = useState(20); // Start with 20 messages
+    const [visibleCount, setVisibleCount] = useState(20); 
     const [isAtBottom, setIsAtBottom] = useState(true);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
     const lastScrollHeightRef = useRef<number>(0);
     const lastScrollTopRef = useRef<number>(0);
 
-    // Get the message chain (active message plus its ancestors)
+    
     const messageChain = useMemo(() => {
         if (!activeConvId) return [];
 
         const conv = convs[activeConvId];
         if (!conv || !conv.messages.length) return [];
 
-        // Create a message graph from the conv messages
+        
         const graph = new MessageGraph(conv.messages);
 
-        // If we're actively streaming (generating new messages), always use the most recent message
-        // Otherwise, if we have a selected message ID, use that as the starting point for the message chain
+        
+        
         const startingMessageId =
             streamTokens.length > 0
                 ? conv.messages[conv.messages.length - 1].id
@@ -45,22 +45,22 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             messageCount: conv.messages.length,
         });
 
-        // Get the path from the starting message back to the root
+        
         return graph.getMessagePath(startingMessageId);
     }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
 
-    // Reset visible count when message chain changes (new conversation or thread)
+    
     useEffect(() => {
         setVisibleCount(Math.min(20, messageChain.length));
         setAutoScrollEnabled(true);
 
-        // Reset scroll position when conversation changes
+        
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
         }
     }, [activeConvId, slctdMsgId]);
 
-    // Auto-scroll to bottom for new messages
+    
     useEffect(() => {
         if (!containerRef.current || !autoScrollEnabled) return;
 
@@ -70,70 +70,70 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             }
         };
 
-        // Scroll when new messages are added or when streaming
+        
         if (messageChain.length > 0 || streamTokens.length > 0) {
             scrollToBottom();
 
-            // Also try scrolling after images and other content has loaded
+            
             setTimeout(scrollToBottom, 100);
         }
     }, [messageChain.length, streamTokens.length, autoScrollEnabled]);
 
-    // Load more messages when scrolling up
+    
     const handleScroll = () => {
         if (!containerRef.current) return;
 
         const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
 
-        // Detect scroll direction
+        
         const isScrollingUp = scrollTop < lastScrollTopRef.current;
         lastScrollTopRef.current = scrollTop;
 
-        // Check if we're at the bottom (with a small threshold)
+        
         const bottom = scrollHeight - scrollTop - clientHeight;
         const bottomThreshold = 50;
         setIsAtBottom(bottom < bottomThreshold);
 
-        // If scrolling up and near the top, load more messages
+        
         if (isScrollingUp && scrollTop < 200) {
             if (visibleCount < messageChain.length) {
-                // Store current position for scroll restoration
+                
                 const previousScrollHeight = scrollHeight;
 
-                // Increase visible messages
+                
                 setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
 
-                // Store height for position adjustment after render
+                
                 lastScrollHeightRef.current = previousScrollHeight;
             }
         }
 
-        // Toggle auto-scroll based on whether user has manually scrolled away from bottom
+        
         if (bottom > bottomThreshold && autoScrollEnabled) {
             setAutoScrollEnabled(false);
         }
     };
 
-    // Maintain scroll position when loading more messages at the top
+    
     useEffect(() => {
         if (!containerRef.current || lastScrollHeightRef.current === 0) return;
 
-        // Get new scroll height
+        
         const newScrollHeight = containerRef.current.scrollHeight;
 
-        // Calculate how much content was added
+        
         const addedHeight = newScrollHeight - lastScrollHeightRef.current;
 
-        // Adjust scroll position to maintain relative position
+        
         if (addedHeight > 0) {
             containerRef.current.scrollTop = addedHeight;
         }
 
-        // Reset reference
+        
         lastScrollHeightRef.current = 0;
     }, [visibleCount]);
 
-    // Button to re-enable auto-scrolling
+    
     const ScrollToBottomButton = () => {
         if (isAtBottom || autoScrollEnabled) return null;
 
@@ -160,7 +160,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
         return null;
     }
 
-    // Calculate which messages to display
+    
     const visibleMessages = messageChain.slice(-visibleCount);
     const hasMoreToLoad = visibleCount < messageChain.length;
 
@@ -171,7 +171,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             onScroll={handleScroll}
         >
             <div className="conversation-container flex flex-col gap-4 p-4">
-                {/* "Load More" button if there are more messages to load */}
+                
                 {hasMoreToLoad && (
                     <button
                         className="self-center bg-gray-700 hover:bg-gray-600 text-white rounded-full px-4 py-2 my-2 text-sm"
@@ -181,7 +181,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                     </button>
                 )}
 
-                {/* Visible messages */}
+                
                 {visibleMessages.map((message) => (
                     <div
                         key={message.id}
@@ -247,7 +247,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                             </button>
                         </div>
 
-                        {/* Token usage info */}
+                        
                         {(message.tokenUsage || message.costInfo) && (
                             <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
                                 <div className="flex flex-wrap items-center gap-x-4">
@@ -286,7 +286,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                     </div>
                 ))}
 
-                {/* Streaming tokens */}
+                
                 {streamTokens.length > 0 && (
                     <div className="p-4 mb-4 rounded-lg bg-gray-800 shadow-md">
                         {streamTokens.map((token, index) => (
@@ -296,7 +296,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                 )}
             </div>
 
-            {/* Scroll to bottom button */}
+            
             <ScrollToBottomButton />
         </div>
     );

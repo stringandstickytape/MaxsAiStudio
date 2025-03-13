@@ -38,7 +38,7 @@ export function CommandInitializer() {
   };
 
   const openToolPanel = () => {
-    // First try the panel system directly
+    
     togglePanel('toolPanel');
   };
 
@@ -54,7 +54,7 @@ export function CommandInitializer() {
     },
   });
 
-  // Separate effect to load data first
+  
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -65,7 +65,7 @@ export function CommandInitializer() {
           fetchUserPrompts()
         ]);
         
-        // After loading data, explicitly register prompts
+        
         registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
         registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
         console.log('Initial prompt registration completed');
@@ -135,7 +135,7 @@ export function CommandInitializer() {
 
     systemPromptsUpdated();
 
-    // Initialize user prompts commands
+    
     const userPromptsUpdated = () => {
       registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
     };

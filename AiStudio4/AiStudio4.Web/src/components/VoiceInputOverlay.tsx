@@ -1,4 +1,4 @@
-﻿// src/components/VoiceInputOverlay.tsx
+// src/components/VoiceInputOverlay.tsx
 import React, { useEffect, useRef } from 'react';
 import { Mic, MicOff, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,14 @@ export const VoiceInputOverlay: React.FC<VoiceInputOverlayProps> = ({ isOpen, on
   const { isListening, transcript, error, startListening, stopListening, isSupported } = useVoiceInput();
   const hasStartedRef = useRef(false);
 
-  // Start listening when opened
+  
   useEffect(() => {
     if (isOpen && isSupported && !hasStartedRef.current) {
       hasStartedRef.current = true;
       startListening();
     }
 
-    // Clean up on unmount or close
+    
     return () => {
       if (isListening) {
         stopListening();
@@ -33,7 +33,7 @@ export const VoiceInputOverlay: React.FC<VoiceInputOverlayProps> = ({ isOpen, on
     };
   }, [isOpen, isSupported, startListening, stopListening, isListening]);
 
-  // Submit transcript when done
+  
   const handleDone = () => {
     if (transcript.trim()) {
       onTranscript(transcript);
@@ -110,3 +110,4 @@ export const VoiceInputOverlay: React.FC<VoiceInputOverlayProps> = ({ isOpen, on
     </div>
   );
 };
+

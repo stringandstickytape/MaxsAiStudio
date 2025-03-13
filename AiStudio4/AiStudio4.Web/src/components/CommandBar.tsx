@@ -15,10 +15,10 @@ interface CommandBarProps {
 }
 
 export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
-  // Use Zustand command store directly
+  
   const { searchCommands, executeCommand } = useCommandStore();
 
-  // Pinned commands store
+  
   const { pinnedCommands, addPinnedCommand, removePinnedCommand, savePinnedCommands } = usePinnedCommandsStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,24 +27,24 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update filtered commands whenever search term changes
+  
   useEffect(() => {
-    // Special handling for slash commands/shortcuts
+    
     const isShortcutSearch = searchTerm.startsWith('/') && !searchTerm.includes(' ');
     
     let newCommands;
     if (isShortcutSearch) {
-      // Prioritize commands with matching shortcuts
+      
       const allCommands = searchCommands('');
       newCommands = allCommands.filter(cmd => {
-        // Check if command name contains a shortcut marker
+        
         return cmd.name.includes('[/') || 
                cmd.name.includes('[ /') || 
                cmd.keywords.some(k => k === searchTerm.substring(1)) ||
-               cmd.section === 'utility'; // Always include utility commands for prompt access
+               cmd.section === 'utility'; 
       });
       
-      // If no direct shortcut matches, fall back to regular search
+      
       if (newCommands.length <= 2) {
         newCommands = searchCommands(searchTerm);
       }
@@ -57,7 +57,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     if (searchTerm && !isOpen) setIsOpen(true);
   }, [searchTerm, isOpen, setIsOpen, searchCommands]);
 
-  // Subscribe to command store changes
+  
   useEffect(() => {
     const unsubscribe = useCommandStore.subscribe(() => {
       setFilteredCommands(searchCommands(searchTerm));
@@ -66,20 +66,20 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     return () => unsubscribe();
   }, [searchTerm, searchCommands]);
 
-  // Focus input only when command bar is first opened
+  
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
 
-      // If there's already a search term in the input,
-      // refresh the filtered commands
+      
+      
       if (searchTerm) {
         setFilteredCommands(searchCommands(searchTerm));
       }
     }
   }, [isOpen, searchCommands, searchTerm]);
 
-  // Add click-outside handler
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -88,7 +88,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
       }
     };
 
-    // Must be mouseup
+    
     document.addEventListener('mouseup', handleClickOutside);
 
     return () => {
@@ -96,11 +96,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     };
   }, [isOpen, setIsOpen]);
 
-  // Monitor programmatic changes to the input value
+  
   useEffect(() => {
     const handleInput = () => {
       if (inputRef.current) {
-        // Sync our state with the actual input value
+        
         const inputValue = inputRef.current.value;
         if (inputValue !== searchTerm) {
           setSearchTerm(inputValue);
@@ -159,13 +159,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     if (isPinned) {
       removePinnedCommand(command.id);
     } else {
-      // Extract icon name from the command if it exists
+      
       let iconName = undefined;
 
-      // Try to determine icon type by checking properties
+      
       if (command.icon && typeof command.icon === 'object') {
-        // This is a simplified approach - in a real app, you'd want to
-        // implement a more robust way to extract the icon name
+        
+        
         const iconType = command.icon.type?.name || command.icon.type?.displayName;
         if (iconType) {
           iconName = iconType;
@@ -180,11 +180,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
       });
     }
 
-    // Save changes to server
+    
     await savePinnedCommands();
   };
 
-  // Group commands by section for display
+  
   const groupedCommands = filteredCommands.reduce(
     (acc, command) => {
       acc[command.section] = acc[command.section] || [];
@@ -271,10 +271,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                 isSelected && 'bg-gray-700/70',
                             )}
                             onMouseDown={(e) => {
-                                e.preventDefault(); // Prevent blur event that might close the menu
+                                e.preventDefault(); 
                             }}
                             onMouseUp={(e) => {
-                                e.stopPropagation(); // Prevent the outside click handler from firing
+                                e.stopPropagation(); 
                                 handleCommandClick(command.id);
                             }}
                         >

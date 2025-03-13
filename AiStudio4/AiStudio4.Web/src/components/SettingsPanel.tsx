@@ -10,7 +10,7 @@ import { Model, ServiceProvider } from '@/types/settings';
 import { commandEvents } from '@/commands/settingsCommands';
 
 export const SettingsPanel: React.FC = () => {
-  // Use ModelManagement hook instead of direct store access
+  
   const {
     models,
     providers,
@@ -21,25 +21,25 @@ export const SettingsPanel: React.FC = () => {
     clearError: setError,
   } = useModelManagement();
 
-  // State to track which tab is active
+  
   const [activeTab, setActiveTab] = useState('models');
 
-  // Handle dialog states for editing models and providers
+  
   const [editModelDialogOpen, setEditModelDialogOpen] = useState(false);
   const [editProviderDialogOpen, setEditProviderDialogOpen] = useState(false);
   const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
   const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
 
-  // Listen for command events
+  
   useEffect(() => {
-    // Listen for tab changes
+    
     const unsubscribeTab = commandEvents.on('settings-tab', (tabName) => {
       if (tabName === 'models' || tabName === 'providers' || tabName === 'appearance') {
         setActiveTab(tabName);
       }
     });
 
-    // Listen for model edit requests
+    
     const unsubscribeModel = commandEvents.on('edit-model', (modelGuid) => {
       const model = models.find((m) => m.guid === modelGuid);
       if (model) {
@@ -49,7 +49,7 @@ export const SettingsPanel: React.FC = () => {
       }
     });
 
-    // Listen for provider edit requests
+    
     const unsubscribeProvider = commandEvents.on('edit-provider', (providerGuid) => {
       const provider = providers.find((p) => p.guid === providerGuid);
       if (provider) {
@@ -66,12 +66,12 @@ export const SettingsPanel: React.FC = () => {
     };
   }, [models, providers]);
 
-  // Fetch data on component mount
+  
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Function to fetch models and providers using hooks
+  
   const fetchData = async () => {
     try {
       await Promise.all([fetchModels(), fetchProviders()]);
@@ -81,7 +81,7 @@ export const SettingsPanel: React.FC = () => {
     }
   };
 
-  // Retry loading function
+  
   const handleRetry = () => {
     setError(null);
     fetchData();
@@ -165,3 +165,4 @@ export const SettingsPanel: React.FC = () => {
     </div>
   );
 };
+

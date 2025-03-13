@@ -16,7 +16,7 @@ interface ToolPanelProps {
 }
 
 export function ToolPanel({ isOpen = true }: ToolPanelProps) {
-  // Use tools management hook instead of RTK Query
+  
   const {
     tools,
     categories,
@@ -27,10 +27,10 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     exportTools: exportToolsFn,
   } = useToolsManagement();
 
-  // Use Zustand store to sync tools and categories
+  
   const { setTools, setCategories } = useToolStore();
 
-  // Sync tools and categories with Zustand store when they change
+  
   useEffect(() => {
     if (tools.length > 0) {
       setTools(tools);
@@ -43,7 +43,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     }
   }, [categories, setCategories]);
 
-  // Local state
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -58,17 +58,17 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     }
   }, [isOpen, fetchTools, fetchToolCategories]);
 
-  // Handle actions from localStorage
+  
   useEffect(() => {
     const pendingAction = window.localStorage.getItem('toolPanel_action');
     if (pendingAction) {
       if (pendingAction === 'create') {
         handleAddTool();
       } else if (pendingAction === 'export') {
-        // Handle export action
+        
         handleExportTools();
       }
-      // Clear the action after processing
+      
       window.localStorage.removeItem('toolPanel_action');
     }
   }, [isOpen]);
@@ -130,7 +130,7 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     return matchesSearch && matchesCategory;
   });
 
-  // Determine loading state
+  
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
@@ -278,3 +278,4 @@ export function ToolPanel({ isOpen = true }: ToolPanelProps) {
     </div>
   );
 }
+

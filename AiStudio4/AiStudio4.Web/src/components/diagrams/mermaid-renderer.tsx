@@ -39,11 +39,11 @@ export const MermaidRenderer: CodeBlockRenderer = {
 
       const renderDiagram = async () => {
         try {
-          // Generate a unique ID for this render
+          
           const id = 'mermaid-diagram-' + Math.random().toString(36).substr(2, 9);
           containerRef.current.innerHTML = `<div id="${id}">${content}</div>`;
 
-          // Render the diagram
+          
           const { svg } = await mermaid.render(id, content);
           containerRef.current.innerHTML = svg;
           setError(null);
@@ -67,3 +67,4 @@ export const MermaidRenderer: CodeBlockRenderer = {
     );
   },
 };
+

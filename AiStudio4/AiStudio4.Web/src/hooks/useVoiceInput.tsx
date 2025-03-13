@@ -1,7 +1,6 @@
-﻿// src/hooks/useVoiceInput.tsx
+// src/hooks/useVoiceInput.tsx
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-// Types for Web Speech API
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -44,7 +43,6 @@ interface SpeechRecognitionError extends Event {
   message: string;
 }
 
-// Initialize SpeechRecognition with browser prefixes
 const SpeechRecognitionAPI =
   typeof window !== 'undefined'
     ? window.SpeechRecognition ||
@@ -59,58 +57,58 @@ export function useVoiceInput() {
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(false);
 
-  // Reference to the recognition instance
+  
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  // Refs to track final and interim results
+  
   const finalTranscriptRef = useRef('');
   const interimTranscriptRef = useRef('');
 
-  // Initialize on mount
+  
   useEffect(() => {
     setIsSupported(!!SpeechRecognitionAPI);
 
     return () => {
-      // Cleanup on unmount
+      
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
         } catch (err) {
-          // Ignore errors on cleanup
+          
         }
       }
     };
   }, []);
 
-  // Start listening
+  
   const startListening = useCallback(() => {
     if (!isSupported || isListening) return;
 
     try {
-      // Reset transcript
+      
       finalTranscriptRef.current = '';
       interimTranscriptRef.current = '';
       setTranscript('');
 
-      // Cleanup any existing instance
+      
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
         } catch (err) {
-          // Ignore
+          
         }
       }
 
-      // Create a new instance
+      
       const recognition = new SpeechRecognitionAPI() as SpeechRecognition;
       recognitionRef.current = recognition;
 
-      // Configure
-      recognition.continuous = false; // Set to false to prevent auto-restart
+      
+      recognition.continuous = false; 
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      // Set up handlers
+      
       recognition.onstart = () => {
         setIsListening(true);
         setError(null);
@@ -130,18 +128,18 @@ export function useVoiceInput() {
           }
         }
 
-        // Update the displayed transcript
+        
         setTranscript((finalTranscriptRef.current + interimTranscriptRef.current).trim());
       };
 
       recognition.onend = () => {
-        // Add any remaining interim text to final
+        
         if (interimTranscriptRef.current) {
           finalTranscriptRef.current += interimTranscriptRef.current;
           interimTranscriptRef.current = '';
         }
 
-        // Update the final transcript display
+        
         setTranscript(finalTranscriptRef.current.trim());
         setIsListening(false);
       };
@@ -153,7 +151,7 @@ export function useVoiceInput() {
         }
       };
 
-      // Start recognition
+      
       recognition.start();
     } catch (err) {
       console.error('Failed to start speech recognition:', err);
@@ -162,33 +160,33 @@ export function useVoiceInput() {
     }
   }, [isSupported, isListening]);
 
-  // Continue listening (keeps existing transcript)
+  
   const continueListening = useCallback(() => {
     if (!isSupported || isListening) return;
 
     try {
-      // Keep existing final transcript
+      
       interimTranscriptRef.current = '';
 
-      // Cleanup any existing instance
+      
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
         } catch (err) {
-          // Ignore
+          
         }
       }
 
-      // Create a new instance
+      
       const recognition = new SpeechRecognitionAPI() as SpeechRecognition;
       recognitionRef.current = recognition;
 
-      // Configure
+      
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      // Set up handlers
+      
       recognition.onstart = () => {
         setIsListening(true);
         setError(null);
@@ -208,18 +206,18 @@ export function useVoiceInput() {
           }
         }
 
-        // Update the displayed transcript
+        
         setTranscript((finalTranscriptRef.current + interimTranscriptRef.current).trim());
       };
 
       recognition.onend = () => {
-        // Add any remaining interim text to final
+        
         if (interimTranscriptRef.current) {
           finalTranscriptRef.current += interimTranscriptRef.current;
           interimTranscriptRef.current = '';
         }
 
-        // Update the final transcript display
+        
         setTranscript(finalTranscriptRef.current.trim());
         setIsListening(false);
       };
@@ -231,7 +229,7 @@ export function useVoiceInput() {
         }
       };
 
-      // Start recognition
+      
       recognition.start();
     } catch (err) {
       console.error('Failed to continue speech recognition:', err);
@@ -240,7 +238,7 @@ export function useVoiceInput() {
     }
   }, [isSupported, isListening]);
 
-  // Stop listening
+  
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       try {
@@ -252,7 +250,7 @@ export function useVoiceInput() {
     setIsListening(false);
   }, []);
 
-  // Reset transcript
+  
   const resetTranscript = useCallback(() => {
     finalTranscriptRef.current = '';
     interimTranscriptRef.current = '';
@@ -270,3 +268,4 @@ export function useVoiceInput() {
     isSupported,
   };
 }
+

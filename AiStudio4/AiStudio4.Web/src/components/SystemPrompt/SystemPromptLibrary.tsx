@@ -13,20 +13,19 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
-
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;
   convId?: string;
 }
 
 export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibraryProps) {
-  // Use Zustand store
+  
   const { prompts, defaultPromptId, convPrompts, setPrompts, setCurrentPrompt } = useSystemPromptStore();
 
-  // Get active conv ID from Zustand when not provided as prop
+  
   const { activeConvId: storeConvId } = useConvStore();
 
-  // Use the management hook instead of RTK Query
+  
   const { prompts: serverPrompts, isLoading, setConvSystemPrompt } = useSystemPromptManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,7 +33,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
   const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Sync server prompts to Zustand store
+  
   useEffect(() => {
     if (serverPrompts && serverPrompts.length > 0) {
       setPrompts(serverPrompts);
@@ -57,14 +56,14 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
   };
 
   const handleApplyPrompt = async (prompt: SystemPrompt) => {
-    // Set as current prompt in the store
+    
     setCurrentPrompt(prompt);
 
     if (onApplyPrompt) {
       onApplyPrompt(prompt);
     }
 
-    // If we have a conv ID, set this prompt as the conv's system prompt
+    
     const effectiveConvId = convId || storeConvId;
     if (effectiveConvId) {
       try {
@@ -82,7 +81,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
   const getFilteredPrompts = () => {
     let filtered = prompts;
 
-    // Apply active tab filtering
+    
     if (activeTab === 'favorites') {
       filtered = filtered.filter((p) => p.tags.includes('favorite'));
     } else if (activeTab === 'default') {
@@ -92,7 +91,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
       filtered = filtered.filter((p) => p.guid === convPromptId);
     }
 
-    // Apply search filtering
+    
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -252,3 +251,4 @@ function PromptList({ prompts, defaultPromptId, onEdit, onApply, isLoading }: Pr
     </ScrollArea>
   );
 }
+

@@ -20,19 +20,19 @@ export const HistoricalConvTreeList = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isLoadingTree, setIsLoadingTree] = useState<boolean>(false);
 
-  // Use Zustand stores
+  
   const { clientId } = useWebSocketStore();
   const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
   const { convs, isLoading, fetchAllConvs, fetchConvTree: fetchTreeData, addOrUpdateConv } = useHistoricalConvsStore();
 
-  // Fetch all historical convs on component mount
+  
   useEffect(() => {
     fetchAllConvs();
   }, [fetchAllConvs]);
 
-  // Setup WebSocket subscription for new convs
+  
   useEffect(() => {
-    // Create a handler for historical conv tree events
+    
     const handleHistoricalConv = (content: any) => {
       if (content) {
         addOrUpdateConv({
@@ -45,17 +45,17 @@ export const HistoricalConvTreeList = () => {
       }
     };
 
-    // Add a WebSocket event listener
+    
     const unsubscribe = useWebSocketStore.subscribe(
       (state) => state.lastMessageTime,
       async () => {
-        // This will be called whenever a new WebSocket message is received
+        
         const event = new CustomEvent('check-historical-convs');
         window.dispatchEvent(event);
       },
     );
 
-    // Add an event listener directly to catch historical conv updates
+    
     const handleHistoricalEvent = (e: any) => {
       if (e.detail?.type === 'historicalConvTree') {
         handleHistoricalConv(e.detail.content);
@@ -64,14 +64,14 @@ export const HistoricalConvTreeList = () => {
 
     window.addEventListener('historical-conv', handleHistoricalEvent);
 
-    // Clean up by removing the listener when component unmounts
+    
     return () => {
       unsubscribe();
       window.removeEventListener('historical-conv', handleHistoricalEvent);
     };
   }, [addOrUpdateConv]);
 
-  // Function to fetch conv tree data when expanding a conv
+  
   const handleFetchConvTree = async (convId: string) => {
     setIsLoadingTree(true);
     try {
@@ -84,8 +84,8 @@ export const HistoricalConvTreeList = () => {
     }
   };
 
-  // Handle node click to load conv by ID
-  // Use custom hook for loading conv by ID
+  
+  
   const { getConv } = useChatManagement();
 
   const handleNodeClick = async (nodeId: string, convId: string) => {
@@ -94,24 +94,24 @@ export const HistoricalConvTreeList = () => {
     try {
       console.log(`Loading conv ${convId} with selected message ${nodeId}`);
 
-      // First check if conv already exists in store
+      
       const existingConv = currentConvs[convId];
       
       if (existingConv) {
-        // Find the selected message to determine if it's a user message
+        
         const selectedMessage = existingConv.messages.find(msg => msg.id === nodeId);
         
-        // Find the parent message (AI response) to set as context
+        
         if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
-          // Set the slctdMsgId to the parent message instead of the clicked message
-          // This effectively rewinds the conversation to before this user message
+          
+          
           setActiveConv({
             convId,
             slctdMsgId: selectedMessage.parentId,
           });
         } else {
           console.log('Conv already exists in store, setting as active');
-          // If it's not a user message or doesn't have a parent, proceed normally
+          
           setActiveConv({
             convId,
             slctdMsgId: nodeId,
@@ -120,17 +120,17 @@ export const HistoricalConvTreeList = () => {
         return;
       }
 
-      // Use the hook to get the conv data
+      
       const conv = await getConv(convId);
 
       if (conv && conv.messages && conv.messages.length > 0) {
-        // Sort messages by parent-child relationship
+        
         const sortedMessages = [...conv.messages];
 
-        // Find the root message - either the first with no parent or the first message
+        
         const rootMessage = sortedMessages.find((msg) => !msg.parentId) || sortedMessages[0];
 
-        // Create a new conv in the store with the root message
+        
         createConv({
           id: convId,
           rootMessage: {
@@ -142,7 +142,7 @@ export const HistoricalConvTreeList = () => {
           },
         });
 
-        // Add all non-root messages to the conv
+        
         const nonRootMessages = sortedMessages.filter((msg) => msg.id !== rootMessage.id);
         nonRootMessages.forEach((message) => {
           addMessage({
@@ -158,24 +158,24 @@ export const HistoricalConvTreeList = () => {
           });
         });
 
-        // Find the selected message to determine if it's a user message
+        
         const selectedMessage = conv.messages.find(msg => msg.id === nodeId);
         
-        // Find the parent message (AI response) to set as context
+        
         if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
-          // Add messageId to URL (parent message ID)
+          
           window.history.pushState({}, '', `?messageId=${selectedMessage.parentId}`);
           
-          // Set the active conv with the parent message as context
+          
           setActiveConv({
             convId,
             slctdMsgId: selectedMessage.parentId,
           });
         } else {
-          // Add messageId to URL
+          
           window.history.pushState({}, '', `?messageId=${nodeId}`);
           
-          // Set the active conv with the selected message
+          
           setActiveConv({
             convId,
             slctdMsgId: nodeId,
@@ -188,12 +188,12 @@ export const HistoricalConvTreeList = () => {
       console.error('Error loading conv:', error);
     }
   };
-  // Filter conversations based on search term
+  
   const filteredConvs = convs.filter(conv => 
     searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
   );
 
-  // Format date for display
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-GB', {
@@ -206,7 +206,7 @@ export const HistoricalConvTreeList = () => {
 
   return (
     <div className="flex flex-col h-full space-y-2">
-      {/* Search Bar */}
+      
       <div className="px-3 pt-2 pb-1 sticky top-0 z-10 bg-gray-900/90 backdrop-blur-sm">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -231,7 +231,7 @@ export const HistoricalConvTreeList = () => {
         </div>
       </div>
 
-      {/* Conversations List */}
+      
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-4 text-center text-gray-400 flex flex-col items-center">
@@ -260,7 +260,7 @@ export const HistoricalConvTreeList = () => {
                   key={conv.convGuid}
                   className={`rounded-lg overflow-hidden transition-all duration-200 ${expandedConv === conv.convGuid ? 'bg-gray-800/60' : 'hover:bg-gray-800/40'}`}
                 >
-                  {/* Conversation Header */}
+                  
                   <div
                     className="flex items-center p-2.5 cursor-pointer"
                     onClick={() => {
@@ -286,7 +286,7 @@ export const HistoricalConvTreeList = () => {
                     </div>
                   </div>
 
-                  {/* Tree View */}
+                  
                   {expandedConv === conv.convGuid && (
                     <div className="transition-all duration-300 overflow-hidden">
                       <div className="border-t border-gray-700/50 mx-2"></div>

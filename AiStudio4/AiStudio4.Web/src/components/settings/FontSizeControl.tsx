@@ -11,13 +11,13 @@ interface FontSizeControlProps {
 }
 
 export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
-  // Use appearance store
+  
   const { fontSize, setFontSize, increaseFontSize, decreaseFontSize, saveAppearanceSettings, isLoading } =
     useAppearanceStore();
 
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Handle font size changes
+  
   const handleFontSizeChange = (newSize: number) => {
     setFontSize(newSize);
     setHasChanges(true);
@@ -129,3 +129,4 @@ export function FontSizeControl({ onChange, onSave }: FontSizeControlProps) {
     </div>
   );
 }
+

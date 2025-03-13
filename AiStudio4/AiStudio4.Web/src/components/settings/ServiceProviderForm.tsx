@@ -10,7 +10,7 @@ interface ServiceProviderFormProps {
 }
 
 export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initialValues, onSubmit, isProcessing }) => {
-  // Define form fields
+  
   const fields: FormFieldDefinition[] = [
     {
       name: 'friendlyName',
@@ -44,7 +44,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     },
   ];
 
-  // Use default values if initialValues is not provided
+  
   const defaultValues = initialValues || {
     guid: '',
     url: '',
@@ -64,3 +64,4 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     />
   );
 };
+

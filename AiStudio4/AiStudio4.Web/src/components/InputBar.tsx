@@ -53,12 +53,12 @@ export function InputBar({
     setInputText(value);
     setCursorPosition(e.target.selectionStart);
     
-    // Check if this is a shortcut prompt and apply it if so
+    
     if (value.startsWith('/') && value.length > 1 && !value.includes(' ')) {
-      // Check on each keypress but only apply when user presses space or enter
+      
       if (e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ') {
         if (handlePromptShortcut(value)) {
-          // Reset cursor position after applying the shortcut
+          
           setTimeout(() => {
             if (textareaRef.current) {
               const length = textareaRef.current.value.length;
@@ -192,15 +192,15 @@ export function InputBar({
       return;
     }
     
-    // Check for shortcut prompt execution when user presses space
+    
     if (e.key === ' ' && inputText.startsWith('/') && !inputText.includes(' ')) {
       if (handlePromptShortcut(inputText)) {
-        e.preventDefault(); // Prevent the space from being added
-        // Let the effect run to position cursor
+        e.preventDefault(); 
+        
       }
     }
     
-    // Execute shortcut immediately when pressing Tab after a shortcut
+    
     if (e.key === 'Tab' && inputText.startsWith('/') && !inputText.includes(' ')) {
       if (handlePromptShortcut(inputText)) {
         e.preventDefault();

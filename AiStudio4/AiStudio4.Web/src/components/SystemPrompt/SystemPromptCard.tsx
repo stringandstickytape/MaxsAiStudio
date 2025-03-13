@@ -26,10 +26,10 @@ interface SystemPromptCardProps {
 }
 
 export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemPromptCardProps) {
-  // Use Zustand store
+  
   const { setDefaultPromptId } = useSystemPromptStore();
 
-  // Use management hook instead of RTK Query
+  
   const { deleteSystemPrompt, setDefaultSystemPrompt } = useSystemPromptManagement();
 
   const [expanded, setExpanded] = useState(false);
@@ -41,7 +41,7 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
       try {
         setIsProcessing(true);
         await setDefaultSystemPrompt(prompt.guid);
-        // Update Zustand store
+        
         setDefaultPromptId(prompt.guid);
       } catch (error) {
         console.error('Failed to set default prompt:', error);
@@ -183,3 +183,4 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
     </>
   );
 }
+

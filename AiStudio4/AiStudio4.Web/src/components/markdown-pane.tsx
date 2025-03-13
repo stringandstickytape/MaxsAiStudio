@@ -18,10 +18,10 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
   const [isVisualStudio, setIsVisualStudio] = useState(false);
 
   useEffect(() => {
-    // Only update if the message actually changed
+    
     if (message !== markdownContent) {
       setMarkdownContent(message);
-      setMermaidKey((prev) => prev + 1); // Force re-render of Mermaid diagrams
+      setMermaidKey((prev) => prev + 1); 
     }
   }, [message, markdownContent]);
 
@@ -30,17 +30,17 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     setIsVisualStudio(isVS);
   }, []);
 
-  // Simplified rendering approach that preserves layout while improving performance
+  
   useEffect(() => {
-    // Re-render diagrams only when content changes or mermaid diagrams need refresh
+    
     const timer = setTimeout(() => {
       codeBlockRendererRegistry.renderAll();
-    }, 50); // Small delay to ensure DOM is ready
+    }, 50); 
     
     return () => clearTimeout(timer);
   }, [markdownContent, mermaidKey]);
 
-  // Function to launch HTML content in a new window
+  
   const launchHtml = (content: string) => {
     const newWindow = window.open('', '_blank');
     if (newWindow) {
@@ -68,7 +68,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     }
   };
 
-  // Memoize components to prevent recreation on every render
+  
   const components = useMemo(() => ({
     code({ className, children }: any) {
       const match = /language-(\w+)/.exec(className || '');
@@ -77,29 +77,29 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
       const language = match[1];
       const content = String(children).replace(/\n$/, '');
 
-      // Check if it's a supported diagram type
+      
       const diagramRenderer = codeBlockRendererRegistry.get(language);
       const blockId = `${language}-${content.slice(0, 20)}`;
 
-      // Initialize showRawContent for this block if it doesn't exist.  Default to true.
+      
       if (showRawContent[blockId] === undefined) {
         setShowRawContent((prev) => ({ ...prev, [blockId]: true }));
       }
 
       const isRawView = showRawContent[blockId];
 
-      // Memoize the toggle function to prevent recreation on every render
+      
       const toggleView = useCallback(() => {
         setShowRawContent((prev) => ({
           ...prev,
-          [blockId]: !prev[blockId], // Correctly toggle the boolean value
+          [blockId]: !prev[blockId], 
         }));
-        // Force re-render of diagrams when toggling back to rendered view
-        // No need to check showRawContent here. The useEffect will handle the re-render.
+        
+        
         setMermaidKey((prev) => prev + 1);
       }, [blockId]);
 
-      // Determine if this is an HTML block that can be launched
+      
       const isHtmlBlock = language === 'html' || language === 'htm';
 
       const showRenderedOrRawButton = (
@@ -111,7 +111,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         </button>
       );
 
-      // Launch button for HTML blocks
+      
       const launchButton = isHtmlBlock ? (
         <button
           onClick={() => launchHtml(content)}
@@ -122,7 +122,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         </button>
       ) : null;
 
-      // Memoize header creation function
+      
       const createCodeHeader = useCallback((isFooter = false) => (
         <div
           className={`flex items-center justify-between bg-gray-900 px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} border-gray-700 text-sm text-gray-400`}
@@ -151,7 +151,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
       const codeHeader = createCodeHeader(false);
 
-      // Handle diagrams first
+      
       if (diagramRenderer) {
         const DiagramComponent = diagramRenderer.Component;
         return isRawView ? (
@@ -165,14 +165,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
           <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
             {codeHeader}
           <div className="p-4 bg-gray-800 rounded-b-lg diagram-container" data-type={diagramRenderer.type[0]} data-content={content}>
-            {/* Maintain both rendered component and lazy-loading data attributes */}
+            
             <DiagramComponent content={content} className="overflow-auto" />
           </div>
           </div>
         );
       }
 
-      // Only handle regular code blocks if not a diagram
+      
       return isRawView ? (
         <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
           {createCodeHeader(true)}
@@ -190,7 +190,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             language={match[1]} 
             PreTag="div" 
             className="rounded-lg"
-            // Add performance optimizations for SyntaxHighlighter
+            
             wrapLines={false}
             wrapLongLines={false}
             showLineNumbers={false}
@@ -204,7 +204,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         </div>
       );
     },
-    // Add styling for other markdown elements
+    
     p: ({ children }: any) => <p className="my-4 leading-relaxed">{children}</p>,
     h1: ({ children }: any) => <h1 className="text-3xl font-bold my-6">{children}</h1>,
     h2: ({ children }: any) => <h2 className="text-2xl font-bold my-5">{children}</h2>,
@@ -233,3 +233,4 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     </ReactMarkdown>
   );
 });
+
