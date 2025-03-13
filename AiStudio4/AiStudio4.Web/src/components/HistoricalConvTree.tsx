@@ -41,11 +41,28 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     }));
   };
 
+  // Initialize all nodes as expanded when the tree data changes
+  React.useEffect(() => {
+    if (treeData) {
+      const expandAllNodes = (node: TreeNode, expandedState: Record<string, boolean>) => {
+        expandedState[node.id] = true;
+        
+        // Process children if they exist
+        const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
+        children.forEach(child => expandAllNodes(child, expandedState));
+        
+        return expandedState;
+      };
+      
+      setExpandedNodes(expandAllNodes(treeData, {}));
+    }
+  }, [treeData]);
+
   const renderTree = (node: TreeNode): JSX.Element => {
     // Ensure children is always an array
     const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
     const hasChildren = children.length > 0;
-    const isExpanded = expandedNodes[node.id];
+    const isExpanded = expandedNodes[node.id] ?? true; // Default to expanded if not in state
 
     return (
       <div key={node.id} className="my-1.5 transition-all duration-200 ease-in-out">
