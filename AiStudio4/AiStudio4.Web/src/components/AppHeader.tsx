@@ -86,10 +86,10 @@ export function AppHeader({
     };
 
     return (
-        <div className="app-container relative">
+        <div className="app-container">
             <div
                 className={cn(
-                    'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-4 h-full flex flex-col',
+                    'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col',
                     sidebarPinned ? 'left-80' : 'left-0',
                     rightSidebarPinned ? 'right-80' : 'right-0',
                 )}
@@ -101,44 +101,37 @@ export function AppHeader({
                     />
                 </div>
                 
-                <div className="flex flex-1">
-                    
-                    
-                    
-                    <div className="flex-1 flex flex-col justify-center px-0">
-                        <div className="flex items-center justify-center">
-                            {CommandBarComponent || (
-                                <form onSubmit={handleCommandSubmit} className="relative w-full max-w-2xl mb-2">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Command className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <Input
-                                        id="command-input"
-                                        type="text"
-                                        placeholder="Type a command (/ for suggestions)..."
-                                        value={commandText}
-                                        onChange={(e) => setCommandText(e.target.value)}
-                                        className="w-full shadow-inner transition-all duration-200 input-ghost input-with-icon"
-                                        onBlur={() => setIsCommandBarOpen(false)}
-                                    />
-                                    <kbd
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
-                                        onClick={() => setIsCommandBarOpen(true)}
-                                    >
-                                        {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
-                                    </kbd>
-                                </form>
-                            )}
-                        </div>
+                <div className="flex flex-1 justify-center">
+                    <div className="w-full max-w-2xl flex flex-col justify-center gap-2">
+                        {/* Command Bar component */}
+                        {CommandBarComponent || (
+                            <form onSubmit={handleCommandSubmit} className="relative w-full mb-2">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Command className="h-4 w-4 text-gray-400" />
+                                </div>
+                                <Input
+                                    id="command-input"
+                                    type="text"
+                                    placeholder="Type a command (/ for suggestions)..."
+                                    value={commandText}
+                                    onChange={(e) => setCommandText(e.target.value)}
+                                    className="w-full shadow-inner transition-all duration-200 input-ghost input-with-icon"
+                                    onBlur={() => setIsCommandBarOpen(false)}
+                                />
+                                <kbd
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700"
+                                    onClick={() => setIsCommandBarOpen(true)}
+                                >
+                                    {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
+                                </kbd>
+                            </form>
+                        )}
 
-                        <div className="w-full max-w-2xl mx-auto">
-                            <SystemPromptComponent convId={activeConvId || undefined} onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} />
-                        </div>
-                    </div>
-
-                    
-                    <div className="flex flex-col justify-center pl-4 border-l border-gray-700/30 w-[130px]">
-                        
+                        {/* System Prompt component */}
+                        <SystemPromptComponent 
+                            convId={activeConvId || undefined} 
+                            onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} 
+                        />
                     </div>
                 </div>
 

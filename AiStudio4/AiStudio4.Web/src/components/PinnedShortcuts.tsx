@@ -245,7 +245,7 @@ export function PinnedShortcuts({
                 <div
                     ref={containerRef}
                     className={cn(
-                        'flex items-center justify-center gap-1 overflow-x-auto py-1 px-2',
+                        'flex items-center justify-center gap-1 overflow-x-auto ',
                         orientation === 'vertical' ? 'flex-col' : 'flex-row w-full',
                         className,
                     )}

@@ -23,7 +23,7 @@ export function ChatContainer({ isMobile, streamTokens }: ChatContainerProps) {
   }, [streamTokens]);
 
   return (
-    <div ref={messagesEndRef} className="h-full w-full overflow-y-auto p-4 scroll-smooth">
+    <div ref={messagesEndRef} className="h-full w-full overflow-y-auto scroll-smooth">
       <ConvView streamTokens={streamTokens} />
     </div>
   );

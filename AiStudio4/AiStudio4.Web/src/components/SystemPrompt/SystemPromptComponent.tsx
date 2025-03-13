@@ -137,7 +137,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
   }
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto" ref={promptRef}>
+    <div className="relative w-full" ref={promptRef}>
       <div
         className={cn(
           'border border-gray-700/50 rounded-lg transition-all duration-300',
@@ -157,7 +157,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         </div>
 
         {expanded && (
-          <div className="absolute left-0 right-0 top-full mt-1 p-3 bg-gray-800/95 border border-gray-700/50 rounded-lg shadow-lg z-50">
+          <div className="absolute left-0 right-0 top-full mt-1 p-3 bg-gray-800/95 border border-gray-700/50 rounded-lg shadow-lg z-50 max-w-2xl mx-auto">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center">
                 <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />

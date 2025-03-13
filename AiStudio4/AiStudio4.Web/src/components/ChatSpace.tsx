@@ -72,7 +72,7 @@ export function ChatSpace() {
 
   return (
     <>
-      <div className="flex-none h-[155px] w-full">
+      <div className="flex-none w-full">
         <AppHeader
           onToggleSystemPrompts={() => togglePanel('systemPrompts')}
           isCommandBarOpen={isCommandBarOpen}
