@@ -54,12 +54,28 @@ export function CommandInitializer() {
     },
   });
 
+  // Separate effect to load data first
   useEffect(() => {
-    fetchPinnedCommands();
-    fetchTools();
-    fetchToolCategories();
-    fetchUserPrompts();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts]);
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchPinnedCommands(),
+          fetchTools(),
+          fetchToolCategories(),
+          fetchUserPrompts()
+        ]);
+        
+        // After loading data, explicitly register prompts
+        registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+        registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
+        console.log('Initial prompt registration completed');
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      }
+    };
+    
+    loadInitialData();
+  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, togglePanel]);
 
   useEffect(() => {
     initializeCoreCommands({

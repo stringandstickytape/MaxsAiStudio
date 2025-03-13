@@ -31,6 +31,12 @@ export const useUserPromptStore = create<UserPromptStore>((set) => ({
       const favoritePromptIds = prompts
         .filter(p => p.isFavorite)
         .map(p => p.guid);
+        
+      // Trigger prompt command registration (will be handled by subscribers)
+      if (prompts.length > 0) {
+        window.dispatchEvent(new CustomEvent('user-prompts-updated'));
+      }
+        
       return { prompts, favoritePromptIds };
     }),
 

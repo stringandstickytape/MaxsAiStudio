@@ -1,8 +1,9 @@
-﻿// src/App.tsx
+// src/App.tsx
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider';
+import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -125,6 +126,9 @@ function App() {
     <FontSizeProvider>
       {/* Command initializer component to set up all commands */}
       <CommandInitializer />
+      
+      {/* Dedicated plugin for command registration */}
+      <CommandInitializationPlugin />
 
       {/* Navigation container handles panels and routing */}
       <NavigationContainer>

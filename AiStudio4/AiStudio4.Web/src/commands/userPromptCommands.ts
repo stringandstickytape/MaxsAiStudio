@@ -81,8 +81,8 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
     
     // Create a display name that includes the shortcut if available
     const displayName = prompt.shortcut 
-      ? `Use Prompt: ${prompt.title} [${prompt.shortcut}]` 
-      : `Use Prompt: ${prompt.title}`;
+      ? `${prompt.title} [Prompt Template] [${prompt.shortcut}]` 
+      : `${prompt.title} [Prompt Template]`;
     
     return {
       id: `apply-user-prompt-${prompt.guid}`,
@@ -108,12 +108,14 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
     };
   });
 
-  if (promptCommands.length > 0) {
-    useCommandStore.getState().registerGroup({
-      id: 'user-prompts-list',
-      name: 'Available User Prompts',
-      priority: 84,
-      commands: promptCommands,
-    });
-  }
+  // Always register the group, even when empty
+  useCommandStore.getState().registerGroup({
+    id: 'user-prompts-list',
+    name: 'Available User Prompts',
+    priority: 96, // Higher priority to show at the very top
+    commands: promptCommands,
+  });
+  
+  // Log for debugging
+  console.log(`Registered ${promptCommands.length} user prompts as commands`);
 }

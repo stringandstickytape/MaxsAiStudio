@@ -89,7 +89,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
       
     return {
       id: `apply-system-prompt-${prompt.guid}`,
-      name: `Apply Prompt: ${prompt.title}`,
+        name: `${prompt.title} [System Prompt]`,
       description: `${prompt.description || 'No description'} \n\nContent: ${contentPreview}`,
       keywords: [
         'system', 'prompt', 'apply', 
@@ -108,12 +108,14 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     };
   });
 
-  if (promptCommands.length > 0) {
-    useCommandStore.getState().registerGroup({
-      id: 'system-prompts-list',
-      name: 'Available System Prompts',
-      priority: 84,
-      commands: promptCommands,
-    });
-  }
+  // Always register the group, even when empty
+  useCommandStore.getState().registerGroup({
+    id: 'system-prompts-list',
+    name: 'Available System Prompts',
+    priority: 95, // Higher priority to show near the top
+    commands: promptCommands,
+  });
+  
+  // Log for debugging
+  console.log(`Registered ${promptCommands.length} system prompts as commands`);
 }
