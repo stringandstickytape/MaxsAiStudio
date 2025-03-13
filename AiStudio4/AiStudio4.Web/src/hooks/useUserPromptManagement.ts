@@ -16,7 +16,7 @@ const useUserPromptResource = createResourceHook<UserPrompt>({
     setItems: prompts => useUserPromptStore.getState().setPrompts(prompts)
   },
   options: {
-    idField: 'guid',
+    idField: 'promptId',
     generateId: true,
     transformFetchResponse: data => data.prompts || [],
     transformItemResponse: data => data.prompt

@@ -19,7 +19,7 @@ const createResourceConfig = <T extends { guid: string }>(
     endpoints,
     storeActions: { setItems },
     options: {
-        idField: 'guid',
+        idField: 'promptId',
         generateId: true,
         ...transformOptions
     }
