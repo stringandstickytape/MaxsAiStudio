@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { apiClient } from '@/services/api/apiClient';
+import { webSocketService } from '@/services/websocket/WebSocketService';
 
 export interface HistoricalConv {
   convGuid: string;
@@ -61,7 +62,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
     
     fetchAllConvs: async () => {
-      const clientId = localStorage.getItem('clientId');
+        const clientId = webSocketService.getClientId();
       if (!clientId) {
         set({ error: 'No client ID available' });
         return;
@@ -101,7 +102,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     },
 
     fetchConvTree: async (convId: string) => {
-      const clientId = localStorage.getItem('clientId');
+        const clientId = webSocketService.getClientId();
       if (!clientId) {
         set({ error: 'No client ID available' });
         return null;
@@ -209,7 +210,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     },
 
     deleteConv: async (convId) => {
-      const clientId = localStorage.getItem('clientId');
+        const clientId = webSocketService.getClientId();
       if (!clientId) {
         set({ error: 'No client ID available' });
         return;
