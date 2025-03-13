@@ -1,4 +1,4 @@
-// src/components/SystemPrompt/HeaderPromptComponent.tsx
+// src/components/SystemPrompt/SystemPromptComponent.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,12 +10,12 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useConvStore } from '@/stores/useConvStore';
 
-interface HeaderPromptComponentProps {
+interface SystemPromptComponentProps {
   convId?: string;
   onOpenLibrary?: () => void;
 }
 
-export function HeaderPromptComponent({ convId, onOpenLibrary }: HeaderPromptComponentProps) {
+export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptComponentProps) {
   const { activeConvId: storeConvId } = useConvStore();
   const { togglePanel } = usePanelStore();
   const { prompts, defaultPromptId, convPrompts, setConvPrompt } = useSystemPromptStore();

@@ -3,7 +3,7 @@ import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { HeaderPromptComponent } from '@/components/SystemPrompt/HeaderPromptComponent';
+import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 
@@ -133,7 +133,7 @@ export function AppHeader({
                         </div>
 
                         <div className="w-full max-w-2xl mx-auto">
-                            <HeaderPromptComponent convId={activeConvId || undefined} onOpenLibrary={onToggleSystemPrompts} />
+                            <SystemPromptComponent convId={activeConvId || undefined} onOpenLibrary={onToggleSystemPrompts} />
                         </div>
                     </div>
 

@@ -13,6 +13,7 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
+
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;
   convId?: string;
@@ -112,7 +113,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
     return (
       <div className="h-full flex flex-col">
         <div className="flex-1 overflow-auto p-4">
-          <SystemPromptEditor initialPrompt={promptToEdit} onClose={handleCloseEditor} onApply={handleApplyPrompt} />
+                <SystemPromptEditor initialPrompt={promptToEdit} onClose={handleCloseEditor} onApply={handleApplyPrompt} />
         </div>
       </div>
     );
