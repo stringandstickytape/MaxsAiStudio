@@ -7,92 +7,22 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 interface ModelStatusBarProps {
   onPrimaryClick?: () => void;
   onSecondaryClick?: () => void;
-  orientation?: 'horizontal' | 'vertical';
 }
 
-export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation = 'horizontal' }: ModelStatusBarProps) {
-  
+export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatusBarProps) {
   const { selectedPrimaryModel, selectedSecondaryModel } = useModelManagement();
 
-  const isVertical = orientation === 'vertical';
-
-  
-  const findBreakPoint = (text: string) => {
-    if (!text) return { firstLine: '', secondLine: '' };
-
-    
-    const midPoint = Math.ceil(text.length / 2);
-
-    
-    let breakIndex = -1;
-
-    
-    for (let i = 0; i < 10; i++) {
-      if (midPoint - i > 0 && /\s/.test(text[midPoint - i])) {
-        breakIndex = midPoint - i;
-        break;
-      }
-      if (midPoint + i < text.length && /\s/.test(text[midPoint + i])) {
-        breakIndex = midPoint + i;
-        break;
-      }
-    }
-
-    
-    if (breakIndex === -1) {
-      for (let i = 0; i < 10; i++) {
-        if (midPoint - i > 0 && /[-_.,:]/.test(text[midPoint - i])) {
-          breakIndex = midPoint - i + 1; 
-          break;
-        }
-        if (midPoint + i < text.length && /[-_.,:]/.test(text[midPoint + i])) {
-          breakIndex = midPoint + i + 1; 
-          break;
-        }
-      }
-    }
-
-    
-    if (breakIndex === -1) {
-      breakIndex = midPoint;
-    }
-
-    return {
-      firstLine: text.substring(0, breakIndex),
-      secondLine: text.substring(breakIndex).trim(),
-    };
-  };
-
   return (
-    <div className={cn('flex gap-2', isVertical ? 'flex-col' : 'items-center')}>
-      
+    <div className="flex items-center gap-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
               onClick={onPrimaryClick}
-              className={cn(
-                'p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 animate-hover',
-                'justify-between',
-              )}
+              className="h-5 px-2 py-0 text-xs rounded-full bg-blue-600/10 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors"
             >
-              <div className="grid grid-rows-2 w-full h-[40px] overflow-hidden text-left">
-                {selectedPrimaryModel !== 'Select Model' ? (
-                  selectedPrimaryModel.length > 15 ? (
-                    <>
-                      
-                      <span className=" text-xs self-end">{findBreakPoint(selectedPrimaryModel).firstLine}</span>
-                      <span className=" text-xs self-start">{findBreakPoint(selectedPrimaryModel).secondLine}</span>
-                    </>
-                  ) : (
-                    <span className="truncate self-center row-span-2">{selectedPrimaryModel}</span>
-                  )
-                ) : (
-                  <span className="truncate self-center row-span-2">Select Model</span>
-                )}
-              </div>
+              <span className="truncate max-w-[130px]">{selectedPrimaryModel !== 'Select Model' ? selectedPrimaryModel : 'Primary Model'}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -101,34 +31,15 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
         </Tooltip>
       </TooltipProvider>
 
-      
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
               onClick={onSecondaryClick}
-              className={cn(
-                'p-0 border-none text-white flex items-center gap-2 bg-transparent text-gray-300 hover:text-blue-400 hover:bg-gray-700 animate-hover',
-                'justify-between',
-              )}
+              className="h-5 px-2 py-0 text-xs rounded-full bg-purple-600/10 border border-purple-700/20 text-purple-200 hover:bg-purple-600/30 hover:text-purple-100 transition-colors"
             >
-              <div className="grid grid-rows-2 w-full h-[40px] overflow-hidden text-left">
-                {selectedSecondaryModel !== 'Select Model' ? (
-                  selectedSecondaryModel.length > 15 ? (
-                    <>
-                      
-                      <span className=" text-xs self-end">{findBreakPoint(selectedSecondaryModel).firstLine}</span>
-                      <span className=" text-xs self-start">{findBreakPoint(selectedSecondaryModel).secondLine}</span>
-                    </>
-                  ) : (
-                    <span className="truncate self-center row-span-2">{selectedSecondaryModel}</span>
-                  )
-                ) : (
-                  <span className="truncate self-center row-span-2">Select Model</span>
-                )}
-              </div>
+              <span className="truncate max-w-[130px]">{selectedSecondaryModel !== 'Select Model' ? selectedSecondaryModel : 'Secondary Model'}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -139,4 +50,3 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick, orientation =
     </div>
   );
 }
-
