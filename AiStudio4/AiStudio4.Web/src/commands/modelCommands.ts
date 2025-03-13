@@ -2,9 +2,10 @@
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Cpu } from 'lucide-react';
 import React from 'react';
+import { Model } from '@/types/settings';
 
 interface ModelCommandsConfig {
-  getAvailableModels: () => string[];
+  getAvailableModels: () => Model[];
   selectPrimaryModel: (modelName: string) => void;
   selectSecondaryModel: (modelName: string) => void;
 }
@@ -14,23 +15,23 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
 
   const availableModels = getAvailableModels();
 
-  const primaryModelCommands = availableModels.map((modelName) => ({
-    id: `select-primary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
-    name: `${modelName} [Primary]`,
-    description: `Set primary model to ${modelName}`,
-    keywords: ['model', 'primary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
+  const primaryModelCommands = availableModels.map((model) => ({
+    id: `select-primary-model-${model.modelName.toLowerCase().replace(/\s+/g, '-')}`,
+    name: `${model.friendlyName} [Primary]`,
+    description: `Set primary model to ${model.modelName} !`,
+    keywords: ['model', 'primary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-    execute: () => selectPrimaryModel(modelName),
+    execute: () => selectPrimaryModel(model.modelName),
     icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' }),
   }));
 
-  const secondaryModelCommands = availableModels.map((modelName) => ({
-    id: `select-secondary-model-${modelName.toLowerCase().replace(/\s+/g, '-')}`,
-    name: `${modelName} [Secondary]`,
-    description: `Set secondary model to ${modelName}`,
-    keywords: ['model', 'secondary', 'set', 'change', ...modelName.toLowerCase().split(' ')],
+  const secondaryModelCommands = availableModels.map((model) => ({
+    id: `select-secondary-model-${model.modelName.toLowerCase().replace(/\s+/g, '-')}`,
+    name: `${model.friendlyName} [Secondary]`,
+      description: `Set secondary model to ${model.modelName} !`,
+    keywords: ['model', 'secondary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-    execute: () => selectSecondaryModel(modelName),
+    execute: () => selectSecondaryModel(model.modelName),
     icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' }),
   }));
 

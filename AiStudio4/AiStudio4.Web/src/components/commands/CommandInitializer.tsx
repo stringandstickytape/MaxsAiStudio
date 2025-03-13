@@ -88,7 +88,7 @@ export function CommandInitializer() {
     });
 
     initializeModelCommands({
-      getAvailableModels: () => models.map((m) => m.modelName),
+      getAvailableModels: () => models,
       selectPrimaryModel: (modelName) => handleModelSelect('primary', modelName),
       selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName),
     });
