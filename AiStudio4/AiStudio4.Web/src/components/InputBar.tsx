@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send } from 'lucide-react';
 import { FileAttachment } from './FileAttachment';
+import { Textarea } from '@/components/ui/textarea';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -228,9 +229,9 @@ export function InputBar({
 
         <div className="flex-1 flex gap-2">
           <div className="relative flex-1">
-            <textarea
+            <Textarea
               ref={textareaRef}
-              className="w-full h-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
+              className="w-full h-full min-h-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
               value={inputText}
               onChange={handleTextAreaInput}
               onClick={handleTextAreaClick}
@@ -238,6 +239,8 @@ export function InputBar({
               onKeyDown={handleKeyDown}
               placeholder="Type your message here... (Ctrl+Enter to send)"
               disabled={isLoading}
+              showLineCount={true}
+              style={{ height: '100%' }}
             />
           </div>
 
