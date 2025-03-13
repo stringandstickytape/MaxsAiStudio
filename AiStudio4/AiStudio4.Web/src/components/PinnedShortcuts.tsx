@@ -362,7 +362,7 @@ export function PinnedShortcuts({
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
-                                    className={cn('flex items-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row')}
+                                    className={cn('flex items-center justify-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row w-full')}
                                 >
                                     {visibleCommands.map((command, index) => (
                                         <Draggable key={command.id} draggableId={command.id} index={index}>
