@@ -5,6 +5,7 @@ import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
 import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
 import { initializeSystemPromptCommands, registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
+import { initializeUserPromptCommands, registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
 import {
   initializeSettingsCommands,
   registerModelCommands,
@@ -19,11 +20,13 @@ import { useToolCommands } from '@/hooks/useToolCommands';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
-
+import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
+import { useUserPromptStore } from '@/stores/useUserPromptStore';
 export function CommandInitializer() {
   const { togglePanel } = usePanelStore();
   const { models, handleModelSelect } = useModelManagement();
   const { fetchPinnedCommands } = usePinnedCommandsStore();
+  const { fetchUserPrompts } = useUserPromptManagement();
   const { fetchTools, fetchToolCategories } = useToolsManagement();
 
   const handleOpenNewWindow = () => {
@@ -55,7 +58,8 @@ export function CommandInitializer() {
     fetchPinnedCommands();
     fetchTools();
     fetchToolCategories();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories]);
+    fetchUserPrompts();
+  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts]);
 
   useEffect(() => {
     initializeCoreCommands({
@@ -65,7 +69,7 @@ export function CommandInitializer() {
       openNewWindow: handleOpenNewWindow,
     });
 
-    initializeSystemPromptCommands({
+      initializeSystemPromptCommands({
       toggleLibrary: () => togglePanel('systemPrompts'),
       createNewPrompt: () => {
         togglePanel('systemPrompts');
@@ -74,6 +78,18 @@ export function CommandInitializer() {
       editPrompt: (promptId) => {
         togglePanel('systemPrompts');
         window.localStorage.setItem('systemPrompt_edit', promptId);
+      },
+    });
+
+    initializeUserPromptCommands({
+      toggleLibrary: () => togglePanel('userPrompts'),
+      createNewPrompt: () => {
+        togglePanel('userPrompts');
+        window.localStorage.setItem('userPrompt_action', 'create');
+      },
+      editPrompt: (promptId) => {
+        togglePanel('userPrompts');
+        window.localStorage.setItem('userPrompt_edit', promptId);
       },
     });
 
@@ -103,9 +119,21 @@ export function CommandInitializer() {
 
     systemPromptsUpdated();
 
+    // Initialize user prompts commands
+    const userPromptsUpdated = () => {
+      registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
+    };
+
+    userPromptsUpdated();
+
     const unsubscribePrompts = useSystemPromptStore.subscribe(
       (state) => state.prompts,
       () => systemPromptsUpdated(),
+    );
+
+    const unsubscribeUserPrompts = useUserPromptStore.subscribe(
+      (state) => state.prompts,
+      () => userPromptsUpdated(),
     );
 
     const unsubscribeModels = useModelStore.subscribe(
@@ -131,6 +159,7 @@ export function CommandInitializer() {
     return () => {
       cleanupKeyboardShortcut();
       unsubscribePrompts();
+      unsubscribeUserPrompts();
       unsubscribeModels();
       unsubscribeProviders();
     };

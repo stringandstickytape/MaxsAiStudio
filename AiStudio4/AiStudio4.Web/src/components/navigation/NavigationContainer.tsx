@@ -6,12 +6,14 @@ import { Sidebar } from '../Sidebar';
 import { ConvTreeView } from '@/components/ConvTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
+import { UserPromptLibrary } from '@/components/UserPrompt/UserPromptLibrary';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { ToolPanel } from '@/components/tools/ToolPanel';
+import { useUserPromptStore } from '@/stores/useUserPromptStore';
 
 interface NavigationContainerProps {
   children: ReactNode;
@@ -178,6 +180,28 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         zIndex: 60,
         title: 'Tool Library',
         render: (isOpen) => (isOpen ? <ToolPanel isOpen={isOpen} onClose={() => togglePanel('toolPanel')} /> : null),
+      },
+      {
+        id: 'userPrompts',
+        position: 'right',
+        size: '320px',
+        minWidth: '320px',
+        maxWidth: '450px',
+        width: '320px',
+        zIndex: 70,
+        title: 'User Prompts',
+        render: (isOpen) => (
+          isOpen ? (
+            <UserPromptLibrary
+              onInsertPrompt={(prompt) => {
+                if (prompt) {
+                  window.setPrompt(prompt.content);
+                  togglePanel('userPrompts');
+                }
+              }}
+            />
+          ) : null
+        ),
       },
     ],
     [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState],

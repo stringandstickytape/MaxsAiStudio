@@ -58,6 +58,7 @@ namespace AiStudio4
             services.AddSingleton<IToolService, ToolService>();
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
+            services.AddSingleton<IUserPromptService, UserPromptService>();
 
             // Register application services
             services.AddSingleton<SettingsManager>();
@@ -88,6 +89,9 @@ namespace AiStudio4
 
             var systemPromptService = _serviceProvider.GetRequiredService<ISystemPromptService>();
             await systemPromptService.InitializeAsync();
+
+            var userPromptService = _serviceProvider.GetRequiredService<IUserPromptService>();
+            await userPromptService.InitializeAsync();
             
             // Get settings manager
             var settingsManager = _serviceProvider.GetRequiredService<SettingsManager>();

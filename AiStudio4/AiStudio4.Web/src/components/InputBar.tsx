@@ -1,12 +1,13 @@
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
-import { Mic, Send } from 'lucide-react';
+import { Mic, Send, BookMarked } from 'lucide-react';
 import { FileAttachment } from './FileAttachment';
 import { Textarea } from '@/components/ui/textarea';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
+import { usePanelStore } from '@/stores/usePanelStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { ToolSelector } from './tools/ToolSelector';
 
@@ -244,8 +245,19 @@ export function InputBar({
             />
           </div>
 
-          <div className="flex flex-col gap-2 justify-end">
+      <div className="flex flex-col gap-2 justify-end">
             <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => usePanelStore.getState().togglePanel('userPrompts')}
+              className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+              aria-label="User prompts"
+              disabled={isLoading}
+            >
+              <BookMarked className="h-5 w-5" />
+            </Button>
 
             {onVoiceInputClick && (
               <Button
