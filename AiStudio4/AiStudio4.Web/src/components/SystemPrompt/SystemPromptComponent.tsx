@@ -80,7 +80,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     if (onOpenLibrary) {
       onOpenLibrary();
     } else {
-      togglePanel('systemPrompts');
+      // Use global event to trigger opening modal dialog
+      window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
     }
   };
 

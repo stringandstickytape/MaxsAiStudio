@@ -87,7 +87,7 @@ export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-gray-900">
+    <div className="h-full flex flex-col overflow-hidden bg-gray-900 max-h-[80vh]">
       <div className="flex-none p-4 border-b border-gray-700">
         <div className="relative mb-4">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

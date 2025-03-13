@@ -4,6 +4,8 @@ import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
+import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
+import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -134,6 +136,10 @@ function App() {
         
         <ChatSpace />
       </NavigationContainer>
+
+      {/* Modal dialogs for system and user prompts */}
+      <SystemPromptDialog />
+      <UserPromptDialog />
     </FontSizeProvider>
   );
 }

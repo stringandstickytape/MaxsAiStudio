@@ -86,25 +86,25 @@ export function CommandInitializer() {
     });
 
       initializeSystemPromptCommands({
-      toggleLibrary: () => togglePanel('systemPrompts'),
+      toggleLibrary: () => window.dispatchEvent(new CustomEvent('open-system-prompt-library')),
       createNewPrompt: () => {
-        togglePanel('systemPrompts');
+        window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
         window.localStorage.setItem('systemPrompt_action', 'create');
       },
       editPrompt: (promptId) => {
-        togglePanel('systemPrompts');
+        window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
         window.localStorage.setItem('systemPrompt_edit', promptId);
       },
     });
 
     initializeUserPromptCommands({
-      toggleLibrary: () => togglePanel('userPrompts'),
+      toggleLibrary: () => window.dispatchEvent(new CustomEvent('open-user-prompt-library')),
       createNewPrompt: () => {
-        togglePanel('userPrompts');
+        window.dispatchEvent(new CustomEvent('open-user-prompt-library'));
         window.localStorage.setItem('userPrompt_action', 'create');
       },
       editPrompt: (promptId) => {
-        togglePanel('userPrompts');
+        window.dispatchEvent(new CustomEvent('open-user-prompt-library'));
         window.localStorage.setItem('userPrompt_edit', promptId);
       },
     });

@@ -133,7 +133,7 @@ export function AppHeader({
                         </div>
 
                         <div className="w-full max-w-2xl mx-auto">
-                            <SystemPromptComponent convId={activeConvId || undefined} onOpenLibrary={onToggleSystemPrompts} />
+                            <SystemPromptComponent convId={activeConvId || undefined} onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} />
                         </div>
                     </div>
 

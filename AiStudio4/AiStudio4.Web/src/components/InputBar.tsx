@@ -286,7 +286,7 @@ export function InputBar({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => usePanelStore.getState().togglePanel('userPrompts')}
+              onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
               className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
               aria-label="User prompts"
               disabled={isLoading}

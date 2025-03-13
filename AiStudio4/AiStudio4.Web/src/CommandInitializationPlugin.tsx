@@ -13,18 +13,18 @@ export function CommandInitializationPlugin() {
   
   useEffect(() => {
     if (systemPrompts.length > 0) {
-      registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+      registerSystemPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-system-prompt-library')));
       console.log(`Re-registered ${systemPrompts.length} system prompts as commands`);
     }
-  }, [systemPrompts, togglePanel]);
+  }, [systemPrompts]);
   
   
   useEffect(() => {
     if (userPrompts.length > 0) {
-      registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
+      registerUserPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-user-prompt-library')));
       console.log(`Re-registered ${userPrompts.length} user prompts as commands`);
     }
-  }, [userPrompts, togglePanel]);
+  }, [userPrompts]);
   
   
   useEffect(() => {
@@ -49,7 +49,7 @@ export function CommandInitializationPlugin() {
       window.removeEventListener('system-prompts-updated', handleSystemPromptsUpdate);
       window.removeEventListener('user-prompts-updated', handleUserPromptsUpdate);
     };
-  }, [systemPrompts.length, userPrompts.length, togglePanel]);
+  }, [systemPrompts.length, userPrompts.length]);
   
   return null; 
 }

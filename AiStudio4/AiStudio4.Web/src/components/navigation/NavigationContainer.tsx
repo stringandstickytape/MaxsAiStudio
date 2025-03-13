@@ -139,38 +139,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         render: (isOpen) => (isOpen ? <SettingsPanel /> : null),
       },
       {
-        id: 'systemPrompts',
-        position: 'right',
-        size: '320px',
-        minWidth: '320px',
-        maxWidth: '450px',
-        width: '320px',
-        zIndex: 50,
-        title: 'System Prompts',
-        render: (isOpen) =>
-          isOpen ? (
-            <SystemPromptLibrary
-              convId={activeConvId || undefined}
-              onApplyPrompt={(prompt) => {
-                const convId = activeConvId;
-                const promptId = prompt?.guid || prompt?.Guid;
-
-                if (convId && promptId) {
-                  setConvSystemPrompt({ convId, promptId });
-                  setConvPrompt(convId, promptId);
-                } else {
-                  console.error('Cannot apply prompt - missing required data:', {
-                    convId,
-                    promptId
-                  });
-                }
-
-                togglePanel('systemPrompts');
-              }}
-            />
-          ) : null,
-      },
-      {
         id: 'toolPanel',
         position: 'right',
         size: '320px',
@@ -180,28 +148,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         zIndex: 60,
         title: 'Tool Library',
         render: (isOpen) => (isOpen ? <ToolPanel isOpen={isOpen} onClose={() => togglePanel('toolPanel')} /> : null),
-      },
-      {
-        id: 'userPrompts',
-        position: 'right',
-        size: '320px',
-        minWidth: '320px',
-        maxWidth: '450px',
-        width: '320px',
-        zIndex: 70,
-        title: 'User Prompts',
-        render: (isOpen) => (
-          isOpen ? (
-            <UserPromptLibrary
-              onInsertPrompt={(prompt) => {
-                if (prompt) {
-                  window.setPrompt(prompt.content);
-                  togglePanel('userPrompts');
-                }
-              }}
-            />
-          ) : null
-        ),
       },
     ],
     [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState],
