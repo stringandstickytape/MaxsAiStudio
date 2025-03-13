@@ -137,9 +137,8 @@ export function AppHeader({
 
                 
                 <div className="mt-1 border-t border-gray-700/30 pt-1 flex flex-col gap-0.5">
-
-                    <div className="w-full">
-                        <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" />
+                    <div className="w-full pb-1">
+                        <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" maxRows={3} />
                     </div>
                 </div>
             </div>
