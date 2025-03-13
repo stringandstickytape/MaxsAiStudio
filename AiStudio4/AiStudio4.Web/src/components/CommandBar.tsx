@@ -123,6 +123,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
   };
 
   const handleCommandClick = (commandId: string) => {
+
     executeCommand(commandId);
     setSearchTerm('');
     setIsOpen(false);
@@ -240,15 +241,21 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                   const isSelected = filteredCommands.indexOf(command) === selectedIndex;
                   const isPinned = pinnedCommands.some((cmd) => cmd.id === command.id);
 
-                  return (
-                    <div
-                      key={command.id}
-                      className={cn(
-                        'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
-                        isSelected && 'bg-gray-700/70',
-                      )}
-                      onClick={() => handleCommandClick(command.id)}
-                    >
+                    return (
+                        <div
+                            key={command.id}
+                            className={cn(
+                                'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
+                                isSelected && 'bg-gray-700/70',
+                            )}
+                            onMouseDown={(e) => {
+                                e.preventDefault(); // Prevent blur event that might close the menu
+                            }}
+                            onMouseUp={(e) => {
+                                e.stopPropagation(); // Prevent the outside click handler from firing
+                                handleCommandClick(command.id);
+                            }}
+                        >
                       <div className="flex items-center gap-3">
                         {command.icon && <div className="text-gray-400">{command.icon}</div>}
                         <div>
@@ -261,7 +268,14 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
-                                onClick={(e) => handlePinCommand(e, command)}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                }}
+                                onMouseUp={(e) => {
+                                  e.stopPropagation();
+                                  handlePinCommand(e, command);
+                                }}
                                 className={cn(
                                   'p-1 rounded hover:bg-gray-600/50 cursor-pointer',
                                   isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
