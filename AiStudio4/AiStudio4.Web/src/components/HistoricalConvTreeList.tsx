@@ -196,7 +196,7 @@ export const HistoricalConvTreeList = () => {
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat('en-GB', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -276,7 +276,7 @@ export const HistoricalConvTreeList = () => {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm text-gray-200 truncate">
+                      <div className="font-medium text-sm text-gray-200 break-words">
                         {conv.summary}
                       </div>
                       <div className="flex items-center text-xs text-gray-400 mt-0.5">

@@ -65,7 +65,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     const isExpanded = expandedNodes[node.id] ?? true; // Default to expanded if not in state
 
     return (
-      <div key={node.id} className="my-1 transition-all duration-200 ease-in-out">
+      <div key={node.id} className="my-1 transition-all duration-200 ease-in-out ">
         <div 
           className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-700/70 group transition-all duration-150"
           onClick={() => handleNodeClick(node)}

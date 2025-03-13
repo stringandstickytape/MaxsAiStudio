@@ -44,6 +44,15 @@ namespace AiStudio4.InjectedDependencies
         public async Task StartAsync()
         {
             var builder = WebApplication.CreateBuilder();
+
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true; // Enable for HTTPS since you're using it
+                options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+                options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { "application/javascript", "text/css", "application/json", "text/html" });
+            });
+
             builder.WebHost.ConfigureLogging(logging =>
             {
                 logging.ClearProviders();
@@ -72,6 +81,9 @@ namespace AiStudio4.InjectedDependencies
             });
 
             app = builder.Build();
+
+            app.UseResponseCompression();
+
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
 
             ConfigureRoutes();
