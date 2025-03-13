@@ -94,13 +94,16 @@ export function AppHeader({
                     rightSidebarPinned ? 'right-80' : 'right-0',
                 )}
             >
+                <div className="flex justify-center mb-0.5">
+                    <ModelStatusBar
+                        onPrimaryClick={handlePrimaryModelClick}
+                        onSecondaryClick={handleSecondaryModelClick}
+                    />
+                </div>
                 
                 <div className="flex flex-1">
                     
-                    <div className="flex flex-col justify-center pr-2 border-r border-gray-700/30 w-10">
-                        {/* Model status moved to its own row */}
-                    </div>
-
+                    
                     
                     <div className="flex-1 flex flex-col justify-center px-0">
                         <div className="flex items-center justify-center">
@@ -141,12 +144,7 @@ export function AppHeader({
 
                 
                 <div className="mt-1 border-t border-gray-700/30 pt-1 flex flex-col gap-0.5">
-                    <div className="flex justify-center mb-0.5">
-                        <ModelStatusBar 
-                            onPrimaryClick={handlePrimaryModelClick}
-                            onSecondaryClick={handleSecondaryModelClick}
-                        />
-                    </div>
+
                     <div className="w-full">
                         <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" />
                     </div>
