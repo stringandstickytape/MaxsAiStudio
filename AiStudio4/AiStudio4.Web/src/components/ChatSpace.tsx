@@ -72,7 +72,7 @@ export function ChatSpace() {
 
   return (
     <>
-      <div className="flex-none h-[155px]">
+      <div className="flex-none h-[155px] w-full">
         <AppHeader
           onToggleSystemPrompts={() => togglePanel('systemPrompts')}
           isCommandBarOpen={isCommandBarOpen}
@@ -82,11 +82,11 @@ export function ChatSpace() {
         />
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto w-full">
         <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
       </div>
 
-      <div className="flex-none h-[30vh] border-t">
+      <div className="flex-none h-[30vh] border-t w-full">
         <InputBar
           selectedModel={selectedPrimaryModel}
           onVoiceInputClick={() => setVoiceInputOpen(true)}

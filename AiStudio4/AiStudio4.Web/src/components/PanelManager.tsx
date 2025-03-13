@@ -1,4 +1,4 @@
-// src/components/PanelManager.tsx
+﻿// src/components/PanelManager.tsx
 import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Panel, PanelGroup, PanelResizeHandle, ImperativePanelHandle } from 'react-resizable-panels';
@@ -88,7 +88,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     if (!isVisible) return null;
 
     return (
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden" style={{ width: 'var(--panel-width, 320px)' }}>
         {/* Panel header */}
         <div className="flex-between p-3 border-b border-gray-700 bg-gray-800">
           <h3 className="font-medium text-gray-100 flex-1 truncate">{panel.title}</h3>
@@ -101,6 +101,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
                 state.isPinned && 'text-blue-400 hover:text-blue-300',
               )}
               onClick={() => togglePinned(panel.id)}
+              title={state.isPinned ? "Unpin panel" : "Pin panel"}
             >
               <Pin className={cn('h-4 w-4', state.isPinned && 'fill-blue-400')} />
             </Button>
@@ -109,7 +110,38 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-gray-400 hover:text-gray-100"
-                onClick={() => togglePanel(panel.id)}
+                onClick={() => {
+                  console.log(`%c📋 Closing panel ${panel.id} via X button`, 'color: #ef4444; font-weight: bold');
+                  // Explicitly set both isOpen and isPinned to false in the store
+                  usePanelStore.setState(state => ({
+                    panels: {
+                      ...state.panels,
+                      [panel.id]: {
+                        ...state.panels[panel.id],
+                        isOpen: false,
+                        isPinned: false
+                      }
+                    }
+                  }));
+                  
+                  // Use the dedicated saveState method to persist changes
+                  requestAnimationFrame(() => {
+                    const success = usePanelStore.getState().saveState();
+                    
+                    if (success) {
+                      // Verify the saved state for confirmation
+                      const savedLayout = localStorage.getItem('panel-layout');
+                      if (savedLayout) {
+                        const parsed = JSON.parse(savedLayout);
+                        console.log(`Verified ${panel.id} saved state:`, {
+                          isOpen: parsed[panel.id]?.isOpen,
+                          isPinned: parsed[panel.id]?.isPinned
+                        });
+                      }
+                    }
+                  });
+                }}
+                title="Close panel"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -143,6 +175,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
               minSize={panel.minSize || 10}
               defaultSize={panel.defaultSize || 20}
               className="h-full"
+              style={{ width: 'var(--panel-width, 320px)' }}
             >
               {renderPanel(panel)}
             </Panel>
@@ -167,10 +200,12 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
       </div>
 
       {/* Top panels */}
-      <div className="absolute top-0 left-0 right-0 pointer-events-auto">{renderPanelGroup(topPanels, 'vertical')}</div>
+      <div className="absolute top-0 left-0 right-0 pointer-events-auto" style={{ left: 'var(--content-margin-left, 0px)', right: 'var(--content-margin-right, 0px)' }}>
+        {renderPanelGroup(topPanels, 'vertical')}
+      </div>
 
       {/* Bottom panels */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto" style={{ left: 'var(--content-margin-left, 0px)', right: 'var(--content-margin-right, 0px)' }}>
         {renderPanelGroup(bottomPanels, 'vertical')}
       </div>
     </div>
