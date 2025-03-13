@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
+import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send, BookMarked } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
+import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { ToolSelector } from './tools/ToolSelector';
@@ -48,8 +49,26 @@ export function InputBar({
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
   const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputText(e.target.value);
+    const value = e.target.value;
+    setInputText(value);
     setCursorPosition(e.target.selectionStart);
+    
+    // Check if this is a shortcut prompt and apply it if so
+    if (value.startsWith('/') && value.length > 1 && !value.includes(' ')) {
+      // Check on each keypress but only apply when user presses space or enter
+      if (e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ') {
+        if (handlePromptShortcut(value)) {
+          // Reset cursor position after applying the shortcut
+          setTimeout(() => {
+            if (textareaRef.current) {
+              const length = textareaRef.current.value.length;
+              textareaRef.current.setSelectionRange(length, length);
+              setCursorPosition(length);
+            }
+          }, 0);
+        }
+      }
+    }
   };
 
   const handleTextAreaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
@@ -170,6 +189,22 @@ export function InputBar({
     if (e.key === 'Enter' && e.ctrlKey) {
       e.preventDefault();
       handleSend();
+      return;
+    }
+    
+    // Check for shortcut prompt execution when user presses space
+    if (e.key === ' ' && inputText.startsWith('/') && !inputText.includes(' ')) {
+      if (handlePromptShortcut(inputText)) {
+        e.preventDefault(); // Prevent the space from being added
+        // Let the effect run to position cursor
+      }
+    }
+    
+    // Execute shortcut immediately when pressing Tab after a shortcut
+    if (e.key === 'Tab' && inputText.startsWith('/') && !inputText.includes(' ')) {
+      if (handlePromptShortcut(inputText)) {
+        e.preventDefault();
+      }
     }
   };
 

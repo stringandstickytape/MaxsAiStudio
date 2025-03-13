@@ -73,20 +73,40 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
 
   const { prompts, setCurrentPrompt } = useUserPromptStore.getState();
 
-  const promptCommands = prompts.map((prompt) => ({
-    id: `apply-user-prompt-${prompt.guid}`,
-    name: `Use Prompt: ${prompt.title}`,
-    description: prompt.description || `Use the "${prompt.title}" prompt template`,
-    keywords: ['user', 'prompt', 'apply', 'template', 'snippet', ...prompt.title.toLowerCase().split(' ')],
-    section: 'utility',
-    icon: React.createElement(BookMarked, { size: 16 }),
-    execute: () => {
-      setCurrentPrompt(prompt);
-      // Set the prompt content to the input field
-      window.setPrompt(prompt.content);
-      toggleLibrary();
-    },
-  }));
+  const promptCommands = prompts.map((prompt) => {
+    // Extract a preview of the prompt content (first 100 characters)
+    const contentPreview = prompt.content.length > 100 
+      ? prompt.content.substring(0, 100) + '...' 
+      : prompt.content;
+    
+    // Create a display name that includes the shortcut if available
+    const displayName = prompt.shortcut 
+      ? `Use Prompt: ${prompt.title} [${prompt.shortcut}]` 
+      : `Use Prompt: ${prompt.title}`;
+    
+    return {
+      id: `apply-user-prompt-${prompt.guid}`,
+      name: displayName,
+      description: `${prompt.description || 'No description'} \n\nContent: ${contentPreview}`,
+      keywords: [
+        'user', 'prompt', 'apply', 'template', 'snippet', 
+        ...(prompt.shortcut ? [prompt.shortcut.toLowerCase()] : []),
+        ...prompt.title.toLowerCase().split(' '),
+        ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) // Add content words as keywords
+      ],
+      section: 'utility',
+      icon: React.createElement(BookMarked, { 
+        size: 16,
+        className: prompt.isFavorite ? 'text-red-500' : undefined
+      }),
+      execute: () => {
+        setCurrentPrompt(prompt);
+        // Set the prompt content to the input field
+        window.setPrompt(prompt.content);
+        // No need to open the library since we're applying directly
+      },
+    };
+  });
 
   if (promptCommands.length > 0) {
     useCommandStore.getState().registerGroup({

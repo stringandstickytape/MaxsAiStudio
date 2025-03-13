@@ -81,21 +81,32 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
 
   const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
 
-  const promptCommands = prompts.map((prompt) => ({
-    id: `apply-system-prompt-${prompt.guid}`,
-    name: `Apply Prompt: ${prompt.title}`,
-    description: prompt.description || `Apply the "${prompt.title}" system prompt`,
-    keywords: ['system', 'prompt', 'apply', ...prompt.title.toLowerCase().split(' ')],
-    section: 'utility',
-    icon: React.createElement(MessageSquare, {
-      size: 16,
-      className: prompt.guid === defaultPromptId ? 'text-blue-500' : undefined,
-    }),
-    execute: () => {
-      setCurrentPrompt(prompt);
-      toggleLibrary();
-    },
-  }));
+  const promptCommands = prompts.map((prompt) => {
+    // Extract a preview of the prompt content (first 100 characters)
+    const contentPreview = prompt.content.length > 100 
+      ? prompt.content.substring(0, 100) + '...' 
+      : prompt.content;
+      
+    return {
+      id: `apply-system-prompt-${prompt.guid}`,
+      name: `Apply Prompt: ${prompt.title}`,
+      description: `${prompt.description || 'No description'} \n\nContent: ${contentPreview}`,
+      keywords: [
+        'system', 'prompt', 'apply', 
+        ...prompt.title.toLowerCase().split(' '),
+        ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) // Add content words as keywords
+      ],
+      section: 'utility',
+      icon: React.createElement(MessageSquare, {
+        size: 16,
+        className: prompt.guid === defaultPromptId ? 'text-blue-500' : undefined,
+      }),
+      execute: () => {
+        setCurrentPrompt(prompt);
+        toggleLibrary();
+      },
+    };
+  });
 
   if (promptCommands.length > 0) {
     useCommandStore.getState().registerGroup({

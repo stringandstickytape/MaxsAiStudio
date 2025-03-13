@@ -29,7 +29,29 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
 
   // Update filtered commands whenever search term changes
   useEffect(() => {
-    const newCommands = searchCommands(searchTerm);
+    // Special handling for slash commands/shortcuts
+    const isShortcutSearch = searchTerm.startsWith('/') && !searchTerm.includes(' ');
+    
+    let newCommands;
+    if (isShortcutSearch) {
+      // Prioritize commands with matching shortcuts
+      const allCommands = searchCommands('');
+      newCommands = allCommands.filter(cmd => {
+        // Check if command name contains a shortcut marker
+        return cmd.name.includes('[/') || 
+               cmd.name.includes('[ /') || 
+               cmd.keywords.some(k => k === searchTerm.substring(1)) ||
+               cmd.section === 'utility'; // Always include utility commands for prompt access
+      });
+      
+      // If no direct shortcut matches, fall back to regular search
+      if (newCommands.length <= 2) {
+        newCommands = searchCommands(searchTerm);
+      }
+    } else {
+      newCommands = searchCommands(searchTerm);
+    }
+    
     setFilteredCommands(newCommands);
     setSelectedIndex(0);
     if (searchTerm && !isOpen) setIsOpen(true);
@@ -230,7 +252,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                   width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto',
                   maxWidth: '100vw'
               }}>
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
           {Object.entries(groupedCommands).map(([section, commands]) => (
             <div key={section} className="border-t border-gray-700 first:border-t-0">
               <div className="px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-900/70">
@@ -258,10 +280,14 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                         >
                       <div className="flex items-center gap-3">
                         {command.icon && <div className="text-gray-400">{command.icon}</div>}
-                        <div>
+                      <div className="max-w-md overflow-hidden">
                           <div className="font-medium text-gray-200">{command.name}</div>
-                          {command.description && <div className="text-small-gray-400">{command.description}</div>}
-                        </div>
+                          {command.description && (
+                            <div className="text-small-gray-400 whitespace-pre-line line-clamp-3">
+                              {command.description}
+                            </div>
+                          )}
+                      </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <TooltipProvider>
