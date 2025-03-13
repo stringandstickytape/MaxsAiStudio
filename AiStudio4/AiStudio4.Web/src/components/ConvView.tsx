@@ -182,7 +182,8 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                 )}
 
                 
-                {visibleMessages.map((message) => (
+                {visibleMessages.map((message) => 
+                    message.source === 'system' ? null : (
                     <div
                         key={message.id}
                         className="w-full group flex flex-col relative"
