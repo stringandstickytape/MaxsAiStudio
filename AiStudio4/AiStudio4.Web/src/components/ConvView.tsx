@@ -186,7 +186,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                     <div
                         key={message.id}
                         className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'
-                            } shadow-md w-full relative group`}
+                            } shadow-md w-full group`}
                     >
                         {editingMessageId === message.id ? (
                             <div className="w-full">
