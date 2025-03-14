@@ -4,7 +4,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Copy, Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Copy, Download, X, Check, CheckSquare, Square, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToolEditor } from './ToolEditor';
 import { Tool } from '@/types/toolTypes';
@@ -14,9 +14,10 @@ interface ToolPanelProps {
   isOpen?: boolean;
   onClose?: () => void;
   isModal?: boolean;
+  onToolSelect?: (toolId: string) => void;
 }
 
-export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelProps) {
+export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect }: ToolPanelProps) {
   
   const {
     tools,
@@ -29,7 +30,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelP
   } = useToolsManagement();
 
   
-  const { setTools, setCategories } = useToolStore();
+  const { setTools, setCategories, activeTools, addActiveTool, removeActiveTool } = useToolStore();
 
   
   useEffect(() => {
@@ -132,12 +133,40 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelP
   });
 
   
+  const handleSelectTool = (toolId: string) => {
+    const isActive = activeTools.includes(toolId);
+    
+    if (isActive) {
+      removeActiveTool(toolId);
+    } else {
+      addActiveTool(toolId);
+    }
+    
+    // If onToolSelect prop is provided, call it as well
+    if (onToolSelect) {
+      onToolSelect(toolId);
+    }
+  };
+
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
-      <div className="flex-between mb-4">
-        <h2 className="text-title">Tool Library</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-4">
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-100"
+            >
+              <X className="h-4 w-4 mr-1" />
+              <span>Close</span>
+            </Button>
+          )}
+          <h2 className="text-title">Tool Library</h2>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -145,7 +174,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelP
             onClick={handleAddTool}
             className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
           >
-            <Plus className="h-4 w-4" />
+            <PlusCircle className="h-4 w-4 mr-1" />
             <span>New Tool</span>
           </Button>
         </div>
@@ -206,12 +235,23 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelP
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredTools.map((tool) => (
-                <Card key={tool.guid} className="card-base">
+              {filteredTools.map((tool) => {
+                const isActive = activeTools.includes(tool.guid);
+                return (
+                <Card 
+                  key={tool.guid} 
+                  className={`card-base ${isActive ? 'border-blue-500 border-2' : ''}`}
+                >
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-title text-lg">{tool.name}</h3>
+                        <div className="flex items-center gap-2">
+                          {isActive ? 
+                            <CheckSquare className="h-5 w-5 text-blue-500" /> : 
+                            <Square className="h-5 w-5 text-gray-500" />
+                          }
+                          <h3 className="text-title text-lg">{tool.name}</h3>
+                        </div>
                         <p className="text-body">{tool.description}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {(tool.categories || []).map((catId) => {
@@ -230,42 +270,81 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelP
                           )}
                         </div>
                       </div>
-                      <div className="flex space-x-1">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditTool(tool)}
+                            className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                            title="Edit Tool"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                            title="Copy Tool"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTool(tool.guid)}
+                            className="h-8 w-8 text-gray-400 hover:text-red-400"
+                            disabled={isDeleting}
+                            title="Delete Tool"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditTool(tool)}
-                          className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                          variant={isActive ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleSelectTool(tool.guid)}
+                          className={`w-full ${isActive ? 
+                            'bg-blue-600 hover:bg-blue-700 text-white' : 
+                            'bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600'
+                          }`}
                         >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteTool(tool.guid)}
-                          className="h-8 w-8 text-gray-400 hover:text-red-400"
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className="h-4 w-4" />
+                          {isActive ? (
+                            <>
+                              <Check className="h-4 w-4 mr-1" />
+                              <span>Selected</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-1" />
+                              <span>Select Tool</span>
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )})}
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex space-x-2 mt-4">
-        <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
-          <Download className="h-4 w-4 mr-1" />
-          {isExporting ? 'Exporting...' : 'Export'}
-        </Button>
+      <div className="flex justify-between items-center mt-4">
+        <div>
+          {activeTools.length > 0 && (
+            <div className="text-sm text-gray-400">
+              <span className="mr-2">Currently selected: {activeTools.length} tool{activeTools.length !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
+            <Download className="h-4 w-4 mr-1" />
+            {isExporting ? 'Exporting...' : 'Export'}
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
