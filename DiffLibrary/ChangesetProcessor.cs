@@ -161,6 +161,9 @@ namespace DiffLibrary
         /// <returns>The resolved full path.</returns>
         private string ResolvePath(string path)
         {
+			if (path.StartsWith("/"))
+				path = path.Substring(1);
+
             if (Path.IsPathRooted(path))
             {
                 return path;
