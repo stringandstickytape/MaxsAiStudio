@@ -5,7 +5,7 @@ import { Tool } from '@/types/toolTypes';
 
 
 interface ToolCommandsConfig {
-  openToolPanel: () => void;
+  openToolLibrary: () => void;
   createNewTool: () => void;
   importTools: () => void;
   exportTools: () => void;
@@ -30,10 +30,10 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
       [
         'manage-tools',
         'Manage Tools',
-        'Open the tool management panel',
+        'Open the tool library',
         '',
         ['manage', 'tools', 'panel', 'settings', 'configure'],
-        config.openToolPanel,
+        config.openToolLibrary,
       ],
     ].map(([id, name, description, shortcut, keywords, fn]) => ({
       id,

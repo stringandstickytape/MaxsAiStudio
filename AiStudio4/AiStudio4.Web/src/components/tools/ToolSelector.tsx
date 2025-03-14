@@ -34,10 +34,10 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
     
     setOpen(false);
 
-    const commandSuccess = commandRegistry.executeCommand('manage-tools');
+    window.dispatchEvent(new CustomEvent('open-tool-library'));
 
-    
-    if (!commandSuccess && onManageTools) {
+    // If there's a custom handler, also call it
+    if (onManageTools) {
       onManageTools();
     }
   };

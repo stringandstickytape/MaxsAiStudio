@@ -6,6 +6,7 @@ import { FontSizeProvider } from './components/FontSizeProvider';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
 import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
+import { ToolDialog } from './components/tools/ToolDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -137,9 +138,10 @@ function App() {
         <ChatSpace />
       </NavigationContainer>
 
-      {/* Modal dialogs for system and user prompts */}
+      {/* Modal dialogs for system prompts, user prompts, and tools */}
       <SystemPromptDialog />
       <UserPromptDialog />
+      <ToolDialog />
     </FontSizeProvider>
   );
 }

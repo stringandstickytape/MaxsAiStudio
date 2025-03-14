@@ -13,9 +13,10 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 interface ToolPanelProps {
   isOpen?: boolean;
   onClose?: () => void;
+  isModal?: boolean;
 }
 
-export function ToolPanel({ isOpen = true }: ToolPanelProps) {
+export function ToolPanel({ isOpen = true, isModal = true, onClose }: ToolPanelProps) {
   
   const {
     tools,

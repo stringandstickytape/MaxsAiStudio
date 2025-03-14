@@ -5,11 +5,11 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 export function useToolCommands({
-  openToolPanel,
+  openToolLibrary,
   createNewTool,
   exportTools,
 }: {
-  openToolPanel: () => void;
+  openToolLibrary: () => void;
   createNewTool: () => void;
   exportTools: () => void;
 }) {
@@ -35,7 +35,7 @@ export function useToolCommands({
     
     if (tools.length > 0) {
       initializeToolCommands({
-        openToolPanel,
+        openToolLibrary,
         createNewTool,
         exportTools,
       });
@@ -43,7 +43,7 @@ export function useToolCommands({
       
       registerToolsAsCommands(tools, activeTools, toggleTool);
     }
-  }, [tools, activeTools, openToolPanel, createNewTool, exportTools, toggleTool]);
+  }, [tools, activeTools, openToolLibrary, createNewTool, exportTools, toggleTool]);
 
   return { toggleTool };
 }

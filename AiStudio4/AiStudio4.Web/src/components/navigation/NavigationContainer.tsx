@@ -12,7 +12,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
-import { ToolPanel } from '@/components/tools/ToolPanel';
+// No need to import ToolPanel here anymore
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 
 interface NavigationContainerProps {
@@ -138,17 +138,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         title: 'Settings',
         render: (isOpen) => (isOpen ? <SettingsPanel /> : null),
       },
-      {
-        id: 'toolPanel',
-        position: 'right',
-        size: '320px',
-        minWidth: '320px',
-        maxWidth: '450px',
-        width: '320px',
-        zIndex: 60,
-        title: 'Tool Library',
-        render: (isOpen) => (isOpen ? <ToolPanel isOpen={isOpen} onClose={() => togglePanel('toolPanel')} /> : null),
-      },
+      // Tool Library panel removed - now using modal dialog
     ],
     [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState],
   );

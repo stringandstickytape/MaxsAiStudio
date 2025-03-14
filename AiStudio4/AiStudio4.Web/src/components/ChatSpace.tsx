@@ -20,7 +20,6 @@ export function ChatSpace() {
   const [inputValue, setInputValue] = useState('');
 
   const { activeTools } = useToolStore();
-  const { togglePanel } = usePanelStore();
   const { activeConvId, convs, slctdMsgId } = useConvStore();
 
   const { selectedPrimaryModel } = useModelManagement();
@@ -29,11 +28,7 @@ export function ChatSpace() {
     setInputValue(text);
   });
 
-  useEffect(() => {
-    const handleOpenToolPanel = () => togglePanel('toolPanel');
-    window.addEventListener('openToolPanel', handleOpenToolPanel);
-    return () => window.removeEventListener('openToolPanel', handleOpenToolPanel);
-  }, [togglePanel]);
+  // No need for the old tool panel effect anymore
   
   
   useEffect(() => {
@@ -66,8 +61,9 @@ export function ChatSpace() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const openToolPanel = () => {
-    togglePanel('toolPanel');
+  // Using event dispatch instead of toggling panel
+  const openToolLibrary = () => {
+    window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
 
   return (
@@ -92,7 +88,7 @@ export function ChatSpace() {
           inputValue={inputValue}
           onInputChange={setInputValue}
           activeTools={activeTools}
-          onManageTools={openToolPanel}
+          onManageTools={openToolLibrary}
         />
       </div>
 

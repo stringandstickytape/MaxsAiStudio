@@ -37,20 +37,19 @@ export function CommandInitializer() {
     togglePanel('convTree');
   };
 
-  const openToolPanel = () => {
-    
-    togglePanel('toolPanel');
+  const openToolLibrary = () => {
+    window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
 
   useToolCommands({
-    openToolPanel,
+    openToolLibrary,
     createNewTool: () => {
       window.localStorage.setItem('toolPanel_action', 'create');
-      window.dispatchEvent(new Event('openToolPanel'));
+      window.dispatchEvent(new CustomEvent('open-tool-library'));
     },
     exportTools: () => {
       window.localStorage.setItem('toolPanel_action', 'export');
-      window.dispatchEvent(new Event('openToolPanel'));
+      window.dispatchEvent(new CustomEvent('open-tool-library'));
     },
   });
 
