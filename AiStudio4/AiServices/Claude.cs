@@ -32,6 +32,8 @@ namespace AiStudio4.AiServices
             if (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest")
                 betaFeatures.Add("output-128k-2025-02-19");
 
+            betaFeatures.Add("token-efficient-tools-2025-02-19");
+
             if (betaFeatures.Any())
                 client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
