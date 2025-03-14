@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
-import { ModelStatusBar } from '@/components/ModelStatusBar';
 
 interface AppHeaderProps {
     onExecuteCommand?: (command: string) => void;
@@ -43,44 +42,6 @@ export function AppHeader({
         }
     }, [isCommandBarOpen]);
 
-    
-    const handlePrimaryModelClick = () => {
-        setIsCommandBarOpen(true);
-        setTimeout(() => {
-            const element = document.getElementById('command-input') as HTMLInputElement;
-            if (element) {
-                element.focus();
-                
-                element.value = 'select primary model';
-
-                
-                const inputEvent = new Event('input', { bubbles: true });
-                element.dispatchEvent(inputEvent);
-
-                
-                setCommandText('select primary model');
-            }
-        }, 100);
-    };
-
-    const handleSecondaryModelClick = () => {
-        setIsCommandBarOpen(true);
-        setTimeout(() => {
-            const element = document.getElementById('command-input') as HTMLInputElement;
-            if (element) {
-                element.focus();
-                
-                element.value = 'select secondary model';
-
-                
-                const inputEvent = new Event('input', { bubbles: true });
-                element.dispatchEvent(inputEvent);
-
-                
-                setCommandText('select secondary model');
-            }
-        }, 100);
-    };
 
     return (
         <div className="app-container">
@@ -91,12 +52,6 @@ export function AppHeader({
                     rightSidebarPinned ? 'right-80' : 'right-0',
                 )}
             >
-                <div className="flex justify-center mb-0.5">
-                    <ModelStatusBar
-                        onPrimaryClick={handlePrimaryModelClick}
-                        onSecondaryClick={handleSecondaryModelClick}
-                    />
-                </div>
                 
                 <div className="flex flex-1 justify-center">
                     <div className="w-full max-w-2xl flex flex-col justify-center gap-2">

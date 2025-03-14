@@ -3,6 +3,7 @@ import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, FormEve
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send, BookMarked, X, Wrench } from 'lucide-react';
+import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
 import { Textarea } from '@/components/ui/textarea';
 import { useToolStore } from '@/stores/useToolStore';
@@ -259,8 +260,19 @@ export function InputBar({
         };
     }, []);
 
-    return (
-        <div className="h-[250px] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+  // Handle model selector button clicks
+  const handlePrimaryModelClick = () => {
+    const event = new CustomEvent('select-primary-model');
+    window.dispatchEvent(event);
+  };
+
+  const handleSecondaryModelClick = () => {
+    const event = new CustomEvent('select-secondary-model');
+    window.dispatchEvent(event);
+  };
+
+  return (
+    <div className="h-[280px] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
@@ -279,48 +291,55 @@ export function InputBar({
                         />
                     </div>
 
-                    <div className="flex flex-col gap-2 justify-end">
-                        <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
+          <div className="flex flex-col gap-2 justify-end">
+            <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
 
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
-                            className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
-                            aria-label="User prompts"
-                            disabled={isLoading}
-                        >
-                            <BookMarked className="h-5 w-5" />
-                        </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
+              className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+              aria-label="User prompts"
+              disabled={isLoading}
+            >
+              <BookMarked className="h-5 w-5" />
+            </Button>
 
-                        {onVoiceInputClick && (
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={onVoiceInputClick}
-                                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
-                                aria-label="Voice input"
-                                disabled={isLoading}
-                            >
-                                <Mic className="h-5 w-5" />
-                            </Button>
-                        )}
+            {onVoiceInputClick && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onVoiceInputClick}
+                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+                aria-label="Voice input"
+                disabled={isLoading}
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+            )}
 
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handleSend}
-                            className="btn-primary icon-btn"
-                            aria-label="Send message"
-                            disabled={isLoading}
-                        >
-                            <Send className="h-5 w-5" />
-                        </Button>
-                    </div>
-                </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleSend}
+              className="btn-primary icon-btn"
+              aria-label="Send message"
+              disabled={isLoading}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="mt-2 mb-2">
+          <ModelStatusBar
+            onPrimaryClick={handlePrimaryModelClick}
+            onSecondaryClick={handleSecondaryModelClick}
+          />
+        </div>
 
-                
-                <div className="mt-3 pt-2 border-t border-gray-700/30">
+        
+        <div className="pt-2 border-t border-gray-700/30">
                     <div className="flex items-center gap-2">
                         
                         <Button

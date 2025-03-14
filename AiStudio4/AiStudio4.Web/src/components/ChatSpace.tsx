@@ -54,8 +54,41 @@ export function ChatSpace() {
       }
     };
 
+    const handleSelectPrimaryModel = () => {
+      setIsCommandBarOpen(true);
+      setTimeout(() => {
+        const element = document.getElementById('command-input') as HTMLInputElement;
+        if (element) {
+          element.focus();
+          element.value = 'select primary model';
+          const inputEvent = new Event('input', { bubbles: true });
+          element.dispatchEvent(inputEvent);
+        }
+      }, 100);
+    };
+
+    const handleSelectSecondaryModel = () => {
+      setIsCommandBarOpen(true);
+      setTimeout(() => {
+        const element = document.getElementById('command-input') as HTMLInputElement;
+        if (element) {
+          element.focus();
+          element.value = 'select secondary model';
+          const inputEvent = new Event('input', { bubbles: true });
+          element.dispatchEvent(inputEvent);
+        }
+      }, 100);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('select-primary-model', handleSelectPrimaryModel);
+    window.addEventListener('select-secondary-model', handleSelectSecondaryModel);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('select-primary-model', handleSelectPrimaryModel);
+      window.removeEventListener('select-secondary-model', handleSelectSecondaryModel);
+    };
   }, []);
 
   
