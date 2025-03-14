@@ -78,7 +78,7 @@ export function ChatSpace() {
         <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
       </div>
 
-      <div className="flex-none h-[30vh] border-t w-full">
+      <div className="flex-none border-t w-full">
         <InputBar
           selectedModel={selectedPrimaryModel}
           onVoiceInputClick={() => setVoiceInputOpen(true)}
