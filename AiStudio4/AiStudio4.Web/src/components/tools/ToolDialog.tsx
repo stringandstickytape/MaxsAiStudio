@@ -15,9 +15,9 @@ export function ToolDialog() {
   }, []);
 
   const handleToolSelect = (toolId: string) => {
-    // When selecting a tool, we want the dialog to stay open
-    // No need to implement anything special here as the ToolPanel
-    // will handle toggling the tool selection through useToolStore
+    
+    
+    
   };
 
   return (

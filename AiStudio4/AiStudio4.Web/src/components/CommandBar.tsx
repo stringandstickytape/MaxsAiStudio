@@ -334,3 +334,4 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     </div>
   );
 }
+

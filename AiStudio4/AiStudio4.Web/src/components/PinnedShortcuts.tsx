@@ -148,7 +148,7 @@ export function PinnedShortcuts({
             const availableWidth = containerWidth - dropdownWidth;
             const maxButtonsPerRow = Math.floor(availableWidth / buttonWidth);
             
-            // Calculate optimal row arrangement
+            
             const effectiveRows = Math.min(maxRows, Math.ceil(pinnedCommands.length / maxButtonsPerRow));
             const newItemsPerRow = maxButtonsPerRow;
             const newRowCount = Math.min(effectiveRows, Math.ceil(pinnedCommands.length / newItemsPerRow));
@@ -194,7 +194,7 @@ export function PinnedShortcuts({
 
         setUserModified(true);
 
-        // This call is redundant as setUserModified(true) will trigger the useEffect that saves
+        
     };
 
     const handleCommandClick = (commandId: string) => {
@@ -206,7 +206,7 @@ export function PinnedShortcuts({
 
         if (isCurrentlyPinned) {
             removePinnedCommand(commandId);
-            // Explicitly save to server after removing a pinned command
+            
             savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
         } else {
             const command = useCommandStore.getState().getCommandById(commandId);
@@ -235,7 +235,7 @@ export function PinnedShortcuts({
     const hiddenCommands = pinnedCommands.slice(effectiveVisibleCount);
     const hasMoreCommands = pinnedCommands.length > effectiveVisibleCount;
     
-    // Group visible commands into rows
+    
     const commandRows: typeof pinnedCommands[] = [];
     if (orientation === 'horizontal' && autoFit && rowCount > 1) {
         for (let i = 0; i < rowCount; i++) {
@@ -280,7 +280,7 @@ export function PinnedShortcuts({
                     )}
                 >
                     {orientation === 'horizontal' && autoFit && rowCount > 1 ? (
-                        // Multi-row layout
+                        
                         commandRows.map((rowCommands, rowIndex) => (
                             <div key={`row-${rowIndex}`} className="flex flex-row items-center justify-center gap-1 w-full">
                                 <Droppable
@@ -297,7 +297,7 @@ export function PinnedShortcuts({
                                             className="flex items-center gap-1 flex-row"
                                         >
                                             {rowCommands.map((command, index) => {
-                                                // Calculate the overall index in the full visibleCommands array
+                                                
                                                 const globalIndex = rowIndex * itemsPerRow + index;
                                                 return (
                                                     <Draggable key={command.id} draggableId={command.id} index={globalIndex}>
@@ -352,7 +352,7 @@ export function PinnedShortcuts({
                             </div>
                         ))
                     ) : (
-                        // Single row layout
+                        
                         <Droppable
                             droppableId="pinned-commands"
                             direction={orientation === 'vertical' ? 'vertical' : 'horizontal'}

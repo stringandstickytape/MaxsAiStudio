@@ -138,7 +138,7 @@ function App() {
         <ChatSpace />
       </NavigationContainer>
 
-      {/* Modal dialogs for system prompts, user prompts, and tools */}
+      
       <SystemPromptDialog />
       <UserPromptDialog />
       <ToolDialog />
@@ -147,3 +147,4 @@ function App() {
 }
 
 export default App;
+

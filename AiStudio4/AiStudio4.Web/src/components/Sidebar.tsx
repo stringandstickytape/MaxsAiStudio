@@ -55,3 +55,4 @@ export function Sidebar({ wsState }: SidebarProps) {
     </div>
   );
 }
+

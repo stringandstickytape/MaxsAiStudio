@@ -142,7 +142,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
       addActiveTool(toolId);
     }
     
-    // If onToolSelect prop is provided, call it as well
+    
     if (onToolSelect) {
       onToolSelect(toolId);
     }
@@ -358,4 +358,5 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     </div>
   );
 }
+
 

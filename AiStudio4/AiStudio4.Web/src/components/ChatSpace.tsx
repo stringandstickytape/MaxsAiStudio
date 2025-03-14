@@ -58,7 +58,7 @@ export function ChatSpace() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Using event dispatch instead of toggling panel
+  
   const openToolLibrary = () => {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
@@ -97,3 +97,4 @@ export function ChatSpace() {
     </>
   );
 }
+

@@ -188,3 +188,4 @@ function PromptList({ prompts, onEdit, onApply, isLoading }: PromptListProps) {
   );
 }
 
+

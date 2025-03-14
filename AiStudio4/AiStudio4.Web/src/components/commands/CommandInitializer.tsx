@@ -182,3 +182,4 @@ export function CommandInitializer() {
 
   return null;
 }
+

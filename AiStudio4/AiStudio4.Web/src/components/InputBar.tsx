@@ -61,7 +61,6 @@ export function InputBar({
         setInputText(value);
         setCursorPosition(e.target.selectionStart);
 
-
         if (value.startsWith('/') && value.length > 1 && !value.includes(' ')) {
 
             if (e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ') {
@@ -200,14 +199,12 @@ export function InputBar({
             return;
         }
 
-
         if (e.key === ' ' && inputText.startsWith('/') && !inputText.includes(' ')) {
             if (handlePromptShortcut(inputText)) {
                 e.preventDefault();
 
             }
         }
-
 
         if (e.key === 'Tab' && inputText.startsWith('/') && !inputText.includes(' ')) {
             if (handlePromptShortcut(inputText)) {
@@ -322,10 +319,10 @@ export function InputBar({
                     </div>
                 </div>
 
-                {/* Active Tools Pills - Removed "Active Tools:" label and moved Tools button */}
+                
                 <div className="mt-3 pt-2 border-t border-gray-700/30">
                     <div className="flex items-center gap-2">
-                        {/* Tools button moved to the beginning where the label was */}
+                        
                         <Button
                             variant="ghost"
                             size="sm"

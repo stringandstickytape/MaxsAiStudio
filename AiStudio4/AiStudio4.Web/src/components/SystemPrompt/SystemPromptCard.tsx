@@ -184,3 +184,4 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
   );
 }
 
+

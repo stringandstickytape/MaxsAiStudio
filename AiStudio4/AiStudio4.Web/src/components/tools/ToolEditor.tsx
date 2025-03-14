@@ -267,3 +267,4 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   );
 }
 
+

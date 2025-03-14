@@ -94,7 +94,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     if (onOpenLibrary) {
       onOpenLibrary();
     } else {
-      // Use global event to trigger opening modal dialog
+      
       window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
     }
   };
@@ -157,7 +157,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Simple text label - always rendered but fades out when hovered */}
+      
       <div 
         className={cn(
           "absolute inset-0 px-3 py-2 cursor-pointer transition-opacity duration-200 ease-in-out",
@@ -168,7 +168,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
       </div>
       
-      {/* Dropdown UI - always rendered but hidden until hovered */}
+      
       <div
         className={cn(
           "transition-opacity duration-200 ease-in-out",
@@ -277,4 +277,5 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     </div>
   );
 }
+
 

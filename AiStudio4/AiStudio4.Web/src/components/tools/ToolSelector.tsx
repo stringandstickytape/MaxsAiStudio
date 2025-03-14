@@ -36,7 +36,7 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
 
     window.dispatchEvent(new CustomEvent('open-tool-library'));
 
-    // If there's a custom handler, also call it
+    
     if (onManageTools) {
       onManageTools();
     }
@@ -106,4 +106,5 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
     </div>
   );
 }
+
 

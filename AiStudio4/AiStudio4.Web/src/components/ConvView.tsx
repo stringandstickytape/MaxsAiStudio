@@ -172,7 +172,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             onScroll={handleScroll}
         >
             <div className="conversation-container flex flex-col gap-4 p-4">
-                {/* System Prompt Header */}
+                
                 <div className="mb-2 bg-gray-800/40 rounded-lg p-2">
                     <SystemPromptComponent 
                         convId={activeConvId || undefined} 
@@ -310,3 +310,4 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
         </div>
     );
 };
+

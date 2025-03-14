@@ -100,7 +100,7 @@ export function AppHeader({
                 
                 <div className="flex flex-1 justify-center">
                     <div className="w-full max-w-2xl flex flex-col justify-center gap-2">
-                        {/* Command Bar component */}
+                        
                         {CommandBarComponent || (
                             <form onSubmit={handleCommandSubmit} className="relative w-full mb-2">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -136,3 +136,4 @@ export function AppHeader({
         </div>
     );
 }
+
