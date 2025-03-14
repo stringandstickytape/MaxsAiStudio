@@ -2,6 +2,7 @@ import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X } from 'lucide-react';
+import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -171,6 +172,13 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             onScroll={handleScroll}
         >
             <div className="conversation-container flex flex-col gap-4 p-4">
+                {/* System Prompt Header */}
+                <div className="mb-2 bg-gray-800/40 rounded-lg p-2">
+                    <SystemPromptComponent 
+                        convId={activeConvId || undefined} 
+                        onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} 
+                    />
+                </div>
                 
                 {hasMoreToLoad && (
                     <button

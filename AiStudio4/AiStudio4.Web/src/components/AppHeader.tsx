@@ -3,12 +3,10 @@ import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 
 interface AppHeaderProps {
-    onToggleSystemPrompts?: () => void;
     onExecuteCommand?: (command: string) => void;
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
@@ -19,7 +17,6 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({
-    onToggleSystemPrompts,
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
@@ -126,12 +123,6 @@ export function AppHeader({
                                 </kbd>
                             </form>
                         )}
-
-                        {/* System Prompt component */}
-                        <SystemPromptComponent 
-                            convId={activeConvId || undefined} 
-                            onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} 
-                        />
                     </div>
                 </div>
 
