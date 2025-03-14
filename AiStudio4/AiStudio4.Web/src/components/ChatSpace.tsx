@@ -28,9 +28,6 @@ export function ChatSpace() {
     setInputValue(text);
   });
 
-  // No need for the old tool panel effect anymore
-  
-  
   useEffect(() => {
     if (activeConvId && slctdMsgId && convs[activeConvId]) {
       const conv = convs[activeConvId];
