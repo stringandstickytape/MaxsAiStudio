@@ -322,51 +322,49 @@ export function InputBar({
                     </div>
                 </div>
 
-                {/* Active Tools Pills */}
+                {/* Active Tools Pills - Removed "Active Tools:" label and moved Tools button */}
                 <div className="mt-3 pt-2 border-t border-gray-700/30">
                     <div className="flex items-center gap-2">
-                        {activeTools.length > 0 ? (
-                            <>
-                                <span className="text-xs text-gray-400">Active Tools:</span>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {activeTools.map((toolId) => {
-                                        const tool = tools.find((t) => t.guid === toolId);
-                                        if (!tool) return null;
-
-                                        return (
-                                            <TooltipProvider key={tool.guid}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group">
-                                                            <span className="truncate max-w-[130px]">{tool.name}</span>
-                                                            <button
-                                                                onClick={() => handleRemoveTool(tool.guid)}
-                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{tool.description}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        ) : null}
-
+                        {/* Tools button moved to the beginning where the label was */}
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors ml-auto"
+                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors"
                         >
                             <Wrench className="h-3 w-3 mr-1" />
                             <span>Tools</span>
                         </Button>
+
+                        {activeTools.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                                {activeTools.map((toolId) => {
+                                    const tool = tools.find((t) => t.guid === toolId);
+                                    if (!tool) return null;
+
+                                    return (
+                                        <TooltipProvider key={tool.guid}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group">
+                                                        <span className="truncate max-w-[130px]">{tool.name}</span>
+                                                        <button
+                                                            onClick={() => handleRemoveTool(tool.guid)}
+                                                            className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{tool.description}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
