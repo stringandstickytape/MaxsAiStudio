@@ -4,6 +4,7 @@ import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
+import { useCommandStore } from '@/stores/useCommandStore';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
@@ -50,6 +51,69 @@ export function CommandInitializationPlugin() {
       window.removeEventListener('user-prompts-updated', handleUserPromptsUpdate);
     };
   }, [systemPrompts.length, userPrompts.length]);
+  
+  // Add global keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const { commands } = useCommandStore.getState();
+      const commandsArray = Array.from(commands.values());
+
+      // Skip if focused on input/textarea or using meta keys for browser functions
+      if (
+        ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName) ||
+        (e.ctrlKey && ['c', 'v', 'x', 'a', 'z', 'f'].includes(e.key.toLowerCase()))
+      ) {
+        return;
+      }
+
+      // Parse shortcut keys from event
+      const shortcutKey = [];
+      if (e.ctrlKey) shortcutKey.push('Ctrl');
+      if (e.altKey) shortcutKey.push('Alt');
+      if (e.shiftKey) shortcutKey.push('Shift');
+      if (e.metaKey) shortcutKey.push('⌘');
+
+      // Add the key itself (normalize special keys)
+      if (e.key === ' ') {
+        shortcutKey.push('Space');
+      } else if (e.key.length === 1) {
+        shortcutKey.push(e.key.toUpperCase());
+      } else {
+        // For special keys like 'ArrowUp', 'Enter', etc.
+        shortcutKey.push(e.key);
+      }
+
+      const shortcut = shortcutKey.join('+');
+
+      // Check if any command matches this shortcut
+      for (const command of commandsArray) {
+        if (!command.shortcut) continue;
+
+        // Normalize command shortcut format
+        const normalizedCommandShortcut = command.shortcut
+          .replace('⌘', 'Meta')
+          .replace('?', 'Alt'); // macOS notation
+
+        // Try different formats for comparison
+        const shortcutVariations = [
+          shortcut,
+          shortcutKey.join('+')
+        ];
+
+        if (shortcutVariations.some(s => 
+          s.toLowerCase() === normalizedCommandShortcut.toLowerCase() ||
+          s.toLowerCase() === command.shortcut.toLowerCase()
+        )) {
+          e.preventDefault();
+          useCommandStore.getState().executeCommand(command.id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   
   return null; 
 }

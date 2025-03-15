@@ -5,7 +5,7 @@ export interface Command {
   id: string;
   name: string;
   description?: string;
-  shortcut?: string;
+  shortcut?: string; // Format: 'Ctrl+K', '⌘+K', 'Alt+V', etc.
   keywords: string[];
   section: CommandSection;
   execute: (args?: any) => void;
