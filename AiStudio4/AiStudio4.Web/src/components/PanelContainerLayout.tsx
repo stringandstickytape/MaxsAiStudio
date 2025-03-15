@@ -46,7 +46,7 @@ export function PanelContainerLayout({ children }: PanelContainerLayoutProps) {
   return (
     <div
       className={cn(
-        'panel-adjusted-container h-screen transition-all duration-300',
+        'panel-adjusted-container h-screen transition-all duration-300 px-4',
         hasLeftPanel && 'has-left-panel',
         hasRightPanel && 'has-right-panel',
       )}

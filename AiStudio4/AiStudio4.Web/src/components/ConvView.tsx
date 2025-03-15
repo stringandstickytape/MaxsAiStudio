@@ -1,12 +1,13 @@
 import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X } from 'lucide-react';
+import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
+import { Button } from '@/components/ui/button';
 
 interface ConvViewProps {
     streamTokens: string[]; 
@@ -16,11 +17,13 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     const [editContent, setEditContent] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
-    const [visibleCount, setVisibleCount] = useState(20); 
+    const [visibleCount, setVisibleCount] = useState(20);
     const [isAtBottom, setIsAtBottom] = useState(true);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+    const [showScrollButton, setShowScrollButton] = useState(false);
     const lastScrollHeightRef = useRef<number>(0);
     const lastScrollTopRef = useRef<number>(0);
+    const scrollAnimationRef = useRef<number | null>(null);
 
     
     const messageChain = useMemo(() => {
@@ -65,20 +68,30 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     useEffect(() => {
         if (!containerRef.current || !autoScrollEnabled) return;
 
-        const scrollToBottom = () => {
+        const performScrollToBottom = () => {
             if (containerRef.current) {
                 containerRef.current.scrollTop = containerRef.current.scrollHeight;
             }
         };
 
-        
+        // Scroll when new messages arrive or when streaming
         if (messageChain.length > 0 || streamTokens.length > 0) {
-            scrollToBottom();
+            performScrollToBottom();
 
-            
-            setTimeout(scrollToBottom, 100);
+            // Scroll again after a short delay to handle any rendering delays
+            const timeoutId = setTimeout(performScrollToBottom, 100);
+            return () => clearTimeout(timeoutId);
         }
     }, [messageChain.length, streamTokens.length, autoScrollEnabled]);
+    
+    // Cleanup scroll animation on unmount
+    useEffect(() => {
+        return () => {
+            if (scrollAnimationRef.current) {
+                cancelAnimationFrame(scrollAnimationRef.current);
+            }
+        };
+    }, []);
 
     
     const handleScroll = () => {
@@ -86,31 +99,37 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
 
         const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
 
-        
+        // Check if scrolling up
         const isScrollingUp = scrollTop < lastScrollTopRef.current;
         lastScrollTopRef.current = scrollTop;
 
-        
+        // Calculate distance from bottom
         const bottom = scrollHeight - scrollTop - clientHeight;
-        const bottomThreshold = 50;
-        setIsAtBottom(bottom < bottomThreshold);
-
+        const bottomThreshold = 80;
+        const isNearBottom = bottom < bottomThreshold;
         
+        // Update bottom state
+        setIsAtBottom(isNearBottom);
+        
+        // Toggle scroll button visibility based on position
+        setShowScrollButton(!isNearBottom && scrollHeight > clientHeight + 100);
+
+        // Load more messages on scroll up
         if (isScrollingUp && scrollTop < 200) {
             if (visibleCount < messageChain.length) {
-                
+                // Save current scroll height for position restoration
                 const previousScrollHeight = scrollHeight;
-
                 
+                // Load more messages
                 setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
-
                 
+                // Save for reference to adjust scroll position
                 lastScrollHeightRef.current = previousScrollHeight;
             }
         }
 
-        
-        if (bottom > bottomThreshold && autoScrollEnabled) {
+        // Disable auto-scroll when user manually scrolls away from bottom
+        if (!isNearBottom && autoScrollEnabled) {
             setAutoScrollEnabled(false);
         }
     };
@@ -134,24 +153,61 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
         lastScrollHeightRef.current = 0;
     }, [visibleCount]);
 
+    const scrollToBottom = () => {
+        // Cancel any ongoing scroll animation
+        if (scrollAnimationRef.current) {
+            cancelAnimationFrame(scrollAnimationRef.current);
+            scrollAnimationRef.current = null;
+        }
+
+        if (containerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+            const targetScrollTop = scrollHeight - clientHeight;
+            
+            // Use smooth scrolling animation
+            const startTime = performance.now();
+            const startScrollTop = scrollTop;
+            const distance = targetScrollTop - startScrollTop;
+            const duration = 300; // ms
+            
+            // Easing function for smooth scroll
+            const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+            
+            const animateScroll = (currentTime: number) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutCubic(progress);
+                
+                if (containerRef.current) {
+                    containerRef.current.scrollTop = startScrollTop + distance * eased;
+                }
+                
+                if (progress < 1) {
+                    scrollAnimationRef.current = requestAnimationFrame(animateScroll);
+                } else {
+                    // Animation complete
+                    scrollAnimationRef.current = null;
+                    setAutoScrollEnabled(true);
+                    setShowScrollButton(false);
+                }
+            };
+            
+            scrollAnimationRef.current = requestAnimationFrame(animateScroll);
+        }
+    };
     
     const ScrollToBottomButton = () => {
-        if (isAtBottom || autoScrollEnabled) return null;
-
         return (
-            <button
-                className="fixed bottom-[250px] right-[30px] bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg z-10"
-                onClick={() => {
-                    if (containerRef.current) {
-                        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-                        setAutoScrollEnabled(true);
-                    }
-                }}
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-            </button>
+            <div className="w-full flex justify-center mb-2">
+                <Button
+                    className={`bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200 ${showScrollButton ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={scrollToBottom}
+                    aria-label="Scroll to bottom"
+                >
+                    <ArrowDown className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Scroll to bottom</span>
+                </Button>
+            </div>
         );
     };
 
@@ -166,14 +222,15 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     const hasMoreToLoad = visibleCount < messageChain.length;
 
     return (
-        <div
-            className="w-full h-full overflow-auto"
-            ref={containerRef}
-            onScroll={handleScroll}
-        >
-            <div className="conversation-container flex flex-col gap-4 p-4">
+        <div className="w-full h-full flex flex-col">
+            <div
+                className="flex-1 overflow-auto"
+                ref={containerRef}
+                onScroll={handleScroll}
+            >
+                <div className="conversation-container flex flex-col gap-4 p-4">
                 
-                <div className="mb-2 bg-gray-800/40 rounded-lg p-2">
+                <div className="mb-2 bg-gray-800/40 rounded-lg">
                     <SystemPromptComponent 
                         convId={activeConvId || undefined} 
                         onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))} 
@@ -303,11 +360,9 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                         ))}
                     </div>
                 )}
+                </div>
             </div>
-
-            
             <ScrollToBottomButton />
         </div>
     );
 };
-

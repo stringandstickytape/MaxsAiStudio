@@ -321,7 +321,7 @@ export function InputBar({
     };
 
     return (
-        <div className="h-[280px] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+        <div className="h-[280px] bg-gray-900 border-gray-700/50  shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
