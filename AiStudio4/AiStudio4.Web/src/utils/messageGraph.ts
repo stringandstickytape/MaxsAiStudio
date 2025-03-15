@@ -72,15 +72,6 @@ export class MessageGraph {
 
     return path;
   }
-
-  
-  getMessageRelationships(): { messageId: string; childIds: string[] }[] {
-    return Array.from(this.messages.keys()).map((messageId) => ({
-      messageId,
-      childIds: Array.from(this.parentChildMap.get(messageId) || new Set()),
-    }));
-  }
-
   
   getAllMessages(): Message[] {
     return Array.from(this.messages.values());

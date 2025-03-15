@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
-import { buildDebugTree } from '@/utils/treeUtils';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 
@@ -375,7 +374,6 @@ export const debugConvs = () => {
     console.group(`Conv: ${id}`);
     console.log('Messages:', conv.messages);
     console.log('Count:', conv.messages.length);
-    console.log('Tree:', buildDebugTree(conv.messages));
     console.groupEnd();
   });
 
