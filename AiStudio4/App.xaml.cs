@@ -19,6 +19,8 @@ namespace AiStudio4
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;
 
+        public T GetRequiredService<T>() => _serviceProvider.GetRequiredService<T>();
+
         public App()
         {
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings

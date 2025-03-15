@@ -28,6 +28,88 @@ namespace AiStudio4.Services
             _systemPromptService = systemPromptService;
         }
 
+        public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
+        {
+            var startTime = DateTime.UtcNow;
+            try
+            {
+                _logger.LogInformation("Processing simple chat request");
+                
+                // Get the secondary model
+                var secondaryModelName = _settingsManager.DefaultSettings?.SecondaryModel;
+                if (string.IsNullOrEmpty(secondaryModelName))
+                {
+                    return new SimpleChatResponse
+                    {
+                        Success = false,
+                        Error = "No secondary model configured",
+                        ProcessingTime = DateTime.UtcNow - startTime
+                    };
+                }
+
+                // Find the model and service provider
+                var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
+                if (model == null)
+                {
+                    return new SimpleChatResponse
+                    {
+                        Success = false,
+                        Error = $"Secondary model '{secondaryModelName}' not found",
+                        ProcessingTime = DateTime.UtcNow - startTime
+                    };
+                }
+
+                var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService);
+
+                // Create a simple chat request
+                var systemPrompt = await _systemPromptService.GetDefaultSystemPromptAsync();
+                var conv = new LinearConv(DateTime.Now)
+                {
+                    systemprompt = systemPrompt?.Content ?? "You are a helpful assistant.",
+                    messages = new List<LinearConvMessage>
+                    {
+                        new LinearConvMessage
+                        {
+                            role = "user",
+                            content = chatMessage
+                        }
+                    }
+                };
+
+                var requestOptions = new AiRequestOptions
+                {
+                    ServiceProvider = service,
+                    Model = model,
+                    Conv = conv,
+                    CancellationToken = new CancellationToken(false),
+                    ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
+                    MustNotUseEmbedding = true,
+                    UseStreaming = false
+                };
+                
+                var response = await aiService.FetchResponse(requestOptions);
+                
+                return new SimpleChatResponse
+                {
+                    Success = response.Success,
+                    Response = response.ResponseText,
+                    Error = response.Success ? null : "Failed to process chat request",
+                    ProcessingTime = DateTime.UtcNow - startTime
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing simple chat request");
+                return new SimpleChatResponse
+                {
+                    Success = false,
+                    Error = ex.Message,
+                    ProcessingTime = DateTime.UtcNow - startTime
+                };
+            }
+        }
+
         public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
         {
             try

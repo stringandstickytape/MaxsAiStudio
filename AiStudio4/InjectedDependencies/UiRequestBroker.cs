@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using SharedClasses.Providers;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
+using AiStudio4.Services;
+using Microsoft.Extensions.Logging;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -21,6 +23,8 @@ namespace AiStudio4.InjectedDependencies
         private readonly IPinnedCommandService _pinnedCommandService;
         private readonly IConvStorage _convStorage;
         private readonly IUserPromptService _userPromptService;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IChatService _chatService;
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -31,7 +35,9 @@ namespace AiStudio4.InjectedDependencies
             ISystemPromptService systemPromptService,
             IPinnedCommandService pinnedCommandService,
             IConvStorage convStorage,
-            IUserPromptService userPromptService
+            IUserPromptService userPromptService,
+            IServiceProvider serviceProvider,
+            IChatService chatService
             )
         {
             _configuration = configuration;
@@ -43,6 +49,8 @@ namespace AiStudio4.InjectedDependencies
             _pinnedCommandService = pinnedCommandService;
             _convStorage = convStorage;
             _userPromptService = userPromptService;
+            _serviceProvider = serviceProvider;
+            _chatService = chatService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -109,6 +117,7 @@ namespace AiStudio4.InjectedDependencies
                     "setFavoriteUserPrompt" => await HandleSetFavoriteUserPromptRequest(requestObject),
                     "importUserPrompts" => await HandleImportUserPromptsRequest(requestObject),
                     "exportUserPrompts" => await HandleExportUserPromptsRequest(),
+                    "simpleChat" => await HandleSimpleChatRequest(requestObject),
                     _ => throw new NotImplementedException()
                 };
             }
@@ -804,6 +813,26 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error exporting user prompts: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Simple Chat Request Handler
+        private async Task<string> HandleSimpleChatRequest(JObject requestObject)
+        {
+            try
+            {
+                string chatMessage = requestObject["chat"]?.ToString();
+                if (string.IsNullOrEmpty(chatMessage))
+                    return SerializeError("Chat message cannot be empty");
+
+                var response = await _chatService.ProcessSimpleChatRequest(chatMessage);
+
+                return JsonConvert.SerializeObject(response);
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error processing simple chat request: {ex.Message}");
             }
         }
         #endregion

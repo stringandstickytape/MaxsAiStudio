@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.AspNetCore.Builder;
@@ -100,6 +100,16 @@ namespace AiStudio4.InjectedDependencies
             app.MapPost("/api/{requestType}", HandleApiRequest);
             app.MapPost("/api/{requestType}/{action}", HandleApiRequest);
 
+            // Add OPTIONS handler for CORS preflight requests
+            app.MapMethods("/api/{requestType}", new[] { "OPTIONS" }, context =>
+            {
+                context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Append("Access-Control-Allow-Methods", "POST, OPTIONS");
+                context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, X-Client-Id");
+                context.Response.StatusCode = 200;
+                return Task.CompletedTask;
+            });
+
             // Static files
             app.MapGet("/{*path}", _fileServer.HandleFileRequest);
 
@@ -130,6 +140,8 @@ namespace AiStudio4.InjectedDependencies
 
                 var response = await _uiRequestBroker.HandleRequestAsync(clientId, requestType, requestData);
                 context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Append("Access-Control-Allow-Methods", "POST, OPTIONS");
+                context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, X-Client-Id");
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(response);
             }
