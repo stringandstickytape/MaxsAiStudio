@@ -262,7 +262,7 @@ export const HistoricalConvTreeList = () => {
                 >
                   
                   <div
-                    className="flex items-center p-2.5 cursor-pointer"
+                    className="flex items-center cursor-pointer"
                     onClick={() => {
                       const newConvId = expandedConv === conv.convGuid ? null : conv.convGuid;
                       setExpandedConv(newConvId);
@@ -278,10 +278,6 @@ export const HistoricalConvTreeList = () => {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm text-gray-200 break-words">
                         {conv.summary}
-                      </div>
-                      <div className="flex items-center text-xs text-gray-400 mt-0.5">
-                        <Calendar size={12} className="mr-1" />
-                        {formatDate(conv.lastModified)}
                       </div>
                     </div>
                   </div>

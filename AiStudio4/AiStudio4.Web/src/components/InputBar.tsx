@@ -15,6 +15,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface InputBarProps {
     selectedModel: string;
@@ -56,6 +57,13 @@ export function InputBar({
     const { tools } = useToolsManagement();
 
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+    const [visibleToolCount, setVisibleToolCount] = useState(3);
+    const toolsContainerRef = useRef<HTMLDivElement>(null);
+
+    // Responsive media queries
+    const isXs = useMediaQuery('(max-width: 640px)');
+    const isSm = useMediaQuery('(max-width: 768px)');
+    const isMd = useMediaQuery('(max-width: 1024px)');
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -86,6 +94,47 @@ export function InputBar({
     const handleTextAreaKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         setCursorPosition(e.currentTarget.selectionStart);
     };
+
+    // Dynamic calculation of visible tools based on available width
+    useEffect(() => {
+        // Adjust visible tool count based on screen size
+        if (isXs) {
+            setVisibleToolCount(1);
+        } else if (isSm) {
+            setVisibleToolCount(2);
+        } else if (isMd) {
+            setVisibleToolCount(3);
+        } else {
+            setVisibleToolCount(4);
+        }
+
+        // Create ResizeObserver for more precise adjustments
+        const observer = new ResizeObserver(() => {
+            if (!toolsContainerRef.current) return;
+            const containerWidth = toolsContainerRef.current.clientWidth;
+
+            // Fine-tune visible count based on actual container width
+            // Each tool takes roughly 120px of space plus gaps
+            const estimatedToolCapacity = Math.floor(containerWidth / 120);
+
+            // Use the minimum between estimated capacity and screen-size based count
+            let count = Math.max(1, estimatedToolCapacity);
+            if (isXs) count = Math.min(count, 1);
+            else if (isSm) count = Math.min(count, 2);
+            else if (isMd) count = Math.min(count, 3);
+            else count = Math.min(count, 4);
+
+            if (count !== visibleToolCount) {
+                setVisibleToolCount(count);
+            }
+        });
+
+        if (toolsContainerRef.current) {
+            observer.observe(toolsContainerRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [isXs, isSm, isMd, visibleToolCount]);
 
     const handleAttachFile = (file: File, content: string) => {
         const fileName = file.name;
@@ -260,19 +309,19 @@ export function InputBar({
         };
     }, []);
 
-  // Handle model selector button clicks
-  const handlePrimaryModelClick = () => {
-    const event = new CustomEvent('select-primary-model');
-    window.dispatchEvent(event);
-  };
+    // Handle model selector button clicks
+    const handlePrimaryModelClick = () => {
+        const event = new CustomEvent('select-primary-model');
+        window.dispatchEvent(event);
+    };
 
-  const handleSecondaryModelClick = () => {
-    const event = new CustomEvent('select-secondary-model');
-    window.dispatchEvent(event);
-  };
+    const handleSecondaryModelClick = () => {
+        const event = new CustomEvent('select-secondary-model');
+        window.dispatchEvent(event);
+    };
 
-  return (
-    <div className="h-[280px] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+    return (
+        <div className="h-[280px] bg-gray-900 border-t border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
@@ -291,99 +340,117 @@ export function InputBar({
                         />
                     </div>
 
-          <div className="flex flex-col gap-2 justify-end">
-            <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
+                    <div className="flex flex-col gap-2 justify-end">
+                        <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
-              className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
-              aria-label="User prompts"
-              disabled={isLoading}
-            >
-              <BookMarked className="h-5 w-5" />
-            </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
+                            className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+                            aria-label="User prompts"
+                            disabled={isLoading}
+                        >
+                            <BookMarked className="h-5 w-5" />
+                        </Button>
 
-            {onVoiceInputClick && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={onVoiceInputClick}
-                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
-                aria-label="Voice input"
-                disabled={isLoading}
-              >
-                <Mic className="h-5 w-5" />
-              </Button>
-            )}
+                        {onVoiceInputClick && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={onVoiceInputClick}
+                                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+                                aria-label="Voice input"
+                                disabled={isLoading}
+                            >
+                                <Mic className="h-5 w-5" />
+                            </Button>
+                        )}
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleSend}
-              className="btn-primary icon-btn"
-              aria-label="Send message"
-              disabled={isLoading}
-            >
-              <Send className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-        
-        <div className="pt-2 border-t border-gray-700/30">
-                    <div className="flex items-center justify-between">
-                        <div>
-                          <ModelStatusBar
-                            onPrimaryClick={handlePrimaryModelClick}
-                            onSecondaryClick={handleSecondaryModelClick}
-                          />
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleSend}
+                            className="btn-primary icon-btn"
+                            aria-label="Send message"
+                            disabled={isLoading}
+                        >
+                            <Send className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="pt-2 border-t border-gray-700/30">
+                    <div className="flex items-center">
+                        <div className="flex items-center">
+                            <ModelStatusBar
+                                onPrimaryClick={handlePrimaryModelClick}
+                                onSecondaryClick={handleSecondaryModelClick}
+                            />
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors"
-                          >
-                            <Wrench className="h-3 w-3 mr-1" />
-                            <span>Tools</span>
-                          </Button>
 
-                        {activeTools.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                                {activeTools.map((toolId) => {
-                                    const tool = tools.find((t) => t.guid === toolId);
-                                    if (!tool) return null;
+                        <div className="flex items-center ml-3 pl-3 border-l border-gray-700/50">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                            >
+                                <Wrench className="h-3 w-3 mr-1" />
+                                <span>Tools</span>
+                            </Button>
 
-                                    return (
-                                        <TooltipProvider key={tool.guid}>
+                            {activeTools.length > 0 && (
+                                <div ref={toolsContainerRef} className="flex items-center gap-1.5 overflow-hidden ml-2">
+                                    {activeTools.slice(0, visibleToolCount).map((toolId) => {
+                                        const tool = tools.find((t) => t.guid === toolId);
+                                        if (!tool) return null;
+
+                                        return (
+                                            <TooltipProvider key={tool.guid}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
+                                                            <span className="truncate max-w-[100px]">{tool.name}</span>
+                                                            <button
+                                                                onClick={() => handleRemoveTool(tool.guid)}
+                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{tool.description}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        );
+                                    })}
+                                    {activeTools.length > visibleToolCount && (
+                                        <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group">
-                                                        <span className="truncate max-w-[130px]">{tool.name}</span>
-                                                        <button
-                                                            onClick={() => handleRemoveTool(tool.guid)}
-                                                            className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        >
-                                                            <X className="h-3 w-3" />
-                                                        </button>
+                                                    <div
+                                                        className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
+                                                        onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                                    >
+                                                        +{activeTools.length - visibleToolCount} more
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>{tool.description}</p>
+                                                    <p>Click to see all active tools</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1"></div>
                     </div>
                 </div>
             </div>
-          </div>
         </div>
     );
 }

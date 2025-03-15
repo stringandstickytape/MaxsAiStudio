@@ -193,12 +193,12 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     addOrUpdateConv: (conv) => {
       set((state) => {
         
-        const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
+          const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
 
         if (exists) {
           
           return {
-            convs: state.convs.map((c) => (c.convGuid === conv.convGuid ? conv : conv)),
+              convs: state.convs,
           };
         } else {
           

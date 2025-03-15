@@ -67,7 +67,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     return (
       <div key={node.id} className="my-1 transition-all duration-200 ease-in-out ">
         <div 
-          className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-700/70 group transition-all duration-150"
+          className="flex items-center rounded-md hover:bg-gray-700/70 group transition-all duration-150"
           onClick={() => handleNodeClick(node)}
         >
           {hasChildren ? (
