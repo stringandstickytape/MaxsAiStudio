@@ -161,7 +161,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const g = svg.append('g');
 
     
-    const treeLayout = d3.tree<TreeNode>().size([containerWidth - 100, containerHeight - 150]);
+    const treeLayout = d3.tree<TreeNode>().size([containerWidth - 120, containerHeight - 170]).nodeSize([135, 130]);
 
     
     const root = d3.hierarchy(hierarchicalData);
