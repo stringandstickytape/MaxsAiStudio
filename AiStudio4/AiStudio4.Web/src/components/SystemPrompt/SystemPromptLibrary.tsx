@@ -59,11 +59,15 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
     
     setCurrentPrompt(prompt);
 
+    // When onApplyPrompt is provided, let the parent component (SystemPromptDialog)
+    // handle the API call to avoid duplication
     if (onApplyPrompt) {
       onApplyPrompt(prompt);
+      return; // Exit early to prevent duplicate calls
     }
 
     
+    // Only call setConvSystemPrompt directly if we're not using onApplyPrompt
     const effectiveConvId = convId || storeConvId;
     if (effectiveConvId) {
       try {

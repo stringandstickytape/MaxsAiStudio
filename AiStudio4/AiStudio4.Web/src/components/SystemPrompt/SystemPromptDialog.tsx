@@ -25,13 +25,20 @@ export function SystemPromptDialog() {
         <div className="h-full overflow-hidden">
           <SystemPromptLibrary
             convId={activeConvId || undefined}
-            onApplyPrompt={(prompt) => {
+            onApplyPrompt={async (prompt) => {
               const convId = activeConvId;
               const promptId = prompt?.guid || prompt?.Guid;
 
               if (convId && promptId) {
-                setConvSystemPrompt({ convId, promptId });
-                setConvPrompt(convId, promptId);
+                try {
+                  // Ensure we wait for this to complete
+                  await setConvSystemPrompt({ convId, promptId });
+                  // Update local state after API call succeeds
+                  setConvPrompt(convId, promptId);
+                  console.log(`SystemPromptDialog: Set conv ${convId} system prompt to ${promptId}`);
+                } catch (error) {
+                  console.error('SystemPromptDialog: Failed to set conv system prompt:', error);
+                }
               } else {
                 console.error('Cannot apply prompt - missing required data:', {
                   convId,
