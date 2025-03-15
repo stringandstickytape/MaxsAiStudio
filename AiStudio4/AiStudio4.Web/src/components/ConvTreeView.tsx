@@ -129,13 +129,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       const svg = d3.select(svgRef.current);
       const rootNode = svg.select('.node').datum() as any;
 
-      if (rootNode) {
-        
-        const rootX = rootNode.x || containerWidth / 2;
-        const centerX = containerWidth / 2 - rootX;
+        if (rootNode) {
+            // Center the view on the root node
+            const centerX = containerWidth / 2;
 
-        
-        svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
+            // Center the view
+            svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
       } else {
         
         svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(containerWidth / 2, 50));
@@ -183,9 +182,9 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     svg.call(zoom);
 
     
-    const rootX = treeData.x || containerWidth / 2;
-    const centerX = containerWidth / 2 - rootX;
-    svg.call(zoom.transform, d3.zoomIdentity.translate(centerX, 50));
+      const rootX = treeData.x;
+      const centerX = containerWidth / 2;
+      svg.call(zoom.transform, d3.zoomIdentity.translate(centerX, 50));
 
     
     g.selectAll('.link')
