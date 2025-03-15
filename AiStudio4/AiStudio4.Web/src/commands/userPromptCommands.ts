@@ -87,7 +87,7 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
     return {
       id: `apply-user-prompt-${prompt.guid}`,
       name: displayName,
-      description: `${prompt.description || 'No description'} \n\nContent: ${contentPreview}`,
+      description: `${prompt.description || 'No description'} \nContent: ${contentPreview}`,
       keywords: [
         'user', 'prompt', 'apply', 'template', 'snippet', 
         ...(prompt.shortcut ? [prompt.shortcut.toLowerCase()] : []),

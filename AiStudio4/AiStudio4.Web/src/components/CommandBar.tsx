@@ -83,6 +83,14 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Check if the click is on the dropdown menu (portal)
+        const dropdownMenu = document.querySelector('.command-dropdown-menu');
+        if (dropdownMenu && dropdownMenu.contains(event.target as Node)) {
+          // Click is on the dropdown menu, don't close
+          return;
+        }
+        
+        // Otherwise close the command bar
         setIsOpen(false);
         setSearchTerm('');
       }
@@ -246,7 +254,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         </div>
       </form>
           {isOpen && (searchTerm || filteredCommands.length) && createPortal(
-              <div className="fixed z-50" style={{
+              <div className="fixed z-50 command-dropdown-menu" style={{
                   top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + 8 : 0,
                   left: inputRef.current ? inputRef.current.getBoundingClientRect().left : 0,
                   width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto',

@@ -219,10 +219,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     nodeGroups
       .append('rect')
-      .attr('width', 200)
-      .attr('height', 70)
-      .attr('x', -100)
-      .attr('y', -35)
+      .attr('width', 240)
+      .attr('height', 100)  // Moderately taller to show more text
+      .attr('x', -120)
+      .attr('y', -40)
       .attr('rx', 10)
       .attr('ry', 10)
       .attr('fill', (d) => {
@@ -240,12 +240,14 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .attr('stroke-width', 1);
 
     
-    const nodeLabels = nodeGroups.append('g').attr('transform', 'translate(-90, -20)');
+    // Remove the transform on the group and position elements individually
+    const nodeLabels = nodeGroups.append('g');
 
-    
+    // Title text ("You", "AI", or "System")
     nodeLabels
       .append('text')
-      .attr('dy', '0.5em')
+      .attr('x', -110)
+      .attr('y', -25)
       .attr('font-size', '10px')
       .attr('font-weight', 'bold')
       .attr('fill', 'white')
@@ -258,14 +260,30 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
 
     
     nodeLabels
-      .append('text')
-      .attr('dy', '2em')
-      .attr('font-size', '10px')
-      .attr('fill', 'white')
-      .text((d) => {
-        
+      .append('foreignObject')
+      .attr('x', -110)
+      .attr('y', -20)  // Position closer to the title
+      .attr('width', 220)
+      .attr('height', 75)  // Increased height for more content
+      .append('xhtml:div')
+      .style('color', 'white')
+      .style('font-size', '10px')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+      .style('display', '-webkit-box')
+      .style('-webkit-line-clamp', '5')  // Show 5 lines maximum
+      .style('-webkit-box-orient', 'vertical')
+      .style('word-wrap', 'break-word')
+      .style('padding', '0 2px')  // Add a little padding
+      .html((d) => {
         const content = d.data.content || '';
-        return content.length > 30 ? content.substring(0, 30) + '...' : content;
+        // Escape HTML to prevent XSS and display the content safely
+        return content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\"/g, '&quot;')
+          .replace(/'/g, '&#039;');
       });
 
     return () => {
@@ -333,4 +351,3 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     </div>
   );
 };
-

@@ -90,7 +90,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
         return {
             id: `apply-system-prompt-${prompt.guid}`,
             name: `${prompt.title} [System Prompt]`,
-            description: `${prompt.description || 'No description'} \n\nContent: ${contentPreview}`,
+            description: `${prompt.description || 'No description'} \nContent: ${contentPreview}`,
             keywords: [
                 'system', 'prompt', 'apply',
                 ...prompt.title.toLowerCase().split(' '),
