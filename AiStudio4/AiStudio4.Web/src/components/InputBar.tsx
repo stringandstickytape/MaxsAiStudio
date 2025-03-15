@@ -331,26 +331,25 @@ export function InputBar({
           </div>
         </div>
         
-        <div className="mt-2 mb-2">
-          <ModelStatusBar
-            onPrimaryClick={handlePrimaryModelClick}
-            onSecondaryClick={handleSecondaryModelClick}
-          />
-        </div>
-
-        
         <div className="pt-2 border-t border-gray-700/30">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
+                        <div>
+                          <ModelStatusBar
+                            onPrimaryClick={handlePrimaryModelClick}
+                            onSecondaryClick={handleSecondaryModelClick}
+                          />
+                        </div>
                         
-                        <Button
+                        <div className="flex items-center gap-2">
+                          <Button
                             variant="ghost"
                             size="sm"
                             onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
                             className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors"
-                        >
+                          >
                             <Wrench className="h-3 w-3 mr-1" />
                             <span>Tools</span>
-                        </Button>
+                          </Button>
 
                         {activeTools.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
@@ -384,6 +383,7 @@ export function InputBar({
                     </div>
                 </div>
             </div>
+          </div>
         </div>
     );
 }
