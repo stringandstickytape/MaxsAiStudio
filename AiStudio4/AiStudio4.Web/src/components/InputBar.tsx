@@ -373,14 +373,14 @@ export function InputBar({
     };
 
     return (
-        <div className="h-[280px] bg-gray-900 border-gray-700/50  shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+        <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             {showScrollButton && (
-                <div className="w-full flex justify-center mb-3">
+                <div className="fixed bottom-[280px] right-6 z-50 mb-2 animate-fade-in">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={handleScrollToBottom}
-                        className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200"
+                        className="bg-gray-700/80 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-full h-8 flex items-center justify-center transition-all duration-200 shadow-lg backdrop-blur-sm"
                     >
                         <ArrowDown className="h-4 w-4 mr-1" />
                         <span className="text-xs">Scroll to bottom</span>
@@ -459,17 +459,7 @@ export function InputBar({
                         </div>
 
                         <div className="flex items-center gap-2 ml-3 pl-3 border-l border-gray-700/50">
-                            {showScrollButton && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleScrollToBottom}
-                                    className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
-                                >
-                                    <ArrowDown className="h-3 w-3 mr-1" />
-                                    <span>Scroll to bottom</span>
-                                </Button>
-                            )}
+
                             <Button
                                 variant="ghost"
                                 size="sm"
