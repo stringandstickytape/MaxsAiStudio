@@ -24,31 +24,26 @@ interface PinnedShortcutsProps {
 }
 
 const getIconForCommand = (commandId: string, iconName?: string) => {
+    const iconProps = { className: "h-3.5 w-3.5" };
+    
     if (iconName) {
-        switch (iconName) {
-            case 'Plus':
-                return <Plus className="h-3.5 w-3.5" />;
-            case 'Settings':
-                return <Settings className="h-3.5 w-3.5" />;
-            case 'RefreshCw':
-                return <RefreshCw className="h-3.5 w-3.5" />;
-            case 'GitBranch':
-                return <GitBranch className="h-3.5 w-3.5" />;
-            case 'Mic':
-                return <Mic className="h-3.5 w-3.5" />;
-            default:
-                return <Command className="h-3.5 w-3.5" />;
-        }
+        const iconMap: Record<string, JSX.Element> = {
+            'Plus': <Plus {...iconProps} />,
+            'Settings': <Settings {...iconProps} />,
+            'RefreshCw': <RefreshCw {...iconProps} />,
+            'GitBranch': <GitBranch {...iconProps} />,
+            'Mic': <Mic {...iconProps} />
+        };
+        return iconMap[iconName] || <Command {...iconProps} />;
     }
 
-    if (commandId.includes('new')) return <Plus className="h-3.5 w-3.5" />;
-    if (commandId.includes('settings')) return <Settings className="h-3.5 w-3.5" />;
-    if (commandId.includes('clear') || commandId.includes('reset')) return <RefreshCw className="h-3.5 w-3.5" />;
-    if (commandId.includes('tree')) return <GitBranch className="h-3.5 w-3.5" />;
-    if (commandId.includes('voice')) return <Mic className="h-3.5 w-3.5" />;
-
-    return <Command className="h-3.5 w-3.5" />;
-};
+    return commandId.includes('new') ? <Plus {...iconProps} /> :
+           commandId.includes('settings') ? <Settings {...iconProps} /> :
+           commandId.includes('clear') || commandId.includes('reset') ? <RefreshCw {...iconProps} /> :
+           commandId.includes('tree') ? <GitBranch {...iconProps} /> :
+           commandId.includes('voice') ? <Mic {...iconProps} /> :
+           <Command {...iconProps} />;
+}
 
 export function PinnedShortcuts({
     orientation = 'horizontal',
