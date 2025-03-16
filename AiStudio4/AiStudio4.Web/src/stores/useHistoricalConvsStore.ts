@@ -35,24 +35,17 @@ interface HistoricalConvsStore {
 
 export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) => {
   
-  if (typeof window !== 'undefined') {
+  typeof window !== 'undefined' && 
     listenToWebSocketEvent('historical:update', (detail) => {
       const content = detail.content;
-      if (content) {
-        
-        const store = get();
-
-        
-        store.addOrUpdateConv({
-          convGuid: content.convId || content.convGuid,
-          summary: content.summary || content.content || 'Untitled Conv',
-          fileName: `conv_${content.convId || content.convGuid}.json`,
-          lastModified: content.lastModified || new Date().toISOString(),
-          highlightColour: content.highlightColour,
-        });
-      }
+      content && get().addOrUpdateConv({
+        convGuid: content.convId ?? content.convGuid,
+        summary: content.summary ?? content.content ?? 'Untitled Conv',
+        fileName: `conv_${content.convId ?? content.convGuid}.json`,
+        lastModified: content.lastModified ?? new Date().toISOString(),
+        highlightColour: content.highlightColour,
+      });
     });
-  }
 
   return {
     
@@ -62,32 +55,22 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
     
     fetchAllConvs: async () => {
-        const clientId = webSocketService.getClientId();
-      if (!clientId) {
-        set({ error: 'No client ID available' });
-        return;
-      }
+      const clientId = webSocketService.getClientId();
+      if (!clientId) return set({ error: 'No client ID available' });
 
       set({ isLoading: true, error: null });
 
       try {
-        const response = await apiClient.post('/api/getAllHistoricalConvTrees', {});
-        const data = response.data;
-
-        if (!data.success) {
-          throw new Error('Failed to fetch historical convs');
-        }
-
-        if (!Array.isArray(data.convs)) {
-          throw new Error('Invalid response format');
-        }
-
+        const { data } = await apiClient.post('/api/getAllHistoricalConvTrees', {});
+        
+        if (!data.success) throw new Error('Failed to fetch historical convs');
+        if (!Array.isArray(data.convs)) throw new Error('Invalid response format');
         
         const newConvs = data.convs.map((conv: any) => ({
           convGuid: conv.convId,
-          summary: conv.summary || 'Untitled Conv',
+          summary: conv.summary ?? 'Untitled Conv',
           fileName: `conv_${conv.convId}.json`,
-          lastModified: conv.lastModified || new Date().toISOString(),
+          lastModified: conv.lastModified ?? new Date().toISOString(),
           highlightColour: undefined,
         }));
 
@@ -102,33 +85,19 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     },
 
     fetchConvTree: async (convId: string) => {
-        const clientId = webSocketService.getClientId();
-      if (!clientId) {
-        set({ error: 'No client ID available' });
-        return null;
-      }
+      const clientId = webSocketService.getClientId();
+      if (!clientId) return set({ error: 'No client ID available' }) ?? null;
 
       set({ isLoading: true, error: null });
 
       try {
-        const response = await apiClient.post('/api/historicalConvTree', {
-          convId,
-        });
+        const { data } = await apiClient.post('/api/historicalConvTree', { convId });
 
-        const data = response.data;
-
-        if (!data.success) {
-          throw new Error('Failed to fetch conv tree');
-        }
-
-        if (!data.flatMessageStructure) {
-          throw new Error('Invalid response format or empty tree');
-        }
-
+        if (!data.success) throw new Error('Failed to fetch conv tree');
+        if (!data.flatMessageStructure) throw new Error('Invalid response format or empty tree');
         
         const flatNodes = data.flatMessageStructure;
         const nodeMap = new Map();
-
         
         flatNodes.forEach((node: TreeNode) => {
           nodeMap.set(node.id, {
@@ -140,46 +109,24 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             costInfo: node.costInfo
           });
         });
-
         
         let rootNode = null;
         flatNodes.forEach((node: TreeNode) => {
           const treeNode = nodeMap.get(node.id);
-
-          if (!node.parentId) {
-            
-            rootNode = treeNode;
-          } else if (nodeMap.has(node.parentId)) {
-            
-            const parentNode = nodeMap.get(node.parentId);
-            parentNode.children.push(treeNode);
-          }
+          !node.parentId ? (rootNode = treeNode) : 
+            nodeMap.has(node.parentId) && nodeMap.get(node.parentId).children.push(treeNode);
         });
-
         
         if (data.summary) {
-          
-          const store = get();
-          const convToUpdate = store.convs.find((c) => c.convGuid === convId);
-          if (convToUpdate) {
-            store.addOrUpdateConv({
-              ...convToUpdate,
-              summary: data.summary,
-            });
-          }
+          const convToUpdate = get().convs.find((c) => c.convGuid === convId);
+          convToUpdate && get().addOrUpdateConv({
+            ...convToUpdate,
+            summary: data.summary,
+          });
         }
-
         
         set({ isLoading: false });
-
-        if (rootNode) {
-          return rootNode;
-        } else if (flatNodes.length > 0) {
-          
-          return nodeMap.get(flatNodes[0].id);
-        } else {
-          return null;
-        }
+        return rootNode ?? (flatNodes.length > 0 ? nodeMap.get(flatNodes[0].id) : null);
       } catch (error) {
         console.error('Error fetching conv tree:', error);
         set({
@@ -192,43 +139,20 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
     addOrUpdateConv: (conv) => {
       set((state) => {
-        
-          const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
-
-        if (exists) {
-          
-          return {
-              convs: state.convs,
-          };
-        } else {
-          
-          return {
-            convs: [conv, ...state.convs],
-          };
-        }
+        const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
+        return exists ? { convs: state.convs } : { convs: [conv, ...state.convs] };
       });
     },
 
     deleteConv: async (convId) => {
-        const clientId = webSocketService.getClientId();
-      if (!clientId) {
-        set({ error: 'No client ID available' });
-        return;
-      }
+      const clientId = webSocketService.getClientId();
+      if (!clientId) return set({ error: 'No client ID available' });
 
       set({ isLoading: true, error: null });
 
       try {
-        const response = await apiClient.post('/api/deleteConv', {
-          convId,
-        });
-
-        const data = response.data;
-
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to delete conv');
-        }
-
+        const { data } = await apiClient.post('/api/deleteConv', { convId });
+        if (!data.success) throw new Error(data.error ?? 'Failed to delete conv');
         
         set((state) => ({
           convs: state.convs.filter((conv) => conv.convGuid !== convId),
@@ -246,19 +170,3 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     clearError: () => set({ error: null }),
   };
 });
-
-
-export const debugHistoricalConvs = () => {
-  const state = useHistoricalConvsStore.getState();
-  console.group('Historical Convs Debug');
-  console.log('Convs Count:', state.convs.length);
-  console.log('All Convs:', state.convs);
-  console.log('Loading:', state.isLoading);
-  console.log('Error:', state.error);
-  console.groupEnd();
-  return state;
-};
-
-
-(window as any).debugHistoricalConvs = debugHistoricalConvs;
-
