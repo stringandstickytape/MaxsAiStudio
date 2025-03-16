@@ -41,14 +41,6 @@ export const useConvStore = create<ConvState>((set, get) => {
       const store = get();
       const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = store;
 
-      console.log('Handling conv message from event:', {
-        activeConvId,
-        slctdMsgId,
-        messageId: content.id,
-        messageSource: content.source,
-        parentIdFromContent: content.parentId,
-      });
-
       if (activeConvId) {
         const conv = getConv(activeConvId);
 
@@ -59,8 +51,6 @@ export const useConvStore = create<ConvState>((set, get) => {
         }
 
         if (!parentId && conv && conv.messages.length > 0) {
-          const graph = new MessageGraph(conv.messages);
-
           if (content.source === 'ai') {
             const userMessages = conv.messages
               .filter((m) => m.source === 'user')
@@ -73,11 +63,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             }
           }
         }
-
-        console.log('Message parentage determined:', {
-          finalParentId: parentId,
-          messageId: content.id,
-        });
 
         addMessage({
           convId: activeConvId,
@@ -120,12 +105,6 @@ export const useConvStore = create<ConvState>((set, get) => {
       const { convId, messages } = content;
       const urlParams = new URLSearchParams(window.location.search);
       const slctdMsgId = urlParams.get('messageId');
-
-      console.log('Loading conv from event:', {
-        convId,
-        messageCount: messages?.length,
-        slctdMsgId,
-      });
 
       if (!messages || messages.length === 0) return;
 
@@ -202,7 +181,6 @@ export const useConvStore = create<ConvState>((set, get) => {
       set((state) => {
         const conv = state.convs[convId];
         if (!conv) {
-          console.warn('No conv found with ID:', convId);
           return state;
         }
 
@@ -228,7 +206,6 @@ export const useConvStore = create<ConvState>((set, get) => {
     setActiveConv: ({ convId, slctdMsgId }) =>
       set((state) => {
         if (!state.convs[convId]) {
-          console.warn('Trying to set active conv that does not exist:', convId);
           return state;
         }
 
@@ -362,23 +339,3 @@ export const useConvStore = create<ConvState>((set, get) => {
           })),
   };
 });
-
-export const debugConvs = () => {
-  const state = useConvStore.getState();
-  console.group('Conv State Debug');
-  console.log('Active:', state.activeConvId);
-  console.log('Selected Message:', state.slctdMsgId);
-  console.log('All:', state.convs);
-
-  Object.entries(state.convs).forEach(([id, conv]) => {
-    console.group(`Conv: ${id}`);
-    console.log('Messages:', conv.messages);
-    console.log('Count:', conv.messages.length);
-    console.groupEnd();
-  });
-
-  console.groupEnd();
-  return state;
-};
-
-(window as any).debugConvs = debugConvs;
