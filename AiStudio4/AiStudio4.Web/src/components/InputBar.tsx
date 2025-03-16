@@ -1,5 +1,4 @@
-
-import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, FormEvent } from 'react';
+import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send, BookMarked, X, Wrench, ArrowDown } from 'lucide-react';
@@ -13,7 +12,6 @@ import { useConvStore } from '@/stores/useConvStore';
 import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
-import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -42,15 +40,16 @@ export function InputBar({
     onManageTools,
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+    const toolsContainerRef = useRef<HTMLDivElement>(null);
+    
     const [localInputText, setLocalInputText] = useState('');
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+    const [visibleToolCount, setVisibleToolCount] = useState(3);
 
-    const inputText = inputValue !== undefined ? inputValue : localInputText;
+    const inputText = inputValue ?? localInputText;
     const setInputText = onInputChange || setLocalInputText;
-
     const { activeTools: activeToolsFromStore, removeActiveTool } = useToolStore();
-
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
     const handleRemoveTool = (toolId: string) => {
@@ -58,17 +57,10 @@ export function InputBar({
     };
 
     const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
-
-    const { activeConvId, slctdMsgId, convs, createConv, getConv } = useConvStore();
-
-  const { sendMessage, cancelMessage, isLoading } = useChatManagement();
-  const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
+    const { activeConvId, slctdMsgId, convs, createConv } = useConvStore();
+    const { sendMessage, cancelMessage, isLoading } = useChatManagement();
+    const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
     const { tools } = useToolsManagement();
-
-    const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-    const [visibleToolCount, setVisibleToolCount] = useState(3);
-    const toolsContainerRef = useRef<HTMLDivElement>(null);
-
     
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
@@ -79,20 +71,14 @@ export function InputBar({
         setInputText(value);
         setCursorPosition(e.target.selectionStart);
 
-        if (value.startsWith('/') && value.length > 1 && !value.includes(' ')) {
-
-            if (e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ') {
-                if (handlePromptShortcut(value)) {
-
-                    setTimeout(() => {
-                        if (textareaRef.current) {
-                            const length = textareaRef.current.value.length;
-                            textareaRef.current.setSelectionRange(length, length);
-                            setCursorPosition(length);
-                        }
-                    }, 0);
-                }
-            }
+        if (value.startsWith('/') && value.length > 1 && !value.includes(' ') && 
+            e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ' && 
+            handlePromptShortcut(value)) {
+            setTimeout(() => {
+                const length = textareaRef.current?.value.length;
+                textareaRef.current?.setSelectionRange(length, length);
+                setCursorPosition(length);
+            }, 0);
         }
     };
 
@@ -106,54 +92,31 @@ export function InputBar({
 
     
     useEffect(() => {
-        
-        if (isXs) {
-            setVisibleToolCount(1);
-        } else if (isSm) {
-            setVisibleToolCount(2);
-        } else if (isMd) {
-            setVisibleToolCount(3);
-        } else {
-            setVisibleToolCount(4);
-        }
+        setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
 
-        
         const observer = new ResizeObserver(() => {
             if (!toolsContainerRef.current) return;
             const containerWidth = toolsContainerRef.current.clientWidth;
-
-            
-            
             const estimatedToolCapacity = Math.floor(containerWidth / 120);
 
-            
             let count = Math.max(1, estimatedToolCapacity);
-            if (isXs) count = Math.min(count, 1);
-            else if (isSm) count = Math.min(count, 2);
-            else if (isMd) count = Math.min(count, 3);
-            else count = Math.min(count, 4);
+            count = isXs ? Math.min(count, 1) :
+                isSm ? Math.min(count, 2) :
+                    isMd ? Math.min(count, 3) :
+                        Math.min(count, 4);
 
-            if (count !== visibleToolCount) {
-                setVisibleToolCount(count);
-            }
+            count !== visibleToolCount && setVisibleToolCount(count);
         });
 
-        if (toolsContainerRef.current) {
-            observer.observe(toolsContainerRef.current);
-        }
-
+        toolsContainerRef.current && observer.observe(toolsContainerRef.current);
         return () => observer.disconnect();
     }, [isXs, isSm, isMd, visibleToolCount]);
 
+
     const handleAttachFile = (file: File, content: string) => {
-        const fileName = file.name;
-
-        const textToInsert = `\`\`\`${fileName}\n${content}\n\`\`\`\n`;
-
-        const pos = cursorPosition !== null ? cursorPosition : inputText.length;
-
+        const textToInsert = `\`\`\`${file.name}\n${content}\n\`\`\`\n`;
+        const pos = cursorPosition ?? inputText.length;
         const newText = inputText.substring(0, pos) + textToInsert + inputText.substring(pos);
-
         setInputText(newText);
 
         setTimeout(() => {
@@ -166,108 +129,85 @@ export function InputBar({
         }, 0);
     };
 
-    const handleChatMessage = useCallback(
-        async (message: string) => {
-            console.log('Sending message with active tools:', activeTools);
-            try {
-                let convId = activeConvId;
-                let parentMessageId = null;
+    const handleChatMessage = useCallback(async (message: string) => {
+        console.log('Sending message with active tools:', activeTools);
+        try {
+            let convId = activeConvId;
+            let parentMessageId = null;
+            let systemPromptId = null;
+            let systemPromptContent = null;
 
-                let systemPromptId = null;
-                let systemPromptContent = null;
-
-                if (!convId) {
-                    convId = `conv_${uuidv4()}`;
-                    const messageId = `msg_${uuidv4()}`;
-
-                    createConv({
-                        id: convId,
-                        rootMessage: {
-                            id: messageId,
-                            content: '',
-                            source: 'system',
-                            timestamp: Date.now(),
-                        },
-                    });
-
-                    parentMessageId = messageId;
-                } else {
-                    parentMessageId = slctdMsgId;
-
-                    if (!parentMessageId) {
-                        const conv = convs[convId];
-                        if (conv && conv.messages.length > 0) {
-                            parentMessageId = conv.messages[conv.messages.length - 1].id;
-                        }
-                    }
-                }
-
-                if (convId) {
-                    systemPromptId = convPrompts[convId] || defaultPromptId;
-
-                    if (systemPromptId) {
-                        const prompt = prompts.find((p) => p.guid === systemPromptId);
-                        if (prompt) {
-                            systemPromptContent = prompt.content;
-                        }
-                    }
-                }
-
+            if (!convId) {
+                convId = `conv_${uuidv4()}`;
                 const messageId = `msg_${uuidv4()}`;
-                setCurrentRequest({ convId, messageId });
-                await sendMessage({
-                    convId,
-                    parentMessageId,
-                    message,
-                    model: selectedModel,
-                    toolIds: activeTools,
-                    systemPromptId,
-                    systemPromptContent,
-                    messageId
+                createConv({
+                    id: convId,
+                    rootMessage: {
+                        id: messageId,
+                        content: '',
+                        source: 'system',
+                        timestamp: Date.now(),
+                    },
                 });
-
-                setInputText('');
-                setCursorPosition(0);
-            } catch (error) {
-                console.error('Error sending message:', error);
+                parentMessageId = messageId;
+            } else {
+                parentMessageId = slctdMsgId || 
+                    (convs[convId]?.messages.length > 0 ? 
+                        convs[convId].messages[convs[convId].messages.length - 1].id : 
+                        null);
             }
-        },
-        [
-            selectedModel,
-            setInputText,
-            activeTools,
-            convPrompts,
-            defaultPromptId,
-            prompts,
-            sendMessage,
-            activeConvId,
-            slctdMsgId,
-            convs,
-            createConv,
-            getConv,
-        ],
-    );
+
+            if (convId) {
+                systemPromptId = convPrompts[convId] || defaultPromptId;
+                const prompt = prompts.find(p => p.guid === systemPromptId);
+                systemPromptContent = prompt?.content;
+            }
+
+            const messageId = `msg_${uuidv4()}`;
+            setCurrentRequest({ convId, messageId });
+            await sendMessage({
+                convId,
+                parentMessageId,
+                message,
+                model: selectedModel,
+                toolIds: activeTools,
+                systemPromptId,
+                systemPromptContent,
+                messageId
+            });
+
+            setInputText('');
+            setCursorPosition(0);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    }, [
+        selectedModel,
+        setInputText,
+        activeTools,
+        convPrompts,
+        defaultPromptId,
+        prompts,
+        sendMessage,
+        activeConvId,
+        slctdMsgId,
+        convs,
+        createConv,
+    ]);
 
   const handleSend = () => {
     if (isCancelling) return;
     
-    if (isLoading && currentRequest) {
-      // Handle cancellation
-      setIsCancelling(true);
-      cancelMessage({
-        convId: currentRequest.convId,
-        messageId: currentRequest.messageId
-      });
-    } else if (inputText.trim() && !isLoading) {
-      handleChatMessage(inputText);
-    }
+    isLoading && currentRequest
+      ? (setIsCancelling(true), cancelMessage({
+          convId: currentRequest.convId,
+          messageId: currentRequest.messageId
+        }))
+      : inputText.trim() && !isLoading && handleChatMessage(inputText);
   };
   
-  // Reset cancelling state when a request is fully cancelled
   useEffect(() => {
-    if (!isLoading && isCancelling) {
-      setIsCancelling(false);
-    }
+    !isLoading && isCancelling && setIsCancelling(false);
   }, [isLoading, isCancelling, setIsCancelling]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -277,55 +217,35 @@ export function InputBar({
             return;
         }
 
-        if (e.key === ' ' && inputText.startsWith('/') && !inputText.includes(' ')) {
-            if (handlePromptShortcut(inputText)) {
-                e.preventDefault();
-
-            }
-        }
-
-        if (e.key === 'Tab' && inputText.startsWith('/') && !inputText.includes(' ')) {
-            if (handlePromptShortcut(inputText)) {
-                e.preventDefault();
-            }
+        if ((e.key === ' ' || e.key === 'Tab') && 
+            inputText.startsWith('/') && 
+            !inputText.includes(' ') && 
+            handlePromptShortcut(inputText)) {
+            e.preventDefault();
         }
     };
 
     useEffect(() => {
+        const focusTextarea = (length: number) => {
+            if (!textareaRef.current) return;
+            textareaRef.current.focus();
+            setTimeout(() => {
+                if (textareaRef.current) {
+                    const len = length ?? textareaRef.current.value.length;
+                    textareaRef.current.setSelectionRange(len, len);
+                    setCursorPosition(len);
+                }
+            }, 0);
+        };
+
         const handleAppendToPrompt = (event: CustomEvent<{ text: string }>) => {
-            const textToAppend = event.detail.text;
-
-            setInputText((currentText) => currentText + textToAppend);
-
-            if (textareaRef.current) {
-                textareaRef.current.focus();
-
-                setTimeout(() => {
-                    if (textareaRef.current) {
-                        const length = textareaRef.current.value.length;
-                        textareaRef.current.setSelectionRange(length, length);
-                        setCursorPosition(length);
-                    }
-                }, 0);
-            }
+            setInputText(text => text + event.detail.text);
+            focusTextarea(null);
         };
 
         const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
-            const newText = event.detail.text;
-
-            setInputText(newText);
-
-            if (textareaRef.current) {
-                textareaRef.current.focus();
-
-                setTimeout(() => {
-                    if (textareaRef.current) {
-                        const length = textareaRef.current.value.length;
-                        textareaRef.current.setSelectionRange(length, length);
-                        setCursorPosition(length);
-                    }
-                }, 0);
-            }
+            setInputText(event.detail.text);
+            focusTextarea(null);
         };
 
         window.addEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
@@ -337,51 +257,30 @@ export function InputBar({
         };
     }, []);
 
-    
-    const handlePrimaryModelClick = () => {
-        const event = new CustomEvent('select-primary-model');
-        window.dispatchEvent(event);
-    };
+    const handlePrimaryModelClick = () => 
+        window.dispatchEvent(new CustomEvent('select-primary-model'));
 
-    // Handle scroll button state
     useEffect(() => {
-        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) => {
+        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) => 
             setShowScrollButton(event.detail.visible);
-        };
         
         window.addEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
+        window.getScrollButtonState && setShowScrollButton(window.getScrollButtonState());
         
-        // Check initial state
-        if (window.getScrollButtonState) {
-            setShowScrollButton(window.getScrollButtonState());
-        }
-        
-        return () => {
-            window.removeEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
-        };
+        return () => window.removeEventListener('scroll-button-state-change', 
+                                              handleScrollButtonStateChange as EventListener);
     }, []);
     
-    const handleScrollToBottom = () => {
-        if (window.scrollChatToBottom) {
-            window.scrollChatToBottom();
-        }
-    };
-    
-    const handleSecondaryModelClick = () => {
-        const event = new CustomEvent('select-secondary-model');
-        window.dispatchEvent(event);
-    };
+    const handleScrollToBottom = () => window.scrollChatToBottom?.();
+    const handleSecondaryModelClick = () => 
+        window.dispatchEvent(new CustomEvent('select-secondary-model'));
 
     return (
         <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             {showScrollButton && (
                 <div className="fixed bottom-[280px] right-6 z-50 mb-2 animate-fade-in">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleScrollToBottom}
-                        className="bg-gray-700/80 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-full h-8 flex items-center justify-center transition-all duration-200 shadow-lg backdrop-blur-sm"
-                    >
+                    <Button variant="outline" size="sm" onClick={handleScrollToBottom}
+                        className="bg-gray-700/80 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-full h-8 flex items-center justify-center transition-all duration-200 shadow-lg backdrop-blur-sm">
                         <ArrowDown className="h-4 w-4 mr-1" />
                         <span className="text-xs">Scroll to bottom</span>
                     </Button>
@@ -472,20 +371,16 @@ export function InputBar({
 
                             {activeTools.length > 0 && (
                                 <div ref={toolsContainerRef} className="flex items-center gap-1.5 overflow-hidden ml-2">
-                                    {activeTools.slice(0, visibleToolCount).map((toolId) => {
-                                        const tool = tools.find((t) => t.guid === toolId);
-                                        if (!tool) return null;
-
-                                        return (
+                                    {activeTools.slice(0, visibleToolCount).map(toolId => {
+                                        const tool = tools.find(t => t.guid === toolId);
+                                        return !tool ? null : (
                                             <TooltipProvider key={tool.guid}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
                                                             <span className="truncate max-w-[100px]">{tool.name}</span>
-                                                            <button
-                                                                onClick={() => handleRemoveTool(tool.guid)}
-                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            >
+                                                            <button onClick={() => handleRemoveTool(tool.guid)} 
+                                                                    className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <X className="h-3 w-3" />
                                                             </button>
                                                         </div>
@@ -525,26 +420,14 @@ export function InputBar({
     );
 }
 
-window.appendToPrompt = function (text) {
-    const appendEvent = new CustomEvent('append-to-prompt', {
-        detail: { text: text },
-    });
-
-    window.dispatchEvent(appendEvent);
-
+window.appendToPrompt = text => {
+    window.dispatchEvent(new CustomEvent('append-to-prompt', {detail: {text}}));
     console.log(`Appended to prompt: "${text}"`);
-
     return true;
 };
 
-window.setPrompt = function (text) {
-    const setEvent = new CustomEvent('set-prompt', {
-        detail: { text: text },
-    });
-
-    window.dispatchEvent(setEvent);
-
+window.setPrompt = text => {
+    window.dispatchEvent(new CustomEvent('set-prompt', {detail: {text}}));
     console.log(`Set prompt to: "${text}"`);
-
     return true;
 };
