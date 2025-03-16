@@ -29,7 +29,6 @@ const useChatConfigResource = createResourceHook<{
     ],
   },
 });
-
 interface SendMessageParams {
   convId: string;
   parentMessageId: string;
@@ -78,6 +77,7 @@ export function useChatManagement() {
   );
 
   
+
   const getConfig = useCallback(async () => {
     const config = await fetchConfigData();
     return (

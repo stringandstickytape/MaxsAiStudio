@@ -2,10 +2,69 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { apiClient } from '@/services/api/apiClient';
 
-export function normalizeError(error: any): string {
-  if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message;
-  if (error && typeof error.message === 'string') return error.message;
+/**
+ * Error categories for API operations
+ */
+export enum ErrorCategory {
+  API = 'api_error',
+  NETWORK = 'network_error',
+  AUTH = 'auth_error',
+  VALIDATION = 'validation_error',
+  WEBSOCKET = 'websocket_error',
+  UNEXPECTED = 'unexpected_error'
+}
+
+/**
+ * Normalized error structure
+ */
+export interface AppError {
+  message: string;
+  category: ErrorCategory;
+  code?: string;
+  data?: any;
+  originalError?: Error;
+}
+
+/**
+ * Normalizes different error types into a consistent structure
+ */
+export function normalizeError(error: any): string | AppError {
+  // Handle already normalized errors
+  if (error && error.category && error.message) {
+    return error as AppError;
+  }
+  
+  // Handle axios response errors
+  if (error?.response) {
+    return {
+      message: error.response.data?.message || error.message || 'API request failed',
+      category: ErrorCategory.API,
+      code: `${error.response.status}`,
+      data: error.response.data,
+      originalError: error
+    };
+  }
+  
+  // Handle network errors
+  if (error?.request) {
+    return {
+      message: 'Network error occurred',
+      category: ErrorCategory.NETWORK,
+      originalError: error
+    };
+  }
+  
+  // Handle standard errors
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  // Handle string errors
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Default case
   return 'An unknown error occurred';
 }
 
