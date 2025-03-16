@@ -45,16 +45,16 @@ export function AppHeader({
 
     return (
         <div className="app-container">
-            <div
-                className={cn(
-                    'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col',
-                    sidebarOpen ? 'ml-0' : 'ml-0',
-                    rightSidebarOpen ? 'mr-0' : 'mr-0',
-                )}
+            <div className={cn(
+                'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
+            )}
             >
                 
-                <div className="flex flex-1 justify-center">
-                <div className={cn("w-full flex flex-col justify-center gap-2", sidebarOpen ? "max-w-[calc(100%-320px)]" : "max-w-2xl")} style={{margin: '0 auto'}}>
+                <div className="flex flex-1 justify-center justify-items-center ">
+                <div className={cn("w-full justify-items-center ", 
+                    sidebarOpen || rightSidebarOpen ? "max-w-[calc(100%-40px)]" : "max-w-2xl",
+                    sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
+                )} style={{margin: '0 auto'}}>
                         
                         {CommandBarComponent || (
                             <form onSubmit={handleCommandSubmit} className="relative w-full mb-2">
