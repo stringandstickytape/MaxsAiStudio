@@ -225,6 +225,17 @@ export function useChatManagement() {
     [prompts, convPrompts, defaultPromptId],
   );
 
+  const cancelMessage = useCallback(
+    async (params: { convId: string; messageId: string }) => {
+      return executeApiCall(async () => {
+        const cancelRequest = createApiRequest('/api/cancelRequest', 'POST');
+        const data = await cancelRequest(params);
+        return data;
+      });
+    },
+    [executeApiCall]
+  );
+
   return {
     
     isLoading,
@@ -234,6 +245,7 @@ export function useChatManagement() {
 
     
     sendMessage,
+    cancelMessage,
     getConfig,
     setDefaultModel,
     setSecondaryModel,

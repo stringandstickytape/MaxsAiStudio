@@ -8,12 +8,15 @@ import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
 import { Button } from '@/components/ui/button';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 interface ConvViewProps {
     streamTokens: string[]; 
+    isCancelling?: boolean;
 }
 
-export const ConvView = ({ streamTokens }: ConvViewProps) => {
+export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) => {
+    const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     const [editContent, setEditContent] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
@@ -355,6 +358,11 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                 
                 {streamTokens.length > 0 && (
                     <div className="p-4 mb-4 rounded-lg bg-gray-800 shadow-md">
+                        {(isCancelling || isCancel) && (
+                            <div className="mb-2 p-2 text-yellow-400 bg-yellow-900/20 rounded border border-yellow-800/50 text-sm">
+                                Cancelling request...
+                            </div>
+                        )}
                         {streamTokens.map((token, index) => (
                             <LiveStreamToken key={index} token={token} />
                         ))}

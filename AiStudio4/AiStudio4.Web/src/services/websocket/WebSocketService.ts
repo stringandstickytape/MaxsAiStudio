@@ -204,6 +204,11 @@ export class WebSocketService {
                     type: 'tree',
                     content: message.content,
                 });
+            } else if (message.messageType === 'cancelledRequest') {
+                dispatchWebSocketEvent('request:cancelled', {
+                    type: 'cancelled',
+                    content: message.content,
+                });
             }
 
             this.notifySubscribers(message.messageType, message.content);

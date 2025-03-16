@@ -10,8 +10,8 @@ import { useStreamTokens } from '@/hooks/useStreamTokens';
 import { useVoiceInputState } from '@/commands/voiceInputCommand';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useToolStore } from '@/stores/useToolStore';
-import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -23,6 +23,7 @@ export function ChatSpace() {
   const { activeConvId, convs, slctdMsgId } = useConvStore();
 
   const { selectedPrimaryModel } = useModelManagement();
+  const { isCancelling } = useWebSocketStore();
 
   const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
     setInputValue(text);
@@ -119,6 +120,7 @@ export function ChatSpace() {
           onInputChange={setInputValue}
           activeTools={activeTools}
           onManageTools={openToolLibrary}
+          disabled={isCancelling}
         />
       </div>
 

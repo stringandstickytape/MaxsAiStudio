@@ -9,6 +9,8 @@ interface WebSocketStore {
   clientId: string | null;
   lastMessageTime: number | null;
   reconnectAttempts: number;
+  isCancelling: boolean;
+  currentRequest?: { convId: string; messageId: string };
 
   
   connect: () => void;
@@ -21,6 +23,8 @@ interface WebSocketStore {
   setReconnectAttempts: (attempts: number) => void;
   incrementReconnectAttempts: () => void;
   resetReconnectAttempts: () => void;
+  setIsCancelling: (isCancelling: boolean) => void;
+  setCurrentRequest: (request: { convId: string; messageId: string } | undefined) => void;
 }
 
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
@@ -46,12 +50,19 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     });
   }
 
+  // Listen for request cancelled events
+  listenToWebSocketEvent('request:cancelled', (detail) => {
+    set({ isCancelling: false, currentRequest: undefined });
+  });
+
   return {
     
     isConnected: webSocketService.isConnected(),
     clientId: webSocketService.getClientId(),
     lastMessageTime: null,
     reconnectAttempts: webSocketService.getReconnectAttempts(),
+    isCancelling: false,
+    currentRequest: undefined,
 
     
     connect: () => {
@@ -96,6 +107,14 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
 
     resetReconnectAttempts: () => {
       set({ reconnectAttempts: 0 });
+    },
+
+    setIsCancelling: (isCancelling) => {
+      set({ isCancelling });
+    },
+
+    setCurrentRequest: (request) => {
+      set({ currentRequest: request });
     },
   };
 });

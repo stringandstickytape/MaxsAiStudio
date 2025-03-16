@@ -6,7 +6,8 @@ export type WebSocketEventType =
   | 'stream:end'
   | 'conv:new'
   | 'conv:load'
-  | 'historical:update';
+  | 'historical:update'
+  | 'request:cancelled';
 
 export interface WebSocketEventDetail {
   type: string;

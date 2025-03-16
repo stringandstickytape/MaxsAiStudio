@@ -11,7 +11,7 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useConvStore } from '@/stores/useConvStore';
 import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
-import { usePanelStore } from '@/stores/usePanelStore';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -53,7 +53,8 @@ export function InputBar({
 
     const { activeConvId, slctdMsgId, convs, createConv, getConv } = useConvStore();
 
-    const { sendMessage, isLoading } = useChatManagement();
+  const { sendMessage, cancelMessage, isLoading } = useChatManagement();
+  const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
     const { tools } = useToolsManagement();
 
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -204,6 +205,8 @@ export function InputBar({
                     }
                 }
 
+                const messageId = `msg_${uuidv4()}`;
+                setCurrentRequest({ convId, messageId });
                 await sendMessage({
                     convId,
                     parentMessageId,
@@ -212,6 +215,7 @@ export function InputBar({
                     toolIds: activeTools,
                     systemPromptId,
                     systemPromptContent,
+                    messageId
                 });
 
                 setInputText('');
@@ -236,11 +240,20 @@ export function InputBar({
         ],
     );
 
-    const handleSend = () => {
-        if (inputText.trim() && !isLoading) {
-            handleChatMessage(inputText);
-        }
-    };
+  const handleSend = () => {
+    if (isCancelling) return;
+    
+    if (isLoading && currentRequest) {
+      // Handle cancellation
+      setIsCancelling(true);
+      cancelMessage({
+        convId: currentRequest.convId,
+        messageId: currentRequest.messageId
+      });
+    } else if (inputText.trim() && !isLoading) {
+      handleChatMessage(inputText);
+    }
+  };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -371,11 +384,15 @@ export function InputBar({
                             variant="outline"
                             size="icon"
                             onClick={handleSend}
-                            className="btn-primary icon-btn"
-                            aria-label="Send message"
-                            disabled={isLoading}
+                            className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn`}
+                            aria-label={isLoading ? 'Cancel' : 'Send message'}
+                            disabled={isCancelling}
                         >
-                            <Send className="h-5 w-5" />
+                            {isLoading ? (
+                                <X className="h-5 w-5" />
+                            ) : (
+                                <Send className="h-5 w-5" />
+                            )}
                         </Button>
                     </div>
                 </div>

@@ -99,3 +99,13 @@ export async function updateMessage(params: { convId: string; messageId: string;
     throw error;
   }
 }
+
+export async function cancelRequest(params: { convId: string; messageId: string }) {
+  try {
+    const response = await apiClient.post('/api/cancelRequest', params);
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling request:', error);
+    throw error;
+  }
+}
