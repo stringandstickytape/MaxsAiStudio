@@ -90,17 +90,15 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     await onSubmit(data);
   };
 
+  // Common style constants
+  const baseStyles = 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500';
+  const colorInputStyles = 'w-12 h-8 p-1 bg-transparent';
+  const formLabelClass = 'form-label text-gray-200';
+  const formDescriptionClass = 'form-description text-gray-400';
+  const formMessageClass = 'text-red-400';
+  
   const getInputStyles = (type: FieldType) => {
-    const baseStyles =
-      'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500';
-
-    
-    switch (type) {
-      case 'color':
-        return 'w-12 h-8 p-1 bg-transparent';
-      default:
-        return baseStyles;
-    }
+    return type === 'color' ? colorInputStyles : baseStyles;
   };
 
   
@@ -149,81 +147,95 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     return fields.map((field) => renderField(field));
   };
 
-  
+  // Helper function to handle onChange events consistently
+  const handleChange = (formField: any, fieldDef: FormFieldDefinition, value: any) => {
+    formField.onChange(value);
+    fieldDef.onChange?.(value);
+  };
+
+  // Common form field wrapper component
+  const CommonFormField = ({
+    field,
+    children,
+    className = '',
+    isCheckbox = false
+  }: {
+    field: FormFieldDefinition;
+    children: React.ReactNode;
+    className?: string;
+    isCheckbox?: boolean;
+  }) => (
+    <FormField
+      key={field.name}
+      control={form.control}
+      name={field.name}
+      render={({ field: formField }) => (
+        <FormItem className={isCheckbox ? "flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-700 rounded-md bg-gray-800/50" : className}>
+          {children(formField)}
+          {!isCheckbox && field.description && (
+            <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
+          )}
+          <FormMessage className={formMessageClass} />
+        </FormItem>
+      )}
+    />
+  );
+
+  // Renders the field based on its type
   const renderField = (field: FormFieldDefinition) => {
     switch (field.type) {
       case 'textarea':
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel className="text-gray-200">{field.label}</FormLabel>
+          <CommonFormField field={field}>
+            {(formField) => (
+              <>
+                <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder={field.placeholder}
                     {...formField}
                     className="input-base"
                     disabled={isProcessing}
-                    onChange={(e) => {
-                      formField.onChange(e);
-                      field.onChange?.(e.target.value);
-                    }}
+                    onChange={(e) => handleChange(formField, field, e.target.value)}
                   />
                 </FormControl>
-                {field.description && <FormDescription className="text-gray-400">{field.description}</FormDescription>}
-                <FormMessage className="text-red-400" />
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
 
       case 'checkbox':
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-700 rounded-md bg-gray-800/50">
+          <CommonFormField field={field} isCheckbox={true}>
+            {(formField) => (
+              <>
                 <FormControl>
                   <Checkbox
                     checked={formField.value}
-                    onCheckedChange={(checked) => {
-                      formField.onChange(checked);
-                      field.onChange?.(checked);
-                    }}
+                    onCheckedChange={(checked) => handleChange(formField, field, checked)}
                     className="data-[state=checked]:bg-blue-600 border-gray-500"
                     disabled={isProcessing}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel className="form-label">{field.label}</FormLabel>
+                  <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                   {field.description && (
-                    <FormDescription className="form-description">{field.description}</FormDescription>
+                    <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
                   )}
                 </div>
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
 
       case 'select':
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel className="form-label">{field.label}</FormLabel>
+          <CommonFormField field={field}>
+            {(formField) => (
+              <>
+                <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                 <Select
-                  onValueChange={(value) => {
-                    formField.onChange(value);
-                    field.onChange?.(value);
-                  }}
+                  onValueChange={(value) => handleChange(formField, field, value)}
                   defaultValue={formField.value}
                   disabled={isProcessing}
                 >
@@ -244,24 +256,17 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                {field.description && (
-                  <FormDescription className="form-description">{field.description}</FormDescription>
-                )}
-                <FormMessage className="text-red-400" />
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
 
       case 'color':
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel className="form-label">{field.label}</FormLabel>
+          <CommonFormField field={field}>
+            {(formField) => (
+              <>
+                <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                 <div className="flex gap-2">
                   <FormControl>
                     <Input
@@ -269,40 +274,27 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                       className={getInputStyles('color')}
                       {...formField}
                       disabled={isProcessing}
-                      onChange={(e) => {
-                        formField.onChange(e);
-                        field.onChange?.(e.target.value);
-                      }}
+                      onChange={(e) => handleChange(formField, field, e.target.value)}
                     />
                   </FormControl>
                   <Input
                     value={formField.value}
-                    onChange={(e) => {
-                      formField.onChange(e);
-                      field.onChange?.(e.target.value);
-                    }}
+                    onChange={(e) => handleChange(formField, field, e.target.value)}
                     className="flex-1 bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
                     disabled={isProcessing}
                   />
                 </div>
-                {field.description && (
-                  <FormDescription className="form-description">{field.description}</FormDescription>
-                )}
-                <FormMessage className="text-red-400" />
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
 
       case 'number':
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel className="form-label">{field.label}</FormLabel>
+          <CommonFormField field={field}>
+            {(formField) => (
+              <>
+                <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -313,52 +305,37 @@ export const GenericForm: React.FC<GenericFormProps> = ({
                     {...formField}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
-                      formField.onChange(value);
-                      field.onChange?.(value);
+                      handleChange(formField, field, value);
                     }}
                     className={getInputStyles('number')}
                     disabled={isProcessing}
                   />
                 </FormControl>
-                {field.description && (
-                  <FormDescription className="form-description">{field.description}</FormDescription>
-                )}
-                <FormMessage className="text-red-400" />
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
-
       
+      // Default case handles text, password, etc.
       default:
         return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel className="form-label">{field.label}</FormLabel>
+          <CommonFormField field={field}>
+            {(formField) => (
+              <>
+                <FormLabel className={formLabelClass}>{field.label}</FormLabel>
                 <FormControl>
                   <Input
                     type={field.type}
                     placeholder={field.placeholder}
                     {...formField}
-                    onChange={(e) => {
-                      formField.onChange(e);
-                      field.onChange?.(e.target.value);
-                    }}
+                    onChange={(e) => handleChange(formField, field, e.target.value)}
                     className={getInputStyles(field.type)}
                     disabled={isProcessing}
                   />
                 </FormControl>
-                {field.description && (
-                  <FormDescription className="form-description">{field.description}</FormDescription>
-                )}
-                <FormMessage className="text-red-400" />
-              </FormItem>
+              </>
             )}
-          />
+          </CommonFormField>
         );
     }
   };
@@ -380,7 +357,11 @@ export const GenericForm: React.FC<GenericFormProps> = ({
               {cancelButtonText}
             </Button>
           )}
-          <Button type="submit" disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button 
+            type="submit" 
+            disabled={isProcessing} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             {isProcessing ? 'Processing...' : submitButtonText}
           </Button>
         </div>
@@ -388,5 +369,3 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     </Form>
   );
 };
-
-
