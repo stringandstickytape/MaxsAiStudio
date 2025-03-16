@@ -31,7 +31,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const lastScrollTopRef = useRef<number>(0);
     const scrollAnimationRef = useRef<number | null>(null);
     
-    // Add window event to expose scroll to bottom functionality
+    
     useEffect(() => {
         window.scrollChatToBottom = scrollToBottom;
         window.getScrollButtonState = () => showScrollButton;
@@ -133,7 +133,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         setShowScrollButton(shouldShowButton);
         setShowScrollButtonState(shouldShowButton);
         
-        // Dispatch event when scroll button state changes
+        
         if (shouldShowButton !== showScrollButton) {
             window.dispatchEvent(new CustomEvent('scroll-button-state-change', { detail: { visible: shouldShowButton } }));
         }
@@ -392,7 +392,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                         ))}
                                     </div>
                                 ) : isStreaming ? (
-                                    // Keep showing the last content even when tokens are reset but still streaming
+                                    
                                     <div className="streaming-content">
                                         <span className="whitespace-pre-wrap">{lastStreamedContent}</span>
                                     </div>

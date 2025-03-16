@@ -8,7 +8,7 @@ interface ChatContainerProps {
 }
 
 export function ChatContainer({ isMobile, streamTokens, isCancelling }: ChatContainerProps) {
-  // Get enhanced streaming state from hook
+  
   const { isStreaming, lastStreamedContent } = useStreamTokens();
   
   return (

@@ -62,7 +62,7 @@ export function useStreamableWebSocketData<T = any>(
   },
 ) {
   const [data, setData] = useState<T[]>(initialData);
-  // Track if streaming is active for better state management
+  
   const [isActive, setIsActive] = useState(false);
 
   const reset = useCallback(() => {
@@ -71,34 +71,34 @@ export function useStreamableWebSocketData<T = any>(
   }, [initialData, options]);
 
   useEffect(() => {
-    // When data starts coming in, mark streaming as active
+    
     if (data.length > 0 && !isActive) {
       setIsActive(true);
     }
-    // When data is reset, mark streaming as inactive
+    
     if (data.length === 0 && isActive) {
       setIsActive(false);
     }
   }, [data.length, isActive]);
 
   useEffect(() => {
-    // Handle incoming data
+    
     const unsubscribeData = listenToWebSocketEvent(eventType, (detail) => {
       setData((prev) => [...prev, detail.content]);
     });
 
-    // Handle stream end event
+    
     let unsubscribeEnd: (() => void) | undefined;
 
     if (options?.resetOnEnd) {
       unsubscribeEnd = listenToWebSocketEvent('stream:end', () => {
-        // Dispatch a custom event before resetting
+        
         const event = new CustomEvent('stream:before-reset', {
           detail: { content: data.join('') }
         });
         window.dispatchEvent(event);
         
-        // Only reset after a brief delay to ensure UI consistency
+        
         setTimeout(() => {
           reset();
         }, 50);

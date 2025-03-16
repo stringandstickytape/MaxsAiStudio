@@ -50,7 +50,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     });
   }
 
-  // Listen for request cancelled events
+  
   listenToWebSocketEvent('request:cancelled', (detail) => {
     set({ isCancelling: false, currentRequest: undefined });
   });
