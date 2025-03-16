@@ -5,7 +5,7 @@ import { UserPrompt } from '@/types/userPrompt';
 import { createResourceHook } from './useResourceFactory';
 
 export function useUserPromptManagement() {
-  // Use the existing resource hook with minimal configuration
+  
   const userPromptResource = createResourceHook<UserPrompt>({
     endpoints: {
       fetch: '/api/getUserPrompts',
@@ -28,7 +28,7 @@ export function useUserPromptManagement() {
   const { prompts, favoritePromptIds, currentPrompt, toggleFavorite } = useUserPromptStore();
   const { executeApiCall } = useApiCallState();
 
-  // Add timestamp fields to create/update operations
+  
   const createUserPrompt = useCallback(
     promptData => userPromptResource.createItem({
       ...promptData,
@@ -42,7 +42,7 @@ export function useUserPromptManagement() {
       modifiedDate: new Date().toISOString()
     }), [userPromptResource.updateItem]);
 
-  // Special operation for favorites
+  
   const setFavoriteUserPrompt = useCallback(
     (promptId, isFavorite) => {
       toggleFavorite(promptId);
@@ -51,7 +51,7 @@ export function useUserPromptManagement() {
           .then(() => true));
     }, [toggleFavorite, executeApiCall]);
 
-  // Simplify the getUserPromptById implementation
+  
   const getUserPromptById = useCallback(
     promptId => {
       const localPrompt = prompts.find(p => p.guid === promptId);
@@ -61,7 +61,7 @@ export function useUserPromptManagement() {
           .then(data => data.prompt));
     }, [prompts, executeApiCall]);
 
-  // Import/export operations
+  
   const importUserPrompts = useCallback(
     jsonData => executeApiCall(async () => {
       await createApiRequest('/api/importUserPrompts', 'POST')({ jsonData });

@@ -2,9 +2,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { apiClient } from '@/services/api/apiClient';
 
-/**
- * Error categories for API operations
- */
 export enum ErrorCategory {
   API = 'api_error',
   NETWORK = 'network_error',
@@ -14,9 +11,6 @@ export enum ErrorCategory {
   UNEXPECTED = 'unexpected_error'
 }
 
-/**
- * Normalized error structure
- */
 export interface AppError {
   message: string;
   category: ErrorCategory;
@@ -25,16 +19,13 @@ export interface AppError {
   originalError?: Error;
 }
 
-/**
- * Normalizes different error types into a consistent structure
- */
 export function normalizeError(error: any): string | AppError {
-  // Handle already normalized errors
+  
   if (error && error.category && error.message) {
     return error as AppError;
   }
   
-  // Handle axios response errors
+  
   if (error?.response) {
     return {
       message: error.response.data?.message || error.message || 'API request failed',
@@ -45,7 +36,7 @@ export function normalizeError(error: any): string | AppError {
     };
   }
   
-  // Handle network errors
+  
   if (error?.request) {
     return {
       message: 'Network error occurred',
@@ -54,17 +45,17 @@ export function normalizeError(error: any): string | AppError {
     };
   }
   
-  // Handle standard errors
+  
   if (error instanceof Error) {
     return error.message;
   }
   
-  // Handle string errors
+  
   if (typeof error === 'string') {
     return error;
   }
   
-  // Default case
+  
   return 'An unknown error occurred';
 }
 
