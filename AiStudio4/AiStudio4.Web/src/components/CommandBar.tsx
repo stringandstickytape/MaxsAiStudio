@@ -1,4 +1,4 @@
-// src/components/CommandBar.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Command, Pin } from 'lucide-react';
@@ -83,14 +83,14 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        // Check if the click is on the dropdown menu (portal)
+        
         const dropdownMenu = document.querySelector('.command-dropdown-menu');
         if (dropdownMenu && dropdownMenu.contains(event.target as Node)) {
-          // Click is on the dropdown menu, don't close
+          
           return;
         }
         
-        // Otherwise close the command bar
+        
         setIsOpen(false);
         setSearchTerm('');
       }

@@ -74,17 +74,17 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             }
         };
 
-        // Scroll when new messages arrive or when streaming
+        
         if (messageChain.length > 0 || streamTokens.length > 0) {
             performScrollToBottom();
 
-            // Scroll again after a short delay to handle any rendering delays
+            
             const timeoutId = setTimeout(performScrollToBottom, 100);
             return () => clearTimeout(timeoutId);
         }
     }, [messageChain.length, streamTokens.length, autoScrollEnabled]);
     
-    // Cleanup scroll animation on unmount
+    
     useEffect(() => {
         return () => {
             if (scrollAnimationRef.current) {
@@ -99,36 +99,36 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
 
         const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
 
-        // Check if scrolling up
+        
         const isScrollingUp = scrollTop < lastScrollTopRef.current;
         lastScrollTopRef.current = scrollTop;
 
-        // Calculate distance from bottom
+        
         const bottom = scrollHeight - scrollTop - clientHeight;
         const bottomThreshold = 80;
         const isNearBottom = bottom < bottomThreshold;
         
-        // Update bottom state
+        
         setIsAtBottom(isNearBottom);
         
-        // Toggle scroll button visibility based on position
+        
         setShowScrollButton(!isNearBottom && scrollHeight > clientHeight + 100);
 
-        // Load more messages on scroll up
+        
         if (isScrollingUp && scrollTop < 200) {
             if (visibleCount < messageChain.length) {
-                // Save current scroll height for position restoration
+                
                 const previousScrollHeight = scrollHeight;
                 
-                // Load more messages
+                
                 setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
                 
-                // Save for reference to adjust scroll position
+                
                 lastScrollHeightRef.current = previousScrollHeight;
             }
         }
 
-        // Disable auto-scroll when user manually scrolls away from bottom
+        
         if (!isNearBottom && autoScrollEnabled) {
             setAutoScrollEnabled(false);
         }
@@ -154,7 +154,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
     }, [visibleCount]);
 
     const scrollToBottom = () => {
-        // Cancel any ongoing scroll animation
+        
         if (scrollAnimationRef.current) {
             cancelAnimationFrame(scrollAnimationRef.current);
             scrollAnimationRef.current = null;
@@ -164,13 +164,13 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
             const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
             const targetScrollTop = scrollHeight - clientHeight;
             
-            // Use smooth scrolling animation
+            
             const startTime = performance.now();
             const startScrollTop = scrollTop;
             const distance = targetScrollTop - startScrollTop;
-            const duration = 300; // ms
+            const duration = 300; 
             
-            // Easing function for smooth scroll
+            
             const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
             
             const animateScroll = (currentTime: number) => {
@@ -185,7 +185,7 @@ export const ConvView = ({ streamTokens }: ConvViewProps) => {
                 if (progress < 1) {
                     scrollAnimationRef.current = requestAnimationFrame(animateScroll);
                 } else {
-                    // Animation complete
+                    
                     scrollAnimationRef.current = null;
                     setAutoScrollEnabled(true);
                     setShowScrollButton(false);

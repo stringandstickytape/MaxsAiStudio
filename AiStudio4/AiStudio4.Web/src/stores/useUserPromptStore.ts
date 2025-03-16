@@ -1,4 +1,4 @@
-// src/stores/useUserPromptStore.ts
+
 import { create } from 'zustand';
 import { UserPrompt } from '@/types/userPrompt';
 
@@ -32,7 +32,7 @@ export const useUserPromptStore = create<UserPromptStore>((set) => ({
         .filter(p => p.isFavorite)
         .map(p => p.guid);
         
-      // Trigger prompt command registration (will be handled by subscribers)
+      
       if (prompts.length > 0) {
         window.dispatchEvent(new CustomEvent('user-prompts-updated'));
       }

@@ -1,4 +1,4 @@
-// src/stores/usePinnedCommandsStore.ts
+
 import { create } from 'zustand';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 
@@ -123,7 +123,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
         throw new Error(data.error || 'Failed to save pinned commands');
       }
       
-      // Reset modified state after successful save
+      
       setIsModified(false);
       return true;
     } catch (error) {

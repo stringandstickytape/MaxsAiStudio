@@ -1,4 +1,4 @@
-// src/commands/settingsCommands.ts
+
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';

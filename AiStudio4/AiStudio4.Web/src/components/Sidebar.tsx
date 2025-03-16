@@ -1,4 +1,4 @@
-// src/components/Sidebar.tsx
+
 import { WebSocketState } from '@/types/websocket';
 import { HistoricalConvTreeList } from './HistoricalConvTreeList';
 import { cn } from '@/lib/utils';

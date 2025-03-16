@@ -1,4 +1,4 @@
-// src/commands/coreCommands.ts
+
 import { v4 as uuidv4 } from 'uuid';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';

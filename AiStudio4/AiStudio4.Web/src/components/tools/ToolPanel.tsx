@@ -1,4 +1,4 @@
-// src/components/tools/ToolPanel.tsx
+
 import { useState, useEffect } from 'react';
 import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';

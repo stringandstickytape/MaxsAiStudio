@@ -1,4 +1,4 @@
-// src/stores/useCommandStore.ts
+
 import { create } from 'zustand';
 import { Command, CommandGroup, CommandSection } from '@/commands/types';
 

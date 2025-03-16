@@ -1,4 +1,4 @@
-// src/stores/useAppearanceStore.ts
+
 import { create } from 'zustand';
 import { apiClient } from '@/services/api/apiClient';
 

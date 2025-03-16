@@ -1,4 +1,4 @@
-// src/components/common/GenericForm.tsx
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';

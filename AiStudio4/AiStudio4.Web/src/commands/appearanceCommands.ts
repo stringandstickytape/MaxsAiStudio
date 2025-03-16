@@ -1,4 +1,4 @@
-// src/commands/appearanceCommands.ts
+
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { ZoomIn, ZoomOut, RotateCcw, Settings } from 'lucide-react';

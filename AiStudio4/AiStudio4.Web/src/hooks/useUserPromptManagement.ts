@@ -1,4 +1,4 @@
-// src/hooks/useUserPromptManagement.ts
+
 import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
@@ -48,9 +48,9 @@ export function useUserPromptManagement() {
 
   const setFavoriteUserPrompt = useCallback(
     (promptId, isFavorite) => {
-      // Update local state first
+      
       toggleFavorite(promptId);
-      // Then update server
+      
       return executeApiCall(() =>
         createApiRequest('/api/setFavoriteUserPrompt', 'POST')({ promptId, isFavorite }).then(() => true));
     }, [toggleFavorite, executeApiCall]);

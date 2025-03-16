@@ -1,4 +1,4 @@
-// src/services/api/apiClient.ts
+
 import axios from 'axios';
 import { create } from 'zustand';
 import { webSocketService } from '../websocket/WebSocketService';
@@ -89,7 +89,7 @@ export const useApiStore = create<ApiState>((set) => ({
     }),
 }));
 
-// API function to update a message on the server
+
 export async function updateMessage(params: { convId: string; messageId: string; content: string }) {
   try {
     const response = await apiClient.post('/api/updateMessage', params);

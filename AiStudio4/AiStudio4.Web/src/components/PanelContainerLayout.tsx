@@ -1,4 +1,4 @@
-// src/components/PanelContainerLayout.tsx
+
 import React, { useEffect } from 'react';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { cn } from '@/lib/utils';

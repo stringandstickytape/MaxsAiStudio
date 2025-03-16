@@ -1,4 +1,4 @@
-// src/components/SystemPrompt/SystemPromptDialog.tsx
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { SystemPromptLibrary } from './SystemPromptLibrary';
@@ -31,9 +31,9 @@ export function SystemPromptDialog() {
 
               if (convId && promptId) {
                 try {
-                  // Ensure we wait for this to complete
+                  
                   await setConvSystemPrompt({ convId, promptId });
-                  // Update local state after API call succeeds
+                  
                   setConvPrompt(convId, promptId);
                   console.log(`SystemPromptDialog: Set conv ${convId} system prompt to ${promptId}`);
                 } catch (error) {

@@ -1,4 +1,4 @@
-// src/utils/webSocketUtils.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { WebSocketEventType, WebSocketEventDetail, listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';

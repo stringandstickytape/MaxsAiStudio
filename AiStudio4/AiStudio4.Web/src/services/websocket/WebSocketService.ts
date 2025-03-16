@@ -1,10 +1,10 @@
-// src/services/websocket/WebSocketService.ts
+
 import { dispatchWebSocketEvent } from './websocketEvents';
 
 export interface WebSocketMessage {
     messageType: string;
     content: any;
-    clientId?: string; // Added clientId to the message interface
+    clientId?: string; 
 }
 
 export interface WebSocketConnectionStatus {
@@ -38,7 +38,7 @@ export class WebSocketService {
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Removed clientId from URL
+        
         this.socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
         this.socket.addEventListener('open', this.handleOpen);
@@ -74,7 +74,7 @@ export class WebSocketService {
 
     public send(message: WebSocketMessage): void {
         if (this.socket?.readyState === WebSocket.OPEN) {
-            // Include clientId in every message sent
+            
             const messageWithClientId = {
                 ...message,
                 clientId: this.clientId
@@ -153,7 +153,7 @@ export class WebSocketService {
         this.connected = true;
         this.reconnectAttempts = 0;
 
-        // Send an initial identification message with the client ID
+        
         this.send({
             messageType: 'identify',
             content: { clientId: this.clientId }
@@ -275,7 +275,7 @@ export class WebSocketService {
     }
 
     private generateGuid(): string {
-        // Implementation of RFC4122 version 4 compliant UUID
+        
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             const r = Math.random() * 16 | 0;
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -284,5 +284,5 @@ export class WebSocketService {
     }
 }
 
-// Create a singleton instance
+
 export const webSocketService = new WebSocketService();

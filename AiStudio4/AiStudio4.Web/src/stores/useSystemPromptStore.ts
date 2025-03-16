@@ -1,4 +1,4 @@
-// src/stores/useSystemPromptStore.ts
+
 import { create } from 'zustand';
 import { SystemPrompt } from '@/types/systemPrompt';
 
@@ -34,7 +34,7 @@ export const useSystemPromptStore = create<SystemPromptStore>((set) => ({
     set((state) => {
       const defaultPrompt = prompts.find((p) => p.isDefault);
         
-      // Trigger prompt command registration (will be handled by subscribers)
+      
       if (prompts.length > 0) {
         window.dispatchEvent(new CustomEvent('system-prompts-updated'));
       }

@@ -1,11 +1,11 @@
-// src/commands/types.ts
+
 export type CommandSection = 'conv' | 'model' | 'view' | 'settings' | 'utility' | 'appearance';
 
 export interface Command {
   id: string;
   name: string;
   description?: string;
-  shortcut?: string; // Format: 'Ctrl+K', '⌘+K', 'Alt+V', etc.
+  shortcut?: string; 
   keywords: string[];
   section: CommandSection;
   execute: (args?: any) => void;

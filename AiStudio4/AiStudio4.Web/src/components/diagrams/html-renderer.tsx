@@ -1,4 +1,4 @@
-// /src/components/html-renderer.tsx
+
 import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { useEffect, useRef } from 'react';
 

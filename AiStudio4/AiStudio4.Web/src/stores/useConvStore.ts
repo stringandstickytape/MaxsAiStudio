@@ -1,4 +1,4 @@
-// src/stores/useConvStore.ts
+
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
@@ -261,7 +261,7 @@ export const useConvStore = create<ConvState>((set, get) => {
           content,
         };
 
-        // Persist the change to the server
+        
         import('../services/api/apiClient').then(({ updateMessage }) => {
           updateMessage({ convId, messageId, content })
             .catch(error => console.error('Failed to update message on server:', error));
@@ -350,7 +350,7 @@ export const useConvStore = create<ConvState>((set, get) => {
               };
           }),
 
-      // Move these outside of deleteConv return statement, making them top-level functions in the store
+      
       editMessage: (messageId) =>
           set(() => ({
               editingMessageId: messageId,

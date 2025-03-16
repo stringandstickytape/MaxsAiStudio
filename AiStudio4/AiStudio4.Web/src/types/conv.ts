@@ -1,4 +1,4 @@
-// src/types/conv.ts
+
 export interface Message {
   id: string;
   content: string;

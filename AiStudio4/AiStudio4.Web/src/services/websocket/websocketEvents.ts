@@ -1,4 +1,4 @@
-// src/services/websocket/websocketEvents.ts
+
 export type WebSocketEventType =
   | 'connection:status'
   | 'message:received'

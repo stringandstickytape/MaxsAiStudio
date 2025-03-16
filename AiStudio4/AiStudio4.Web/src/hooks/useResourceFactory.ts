@@ -1,4 +1,4 @@
-// src/hooks/useResourceFactory.ts
+
 import { useCallback, useState } from 'react';
 import { useInitializeIfEmpty } from '@/utils/hookUtils';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';

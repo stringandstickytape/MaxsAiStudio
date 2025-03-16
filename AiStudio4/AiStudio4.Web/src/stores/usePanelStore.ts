@@ -1,4 +1,4 @@
-﻿// src/stores/usePanelStore.ts
+
 import { create } from 'zustand';
 import { PanelState } from '@/types/ui';
 
@@ -25,17 +25,17 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
 
             const updatedPanels = { ...state.panels };
 
-            // If we're closing the panel, also ensure it's not pinned
+            
             const isClosing = panel.isOpen;
 
             updatedPanels[id] = {
                 ...panel,
                 isOpen: !panel.isOpen,
-                // If we're closing, also unpin the panel
+                
                 isPinned: isClosing ? false : panel.isPinned
             };
 
-            // When closing one panel, close other unpinned panels in the same position
+            
             if (!panel.isOpen && !panel.isPinned) {
                 Object.keys(updatedPanels).forEach((key) => {
                     if (key !== id && updatedPanels[key].position === panel.position && !updatedPanels[key].isPinned) {
@@ -58,11 +58,11 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
                 return state;
             }
 
-            // When toggling pin status, ensure the panel stays visible
+            
             const newIsPinned = !panel.isPinned;
 
-            // If we're pinning, make sure the panel is open
-            // If we're unpinning, don't change isOpen state initially
+            
+            
             return {
                 panels: {
                     ...state.panels,
@@ -75,7 +75,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
             };
         });
 
-        // Save panel layout after pinning change for persistence
+        
         try {
             const { panels } = usePanelStore.getState();
             localStorage.setItem('panel-layout', JSON.stringify(panels));
@@ -149,7 +149,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
               };
           }
 
-          // For new panels, apply saved state if available
+          
           const newPanel = {
               ...panel,
               ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),

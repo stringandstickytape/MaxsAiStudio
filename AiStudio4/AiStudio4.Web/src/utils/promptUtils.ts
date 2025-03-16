@@ -1,4 +1,4 @@
-// src/utils/promptUtils.ts
+
 
 export function setupPromptUtils(setTextFn) {
   window.appendToPrompt = (text, options = {}) => {

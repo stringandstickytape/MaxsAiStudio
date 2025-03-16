@@ -1,4 +1,4 @@
-// src/commands/toolCommands.ts
+
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tool } from '@/types/toolTypes';

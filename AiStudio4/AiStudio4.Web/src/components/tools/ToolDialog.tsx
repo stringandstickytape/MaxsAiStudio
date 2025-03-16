@@ -1,4 +1,4 @@
-// src/components/tools/ToolDialog.tsx
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ToolPanel } from './ToolPanel';

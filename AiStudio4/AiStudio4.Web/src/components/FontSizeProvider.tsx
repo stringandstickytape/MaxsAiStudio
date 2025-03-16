@@ -1,4 +1,4 @@
-// src/components/FontSizeProvider.tsx
+
 import { useEffect } from 'react';
 import { useAppearanceStore } from '@/stores/useAppearanceStore';
 

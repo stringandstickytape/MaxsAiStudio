@@ -1,4 +1,4 @@
-// src/commands/userPromptCommands.ts
+
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { BookMarked, Pencil, PlusCircle } from 'lucide-react';
@@ -74,12 +74,12 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
   const { prompts, setCurrentPrompt } = useUserPromptStore.getState();
 
   const promptCommands = prompts.map((prompt) => {
-    // Extract a preview of the prompt content (first 100 characters)
+    
     const contentPreview = prompt.content.length > 100 
       ? prompt.content.substring(0, 100) + '...' 
       : prompt.content;
     
-    // Create a display name that includes the shortcut if available
+    
     const displayName = prompt.shortcut 
       ? `${prompt.title} [Prompt Template] [${prompt.shortcut}]` 
       : `${prompt.title} [Prompt Template]`;
@@ -92,7 +92,7 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
         'user', 'prompt', 'apply', 'template', 'snippet', 
         ...(prompt.shortcut ? [prompt.shortcut.toLowerCase()] : []),
         ...prompt.title.toLowerCase().split(' '),
-        ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) // Add content words as keywords
+        ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) 
       ],
       section: 'utility',
       icon: React.createElement(BookMarked, { 
@@ -101,21 +101,21 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
       }),
       execute: () => {
         setCurrentPrompt(prompt);
-        // Set the prompt content to the input field
+        
         window.setPrompt(prompt.content);
-        // No need to open the library since we're applying directly
+        
       },
     };
   });
 
-  // Always register the group, even when empty
+  
   useCommandStore.getState().registerGroup({
     id: 'user-prompts-list',
     name: 'Available User Prompts',
-    priority: 96, // Higher priority to show at the very top
+    priority: 96, 
     commands: promptCommands,
   });
   
-  // Log for debugging
+  
   console.log(`Registered ${promptCommands.length} user prompts as commands`);
 }

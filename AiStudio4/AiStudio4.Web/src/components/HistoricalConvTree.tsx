@@ -59,7 +59,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
   }, [treeData]);
 
   const renderTree = (node: TreeNode): JSX.Element | JSX.Element[] => {
-    // Special case for the root node: don't render it, but render its children directly
+    
     if (node.text === 'Conv Root' || node.text.includes('Conversation Root')) {
       const children = node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [];
       return <>{children.map((child) => renderTree(child))}</>;

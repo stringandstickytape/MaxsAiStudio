@@ -1,4 +1,4 @@
-// src/App.tsx
+
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';

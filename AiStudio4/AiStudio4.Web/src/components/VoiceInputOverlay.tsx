@@ -1,4 +1,4 @@
-// src/components/VoiceInputOverlay.tsx
+
 import React, { useEffect, useRef } from 'react';
 import { Mic, MicOff, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';

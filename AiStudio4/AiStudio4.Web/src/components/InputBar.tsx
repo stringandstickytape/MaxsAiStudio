@@ -1,4 +1,4 @@
-// src/components/InputBar.tsx
+
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,7 +60,7 @@ export function InputBar({
     const [visibleToolCount, setVisibleToolCount] = useState(3);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
-    // Responsive media queries
+    
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
@@ -95,9 +95,9 @@ export function InputBar({
         setCursorPosition(e.currentTarget.selectionStart);
     };
 
-    // Dynamic calculation of visible tools based on available width
+    
     useEffect(() => {
-        // Adjust visible tool count based on screen size
+        
         if (isXs) {
             setVisibleToolCount(1);
         } else if (isSm) {
@@ -108,16 +108,16 @@ export function InputBar({
             setVisibleToolCount(4);
         }
 
-        // Create ResizeObserver for more precise adjustments
+        
         const observer = new ResizeObserver(() => {
             if (!toolsContainerRef.current) return;
             const containerWidth = toolsContainerRef.current.clientWidth;
 
-            // Fine-tune visible count based on actual container width
-            // Each tool takes roughly 120px of space plus gaps
+            
+            
             const estimatedToolCapacity = Math.floor(containerWidth / 120);
 
-            // Use the minimum between estimated capacity and screen-size based count
+            
             let count = Math.max(1, estimatedToolCapacity);
             if (isXs) count = Math.min(count, 1);
             else if (isSm) count = Math.min(count, 2);
@@ -309,7 +309,7 @@ export function InputBar({
         };
     }, []);
 
-    // Handle model selector button clicks
+    
     const handlePrimaryModelClick = () => {
         const event = new CustomEvent('select-primary-model');
         window.dispatchEvent(event);

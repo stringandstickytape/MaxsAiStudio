@@ -1,4 +1,4 @@
-// src/components/HistoricalConvTreeList.tsx
+
 import { useState, useEffect } from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { HistoricalConvTree } from './HistoricalConvTree';
@@ -77,10 +77,10 @@ export const HistoricalConvTreeList = () => {
     try {
       const tree = await fetchTreeData(convId);
       
-      // Filter out system messages from the tree data
+      
       if (tree) {
-        // If the tree has a specific text that indicates it's a system root message, 
-        // preserve the tree structure but mark it for special handling
+        
+        
         if (tree.text === 'Conv Root' || tree.text.includes('system') || tree.text.includes('System')) {
           tree.text = 'Conversation Root';
         }

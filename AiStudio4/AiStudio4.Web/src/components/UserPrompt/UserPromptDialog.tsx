@@ -1,4 +1,4 @@
-// src/components/UserPrompt/UserPromptDialog.tsx
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { UserPromptLibrary } from './UserPromptLibrary';

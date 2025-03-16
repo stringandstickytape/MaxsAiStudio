@@ -1,4 +1,4 @@
-// src/components/PinnedShortcuts.tsx
+
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCommandStore } from '@/stores/useCommandStore';

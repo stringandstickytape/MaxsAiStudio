@@ -1,4 +1,4 @@
-// src/hooks/useWebSocket.ts
+
 import { useEffect } from 'react';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';

@@ -1,4 +1,4 @@
-// src/components/FileAttachment.tsx
+
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, X } from 'lucide-react';

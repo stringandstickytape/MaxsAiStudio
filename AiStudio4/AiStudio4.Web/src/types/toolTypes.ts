@@ -1,4 +1,4 @@
-// src/types/toolTypes.ts
+
 
 export interface Tool {
   guid: string;

@@ -1,4 +1,4 @@
-// src/components/commands/CommandInitializer.tsx
+
 import { useEffect } from 'react';
 import { registerEditMessageCommands } from '@/components/commands/EditMessageCommands';
 import { initializeCoreCommands } from '@/commands/coreCommands';

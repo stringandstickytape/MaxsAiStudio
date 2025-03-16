@@ -1,4 +1,4 @@
-// src/stores/useToolStore.ts
+
 import { create } from 'zustand';
 import { Tool, ToolCategory } from '@/types/toolTypes';
 

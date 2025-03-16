@@ -1,4 +1,4 @@
-// src/types/systemPrompt.ts
+
 
 export interface SystemPrompt {
   guid: string;

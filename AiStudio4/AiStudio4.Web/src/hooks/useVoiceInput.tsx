@@ -1,4 +1,4 @@
-// src/hooks/useVoiceInput.tsx
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface SpeechRecognition extends EventTarget {

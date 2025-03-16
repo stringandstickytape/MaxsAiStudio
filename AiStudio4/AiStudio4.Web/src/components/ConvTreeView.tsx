@@ -1,4 +1,4 @@
-// src/components/ConvTreeView.tsx
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
 import { cn } from '@/lib/utils';
@@ -130,10 +130,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       const rootNode = svg.select('.node').datum() as any;
 
         if (rootNode) {
-            // Center the view on the root node
+            
             const centerX = containerWidth / 2;
 
-            // Center the view
+            
             svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
       } else {
         
@@ -219,7 +219,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     nodeGroups
       .append('rect')
       .attr('width', 240)
-      .attr('height', 100)  // Moderately taller to show more text
+      .attr('height', 100)  
       .attr('x', -120)
       .attr('y', -40)
       .attr('rx', 10)
@@ -239,10 +239,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .attr('stroke-width', 1);
 
     
-    // Remove the transform on the group and position elements individually
+    
     const nodeLabels = nodeGroups.append('g');
 
-    // Title text ("You", "AI", or "System")
+    
     nodeLabels
       .append('text')
       .attr('x', -110)
@@ -261,22 +261,22 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     nodeLabels
       .append('foreignObject')
       .attr('x', -110)
-      .attr('y', -20)  // Position closer to the title
+      .attr('y', -20)  
       .attr('width', 220)
-      .attr('height', 75)  // Increased height for more content
+      .attr('height', 75)  
       .append('xhtml:div')
       .style('color', 'white')
       .style('font-size', '10px')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
       .style('display', '-webkit-box')
-      .style('-webkit-line-clamp', '5')  // Show 5 lines maximum
+      .style('-webkit-line-clamp', '5')  
       .style('-webkit-box-orient', 'vertical')
       .style('word-wrap', 'break-word')
-      .style('padding', '0 2px')  // Add a little padding
+      .style('padding', '0 2px')  
       .html((d) => {
         const content = d.data.content || '';
-        // Escape HTML to prevent XSS and display the content safely
+        
         return content
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')

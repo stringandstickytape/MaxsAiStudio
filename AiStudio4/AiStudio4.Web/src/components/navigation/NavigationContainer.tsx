@@ -1,4 +1,4 @@
-// src/components/navigation/NavigationContainer.tsx
+
 import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';

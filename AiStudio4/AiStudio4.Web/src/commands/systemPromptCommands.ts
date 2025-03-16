@@ -1,4 +1,4 @@
-// src/commands/systemPromptCommands.ts
+
 import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
@@ -82,7 +82,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
 
     const promptCommands = prompts.map((prompt) => {
-        // Extract a preview of the prompt content (first 100 characters)
+        
         const contentPreview = prompt.content.length > 100
             ? prompt.content.substring(0, 100) + '...'
             : prompt.content;
@@ -94,7 +94,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
             keywords: [
                 'system', 'prompt', 'apply',
                 ...prompt.title.toLowerCase().split(' '),
-                ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) // Add content words as keywords
+                ...prompt.content.toLowerCase().split(/\s+/).slice(0, 30) 
             ],
             section: 'utility',
             icon: React.createElement(MessageSquare, {
@@ -108,14 +108,14 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
         };
     });
 
-    // Always register the group, even when empty
+    
     useCommandStore.getState().registerGroup({
         id: 'system-prompts-list',
         name: 'Available System Prompts',
-        priority: 95, // Higher priority to show near the top
+        priority: 95, 
         commands: promptCommands,
     });
 
-    // Log for debugging
+    
     console.log(`Registered ${promptCommands.length} system prompts as commands`);
 }

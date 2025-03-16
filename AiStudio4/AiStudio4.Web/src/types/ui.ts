@@ -1,4 +1,4 @@
-// src/types/ui.ts
+
 export type PanelPosition = 'left' | 'right' | 'top' | 'bottom';
 
 export interface PanelState {

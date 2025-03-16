@@ -1,4 +1,4 @@
-// src/types/userPrompt.ts
+
 
 export interface UserPrompt {
   guid: string;

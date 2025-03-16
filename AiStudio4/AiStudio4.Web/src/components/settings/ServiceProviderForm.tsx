@@ -1,4 +1,4 @@
-// src/components/settings/ServiceProviderForm.tsx
+
 import React from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
