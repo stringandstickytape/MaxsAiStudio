@@ -45,7 +45,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
   const initialRegistrationDone = useRef(false);
   const panelRefs = useRef<Record<string, ImperativePanelHandle | null>>({});
 
-  // Initialize panel refs
+  
   useEffect(() => {
     panels.forEach((panel) => {
       if (!panelRefs.current[panel.id]) {
@@ -54,10 +54,10 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     });
   }, [panels]);
 
-  // Register panels on first render
+  
   useEffect(() => {
     if (!initialRegistrationDone.current) {
-      // Register each panel with the store
+      
       panels.forEach((panel) => {
         registerPanel({
           id: panel.id,
@@ -73,13 +73,13 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     }
   }, [panels, registerPanel]);
 
-  // Group panels by position
+  
   const leftPanels = panels.filter((p) => p.position === 'left');
   const rightPanels = panels.filter((p) => p.position === 'right');
   const topPanels = panels.filter((p) => p.position === 'top');
   const bottomPanels = panels.filter((p) => p.position === 'bottom');
 
-  // Render a panel
+  
   const renderPanel = (panel: PanelConfig) => {
     const state = panelStates[panel.id] || { isOpen: false };
     const isVisible = state.isOpen;
@@ -97,7 +97,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
               size="icon"
               className="h-8 w-8 text-gray-400 hover:text-gray-100"
               onClick={() => {
-                // Close the panel
+                
                 usePanelStore.setState(state => ({
                   panels: {
                     ...state.panels,
@@ -108,7 +108,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
                   }
                 }));
                 
-                // Save the state after updating
+                
                 requestAnimationFrame(() => {
                   usePanelStore.getState().saveState();
                 });
@@ -126,9 +126,9 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     );
   };
 
-  // Render a group of panels in a specific position
+  
   const renderPanelGroup = (positionPanels: PanelConfig[], direction: 'horizontal' | 'vertical') => {
-    // Filter only the visible panels
+    
     const visiblePanels = positionPanels.filter((panel) => {
       const state = panelStates[panel.id];
       return state && state.isOpen;
@@ -157,7 +157,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     );
   };
 
-  // Main render
+  
   return (
     <div className={cn('fixed inset-0 z-40 pointer-events-none', className)}>
       {/* Left panels */}

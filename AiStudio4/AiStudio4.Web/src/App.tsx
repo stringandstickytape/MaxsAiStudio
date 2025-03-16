@@ -31,9 +31,9 @@ function App() {
         
         let needsFix = false;
         
-        // No need to check for isPinned anymore
+        
         Object.keys(savedPanels).forEach(id => {
-          // We can keep any customizations here if needed in the future
+          
         });
         
         if (needsFix) {

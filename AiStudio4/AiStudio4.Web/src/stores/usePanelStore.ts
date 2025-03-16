@@ -29,7 +29,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         isOpen: !panel.isOpen
       };
 
-      // Close other panels in the same position when opening a panel
+      
       if (!panel.isOpen) {
         Object.keys(updatedPanels).forEach((key) => {
           if (key !== id && updatedPanels[key].position === panel.position) {
@@ -109,7 +109,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         };
       }
 
-      // Create a new panel with saved state or defaults
+      
       const newPanel = {
         ...panel,
         ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),
