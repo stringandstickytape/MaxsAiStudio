@@ -2,7 +2,7 @@
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
-import { Mic, Send, BookMarked, X, Wrench } from 'lucide-react';
+import { Mic, Send, BookMarked, X, Wrench, ArrowDown } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +26,13 @@ interface InputBarProps {
     onManageTools?: () => void;
 }
 
+declare global {
+    interface Window {
+        scrollChatToBottom?: () => void;
+        getScrollButtonState?: () => boolean;
+    }
+}
+
 export function InputBar({
     selectedModel,
     onVoiceInputClick,
@@ -37,6 +44,7 @@ export function InputBar({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const [localInputText, setLocalInputText] = useState('');
+    const [showScrollButton, setShowScrollButton] = useState(false);
 
     const inputText = inputValue !== undefined ? inputValue : localInputText;
     const setInputText = onInputChange || setLocalInputText;
@@ -335,6 +343,30 @@ export function InputBar({
         window.dispatchEvent(event);
     };
 
+    // Handle scroll button state
+    useEffect(() => {
+        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) => {
+            setShowScrollButton(event.detail.visible);
+        };
+        
+        window.addEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
+        
+        // Check initial state
+        if (window.getScrollButtonState) {
+            setShowScrollButton(window.getScrollButtonState());
+        }
+        
+        return () => {
+            window.removeEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
+        };
+    }, []);
+    
+    const handleScrollToBottom = () => {
+        if (window.scrollChatToBottom) {
+            window.scrollChatToBottom();
+        }
+    };
+    
     const handleSecondaryModelClick = () => {
         const event = new CustomEvent('select-secondary-model');
         window.dispatchEvent(event);
@@ -342,6 +374,19 @@ export function InputBar({
 
     return (
         <div className="h-[280px] bg-gray-900 border-gray-700/50  shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+            {showScrollButton && (
+                <div className="w-full flex justify-center mb-3">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleScrollToBottom}
+                        className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200"
+                    >
+                        <ArrowDown className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Scroll to bottom</span>
+                    </Button>
+                </div>
+            )}
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
@@ -413,7 +458,18 @@ export function InputBar({
                             />
                         </div>
 
-                        <div className="flex items-center ml-3 pl-3 border-l border-gray-700/50">
+                        <div className="flex items-center gap-2 ml-3 pl-3 border-l border-gray-700/50">
+                            {showScrollButton && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleScrollToBottom}
+                                    className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                                >
+                                    <ArrowDown className="h-3 w-3 mr-1" />
+                                    <span>Scroll to bottom</span>
+                                </Button>
+                            )}
                             <Button
                                 variant="ghost"
                                 size="sm"

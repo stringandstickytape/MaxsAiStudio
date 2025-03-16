@@ -24,9 +24,21 @@ export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) 
     const [isAtBottom, setIsAtBottom] = useState(true);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [showScrollButtonState, setShowScrollButtonState] = useState(false);
     const lastScrollHeightRef = useRef<number>(0);
     const lastScrollTopRef = useRef<number>(0);
     const scrollAnimationRef = useRef<number | null>(null);
+    
+    // Add window event to expose scroll to bottom functionality
+    useEffect(() => {
+        window.scrollChatToBottom = scrollToBottom;
+        window.getScrollButtonState = () => showScrollButton;
+        return () => {
+            delete window.scrollChatToBottom;
+            delete window.getScrollButtonState;
+        };
+    }, [showScrollButton]);
+
 
     
     const messageChain = useMemo(() => {
@@ -115,7 +127,14 @@ export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) 
         setIsAtBottom(isNearBottom);
         
         
-        setShowScrollButton(!isNearBottom && scrollHeight > clientHeight + 100);
+        const shouldShowButton = !isNearBottom && scrollHeight > clientHeight + 100;
+        setShowScrollButton(shouldShowButton);
+        setShowScrollButtonState(shouldShowButton);
+        
+        // Dispatch event when scroll button state changes
+        if (shouldShowButton !== showScrollButton) {
+            window.dispatchEvent(new CustomEvent('scroll-button-state-change', { detail: { visible: shouldShowButton } }));
+        }
 
         
         if (isScrollingUp && scrollTop < 200) {
@@ -201,16 +220,14 @@ export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) 
     
     const ScrollToBottomButton = () => {
         return (
-            <div className="w-full flex justify-center mb-2">
-                <Button
-                    className={`bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200 ${showScrollButton ? 'opacity-100' : 'opacity-0'}`}
-                    onClick={scrollToBottom}
-                    aria-label="Scroll to bottom"
-                >
-                    <ArrowDown className="h-4 w-4 mr-1" />
-                    <span className="text-xs">Scroll to bottom</span>
-                </Button>
-            </div>
+            <Button
+                className={`bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200 ${showScrollButton ? 'opacity-100' : 'opacity-0'}`}
+                onClick={scrollToBottom}
+                aria-label="Scroll to bottom"
+            >
+                <ArrowDown className="h-4 w-4 mr-1" />
+                <span className="text-xs">Scroll to bottom</span>
+            </Button>
         );
     };
 
@@ -370,7 +387,6 @@ export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) 
                 )}
                 </div>
             </div>
-            <ScrollToBottomButton />
         </div>
     );
 };
