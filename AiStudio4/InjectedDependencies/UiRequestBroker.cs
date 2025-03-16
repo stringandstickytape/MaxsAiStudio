@@ -25,6 +25,7 @@ namespace AiStudio4.InjectedDependencies
         private readonly IUserPromptService _userPromptService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IChatService _chatService;
+        private readonly ClientRequestCancellationService _cancellationService;
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -37,7 +38,8 @@ namespace AiStudio4.InjectedDependencies
             IConvStorage convStorage,
             IUserPromptService userPromptService,
             IServiceProvider serviceProvider,
-            IChatService chatService
+            IChatService chatService,
+            ClientRequestCancellationService cancellationService
             )
         {
             _configuration = configuration;
@@ -51,6 +53,7 @@ namespace AiStudio4.InjectedDependencies
             _userPromptService = userPromptService;
             _serviceProvider = serviceProvider;
             _chatService = chatService;
+            _cancellationService = cancellationService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -118,6 +121,7 @@ namespace AiStudio4.InjectedDependencies
                     "importUserPrompts" => await HandleImportUserPromptsRequest(requestObject),
                     "exportUserPrompts" => await HandleExportUserPromptsRequest(),
                     "simpleChat" => await HandleSimpleChatRequest(requestObject),
+                    "cancelRequest" => await HandleCancelRequestAsync(clientId, requestObject),
                     _ => throw new NotImplementedException()
                 };
             }
@@ -813,6 +817,41 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error exporting user prompts: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Cancel Request Handler
+        private async Task<string> HandleCancelRequestAsync(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                bool anyCancelled = _cancellationService.CancelAllRequests(clientId);
+                
+                // Notify the client about the cancellation
+                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                {
+                    type = "request:cancelled",
+                    content = new
+                    {
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    }
+                }));
+
+                return JsonConvert.SerializeObject(new { success = true, cancelled = anyCancelled });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error cancelling requests: {ex.Message}");
             }
         }
         #endregion

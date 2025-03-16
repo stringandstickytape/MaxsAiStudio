@@ -14,6 +14,7 @@ namespace AiStudio4.Core.Models
         public List<string> ToolIds { get; set; } = new List<string>();
         public string SystemPromptId { get; set; }
         public string SystemPromptContent { get; set; }
+        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
     }
 
     public class MessageHistoryItem

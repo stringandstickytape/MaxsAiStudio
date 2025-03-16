@@ -197,7 +197,7 @@ namespace AiStudio4.Services
                     ServiceProvider = service,
                     Model = model,
                     Conv = conv,
-                    CancellationToken = new CancellationToken(false),
+                    CancellationToken = request.CancellationToken,
                     ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     ToolIds = request.ToolIds ?? new List<string>(),

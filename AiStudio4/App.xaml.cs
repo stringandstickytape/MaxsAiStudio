@@ -61,6 +61,7 @@ namespace AiStudio4
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
             services.AddSingleton<IUserPromptService, UserPromptService>();
+            services.AddSingleton<ClientRequestCancellationService>();
 
             // Register application services
             services.AddSingleton<SettingsManager>();

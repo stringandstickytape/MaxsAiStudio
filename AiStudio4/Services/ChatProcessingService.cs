@@ -24,6 +24,7 @@ namespace AiStudio4.Services
         private readonly SettingsManager _settingsManager;
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
+        private readonly ClientRequestCancellationService _cancellationService;
 
         public ChatProcessingService(
             IConvStorage convStorage,
@@ -32,7 +33,8 @@ namespace AiStudio4.Services
             ILogger<ChatProcessingService> logger,
             SettingsManager settingsManager,
             IToolService toolService,
-            ISystemPromptService systemPromptService)
+            ISystemPromptService systemPromptService,
+            ClientRequestCancellationService cancellationService)
         {
             _convStorage = convStorage;
             _chatService = chatService;
@@ -41,12 +43,16 @@ namespace AiStudio4.Services
             _settingsManager = settingsManager;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
+            _cancellationService = cancellationService;
         }
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
         {
             try
             {
+                // Get cancellation token from the service
+                var cancellationToken = _cancellationService.AddTokenSource(clientId);
+                
                 // Create and attach event handlers
                 EventHandler<string> streamingHandler = (s, text) =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
@@ -81,7 +87,8 @@ namespace AiStudio4.Services
                         Model = (string)requestObject["model"],
                         ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
                         SystemPromptId = (string)requestObject["systemPromptId"],
-                        SystemPromptContent = (string)requestObject["systemPromptContent"]
+                        SystemPromptContent = (string)requestObject["systemPromptContent"],
+                        CancellationToken = cancellationToken
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
@@ -210,6 +217,7 @@ namespace AiStudio4.Services
                 {
                     _chatService.StreamingTextReceived -= streamingHandler;
                     _chatService.StreamingComplete -= completeHandler;
+                    _cancellationService.RemoveTokenSource(clientId, cancellationToken);
                 }
             }
             catch (Exception ex)
