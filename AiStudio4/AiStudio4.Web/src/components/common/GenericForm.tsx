@@ -90,7 +90,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     await onSubmit(data);
   };
 
-  // Common style constants
+  
   const baseStyles = 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500';
   const colorInputStyles = 'w-12 h-8 p-1 bg-transparent';
   const formLabelClass = 'form-label text-gray-200';
@@ -147,13 +147,13 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     return fields.map((field) => renderField(field));
   };
 
-  // Helper function to handle onChange events consistently
+  
   const handleChange = (formField: any, fieldDef: FormFieldDefinition, value: any) => {
     formField.onChange(value);
     fieldDef.onChange?.(value);
   };
 
-  // Common form field wrapper component
+  
   const CommonFormField = ({
     field,
     children,
@@ -181,7 +181,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
     />
   );
 
-  // Renders the field based on its type
+  
   const renderField = (field: FormFieldDefinition) => {
     switch (field.type) {
       case 'textarea':
@@ -316,7 +316,7 @@ export const GenericForm: React.FC<GenericFormProps> = ({
           </CommonFormField>
         );
       
-      // Default case handles text, password, etc.
+      
       default:
         return (
           <CommonFormField field={field}>
