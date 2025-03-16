@@ -826,15 +826,6 @@ namespace AiStudio4.InjectedDependencies
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    clientId = requestObject["clientId"]?.ToString();
-                    if (string.IsNullOrEmpty(clientId))
-                    {
-                        return SerializeError("Client ID is required");
-                    }
-                }
-
                 bool anyCancelled = _cancellationService.CancelAllRequests(clientId);
                 
                 // Notify the client about the cancellation

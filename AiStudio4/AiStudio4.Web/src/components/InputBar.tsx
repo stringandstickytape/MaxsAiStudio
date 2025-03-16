@@ -254,6 +254,13 @@ export function InputBar({
       handleChatMessage(inputText);
     }
   };
+  
+  // Reset cancelling state when a request is fully cancelled
+  useEffect(() => {
+    if (!isLoading && isCancelling) {
+      setIsCancelling(false);
+    }
+  }, [isLoading, isCancelling, setIsCancelling]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
