@@ -30,13 +30,13 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const lastScrollTopRef = useRef<number>(0);
     const scrollAnimationRef = useRef<number | null>(null);
     
-    // Register scroll functions to window and manage event dispatch for scroll button state
+    
     useEffect(() => {
-        // Register scroll functions on window for external access
+        
         window.scrollChatToBottom = scrollToBottom;
         window.getScrollButtonState = () => showScrollButton;
         
-        // Dispatch scroll button state change event when showScrollButton changes
+        
         window.dispatchEvent(new CustomEvent('scroll-button-state-change', { 
             detail: { visible: showScrollButton } 
         }));
@@ -122,38 +122,38 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
         const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
 
-        // Detect scroll direction
+        
         const isScrollingUp = scrollTop < lastScrollTopRef.current;
         lastScrollTopRef.current = scrollTop;
 
-        // Check if we're near the bottom of the scroll area
+        
         const bottom = scrollHeight - scrollTop - clientHeight;
         const bottomThreshold = 80;
         const isNearBottom = bottom < bottomThreshold;
         
-        // Update bottom state
+        
         setIsAtBottom(isNearBottom);
         
-        // Set scroll button visibility based on scroll position
+        
         const shouldShowButton = !isNearBottom && scrollHeight > clientHeight + 100;
         if (shouldShowButton !== showScrollButton) {
             setShowScrollButton(shouldShowButton);
-            // Event is now dispatched in the useEffect that watches showScrollButton
+            
         }
 
-        // Load more messages when scrolling up near the top
+        
         if (isScrollingUp && scrollTop < 200) {
             if (visibleCount < messageChain.length) {
-                // Store scroll position for restoration
+                
                 const previousScrollHeight = scrollHeight;
-                // Load more messages
+                
                 setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
-                // Save scroll height for position restoration
+                
                 lastScrollHeightRef.current = previousScrollHeight;
             }
         }
 
-        // Disable auto-scrolling when user manually scrolls away from bottom
+        
         if (!isNearBottom && autoScrollEnabled) {
             setAutoScrollEnabled(false);
         }
@@ -221,7 +221,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         }
     };
     
-    // Simplified scroll button - no need for a separate component
+    
     const renderScrollToBottomButton = () => (
         <Button
             className={`bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200 ${showScrollButton ? 'opacity-100' : 'opacity-0'}`}

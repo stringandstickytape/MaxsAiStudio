@@ -63,10 +63,10 @@ export function useStreamableWebSocketData<T = any>(
 ) {
   const [data, setData] = useState<T[]>(initialData);
   const [isActive, setIsActive] = useState(false);
-  // Store data in a ref to avoid dependency issues with effect cleanup
+  
   const dataRef = useRef<T[]>(initialData);
   
-  // Update the ref when data changes
+  
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
@@ -77,7 +77,7 @@ export function useStreamableWebSocketData<T = any>(
     if (options?.onReset) options.onReset();
   }, [initialData, options]);
 
-  // Update active state based on data length
+  
   useEffect(() => {
     if (data.length > 0 && !isActive) {
       setIsActive(true);
@@ -86,31 +86,31 @@ export function useStreamableWebSocketData<T = any>(
     }
   }, [data.length, isActive]);
 
-  // Setup event listeners for data and end events
+  
   useEffect(() => {
-    // Handler for receiving data events
+    
     const handleDataEvent = (detail: WebSocketEventDetail) => {
       setData((prev) => [...prev, detail.content]);
     };
     
-    // Handler for stream end event
+    
     const handleEndEvent = () => {
       if (options?.resetOnEnd) {
-        // Create a finalized content event before reset
+        
         const content = dataRef.current.join('');
         const event = new CustomEvent('stream:finalized', {
           detail: { content }
         });
         window.dispatchEvent(event);
         
-        // Use requestAnimationFrame for smoother transitions
+        
         requestAnimationFrame(() => {
           reset();
         });
       }
     };
 
-    // Setup listeners
+    
     const unsubscribeData = listenToWebSocketEvent(eventType, handleDataEvent);
     let unsubscribeEnd: (() => void) | undefined;
     
@@ -118,7 +118,7 @@ export function useStreamableWebSocketData<T = any>(
       unsubscribeEnd = listenToWebSocketEvent('stream:end', handleEndEvent);
     }
 
-    // Cleanup
+    
     return () => {
       unsubscribeData();
       if (unsubscribeEnd) unsubscribeEnd();

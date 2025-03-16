@@ -30,7 +30,7 @@ interface WebSocketStore {
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
   
   if (typeof window !== 'undefined') {
-    // Create a single event handler for all connection status events
+    
     const handleConnectionEvents = (detail: WebSocketEventDetail) => {
       switch (detail.type) {
         case 'connected':
@@ -43,7 +43,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
           set({ isConnected: false });
           break;
         case 'connecting':
-          // Optional: you could track connection attempts here
+          
           break;
         case 'clientId':
           if (detail.clientId) {
@@ -53,15 +53,15 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       }
     };
     
-    // Listen for connection status events
+    
     listenToWebSocketEvent('connection:status', handleConnectionEvents);
 
-    // Listen for message events
+    
     listenToWebSocketEvent('message:received', (detail) => {
       set({ lastMessageTime: detail.timestamp || Date.now() });
     });
     
-    // Listen for cancellation events
+    
     listenToWebSocketEvent('request:cancelled', (detail) => {
       set({ isCancelling: false, currentRequest: undefined });
     });
