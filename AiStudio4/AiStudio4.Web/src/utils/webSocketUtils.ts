@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { WebSocketEventType, WebSocketEventDetail, listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
 
@@ -62,54 +62,68 @@ export function useStreamableWebSocketData<T = any>(
   },
 ) {
   const [data, setData] = useState<T[]>(initialData);
-  
   const [isActive, setIsActive] = useState(false);
+  // Store data in a ref to avoid dependency issues with effect cleanup
+  const dataRef = useRef<T[]>(initialData);
+  
+  // Update the ref when data changes
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   const reset = useCallback(() => {
     setData(initialData);
+    setIsActive(false);
     if (options?.onReset) options.onReset();
   }, [initialData, options]);
 
+  // Update active state based on data length
   useEffect(() => {
-    
     if (data.length > 0 && !isActive) {
       setIsActive(true);
-    }
-    
-    if (data.length === 0 && isActive) {
+    } else if (data.length === 0 && isActive) {
       setIsActive(false);
     }
   }, [data.length, isActive]);
 
+  // Setup event listeners for data and end events
   useEffect(() => {
-    
-    const unsubscribeData = listenToWebSocketEvent(eventType, (detail) => {
+    // Handler for receiving data events
+    const handleDataEvent = (detail: WebSocketEventDetail) => {
       setData((prev) => [...prev, detail.content]);
-    });
-
+    };
     
-    let unsubscribeEnd: (() => void) | undefined;
-
-    if (options?.resetOnEnd) {
-      unsubscribeEnd = listenToWebSocketEvent('stream:end', () => {
-        
-        const event = new CustomEvent('stream:before-reset', {
-          detail: { content: data.join('') }
+    // Handler for stream end event
+    const handleEndEvent = () => {
+      if (options?.resetOnEnd) {
+        // Create a finalized content event before reset
+        const content = dataRef.current.join('');
+        const event = new CustomEvent('stream:finalized', {
+          detail: { content }
         });
         window.dispatchEvent(event);
         
-        
-        setTimeout(() => {
+        // Use requestAnimationFrame for smoother transitions
+        requestAnimationFrame(() => {
           reset();
-        }, 50);
-      });
+        });
+      }
+    };
+
+    // Setup listeners
+    const unsubscribeData = listenToWebSocketEvent(eventType, handleDataEvent);
+    let unsubscribeEnd: (() => void) | undefined;
+    
+    if (options?.resetOnEnd) {
+      unsubscribeEnd = listenToWebSocketEvent('stream:end', handleEndEvent);
     }
 
+    // Cleanup
     return () => {
       unsubscribeData();
       if (unsubscribeEnd) unsubscribeEnd();
     };
-  }, [eventType, reset, options, data]);
+  }, [eventType, reset, options]);
 
   return { data, reset };
 }

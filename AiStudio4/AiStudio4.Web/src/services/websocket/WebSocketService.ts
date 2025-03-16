@@ -46,6 +46,12 @@ export class WebSocketService {
         this.socket.addEventListener('error', this.handleError);
         this.socket.addEventListener('close', this.handleClose);
 
+        dispatchWebSocketEvent('connection:status', {
+            type: 'connecting',
+            clientId: this.clientId,
+            content: { isConnecting: true, clientId: this.clientId },
+        });
+
         console.log('WebSocket connection attempt initiated');
     }
 
@@ -60,7 +66,8 @@ export class WebSocketService {
         }
 
         this.connected = false;
-
+        this.reconnectAttempts = 0;
+        
         dispatchWebSocketEvent('connection:status', {
             type: 'disconnected',
             clientId: this.clientId,
@@ -68,8 +75,6 @@ export class WebSocketService {
         });
 
         this.notifyConnectionStatusChange();
-
-        this.reconnectAttempts = 0;
     }
 
     public send(message: WebSocketMessage): void {
@@ -93,19 +98,6 @@ export class WebSocketService {
         }
     }
 
-    private dispatchCustomWebSocketEvent(eventName: string): void {
-        const event = new CustomEvent(eventName, {
-            detail: {
-                clientId: this.clientId,
-                timestamp: Date.now(),
-            },
-            bubbles: true,
-            cancelable: true,
-        });
-
-        window.dispatchEvent(event);
-        console.log(`Dispatched custom event: ${eventName}`);
-    }
 
     public subscribe(messageType: string, handler: MessageHandler): void {
         if (!this.subscribers.has(messageType)) {
@@ -166,7 +158,6 @@ export class WebSocketService {
         });
 
         this.notifyConnectionStatusChange();
-        this.dispatchCustomWebSocketEvent('ws-connected');
     };
 
     private handleMessage = (event: MessageEvent): void => {
@@ -238,7 +229,6 @@ export class WebSocketService {
         });
 
         this.notifyConnectionStatusChange();
-        this.dispatchCustomWebSocketEvent('ws-disconnected');
 
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;

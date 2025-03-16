@@ -30,30 +30,42 @@ interface WebSocketStore {
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
   
   if (typeof window !== 'undefined') {
-    
-    listenToWebSocketEvent('connection:status', (detail) => {
-      if (detail.type === 'connected') {
-        set({
-          isConnected: true,
-          reconnectAttempts: 0,
-        });
-      } else if (detail.type === 'disconnected') {
-        set({ isConnected: false });
-      } else if (detail.type === 'clientId' && detail.clientId) {
-        set({ clientId: detail.clientId });
+    // Create a single event handler for all connection status events
+    const handleConnectionEvents = (detail: WebSocketEventDetail) => {
+      switch (detail.type) {
+        case 'connected':
+          set({
+            isConnected: true,
+            reconnectAttempts: 0,
+          });
+          break;
+        case 'disconnected':
+          set({ isConnected: false });
+          break;
+        case 'connecting':
+          // Optional: you could track connection attempts here
+          break;
+        case 'clientId':
+          if (detail.clientId) {
+            set({ clientId: detail.clientId });
+          }
+          break;
       }
-    });
-
+    };
     
+    // Listen for connection status events
+    listenToWebSocketEvent('connection:status', handleConnectionEvents);
+
+    // Listen for message events
     listenToWebSocketEvent('message:received', (detail) => {
       set({ lastMessageTime: detail.timestamp || Date.now() });
     });
+    
+    // Listen for cancellation events
+    listenToWebSocketEvent('request:cancelled', (detail) => {
+      set({ isCancelling: false, currentRequest: undefined });
+    });
   }
-
-  
-  listenToWebSocketEvent('request:cancelled', (detail) => {
-    set({ isCancelling: false, currentRequest: undefined });
-  });
 
   return {
     

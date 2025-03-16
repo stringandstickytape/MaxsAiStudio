@@ -36,16 +36,6 @@ export const dispatchWebSocketEvent = (eventType: WebSocketEventType, detail: Pa
 
   window.dispatchEvent(event);
   console.debug(`WebSocket Event Dispatched: ${eventType}`, fullDetail);
-  
-  
-  if (eventType === 'request:cancelled') {
-    const cancelEvent = new CustomEvent('request:cancelled', {
-      detail: fullDetail,
-      bubbles: true,
-      cancelable: true,
-    });
-    window.dispatchEvent(cancelEvent);
-  }
 };
 
 
