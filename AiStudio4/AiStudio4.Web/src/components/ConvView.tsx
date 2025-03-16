@@ -11,11 +11,13 @@ import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 interface ConvViewProps {
-    streamTokens: string[]; 
+    streamTokens: string[];
     isCancelling?: boolean;
+    isStreaming?: boolean;
+    lastStreamedContent?: string;
 }
 
-export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) => {
+export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = false, lastStreamedContent = '' }: ConvViewProps) => {
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     const [editContent, setEditContent] = useState<string>('');
@@ -373,16 +375,30 @@ export const ConvView = ({ streamTokens, isCancelling = false }: ConvViewProps) 
                 ))}
 
                 
-                {streamTokens.length > 0 && (
-                    <div className="p-4 mb-4 rounded-lg bg-gray-800 shadow-md">
-                        {(isCancelling || isCancel) && (
-                            <div className="mb-2 p-2 text-yellow-400 bg-yellow-900/20 rounded border border-yellow-800/50 text-sm">
-                                Cancelling request...
+                {(streamTokens.length > 0 || isStreaming) && (
+                    <div key="streaming-message"
+                         className="w-full group flex flex-col relative mb-4">
+                        <div className="message-container px-4 py-3 rounded-lg bg-gray-800 shadow-md w-full">
+                            {(isCancelling || isCancel) && (
+                                <div className="mb-2 p-2 text-yellow-400 bg-yellow-900/20 rounded border border-yellow-800/50 text-sm">
+                                    Cancelling request...
+                                </div>
+                            )}
+                            <div className="w-full">
+                                {streamTokens.length > 0 ? (
+                                    <div className="streaming-content">
+                                        {streamTokens.map((token, index) => (
+                                            <LiveStreamToken key={index} token={token} />
+                                        ))}
+                                    </div>
+                                ) : isStreaming ? (
+                                    // Keep showing the last content even when tokens are reset but still streaming
+                                    <div className="streaming-content">
+                                        <span className="whitespace-pre-wrap">{lastStreamedContent}</span>
+                                    </div>
+                                ) : null}
                             </div>
-                        )}
-                        {streamTokens.map((token, index) => (
-                            <LiveStreamToken key={index} token={token} />
-                        ))}
+                        </div>
                     </div>
                 )}
                 </div>
