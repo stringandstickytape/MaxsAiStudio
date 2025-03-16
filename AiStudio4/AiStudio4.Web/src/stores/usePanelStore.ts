@@ -5,7 +5,6 @@ import { PanelState } from '@/types/ui';
 interface PanelStore {
   panels: Record<string, PanelState>;
   togglePanel: (id: string) => void;
-  togglePinned: (id: string) => void;
   closeAll: (except?: string) => void;
   getPanelState: (id: string) => PanelState | undefined;
   setSize: (id: string, size: string) => void;
@@ -16,72 +15,34 @@ interface PanelStore {
 export const usePanelStore = create<PanelStore>((set, get) => ({
   panels: {},
 
-    togglePanel: (id) => {
-        set((state) => {
-            const panel = state.panels[id];
-            if (!panel) {
-                return state;
-            }
+  togglePanel: (id) => {
+    set((state) => {
+      const panel = state.panels[id];
+      if (!panel) {
+        return state;
+      }
 
-            const updatedPanels = { ...state.panels };
+      const updatedPanels = { ...state.panels };
 
-            
-            const isClosing = panel.isOpen;
+      updatedPanels[id] = {
+        ...panel,
+        isOpen: !panel.isOpen
+      };
 
-            updatedPanels[id] = {
-                ...panel,
-                isOpen: !panel.isOpen,
-                
-                isPinned: isClosing ? false : panel.isPinned
+      // Close other panels in the same position when opening a panel
+      if (!panel.isOpen) {
+        Object.keys(updatedPanels).forEach((key) => {
+          if (key !== id && updatedPanels[key].position === panel.position) {
+            updatedPanels[key] = {
+              ...updatedPanels[key],
+              isOpen: false,
             };
-
-            
-            if (!panel.isOpen && !panel.isPinned) {
-                Object.keys(updatedPanels).forEach((key) => {
-                    if (key !== id && updatedPanels[key].position === panel.position && !updatedPanels[key].isPinned) {
-                        updatedPanels[key] = {
-                            ...updatedPanels[key],
-                            isOpen: false,
-                        };
-                    }
-                });
-            }
+          }
+        });
+      }
 
       return { panels: updatedPanels };
     });
-  },
-
-    togglePinned: (id) => {
-        set((state) => {
-            const panel = state.panels[id];
-            if (!panel) {
-                return state;
-            }
-
-            
-            const newIsPinned = !panel.isPinned;
-
-            
-            
-            return {
-                panels: {
-                    ...state.panels,
-                    [id]: {
-                        ...panel,
-                        isPinned: newIsPinned,
-                        isOpen: newIsPinned ? true : panel.isOpen,
-                    },
-                },
-            };
-        });
-
-        
-        try {
-            const { panels } = usePanelStore.getState();
-            localStorage.setItem('panel-layout', JSON.stringify(panels));
-        } catch (error) {
-            console.error('Failed to save panel layout after pinning change:', error);
-        }
   },
 
   closeAll: (except) =>
@@ -89,7 +50,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       const updatedPanels = { ...state.panels };
 
       Object.keys(updatedPanels).forEach((key) => {
-        if (key !== except && !updatedPanels[key].isPinned) {
+        if (key !== except) {
           updatedPanels[key] = {
             ...updatedPanels[key],
             isOpen: false,
@@ -134,31 +95,28 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       console.warn('Failed to parse saved panel state:', e);
     }
 
-      return set((state) => {
-          const existingPanel = state.panels[panel.id];
-          if (existingPanel) {
-              return {
-                  panels: {
-                      ...state.panels,
-                      [panel.id]: {
-                          ...panel,
-                          isOpen: existingPanel.isOpen,
-                          isPinned: existingPanel.isPinned,
-                      },
-                  },
-              };
-          }
-
-          
-          const newPanel = {
+    return set((state) => {
+      const existingPanel = state.panels[panel.id];
+      if (existingPanel) {
+        return {
+          panels: {
+            ...state.panels,
+            [panel.id]: {
               ...panel,
-              ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),
-              ...(savedState.isPinned !== undefined ? { isPinned: savedState.isPinned } : {}),
-          };
-      
+              isOpen: existingPanel.isOpen,
+            },
+          },
+        };
+      }
+
+      // Create a new panel with saved state or defaults
+      const newPanel = {
+        ...panel,
+        ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),
+      };
+
       console.log(`Registering new panel ${panel.id} with state:`, {
-        isOpen: newPanel.isOpen,
-        isPinned: newPanel.isPinned
+        isOpen: newPanel.isOpen
       });
 
       return {
@@ -170,4 +128,14 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     });
   },
   
+  saveState: () => {
+    try {
+      const { panels } = get();
+      localStorage.setItem('panel-layout', JSON.stringify(panels));
+      return true;
+    } catch (error) {
+      console.error('Failed to save panel layout:', error);
+      return false;
+    }
+  }
 }));

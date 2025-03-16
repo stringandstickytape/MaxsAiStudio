@@ -12,6 +12,7 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useToolStore } from '@/stores/useToolStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { usePanelStore } from '@/stores/usePanelStore';
 
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -24,6 +25,7 @@ export function ChatSpace() {
 
   const { selectedPrimaryModel } = useModelManagement();
   const { isCancelling } = useWebSocketStore();
+  const { panels } = usePanelStore();
 
   const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
     setInputValue(text);
@@ -99,14 +101,16 @@ export function ChatSpace() {
 
   return (
     <>
-      <div className="flex-none w-full">
-        <AppHeader
-          isCommandBarOpen={isCommandBarOpen}
-          setIsCommandBarOpen={setIsCommandBarOpen}
-          CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-          activeConvId={activeConvId}
-        />
-      </div>
+            <div className="flex-none w-full">
+            <AppHeader
+                isCommandBarOpen={isCommandBarOpen}
+                setIsCommandBarOpen={setIsCommandBarOpen}
+                CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
+                sidebarOpen={panels.sidebar?.isOpen || false}
+                rightSidebarOpen={(panels.convTree?.isOpen || panels.settings?.isOpen) || false}
+                activeConvId={activeConvId}
+            />
+        </div >
 
       <div className="flex-1 overflow-auto w-full">
         <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />

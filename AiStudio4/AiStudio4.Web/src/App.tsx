@@ -31,12 +31,9 @@ function App() {
         
         let needsFix = false;
         
+        // No need to check for isPinned anymore
         Object.keys(savedPanels).forEach(id => {
-          
-          if (savedPanels[id]?.isOpen === true && savedPanels[id]?.isPinned === false) {
-            savedPanels[id].isOpen = false;
-            needsFix = true;
-          }
+          // We can keep any customizations here if needed in the future
         });
         
         if (needsFix) {

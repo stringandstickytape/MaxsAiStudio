@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 import { Panel, PanelGroup, PanelResizeHandle, ImperativePanelHandle } from 'react-resizable-panels';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { PanelState } from '@/types/ui';
-import { X, Pin } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export interface PanelConfig extends Omit<PanelState, 'isOpen' | 'isPinned'> {
+export interface PanelConfig extends Omit<PanelState, 'isOpen'> {
   id: string;
   render: (isOpen: boolean) => React.ReactNode;
   minSize?: number;
@@ -41,11 +41,11 @@ const ResizeHandle = ({ className, direction = 'horizontal' }: ResizeHandleProps
 );
 
 export function PanelManager({ panels, className }: PanelManagerProps) {
-  const { registerPanel, panels: panelStates, togglePanel, togglePinned } = usePanelStore();
+  const { registerPanel, panels: panelStates, togglePanel } = usePanelStore();
   const initialRegistrationDone = useRef(false);
   const panelRefs = useRef<Record<string, ImperativePanelHandle | null>>({});
 
-  
+  // Initialize panel refs
   useEffect(() => {
     panels.forEach((panel) => {
       if (!panelRefs.current[panel.id]) {
@@ -54,10 +54,10 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     });
   }, [panels]);
 
-  
+  // Register panels on first render
   useEffect(() => {
     if (!initialRegistrationDone.current) {
-      
+      // Register each panel with the store
       panels.forEach((panel) => {
         registerPanel({
           id: panel.id,
@@ -65,8 +65,7 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
           size: panel.size,
           zIndex: panel.zIndex,
           title: panel.title,
-          isOpen: false,
-          isPinned: false,
+          isOpen: false
         });
       });
 
@@ -74,80 +73,65 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     }
   }, [panels, registerPanel]);
 
-  
+  // Group panels by position
   const leftPanels = panels.filter((p) => p.position === 'left');
   const rightPanels = panels.filter((p) => p.position === 'right');
   const topPanels = panels.filter((p) => p.position === 'top');
   const bottomPanels = panels.filter((p) => p.position === 'bottom');
 
-  
+  // Render a panel
   const renderPanel = (panel: PanelConfig) => {
-    const state = panelStates[panel.id] || { isOpen: false, isPinned: false };
-    const isVisible = state.isOpen || state.isPinned;
+    const state = panelStates[panel.id] || { isOpen: false };
+    const isVisible = state.isOpen;
 
     if (!isVisible) return null;
 
     return (
       <div className="flex flex-col h-full overflow-hidden" style={{ width: 'var(--panel-width, 320px)' }}>
-        
+        {/* Panel header */}
         <div className="flex-between p-3 border-b border-gray-700 bg-gray-800">
           <h3 className="font-medium text-gray-100 flex-1 truncate">{panel.title}</h3>
           <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
-              className={cn(
-                'h-8 w-8 text-gray-400 hover:text-gray-100',
-                state.isPinned && 'text-blue-400 hover:text-blue-300',
-              )}
-              onClick={() => togglePinned(panel.id)}
-              title={state.isPinned ? "Unpin panel" : "Pin panel"}
-            >
-              <Pin className={cn('h-4 w-4', state.isPinned && 'fill-blue-400')} />
-            </Button>
-            {!state.isPinned && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-gray-100"
-                onClick={() => {
-                  
-                  usePanelStore.setState(state => ({
-                    panels: {
-                      ...state.panels,
-                      [panel.id]: {
-                        ...state.panels[panel.id],
-                        isOpen: false,
-                        isPinned: false
-                      }
+              className="h-8 w-8 text-gray-400 hover:text-gray-100"
+              onClick={() => {
+                // Close the panel
+                usePanelStore.setState(state => ({
+                  panels: {
+                    ...state.panels,
+                    [panel.id]: {
+                      ...state.panels[panel.id],
+                      isOpen: false
                     }
-                  }));
-                  
-                  
-                  requestAnimationFrame(() => {
-                    usePanelStore.getState().saveState();
-                  });
-                }}
-                title="Close panel"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+                  }
+                }));
+                
+                // Save the state after updating
+                requestAnimationFrame(() => {
+                  usePanelStore.getState().saveState();
+                });
+              }}
+              title="Close panel"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        
+        {/* Panel content */}
         <div className="flex-1 overflow-auto">{panel.render(isVisible)}</div>
       </div>
     );
   };
 
-  
+  // Render a group of panels in a specific position
   const renderPanelGroup = (positionPanels: PanelConfig[], direction: 'horizontal' | 'vertical') => {
-    
+    // Filter only the visible panels
     const visiblePanels = positionPanels.filter((panel) => {
       const state = panelStates[panel.id];
-      return state && (state.isOpen || state.isPinned);
+      return state && state.isOpen;
     });
 
     if (visiblePanels.length === 0) return null;
@@ -173,29 +157,28 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     );
   };
 
-  
+  // Main render
   return (
     <div className={cn('fixed inset-0 z-40 pointer-events-none', className)}>
-      
+      {/* Left panels */}
       <div className="absolute top-0 left-0 bottom-0 pointer-events-auto">
         {renderPanelGroup(leftPanels, 'horizontal')}
       </div>
 
-      
+      {/* Right panels */}
       <div className="absolute top-0 right-0 bottom-0 pointer-events-auto">
         {renderPanelGroup(rightPanels, 'horizontal')}
       </div>
 
-      
+      {/* Top panels */}
       <div className="absolute top-0 left-0 right-0 pointer-events-auto" style={{ left: 'var(--content-margin-left, 0px)', right: 'var(--content-margin-right, 0px)' }}>
         {renderPanelGroup(topPanels, 'vertical')}
       </div>
 
-      
+      {/* Bottom panels */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-auto" style={{ left: 'var(--content-margin-left, 0px)', right: 'var(--content-margin-right, 0px)' }}>
         {renderPanelGroup(bottomPanels, 'vertical')}
       </div>
     </div>
   );
 }
-

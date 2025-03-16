@@ -10,8 +10,8 @@ interface AppHeaderProps {
     isCommandBarOpen?: boolean;
     setIsCommandBarOpen?: (open: boolean) => void;
     CommandBarComponent?: React.ReactNode;
-    sidebarPinned?: boolean;
-    rightSidebarPinned?: boolean;
+    sidebarOpen?: boolean;
+    rightSidebarOpen?: boolean;
     activeConvId?: string | null;
 }
 
@@ -20,8 +20,8 @@ export function AppHeader({
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
     CommandBarComponent,
-    sidebarPinned = false,
-    rightSidebarPinned = false,
+    sidebarOpen = false,
+    rightSidebarOpen = false,
     activeConvId = null,
 }: AppHeaderProps) {
     const [commandText, setCommandText] = useState('');
@@ -48,13 +48,13 @@ export function AppHeader({
             <div
                 className={cn(
                     'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col',
-                    sidebarPinned ? 'left-80' : 'left-0',
-                    rightSidebarPinned ? 'right-80' : 'right-0',
+                    sidebarOpen ? 'ml-0' : 'ml-0',
+                    rightSidebarOpen ? 'mr-0' : 'mr-0',
                 )}
             >
                 
                 <div className="flex flex-1 justify-center">
-                    <div className="w-full max-w-2xl flex flex-col justify-center gap-2">
+                <div className={cn("w-full flex flex-col justify-center gap-2", sidebarOpen ? "max-w-[calc(100%-320px)]" : "max-w-2xl")} style={{margin: '0 auto'}}>
                         
                         {CommandBarComponent || (
                             <form onSubmit={handleCommandSubmit} className="relative w-full mb-2">
