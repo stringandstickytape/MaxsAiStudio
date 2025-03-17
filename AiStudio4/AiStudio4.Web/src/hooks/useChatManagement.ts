@@ -59,52 +59,42 @@ export function useChatManagement() {
   const { fetchConvTree } = useHistoricalConvsStore();
 
   
-  const sendMessage = useCallback(
-    async (params: SendMessageParams) => {
-      return executeApiCall(async () => {
-        
-        const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
+    const sendMessage = useCallback(
+        async (params: SendMessageParams) => {
+            return executeApiCall(async () => {
+                // Generate a message ID if not provided
+                const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
 
-        // Add message with attachments to local state first
-        if (params.convId && params.message) {
-          addMessage({
-            convId: params.convId,
-            message: {
-              id: params.messageId || `msg_${uuidv4()}`,
-              content: params.message,
-              source: 'user',
-              parentId: params.parentMessageId,
-              timestamp: Date.now(),
-              attachments: params.attachments
-            }
-          });
-        }
+                // REMOVE THIS BLOCK: Don't add the message to local state before server confirmation
+				// (removed)
 
-        // For server request, we need to convert ArrayBuffer to base64
-        let requestParams = {...params};
-        
-        if (params.attachments && params.attachments.length > 0) {
-          // Convert ArrayBuffer to base64 string for API transmission
-          requestParams.attachments = params.attachments.map(attachment => ({
-            ...attachment,
-            content: arrayBufferToBase64(attachment.content)
-          }));
-        }
+                // For server request, we need to convert ArrayBuffer to base64
+                let requestParams = { ...params };
 
-        const sendMessageRequest = createApiRequest('/api/chat', 'POST');
-        const data = await sendMessageRequest({
-          ...requestParams,
-          newMessageId,
-        });
+                if (params.attachments && params.attachments.length > 0) {
+                    // Filter out text files as they should already be in the message content
+                    const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
+                    // Convert ArrayBuffer to base64 string for API transmission
+                    requestParams.attachments = binaryAttachments.map(attachment => ({
+                        ...attachment,
+                        content: arrayBufferToBase64(attachment.content)
+                    }));
+                }
 
-        return {
-          messageId: data.messageId,
-          success: true,
-        };
-      });
-    },
-    [executeApiCall, addMessage],
-  );
+                const sendMessageRequest = createApiRequest('/api/chat', 'POST');
+                const data = await sendMessageRequest({
+                    ...requestParams,
+                    newMessageId,
+                });
+
+                return {
+                    messageId: data.messageId,
+                    success: true,
+                };
+            });
+        },
+        [executeApiCall, addMessage],
+    );
 
   // Helper function to convert ArrayBuffer to base64
   const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
