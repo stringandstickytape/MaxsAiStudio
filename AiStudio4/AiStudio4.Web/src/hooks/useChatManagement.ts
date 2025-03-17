@@ -29,6 +29,8 @@ const useChatConfigResource = createResourceHook<{
     ],
   },
 });
+import { Attachment } from '@/types/attachment';
+
 interface SendMessageParams {
   convId: string;
   parentMessageId: string;
@@ -37,6 +39,8 @@ interface SendMessageParams {
   toolIds: string[];
   systemPromptId?: string;
   systemPromptContent?: string;
+  messageId?: string;
+  attachments?: Attachment[];
 }
 
 export function useChatManagement() {
@@ -59,11 +63,37 @@ export function useChatManagement() {
     async (params: SendMessageParams) => {
       return executeApiCall(async () => {
         
-        const newMessageId = params.parentMessageId ? uuidv4() : undefined;
+        const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
+
+        // Add message with attachments to local state first
+        if (params.convId && params.message) {
+          addMessage({
+            convId: params.convId,
+            message: {
+              id: params.messageId || `msg_${uuidv4()}`,
+              content: params.message,
+              source: 'user',
+              parentId: params.parentMessageId,
+              timestamp: Date.now(),
+              attachments: params.attachments
+            }
+          });
+        }
+
+        // For server request, we need to convert ArrayBuffer to base64
+        let requestParams = {...params};
+        
+        if (params.attachments && params.attachments.length > 0) {
+          // Convert ArrayBuffer to base64 string for API transmission
+          requestParams.attachments = params.attachments.map(attachment => ({
+            ...attachment,
+            content: arrayBufferToBase64(attachment.content)
+          }));
+        }
 
         const sendMessageRequest = createApiRequest('/api/chat', 'POST');
         const data = await sendMessageRequest({
-          ...params,
+          ...requestParams,
           newMessageId,
         });
 
@@ -73,8 +103,19 @@ export function useChatManagement() {
         };
       });
     },
-    [executeApiCall],
+    [executeApiCall, addMessage],
   );
+
+  // Helper function to convert ArrayBuffer to base64
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
 
   
 

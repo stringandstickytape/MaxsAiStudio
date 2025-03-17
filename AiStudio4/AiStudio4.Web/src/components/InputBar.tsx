@@ -1,9 +1,11 @@
-import React, { useState, KeyboardEvent, useCallback, useRef, useEffect } from 'react';
+import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send, BookMarked, X, Wrench, ArrowDown } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
+import { Attachment } from '@/types/attachment';
+import { AttachmentPreviewBar } from './AttachmentPreview';
 import { Textarea } from '@/components/ui/textarea';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
@@ -22,6 +24,8 @@ interface InputBarProps {
     onInputChange?: (value: string) => void;
     activeTools?: string[];
     onManageTools?: () => void;
+    onAttachmentChange?: (attachments: Attachment[]) => void;
+    disabled?: boolean;
 }
 
 declare global {
@@ -38,11 +42,14 @@ export function InputBar({
     onInputChange,
     activeTools: activeToolsFromProps,
     onManageTools,
+    onAttachmentChange,
+    disabled = false,
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
     
     const [localInputText, setLocalInputText] = useState('');
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [showScrollButton, setShowScrollButton] = useState(false);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
@@ -113,21 +120,12 @@ export function InputBar({
     }, [isXs, isSm, isMd, visibleToolCount]);
 
 
-    const handleAttachFile = (file: File, content: string) => {
-        const textToInsert = `\`\`\`${file.name}\n${content}\n\`\`\`\n`;
-        const pos = cursorPosition ?? inputText.length;
-        const newText = inputText.substring(0, pos) + textToInsert + inputText.substring(pos);
-        setInputText(newText);
-
-        setTimeout(() => {
-            if (textareaRef.current) {
-                textareaRef.current.focus();
-                const newPosition = pos + textToInsert.length;
-                textareaRef.current.setSelectionRange(newPosition, newPosition);
-                setCursorPosition(newPosition);
-            }
-        }, 0);
-    };
+    const handleAttachmentChange = useCallback((newAttachments: Attachment[]) => {
+        setAttachments(newAttachments);
+        if (onAttachmentChange) {
+            onAttachmentChange(newAttachments);
+        }
+    }, [onAttachmentChange]);
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
@@ -173,10 +171,12 @@ export function InputBar({
                 toolIds: activeTools,
                 systemPromptId,
                 systemPromptContent,
-                messageId
+                messageId,
+                attachments: attachments.length > 0 ? attachments : undefined
             });
 
             setInputText('');
+            setAttachments([]);
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -193,6 +193,7 @@ export function InputBar({
         slctdMsgId,
         convs,
         createConv,
+        attachments
     ]);
 
   const handleSend = () => {
@@ -288,7 +289,16 @@ export function InputBar({
             )}
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
-                    <div className="relative flex-1">
+                <div className="relative flex-1">
+                    {attachments.length > 0 && (
+                        <div className="mb-2">
+                            <AttachmentPreviewBar
+                                attachments={attachments}
+                                onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
+                                onClear={() => setAttachments([])}
+                            />
+                        </div>
+                    )}
                         <Textarea
                             ref={textareaRef}
                             className="w-full h-[120px] p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
@@ -305,7 +315,7 @@ export function InputBar({
                     </div>
 
                     <div className="flex flex-col gap-2 justify-end">
-                        <FileAttachment onAttach={handleAttachFile} disabled={isLoading} />
+                        <FileAttachment onAttachmentChange={handleAttachmentChange} disabled={isLoading || disabled} />
 
                         <Button
                             variant="outline"

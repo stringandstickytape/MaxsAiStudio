@@ -2,6 +2,7 @@ import { MarkdownPane } from '@/components/markdown-pane';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react';
+import { MessageAttachments } from '@/components/MessageAttachments';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -342,7 +343,13 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                     {message.tokenUsage && (
                                         <div className="flex items-center gap-x-2">
 
-                                        </div>
+                          {/* Display message attachments if present */}
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-700/30">
+                              <MessageAttachments attachments={message.attachments} />
+                            </div>
+                          )}
+                        </div>
                                     )}
                                     {message.costInfo && (
                                         <div className="flex items-center gap-x-2">

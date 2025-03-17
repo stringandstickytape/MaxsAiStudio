@@ -77,26 +77,45 @@ export class WebSocketService {
         this.notifyConnectionStatusChange();
     }
 
-    public send(message: WebSocketMessage): void {
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            
-            const messageWithClientId = {
-                ...message,
-                clientId: this.clientId
-            };
+  public send(message: WebSocketMessage): void {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      // Process message to handle attachment data
+      let processedMessage = { ...message };
+      
+      // If message contains attachments with binary content, encode it for transmission
+      if (message.content && message.content.attachments && Array.isArray(message.content.attachments)) {
+        processedMessage.content = { 
+          ...message.content,
+          attachments: message.content.attachments.map(attachment => {
+            // If attachment has ArrayBuffer content, convert to base64 for JSON transmission
+            if (attachment.content instanceof ArrayBuffer) {
+              return {
+                ...attachment,
+                content: this.arrayBufferToBase64(attachment.content)
+              };
+            }
+            return attachment;
+          })
+        };
+      }
+      
+      const messageWithClientId = {
+        ...processedMessage,
+        clientId: this.clientId
+      };
 
-            this.socket.send(JSON.stringify(messageWithClientId));
+      this.socket.send(JSON.stringify(messageWithClientId));
 
-            dispatchWebSocketEvent('message:received', {
-                type: 'sent',
-                messageType: message.messageType,
-                content: message.content,
-                timestamp: Date.now(),
-            });
-        } else {
-            console.warn('Cannot send message: WebSocket is not connected');
-        }
+      dispatchWebSocketEvent('message:received', {
+        type: 'sent',
+        messageType: message.messageType,
+        content: message.content,
+        timestamp: Date.now(),
+      });
+    } else {
+      console.warn('Cannot send message: WebSocket is not connected');
     }
+  }
 
 
     public subscribe(messageType: string, handler: MessageHandler): void {
@@ -269,14 +288,36 @@ export class WebSocketService {
         });
     }
 
-    private generateGuid(): string {
-        
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
+  private generateGuid(): string {
+    
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // Helper method to convert ArrayBuffer to base64 string for transmission
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
     }
+    return window.btoa(binary);
+  }
+
+  // Helper method to convert base64 string back to ArrayBuffer
+  private base64ToArrayBuffer(base64: string): ArrayBuffer {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
 }
 
 

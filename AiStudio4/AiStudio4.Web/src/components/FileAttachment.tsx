@@ -1,17 +1,49 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, X } from 'lucide-react';
+import { Paperclip, FilePlus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Attachment } from '@/types/attachment';
+import { AttachmentButton, AttachmentPreviewBar } from './AttachmentPreview';
+import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 
 interface FileAttachmentProps {
-  onAttach: (file: File, content: string) => void;
+  onAttachmentChange?: (attachments: Attachment[]) => void;
   disabled?: boolean;
   className?: string;
+  maxFiles?: number;
+  acceptedTypes?: string;
+  maxFileSize?: number; // in bytes
+  showPreview?: boolean;
 }
 
-export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabled = false, className }) => {
+export const FileAttachment: React.FC<FileAttachmentProps> = ({
+  onAttachmentChange,
+  disabled = false,
+  className,
+  maxFiles = 5,
+  acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv",
+  maxFileSize = 10 * 1024 * 1024, // 10MB
+  showPreview = true
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const {
+    attachments,
+    error,
+    addAttachment,
+    addAttachments,
+    removeAttachment,
+    clearAttachments
+  } = useAttachmentManager({
+    maxCount: maxFiles,
+    maxSize: maxFileSize
+  });
+
+  // Notify parent component when attachments change
+  React.useEffect(() => {
+    onAttachmentChange?.(attachments);
+  }, [attachments, onAttachmentChange]);
 
   const handleButtonClick = () => {
     if (localStorage.getItem('isVisualStudio') === 'true') {
@@ -22,7 +54,6 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabl
         addEmbeddings: 'false',
       });
 
-      
       if (inputRef.current) {
         inputRef.current.value = '';
       }
@@ -35,62 +66,83 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({ onAttach, disabl
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    try {
-      
-      const text = await readFileAsText(file);
+    await addAttachments(files);
 
-      
-      onAttach(file, text);
-
-      
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
-    } catch (error) {
-      console.error('Error reading file:', error);
-      
+    // Reset input value to allow selecting the same file again
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
   };
 
-  const readFileAsText = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          resolve(event.target.result as string);
-        } else {
-          reject(new Error('Failed to read file content'));
-        }
-      };
-      reader.onerror = () => reject(new Error('File reading error'));
-      reader.readAsText(file);
-    });
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+    await addAttachments(e.dataTransfer.files);
   };
 
   return (
-    <div className={cn('relative', className)}>
+    <div 
+      className={cn(
+        'flex flex-col relative',
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <input
         ref={inputRef}
         type="file"
-        accept=".txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv"
+        accept={acceptedTypes}
         onChange={handleFileChange}
         className="hidden"
         disabled={disabled}
+        multiple
       />
+      
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 bg-blue-500/20 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-10">
+          <p className="text-blue-500 font-medium">Drop files here</p>
+        </div>
+      )}
+      
+      {/* Attachment button */}
       <Button
         variant="outline"
         size="icon"
         type="button"
         onClick={handleButtonClick}
-        disabled={disabled}
+        disabled={disabled || attachments.length >= maxFiles}
         className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
         aria-label="Attach file"
+        title={attachments.length >= maxFiles ? `Maximum of ${maxFiles} files allowed` : 'Attach file'}
       >
         <Paperclip className="h-5 w-5" />
       </Button>
+      
+      {/* Error message */}
+      {error && (
+        <div className="mt-2 text-xs text-red-400">{error}</div>
+      )}
     </div>
   );
 };
@@ -115,5 +167,3 @@ export const AttachedFileDisplay: React.FC<AttachedFileProps> = ({ filename, onR
     </div>
   );
 };
-
-

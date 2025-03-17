@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
+import { Attachment } from '@/types/attachment';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
 import { VoiceInputOverlay } from './VoiceInputOverlay';
@@ -17,6 +18,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { streamTokens } = useStreamTokens();
+  const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
@@ -94,6 +96,10 @@ export function ChatSpace() {
     };
   }, []);
 
+  // Handle attachment changes
+  const handleAttachmentChange = (attachments: Attachment[]) => {
+    setCurrentAttachments(attachments);
+  };
   
   const openToolLibrary = () => {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
@@ -125,6 +131,7 @@ export function ChatSpace() {
           activeTools={activeTools}
           onManageTools={openToolLibrary}
           disabled={isCancelling}
+          onAttachmentChange={handleAttachmentChange}
         />
       </div>
 
