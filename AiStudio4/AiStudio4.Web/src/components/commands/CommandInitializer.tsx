@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { registerEditMessageCommands } from '@/components/commands/EditMessageCommands';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
 import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
@@ -126,7 +125,6 @@ export function CommandInitializer() {
 
       initializeVoiceInputCommand();
 
-      registerEditMessageCommands();
 
     const systemPromptsUpdated = () => {
       registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
