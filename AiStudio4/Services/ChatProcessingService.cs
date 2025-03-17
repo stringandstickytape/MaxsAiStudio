@@ -268,7 +268,8 @@ namespace AiStudio4.Services
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
-                costInfo = msg.CostInfo
+                costInfo = msg.CostInfo,
+                attachments = msg.Attachments
             }).ToList<object>();
         }
 
