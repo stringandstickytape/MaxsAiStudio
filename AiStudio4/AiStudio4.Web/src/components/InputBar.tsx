@@ -344,15 +344,6 @@ export function InputBar({
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                        {attachments.length > 0 && (
-                            <div className="mb-2">
-                                <AttachmentPreviewBar
-                                    attachments={attachments}
-                                    onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
-                                    onClear={() => setAttachments([])}
-                                />
-                            </div>
-                        )}
                         <Textarea
                             ref={textareaRef}
                             className="w-full h-[120px] p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
@@ -367,6 +358,19 @@ export function InputBar({
                             style={{ height: '100%' }}
                         />
                     </div>
+                    
+                    {attachments.length > 0 && (
+                        <div className="w-14 flex-shrink-0 overflow-auto">
+                            <AttachmentPreviewBar
+                                attachments={attachments}
+                                onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
+                                onClear={() => setAttachments([])}
+                                className="h-full"
+                                iconsOnly={true}
+                                compact={true}
+                            />
+                        </div>
+                    )}
 
                     <div className="flex flex-col gap-2 justify-end">
                         <FileAttachment onAttachmentChange={handleAttachmentChange} disabled={isLoading || disabled} />
