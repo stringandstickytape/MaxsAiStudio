@@ -14,7 +14,6 @@ namespace AiStudio4.Core.Models
         public string Model { get; set; }
         public List<MessageHistoryItem> MessageHistory { get; set; } = new List<MessageHistoryItem>();
         public List<string> ToolIds { get; set; } = new List<string>();
-        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
         public string SystemPromptId { get; set; }
         public string SystemPromptContent { get; set; }
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;

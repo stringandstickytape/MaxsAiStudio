@@ -110,7 +110,6 @@ namespace AiStudio4.Services
                         ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
                         SystemPromptId = (string)requestObject["systemPromptId"],
                         SystemPromptContent = (string)requestObject["systemPromptContent"],
-                        Attachments = attachments,
                         CancellationToken = cancellationToken
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
@@ -123,9 +122,9 @@ namespace AiStudio4.Services
                     var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
                     
                     // Add attachments to the message
-                    if (chatRequest.Attachments != null && chatRequest.Attachments.Any())
+                    if (attachments != null && attachments.Any())
                     {
-                        newUserMessage.Attachments.AddRange(chatRequest.Attachments);
+                        newUserMessage.Attachments.AddRange(attachments);
                     }
 
                     // Save the conv system prompt if provided
@@ -308,7 +307,9 @@ namespace AiStudio4.Services
                 UserMessage = message.UserMessage,
                 Role = message.Role,
                 ParentId = message.ParentId,
-                CostInfo = message.CostInfo
+                CostInfo = message.CostInfo,
+
+                Attachments = message.Attachments
             };
         }
     }
