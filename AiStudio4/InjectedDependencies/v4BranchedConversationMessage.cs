@@ -1,5 +1,7 @@
 using AiStudio4.Core.Models;
+using AiStudio4.DataModels;
 using SharedClasses.Providers;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace AiStudio4.InjectedDependencies
@@ -17,5 +19,8 @@ namespace AiStudio4.InjectedDependencies
     public string ParentId { get; set; }
 
         public TokenCost CostInfo { get; set; }
+        
+        // Add support for multiple attachments
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
     }
 }

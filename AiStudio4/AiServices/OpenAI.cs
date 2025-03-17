@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -128,6 +128,7 @@ namespace AiStudio4.AiServices
         {
             var messageContent = new JArray();
 
+            // Support for single image from base64image (legacy)
             if (!string.IsNullOrWhiteSpace(message.base64image))
             {
                 messageContent.Add(new JObject
@@ -138,6 +139,26 @@ namespace AiStudio4.AiServices
                         ["url"] = $"data:{message.base64type};base64,{message.base64image}"
                     }
                 });
+            }
+            
+            // Support for multiple attachments
+            if (message.attachments != null && message.attachments.Any())
+            {
+                foreach (var attachment in message.attachments)
+                {
+                    if (attachment.Type.StartsWith("image/"))
+                    {
+                        messageContent.Add(new JObject
+                        {
+                            ["type"] = "image_url",
+                            ["image_url"] = new JObject
+                            {
+                                ["url"] = $"data:{attachment.Type};base64,{attachment.Content}"
+                            }
+                        });
+                    }
+                    // Additional attachment types could be handled here
+                }
             }
 
             messageContent.Add(new JObject

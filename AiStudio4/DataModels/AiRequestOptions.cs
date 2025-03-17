@@ -20,9 +20,10 @@ namespace AiStudio4.DataModels
         // API settings
         public ApiSettings ApiSettings { get; set; }
         
-        // Image support
-        public string Base64Image { get; set; }
-        public string Base64ImageType { get; set; }
+        // Attachment support
+        public string Base64Image { get; set; } // Kept for backward compatibility
+        public string Base64ImageType { get; set; } // Kept for backward compatibility
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
         
         // Tools support
         public List<string> ToolIds { get; set; } = new List<string>();
@@ -48,7 +49,8 @@ namespace AiStudio4.DataModels
             List<string> toolIds,
             bool useStreaming = false,
             bool addEmbeddings = false,
-            string customSystemPrompt = null)
+            string customSystemPrompt = null,
+            List<Attachment> attachments = null)
         {
             return new AiRequestOptions
             {
@@ -63,7 +65,8 @@ namespace AiStudio4.DataModels
                 ToolIds = toolIds ?? new List<string>(),
                 UseStreaming = useStreaming,
                 AddEmbeddings = addEmbeddings,
-                CustomSystemPrompt = customSystemPrompt
+                CustomSystemPrompt = customSystemPrompt,
+                Attachments = attachments ?? new List<Attachment>()
             };
         }
     }

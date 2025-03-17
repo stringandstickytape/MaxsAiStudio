@@ -1,4 +1,4 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -104,6 +104,7 @@ namespace AiStudio4.AiServices
                 var partArray = new JArray();
                 partArray.Add(new JObject { ["text"] = message.content });
 
+                // Handle legacy single image
                 if (!string.IsNullOrEmpty(message.base64image))
                 {
                     partArray.Add(new JObject
@@ -114,6 +115,26 @@ namespace AiStudio4.AiServices
                             ["data"] = message.base64image
                         }
                     });
+                }
+                
+                // Handle multiple attachments
+                if (message.attachments != null && message.attachments.Any())
+                {
+                    foreach (var attachment in message.attachments)
+                    {
+                        if (attachment.Type.StartsWith("image/"))
+                        {
+                            partArray.Add(new JObject
+                            {
+                                ["inline_data"] = new JObject
+                                {
+                                    ["mime_type"] = attachment.Type,
+                                    ["data"] = attachment.Content
+                                }
+                            });
+                        }
+                        // Additional attachment types could be handled here
+                    }
                 }
 
                 return new JObject

@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using AiTool3.Helpers;
 using SharedClasses;
 using SharedClasses.Helpers;
+using AiStudio4.DataModels;
 
 namespace AiStudio4.Services
 {
@@ -77,6 +78,27 @@ namespace AiStudio4.Services
                             message = message.Replace(match.Value, $"\n{BacktickHelper.ThreeTicks}{url}\n{extractedText}\n{BacktickHelper.ThreeTicks}\n");
                         }
                     }
+                    // Parse attachments if present
+                    var attachments = new List<Attachment>();
+                    if (requestObject["attachments"] != null && requestObject["attachments"].Type != JTokenType.Null)
+                    {
+                        foreach (var attachment in requestObject["attachments"])
+                        {
+                            attachments.Add(new Attachment
+                            {
+                                Id = (string)attachment["id"],
+                                Name = (string)attachment["name"],
+                                Type = (string)attachment["type"],
+                                Content = (string)attachment["content"],
+                                Size = (long)attachment["size"],
+                                Width = attachment["metadata"]?["width"]?.ToObject<int>(),
+                                Height = attachment["metadata"]?["height"]?.ToObject<int>(),
+                                TextContent = (string)attachment["textContent"],
+                                LastModified = attachment["metadata"]?["lastModified"]?.ToObject<long>()
+                            });
+                        }
+                    }
+                    
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
@@ -88,6 +110,7 @@ namespace AiStudio4.Services
                         ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
                         SystemPromptId = (string)requestObject["systemPromptId"],
                         SystemPromptContent = (string)requestObject["systemPromptContent"],
+                        Attachments = attachments,
                         CancellationToken = cancellationToken
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
@@ -98,6 +121,12 @@ namespace AiStudio4.Services
                         (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
 
                     var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                    
+                    // Add attachments to the message
+                    if (chatRequest.Attachments != null && chatRequest.Attachments.Any())
+                    {
+                        newUserMessage.Attachments.AddRange(chatRequest.Attachments);
+                    }
 
                     // Save the conv system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
@@ -115,7 +144,8 @@ namespace AiStudio4.Services
                         Content = newUserMessage.UserMessage,
                         ParentId = chatRequest.ParentMessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Source = "user" // Explicitly set source as "user"
+                        Source = "user", // Explicitly set source as "user"
+                        Attachments = newUserMessage.Attachments
                     });
 
                     // Replace tree builder with direct message processing for conv list notification
@@ -135,7 +165,8 @@ namespace AiStudio4.Services
                     chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
-                        Content = msg.UserMessage
+                        Content = msg.UserMessage,
+                        Attachments = msg.Attachments
                     }).ToList();
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);

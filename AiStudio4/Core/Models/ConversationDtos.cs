@@ -1,4 +1,6 @@
+using AiStudio4.DataModels;
 using SharedClasses.Providers;
+using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
 {
@@ -12,6 +14,7 @@ namespace AiStudio4.Core.Models
         public string Source { get; set; }
         public TokenUsage TokenUsage { get; set; }
         public TokenCost CostInfo { get; set; }
+        public List<Attachment> Attachments { get; set; }
     }
 
     public class StreamingUpdateDto

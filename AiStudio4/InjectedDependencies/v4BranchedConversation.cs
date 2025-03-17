@@ -27,7 +27,7 @@ namespace AiStudio4.InjectedDependencies
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
 
-        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId)
+        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId, List<DataModels.Attachment> attachments = null)
         {
             var newMessage = new v4BranchedConvMessage
             {
@@ -35,6 +35,7 @@ namespace AiStudio4.InjectedDependencies
                 UserMessage = userMessage ?? string.Empty,
                 Id = newMessageId,
                 ParentId = parentMessageId,
+                Attachments = attachments ?? new List<DataModels.Attachment>(),
             };
 
             // If no messages exist, create a system message as the root

@@ -49,7 +49,8 @@ namespace AiStudio4.Services
                                     msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                             parentId = msg.ParentId,
                             timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            costInfo = msg.CostInfo
+                            costInfo = msg.CostInfo,
+                            attachments = msg.Attachments
                         };
                     }).ToList();
 

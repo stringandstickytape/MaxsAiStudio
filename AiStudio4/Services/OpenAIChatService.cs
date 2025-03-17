@@ -185,11 +185,22 @@ namespace AiStudio4.Services
                 // Add all messages from history first
                 foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
                 {
-                    conv.messages.Add(new LinearConvMessage
+                    var message = new LinearConvMessage
                     {
                         role = historyItem.Role,
-                        content = historyItem.Content
-                    });
+                        content = historyItem.Content,
+                        attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
+                    };
+                    
+                    // For backward compatibility with services that expect base64image
+                    if (historyItem.Attachments?.Any() == true && 
+                        historyItem.Attachments[0].Type.StartsWith("image/"))
+                    {
+                        message.base64image = historyItem.Attachments[0].Content;
+                        message.base64type = historyItem.Attachments[0].Type;
+                    }
+                    
+                    conv.messages.Add(message);
                 }
 
                 var requestOptions = new AiRequestOptions

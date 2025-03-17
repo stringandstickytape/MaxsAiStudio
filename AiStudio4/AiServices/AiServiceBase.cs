@@ -1,4 +1,4 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
@@ -106,6 +106,32 @@ namespace AiStudio4.AiServices
             //    content,
             //    mustNotUseEmbedding
             //);
+        }
+        
+        protected virtual JArray CreateAttachmentsArray(List<Attachment> attachments)
+        {
+            var result = new JArray();
+            
+            if (attachments == null || !attachments.Any())
+                return result;
+                
+            foreach (var attachment in attachments)
+            {
+                if (attachment.Type.StartsWith("image/"))
+                {
+                    result.Add(new JObject
+                    {
+                        ["type"] = "image_url",
+                        ["image_url"] = new JObject
+                        {
+                            ["url"] = $"data:{attachment.Type};base64,{attachment.Content}"
+                        }
+                    });
+                }
+                // Text attachments could be added here if needed
+            }
+            
+            return result;
         }
 
         protected virtual JObject CreateRequestPayload(

@@ -59,6 +59,7 @@ namespace AiStudio4.AiServices
             {
                 var contentArray = new JArray();
 
+                // Handle legacy single image
                 if (message.base64image != null)
                 {
                     contentArray.Add(new JObject
@@ -71,6 +72,28 @@ namespace AiStudio4.AiServices
                             ["data"] = message.base64image
                         }
                     });
+                }
+                
+                // Handle multiple attachments
+                if (message.attachments != null && message.attachments.Any())
+                {
+                    foreach (var attachment in message.attachments)
+                    {
+                        if (attachment.Type.StartsWith("image/"))
+                        {
+                            contentArray.Add(new JObject
+                            {
+                                ["type"] = "image",
+                                ["source"] = new JObject
+                                {
+                                    ["type"] = "base64",
+                                    ["media_type"] = attachment.Type,
+                                    ["data"] = attachment.Content
+                                }
+                            });
+                        }
+                        // Additional attachment types could be handled here
+                    }
                 }
 
                 contentArray.Add(new JObject
