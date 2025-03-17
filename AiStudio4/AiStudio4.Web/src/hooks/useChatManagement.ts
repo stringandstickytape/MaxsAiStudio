@@ -151,6 +151,7 @@ export function useChatManagement() {
 
     const getConv = useCallback(
         async (convId: string) => {
+            console.log('Getting conversation:', convId);
 
             const localConv = convs[convId];
             if (localConv) {
@@ -169,18 +170,27 @@ export function useChatManagement() {
                     if (!treeData) {
                         throw new Error('Failed to get conv tree');
                     }
+                    
+                    console.log('Tree data received in getConv:', treeData);
+                    console.log('Looking at attachments in tree data nodes:', treeData.children?.map(c => ({ id: c.id, hasAttachments: !!c.attachments, attachments: c.attachments })));
 
 
 
                     const extractNodes = (node: any, nodes: any[] = []) => {
                         if (!node) return nodes;
 
+                        // Log the attachments for debugging
+                        if (node.attachments) {
+                            console.log(`Node ${node.id} has attachments:`, node.attachments);
+                        }
+
                         nodes.push({
                             id: node.id,
                             text: node.text,
                             parentId: node.parentId,
                             source: node.source,
-                            costInfo: node.costInfo
+                            costInfo: node.costInfo,
+                            attachments: node.attachments  // Explicitly include attachments
                         });
 
                         if (node.children && Array.isArray(node.children)) {
@@ -193,19 +203,71 @@ export function useChatManagement() {
                     };
 
                     const flatNodes = extractNodes(treeData);
+                    
+                    // Debug: Log every node with its attachment status
+                    console.log('Extracted nodes with attachment info:', 
+                      flatNodes.map(node => ({
+                        id: node.id, 
+                        text: node.text?.substring(0, 20) + '...', 
+                        hasAttachments: !!node.attachments,
+                        attachmentsCount: node.attachments?.length
+                      })));
 
 
-                    const messages = flatNodes.map((node) => ({
-                        id: node.id,
-                        content: node.text,
-                        source:
-                            node.source ||
-                            (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
-                        parentId: node.parentId,
-                        timestamp: Date.now(),
-                        costInfo: node.costInfo || null,
-                    }));
+                    console.log('Flat nodes to process in getConv:', flatNodes);
+                    
+                    const messages = flatNodes.map((node) => {
+                        console.log('Processing node for message:', node);
+                        // Process attachments if present
+                        let attachments = node.attachments;
+                        console.log('Node attachments:', attachments);
+                        if (attachments && Array.isArray(attachments)) {
+                            attachments = attachments.map(att => {
+                                if (typeof att.content === 'string') {
+                                    // Convert base64 to ArrayBuffer
+                                    const binaryString = window.atob(att.content);
+                                    const bytes = new Uint8Array(binaryString.length);
+                                    for (let i = 0; i < binaryString.length; i++) {
+                                        bytes[i] = binaryString.charCodeAt(i);
+                                    }
+                                    const buffer = bytes.buffer;
+                                    
+                                    // Create preview URL for images
+                                    let previewUrl;
+                                    if (att.type.startsWith('image/')) {
+                                        try {
+                                            const blob = new Blob([buffer], { type: att.type });
+                                            previewUrl = URL.createObjectURL(blob);
+                                        } catch (error) {
+                                            console.error('Failed to create preview URL:', error);
+                                        }
+                                    }
+                                    
+                                    return {
+                                        ...att,
+                                        content: buffer,
+                                        previewUrl
+                                    };
+                                }
+                                return att;
+                            });
+                        }
+                        
+                        return {
+                            id: node.id,
+                            content: node.text,
+                            source:
+                                node.source ||
+                                (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
+                            parentId: node.parentId,
+                            timestamp: Date.now(),
+                            costInfo: node.costInfo || null,
+                            attachments: attachments || undefined
+                        };
+                    });
 
+                    console.log('Final processed messages:', messages);
+                    
                     return {
                         id: convId,
                         messages: messages,

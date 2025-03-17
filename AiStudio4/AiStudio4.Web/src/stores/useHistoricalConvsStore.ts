@@ -91,10 +91,14 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
       set({ isLoading: true, error: null });
 
       try {
+        console.log('Fetching historical conv tree for convId:', convId);
         const { data } = await apiClient.post('/api/historicalConvTree', { convId });
 
         if (!data.success) throw new Error('Failed to fetch conv tree');
         if (!data.flatMessageStructure) throw new Error('Invalid response format or empty tree');
+        
+        console.log('Historical conv tree data received:', data);
+        console.log('Flat message structure:', data.flatMessageStructure);
         
         const flatNodes = data.flatMessageStructure;
         const nodeMap = new Map();
@@ -106,7 +110,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             children: [],
             parentId: node.parentId, 
             source: node.source, 
-            costInfo: node.costInfo
+              costInfo: node.costInfo,
+              attachments: node.attachments
           });
         });
         
@@ -117,6 +122,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             nodeMap.has(node.parentId) && nodeMap.get(node.parentId).children.push(treeNode);
         });
         
+        console.log('Extracted flat nodes:', flatNodes);
+        
         if (data.summary) {
           const convToUpdate = get().convs.find((c) => c.convGuid === convId);
           convToUpdate && get().addOrUpdateConv({
@@ -126,7 +133,9 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
         }
         
         set({ isLoading: false });
-        return rootNode ?? (flatNodes.length > 0 ? nodeMap.get(flatNodes[0].id) : null);
+        const result = rootNode ?? (flatNodes.length > 0 ? nodeMap.get(flatNodes[0].id) : null);
+        console.log('Final tree rootNode:', result);
+        return result;
       } catch (error) {
         console.error('Error fetching conv tree:', error);
         set({
