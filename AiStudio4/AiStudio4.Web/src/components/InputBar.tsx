@@ -16,6 +16,7 @@ import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 
 interface InputBarProps {
     selectedModel: string;
@@ -49,10 +50,22 @@ export function InputBar({
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
     const [localInputText, setLocalInputText] = useState('');
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [showScrollButton, setShowScrollButton] = useState(false);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
+
+    // Use the attachment manager hook directly in InputBar
+    const {
+        attachments,
+        error: attachmentError,
+        addAttachment,
+        addAttachments,
+        removeAttachment,
+        clearAttachments
+    } = useAttachmentManager({
+        maxCount: 5,
+        maxSize: 10 * 1024 * 1024 // 10MB
+    });
 
     const inputText = inputValue ?? localInputText;
     const setInputText = onInputChange || setLocalInputText;
@@ -72,6 +85,13 @@ export function InputBar({
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
+
+    // Update parent component when attachments change
+    useEffect(() => {
+        if (onAttachmentChange) {
+            onAttachmentChange(attachments);
+        }
+    }, [attachments, onAttachmentChange]);
 
     // Function to format text attachments into message content
     const formatTextAttachments = (textAttachments: Attachment[]): string => {
@@ -115,14 +135,6 @@ export function InputBar({
 
         return formattedContent;
     };
-
-    // Handle attachment changes
-    const handleAttachmentChange = useCallback((newAttachments: Attachment[]) => {
-        setAttachments(newAttachments);
-        if (onAttachmentChange) {
-            onAttachmentChange(newAttachments);
-        }
-    }, [onAttachmentChange]);
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -219,7 +231,7 @@ export function InputBar({
             });
 
             setInputText('');
-            setAttachments([]);
+            clearAttachments(); // Clear attachments after sending
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -236,7 +248,8 @@ export function InputBar({
         slctdMsgId,
         convs,
         createConv,
-        attachments
+        attachments,
+        clearAttachments
     ]);
 
     const handleSend = () => {
@@ -358,13 +371,13 @@ export function InputBar({
                             style={{ height: '100%' }}
                         />
                     </div>
-                    
+
                     {attachments.length > 0 && (
                         <div className="w-14 flex-shrink-0 overflow-auto">
                             <AttachmentPreviewBar
                                 attachments={attachments}
-                                onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
-                                onClear={() => setAttachments([])}
+                                onRemove={removeAttachment}
+                                onClear={clearAttachments}
                                 className="h-full"
                                 iconsOnly={true}
                                 compact={true}
@@ -373,7 +386,11 @@ export function InputBar({
                     )}
 
                     <div className="flex flex-col gap-2 justify-end">
-                        <FileAttachment onAttachmentChange={handleAttachmentChange} disabled={isLoading || disabled} />
+                        <FileAttachment
+                            onFilesSelected={addAttachments}
+                            disabled={isLoading || disabled}
+                            maxFiles={5}
+                        />
 
                         <Button
                             variant="outline"
