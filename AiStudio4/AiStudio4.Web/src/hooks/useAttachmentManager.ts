@@ -8,6 +8,32 @@ interface UseAttachmentManagerOptions {
   allowedTypes?: string[]; // Array of allowed MIME types
 }
 
+// Helper function to determine if a file is a text file by MIME type
+export const isTextFile = (mimeType: string): boolean => {
+  return mimeType === 'text/plain' || 
+         mimeType === 'text/csv' || 
+         mimeType === 'application/json' || 
+         mimeType === 'text/markdown' ||
+         mimeType === 'text/html' ||
+         mimeType === 'text/css' ||
+         mimeType === 'text/javascript' ||
+         mimeType === 'application/xml' ||
+         mimeType === 'application/javascript' ||
+         mimeType.includes('text/');
+};
+
+// Helper to extract text content from a file
+export const extractTextContent = async (file: File): Promise<string | null> => {
+  if (!isTextFile(file.type)) return null;
+  
+  try {
+    return await file.text();
+  } catch (err) {
+    console.error('Error extracting text from file:', err);
+    return null;
+  }
+};
+
 const DEFAULT_OPTIONS: UseAttachmentManagerOptions = {
   maxSize: 10 * 1024 * 1024, // 10MB
   maxCount: 5,
@@ -69,6 +95,12 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
       }
 
       const buffer = await file.arrayBuffer();
+      
+      // Extract text content if it's a text file
+      let textContent: string | null = null;
+      if (isTextFile(file.type)) {
+        textContent = await extractTextContent(file);
+      }
       const attachment: Attachment = {
         id: uuidv4(),
         type: file.type,
@@ -76,6 +108,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
         size: file.size,
         content: buffer,
         previewUrl: URL.createObjectURL(file),
+        textContent,
         metadata: {
           lastModified: file.lastModified
         }

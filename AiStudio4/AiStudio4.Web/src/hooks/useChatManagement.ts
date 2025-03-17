@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useConvStore } from '@/stores/useConvStore';
@@ -9,56 +8,57 @@ import { createResourceHook } from './useResourceFactory';
 
 
 const useChatConfigResource = createResourceHook<{
-  models: string[];
-  defaultModel: string;
-  secondaryModel: string;
+    models: string[];
+    defaultModel: string;
+    secondaryModel: string;
 }>({
-  endpoints: {
-    fetch: '/api/getConfig',
-  },
-  storeActions: {
-    setItems: () => {}, 
-  },
-  options: {
-    transformFetchResponse: (data) => [
-      {
-        models: data.models || [],
-        defaultModel: data.defaultModel || '',
-        secondaryModel: data.secondaryModel || '',
-      },
-    ],
-  },
+    endpoints: {
+        fetch: '/api/getConfig',
+    },
+    storeActions: {
+        setItems: () => { },
+    },
+    options: {
+        transformFetchResponse: (data) => [
+            {
+                models: data.models || [],
+                defaultModel: data.defaultModel || '',
+                secondaryModel: data.secondaryModel || '',
+            },
+        ],
+    },
 });
 import { Attachment } from '@/types/attachment';
+import { isTextFile } from './useAttachmentManager';
 
 interface SendMessageParams {
-  convId: string;
-  parentMessageId: string;
-  message: string;
-  model: string;
-  toolIds: string[];
-  systemPromptId?: string;
-  systemPromptContent?: string;
-  messageId?: string;
-  attachments?: Attachment[];
+    convId: string;
+    parentMessageId: string;
+    message: string;
+    model: string;
+    toolIds: string[];
+    systemPromptId?: string;
+    systemPromptContent?: string;
+    messageId?: string;
+    attachments?: Attachment[];
 }
 
 export function useChatManagement() {
-  
-  const { isLoading, error, executeApiCall, clearError } = useApiCallState();
 
-  
-  const { fetchItems: fetchConfigData } = useChatConfigResource();
+    const { isLoading, error, executeApiCall, clearError } = useApiCallState();
 
-  
-  const { addMessage, createConv, activeConvId, convs } = useConvStore();
 
-  const { prompts, convPrompts, defaultPromptId } = useSystemPromptStore();
+    const { fetchItems: fetchConfigData } = useChatConfigResource();
 
-  
-  const { fetchConvTree } = useHistoricalConvsStore();
 
-  
+    const { addMessage, createConv, activeConvId, convs } = useConvStore();
+
+    const { prompts, convPrompts, defaultPromptId } = useSystemPromptStore();
+
+
+    const { fetchConvTree } = useHistoricalConvsStore();
+
+
     const sendMessage = useCallback(
         async (params: SendMessageParams) => {
             return executeApiCall(async () => {
@@ -66,7 +66,7 @@ export function useChatManagement() {
                 const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
 
                 // REMOVE THIS BLOCK: Don't add the message to local state before server confirmation
-				// (removed)
+                // (removed)
 
                 // For server request, we need to convert ArrayBuffer to base64
                 let requestParams = { ...params };
@@ -96,193 +96,192 @@ export function useChatManagement() {
         [executeApiCall, addMessage],
     );
 
-  // Helper function to convert ArrayBuffer to base64
-  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  };
+    // Helper function to convert ArrayBuffer to base64
+    const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    };
 
-  
 
-  const getConfig = useCallback(async () => {
-    const config = await fetchConfigData();
-    return (
-      config?.[0] || {
-        models: [],
-        defaultModel: '',
-        secondaryModel: '',
-      }
+
+    const getConfig = useCallback(async () => {
+        const config = await fetchConfigData();
+        return (
+            config?.[0] || {
+                models: [],
+                defaultModel: '',
+                secondaryModel: '',
+            }
+        );
+    }, [fetchConfigData]);
+
+
+    const setDefaultModel = useCallback(
+        async (modelName: string) => {
+            return (
+                executeApiCall(async () => {
+                    const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
+                    await setDefaultModelRequest({ modelName });
+                    return true;
+                }) || false
+            );
+        },
+        [executeApiCall],
     );
-  }, [fetchConfigData]);
 
-  
-  const setDefaultModel = useCallback(
-    async (modelName: string) => {
-      return (
-        executeApiCall(async () => {
-          const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
-          await setDefaultModelRequest({ modelName });
-          return true;
-        }) || false
-      );
-    },
-    [executeApiCall],
-  );
 
-  
-  const setSecondaryModel = useCallback(
-    async (modelName: string) => {
-      return (
-        executeApiCall(async () => {
-          const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
-          await setSecondaryModelRequest({ modelName });
-          return true;
-        }) || false
-      );
-    },
-    [executeApiCall],
-  );
+    const setSecondaryModel = useCallback(
+        async (modelName: string) => {
+            return (
+                executeApiCall(async () => {
+                    const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
+                    await setSecondaryModelRequest({ modelName });
+                    return true;
+                }) || false
+            );
+        },
+        [executeApiCall],
+    );
 
-  
-  const getConv = useCallback(
-    async (convId: string) => {
-      
-      const localConv = convs[convId];
-      if (localConv) {
-        return {
-          id: convId,
-          messages: localConv.messages,
-        };
-      }
 
-      
-      return executeApiCall(
-        async () => {
-          
-          const treeData = await fetchConvTree(convId);
+    const getConv = useCallback(
+        async (convId: string) => {
 
-          if (!treeData) {
-            throw new Error('Failed to get conv tree');
-          }
-
-          
-          
-          const extractNodes = (node: any, nodes: any[] = []) => {
-            if (!node) return nodes;
-
-            nodes.push({
-              id: node.id,
-              text: node.text,
-              parentId: node.parentId,
-              source: node.source,
-              costInfo: node.costInfo
-            });
-
-            if (node.children && Array.isArray(node.children)) {
-              for (const child of node.children) {
-                extractNodes(child, nodes);
-              }
+            const localConv = convs[convId];
+            if (localConv) {
+                return {
+                    id: convId,
+                    messages: localConv.messages,
+                };
             }
 
-            return nodes;
-          };
 
-          const flatNodes = extractNodes(treeData);
+            return executeApiCall(
+                async () => {
 
-          
-          const messages = flatNodes.map((node) => ({
-            id: node.id,
-            content: node.text,
-            source:
-              node.source ||
-              (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
-            parentId: node.parentId,
-            timestamp: Date.now(), 
-            costInfo: node.costInfo || null,
-          }));
+                    const treeData = await fetchConvTree(convId);
 
-          return {
-            id: convId,
-            messages: messages,
-            summary: 'Loaded Conv', 
-          };
+                    if (!treeData) {
+                        throw new Error('Failed to get conv tree');
+                    }
+
+
+
+                    const extractNodes = (node: any, nodes: any[] = []) => {
+                        if (!node) return nodes;
+
+                        nodes.push({
+                            id: node.id,
+                            text: node.text,
+                            parentId: node.parentId,
+                            source: node.source,
+                            costInfo: node.costInfo
+                        });
+
+                        if (node.children && Array.isArray(node.children)) {
+                            for (const child of node.children) {
+                                extractNodes(child, nodes);
+                            }
+                        }
+
+                        return nodes;
+                    };
+
+                    const flatNodes = extractNodes(treeData);
+
+
+                    const messages = flatNodes.map((node) => ({
+                        id: node.id,
+                        content: node.text,
+                        source:
+                            node.source ||
+                            (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
+                        parentId: node.parentId,
+                        timestamp: Date.now(),
+                        costInfo: node.costInfo || null,
+                    }));
+
+                    return {
+                        id: convId,
+                        messages: messages,
+                        summary: 'Loaded Conv',
+                    };
+                },
+                convs,
+                fetchConvTree,
+            );
         },
+        [convs, fetchConvTree, executeApiCall],
+    );
+
+
+    const getSystemPromptForConv = useCallback(
+        (convId: string) => {
+
+            let promptId = convId ? convPrompts[convId] : null;
+
+
+            if (!promptId) {
+                promptId = defaultPromptId;
+            }
+
+
+            if (promptId) {
+                const prompt = prompts.find((p) => p.guid === promptId);
+                if (prompt) {
+                    return {
+                        id: prompt.guid,
+                        content: prompt.content,
+                    };
+                }
+            }
+
+
+            const defaultPrompt = prompts.find((p) => p.isDefault);
+            if (defaultPrompt) {
+                return {
+                    id: defaultPrompt.guid,
+                    content: defaultPrompt.content,
+                };
+            }
+
+
+            return null;
+        },
+        [prompts, convPrompts, defaultPromptId],
+    );
+
+    const cancelMessage = useCallback(
+        async (params: { convId: string; messageId: string }) => {
+            return executeApiCall(async () => {
+                const cancelRequest = createApiRequest('/api/cancelRequest', 'POST');
+                const data = await cancelRequest(params);
+                return data;
+            });
+        },
+        [executeApiCall]
+    );
+
+    return {
+
+        isLoading,
+        error,
+        activeConvId,
         convs,
-        fetchConvTree,
-      );
-    },
-    [convs, fetchConvTree, executeApiCall],
-  );
 
-  
-  const getSystemPromptForConv = useCallback(
-    (convId: string) => {
-      
-      let promptId = convId ? convPrompts[convId] : null;
 
-      
-      if (!promptId) {
-        promptId = defaultPromptId;
-      }
-
-      
-      if (promptId) {
-        const prompt = prompts.find((p) => p.guid === promptId);
-        if (prompt) {
-          return {
-            id: prompt.guid,
-            content: prompt.content,
-          };
-        }
-      }
-
-      
-      const defaultPrompt = prompts.find((p) => p.isDefault);
-      if (defaultPrompt) {
-        return {
-          id: defaultPrompt.guid,
-          content: defaultPrompt.content,
-        };
-      }
-
-      
-      return null;
-    },
-    [prompts, convPrompts, defaultPromptId],
-  );
-
-  const cancelMessage = useCallback(
-    async (params: { convId: string; messageId: string }) => {
-      return executeApiCall(async () => {
-        const cancelRequest = createApiRequest('/api/cancelRequest', 'POST');
-        const data = await cancelRequest(params);
-        return data;
-      });
-    },
-    [executeApiCall]
-  );
-
-  return {
-    
-    isLoading,
-    error,
-    activeConvId,
-    convs,
-
-    
-    sendMessage,
-    cancelMessage,
-    getConfig,
-    setDefaultModel,
-    setSecondaryModel,
-    getConv,
-    getSystemPromptForConv,
-    clearError,
-  };
+        sendMessage,
+        cancelMessage,
+        getConfig,
+        setDefaultModel,
+        setSecondaryModel,
+        getConv,
+        getSystemPromptForConv,
+        clearError,
+    };
 }
-

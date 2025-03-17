@@ -47,7 +47,7 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
-    
+
     const [localInputText, setLocalInputText] = useState('');
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [showScrollButton, setShowScrollButton] = useState(false);
@@ -68,18 +68,69 @@ export function InputBar({
     const { sendMessage, cancelMessage, isLoading } = useChatManagement();
     const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
     const { tools } = useToolsManagement();
-    
+
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
+
+    // Function to format text attachments into message content
+    const formatTextAttachments = (textAttachments: Attachment[]): string => {
+        if (textAttachments.length === 0) return '';
+
+        let formattedContent = '';
+
+        textAttachments.forEach(attachment => {
+            if (attachment.textContent) {
+                // Determine language based on file extension
+                const fileExt = attachment.name.split('.').pop()?.toLowerCase() || '';
+                let language = '';
+
+                // Map common extensions to languages
+                switch (fileExt) {
+                    case 'json': language = 'json'; break;
+                    case 'md': language = 'markdown'; break;
+                    case 'html': language = 'html'; break;
+                    case 'css': language = 'css'; break;
+                    case 'js': language = 'javascript'; break;
+                    case 'ts': language = 'typescript'; break;
+                    case 'py': language = 'python'; break;
+                    case 'java': language = 'java'; break;
+                    case 'c': language = 'c'; break;
+                    case 'cpp': language = 'cpp'; break;
+                    case 'cs': language = 'csharp'; break;
+                    case 'php': language = 'php'; break;
+                    case 'rb': language = 'ruby'; break;
+                    case 'go': language = 'go'; break;
+                    case 'rs': language = 'rust'; break;
+                    case 'sh': language = 'bash'; break;
+                    case 'sql': language = 'sql'; break;
+                    case 'xml': language = 'xml'; break;
+                    case 'csv': language = 'csv'; break;
+                    case 'txt': default: language = '';
+                }
+
+                formattedContent += `\n\n**File: ${attachment.name}**\n\`\`\`${language}\n${attachment.textContent}\n\`\`\`\n`;
+            }
+        });
+
+        return formattedContent;
+    };
+
+    // Handle attachment changes
+    const handleAttachmentChange = useCallback((newAttachments: Attachment[]) => {
+        setAttachments(newAttachments);
+        if (onAttachmentChange) {
+            onAttachmentChange(newAttachments);
+        }
+    }, [onAttachmentChange]);
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setInputText(value);
         setCursorPosition(e.target.selectionStart);
 
-        if (value.startsWith('/') && value.length > 1 && !value.includes(' ') && 
-            e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ' && 
+        if (value.startsWith('/') && value.length > 1 && !value.includes(' ') &&
+            e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ' &&
             handlePromptShortcut(value)) {
             setTimeout(() => {
                 const length = textareaRef.current?.value.length;
@@ -97,7 +148,7 @@ export function InputBar({
         setCursorPosition(e.currentTarget.selectionStart);
     };
 
-    
+
     useEffect(() => {
         setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
 
@@ -118,14 +169,6 @@ export function InputBar({
         toolsContainerRef.current && observer.observe(toolsContainerRef.current);
         return () => observer.disconnect();
     }, [isXs, isSm, isMd, visibleToolCount]);
-
-
-    const handleAttachmentChange = useCallback((newAttachments: Attachment[]) => {
-        setAttachments(newAttachments);
-        if (onAttachmentChange) {
-            onAttachmentChange(newAttachments);
-        }
-    }, [onAttachmentChange]);
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
@@ -149,9 +192,9 @@ export function InputBar({
                 });
                 parentMessageId = messageId;
             } else {
-                parentMessageId = slctdMsgId || 
-                    (convs[convId]?.messages.length > 0 ? 
-                        convs[convId].messages[convs[convId].messages.length - 1].id : 
+                parentMessageId = slctdMsgId ||
+                    (convs[convId]?.messages.length > 0 ?
+                        convs[convId].messages[convs[convId].messages.length - 1].id :
                         null);
             }
 
@@ -196,20 +239,31 @@ export function InputBar({
         attachments
     ]);
 
-  const handleSend = () => {
-    if (isCancelling) return;
-    
-    isLoading && currentRequest
-      ? (setIsCancelling(true), cancelMessage({
-          convId: currentRequest.convId,
-          messageId: currentRequest.messageId
-        }))
-      : inputText.trim() && !isLoading && handleChatMessage(inputText);
-  };
-  
-  useEffect(() => {
-    !isLoading && isCancelling && setIsCancelling(false);
-  }, [isLoading, isCancelling, setIsCancelling]);
+    const handleSend = () => {
+        if (isCancelling) return;
+
+        isLoading && currentRequest
+            ? (setIsCancelling(true), cancelMessage({
+                convId: currentRequest.convId,
+                messageId: currentRequest.messageId
+            }))
+            : inputText.trim() && !isLoading && (() => {
+                // Filter text attachments
+                const textAttachments = attachments.filter(att => att.textContent);
+
+                // Format text from text files
+                const textFileContent = formatTextAttachments(textAttachments);
+
+                // Combine user input with text file content
+                const fullMessage = inputText + textFileContent;
+
+                handleChatMessage(fullMessage);
+            })();
+    };
+
+    useEffect(() => {
+        !isLoading && isCancelling && setIsCancelling(false);
+    }, [isLoading, isCancelling, setIsCancelling]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -218,9 +272,9 @@ export function InputBar({
             return;
         }
 
-        if ((e.key === ' ' || e.key === 'Tab') && 
-            inputText.startsWith('/') && 
-            !inputText.includes(' ') && 
+        if ((e.key === ' ' || e.key === 'Tab') &&
+            inputText.startsWith('/') &&
+            !inputText.includes(' ') &&
             handlePromptShortcut(inputText)) {
             e.preventDefault();
         }
@@ -258,22 +312,22 @@ export function InputBar({
         };
     }, []);
 
-    const handlePrimaryModelClick = () => 
+    const handlePrimaryModelClick = () =>
         window.dispatchEvent(new CustomEvent('select-primary-model'));
 
     useEffect(() => {
-        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) => 
+        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) =>
             setShowScrollButton(event.detail.visible);
-        
+
         window.addEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
         window.getScrollButtonState && setShowScrollButton(window.getScrollButtonState());
-        
-        return () => window.removeEventListener('scroll-button-state-change', 
-                                              handleScrollButtonStateChange as EventListener);
+
+        return () => window.removeEventListener('scroll-button-state-change',
+            handleScrollButtonStateChange as EventListener);
     }, []);
-    
+
     const handleScrollToBottom = () => window.scrollChatToBottom?.();
-    const handleSecondaryModelClick = () => 
+    const handleSecondaryModelClick = () =>
         window.dispatchEvent(new CustomEvent('select-secondary-model'));
 
     return (
@@ -289,16 +343,16 @@ export function InputBar({
             )}
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
-                <div className="relative flex-1">
-                    {attachments.length > 0 && (
-                        <div className="mb-2">
-                            <AttachmentPreviewBar
-                                attachments={attachments}
-                                onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
-                                onClear={() => setAttachments([])}
-                            />
-                        </div>
-                    )}
+                    <div className="relative flex-1">
+                        {attachments.length > 0 && (
+                            <div className="mb-2">
+                                <AttachmentPreviewBar
+                                    attachments={attachments}
+                                    onRemove={(id) => setAttachments(prev => prev.filter(a => a.id !== id))}
+                                    onClear={() => setAttachments([])}
+                                />
+                            </div>
+                        )}
                         <Textarea
                             ref={textareaRef}
                             className="w-full h-[120px] p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
@@ -389,8 +443,8 @@ export function InputBar({
                                                     <TooltipTrigger asChild>
                                                         <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
                                                             <span className="truncate max-w-[100px]">{tool.name}</span>
-                                                            <button onClick={() => handleRemoveTool(tool.guid)} 
-                                                                    className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => handleRemoveTool(tool.guid)}
+                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <X className="h-3 w-3" />
                                                             </button>
                                                         </div>
@@ -431,13 +485,13 @@ export function InputBar({
 }
 
 window.appendToPrompt = text => {
-    window.dispatchEvent(new CustomEvent('append-to-prompt', {detail: {text}}));
+    window.dispatchEvent(new CustomEvent('append-to-prompt', { detail: { text } }));
     console.log(`Appended to prompt: "${text}"`);
     return true;
 };
 
 window.setPrompt = text => {
-    window.dispatchEvent(new CustomEvent('set-prompt', {detail: {text}}));
+    window.dispatchEvent(new CustomEvent('set-prompt', { detail: { text } }));
     console.log(`Set prompt to: "${text}"`);
     return true;
 };
