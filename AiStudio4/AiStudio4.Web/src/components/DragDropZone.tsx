@@ -69,7 +69,7 @@ export const DragDropZone: React.FC<DragDropZoneProps> = ({
             const filesToUpload = filesArray.slice(0, maxFiles);
             onFilesSelected(filesToUpload);
 
-            // Reset input value to allow selecting the same file again
+            
             if (inputRef.current) {
                 inputRef.current.value = '';
             }

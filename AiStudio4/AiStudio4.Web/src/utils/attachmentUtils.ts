@@ -1,4 +1,4 @@
-﻿// AiStudio4/AiStudio4.Web/src/utils/attachmentUtils.ts
+
 import { Attachment } from '@/types/attachment';
 
 /**
@@ -131,7 +131,7 @@ textAttachments.forEach(attachment => {
         const fileExt = attachment.name.split('.').pop()?.toLowerCase() || '';
         let language = '';
 
-        // Map file extensions to language identifiers for code blocks
+        
         switch (fileExt)
         {
             case 'json': language = 'json'; break;
@@ -168,7 +168,7 @@ return formattedContent;
  * Default attachment validation options
  */
 export const DEFAULT_ATTACHMENT_OPTIONS = {
-  maxSize: 10 * 1024 * 1024, // 10MB
+  maxSize: 10 * 1024 * 1024, 
   maxCount: 5,
   allowedTypes: [
     'image/jpeg',

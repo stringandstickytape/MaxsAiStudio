@@ -23,7 +23,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    // Clean up URLs on unmount to prevent memory leaks
+    
     useEffect(() => {
         return () => {
             cleanupAttachmentUrls(attachments);
@@ -40,7 +40,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
 
             const buffer = await file.arrayBuffer();
 
-            // Extract text content if it's a text file
+            
             let textContent: string | null = null;
             if (isTextFile(file.type)) {
                 textContent = await extractTextFromFile(file);
@@ -59,7 +59,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
                 }
             };
 
-            // Add dimensions for images
+            
             if (file.type.startsWith('image/')) {
                 await new Promise<void>((resolve) => {
                     const img = new Image();
