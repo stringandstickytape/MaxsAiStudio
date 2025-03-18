@@ -17,7 +17,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     disabled = false,
     className,
     maxFiles = DEFAULT_ATTACHMENT_OPTIONS.maxCount,
-    acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv"
+    acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv,application/pdf"
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);

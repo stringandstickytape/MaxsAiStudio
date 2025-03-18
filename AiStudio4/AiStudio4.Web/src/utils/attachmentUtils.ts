@@ -46,6 +46,9 @@ export function getIconForFileType(type: string): string {
 if (type.startsWith('text/')) {
     return 'FileText';
 }
+if (type === 'application/pdf') {
+    return 'FileText';
+}
 return 'File';
 }
 
@@ -88,7 +91,7 @@ export function isTextFile(mimeType: string): boolean {
  * @returns A URL that can be used for previewing the attachment, or undefined if not applicable
  */
 export function createAttachmentPreviewUrl(attachment: { type: string, content: ArrayBuffer }): string | undefined {
-  if (!attachment.type.startsWith('image/')) return undefined;
+  if (!attachment.type.startsWith('image/') && attachment.type !== 'application/pdf') return undefined;
 
 try {
     const blob = new Blob([attachment.content], { type: attachment.type });

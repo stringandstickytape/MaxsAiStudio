@@ -219,7 +219,7 @@ export function useChatManagement() {
                                     
                                     
                                     let previewUrl;
-                                    if (att.type.startsWith('image/')) {
+                                    if (att.type.startsWith('image/') || att.type === 'application/pdf') {
                                         try {
                                             const blob = new Blob([buffer], { type: att.type });
                                             previewUrl = URL.createObjectURL(blob);

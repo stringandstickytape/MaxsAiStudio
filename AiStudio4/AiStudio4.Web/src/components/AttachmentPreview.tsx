@@ -30,9 +30,10 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
     compact = false
 }) => {
     const isImage = attachment.type.startsWith('image/');
+    const isPdf = attachment.type === 'application/pdf';
     const fileSize = formatFileSize(attachment.size);
 
-    
+    // Compact mode view
     if (compact) {
         return (
             <div
@@ -49,6 +50,10 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                             alt={attachment.name}
                             className="w-full h-full object-cover"
                         />
+                    ) : isPdf && attachment.previewUrl ? (
+                        <div className="flex items-center justify-center h-full w-full bg-gray-700">
+                            <FileText className="h-5 w-5 text-gray-300" />
+                        </div>
                     ) : (
                         getIconComponent(attachment.type)
                     )}
@@ -64,7 +69,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
         );
     }
 
-    
+    // Regular view
     return (
         <div
             className={cn(
@@ -79,6 +84,10 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         alt={attachment.name}
                         className="w-full h-full object-cover"
                     />
+                </div>
+            ) : isPdf && attachment.previewUrl ? (
+                <div className="relative w-10 h-10 bg-gray-700 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-gray-300" />
                 </div>
             ) : (
                 <div className="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
@@ -127,28 +136,28 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
     const [iconsOnly, setIconsOnly] = useState(propIconsOnly || false);
     const [compact, setCompact] = useState(propCompact || false);
 
-    
+    // Responsive behavior
     useEffect(() => {
         const handleResize = () => {
             setViewportWidth(window.innerWidth);
 
             if (propIconsOnly === undefined) {
-                setIconsOnly(window.innerWidth < 768); 
+                setIconsOnly(window.innerWidth < 768); // MD breakpoint
             }
 
-            
+            // Set compact view for small screens
             if (propCompact === undefined) {
-                setCompact(window.innerWidth < 640); 
+                setCompact(window.innerWidth < 640); // SM breakpoint
             }
         };
 
         window.addEventListener('resize', handleResize);
-        handleResize(); 
+        handleResize(); // Initial call
 
         return () => window.removeEventListener('resize', handleResize);
     }, [propIconsOnly, propCompact]);
 
-    
+    // Prop overrides
     useEffect(() => {
         if (propIconsOnly !== undefined) {
             setIconsOnly(propIconsOnly);
@@ -160,7 +169,7 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
 
     if (attachments.length === 0) return null;
 
-    
+    // Compact view
     if (compact) {
         return (
             <div className={cn(
@@ -192,7 +201,7 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
         );
     }
 
-    
+    // Regular view
     return (
         <div className={cn('p-2 bg-gray-800/50 rounded border border-gray-700/50 h-full overflow-auto', className)}>
             <div className="flex items-center justify-between mb-2">
