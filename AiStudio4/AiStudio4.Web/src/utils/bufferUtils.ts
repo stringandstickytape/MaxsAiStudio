@@ -60,11 +60,11 @@ export function processAttachments(attachments: any[]): any[] {
   if (!attachments || !Array.isArray(attachments)) return [];
   
   return attachments.map(att => {
-    // If content is a Base64 string, convert to ArrayBuffer
+    
     if (typeof att.content === 'string') {
       const buffer = base64ToArrayBuffer(att.content);
       
-      // Create preview URL for images - only if one doesn't already exist
+      
       const previewUrl = !att.previewUrl && att.type.startsWith('image/') 
         ? createAttachmentPreviewUrl({ type: att.type, content: buffer })
         : att.previewUrl;
@@ -89,7 +89,7 @@ export function prepareAttachmentsForTransmission(attachments: Attachment[]): an
   if (!attachments || !Array.isArray(attachments) || attachments.length === 0) return [];
   
   return attachments.map(attachment => {
-    // If attachment has ArrayBuffer content, convert to base64 for JSON transmission
+    
     if (attachment.content instanceof ArrayBuffer) {
       return {
         ...attachment,
@@ -112,11 +112,11 @@ export function formatTextAttachments(textAttachments: any[]): string {
 
   textAttachments.forEach(attachment => {
     if (attachment.textContent) {
-      // Determine language based on file extension
+      
       const fileExt = attachment.name.split('.').pop()?.toLowerCase() || '';
       let language = '';
 
-      // Map common extensions to languages
+      
       switch (fileExt) {
         case 'json': language = 'json'; break;
         case 'md': language = 'markdown'; break;

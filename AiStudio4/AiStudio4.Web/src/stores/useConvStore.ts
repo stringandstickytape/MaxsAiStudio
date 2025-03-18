@@ -23,7 +23,7 @@ interface ConvState {
     cancelEditMessage: () => void;
 }
 
-// Using imported processAttachments utility
+
 
 export const useConvStore = create<ConvState>((set, get) => {
     if (typeof window !== 'undefined') {
@@ -45,7 +45,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     parentId = userMsgs.length ? userMsgs[0].id : conv.messages[conv.messages.length - 1].id;
                 }
 
-                // Process attachments if they exist
+                
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
@@ -107,7 +107,7 @@ export const useConvStore = create<ConvState>((set, get) => {
             )
                 .sort((a, b) => a.timestamp - b.timestamp)
                 .forEach(m => {
-                    // Process attachments if they exist
+                    
                     const attachments = m.attachments && Array.isArray(m.attachments)
                         ? processAttachments(m.attachments)
                         : undefined;
@@ -216,7 +216,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 let newActive = s.activeConvId;
                 let newSlctd = s.slctdMsgId;
 
-                // Cleanup attachment preview URLs using centralized utility
+                
                 if (convToDelete) {
                     convToDelete.messages.forEach(message => {
                         if (message.attachments) {

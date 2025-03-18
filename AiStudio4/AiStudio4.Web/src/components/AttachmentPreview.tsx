@@ -36,7 +36,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({ attachment
   const isImage = attachment.type.startsWith('image/');
   const fileSize = formatFileSize(attachment.size);
   
-  // For compact display, we show just the icon or thumbnail without any labels
+  
   if (compact) {
     return (
       <div
@@ -68,7 +68,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({ attachment
     );
   }
   
-  // Regular display mode
+  
   return (
     <div
       className={cn(
@@ -131,28 +131,28 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
   const [iconsOnly, setIconsOnly] = useState(propIconsOnly || false);
   const [compact, setCompact] = useState(propCompact || false);
   
-  // Update when window resizes
+  
   useEffect(() => {
     const handleResize = () => {
       setViewportWidth(window.innerWidth);
-      // Auto-determine icons-only based on viewport width if not explicitly set
+      
       if (propIconsOnly === undefined) {
-        setIconsOnly(window.innerWidth < 768); // md breakpoint
+        setIconsOnly(window.innerWidth < 768); 
       }
       
-      // Auto-determine compact mode based on viewport width if not explicitly set
+      
       if (propCompact === undefined) {
-        setCompact(window.innerWidth < 640); // sm breakpoint
+        setCompact(window.innerWidth < 640); 
       }
     };
     
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initial check
+    handleResize(); 
     
     return () => window.removeEventListener('resize', handleResize);
   }, [propIconsOnly, propCompact]);
   
-  // Update when props change
+  
   useEffect(() => {
     if (propIconsOnly !== undefined) {
       setIconsOnly(propIconsOnly);
@@ -164,7 +164,7 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
 
   if (attachments.length === 0) return null;
 
-  // Compact grid layout
+  
   if (compact) {
     return (
       <div className={cn(
@@ -196,7 +196,7 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
     );
   }
 
-  // Regular layout
+  
   return (
     <div className={cn('p-2 bg-gray-800/50 rounded border border-gray-700/50 h-full overflow-auto', className)}>
       <div className="flex items-center justify-between mb-2">

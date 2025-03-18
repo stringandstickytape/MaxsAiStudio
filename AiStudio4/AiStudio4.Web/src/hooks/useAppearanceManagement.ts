@@ -17,7 +17,7 @@ export function useAppearanceManagement() {
         setError,
     } = useAppearanceStore();
 
-    // Using centralized font size utility instead of local implementation
+    
     const applySettings = useCallback(() => {
         fontSizeUtils.applyFontSize(fontSize);
     }, [fontSize]);

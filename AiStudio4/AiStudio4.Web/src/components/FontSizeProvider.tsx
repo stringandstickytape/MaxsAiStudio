@@ -5,12 +5,12 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   const { fontSize } = useAppearanceStore();
   const initialized = useRef(false);
 
-  // Handle initial font size setup and subscription
+  
   useEffect(() => {
-    // Apply initial font size immediately
+    
     fontSizeUtils.applyFontSize(fontSize);
     
-    // Subscribe to font size changes
+    
     const unsubscribe = useAppearanceStore.subscribe(
       (state) => state.fontSize,
       (newFontSize) => {
@@ -18,13 +18,13 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
       }
     );
     
-    // Return cleanup function
+    
     return () => {
       unsubscribe();
     };
   }, [fontSize]);
   
-  // This effect runs once for initialization
+  
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;

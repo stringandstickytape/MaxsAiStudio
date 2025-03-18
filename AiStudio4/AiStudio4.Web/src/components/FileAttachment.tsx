@@ -47,7 +47,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
 
         onFilesSelected(files);
 
-        // Reset input value to allow selecting the same file again
+        
         if (inputRef.current) {
             inputRef.current.value = '';
         }

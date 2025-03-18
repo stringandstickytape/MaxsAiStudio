@@ -96,7 +96,7 @@ export function ChatSpace() {
     };
   }, []);
 
-  // Handle attachment changes
+  
   const handleAttachmentChange = (attachments: Attachment[]) => {
     setCurrentAttachments(attachments);
   };

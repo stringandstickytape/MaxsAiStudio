@@ -1,15 +1,15 @@
 export interface Attachment {
-  id: string;               // Unique identifier
-  type: string;             // MIME type
-  name: string;             // Original filename
-  size: number;             // File size in bytes
-  content: ArrayBuffer;     // Binary content
-  textContent?: string;     // Text content for text files
-  previewUrl?: string;      // For display (created with URL.createObjectURL)
-  thumbnailUrl?: string;    // Optional thumbnail for large images
+  id: string;               
+  type: string;             
+  name: string;             
+  size: number;             
+  content: ArrayBuffer;     
+  textContent?: string;     
+  previewUrl?: string;      
+  thumbnailUrl?: string;    
   metadata?: {
-    width?: number;         // For images
-    height?: number;        // For images
-    lastModified?: number;  // From original file
+    width?: number;         
+    height?: number;        
+    lastModified?: number;  
   };
 }

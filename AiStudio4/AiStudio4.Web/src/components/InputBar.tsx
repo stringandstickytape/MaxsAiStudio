@@ -55,7 +55,7 @@ export function InputBar({
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
 
-    // Use the attachment manager hook directly in InputBar
+    
     const {
         attachments,
         error: attachmentError,
@@ -65,7 +65,7 @@ export function InputBar({
         clearAttachments
     } = useAttachmentManager({
         maxCount: 5,
-        maxSize: 10 * 1024 * 1024 // 10MB
+        maxSize: 10 * 1024 * 1024 
     });
 
     const inputText = inputValue ?? localInputText;
@@ -87,14 +87,14 @@ export function InputBar({
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
 
-    // Update parent component when attachments change
+    
     useEffect(() => {
         if (onAttachmentChange) {
             onAttachmentChange(attachments);
         }
     }, [attachments, onAttachmentChange]);
 
-    // We're now using the formatTextAttachments function from bufferUtils
+    
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -191,7 +191,7 @@ export function InputBar({
             });
 
             setInputText('');
-            clearAttachments(); // Clear attachments after sending
+            clearAttachments(); 
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -221,13 +221,13 @@ export function InputBar({
                 messageId: currentRequest.messageId
             }))
             : inputText.trim() && !isLoading && (() => {
-                // Filter text attachments
+                
                 const textAttachments = attachments.filter(att => att.textContent);
 
-                // Format text from text files
+                
                 const textFileContent = formatTextAttachments(textAttachments);
 
-                // Combine user input with text file content
+                
                 const fullMessage = inputText + textFileContent;
 
                 handleChatMessage(fullMessage);

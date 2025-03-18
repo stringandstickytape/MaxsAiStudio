@@ -62,19 +62,19 @@ export function useChatManagement() {
     const sendMessage = useCallback(
         async (params: SendMessageParams) => {
             return executeApiCall(async () => {
-                // Generate a message ID if not provided
+                
                 const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
 
-                // REMOVE THIS BLOCK: Don't add the message to local state before server confirmation
-                // (removed)
+                
+                
 
-                // For server request, prepare attachments for transmission
+                
                 let requestParams = { ...params };
 
                 if (params.attachments && params.attachments.length > 0) {
-                    // Filter out text files as they should already be in the message content
+                    
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
-                    // Use the centralized utility to prepare attachments for transmission
+                    
                     requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
                 }
 
@@ -165,7 +165,7 @@ export function useChatManagement() {
                     const extractNodes = (node: any, nodes: any[] = []) => {
                         if (!node) return nodes;
 
-                        // Log the attachments for debugging
+                        
                         if (node.attachments) {
                             console.log(`Node ${node.id} has attachments:`, node.attachments);
                         }
@@ -176,7 +176,7 @@ export function useChatManagement() {
                             parentId: node.parentId,
                             source: node.source,
                             costInfo: node.costInfo,
-                            attachments: node.attachments  // Explicitly include attachments
+                            attachments: node.attachments  
                         });
 
                         if (node.children && Array.isArray(node.children)) {
@@ -190,7 +190,7 @@ export function useChatManagement() {
 
                     const flatNodes = extractNodes(treeData);
                     
-                    // Debug: Log every node with its attachment status
+                    
                     console.log('Extracted nodes with attachment info:', 
                       flatNodes.map(node => ({
                         id: node.id, 
@@ -204,13 +204,13 @@ export function useChatManagement() {
                     
                     const messages = flatNodes.map((node) => {
                         console.log('Processing node for message:', node);
-                        // Process attachments if present
+                        
                         let attachments = node.attachments;
                         console.log('Node attachments:', attachments);
                         if (attachments && Array.isArray(attachments)) {
                             attachments = attachments.map(att => {
                                 if (typeof att.content === 'string') {
-                                    // Convert base64 to ArrayBuffer
+                                    
                                     const binaryString = window.atob(att.content);
                                     const bytes = new Uint8Array(binaryString.length);
                                     for (let i = 0; i < binaryString.length; i++) {
@@ -218,7 +218,7 @@ export function useChatManagement() {
                                     }
                                     const buffer = bytes.buffer;
                                     
-                                    // Create preview URL for images
+                                    
                                     let previewUrl;
                                     if (att.type.startsWith('image/')) {
                                         try {

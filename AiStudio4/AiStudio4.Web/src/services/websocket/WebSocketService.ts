@@ -78,10 +78,10 @@ export class WebSocketService {
 
   public send(message: WebSocketMessage): void {
     if (this.socket?.readyState === WebSocket.OPEN) {
-      // Process message to handle attachment data
+      
       let processedMessage = { ...message };
       
-      // Handle attachments using centralized utilities
+      
       if (message.content && message.content.attachments && Array.isArray(message.content.attachments)) {
         processedMessage.content = { 
           ...message.content,
@@ -287,7 +287,7 @@ export class WebSocketService {
     });
   }
 
-  // Using imported utility functions for ArrayBuffer/Base64 conversion
+  
 }
 
 

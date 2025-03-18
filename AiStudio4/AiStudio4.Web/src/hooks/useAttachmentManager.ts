@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { Attachment } from '@/types/attachment';
 import { isTextFile, cleanupAttachmentUrls } from '@/utils/bufferUtils';
 interface UseAttachmentManagerOptions {
-    maxSize?: number; // Maximum file size in bytes
-    maxCount?: number; // Maximum number of attachments
-    allowedTypes?: string[]; // Array of allowed MIME types
+    maxSize?: number; 
+    maxCount?: number; 
+    allowedTypes?: string[]; 
 }
 
-// Helper to extract text content from a file
+
 export const extractTextContent = async (file: File): Promise<string | null> => {
   if (!isTextFile(file.type)) return null;
   
@@ -21,7 +21,7 @@ export const extractTextContent = async (file: File): Promise<string | null> => 
 };
 
 const DEFAULT_OPTIONS: UseAttachmentManagerOptions = {
-  maxSize: 10 * 1024 * 1024, // 10MB
+  maxSize: 10 * 1024 * 1024, 
   maxCount: 5,
   allowedTypes: [
     'image/jpeg',
@@ -42,7 +42,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Clean up object URLs when component unmounts
+  
   useEffect(() => {
     return () => {
       cleanupAttachmentUrls(attachments);
@@ -75,7 +75,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
 
       const buffer = await file.arrayBuffer();
       
-      // Extract text content if it's a text file
+      
       let textContent: string | null = null;
       if (isTextFile(file.type)) {
         textContent = await extractTextContent(file);
@@ -93,7 +93,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
         }
       };
 
-      // Generate additional metadata for images
+      
       if (file.type.startsWith('image/')) {
         await new Promise<void>((resolve) => {
           const img = new Image();

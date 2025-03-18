@@ -122,9 +122,9 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
 
 
 
-// Font size initialization is now centralized in FontSizeProvider.tsx
+
 if (typeof window !== 'undefined') {
-  // Initial settings load is still needed for other appearance settings
+  
   const { loadAppearanceSettings } = useAppearanceStore.getState();
   
   loadAppearanceSettings().catch((err) => {
@@ -139,28 +139,28 @@ export const fontSizeUtils = {
         }
     },
 
-    // Increases font size and applies it
+    
     increase: () => {
         const { increaseFontSize } = useAppearanceStore.getState();
         const result = increaseFontSize();
         return result;
     },
 
-    // Decreases font size and applies it
+    
     decrease: () => {
         const { decreaseFontSize } = useAppearanceStore.getState();
         const result = decreaseFontSize();
         return result;
     },
 
-    // Sets font size to specific value and applies it
+    
     set: (size: number) => {
         const { setFontSize } = useAppearanceStore.getState();
         const result = setFontSize(size);
         return result;
     },
 
-    // Saves settings to server
+    
     saveSettings: async () => {
         const { saveAppearanceSettings } = useAppearanceStore.getState();
         try {

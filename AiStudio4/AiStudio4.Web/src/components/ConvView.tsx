@@ -58,7 +58,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
         const convMessages = conv.messages;
 
-        // Define startingMessageId before using it in the logging
+        
         const startingMessageId = streamTokens.length > 0
             ? conv.messages[conv.messages.length - 1].id
             : slctdMsgId || conv.messages[conv.messages.length - 1].id;

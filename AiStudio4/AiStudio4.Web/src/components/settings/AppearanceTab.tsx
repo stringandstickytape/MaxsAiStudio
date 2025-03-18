@@ -28,7 +28,7 @@ export function AppearanceTab() {
     };
 
     const handleReset = async () => {
-        // Use centralized font size utilities instead of local implementation
+        
         await fontSizeUtils.set(16);
         await fontSizeUtils.saveSettings();
         setResetDialogOpen(false);
@@ -45,11 +45,11 @@ export function AppearanceTab() {
                 <CardContent>
                     <FontSizeControl
                         onChange={() => {
-                            // Clear any success message when changing font size
+                            
                             setSuccessMessage(null);
                         }}
                         onSave={() => {
-                            // Use centralized utility to save font size settings
+                            
                             fontSizeUtils.saveSettings();
                             showSuccessMessage('Font size saved successfully');
                         }}

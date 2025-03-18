@@ -149,13 +149,13 @@ export const HistoricalConvTreeList = () => {
                     },
                 });
 
-                // Add all non-root messages
+                
                 const nonRootMessages = sortedMessages.filter((msg) => msg.id !== rootMessage.id);
 
 
 
                 nonRootMessages.forEach((message) => {
-                    // Process any attachments in the message
+                    
                     if (message.attachments && message.attachments.length > 0) {
                         message.attachments = processAttachments(message.attachments);
                     }
@@ -198,10 +198,10 @@ export const HistoricalConvTreeList = () => {
                     });
                 }
             } else {
-                // Failed to load conv data or empty conv
+                
             }
         } catch (error) {
-            // Error handling for loading conversation
+            
         }
     };
 
