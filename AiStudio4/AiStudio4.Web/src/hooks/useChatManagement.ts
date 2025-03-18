@@ -245,7 +245,8 @@ export function useChatManagement() {
                                 node.source ||
                                 (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
                             parentId: node.parentId,
-                            timestamp: Date.now(),
+                            timestamp: node.timestamp || Date.now(),
+                            durationMs: node.durationMs,
                             costInfo: node.costInfo || null,
                             attachments: attachments || undefined
                         };

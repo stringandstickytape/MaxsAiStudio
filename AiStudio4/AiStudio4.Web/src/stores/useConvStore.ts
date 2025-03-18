@@ -58,6 +58,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         source: content.source,
                         parentId,
                         timestamp: content.timestamp || Date.now(),
+                        durationMs: content.durationMs,
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
@@ -120,6 +121,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                             source: m.source as 'user' | 'ai' | 'system',
                             parentId: m.parentId,
                             timestamp: m.timestamp || Date.now(),
+                            durationMs: m.durationMs,
                             costInfo: m.costInfo || null,
                             attachments: attachments || undefined
                         },

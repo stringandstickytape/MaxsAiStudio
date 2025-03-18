@@ -90,30 +90,32 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
       set({ isLoading: true, error: null });
 
-      try {
-        console.log('Fetching historical conv tree for convId:', convId);
-        const { data } = await apiClient.post('/api/historicalConvTree', { convId });
+        try {
+          console.log('Fetching historical conv tree for convId:', convId);
+          const { data } = await apiClient.post('/api/historicalConvTree', { convId });
 
-        if (!data.success) throw new Error('Failed to fetch conv tree');
-        if (!data.flatMessageStructure) throw new Error('Invalid response format or empty tree');
-        
-        console.log('Historical conv tree data received:', data);
-        console.log('Flat message structure:', data.flatMessageStructure);
-        
-        const flatNodes = data.flatMessageStructure;
-        const nodeMap = new Map();
-        
-        flatNodes.forEach((node: TreeNode) => {
-          nodeMap.set(node.id, {
-            id: node.id,
-            text: node.text,
-            children: [],
-            parentId: node.parentId, 
-            source: node.source, 
+          if (!data.success) throw new Error('Failed to fetch conv tree');
+          if (!data.flatMessageStructure) throw new Error('Invalid response format or empty tree');
+          
+          console.log('Historical conv tree data received:', data);
+          console.log('Flat message structure:', data.flatMessageStructure);
+          
+          const flatNodes = data.flatMessageStructure;
+          const nodeMap = new Map();
+          
+          flatNodes.forEach((node: TreeNode) => {
+            nodeMap.set(node.id, {
+              id: node.id,
+              text: node.text,
+              children: [],
+              parentId: node.parentId, 
+              source: node.source, 
               costInfo: node.costInfo,
-              attachments: node.attachments
+              attachments: node.attachments,
+              timestamp: node.timestamp,
+              durationMs: node.durationMs
+            });
           });
-        });
         
         let rootNode = null;
         flatNodes.forEach((node: TreeNode) => {

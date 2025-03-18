@@ -20,6 +20,8 @@ interface TreeNode {
   depth?: number;
   x?: number;
   y?: number;
+  timestamp?: number;
+  durationMs?: number;
 }
 
 export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
@@ -58,6 +60,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
           children: [],
           parentId: message.parentId,
           depth: depth,
+          timestamp: message.timestamp,
+          durationMs: message.durationMs,
         };
 
         

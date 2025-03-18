@@ -18,6 +18,29 @@ interface ConvViewProps {
     lastStreamedContent?: string;
 }
 
+// Helper function to format duration in a human-readable format
+const formatDuration = (durationMs?: number | null) => {
+    if (!durationMs) return null;
+    
+    if (durationMs < 1000) {
+        return `${durationMs}ms`;
+    } else if (durationMs < 60000) {
+        return `${(durationMs / 1000).toFixed(1)}s`;
+    } else {
+        const minutes = Math.floor(durationMs / 60000);
+        const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+        return `${minutes}m ${seconds}s`;
+    }
+};
+
+// Helper function to format timestamp
+const formatTimestamp = (timestamp?: number | null) => {
+    if (!timestamp) return null;
+    
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
 export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = false, lastStreamedContent = '' }: ConvViewProps) => {
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
@@ -335,9 +358,25 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 </div>
 
 
-                                {(message.tokenUsage || message.costInfo) && (
+                                {(message.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
                                     <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
                                         <div className="flex flex-wrap items-center gap-x-4">
+                                            {/* Timestamp and duration info */}
+                                            {(message.timestamp || message.durationMs) && (
+                                                <div className="flex items-center gap-x-2">
+                                                    {message.timestamp && (
+                                                        <span title={new Date(message.timestamp).toLocaleString()}>
+                                                            Time: {formatTimestamp(message.timestamp)}
+                                                        </span>
+                                                    )}
+                                                    {message.durationMs && message.durationMs > 0 && (
+                                                        <span title={`Response took ${message.durationMs}ms`}>
+                                                            Duration: {formatDuration(message.durationMs)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            
                                             {message.tokenUsage && (
                                                 <div className="flex items-center gap-x-2">
                                                 </div>
