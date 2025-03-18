@@ -29,7 +29,7 @@ const useChatConfigResource = createResourceHook<{
     },
 });
 import { Attachment } from '@/types/attachment';
-import { processAttachments, prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmentUtils';
+
 
 interface SendMessageParams {
     convId: string;

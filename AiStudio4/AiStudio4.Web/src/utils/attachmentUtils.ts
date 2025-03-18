@@ -43,8 +43,7 @@ export function getIconForFileType(type: string): string {
   if (type.startsWith('image/')) {
     return 'Image';
   }
-  if (type.startsWith('text/'))
-{
+if (type.startsWith('text/')) {
     return 'FileText';
 }
 return 'File';
@@ -56,18 +55,13 @@ return 'File';
  * @returns Formatted string (e.g., "1.5 KB")
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) {
+if (bytes < 1024) {
     return `${bytes} B`;
-  } else if (bytes < 1024 * 1024)
-{
-    return `${ (bytes / 1024).toFixed(1)}
-    KB`;
-}
-else
-{
-    return `${ (bytes / (1024 * 1024)).toFixed(1)}
-    MB`;
-}
+  } else if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  } else {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 }
 
 /**
@@ -96,14 +90,13 @@ export function isTextFile(mimeType: string): boolean {
 export function createAttachmentPreviewUrl(attachment: { type: string, content: ArrayBuffer }): string | undefined {
   if (!attachment.type.startsWith('image/')) return undefined;
 
-try
-{
+try {
     const blob = new Blob([attachment.content], { type: attachment.type });
-return URL.createObjectURL(blob);
+    return URL.createObjectURL(blob);
   } catch (error) {
     console.error('Failed to create preview URL:', error);
     return undefined;
-}
+  }
 }
 
 /**
@@ -114,12 +107,10 @@ export function cleanupAttachmentUrls(attachments: Attachment[]): void {
   if (!attachments || !Array.isArray(attachments)) return;
 
 attachments.forEach(attachment => {
-    if (attachment.previewUrl)
-    {
+    if (attachment.previewUrl) {
         URL.revokeObjectURL(attachment.previewUrl);
     }
-    if (attachment.thumbnailUrl)
-    {
+    if (attachment.thumbnailUrl) {
         URL.revokeObjectURL(attachment.thumbnailUrl);
     }
 });
@@ -130,15 +121,12 @@ attachments.forEach(attachment => {
  * @param file File object to extract text from
  * @returns Promise resolving to text content or null
  */
-export async function extractTextFromFile(file: File): Promise < string | null > {
+export async function extractTextFromFile(file: File): Promise<string | null> {
     if (!isTextFile(file.type)) return null;
 
-    try
-    {
+    try {
         return await file.text();
-    }
-    catch (err)
-    {
+    } catch (err) {
         console.error('Error extracting text from file:', err);
         return null;
     }
@@ -230,15 +218,12 @@ export function validateAttachment(
     return `File ${file.name} exceeds maximum size of ${options.maxSize / (1024 * 1024)}MB`;
   }
 
-  if (options.allowedTypes && !options.allowedTypes.includes(file.type))
-{
-    return `File type ${ file.type} is not allowed`;
+if (options.allowedTypes && !options.allowedTypes.includes(file.type)) {
+    return `File type ${file.type} is not allowed`;
 }
 
-if (options.maxCount && currentCount >= options.maxCount)
-{
-    return `Maximum of ${ options.maxCount}
-    attachments allowed`;
+if (options.maxCount && currentCount >= options.maxCount) {
+    return `Maximum of ${options.maxCount} attachments allowed`;
 }
 
 return null;
