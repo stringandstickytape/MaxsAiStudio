@@ -1,5 +1,5 @@
-
 import { dispatchWebSocketEvent } from './websocketEvents';
+import { arrayBufferToBase64, base64ToArrayBuffer } from '@/utils/bufferUtils';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -91,7 +91,7 @@ export class WebSocketService {
             if (attachment.content instanceof ArrayBuffer) {
               return {
                 ...attachment,
-                content: this.arrayBufferToBase64(attachment.content)
+                content: arrayBufferToBase64(attachment.content)
               };
             }
             return attachment;
@@ -297,27 +297,7 @@ export class WebSocketService {
     });
   }
 
-  // Helper method to convert ArrayBuffer to base64 string for transmission
-  private arrayBufferToBase64(buffer: ArrayBuffer): string {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  }
-
-  // Helper method to convert base64 string back to ArrayBuffer
-  private base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-  }
+  // Using imported utility functions for ArrayBuffer/Base64 conversion
 }
 
 

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
 import { Attachment } from '@/types/attachment';

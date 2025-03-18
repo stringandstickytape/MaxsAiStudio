@@ -1,9 +1,8 @@
 import { MarkdownPane } from '@/components/markdown-pane';
-//Don't do this twice: import { MessageAttachments } from '@/components/MessageAttachments';
+import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react';
-import { MessageAttachments } from '@/components/MessageAttachments';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -308,34 +307,10 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
                                 </div>
 
-                                {/* Display message attachments if present - Direct implementation */}
+                                {/* Display message attachments */}
                                 {message.attachments && message.attachments.length > 0 && (
                                     <div className="mt-3 pt-3 border-t border-gray-700/30">
-                                        <div className="space-y-2">
-                                            {message.attachments.map(attachment => (
-                                                <div key={attachment.id} className="p-3 flex items-center gap-3 bg-gray-800 rounded border border-gray-700">
-                                                    {attachment.type.startsWith('image/') ? (
-                                                        <div className="relative aspect-square overflow-hidden bg-gray-900/50 w-10 h-10">
-                                                            {attachment.previewUrl ? (
-                                                                <img src={attachment.previewUrl} alt={attachment.name} className="w-full h-full object-contain" />
-                                                            ) : (
-                                                                <div className="flex items-center justify-center h-full w-full text-gray-500">Image</div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                            </svg>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="truncate text-sm font-medium text-gray-200">{attachment.name}</div>
-                                                        <div className="text-xs text-gray-400">{(attachment.size / 1024).toFixed(1)} KB</div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <MessageAttachments attachments={message.attachments} />
                                     </div>
                                 )}
 

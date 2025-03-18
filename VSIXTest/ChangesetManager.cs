@@ -182,6 +182,14 @@ namespace VSIXTest
             {
                 throw new Exception("Could not find file path for change");
             }
+            
+            // If path is relative (doesn't start with a drive letter), prepend the solution/folder root
+            if (path.Substring(1,1) != ":" )
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                string solutionDir = Path.GetDirectoryName(_dte.Solution.FullName);
+                path = Path.Combine(solutionDir, path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            }
 
             try
             {

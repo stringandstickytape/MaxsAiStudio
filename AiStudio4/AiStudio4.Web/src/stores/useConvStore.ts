@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
+import { processAttachments } from '@/utils/bufferUtils';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -22,28 +23,7 @@ interface ConvState {
     cancelEditMessage: () => void;
 }
 
-// Helper functions for handling attachments
-const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
-    const binaryString = window.atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-};
-
-const createPreviewUrl = (attachment: any): string | undefined => {
-    if (!attachment.type.startsWith('image/')) return undefined;
-
-    try {
-        const content = attachment.content;
-        const blob = new Blob([content], { type: attachment.type });
-        return URL.createObjectURL(blob);
-    } catch (error) {
-        console.error('Failed to create preview URL:', error);
-        return undefined;
-    }
-};
+// Using imported processAttachments utility
 
 export const useConvStore = create<ConvState>((set, get) => {
     if (typeof window !== 'undefined') {
@@ -68,17 +48,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 // Process attachments if they exist
                 let attachments = content.attachments;
                 if (attachments && Array.isArray(attachments)) {
-                    // Convert base64 content back to ArrayBuffer if needed
-                    attachments = attachments.map(att => {
-                        if (typeof att.content === 'string') {
-                            return {
-                                ...att,
-                                content: base64ToArrayBuffer(att.content),
-                                previewUrl: att.previewUrl || createPreviewUrl(att)
-                            };
-                        }
-                        return att;
-                    });
+                    attachments = processAttachments(attachments);
                 }
 
                 addMessage({
@@ -141,17 +111,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     // Process attachments if they exist
                     let attachments = m.attachments;
                     if (attachments && Array.isArray(attachments)) {
-                        // Convert base64 content back to ArrayBuffer if needed
-                        attachments = attachments.map(att => {
-                            if (typeof att.content === 'string') {
-                                return {
-                                    ...att,
-                                    content: base64ToArrayBuffer(att.content),
-                                    previewUrl: att.previewUrl || createPreviewUrl(att)
-                                };
-                            }
-                            return att;
-                        });
+                        attachments = processAttachments(attachments);
                     }
 
                     addMessage({

@@ -15,7 +15,7 @@ import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 
 interface InputBarProps {

@@ -30,6 +30,7 @@ const useChatConfigResource = createResourceHook<{
 });
 import { Attachment } from '@/types/attachment';
 import { isTextFile } from './useAttachmentManager';
+import { arrayBufferToBase64, processAttachments } from '@/utils/bufferUtils';
 
 interface SendMessageParams {
     convId: string;
@@ -96,16 +97,7 @@ export function useChatManagement() {
         [executeApiCall, addMessage],
     );
 
-    // Helper function to convert ArrayBuffer to base64
-    const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-        let binary = '';
-        const bytes = new Uint8Array(buffer);
-        const len = bytes.byteLength;
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-    };
+    // Using imported utility functions for conversions
 
 
 
