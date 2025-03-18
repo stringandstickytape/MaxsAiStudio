@@ -38,7 +38,7 @@ export const MessageAttachment: React.FC<MessageAttachmentProps> = ({ attachment
         <div
             className={cn(
                 'relative group overflow-hidden rounded border border-gray-700/50 bg-gray-800/70',
-                isImage ? 'hover:border-blue-500/50' : '',
+                isImage ? 'hover:border-blue-500/50 w-[120px]' : '',
                 className
             )}
         >
@@ -47,7 +47,7 @@ export const MessageAttachment: React.FC<MessageAttachmentProps> = ({ attachment
                     <img
                         src={attachment.previewUrl}
                         alt={attachment.name}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain max-w-full"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                     <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -100,9 +100,9 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({ attachme
     return (
         <div className={cn('space-y-2', className)}>
             {images.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="flex flex-wrap gap-2">
                     {images.map(attachment => (
-                        <MessageAttachment key={attachment.id} attachment={attachment} />
+                        <MessageAttachment key={attachment.id} attachment={attachment} className="flex-shrink-0" />
                     ))}
                 </div>
             )}

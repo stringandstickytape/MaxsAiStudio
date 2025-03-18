@@ -68,6 +68,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
                             attachment.metadata.width = img.width;
                             attachment.metadata.height = img.height;
                         }
+                        // We store the original dimensions but will constrain in the UI
                         resolve();
                     };
                     img.onerror = () => resolve();
