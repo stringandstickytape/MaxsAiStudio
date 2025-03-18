@@ -75,6 +75,14 @@
         @apply h-full border-l divider-base mx-4;
     }
 
+    .split-container {
+        @apply flex flex-col;
+    }
+
+    .split-pane {
+        @apply overflow-hidden border-b border-gray-700/30;
+    }
+
     /* Surfaces */
     .panel-bg {
         @apply bg-gray-900 text-gray-100;

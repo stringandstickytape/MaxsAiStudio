@@ -127,6 +127,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
             />
           ) : null,
       },
+      /* Note: convTree panel still exists on right side for users who prefer it there */
       {
         id: 'settings',
         position: 'right',

@@ -200,7 +200,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const g = svg.append('g');
 
     
-    const treeLayout = d3.tree<TreeNode>().size([containerWidth - 120, containerHeight - 170]).nodeSize([135, 130]);
+    // Adjust node size for better fit in smaller sidebar space
+    const nodeSizeWidth = containerWidth < 400 ? 120 : 135;
+    const nodeSizeHeight = containerWidth < 400 ? 100 : 130;
+    const treeLayout = d3.tree<TreeNode>().size([containerWidth - 80, containerHeight - 120]).nodeSize([nodeSizeWidth, nodeSizeHeight]);
 
     
     const root = d3.hierarchy(hierarchicalData);
@@ -258,9 +261,9 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     nodeGroups
       .append('rect')
-      .attr('width', 240)
-      .attr('height', 100)  
-      .attr('x', -120)
+      .attr('width', containerWidth < 400 ? 200 : 240)
+      .attr('height', containerWidth < 400 ? 80 : 100)  
+      .attr('x', containerWidth < 400 ? -100 : -120)
       .attr('y', -40)
       .attr('rx', 10)
       .attr('ry', 10)
@@ -287,7 +290,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .append('text')
       .attr('x', -110)
       .attr('y', -25)
-      .attr('font-size', '10px')
+      .attr('font-size', containerWidth < 400 ? '9px' : '10px')
       .attr('font-weight', 'bold')
       .attr('fill', 'white')
       .text((d) => {
@@ -302,15 +305,15 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .append('foreignObject')
       .attr('x', -110)
       .attr('y', -20)  
-      .attr('width', 220)
-      .attr('height', 75)  
+      .attr('width', containerWidth < 400 ? 180 : 220)
+      .attr('height', containerWidth < 400 ? 60 : 75)
       .append('xhtml:div')
       .style('color', 'white')
       .style('font-size', '10px')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
       .style('display', '-webkit-box')
-      .style('-webkit-line-clamp', '5')  
+      .style('-webkit-line-clamp', containerWidth < 400 ? '3' : '5')
       .style('-webkit-box-orient', 'vertical')
       .style('word-wrap', 'break-word')
       .style('padding', '0 2px')  
@@ -353,7 +356,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-70px)] w-full">
+    <div className="flex flex-col h-full w-full">
       <div
         className={cn('flex-1 overflow-hidden relative', !messages.length && 'flex items-center justify-center')}
         ref={containerRef}
