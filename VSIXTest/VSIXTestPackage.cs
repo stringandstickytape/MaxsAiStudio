@@ -1,4 +1,4 @@
-﻿using EnvDTE80;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -189,6 +189,33 @@ namespace VSIXTest
         public async Task ShowWebBrowserWindowAsync(CancellationToken cancellationToken = default)
         {
             await ShowToolWindowAsync(typeof(WebBrowserWindowPane), 0, true, cancellationToken);
+        }        // Helper method to show the web browser window
+
+        /// <summary>
+        /// Finds the file path for a given change item by looking at the current changeset
+        /// </summary>
+        /// <param name="change">The change item to find the file path for</param>
+        /// <returns>The file path or null if not found</returns>
+        public string FindFilePathForChange(ChangesetManager.ChangeItem change)
+        {
+            // No current changeset or no change provided
+            if (VsixChat.Instance == null || change == null)
+                return null;
+                
+            // Try to find the file path in the current changeset
+            var changesetManager = VsixChat.Instance._changesetManager;
+            if (changesetManager != null && changesetManager.CurrentChangeset != null)
+            {
+                foreach (var file in changesetManager.CurrentChangeset.files)
+                {
+                    if (file.changes.Contains(change))
+                    {
+                        return file.path;
+                    }
+                }
+            }
+            
+            return null;
         }
     }
 }

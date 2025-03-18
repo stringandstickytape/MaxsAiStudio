@@ -1,4 +1,4 @@
-﻿using EnvDTE;
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
@@ -22,7 +22,7 @@ namespace VSIXTest
         private readonly SimpleClient simpleClient = new SimpleClient();
         private readonly ContentFormatter _contentFormatter;
         private readonly VsixWebViewManager _webViewManager;
-        private readonly ChangesetManager _changesetManager;
+        public readonly ChangesetManager _changesetManager;
         private readonly QuickButtonManager _quickButtonManager;
 
         private bool vsixInitialised = false;

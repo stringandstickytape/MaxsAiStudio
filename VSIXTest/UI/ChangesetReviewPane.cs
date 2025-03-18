@@ -10,8 +10,8 @@ using Newtonsoft.Json;
 using EnvDTE80;
 using System.IO;
 using System.Linq;
-using SharedClasses.Models;
 using System.Windows.Media;
+using static VSIXTest.ChangesetManager;
 
 [Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf6")]
 
@@ -19,7 +19,7 @@ using System.Windows.Media;
 public class ChangesetReviewPane : ToolWindowPane
 {
     private readonly DTE2 _dte;
-    private List<Change> _changes;
+    private List<ChangeItem> _changes;
     private int _currentChangeIndex = 0;
     private string _originalContent;
 
@@ -173,71 +173,71 @@ public class ChangesetReviewPane : ToolWindowPane
 
     private async void ApplyAllAiButton_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            var mergeableChanges = _changes.Where(c => c.ChangeType == "modifyFile" || c.ChangeType == "addToFile" || c.ChangeType == "deleteFromFile");
-            var unmergeableChanges = _changes.Where(c => c.ChangeType != "modifyFile" && c.ChangeType != "addToFile" && c.ChangeType != "deleteFromFile");
-
-            
-            foreach (var item in _fileListBox.Items)
-            {
-                var fileName = item as string;
-                if (!string.IsNullOrEmpty(fileName))
-                {
-                    var mergeableChangesForFile = mergeableChanges.Where(c => c.Path == fileName).ToList();
-
-                    /*                     case "createnewFile":
-                    case "addToFile":
-                    case "deleteFromFile":
-                    case "modifyFile": */
-
-                    if (mergeableChangesForFile.Any())
-                    {
-                        RunMerge?.Invoke(this, new RunMergeEventArgs(mergeableChangesForFile));
-                    }
-
-
-                }
-            }
-
-            foreach (var item in unmergeableChanges)
-            {
-                if(item.ChangeType == "createnewFile")
-                {
-                    await ChangesetManager.HandleCreateNewFileAsync(_dte, item);
-                } else await ChangesetManager.HandleModifyFileAsync(_dte, item);
-            }
-        }
-
-        catch (Exception ex)
-        {
-            HandleError("Error applying secondary AI changes", ex);
-        }
-
-        MessageBox.Show("Merge completed...");
+       //try
+       //{
+       //    var mergeableChanges = _changes.Where(c => c.change_type == "modifyFile" || c.change_type == "addToFile" || c.change_type == "deleteFromFile");
+       //    var unmergeableChanges = _changes.Where(c => c.change_type != "modifyFile" && c.change_type != "addToFile" && c.change_type != "deleteFromFile");
+       //
+       //    
+       //    foreach (var item in _fileListBox.Items)
+       //    {
+       //        var fileName = item as string;
+       //        if (!string.IsNullOrEmpty(fileName))
+       //        {
+       //            var mergeableChangesForFile = mergeableChanges.Where(c => c.p == fileName).ToList();
+       //
+       //            /*                     case "createnewFile":
+       //            case "addToFile":
+       //            case "deleteFromFile":
+       //            case "modifyFile": */
+       //
+       //            if (mergeableChangesForFile.Any())
+       //            {
+       //                RunMerge?.Invoke(this, new RunMergeEventArgs(mergeableChangesForFile));
+       //            }
+       //
+       //
+       //        }
+       //    }
+       //
+       //    foreach (var item in unmergeableChanges)
+       //    {
+       //        if(item.ChangeType == "createnewFile")
+       //        {
+       //            await ChangesetManager.HandleCreateNewFileAsync(_dte, item);
+       //        } else await ChangesetManager.HandleModifyFileAsync(_dte, item);
+       //    }
+       //}
+       //
+       //catch (Exception ex)
+       //{
+       //    HandleError("Error applying secondary AI changes", ex);
+       //}
+       //
+       //MessageBox.Show("Merge completed...");
     }
 
     private void ApplySecondaryAiButton_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            var fileName = _fileListBox.SelectedItem as string;
-            if (!string.IsNullOrEmpty(fileName))
-            {
-                var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
-                if (changesForFile.Any())
-                {
-                    RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            HandleError("Error applying secondary AI changes", ex);
-        }
+       //try
+       //{
+       //    var fileName = _fileListBox.SelectedItem as string;
+       //    if (!string.IsNullOrEmpty(fileName))
+       //    {
+       //        var changesForFile = _changes.Where(c => c.Path == fileName).ToList();
+       //        if (changesForFile.Any())
+       //        {
+       //            RunMerge?.Invoke(this, new RunMergeEventArgs(changesForFile));
+       //        }
+       //    }
+       //}
+       //catch (Exception ex)
+       //{
+       //    HandleError("Error applying secondary AI changes", ex);
+       //}
     }
 
-    public void Initialize(List<Change> changes)
+    public void Initialize(List<ChangeItem> changes)
     {
         _changes = changes ?? throw new ArgumentNullException(nameof(changes));
         _currentChangeIndex = 0;
@@ -248,8 +248,20 @@ public class ChangesetReviewPane : ToolWindowPane
     private void PopulateFileListBox()
     {
         _fileListBox.Items.Clear();
-        var fileNames = _changes.Select(c => c.Path).Distinct();
-        foreach (var fileName in fileNames)
+        // Get all unique paths from FileChanges containing these changes
+        var paths = new HashSet<string>();
+        
+        foreach (var change in _changes)
+        {
+            // Find file path for the change by looking at the current changeset
+            var anyFileChange = VSIXTestPackage.Instance.FindFilePathForChange(change);
+            if (!string.IsNullOrEmpty(anyFileChange))
+            {
+                paths.Add(anyFileChange);
+            }
+        }
+        
+        foreach (var fileName in paths)
         {
             _fileListBox.Items.Add(fileName);
         }
@@ -262,17 +274,20 @@ public class ChangesetReviewPane : ToolWindowPane
             if (_currentChangeIndex < _changes.Count)
             {
                 var change = _changes[_currentChangeIndex];
-                _changeTypeLabel.Content = $"Change Type: {change.ChangeType}";
+                string filePath = VSIXTestPackage.Instance.FindFilePathForChange(change);
+                
+                _changeTypeLabel.Content = $"Change Type: {change.change_type}";
                 _applyButton.IsEnabled = true;
                 _undoButton.IsEnabled = false;
                 _changeDetailsTextBox.Text =
-                    $"Path: {change.Path}\n" +
-                    $"Line Number: {change.LineNumber}\n" +
-                    $"Old Content:\n{(string.IsNullOrEmpty(change.OldContent) ? "" : change.OldContent)}\n" +
-                    $"New Content:\n{(string.IsNullOrEmpty(change.NewContent) ? "" : change.NewContent)}";
+                    $"Path: {filePath}\n" +
+                    $"Line Number: {change.lineNumber}\n" +
+                    $"Old Content:\n{(string.IsNullOrEmpty(change.oldContent) ? "" : change.oldContent)}\n" +
+                    $"New Content:\n{(string.IsNullOrEmpty(change.newContent) ? "" : change.newContent)}\n" +
+                    $"Description: {(string.IsNullOrEmpty(change.description) ? "No description provided" : change.description)}";
 
-                if (change.ChangeType != "createnewFile")
-                    JumpToChange();
+                if (change.change_type != "createnewFile" && !string.IsNullOrEmpty(filePath))
+                    JumpToChange(filePath);
             }
             else
             {
@@ -290,9 +305,11 @@ public class ChangesetReviewPane : ToolWindowPane
         try
         {
             var change = _changes[_currentChangeIndex];
-            if (change.ChangeType != "createnewFile")
+            string filePath = VSIXTestPackage.Instance.FindFilePathForChange(change);
+            
+            if (change.change_type != "createnewFile" && !string.IsNullOrEmpty(filePath))
             {
-                var window = _dte.ItemOperations.OpenFile(change.Path);
+                var window = _dte.ItemOperations.OpenFile(filePath);
                 var textDocument = window.Document.Object() as EnvDTE.TextDocument;
                 var editPoint = textDocument.StartPoint.CreateEditPoint();
                 _originalContent = editPoint.GetText(textDocument.EndPoint);
@@ -314,13 +331,15 @@ public class ChangesetReviewPane : ToolWindowPane
         try
         {
             var change = _changes[_currentChangeIndex];
-            if (change.ChangeType != "createnewFile")
+            string filePath = VSIXTestPackage.Instance.FindFilePathForChange(change);
+            
+            if (change.change_type != "createnewFile" && !string.IsNullOrEmpty(filePath))
             {
-                UndoChange(change);
+                UndoChange(filePath);
             }
-            else
+            else if (change.change_type == "createnewFile" && !string.IsNullOrEmpty(filePath))
             {
-                DeleteNewFile(change);
+                DeleteNewFile(filePath);
             }
             _applyButton.IsEnabled = true;
             _undoButton.IsEnabled = false;
@@ -349,21 +368,19 @@ public class ChangesetReviewPane : ToolWindowPane
         CloseToolWindow();
     }
 
-    private void JumpToChange()
+    private void JumpToChange(string filePath)
     {
         if (_currentChangeIndex < _changes.Count)
         {
             var change = _changes[_currentChangeIndex];
 
-            //var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            if (_dte != null)
+            if (_dte != null && !string.IsNullOrEmpty(filePath))
             {
                 try
                 {
-
-                    _dte.ItemOperations.OpenFile(change.Path, EnvDTE.Constants.vsViewKindCode);
+                    _dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindCode);
                     var selection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                    selection.GotoLine(change.LineNumber, true);
+                    selection.GotoLine(change.lineNumber, true);
                 }
                 catch (Exception ex)
                 {
@@ -372,14 +389,14 @@ public class ChangesetReviewPane : ToolWindowPane
             }
         }
     }
-    private void UndoChange(Change change)
+    private void UndoChange(string filePath)
     {
-        var window = _dte.ItemOperations.OpenFile(change.Path);
+        var window = _dte.ItemOperations.OpenFile(filePath);
         var textDocument = window.Document.Object() as EnvDTE.TextDocument;
         var editPoint = textDocument.StartPoint.CreateEditPoint();
         editPoint.Delete(textDocument.EndPoint);
         editPoint.Insert(_originalContent);
-        JumpToChange();
+        JumpToChange(filePath);
     }
 
     /// <summary>
@@ -390,13 +407,23 @@ public class ChangesetReviewPane : ToolWindowPane
         return new TextReplacer().ReplaceTextAtHint(sourceText, oldText, newText, lineNumber);
     }
 
-    private void DeleteNewFile(Change change)
+    private void DeleteNewFile(string filePath)
     {
-        if (File.Exists(change.Path))
+        if (File.Exists(filePath))
         {
             try
             {
-                //File.Delete(change.Path);
+                // Close any open instances of the file
+                foreach (EnvDTE.Document doc in _dte.Documents)
+                {
+                    if (doc.FullName.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        doc.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+                        break;
+                    }
+                }
+                
+                File.Delete(filePath);
             }
             catch (Exception ex)
             {
@@ -463,8 +490,8 @@ public class ChangesetReviewPane : ToolWindowPane
 
 public class ChangeAppliedEventArgs : EventArgs
 {
-    public Change Change { get; set; }
-    public ChangeAppliedEventArgs(Change change)
+    public ChangeItem Change { get; set; }
+    public ChangeAppliedEventArgs(ChangeItem change)
     {
         Change = change;
     }
@@ -472,8 +499,8 @@ public class ChangeAppliedEventArgs : EventArgs
 
 public class RunMergeEventArgs : EventArgs
 {
-    public List<Change> Changes { get; set; }
-    public RunMergeEventArgs(List<Change> changes)
+    public List<ChangeItem> Changes { get; set; }
+    public RunMergeEventArgs(List<ChangeItem> changes)
     {
         Changes = changes;
     }

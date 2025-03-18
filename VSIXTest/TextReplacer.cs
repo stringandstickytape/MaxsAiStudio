@@ -27,6 +27,10 @@ namespace VSIXTest
             var sourceTextInfo = SplitTextPreservingNewlines(sourceFile);
             var oldTextInfo = SplitTextPreservingNewlines(oldText);
             var newTextInfo = SplitTextPreservingNewlines(newText);
+            
+            // Add logging for debugging purposes
+            System.Diagnostics.Debug.WriteLine($"Source text has {sourceTextInfo.Lines.Count} lines");
+            System.Diagnostics.Debug.WriteLine($"Old text has {oldTextInfo.Lines.Count} lines");
 
             // Handle empty file case
             if (sourceTextInfo.Lines.Count == 0)
@@ -226,6 +230,25 @@ namespace VSIXTest
             }
 
             return result.ToString();
+        }
+        
+        /// <summary>
+        /// Creates a debug report of the text replacement operation
+        /// </summary>
+        /// <param name="sourceFile">The original file content</param>
+        /// <param name="oldText">The text that was replaced</param>
+        /// <param name="newText">The text that was inserted</param>
+        /// <param name="lineNumberHint">The line number hint used</param>
+        /// <returns>A string containing debug information</returns>
+        public string CreateDebugReport(string sourceFile, string oldText, string newText, int lineNumberHint)
+        {
+            var report = new System.Text.StringBuilder();
+            report.AppendLine("=== Text Replacement Debug Report ===");
+            report.AppendLine($"Source file length: {sourceFile?.Length ?? 0} characters");
+            report.AppendLine($"Old text length: {oldText?.Length ?? 0} characters");
+            report.AppendLine($"New text length: {newText?.Length ?? 0} characters");
+            report.AppendLine($"Line number hint: {lineNumberHint}");
+            return report.ToString();
         }
     }
 }

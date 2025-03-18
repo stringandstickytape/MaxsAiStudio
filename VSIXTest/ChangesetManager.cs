@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedClasses;
-using SharedClasses.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,6 +23,33 @@ namespace VSIXTest
         private bool _changesetPaneInitted = false;
         public Changeset CurrentChangeset { get; private set; }
 
+        // Classes to deserialize JSON
+        public class ChangesetRoot
+        {
+            public Changeset changeset { get; set; }
+        }
+
+        public class Changeset
+        {
+            public string description { get; set; }
+            public List<FileChange> files { get; set; }
+        }
+
+        public class FileChange
+        {
+            public string path { get; set; }
+            public List<ChangeItem> changes { get; set; }
+        }
+
+        public class ChangeItem
+        {
+            public string change_type { get; set; }
+            public int lineNumber { get; set; }
+            public string oldContent { get; set; }
+            public string newContent { get; set; }
+            public string description { get; set; }
+        }
+
         public ChangesetManager(DTE2 dte, VsixMessageHandler messageHandler, SimpleClient simpleClient)
         {
             _dte = dte;
@@ -35,10 +61,25 @@ namespace VSIXTest
         {
             try
             {
-                var changesetObj = JsonConvert.DeserializeObject<JObject>(changesetJson)["changeset"];
-                CurrentChangeset = changesetObj.ToObject<Changeset>();
-                await ShowChangesetPopupAsync(CurrentChangeset.Changes);
-                VsixDebugLog.Instance.Log("Received applyNewDiff message.");
+                var changeset = JsonConvert.DeserializeObject<ChangesetRoot>(changesetJson);
+                if (changeset != null && changeset.changeset != null)
+                {
+                    CurrentChangeset = changeset.changeset;
+
+                    // Extract all changes from all files for the popup
+                    var allChanges = new List<ChangeItem>();
+                    foreach (var file in CurrentChangeset.files)
+                    {
+                        allChanges.AddRange(file.changes);
+                    }
+
+                    await ShowChangesetPopupAsync(allChanges);
+                    VsixDebugLog.Instance.Log("Received applyNewDiff message.");
+                }
+                else
+                {
+                    throw new Exception("Invalid changeset format");
+                }
             }
             catch (Exception e)
             {
@@ -46,7 +87,7 @@ namespace VSIXTest
             }
         }
 
-        private async Task ShowChangesetPopupAsync(List<Change> changes)
+        private async Task ShowChangesetPopupAsync(List<ChangeItem> changes)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -110,7 +151,7 @@ namespace VSIXTest
             }
         }
 
-        private async Task RunMergeAsync(List<Change> changes)
+        private async Task RunMergeAsync(List<ChangeItem> changes)
         {
             await _messageHandler.SendVsixMessageAsync(
                 new VsixMessage
@@ -121,26 +162,55 @@ namespace VSIXTest
                 _simpleClient);
         }
 
-        private async Task ApplyChangeAsync(Change change)
+        private async Task ApplyChangeAsync(ChangeItem change)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var changeType = change.ChangeType;
-            var path = change.Path;
+            var changeType = change.change_type;
+            // Find the file path from the CurrentChangeset
+            string path = null;
+            foreach (var file in CurrentChangeset.files)
+            {
+                if (file.changes.Contains(change))
+                {
+                    path = file.path;
+                    break;
+                }
+            }
+
+            if (path == null)
+            {
+                throw new Exception("Could not find file path for change");
+            }
 
             try
             {
                 switch (changeType)
                 {
                     case "createnewFile":
-                        await HandleCreateNewFileAsync(_dte, change);
+                        await HandleCreateNewFileAsync(_dte, path, change);
                         break;
 
                     case "addToFile":
                     case "deleteFromFile":
                     case "modifyFile":
-                        await HandleModifyFileAsync(_dte, change);
+                        await HandleModifyFileAsync(_dte, path, change);
                         break;
+
+                    case "replaceFile":
+                        await HandleReplaceFileAsync(_dte, path, change);
+                        break;
+
+                    case "renameFile":
+                        await HandleRenameFileAsync(_dte, path, change);
+                        break;
+
+                    case "deleteFile":
+                        await HandleDeleteFileAsync(_dte, path);
+                        break;
+
+                    default:
+                        throw new Exception($"Unsupported change type: {changeType}");
                 }
             }
             catch (Exception ex)
@@ -150,34 +220,34 @@ namespace VSIXTest
             }
         }
 
-        public static async Task HandleCreateNewFileAsync(DTE2 dte, Change change)
+        public static async Task HandleCreateNewFileAsync(DTE2 dte, string path, ChangeItem change)
         {
-            string deserNewContent = change.NewContent;
+            string deserNewContent = change.newContent;
 
             try
             {
-                deserNewContent = JsonConvert.DeserializeObject<string>($"\"{(change.NewContent ?? "")}\"");
+                deserNewContent = JsonConvert.DeserializeObject<string>($"\"{(change.newContent ?? "")}\"");
             }
             catch (Exception)
             {
                 // Handle exception if needed
             }
 
-            var directoryPath = Path.GetDirectoryName(change.Path);
+            var directoryPath = Path.GetDirectoryName(path);
 
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            File.WriteAllText(change.Path, string.Empty);
+            File.WriteAllText(path, string.Empty);
 
-            var window = TryOpenFile(dte, change.Path);
+            var window = TryOpenFile(dte, path);
 
             if (window == null)
             {
-                Debug.WriteLine($"Path not found: {change.Path}");
-                throw new Exception($"Path not found: {change.Path}");
+                Debug.WriteLine($"Path not found: {path}");
+                throw new Exception($"Path not found: {path}");
             }
 
             await Task.Yield();
@@ -266,14 +336,14 @@ namespace VSIXTest
             throw new Exception($"Failed to open file {filePath} using all available methods", lastException);
         }
 
-        public static async Task HandleModifyFileAsync(DTE2 dte, Change change)
+        public static async Task HandleModifyFileAsync(DTE2 dte, string path, ChangeItem change)
         {
-            var window = TryOpenFile(dte, change.Path);
+            var window = TryOpenFile(dte, path);
 
             if (window == null)
             {
-                Debug.WriteLine($"Path not found: {change.Path}");
-                throw new Exception($"Path not found: {change.Path}");
+                Debug.WriteLine($"Path not found: {path}");
+                throw new Exception($"Path not found: {path}");
             }
 
             await Task.Yield();
@@ -297,18 +367,157 @@ namespace VSIXTest
             var editPoint = textDocument.StartPoint.CreateEditPoint();
             var fullText = editPoint.GetText(textDocument.EndPoint);
 
-            // Use the shared TextReplacer class to handle text replacement
-            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change.OldContent, change.NewContent, change.LineNumber);
+            var outp = new TextReplacer().ReplaceTextAtHint(fullText, change.oldContent, change.newContent, change.lineNumber);
 
             editPoint.StartOfDocument();
             editPoint.Delete(textDocument.EndPoint);
             editPoint.Insert(outp);
 
             var line = textDocument.StartPoint.CreateEditPoint();
-            line.LineDown(change.LineNumber - 1);
+            line.LineDown(change.lineNumber - 1);
             textDocument.Selection.MoveToPoint(line);
 
             await Task.Yield();
+        }
+
+        public static async Task HandleDeleteFileAsync(DTE2 dte, string path)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Check if file exists
+            if (!File.Exists(path))
+            {
+                Debug.WriteLine($"File not found for deletion: {path}");
+                return; // Nothing to delete
+            }
+
+            // Close any open document with this path
+            foreach (Document doc in dte.Documents)
+            {
+                if (doc.FullName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                {
+                    doc.Close(vsSaveChanges.vsSaveChangesNo);
+                    break;
+                }
+            }
+
+            // Delete the file
+            try
+            {
+                File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error deleting file: {ex.Message}");
+                throw new Exception($"Error deleting file: {ex.Message}");
+            }
+        }
+
+        public static async Task HandleReplaceFileAsync(DTE2 dte, string path, ChangeItem change)
+        {
+            // Check if file exists, if not create it
+            if (!File.Exists(path))
+            {
+                await HandleCreateNewFileAsync(dte, path, change);
+                return;
+            }
+
+            // If file exists, replace its contents
+            var window = TryOpenFile(dte, path);
+
+            if (window == null)
+            {
+                Debug.WriteLine($"Path not found: {path}");
+                throw new Exception($"Path not found: {path}");
+            }
+
+            await Task.Yield();
+
+            window.Activate();
+            var document = window.Document;
+
+            if (document == null)
+            {
+                Debug.WriteLine("Document is null");
+                throw new Exception("Document is null");
+            }
+
+            var textDocument = document.Object() as TextDocument;
+            if (textDocument == null)
+            {
+                Debug.WriteLine("TextDocument is null");
+                throw new Exception("TextDocument is null");
+            }
+
+            var editPoint = textDocument.StartPoint.CreateEditPoint();
+            editPoint.Delete(textDocument.EndPoint);
+            editPoint.Insert(change.newContent);
+
+            textDocument.Selection.MoveToPoint(textDocument.StartPoint);
+
+            await Task.Yield();
+
+            document.Save();
+        }
+
+        public static async Task HandleRenameFileAsync(DTE2 dte, string oldPath, ChangeItem change)
+        {
+            // Close file if open
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Make sure the file exists
+            if (!File.Exists(oldPath))
+            {
+                Debug.WriteLine($"Source file not found: {oldPath}");
+                throw new Exception($"Source file not found: {oldPath}");
+            }
+
+            // Get the content before closing
+            string fileContent = File.ReadAllText(oldPath);
+
+            // Close any open document with this path
+            foreach (Document doc in dte.Documents)
+            {
+                if (doc.FullName.Equals(oldPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    doc.Close();
+                    break;
+                }
+            }
+
+            // Get new path from the change
+            string newPath = change.newContent;
+            string directoryPath = Path.GetDirectoryName(newPath);
+
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            // Perform the rename
+            try
+            {
+                // Try to delete target if it exists
+                if (File.Exists(newPath))
+                {
+                    File.Delete(newPath);
+                }
+
+                // Move the file
+                File.Move(oldPath, newPath);
+
+                // Open the new file
+                var window = TryOpenFile(dte, newPath);
+                if (window != null)
+                {
+                    window.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error renaming file: {ex.Message}");
+                throw new Exception($"Error renaming file: {ex.Message}");
+            }
         }
     }
 }
