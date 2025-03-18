@@ -17,6 +17,11 @@ interface TreeNode {
   text: string;
   children: TreeNode[];
   parentId?: string;
+  timestamp?: number;
+  durationMs?: number;
+  source?: string;
+  costInfo?: any;
+  attachments?: any[];
 }
 
 interface HistoricalConvsStore {
@@ -112,8 +117,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
               source: node.source, 
               costInfo: node.costInfo,
               attachments: node.attachments,
-              timestamp: node.timestamp,
-              durationMs: node.durationMs
+              timestamp: node.timestamp || null,
+              durationMs: node.durationMs || null
             });
           });
         
@@ -124,7 +129,12 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             nodeMap.has(node.parentId) && nodeMap.get(node.parentId).children.push(treeNode);
         });
         
-        console.log('Extracted flat nodes:', flatNodes);
+        console.log('Extracted flat nodes:', flatNodes.map(node => ({
+          id: node.id,
+          source: node.source,
+          timestamp: node.timestamp,
+          durationMs: node.durationMs
+        })));
         
         if (data.summary) {
           const convToUpdate = get().convs.find((c) => c.convGuid === convId);

@@ -358,13 +358,13 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 </div>
 
 
-                                {(message.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
+                                {(message.costInfo?.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
                                     <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
-                                        <div className="flex flex-wrap items-center gap-x-4">
+                                        <div className="flex flex-wrap items-center gap-x-4" title={`Debug: timestamp=${message.timestamp}, durationMs=${message.durationMs}`}>
                                             {/* Timestamp and duration info */}
                                             {(message.timestamp || message.durationMs) && (
                                                 <div className="flex items-center gap-x-2">
-                                                    {message.timestamp && (
+                                                    {message.timestamp && message.timestamp > 0 && (
                                                         <span title={new Date(message.timestamp).toLocaleString()}>
                                                             Time: {formatTimestamp(message.timestamp)}
                                                         </span>
