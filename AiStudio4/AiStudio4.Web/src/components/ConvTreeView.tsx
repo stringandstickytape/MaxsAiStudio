@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/conv';
@@ -108,7 +108,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         });
     };
 
-    const handleFocusOnLatest = () => {
+    const handleFocusOnLatest = useCallback(() => {
         if (svgRef.current && zoomRef.current && containerRef.current && messages.length > 0) {
             // Get the most recent message
             const latestMessage = messages.reduce((latest, current) => {
@@ -143,7 +143,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 }
             }
         }
-    };
+    }, [messages]);
 
   const handleZoomIn = () => {
     if (svgRef.current && zoomRef.current) {
@@ -207,7 +207,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.5, 3])
+      .scaleExtent([0.1, 3])
       .on('zoom', (event) => {
         g.attr('transform', event.transform);
       });
@@ -326,6 +326,18 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       d3.select(svgRef.current).selectAll('*').remove();
     };
   }, [hierarchicalData, convId]);
+  
+  // Auto-focus on latest message when a new message is added
+  useEffect(() => {
+    // We need a slight delay to let the tree render after message changes
+    const timer = setTimeout(() => {
+      if (messages.length > 0) {
+        handleFocusOnLatest();
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [messages.length]);
 
   if (!messages.length) {
     return (

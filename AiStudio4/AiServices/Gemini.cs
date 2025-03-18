@@ -122,8 +122,8 @@ namespace AiStudio4.AiServices
                 {
                     foreach (var attachment in message.attachments)
                     {
-                        if (attachment.Type.StartsWith("image/"))
-                        {
+                    if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
+                    {
                             partArray.Add(new JObject
                             {
                                 ["inline_data"] = new JObject

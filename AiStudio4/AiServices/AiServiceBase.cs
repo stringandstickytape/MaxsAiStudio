@@ -117,7 +117,7 @@ namespace AiStudio4.AiServices
                 
             foreach (var attachment in attachments)
             {
-                if (attachment.Type.StartsWith("image/"))
+                if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
                 {
                     result.Add(new JObject
                     {
