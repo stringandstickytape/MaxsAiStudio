@@ -51,7 +51,9 @@ namespace AiStudio4.Services
                     source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                             msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                     costInfo = msg.CostInfo,
-                    attachments = msg.Attachments
+                    attachments = msg.Attachments,
+                    timestamp = new DateTimeOffset(msg.Timestamp).ToUnixTimeMilliseconds(),
+                    durationMs = msg.DurationMs
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new

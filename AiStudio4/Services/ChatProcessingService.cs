@@ -142,9 +142,10 @@ namespace AiStudio4.Services
                         MessageId = newUserMessage.Id,
                         Content = newUserMessage.UserMessage,
                         ParentId = chatRequest.ParentMessageId,
-                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Timestamp = new DateTimeOffset(newUserMessage.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "user", // Explicitly set source as "user"
-                        Attachments = newUserMessage.Attachments
+                        Attachments = newUserMessage.Attachments,
+                        DurationMs = 0 // User messages have zero processing duration
                     });
 
                     // Replace tree builder with direct message processing for conv list notification
@@ -176,6 +177,13 @@ namespace AiStudio4.Services
                     if (response.CostInfo != null)
                     {
                         newAiReply.CostInfo = response.CostInfo;
+                    }
+                    
+                    // Set duration for AI message (difference between now and when the user message was created)
+                    var userMessage = conv.Messages.FirstOrDefault(m => m.Id == chatRequest.MessageId);
+                    if (userMessage != null)
+                    {
+                        newAiReply.DurationMs = (long)(DateTime.UtcNow - userMessage.Timestamp).TotalMilliseconds;
                     }
 
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
@@ -236,9 +244,10 @@ namespace AiStudio4.Services
                         MessageId = newAiReply.Id,
                         Content = newAiReply.UserMessage,
                         ParentId = chatRequest.MessageId,
-                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Timestamp = new DateTimeOffset(newAiReply.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "ai", // Explicitly set source as "ai"
-                        CostInfo = newAiReply.CostInfo
+                        CostInfo = newAiReply.CostInfo,
+                        DurationMs = newAiReply.DurationMs
                     });
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
@@ -269,7 +278,9 @@ namespace AiStudio4.Services
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
                 costInfo = msg.CostInfo,
-                attachments = msg.Attachments
+                attachments = msg.Attachments,
+                timestamp = msg.Timestamp,
+                durationMs = msg.DurationMs
             }).ToList<object>();
         }
 
@@ -309,8 +320,9 @@ namespace AiStudio4.Services
                 Role = message.Role,
                 ParentId = message.ParentId,
                 CostInfo = message.CostInfo,
-
-                Attachments = message.Attachments
+                Attachments = message.Attachments,
+                Timestamp = message.Timestamp,
+                DurationMs = message.DurationMs
             };
         }
     }

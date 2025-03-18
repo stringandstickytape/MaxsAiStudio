@@ -57,7 +57,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         content: content.content,
                         source: content.source,
                         parentId,
-                        timestamp: Date.now(),
+                        timestamp: content.timestamp || Date.now(),
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
@@ -89,7 +89,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
             const graph = new MessageGraph(messages);
             const rootMsg = graph.getRootMessages()[0] || messages[0];
-
+            
             createConv({
                 id: convId,
                 rootMessage: {

@@ -15,6 +15,7 @@ namespace AiStudio4.Core.Models
         public TokenUsage TokenUsage { get; set; }
         public TokenCost CostInfo { get; set; }
         public List<Attachment> Attachments { get; set; }
+        public long DurationMs { get; set; }
     }
 
     public class StreamingUpdateDto
