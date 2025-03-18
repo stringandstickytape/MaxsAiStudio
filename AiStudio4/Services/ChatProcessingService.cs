@@ -179,6 +179,12 @@ namespace AiStudio4.Services
                         newAiReply.CostInfo = response.CostInfo;
                     }
                     
+                    // Add any attachments from the response
+                    if (response.Attachments != null && response.Attachments.Any())
+                    {
+                        newAiReply.Attachments.AddRange(response.Attachments);
+                    }
+                    
                     // Set duration for AI message (difference between now and when the user message was created)
                     var userMessage = conv.Messages.FirstOrDefault(m => m.Id == chatRequest.MessageId);
                     if (userMessage != null)
@@ -247,6 +253,7 @@ namespace AiStudio4.Services
                         Timestamp = new DateTimeOffset(newAiReply.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "ai", // Explicitly set source as "ai"
                         CostInfo = newAiReply.CostInfo,
+                        Attachments = newAiReply.Attachments,
                         DurationMs = newAiReply.DurationMs
                     });
 

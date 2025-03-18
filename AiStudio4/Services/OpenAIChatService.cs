@@ -238,7 +238,8 @@ namespace AiStudio4.Services
                 {
                     Success = true,
                     ResponseText = responseText,
-                    CostInfo = response.CostInfo
+                    CostInfo = response.CostInfo,
+                    Attachments = response.Attachments
                 };
             }
             catch (Exception ex)

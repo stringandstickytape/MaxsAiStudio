@@ -11,15 +11,25 @@ using System.Text.RegularExpressions;
 
 namespace AiStudio4.AiServices
 {
+    // Class to hold generated image data
+    internal class GeneratedImage
+    {
+        public string MimeType { get; set; }
+        public string Base64Data { get; set; }
+    }
 
-        internal class Gemini : AiServiceBase
+    internal class Gemini : AiServiceBase
         {
-            public Gemini()
-            {
+        private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
+        
+        public Gemini()
+        {
             }
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
+            // Clear any previously generated images
+            _generatedImages.Clear();
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
             var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
             
@@ -47,13 +57,25 @@ namespace AiStudio4.AiServices
 
 
             requestPayload["contents"] = contentsArray;
-            requestPayload["system_instruction"] = new JObject
+
+            // Add response modalities for image generation model
+            if (ApiModel == "gemini-2.0-flash-exp-image-generation")
             {
-                ["parts"] = new JObject
+                requestPayload["generationConfig"] = new JObject
                 {
-                    ["text"] = options.Conv.SystemPromptWithDateTime()
-                }
-            };
+                    ["responseModalities"] = new JArray { "Text", "Image" }
+                };
+            }
+            else
+            {
+                requestPayload["system_instruction"] = new JObject
+                {
+                    ["parts"] = new JObject
+                    {
+                        ["text"] = options.Conv.SystemPromptWithDateTime()
+                    }
+                };
+            }
 
 
             if (options.AddEmbeddings)
@@ -220,22 +242,32 @@ namespace AiStudio4.AiServices
                         }
                         catch(Exception e)
                         {
-
-                            return new AiResponse
+                            // Fall through to default response
+                        }
+                        
+                        // Create attachments from any generated images
+                        var attachments = new List<DataModels.Attachment>();
+                        int imageIndex = 1;
+                        foreach (var image in _generatedImages)
+                        {
+                            attachments.Add(new DataModels.Attachment
                             {
-                                ResponseText = fullResponse.ToString(),
-                                Success = !cancellationToken.IsCancellationRequested,
-                                TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount)
-                            };
+                                Id = Guid.NewGuid().ToString(),
+                                Name = $"generated_image_{imageIndex++}.png",
+                                Type = image.MimeType,
+                                Content = image.Base64Data,
+                                Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
+                            });
                         }
 
-                    return new AiResponse
-                    {
-                        ResponseText = fullResponse.ToString(),
-                        Success = !cancellationToken.IsCancellationRequested,
-                        TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
-                        ChosenTool = null
-                    };
+                        return new AiResponse
+                        {
+                            ResponseText = fullResponse.ToString(),
+                            Success = !cancellationToken.IsCancellationRequested,
+                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                            ChosenTool = null,
+                            Attachments = attachments.Count > 0 ? attachments : null
+                        };
                 }
                 }
             }
@@ -243,19 +275,32 @@ namespace AiStudio4.AiServices
 
         private string ExtractResponseText(JObject completion)
         {
-            if (completion["candidates"]?[0]?["content"]?["parts"] != null)
+            if (completion["candidates"]?[0]?["content"]?["parts"] is JArray parts)
             {
-                var content = completion["candidates"][0]["content"]["parts"][0];
-
-                // Check if this is a tool response
-                if (content["functionCall"] != null)
+                StringBuilder textBuilder = new StringBuilder();
+                
+                foreach (var part in parts)
                 {
-                    return JsonConvert.SerializeObject(content["functionCall"]);
+                    // Check if this is a tool response
+                    if (part["functionCall"] != null)
+                    {
+                        textBuilder.Append(JsonConvert.SerializeObject(part["functionCall"]));
+                    }
+                    // Handle text parts
+                    else if (part["text"] != null)
+                    {
+                        textBuilder.Append(part["text"]?.ToString() ?? "");
+                    }
+                    // Add a placeholder for images
+                    else if (part["inlineData"] != null)
+                    {
+                        textBuilder.Append("[Generated Image]");
+                    }
                 }
-
-                return content["text"]?.ToString() ?? "";
+                
+                return textBuilder.ToString();
             }
-            return "";
+            return completion.ToString();
         }
 
         private string ExtractChosenToolFromCompletion(JObject completion)
@@ -284,12 +329,41 @@ namespace AiStudio4.AiServices
                 var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
                 var chosenTool = ExtractChosenToolFromCompletion(completion);
 
+                // Extract any images from the response
+                var attachments = new List<DataModels.Attachment>();
+                int imageIndex = 1;
+                
+                if (completion["candidates"]?[0]?["content"]?["parts"] is JArray parts)
+                {
+                    foreach (var part in parts)
+                    {
+                        if (part["inlineData"] != null)
+                        {
+                            string mimeType = part["inlineData"]["mimeType"]?.ToString();
+                            string base64Data = part["inlineData"]["data"]?.ToString();
+                            
+                            if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
+                            {
+                                attachments.Add(new DataModels.Attachment
+                                {
+                                    Id = Guid.NewGuid().ToString(),
+                                    Name = $"generated_image_{imageIndex++}.png",
+                                    Type = mimeType,
+                                    Content = base64Data,
+                                    Size = base64Data.Length * 3 / 4 // Approximate size calculation
+                                });
+                            }
+                        }
+                    }
+                }
+                
                 return new AiResponse
                 {
                     ResponseText = ExtractResponseText(completion),
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokens, outputTokens),
-                    ChosenTool = chosenTool
+                    ChosenTool = chosenTool,
+                    Attachments = attachments.Count > 0 ? attachments : null
                 };
             }
             else
@@ -311,23 +385,49 @@ namespace AiStudio4.AiServices
                     var streamData = JObject.Parse(jsonString);
                     if (streamData["candidates"] != null && streamData["candidates"][0]["content"]["parts"] != null)
                     {
-                        var content = streamData["candidates"][0]["content"]["parts"][0];
-
-                        // Handle tool responses
-                        if (content["functionCall"] != null)
+                        var parts = streamData["candidates"][0]["content"]["parts"] as JArray;
+                        
+                        foreach (var part in parts)
                         {
-                            var toolResponse = JsonConvert.SerializeObject(content["functionCall"]);
-                            chosenTool = content["functionCall"]["name"]?.ToString();
-                            fullResponse.Append(toolResponse);
-                            OnStreamingDataReceived(toolResponse);
-                        }
-                        else
-                        {
-                            var textChunk = content["text"]?.ToString();
-                            if (!string.IsNullOrEmpty(textChunk))
+                            // Handle function call responses
+                            if (part["functionCall"] != null)
                             {
-                                fullResponse.Append(textChunk);
-                                OnStreamingDataReceived(textChunk);
+                                var toolResponse = JsonConvert.SerializeObject(part["functionCall"]);
+                                chosenTool = part["functionCall"]["name"]?.ToString();
+                                fullResponse.Append(toolResponse);
+                                OnStreamingDataReceived(toolResponse);
+                            }
+                            // Handle text responses
+                            else if (part["text"] != null)
+                            {
+                                var textChunk = part["text"]?.ToString();
+                                if (!string.IsNullOrEmpty(textChunk))
+                                {
+                                    fullResponse.Append(textChunk);
+                                    OnStreamingDataReceived(textChunk);
+                                }
+                            }
+                            // Handle image responses
+                            else if (part["inlineData"] != null)
+                            {
+                                // Capture image for later processing
+                                string mimeType = part["inlineData"]["mimeType"]?.ToString();
+                                string base64Data = part["inlineData"]["data"]?.ToString();
+                                
+                                if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
+                                {
+                                    // Add image to the collection
+                                    _generatedImages.Add(new GeneratedImage
+                                    {
+                                        MimeType = mimeType,
+                                        Base64Data = base64Data
+                                    });
+                                    
+                                    // Add a placeholder in the response text
+                                    var imagePlaceholder = "[Generated Image]";
+                                    fullResponse.Append(imagePlaceholder);
+                                    OnStreamingDataReceived(imagePlaceholder);
+                                }
                             }
                         }
                     }

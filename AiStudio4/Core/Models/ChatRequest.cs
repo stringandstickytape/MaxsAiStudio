@@ -32,5 +32,6 @@ namespace AiStudio4.Core.Models
         public string ResponseText { get; set; }
         public string Error { get; set; }
         public TokenCost CostInfo { get; set; }
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
     }
 }

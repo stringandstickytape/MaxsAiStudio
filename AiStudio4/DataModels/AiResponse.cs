@@ -13,6 +13,7 @@ namespace AiStudio4.DataModels
         public TimeSpan Duration { get; set; }
         public string ChosenTool { get; set; }
         public TokenCost CostInfo { get; set; }
+        public List<Attachment> Attachments { get; set; }
 
         public AiResponse()
         {
