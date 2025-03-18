@@ -254,11 +254,11 @@ export function processAttachments(attachments: any[]): any[] {
   if (!attachments || !Array.isArray(attachments)) return [];
 
   return attachments.map(att => {
-    // Convert Base64 content to ArrayBuffer if needed
+    
     if (typeof att.content === 'string') {
       const buffer = base64ToArrayBuffer(att.content);
 
-      // Create preview URL for images
+      
       const previewUrl = !att.previewUrl && att.type.startsWith('image/')
         ? createAttachmentPreviewUrl({ type: att.type, content: buffer })
         : att.previewUrl;
@@ -283,7 +283,7 @@ export function prepareAttachmentsForTransmission(attachments: Attachment[]): an
   if (!attachments || !Array.isArray(attachments) || attachments.length === 0) return [];
 
   return attachments.map(attachment => {
-    // Convert ArrayBuffer to Base64 for transmission
+    
     if (attachment.content instanceof ArrayBuffer) {
       return {
         ...attachment,
