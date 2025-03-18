@@ -192,14 +192,7 @@ namespace AiStudio4.Services
                         attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
                     };
                     
-                    // For backward compatibility with services that expect base64image
-                    if (historyItem.Attachments?.Any() == true && 
-                        historyItem.Attachments[0].Type.StartsWith("image/"))
-                    {
-                        message.base64image = historyItem.Attachments[0].Content;
-                        message.base64type = historyItem.Attachments[0].Type;
-                    }
-                    
+                   
                     conv.messages.Add(message);
                 }
 

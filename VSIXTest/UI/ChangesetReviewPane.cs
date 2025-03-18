@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using static VSIXTest.ChangesetManager;
+using System.Windows.Shapes;
 
 [Guid("743967b7-4ad8-4103-8a28-bf2933a5bdf6")]
 
@@ -278,8 +279,17 @@ _changeDetailsTextBox = new TextBox
             {
                 var change = _changes[_currentChangeIndex];
                 string filePath = VSIXTestPackage.Instance.FindFilePathForChange(change);
-                
-_changeTypeLabel.Content = $"Change Type: {FormatChangeType(change.change_type)}";
+
+                if (filePath.Substring(1, 1) != ":")
+                {
+                    //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    string solutionDir = System.IO.Path.GetDirectoryName(_dte.Solution.FullName);
+                    filePath = System.IO.Path.Combine(solutionDir, filePath.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                }
+
+
+
+                _changeTypeLabel.Content = $"Change Type: {FormatChangeType(change.change_type)}";
                 _applyButton.IsEnabled = true;
                 _undoButton.IsEnabled = false;
 // Format the change details with better formatting

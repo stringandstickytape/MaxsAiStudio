@@ -62,8 +62,8 @@ export function processAttachments(attachments: any[]): any[] {
     if (typeof att.content === 'string') {
       const buffer = base64ToArrayBuffer(att.content);
       
-      // Create preview URL for images
-      const previewUrl = att.type.startsWith('image/') 
+      // Create preview URL for images - only if one doesn't already exist
+      const previewUrl = !att.previewUrl && att.type.startsWith('image/') 
         ? createAttachmentPreviewUrl({ type: att.type, content: buffer })
         : undefined;
       
