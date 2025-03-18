@@ -297,6 +297,7 @@ namespace VSIXTest
             var editPoint = textDocument.StartPoint.CreateEditPoint();
             var fullText = editPoint.GetText(textDocument.EndPoint);
 
+            // Use the shared TextReplacer class to handle text replacement
             var outp = new TextReplacer().ReplaceTextAtHint(fullText, change.OldContent, change.NewContent, change.LineNumber);
 
             editPoint.StartOfDocument();

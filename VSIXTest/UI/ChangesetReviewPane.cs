@@ -382,6 +382,14 @@ public class ChangesetReviewPane : ToolWindowPane
         JumpToChange();
     }
 
+    /// <summary>
+    /// Helper method to apply text replacements using the shared TextReplacer
+    /// </summary>
+    private string ApplyTextReplacement(string sourceText, string oldText, string newText, int lineNumber)
+    {
+        return new TextReplacer().ReplaceTextAtHint(sourceText, oldText, newText, lineNumber);
+    }
+
     private void DeleteNewFile(Change change)
     {
         if (File.Exists(change.Path))
@@ -438,6 +446,7 @@ public class ChangesetReviewPane : ToolWindowPane
             var editPoint = textDocument.StartPoint.CreateEditPoint();
             editPoint.Delete(textDocument.EndPoint);
 
+            // Use our shared TextReplacer for content processing
             string[] lines = content.Split('\n');
             string result = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
 
