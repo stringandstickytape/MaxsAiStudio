@@ -136,7 +136,6 @@ export function useChatManagement() {
 
     const getConv = useCallback(
         async (convId: string) => {
-            console.log('Getting conversation:', convId);
 
             const localConv = convs[convId];
             if (localConv) {
@@ -156,46 +155,12 @@ export function useChatManagement() {
                         throw new Error('Failed to get conv tree');
                     }
                     
-                    console.log('Tree data received in getConv:', treeData);
-                    
-                    // Log detailed timing information from the tree data
-                    console.log('Timing information in tree root:', {
-                        id: treeData.id,
-                        timestamp: treeData.timestamp,
-                        timestampType: typeof treeData.timestamp,
-                        durationMs: treeData.durationMs,
-                        durationMsType: typeof treeData.durationMs
-                    });
-                    
-                    if (treeData.children && treeData.children.length > 0) {
-                        console.log('Timing information in first child:', {
-                            id: treeData.children[0].id,
-                            timestamp: treeData.children[0].timestamp,
-                            timestampType: typeof treeData.children[0].timestamp,
-                            durationMs: treeData.children[0].durationMs,
-                            durationMsType: typeof treeData.children[0].durationMs
-                        });
-                    }
-                    
-                    console.log('Looking at attachments in tree data nodes:', treeData.children?.map(c => ({ id: c.id, hasAttachments: !!c.attachments, attachments: c.attachments })));
 
 
 
                     const extractNodes = (node: any, nodes: any[] = []) => {
                         if (!node) return nodes;
 
-                        // Debug timing info on every node
-                        console.log(`Node ${node.id} timing info:`, {
-                            timestamp: node.timestamp,
-                            timestampType: typeof node.timestamp,
-                            durationMs: node.durationMs,
-                            durationMsType: typeof node.durationMs,
-                            durationMsJSON: JSON.stringify(node.durationMs)
-                        });
-                        
-                        if (node.attachments) {
-                            console.log(`Node ${node.id} has attachments:`, node.attachments);
-                        }
 
                         // Explicitly extract each property to ensure nothing is lost
                         const extractedNode = {
@@ -214,8 +179,6 @@ export function useChatManagement() {
                         // Add the node to the array
                         nodes.push(extractedNode);
                         
-                        // Verify the durationMs was properly retained
-                        console.log(`Extracted node ${extractedNode.id} durationMs: ${extractedNode.durationMs} (${typeof extractedNode.durationMs})`);
 
                         if (node.children && Array.isArray(node.children)) {
                             for (const child of node.children) {
@@ -229,23 +192,9 @@ export function useChatManagement() {
                     const flatNodes = extractNodes(treeData);
                     
                     
-                    console.log('Extracted nodes with attachment info:', 
-                      flatNodes.map(node => ({
-                        id: node.id, 
-                        text: node.text?.substring(0, 20) + '...', 
-                        hasAttachments: !!node.attachments,
-                        attachmentsCount: node.attachments?.length
-                      })));
-
-
-                    console.log('Flat nodes to process in getConv:', flatNodes);
-                    
                     const messages = flatNodes.map((node) => {
-                        console.log('Processing node for message:', node);
                         
-                        let attachments = node.attachments;
-                        console.log('Node attachments:', attachments);
-                        if (attachments && Array.isArray(attachments)) {
+                        let attachments = node.attachments;                        if (attachments && Array.isArray(attachments)) {
                             attachments = attachments.map(att => {
                                 if (typeof att.content === 'string') {
                                     
@@ -263,7 +212,6 @@ export function useChatManagement() {
                                             const blob = new Blob([buffer], { type: att.type });
                                             previewUrl = URL.createObjectURL(blob);
                                         } catch (error) {
-                                            console.error('Failed to create preview URL:', error);
                                         }
                                     }
                                     
@@ -291,7 +239,6 @@ export function useChatManagement() {
                         };
                     });
 
-                    console.log('Final processed messages:', messages);
                     
                     return {
                         id: convId,

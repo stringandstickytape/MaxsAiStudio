@@ -81,7 +81,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
 
         set({ convs: newConvs, isLoading: false });
       } catch (error) {
-        console.error('Error fetching historical convs:', error);
         set({
           error: error instanceof Error ? error.message : 'Failed to fetch convs',
           isLoading: false,
@@ -102,25 +101,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           if (!data.success) throw new Error('Failed to fetch conv tree');
           if (!data.flatMessageStructure) throw new Error('Invalid response format or empty tree');
           
-          console.log('Historical conv tree data received:', data);
-          console.log('Flat message structure:', data.flatMessageStructure);
-          
-          // Detailed inspection of the first few messages to confirm timestamp and durationMs
-          if (data.flatMessageStructure && data.flatMessageStructure.length > 0) {
-            console.log('Inspecting raw message data from API:');
-            const samplesToLog = Math.min(data.flatMessageStructure.length, 3);
-            for (let i = 0; i < samplesToLog; i++) {
-              const msg = data.flatMessageStructure[i];
-              console.log(`Message ${i+1}:`, {
-                id: msg.id,
-                timestamp: msg.timestamp,
-                timestampType: typeof msg.timestamp,
-                durationMs: msg.durationMs,
-                durationMsType: typeof msg.durationMs,
-                rawMessage: msg
-              });
-            }
-          }
           
           const flatNodes = data.flatMessageStructure;
           const nodeMap = new Map();
@@ -146,18 +126,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
             nodeMap.has(node.parentId) && nodeMap.get(node.parentId).children.push(treeNode);
         });
         
-        console.log('Extracted flat nodes:', flatNodes.map(node => ({
-          id: node.id,
-          source: node.source,
-          timestamp: node.timestamp,
-          durationMs: node.durationMs
-        })));
-        
-        console.log('Mapped nodes with timing data:', Array.from(nodeMap.values()).map(node => ({
-          id: node.id,
-          timestamp: node.timestamp,
-          durationMs: node.durationMs
-        })));
         
         if (data.summary) {
           const convToUpdate = get().convs.find((c) => c.convGuid === convId);
@@ -169,10 +137,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
         
         set({ isLoading: false });
         const result = rootNode ?? (flatNodes.length > 0 ? nodeMap.get(flatNodes[0].id) : null);
-        console.log('Final tree rootNode:', result);
         return result;
       } catch (error) {
-        console.error('Error fetching conv tree:', error);
         set({
           error: error instanceof Error ? error.message : 'Failed to fetch conv tree',
           isLoading: false,
@@ -203,7 +169,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           isLoading: false,
         }));
       } catch (error) {
-        console.error('Error deleting conv:', error);
         set({
           error: error instanceof Error ? error.message : 'Failed to delete conv',
           isLoading: false,

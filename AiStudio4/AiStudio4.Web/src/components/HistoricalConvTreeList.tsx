@@ -88,7 +88,6 @@ export const HistoricalConvTreeList = () => {
 
             setTreeData(tree);
         } catch (error) {
-            console.error('Error fetching conversation tree:', error);
         } finally {
             setIsLoadingTree(false);
         }

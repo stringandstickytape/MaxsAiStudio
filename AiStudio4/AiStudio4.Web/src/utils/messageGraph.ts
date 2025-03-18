@@ -14,14 +14,6 @@ export class MessageGraph {
     // First sort messages by timestamp
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
 
-    console.log('Adding messages to graph, sample properties:', 
-      messages.slice(0, 2).map(m => ({
-        id: m.id,
-        durationMs: m.durationMs,
-        durationMsType: typeof m.durationMs,
-        hasOwnProperty: m.hasOwnProperty('durationMs'),
-        keys: Object.keys(m)
-      })));
 
     // Add each message individually
     for (const message of sortedMessages) {
@@ -53,13 +45,6 @@ export class MessageGraph {
       }
     }
     
-    // Debug: verify message properties were preserved
-    console.log(`MessageGraph: Added message ${message.id} with properties:`, {
-      durationMs: this.messages.get(message.id)?.durationMs,
-      timestamp: this.messages.get(message.id)?.timestamp,
-      hasOwnProperty: this.messages.get(message.id)?.hasOwnProperty('durationMs'),
-      keys: Object.keys(this.messages.get(message.id) || {})
-    });
   }
 
   getMessage(id: string): Message | undefined {
@@ -80,7 +65,6 @@ export class MessageGraph {
     const path: Message[] = [];
     let currentId = messageId;
 
-    console.log(`Building message path for message ${messageId}`);
 
     while (currentId && this.messages.has(currentId)) {
       // Get the message from the map
@@ -101,17 +85,6 @@ export class MessageGraph {
       // Add to the path
       path.unshift(message);
 
-      // Log message details for debugging
-      console.log(`Message ${message.id} in path:`, {
-        id: message.id,
-        timestamp: message.timestamp,
-        timestampType: typeof message.timestamp,
-        durationMs: message.durationMs,
-        durationMsType: typeof message.durationMs,
-        originalDurationMs: originalMessage.durationMs,
-        hasOwnProperty: message.hasOwnProperty('durationMs'),
-        keys: Object.keys(message)
-      });
 
       if (!message.parentId || !this.messages.has(message.parentId)) {
         break;
@@ -120,13 +93,6 @@ export class MessageGraph {
       currentId = message.parentId;
     }
 
-    console.log(`Complete message path:`, path.map(m => ({
-      id: m.id,
-      timestamp: m.timestamp,
-      durationMs: m.durationMs,
-      hasOwnProperty: m.hasOwnProperty('durationMs'),
-      keys: Object.keys(m)
-    })));
 
     return path;
   }

@@ -22,7 +22,6 @@ interface ConvViewProps {
 const formatDuration = (message?: any, propName: string = 'durationMs') => {
     // Safety check for null/undefined message
     if (!message) {
-        console.warn('formatDuration called with null/undefined message');
         return 'Unknown';
     }
     
@@ -37,13 +36,9 @@ const formatDuration = (message?: any, propName: string = 'durationMs') => {
             durationMs = descriptor.value;
         }
     }
-    debugger;
-    // Add specific logging for debugging
-    console.log(`formatDuration for ${message.id || 'unknown'}: ${durationMs} (${typeof durationMs})`);
     
     // Return early if the value is undefined or null
     if (durationMs === undefined || durationMs === null) {
-        console.warn(`No valid duration value found for message ${message.id || 'unknown'}`);
         return "Unknown";
     }
     
@@ -52,7 +47,6 @@ const formatDuration = (message?: any, propName: string = 'durationMs') => {
     
     // Check if conversion resulted in a valid number
     if (isNaN(duration)) {
-        console.warn(`Invalid duration value: ${durationMs}`);
         return "Invalid";
     }
     
@@ -121,20 +115,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
         const convMessages = conv.messages;
         
-        // Log timing info for a few messages in the conversation for debugging
-        console.log(`ConvView: Checking timing data for conv ${activeConvId}`);
-        const samplesToLog = Math.min(convMessages.length, 3);
-        for (let i = 0; i < samplesToLog; i++) {
-            const msg = convMessages[i];
-            console.log(`Original message ${i+1} (${msg.id}):`, {
-                timestamp: msg.timestamp,
-                timestampType: typeof msg.timestamp,
-                durationMs: msg.durationMs,
-                durationMsType: typeof msg.durationMs,
-                hasOwnProperty: msg.hasOwnProperty('durationMs'),
-                keys: Object.keys(msg)
-            });
-        }
         
         // Create copies of messages with explicit properties to avoid loss during graph processing
         const messages = conv.messages.map(msg => ({
@@ -158,13 +138,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         const graph = new MessageGraph(messages);
         const path = graph.getMessagePath(startingMessageId);
         
-        // Verify properties are preserved
-        console.log('Final messageChain:', path.map(msg => ({
-            id: msg.id,
-            durationMs: msg.durationMs,
-            durationMsType: typeof msg.durationMs,
-            hasOwnProperty: msg.hasOwnProperty('durationMs')
-        })));
         
         return path;
     }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
@@ -174,21 +147,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         setVisibleCount(Math.min(20, messageChain.length));
         setAutoScrollEnabled(true);
 
-        // Debug: log message chain details
-        console.log(`MessageChain for ${activeConvId}:`, messageChain.map(msg => ({
-            id: msg.id,
-            timestamp: msg.timestamp,
-            timestampType: typeof msg.timestamp,
-            durationMs: msg.durationMs,
-            durationMsType: typeof msg.durationMs,
-            durationMsFormatted: formatDuration(msg)
-        })));
-        
-        // Special filter just for durationMs to see which messages have it
-        const msgsWithDuration = messageChain.filter(msg => 
-            msg.durationMs !== undefined && msg.durationMs !== null);
-        console.log(`Messages with duration (${msgsWithDuration.length}):`, 
-            msgsWithDuration.map(msg => ({ id: msg.id, durationMs: msg.durationMs })));
 
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
@@ -395,20 +353,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                         configurable: true,
                                         writable: true
                                     });
-                                    console.log(`Recovered durationMs=${originalMsg.durationMs} for message ${message.id}`);
                                 }
                             }
                         }
-                        debugger;
-                        // Debug the durationMs value for this specific message
-                        console.log(`RENDER MESSAGE ${enhancedMessage.id}:`, {
-                            durationMs: enhancedMessage.durationMs,
-                            durationMsType: typeof enhancedMessage.durationMs,
-                            durationMsJSON: JSON.stringify(enhancedMessage.durationMs),
-                            hasOwnProperty: enhancedMessage.hasOwnProperty('durationMs'),
-                            properties: Object.getOwnPropertyNames(enhancedMessage),
-                            formattedDuration: formatDuration(enhancedMessage)
-                        });
                         return message.source === 'system' ? null : (
                             <div
                                 key={message.id}
@@ -483,14 +430,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
                                 {(message.costInfo?.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
-                                <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1" data-debug={`msgId=${message.id} timestamp=${message.timestamp} (${typeof message.timestamp}) durationMs=${message.durationMs} (${typeof message.durationMs})`}>
-                                    {/* Debug element to force display the durationMs value */}
-                                    {process.env.NODE_ENV !== 'production' && (
-                                        <div className="hidden">
-                                            Debug durationMs: {String(message.durationMs)} ({typeof message.durationMs})
-                                        </div>
-                                    )}
-                                        <div className="flex flex-wrap items-center gap-x-4" title={`Debug: timestamp=${message.timestamp} (${typeof message.timestamp}), durationMs=${message.durationMs} (${typeof message.durationMs})`}>
+                                     <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
+   <div className="flex flex-wrap items-center gap-x-4">
                                             {/* Timestamp and duration info */}
                                             {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
                                                 <div className="flex items-center gap-x-2">

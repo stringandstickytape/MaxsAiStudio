@@ -65,8 +65,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                     slctdMsgId: content.source === 'ai' ? content.id : undefined,
                 });
                 
-                // Debug: Verify the durationMs was properly included
-                console.log(`WebSocket: Created message ${content.id} with durationMs=${content.durationMs}`);
             } else {
                 const convId = `conv_${Date.now()}`;
                 createConv({
@@ -170,13 +168,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 };
                 
                 // Log message creation
-                debugger;
-                console.log(`ConvStore: Adding message ${updMsg.id} with properties:`, {
-                    durationMs: updMsg.durationMs,
-                    durationMsType: typeof updMsg.durationMs,
-                    hasOwnProperty: updMsg.hasOwnProperty('durationMs'),
-                    keys: Object.keys(updMsg)
-                });
                 
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: [...conv.messages, updMsg] } },
