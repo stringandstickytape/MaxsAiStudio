@@ -17,7 +17,7 @@ import { useChatManagement } from '@/hooks/useChatManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
-import { formatTextAttachments } from '@/utils/bufferUtils';
+import { formatTextAttachments } from '@/utils/attachmentUtils';
 
 interface InputBarProps {
     selectedModel: string;
@@ -221,13 +221,13 @@ export function InputBar({
                 messageId: currentRequest.messageId
             }))
             : inputText.trim() && !isLoading && (() => {
-                
+                // Get text attachments (files with extracted text content)
                 const textAttachments = attachments.filter(att => att.textContent);
 
-                
+                // Format text file content for inclusion in the message
                 const textFileContent = formatTextAttachments(textAttachments);
 
-                
+                // Combine the user's text with any text file content
                 const fullMessage = inputText + textFileContent;
 
                 handleChatMessage(fullMessage);

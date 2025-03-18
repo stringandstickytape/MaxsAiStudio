@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_ATTACHMENT_OPTIONS } from '@/utils/attachmentUtils';
 
 interface FileAttachmentProps {
     onFilesSelected: (files: FileList | File[]) => void;
@@ -15,7 +16,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     onFilesSelected,
     disabled = false,
     className,
-    maxFiles = 5,
+    maxFiles = DEFAULT_ATTACHMENT_OPTIONS.maxCount,
     acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv"
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +48,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
 
         onFilesSelected(files);
 
-        
+        // Reset the input so the same file can be selected again
         if (inputRef.current) {
             inputRef.current.value = '';
         }

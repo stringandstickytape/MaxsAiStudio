@@ -5,7 +5,7 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { v4 as uuidv4 } from 'uuid';
 import { createResourceHook } from './useResourceFactory';
-
+import { prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmentUtils';
 
 const useChatConfigResource = createResourceHook<{
     models: string[];
@@ -62,19 +62,18 @@ export function useChatManagement() {
     const sendMessage = useCallback(
         async (params: SendMessageParams) => {
             return executeApiCall(async () => {
-                
+                // Generate a message ID if not provided
                 const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
 
-                
-                
-
-                
+                // Create a copy of params for modification
                 let requestParams = { ...params };
 
                 if (params.attachments && params.attachments.length > 0) {
-                    
+                    // Only prepare binary attachments for transmission
+                    // Text attachments should be included in the message content
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
-                    
+
+                    // Convert ArrayBuffer content to Base64 for transmission
                     requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
                 }
 
