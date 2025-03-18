@@ -23,7 +23,7 @@ export class WebSocketService {
 
     private subscribers: Map<string, Set<MessageHandler>> = new Map();
     private connectionStatusSubscribers: Set<(status: WebSocketConnectionStatus) => void> = new Set();
-
+    private lastMessageTime: number | null = null;
     constructor() {
         this.connect = this.connect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
@@ -125,17 +125,21 @@ export class WebSocketService {
         }
     }
 
-    public onConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): void {
-        this.connectionStatusSubscribers.add(handler);
-        handler({
-            isConnected: this.connected,
-            clientId: this.clientId,
-        });
-    }
+  public onConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): (() => void) {
+    this.connectionStatusSubscribers.add(handler);
+    // Initial call with current status
+    handler({
+      isConnected: this.connected,
+      clientId: this.clientId,
+    });
+    
+    // Return unsubscribe function
+    return () => this.offConnectionStatusChange(handler);
+  }
 
-    public offConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): void {
-        this.connectionStatusSubscribers.delete(handler);
-    }
+  public offConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): void {
+    this.connectionStatusSubscribers.delete(handler);
+  }
 
     public isConnected(): boolean {
         return this.connected;
@@ -170,6 +174,7 @@ export class WebSocketService {
     };
 
     private handleMessage = (event: MessageEvent): void => {
+        this.lastMessageTime = Date.now();
         try {
             const message: WebSocketMessage = JSON.parse(event.data);
 
@@ -277,6 +282,10 @@ export class WebSocketService {
             }
         });
     }
+
+  public getLastMessageTime(): number | null {
+    return this.lastMessageTime;
+  }
 
   private generateGuid(): string {
     

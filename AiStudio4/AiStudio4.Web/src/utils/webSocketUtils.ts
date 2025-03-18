@@ -27,29 +27,29 @@ export function useWebSocketEvent<T = any>(
 
 
 export function useWebSocketStatus(onStatusChange?: (status: WebSocketConnectionStatus) => void) {
-  const [isConnected, setIsConnected] = useState(false);
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [status, setStatus] = useState<WebSocketConnectionStatus>({
+    isConnected: webSocketService.isConnected(),
+    clientId: webSocketService.getClientId()
+  });
 
   useEffect(() => {
-    const handleConnectionEvent = (detail: WebSocketEventDetail) => {
-      if (detail.type === 'connected') {
-        setIsConnected(true);
-      } else if (detail.type === 'disconnected') {
-        setIsConnected(false);
-      } else if (detail.type === 'clientId' && detail.clientId) {
-        setClientId(detail.clientId);
+    // Use WebSocketService's built-in connection status tracking
+    const unsubscribe = webSocketService.onConnectionStatusChange((newStatus) => {
+      setStatus(newStatus);
+      if (onStatusChange) {
+        onStatusChange(newStatus);
       }
-
-      if (onStatusChange && detail.content) {
-        onStatusChange(detail.content as WebSocketConnectionStatus);
-      }
+    });
+    
+    return () => {
+      if (unsubscribe) webSocketService.offConnectionStatusChange(unsubscribe);
     };
-
-    const unsubscribe = listenToWebSocketEvent('connection:status', handleConnectionEvent);
-    return unsubscribe;
   }, [onStatusChange]);
 
-  return { isConnected, clientId };
+  return { 
+    isConnected: status.isConnected, 
+    clientId: status.clientId 
+  };
 }
 
 

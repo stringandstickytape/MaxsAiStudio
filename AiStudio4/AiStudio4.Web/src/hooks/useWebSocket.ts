@@ -1,8 +1,6 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { webSocketService } from '@/services/websocket/WebSocketService';
-import { useWebSocketStore } from '@/stores/useWebSocketStore';
-import { useWebSocketStatus } from '@/utils/webSocketUtils';
 
 interface UseWebSocketOptions {
   autoConnect?: boolean;
@@ -20,20 +18,22 @@ interface UseWebSocketResult {
 
 export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketResult {
   const { autoConnect = true, subscriptions = {} } = options;
+  const [connectionStatus, setConnectionStatus] = useState<WebSocketConnectionStatus>({
+    isConnected: webSocketService.isConnected(),
+    clientId: webSocketService.getClientId()
+  });
 
-  
-  const { connect, disconnect, send } = useWebSocketStore();
-
-  
-  const { isConnected, clientId } = useWebSocketStatus();
-
-  
+  // Subscribe to connection status changes directly from WebSocketService  
   useEffect(() => {
-    
+    const unsubscribe = webSocketService.onConnectionStatusChange(setConnectionStatus);
+    return () => unsubscribe && webSocketService.offConnectionStatusChange(setConnectionStatus);
+  }, []);
+  
+  // Subscribe to message handlers
+  useEffect(() => {
     Object.entries(subscriptions).forEach(([messageType, handler]) => {
       webSocketService.subscribe(messageType, handler);
     });
-
     
     return () => {
       Object.entries(subscriptions).forEach(([messageType, handler]) => {
@@ -42,22 +42,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     };
   }, [subscriptions]);
 
-  
+  // Handle auto-connect
   useEffect(() => {
     if (autoConnect) {
-      connect();
+      webSocketService.connect();
     }
+  }, [autoConnect]);
 
-    
-    
-  }, [autoConnect, connect]);
-
+  // Return simplified interface that delegates directly to WebSocketService
   return {
-    isConnected,
-    clientId,
-    connect,
-    disconnect,
-    send,
+    isConnected: connectionStatus.isConnected,
+    clientId: connectionStatus.clientId,
+    connect: webSocketService.connect,
+    disconnect: webSocketService.disconnect,
+    send: (messageType: string, content: any) => webSocketService.send({ messageType, content })
   };
 }
 
