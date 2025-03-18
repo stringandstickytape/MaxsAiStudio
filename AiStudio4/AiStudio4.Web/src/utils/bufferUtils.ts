@@ -65,14 +65,79 @@ export function processAttachments(attachments: any[]): any[] {
       // Create preview URL for images - only if one doesn't already exist
       const previewUrl = !att.previewUrl && att.type.startsWith('image/') 
         ? createAttachmentPreviewUrl({ type: att.type, content: buffer })
-        : undefined;
+        : att.previewUrl;
       
       return {
         ...att,
         content: buffer,
-        previewUrl: att.previewUrl || previewUrl
+        previewUrl
       };
     }
     return att;
   });
+}
+
+/**
+ * Extracts text from text file attachments and formats it for inclusion in messages
+ * @param textAttachments Array of text file attachments
+ * @returns Formatted string with text content
+ */
+export function formatTextAttachments(textAttachments: any[]): string {
+  if (!textAttachments || textAttachments.length === 0) return '';
+
+  let formattedContent = '';
+
+  textAttachments.forEach(attachment => {
+    if (attachment.textContent) {
+      // Determine language based on file extension
+      const fileExt = attachment.name.split('.').pop()?.toLowerCase() || '';
+      let language = '';
+
+      // Map common extensions to languages
+      switch (fileExt) {
+        case 'json': language = 'json'; break;
+        case 'md': language = 'markdown'; break;
+        case 'html': language = 'html'; break;
+        case 'css': language = 'css'; break;
+        case 'js': language = 'javascript'; break;
+        case 'ts': language = 'typescript'; break;
+        case 'py': language = 'python'; break;
+        case 'java': language = 'java'; break;
+        case 'c': language = 'c'; break;
+        case 'cpp': language = 'cpp'; break;
+        case 'cs': language = 'csharp'; break;
+        case 'php': language = 'php'; break;
+        case 'rb': language = 'ruby'; break;
+        case 'go': language = 'go'; break;
+        case 'rs': language = 'rust'; break;
+        case 'sh': language = 'bash'; break;
+        case 'sql': language = 'sql'; break;
+        case 'xml': language = 'xml'; break;
+        case 'csv': language = 'csv'; break;
+        case 'txt': default: language = '';
+      }
+
+      formattedContent += `\n\n**File: ${attachment.name}**\n\`\`\`${language}\n${attachment.textContent}\n\`\`\`\n`;
+    }
+  });
+
+  return formattedContent;
+}
+
+/**
+ * Checks if a file is a text file based on its MIME type
+ * @param mimeType MIME type of the file
+ * @returns boolean indicating if it's a text file
+ */
+export function isTextFile(mimeType: string): boolean {
+  return mimeType === 'text/plain' || 
+         mimeType === 'text/csv' || 
+         mimeType === 'application/json' || 
+         mimeType === 'text/markdown' ||
+         mimeType === 'text/html' ||
+         mimeType === 'text/css' ||
+         mimeType === 'text/javascript' ||
+         mimeType === 'application/xml' ||
+         mimeType === 'application/javascript' ||
+         mimeType.includes('text/');
 }

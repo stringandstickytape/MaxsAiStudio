@@ -46,10 +46,9 @@ export const useConvStore = create<ConvState>((set, get) => {
                 }
 
                 // Process attachments if they exist
-                let attachments = content.attachments;
-                if (attachments && Array.isArray(attachments)) {
-                    attachments = processAttachments(attachments);
-                }
+                const attachments = content.attachments && Array.isArray(content.attachments) 
+                    ? processAttachments(content.attachments)
+                    : undefined;
 
                 addMessage({
                     convId: activeConvId,
@@ -109,10 +108,9 @@ export const useConvStore = create<ConvState>((set, get) => {
                 .sort((a, b) => a.timestamp - b.timestamp)
                 .forEach(m => {
                     // Process attachments if they exist
-                    let attachments = m.attachments;
-                    if (attachments && Array.isArray(attachments)) {
-                        attachments = processAttachments(attachments);
-                    }
+                    const attachments = m.attachments && Array.isArray(m.attachments)
+                        ? processAttachments(m.attachments)
+                        : undefined;
 
                     addMessage({
                         convId,

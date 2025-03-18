@@ -8,19 +8,7 @@ interface UseAttachmentManagerOptions {
   allowedTypes?: string[]; // Array of allowed MIME types
 }
 
-// Helper function to determine if a file is a text file by MIME type
-export const isTextFile = (mimeType: string): boolean => {
-  return mimeType === 'text/plain' || 
-         mimeType === 'text/csv' || 
-         mimeType === 'application/json' || 
-         mimeType === 'text/markdown' ||
-         mimeType === 'text/html' ||
-         mimeType === 'text/css' ||
-         mimeType === 'text/javascript' ||
-         mimeType === 'application/xml' ||
-         mimeType === 'application/javascript' ||
-         mimeType.includes('text/');
-};
+import { isTextFile } from '@/utils/bufferUtils';
 
 // Helper to extract text content from a file
 export const extractTextContent = async (file: File): Promise<string | null> => {

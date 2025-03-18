@@ -157,34 +157,7 @@ export const HistoricalConvTreeList = () => {
                 nonRootMessages.forEach((message) => {
                     // Process any attachments in the message
                     if (message.attachments && message.attachments.length > 0) {
-                        message.attachments = message.attachments.map(att => {
-                            // Convert base64 to ArrayBuffer if needed
-                            if (typeof att.content === 'string') {
-                                try {
-                                    const binaryString = window.atob(att.content);
-                                    const bytes = new Uint8Array(binaryString.length);
-                                    for (let i = 0; i < binaryString.length; i++) {
-                                        bytes[i] = binaryString.charCodeAt(i);
-                                    }
-
-                                    // Create preview URL for images
-                                    let previewUrl;
-                                    if (att.type.startsWith('image/')) {
-                                        const blob = new Blob([bytes.buffer], { type: att.type });
-                                        previewUrl = URL.createObjectURL(blob);
-                                    }
-
-                                    return {
-                                        ...att,
-                                        content: bytes.buffer,
-                                        previewUrl
-                                    };
-                                } catch (error) {
-                                    return att;
-                                }
-                            }
-                            return att;
-                        });
+                        message.attachments = processAttachments(message.attachments);
                     }
 
                     addMessage({

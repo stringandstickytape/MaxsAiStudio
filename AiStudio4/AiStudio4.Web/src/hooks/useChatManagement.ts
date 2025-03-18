@@ -29,8 +29,7 @@ const useChatConfigResource = createResourceHook<{
     },
 });
 import { Attachment } from '@/types/attachment';
-import { isTextFile } from './useAttachmentManager';
-import { arrayBufferToBase64, processAttachments } from '@/utils/bufferUtils';
+import { arrayBufferToBase64, processAttachments, isTextFile } from '@/utils/bufferUtils';
 
 interface SendMessageParams {
     convId: string;
