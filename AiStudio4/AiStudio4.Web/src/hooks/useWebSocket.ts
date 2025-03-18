@@ -23,13 +23,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     clientId: webSocketService.getClientId()
   });
 
-  // Subscribe to connection status changes directly from WebSocketService  
+  
   useEffect(() => {
     const unsubscribe = webSocketService.onConnectionStatusChange(setConnectionStatus);
     return () => unsubscribe && webSocketService.offConnectionStatusChange(setConnectionStatus);
   }, []);
   
-  // Subscribe to message handlers
+  
   useEffect(() => {
     Object.entries(subscriptions).forEach(([messageType, handler]) => {
       webSocketService.subscribe(messageType, handler);
@@ -42,14 +42,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     };
   }, [subscriptions]);
 
-  // Handle auto-connect
+  
   useEffect(() => {
     if (autoConnect) {
       webSocketService.connect();
     }
   }, [autoConnect]);
 
-  // Return simplified interface that delegates directly to WebSocketService
+  
   return {
     isConnected: connectionStatus.isConnected,
     clientId: connectionStatus.clientId,

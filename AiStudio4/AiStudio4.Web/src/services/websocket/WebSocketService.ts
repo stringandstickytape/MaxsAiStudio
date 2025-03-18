@@ -127,13 +127,13 @@ export class WebSocketService {
 
   public onConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): (() => void) {
     this.connectionStatusSubscribers.add(handler);
-    // Initial call with current status
+    
     handler({
       isConnected: this.connected,
       clientId: this.clientId,
     });
     
-    // Return unsubscribe function
+    
     return () => this.offConnectionStatusChange(handler);
   }
 

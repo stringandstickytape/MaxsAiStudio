@@ -30,7 +30,7 @@ interface WebSocketStore {
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
   
   if (typeof window !== 'undefined') {
-    // Initialize connection status from WebSocketService
+    
     webSocketService.onConnectionStatusChange((status) => {
       set({
         isConnected: status.isConnected,
@@ -39,7 +39,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       });
     });
     
-    // Set up periodic polling for lastMessageTime
+    
     const updateLastMessageTime = () => {
       const time = webSocketService.getLastMessageTime();
       if (time !== get().lastMessageTime) {
@@ -49,10 +49,10 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     
     const messageTimeInterval = setInterval(updateLastMessageTime, 1000);
     
-    // Clean up interval when window is unloaded
+    
     window.addEventListener('beforeunload', () => clearInterval(messageTimeInterval));
     
-    // Listen for request cancellation
+    
     listenToWebSocketEvent('request:cancelled', (detail) => {
       set({ isCancelling: false, currentRequest: undefined });
     });
@@ -70,12 +70,12 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     
     connect: () => {
       webSocketService.connect();
-      // Connection status will be updated via the callback registered above
+      
     },
 
     disconnect: () => {
       webSocketService.disconnect();
-      // Connection status will be updated via the callback registered above
+      
     },
 
     send: (messageType, content) => {
@@ -84,8 +84,8 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     },
 
     updateConnectionStatus: (status) => {
-      // This is now handled by the onConnectionStatusChange callback
-      // Keeping method for backward compatibility
+      
+      
       console.warn('updateConnectionStatus is deprecated - connection status is now managed automatically');
     },
 
@@ -93,8 +93,8 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       set({ lastMessageTime: time });
     },
 
-    // Simplified methods that delegate to the store state
-    // These remain for backward compatibility
+    
+    
     setConnected: (isConnected) => {
       set({ isConnected });
       console.warn('setConnected is deprecated - connection status is now managed automatically');

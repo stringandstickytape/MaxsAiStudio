@@ -33,7 +33,7 @@ export function useWebSocketStatus(onStatusChange?: (status: WebSocketConnection
   });
 
   useEffect(() => {
-    // Use WebSocketService's built-in connection status tracking
+    
     const unsubscribe = webSocketService.onConnectionStatusChange((newStatus) => {
       setStatus(newStatus);
       if (onStatusChange) {

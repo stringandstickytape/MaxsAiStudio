@@ -17,19 +17,19 @@ const PANEL_EVENTS = {
   VISIBILITY_CHANGE: 'visibilitychange'
 };
 
-// Initialize WebSocket service at app startup
+
 import { webSocketService } from '@/services/websocket/WebSocketService';
 
 function App() {
   const { createConv, activeConvId } = useConvStore();
   
-  // Initialize WebSocketService
+  
   useEffect(() => {
-    // Auto-connect the WebSocket service when the app starts
+    
     webSocketService.connect();
     
     return () => {
-      // Clean up WebSocket connection when app unmounts
+      
       webSocketService.disconnect();
     };
   }, []);
