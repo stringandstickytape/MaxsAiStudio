@@ -1,10 +1,11 @@
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Windows;
+using System.Text;
 using VSIXTest;
 using Newtonsoft.Json;
 using EnvDTE80;
@@ -99,16 +100,18 @@ public class ChangesetReviewPane : ToolWindowPane
         Grid.SetRow(_changeTypeLabel, 3);
         _mainGrid.Children.Add(_changeTypeLabel);
 
-        _changeDetailsTextBox = new TextBox
-        {
-            IsReadOnly = true,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Margin = new Thickness(0, 0, 0, 10),
-            Padding = new Thickness(5),
-            Background = System.Windows.Media.Brushes.Black,
-            Foreground = System.Windows.Media.Brushes.White
-        };
+_changeDetailsTextBox = new TextBox
+{
+    IsReadOnly = true,
+    TextWrapping = TextWrapping.NoWrap,
+    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+    Margin = new Thickness(0, 0, 0, 10),
+    Padding = new Thickness(5),
+    Background = System.Windows.Media.Brushes.Black,
+    Foreground = System.Windows.Media.Brushes.White,
+    FontFamily = new FontFamily("Consolas"),
+    FontSize = 12
+};
         Grid.SetRow(_changeDetailsTextBox, 4);
         _mainGrid.Children.Add(_changeDetailsTextBox);
 
@@ -276,15 +279,11 @@ public class ChangesetReviewPane : ToolWindowPane
                 var change = _changes[_currentChangeIndex];
                 string filePath = VSIXTestPackage.Instance.FindFilePathForChange(change);
                 
-                _changeTypeLabel.Content = $"Change Type: {change.change_type}";
+_changeTypeLabel.Content = $"Change Type: {FormatChangeType(change.change_type)}";
                 _applyButton.IsEnabled = true;
                 _undoButton.IsEnabled = false;
-                _changeDetailsTextBox.Text =
-                    $"Path: {filePath}\n" +
-                    $"Line Number: {change.lineNumber}\n" +
-                    $"Old Content:\n{(string.IsNullOrEmpty(change.oldContent) ? "" : change.oldContent)}\n" +
-                    $"New Content:\n{(string.IsNullOrEmpty(change.newContent) ? "" : change.newContent)}\n" +
-                    $"Description: {(string.IsNullOrEmpty(change.description) ? "No description provided" : change.description)}";
+// Format the change details with better formatting
+_changeDetailsTextBox.Text = FormatChangeDetails(change, filePath);
 
                 if (change.change_type != "createnewFile" && !string.IsNullOrEmpty(filePath))
                     JumpToChange(filePath);
@@ -432,6 +431,88 @@ public class ChangesetReviewPane : ToolWindowPane
         }
     }
 
+    /// <summary>
+    /// Format the change type to be more user-friendly
+    /// </summary>
+    private string FormatChangeType(string changeType)
+    {
+        switch (changeType.ToLower())
+        {
+            case "createNewFile":
+            case "createnewfile":
+                return "Create New File";
+            case "addtofile":
+                return "Add To File";
+            case "deletefromfile":
+                return "Delete From File";
+            case "modifyfile":
+                return "Modify File";
+            case "replacefile":
+                return "Replace File";
+            case "renamefile":
+                return "Rename File";
+            case "deletefile":
+                return "Delete File";
+            default:
+                return changeType;
+        }
+    }
+
+    /// <summary>
+    /// Format the change details with better readability
+    /// </summary>
+    private string FormatChangeDetails(ChangeItem change, string filePath)
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        // File information section
+        sb.AppendLine($"▶ FILE INFORMATION:");
+        sb.AppendLine($"  Path: {filePath}");
+        if (change.lineNumber > 0)
+            sb.AppendLine($"  Line Number: {change.lineNumber}");
+        sb.AppendLine();
+        
+        // Description section
+        sb.AppendLine($"▶ DESCRIPTION:");
+        sb.AppendLine($"  {(string.IsNullOrEmpty(change.description) ? "No description provided" : change.description)}");
+        sb.AppendLine();
+        
+        // Content sections
+        if (!string.IsNullOrEmpty(change.oldContent))
+        {
+            sb.AppendLine($"▶ ORIGINAL CONTENT:");
+            sb.AppendLine(FormatCode(change.oldContent));
+            sb.AppendLine();
+        }
+        
+        if (!string.IsNullOrEmpty(change.newContent))
+        {
+            sb.AppendLine($"▶ NEW CONTENT:");
+            sb.AppendLine(FormatCode(change.newContent));
+        }
+        
+        return sb.ToString();
+    }
+    
+    /// <summary>
+    /// Format code with proper indentation for display
+    /// </summary>
+    private string FormatCode(string code)
+    {
+        if (string.IsNullOrEmpty(code))
+            return string.Empty;
+            
+        var lines = code.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var sb = new System.Text.StringBuilder();
+        
+        foreach (var line in lines)
+        {
+            sb.AppendLine($"    {line}");
+        }
+        
+        return sb.ToString();
+    }
+    
     private void CloseToolWindow()
     {
         IVsWindowFrame frame = (IVsWindowFrame)Frame;
