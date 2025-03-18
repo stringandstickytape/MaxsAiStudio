@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useAppearanceStore } from '@/stores/useAppearanceStore';
+import { useAppearanceStore, fontSizeUtils } from '@/stores/useAppearanceStore';
 
 export function useAppearanceManagement() {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -17,8 +17,9 @@ export function useAppearanceManagement() {
         setError,
     } = useAppearanceStore();
 
+    // Using centralized font size utility instead of local implementation
     const applySettings = useCallback(() => {
-        document.documentElement.style.fontSize = `${fontSize}px`;
+        fontSizeUtils.applyFontSize(fontSize);
     }, [fontSize]);
 
     useEffect(() => {
@@ -49,9 +50,9 @@ export function useAppearanceManagement() {
     }, [saveAppearanceSettings]);
 
     const resetToDefaults = useCallback(async () => {
-        setFontSize(16);
+        fontSizeUtils.set(16);
         await saveSettings();
-    }, [setFontSize, saveSettings]);
+    }, [saveSettings]);
 
     return {
         fontSize,

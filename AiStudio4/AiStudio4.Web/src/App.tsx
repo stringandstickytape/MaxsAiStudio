@@ -2,7 +2,7 @@
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
-import { FontSizeProvider } from './components/FontSizeProvider';
+import { FontSizeProvider } from './components/FontSizeProvider'; // Central font size management
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
 import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';

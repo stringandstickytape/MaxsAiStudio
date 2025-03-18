@@ -1,35 +1,37 @@
-
-import { useEffect } from 'react';
-import { useAppearanceStore } from '@/stores/useAppearanceStore';
+import { useEffect, useRef } from 'react';
+import { useAppearanceStore, fontSizeUtils } from '@/stores/useAppearanceStore';
 
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
-  const { fontSize, loadAppearanceSettings } = useAppearanceStore();
+  const { fontSize } = useAppearanceStore();
+  const initialized = useRef(false);
 
-  
+  // Handle initial font size setup and subscription
   useEffect(() => {
+    // Apply initial font size immediately
+    fontSizeUtils.applyFontSize(fontSize);
     
-    document.documentElement.style.fontSize = `${fontSize}px`;
-
-    
-    loadAppearanceSettings().catch((err) => {
-      console.warn('Failed to load appearance settings:', err);
-    });
-
-    
+    // Subscribe to font size changes
     const unsubscribe = useAppearanceStore.subscribe(
       (state) => state.fontSize,
       (newFontSize) => {
-        document.documentElement.style.fontSize = `${newFontSize}px`;
-      },
+        fontSizeUtils.applyFontSize(newFontSize);
+      }
     );
-
     
+    // Return cleanup function
     return () => {
       unsubscribe();
     };
-  }, [loadAppearanceSettings]);
-
+  }, [fontSize]);
   
+  // This effect runs once for initialization
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      console.log('FontSizeProvider initialized with font size:', fontSize);
+    }
+  }, [fontSize]);
+
   return <>{children}</>;
 }
 

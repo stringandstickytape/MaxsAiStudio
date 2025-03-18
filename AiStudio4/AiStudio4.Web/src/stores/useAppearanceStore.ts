@@ -121,19 +121,57 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
 }));
 
 
+
+// Font size initialization is now centralized in FontSizeProvider.tsx
 if (typeof window !== 'undefined') {
-  
-  const { fontSize, loadAppearanceSettings } = useAppearanceStore.getState();
-
-  
-  document.documentElement.style.fontSize = `${fontSize}px`;
-
+  // Initial settings load is still needed for other appearance settings
+  const { loadAppearanceSettings } = useAppearanceStore.getState();
   
   loadAppearanceSettings().catch((err) => {
     console.warn('Failed to load appearance settings:', err);
   });
 }
 
+export const fontSizeUtils = {
+    applyFontSize: (size: number) => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.style.fontSize = `${size}px`;
+        }
+    },
+
+    // Increases font size and applies it
+    increase: () => {
+        const { increaseFontSize } = useAppearanceStore.getState();
+        const result = increaseFontSize();
+        return result;
+    },
+
+    // Decreases font size and applies it
+    decrease: () => {
+        const { decreaseFontSize } = useAppearanceStore.getState();
+        const result = decreaseFontSize();
+        return result;
+    },
+
+    // Sets font size to specific value and applies it
+    set: (size: number) => {
+        const { setFontSize } = useAppearanceStore.getState();
+        const result = setFontSize(size);
+        return result;
+    },
+
+    // Saves settings to server
+    saveSettings: async () => {
+        const { saveAppearanceSettings } = useAppearanceStore.getState();
+        try {
+            await saveAppearanceSettings();
+            return true;
+        } catch (error) {
+            console.error('Error saving font size settings:', error);
+            return false;
+        }
+    }
+};
 
 export const debugAppearanceStore = () => {
   const state = useAppearanceStore.getState();

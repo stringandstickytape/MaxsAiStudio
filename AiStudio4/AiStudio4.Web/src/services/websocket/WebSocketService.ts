@@ -82,7 +82,8 @@ export class WebSocketService {
       // Process message to handle attachment data
       let processedMessage = { ...message };
       
-      // If message contains attachments with binary content, encode it for transmission
+      // This specific processing is needed here for the WebSocket transmission
+      // since we're converting just before sending over the wire
       if (message.content && message.content.attachments && Array.isArray(message.content.attachments)) {
         processedMessage.content = { 
           ...message.content,
