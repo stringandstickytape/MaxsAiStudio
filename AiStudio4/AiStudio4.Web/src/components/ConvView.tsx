@@ -19,16 +19,56 @@ interface ConvViewProps {
 }
 
 // Helper function to format duration in a human-readable format
-const formatDuration = (durationMs?: number | null) => {
-    if (!durationMs) return null;
+const formatDuration = (message?: any, propName: string = 'durationMs') => {
+    // Safety check for null/undefined message
+    if (!message) {
+        console.warn('formatDuration called with null/undefined message');
+        return 'Unknown';
+    }
     
-    if (durationMs < 1000) {
-        return `${durationMs}ms`;
-    } else if (durationMs < 60000) {
-        return `${(durationMs / 1000).toFixed(1)}s`;
+    // First try direct property access
+    let durationMs = message[propName];
+    
+    // If that fails, try a few other approaches
+    if (durationMs === undefined) {
+        // Try Object.getOwnPropertyDescriptor
+        const descriptor = Object.getOwnPropertyDescriptor(message, propName);
+        if (descriptor) {
+            durationMs = descriptor.value;
+        }
+    }
+    debugger;
+    // Add specific logging for debugging
+    console.log(`formatDuration for ${message.id || 'unknown'}: ${durationMs} (${typeof durationMs})`);
+    
+    // Return early if the value is undefined or null
+    if (durationMs === undefined || durationMs === null) {
+        console.warn(`No valid duration value found for message ${message.id || 'unknown'}`);
+        return "Unknown";
+    }
+    
+    // Ensure we're working with a number
+    const duration = Number(durationMs);
+    
+    // Check if conversion resulted in a valid number
+    if (isNaN(duration)) {
+        console.warn(`Invalid duration value: ${durationMs}`);
+        return "Invalid";
+    }
+    
+    // Handle zero case
+    if (duration === 0) {
+        return '0ms';
+    }
+    
+    // Format based on duration length
+    if (duration < 1000) {
+        return `${duration}ms`;
+    } else if (duration < 60000) {
+        return `${(duration / 1000).toFixed(1)}s`;
     } else {
-        const minutes = Math.floor(durationMs / 60000);
-        const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+        const minutes = Math.floor(duration / 60000);
+        const seconds = Math.floor((duration % 60000) / 1000);
         return `${minutes}m ${seconds}s`;
     }
 };
@@ -80,17 +120,53 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         if (!conv || !conv.messages.length) return [];
 
         const convMessages = conv.messages;
-
         
+        // Log timing info for a few messages in the conversation for debugging
+        console.log(`ConvView: Checking timing data for conv ${activeConvId}`);
+        const samplesToLog = Math.min(convMessages.length, 3);
+        for (let i = 0; i < samplesToLog; i++) {
+            const msg = convMessages[i];
+            console.log(`Original message ${i+1} (${msg.id}):`, {
+                timestamp: msg.timestamp,
+                timestampType: typeof msg.timestamp,
+                durationMs: msg.durationMs,
+                durationMsType: typeof msg.durationMs,
+                hasOwnProperty: msg.hasOwnProperty('durationMs'),
+                keys: Object.keys(msg)
+            });
+        }
+        
+        // Create copies of messages with explicit properties to avoid loss during graph processing
+        const messages = conv.messages.map(msg => ({
+            ...msg,
+            // Explicitly include these properties to ensure they're not lost
+            id: msg.id,
+            content: msg.content,
+            source: msg.source,
+            timestamp: msg.timestamp,
+            parentId: msg.parentId,
+            durationMs: msg.durationMs,
+            costInfo: msg.costInfo,
+            attachments: msg.attachments
+        }));
+        
+        // Get the starting message ID
         const startingMessageId = streamTokens.length > 0
             ? conv.messages[conv.messages.length - 1].id
             : slctdMsgId || conv.messages[conv.messages.length - 1].id;
 
-
-
-        const graph = new MessageGraph(conv.messages);
-
-        return graph.getMessagePath(startingMessageId);
+        const graph = new MessageGraph(messages);
+        const path = graph.getMessagePath(startingMessageId);
+        
+        // Verify properties are preserved
+        console.log('Final messageChain:', path.map(msg => ({
+            id: msg.id,
+            durationMs: msg.durationMs,
+            durationMsType: typeof msg.durationMs,
+            hasOwnProperty: msg.hasOwnProperty('durationMs')
+        })));
+        
+        return path;
     }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
 
 
@@ -98,10 +174,26 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         setVisibleCount(Math.min(20, messageChain.length));
         setAutoScrollEnabled(true);
 
+        // Debug: log message chain details
+        console.log(`MessageChain for ${activeConvId}:`, messageChain.map(msg => ({
+            id: msg.id,
+            timestamp: msg.timestamp,
+            timestampType: typeof msg.timestamp,
+            durationMs: msg.durationMs,
+            durationMsType: typeof msg.durationMs,
+            durationMsFormatted: formatDuration(msg)
+        })));
+        
+        // Special filter just for durationMs to see which messages have it
+        const msgsWithDuration = messageChain.filter(msg => 
+            msg.durationMs !== undefined && msg.durationMs !== null);
+        console.log(`Messages with duration (${msgsWithDuration.length}):`, 
+            msgsWithDuration.map(msg => ({ id: msg.id, durationMs: msg.durationMs })));
+
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
         }
-    }, [activeConvId, slctdMsgId]);
+    }, [activeConvId, slctdMsgId, messageChain]);
 
 
     useEffect(() => {
@@ -285,6 +377,38 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
                     {visibleMessages.map((message) => {
+                        // Force add durationMs property to the message if it doesn't exist
+                        // This ensures the property exists for rendering regardless of what happened upstream
+                        const enhancedMessage = message;
+                        
+                        // If the message comes from the tree data, it might have the property in the raw data
+                        if (enhancedMessage.durationMs === undefined) {
+                            // Check if the message has a matching message in the original conv data
+                            const conv = convs[activeConvId];
+                            if (conv) {
+                                const originalMsg = conv.messages.find(m => m.id === message.id);
+                                if (originalMsg && 'durationMs' in originalMsg) {
+                                    // Force the property to exist on our message
+                                    Object.defineProperty(enhancedMessage, 'durationMs', {
+                                        value: originalMsg.durationMs,
+                                        enumerable: true,
+                                        configurable: true,
+                                        writable: true
+                                    });
+                                    console.log(`Recovered durationMs=${originalMsg.durationMs} for message ${message.id}`);
+                                }
+                            }
+                        }
+                        debugger;
+                        // Debug the durationMs value for this specific message
+                        console.log(`RENDER MESSAGE ${enhancedMessage.id}:`, {
+                            durationMs: enhancedMessage.durationMs,
+                            durationMsType: typeof enhancedMessage.durationMs,
+                            durationMsJSON: JSON.stringify(enhancedMessage.durationMs),
+                            hasOwnProperty: enhancedMessage.hasOwnProperty('durationMs'),
+                            properties: Object.getOwnPropertyNames(enhancedMessage),
+                            formattedDuration: formatDuration(enhancedMessage)
+                        });
                         return message.source === 'system' ? null : (
                             <div
                                 key={message.id}
@@ -359,19 +483,25 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
                                 {(message.costInfo?.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
-                                    <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1">
-                                        <div className="flex flex-wrap items-center gap-x-4" title={`Debug: timestamp=${message.timestamp}, durationMs=${message.durationMs}`}>
+                                <div className="text-small-gray-400 mt-2 border-t border-gray-700 pt-1" data-debug={`msgId=${message.id} timestamp=${message.timestamp} (${typeof message.timestamp}) durationMs=${message.durationMs} (${typeof message.durationMs})`}>
+                                    {/* Debug element to force display the durationMs value */}
+                                    {process.env.NODE_ENV !== 'production' && (
+                                        <div className="hidden">
+                                            Debug durationMs: {String(message.durationMs)} ({typeof message.durationMs})
+                                        </div>
+                                    )}
+                                        <div className="flex flex-wrap items-center gap-x-4" title={`Debug: timestamp=${message.timestamp} (${typeof message.timestamp}), durationMs=${message.durationMs} (${typeof message.durationMs})`}>
                                             {/* Timestamp and duration info */}
-                                            {(message.timestamp || message.durationMs) && (
+                                            {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
                                                 <div className="flex items-center gap-x-2">
-                                                    {message.timestamp && message.timestamp > 0 && (
+                                                    {typeof message.timestamp === 'number' && message.timestamp > 0 && (
                                                         <span title={new Date(message.timestamp).toLocaleString()}>
                                                             Time: {formatTimestamp(message.timestamp)}
                                                         </span>
                                                     )}
-                                                    {message.durationMs && message.durationMs > 0 && (
+                                                    {typeof message.durationMs === 'number' && message.durationMs > 0 && (
                                                         <span title={`Response took ${message.durationMs}ms`}>
-                                                            Duration: {formatDuration(message.durationMs)}
+                                                            Duration: {formatDuration(message)}
                                                         </span>
                                                     )}
                                                 </div>

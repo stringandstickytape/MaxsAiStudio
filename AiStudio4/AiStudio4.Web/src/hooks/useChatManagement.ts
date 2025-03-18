@@ -157,6 +157,26 @@ export function useChatManagement() {
                     }
                     
                     console.log('Tree data received in getConv:', treeData);
+                    
+                    // Log detailed timing information from the tree data
+                    console.log('Timing information in tree root:', {
+                        id: treeData.id,
+                        timestamp: treeData.timestamp,
+                        timestampType: typeof treeData.timestamp,
+                        durationMs: treeData.durationMs,
+                        durationMsType: typeof treeData.durationMs
+                    });
+                    
+                    if (treeData.children && treeData.children.length > 0) {
+                        console.log('Timing information in first child:', {
+                            id: treeData.children[0].id,
+                            timestamp: treeData.children[0].timestamp,
+                            timestampType: typeof treeData.children[0].timestamp,
+                            durationMs: treeData.children[0].durationMs,
+                            durationMsType: typeof treeData.children[0].durationMs
+                        });
+                    }
+                    
                     console.log('Looking at attachments in tree data nodes:', treeData.children?.map(c => ({ id: c.id, hasAttachments: !!c.attachments, attachments: c.attachments })));
 
 
@@ -164,19 +184,38 @@ export function useChatManagement() {
                     const extractNodes = (node: any, nodes: any[] = []) => {
                         if (!node) return nodes;
 
+                        // Debug timing info on every node
+                        console.log(`Node ${node.id} timing info:`, {
+                            timestamp: node.timestamp,
+                            timestampType: typeof node.timestamp,
+                            durationMs: node.durationMs,
+                            durationMsType: typeof node.durationMs,
+                            durationMsJSON: JSON.stringify(node.durationMs)
+                        });
                         
                         if (node.attachments) {
                             console.log(`Node ${node.id} has attachments:`, node.attachments);
                         }
 
-                        nodes.push({
+                        // Explicitly extract each property to ensure nothing is lost
+                        const extractedNode = {
                             id: node.id,
                             text: node.text,
                             parentId: node.parentId,
                             source: node.source,
                             costInfo: node.costInfo,
-                            attachments: node.attachments  
-                        });
+                            attachments: node.attachments,
+                            timestamp: node.timestamp,
+                            // For durationMs, convert to number if it's a string, or keep as is
+                            durationMs: typeof node.durationMs === 'string' ? 
+                                Number(node.durationMs) : node.durationMs
+                        };
+                        
+                        // Add the node to the array
+                        nodes.push(extractedNode);
+                        
+                        // Verify the durationMs was properly retained
+                        console.log(`Extracted node ${extractedNode.id} durationMs: ${extractedNode.durationMs} (${typeof extractedNode.durationMs})`);
 
                         if (node.children && Array.isArray(node.children)) {
                             for (const child of node.children) {
@@ -245,8 +284,8 @@ export function useChatManagement() {
                                 node.source ||
                                 (node.id.includes('user') ? 'user' : node.id.includes('ai') || node.id.includes('msg') ? 'ai' : 'system'),
                             parentId: node.parentId,
-                            timestamp: node.timestamp || Date.now(),
-                            durationMs: node.durationMs || 0,
+                            timestamp: typeof node.timestamp === 'number' ? node.timestamp : Date.now(),
+                            durationMs: typeof node.durationMs === 'number' ? node.durationMs : undefined,
                             costInfo: node.costInfo || null,
                             attachments: attachments || undefined
                         };

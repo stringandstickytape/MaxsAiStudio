@@ -58,12 +58,15 @@ export const useConvStore = create<ConvState>((set, get) => {
                         source: content.source,
                         parentId,
                         timestamp: content.timestamp || Date.now(),
-                        durationMs: content.durationMs,
+                        durationMs: content.durationMs, // Ensure this is explicitly included
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
                     slctdMsgId: content.source === 'ai' ? content.id : undefined,
                 });
+                
+                // Debug: Verify the durationMs was properly included
+                console.log(`WebSocket: Created message ${content.id} with durationMs=${content.durationMs}`);
             } else {
                 const convId = `conv_${Date.now()}`;
                 createConv({
@@ -152,7 +155,29 @@ export const useConvStore = create<ConvState>((set, get) => {
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) return s;
-                const updMsg = { ...message, parentId: message.parentId || s.slctdMsgId || null };
+                
+                // Create message with all properties explicitly copied
+                const updMsg = { 
+                    ...message, 
+                    id: message.id,
+                    content: message.content,
+                    source: message.source,
+                    timestamp: message.timestamp,
+                    durationMs: message.durationMs, // Explicitly include durationMs
+                    parentId: message.parentId || s.slctdMsgId || null,
+                    costInfo: message.costInfo,
+                    attachments: message.attachments
+                };
+                
+                // Log message creation
+                debugger;
+                console.log(`ConvStore: Adding message ${updMsg.id} with properties:`, {
+                    durationMs: updMsg.durationMs,
+                    durationMsType: typeof updMsg.durationMs,
+                    hasOwnProperty: updMsg.hasOwnProperty('durationMs'),
+                    keys: Object.keys(updMsg)
+                });
+                
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: [...conv.messages, updMsg] } },
                     slctdMsgId: slctdMsgId ?? s.slctdMsgId,

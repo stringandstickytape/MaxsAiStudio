@@ -105,6 +105,23 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           console.log('Historical conv tree data received:', data);
           console.log('Flat message structure:', data.flatMessageStructure);
           
+          // Detailed inspection of the first few messages to confirm timestamp and durationMs
+          if (data.flatMessageStructure && data.flatMessageStructure.length > 0) {
+            console.log('Inspecting raw message data from API:');
+            const samplesToLog = Math.min(data.flatMessageStructure.length, 3);
+            for (let i = 0; i < samplesToLog; i++) {
+              const msg = data.flatMessageStructure[i];
+              console.log(`Message ${i+1}:`, {
+                id: msg.id,
+                timestamp: msg.timestamp,
+                timestampType: typeof msg.timestamp,
+                durationMs: msg.durationMs,
+                durationMsType: typeof msg.durationMs,
+                rawMessage: msg
+              });
+            }
+          }
+          
           const flatNodes = data.flatMessageStructure;
           const nodeMap = new Map();
           
@@ -117,8 +134,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
               source: node.source, 
               costInfo: node.costInfo,
               attachments: node.attachments,
-              timestamp: node.timestamp || null,
-              durationMs: node.durationMs || null
+              timestamp: node.timestamp,
+              durationMs: node.durationMs
             });
           });
         
@@ -132,6 +149,12 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
         console.log('Extracted flat nodes:', flatNodes.map(node => ({
           id: node.id,
           source: node.source,
+          timestamp: node.timestamp,
+          durationMs: node.durationMs
+        })));
+        
+        console.log('Mapped nodes with timing data:', Array.from(nodeMap.values()).map(node => ({
+          id: node.id,
           timestamp: node.timestamp,
           durationMs: node.durationMs
         })));

@@ -20,8 +20,7 @@ export interface Message {
     };
     modelGuid?: string;
   } | null;
-  timestamp?: number;
-  durationMs?: number;
+  durationMs?: number | null; // Ensure it can be null or number
 }
 
 export interface Conv {

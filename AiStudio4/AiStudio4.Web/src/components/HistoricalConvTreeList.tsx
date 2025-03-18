@@ -169,7 +169,8 @@ export const HistoricalConvTreeList = () => {
                             parentId: message.parentId,
                             timestamp: message.timestamp,
                             costInfo: message.costInfo,
-                            attachments: message.attachments
+                            attachments: message.attachments,
+                            durationMs: message.durationMs
                         },
                     });
                 });
