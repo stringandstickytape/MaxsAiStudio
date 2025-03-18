@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
-import { processAttachments, cleanupAttachmentUrls } from '@/utils/bufferUtils';
+import { processAttachments, cleanupAttachmentUrls } from '@/utils/attachmentUtils';
 
 interface ConvState {
     convs: Record<string, Conv>;

@@ -1,5 +1,5 @@
 import { dispatchWebSocketEvent } from './websocketEvents';
-import { prepareAttachmentsForTransmission } from '@/utils/bufferUtils';
+import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
 export interface WebSocketMessage {
     messageType: string;
     content: any;

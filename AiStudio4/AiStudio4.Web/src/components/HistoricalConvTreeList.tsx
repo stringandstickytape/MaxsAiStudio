@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { processAttachments } from '@/utils/bufferUtils';
+import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { HistoricalConvTree } from './HistoricalConvTree';
 import { useConvStore } from '@/stores/useConvStore';

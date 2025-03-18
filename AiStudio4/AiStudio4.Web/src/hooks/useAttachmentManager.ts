@@ -4,7 +4,7 @@ import { Attachment } from '@/types/attachment';
 import {
     cleanupAttachmentUrls,
     createAttachmentPreviewUrl
-} from '@/utils/bufferUtils';
+} from '@/utils/attachmentUtils';
 import {
     DEFAULT_ATTACHMENT_OPTIONS,
     validateAttachment,
