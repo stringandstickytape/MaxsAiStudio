@@ -1,6 +1,5 @@
 import { dispatchWebSocketEvent } from './websocketEvents';
-import { arrayBufferToBase64, base64ToArrayBuffer } from '@/utils/bufferUtils';
-
+import { prepareAttachmentsForTransmission } from '@/utils/bufferUtils';
 export interface WebSocketMessage {
     messageType: string;
     content: any;
@@ -82,21 +81,11 @@ export class WebSocketService {
       // Process message to handle attachment data
       let processedMessage = { ...message };
       
-      // This specific processing is needed here for the WebSocket transmission
-      // since we're converting just before sending over the wire
+      // Handle attachments using centralized utilities
       if (message.content && message.content.attachments && Array.isArray(message.content.attachments)) {
         processedMessage.content = { 
           ...message.content,
-          attachments: message.content.attachments.map(attachment => {
-            // If attachment has ArrayBuffer content, convert to base64 for JSON transmission
-            if (attachment.content instanceof ArrayBuffer) {
-              return {
-                ...attachment,
-                content: arrayBufferToBase64(attachment.content)
-              };
-            }
-            return attachment;
-          })
+          attachments: prepareAttachmentsForTransmission(message.content.attachments)
         };
       }
       

@@ -29,7 +29,7 @@ const useChatConfigResource = createResourceHook<{
     },
 });
 import { Attachment } from '@/types/attachment';
-import { arrayBufferToBase64, processAttachments, isTextFile } from '@/utils/bufferUtils';
+import { processAttachments, prepareAttachmentsForTransmission, isTextFile } from '@/utils/bufferUtils';
 
 interface SendMessageParams {
     convId: string;
@@ -68,17 +68,14 @@ export function useChatManagement() {
                 // REMOVE THIS BLOCK: Don't add the message to local state before server confirmation
                 // (removed)
 
-                // For server request, we need to convert ArrayBuffer to base64
+                // For server request, prepare attachments for transmission
                 let requestParams = { ...params };
 
                 if (params.attachments && params.attachments.length > 0) {
                     // Filter out text files as they should already be in the message content
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
-                    // Convert ArrayBuffer to base64 string for API transmission
-                    requestParams.attachments = binaryAttachments.map(attachment => ({
-                        ...attachment,
-                        content: arrayBufferToBase64(attachment.content)
-                    }));
+                    // Use the centralized utility to prepare attachments for transmission
+                    requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
                 }
 
                 const sendMessageRequest = createApiRequest('/api/chat', 'POST');
@@ -95,8 +92,6 @@ export function useChatManagement() {
         },
         [executeApiCall, addMessage],
     );
-
-    // Using imported utility functions for conversions
 
 
 

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
-import { processAttachments } from '@/utils/bufferUtils';
+import { processAttachments, cleanupAttachmentUrls } from '@/utils/bufferUtils';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -216,18 +216,11 @@ export const useConvStore = create<ConvState>((set, get) => {
                 let newActive = s.activeConvId;
                 let newSlctd = s.slctdMsgId;
 
-                // Cleanup attachment preview URLs
+                // Cleanup attachment preview URLs using centralized utility
                 if (convToDelete) {
                     convToDelete.messages.forEach(message => {
                         if (message.attachments) {
-                            message.attachments.forEach(attachment => {
-                                if (attachment.previewUrl) {
-                                    URL.revokeObjectURL(attachment.previewUrl);
-                                }
-                                if (attachment.thumbnailUrl) {
-                                    URL.revokeObjectURL(attachment.thumbnailUrl);
-                                }
-                            });
+                            cleanupAttachmentUrls(message.attachments);
                         }
                     });
                 }

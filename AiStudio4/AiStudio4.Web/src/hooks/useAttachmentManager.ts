@@ -1,14 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Attachment } from '@/types/attachment';
-
+import { isTextFile, cleanupAttachmentUrls } from '@/utils/bufferUtils';
 interface UseAttachmentManagerOptions {
-  maxSize?: number; // Maximum file size in bytes
-  maxCount?: number; // Maximum number of attachments
-  allowedTypes?: string[]; // Array of allowed MIME types
+    maxSize?: number; // Maximum file size in bytes
+    maxCount?: number; // Maximum number of attachments
+    allowedTypes?: string[]; // Array of allowed MIME types
 }
-
-import { isTextFile } from '@/utils/bufferUtils';
 
 // Helper to extract text content from a file
 export const extractTextContent = async (file: File): Promise<string | null> => {
@@ -47,14 +45,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
   // Clean up object URLs when component unmounts
   useEffect(() => {
     return () => {
-      attachments.forEach(attachment => {
-        if (attachment.previewUrl) {
-          URL.revokeObjectURL(attachment.previewUrl);
-        }
-        if (attachment.thumbnailUrl) {
-          URL.revokeObjectURL(attachment.thumbnailUrl);
-        }
-      });
+      cleanupAttachmentUrls(attachments);
     };
   }, [attachments]);
 
@@ -166,12 +157,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
     setAttachments(prev => {
       const attachmentToRemove = prev.find(a => a.id === id);
       if (attachmentToRemove) {
-        if (attachmentToRemove.previewUrl) {
-          URL.revokeObjectURL(attachmentToRemove.previewUrl);
-        }
-        if (attachmentToRemove.thumbnailUrl) {
-          URL.revokeObjectURL(attachmentToRemove.thumbnailUrl);
-        }
+        cleanupAttachmentUrls([attachmentToRemove]);
       }
       return prev.filter(a => a.id !== id);
     });
@@ -179,14 +165,7 @@ export function useAttachmentManager(options: UseAttachmentManagerOptions = {}) 
   }, []);
 
   const clearAttachments = useCallback(() => {
-    attachments.forEach(attachment => {
-      if (attachment.previewUrl) {
-        URL.revokeObjectURL(attachment.previewUrl);
-      }
-      if (attachment.thumbnailUrl) {
-        URL.revokeObjectURL(attachment.thumbnailUrl);
-      }
-    });
+    cleanupAttachmentUrls(attachments);
     setAttachments([]);
     setError(null);
   }, [attachments]);

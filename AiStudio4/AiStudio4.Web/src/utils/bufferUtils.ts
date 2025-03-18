@@ -1,6 +1,7 @@
 /**
  * Utility functions for working with ArrayBuffers, Base64 strings, and binary data
  */
+import { Attachment } from '@/types/attachment';
 
 /**
  * Converts an ArrayBuffer to a Base64 string
@@ -51,8 +52,9 @@ export function createAttachmentPreviewUrl(attachment: { type: string, content: 
 
 /**
  * Processes attachments by converting Base64 content to ArrayBuffer and creating preview URLs
+ * This is the centralized attachment processing function to be used across the application
  * @param attachments Array of attachments to process
- * @returns Processed attachments
+ * @returns Processed attachments with consistent format
  */
 export function processAttachments(attachments: any[]): any[] {
   if (!attachments || !Array.isArray(attachments)) return [];
@@ -74,6 +76,27 @@ export function processAttachments(attachments: any[]): any[] {
       };
     }
     return att;
+  });
+}
+
+/**
+ * Prepares attachments for API transmission
+ * Converts ArrayBuffer content to Base64 strings for JSON serialization
+ * @param attachments Array of attachments to prepare
+ * @returns Attachments ready for API transmission with Base64 encoded content
+ */
+export function prepareAttachmentsForTransmission(attachments: Attachment[]): any[] {
+  if (!attachments || !Array.isArray(attachments) || attachments.length === 0) return [];
+  
+  return attachments.map(attachment => {
+    // If attachment has ArrayBuffer content, convert to base64 for JSON transmission
+    if (attachment.content instanceof ArrayBuffer) {
+      return {
+        ...attachment,
+        content: arrayBufferToBase64(attachment.content)
+      };
+    }
+    return attachment;
   });
 }
 
@@ -122,6 +145,23 @@ export function formatTextAttachments(textAttachments: any[]): string {
   });
 
   return formattedContent;
+}
+
+/**
+ * Cleans up attachment preview URLs to prevent memory leaks
+ * @param attachments Array of attachments to clean up
+ */
+export function cleanupAttachmentUrls(attachments: Attachment[]): void {
+  if (!attachments || !Array.isArray(attachments)) return;
+  
+  attachments.forEach(attachment => {
+    if (attachment.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
+    if (attachment.thumbnailUrl) {
+      URL.revokeObjectURL(attachment.thumbnailUrl);
+    }
+  });
 }
 
 /**
