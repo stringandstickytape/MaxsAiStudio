@@ -83,45 +83,60 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
   const renderPanel = (panel: PanelConfig) => {
     const state = panelStates[panel.id] || { isOpen: false };
     const isVisible = state.isOpen;
+    const showTitleBar = panel.title && panel.title.trim() !== '';
 
     if (!isVisible) return null;
 
-    return (
-      <div className="flex flex-col h-full overflow-hidden" style={{ width: 'var(--panel-width, 320px)' }}>
-        {/* Panel header */}
-        <div className="flex-between p-3 border-b border-gray-700 bg-gray-800">
-          <h3 className="font-medium text-gray-100 flex-1 truncate">{panel.title}</h3>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-gray-400 hover:text-gray-100"
-              onClick={() => {
-                
-                usePanelStore.setState(state => ({
-                  panels: {
-                    ...state.panels,
-                    [panel.id]: {
-                      ...state.panels[panel.id],
-                      isOpen: false
-                    }
-                  }
-                }));
-                
-                
-                requestAnimationFrame(() => {
-                  usePanelStore.getState().saveState();
-                });
-              }}
-              title="Close panel"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    const handleClosePanel = () => {
+      usePanelStore.setState(state => ({
+        panels: {
+          ...state.panels,
+          [panel.id]: {
+            ...state.panels[panel.id],
+            isOpen: false
+          }
+        }
+      }));
+      
+      requestAnimationFrame(() => {
+        usePanelStore.getState().saveState();
+      });
+    };
 
-        {/* Panel content */}
-        <div className="flex-1 overflow-auto">{panel.render(isVisible)}</div>
+    const closeButton = (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-gray-400 hover:text-gray-100"
+        onClick={handleClosePanel}
+        title="Close panel"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    );
+
+    return (
+      <div className="flex flex-col h-full overflow-hidden relative" style={{ width: 'var(--panel-width, 320px)' }}>
+        {showTitleBar ? (
+          /* Panel with title bar */
+          <>
+            <div className="flex-between p-3 border-b border-gray-700 bg-gray-800">
+              <h3 className="font-medium text-gray-100 flex-1 truncate">{panel.title}</h3>
+              <div className="flex gap-1">
+                {closeButton}
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto">{panel.render(isVisible)}</div>
+          </>
+        ) : (
+          /* Panel without title bar, floating close button */
+          <>
+            <div className="absolute top-2 right-2 z-10">
+              {closeButton}
+            </div>
+            <div className="flex-1 overflow-hidden h-full">{panel.render(isVisible)}</div>
+          </>
+        )}
       </div>
     );
   };
