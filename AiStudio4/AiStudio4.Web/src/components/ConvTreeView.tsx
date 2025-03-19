@@ -358,10 +358,11 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   return (
     <div className="flex flex-col h-full w-full">
       <div
-        className={cn('flex-1 overflow-hidden relative', !messages.length && 'flex items-center justify-center')}
+        className={cn('flex-1 relative', !messages.length && 'flex items-center justify-center')}
         ref={containerRef}
+        style={{  height: '100%' }}
       >
-        <svg ref={svgRef} className="w-full h-full bg-[#111827]" key={`tree-${convId}-${updateKey}`} />
+        <svg ref={svgRef} className="w-full h-full bg-[#111827]" key={`tree-${convId}-${updateKey}`}  />
 
         
               <div className="absolute bottom-4 right-4 flex flex-col gap-2">

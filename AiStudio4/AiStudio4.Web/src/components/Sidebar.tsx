@@ -39,7 +39,7 @@ export function Sidebar({ wsState }: SidebarProps) {
         <div className="p-2 px-3 text-sm font-medium text-gray-300 bg-gray-800/70 border-b border-gray-700/50">
           Message Structure
         </div>
-        <ScrollArea className="h-[calc(100%-32px)] bg-gray-900">
+        <div className="h-[calc(100%-32px)] bg-gray-900 overflow-auto">
           {currentConvId && convs[currentConvId] ? (
             <ConvTreeView
               key={`sidebar-tree-${currentConvId}`}
@@ -51,7 +51,7 @@ export function Sidebar({ wsState }: SidebarProps) {
               <p>Select a conversation to view its structure</p>
             </div>
           )}
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Connection status footer */}

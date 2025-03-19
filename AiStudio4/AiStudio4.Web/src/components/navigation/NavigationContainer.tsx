@@ -120,11 +120,13 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         title: 'Conv Tree',
         render: (isOpen) =>
           isOpen && selectedConvId ? (
-            <ConvTreeView
-              key={`tree-${selectedConvId}-${Date.now()}`}
-              convId={selectedConvId}
-              messages={(selectedConvId && convs[selectedConvId]?.messages) || []}
-            />
+            <div className="h-full overflow-auto" style={{ height: '100%' }}>
+              <ConvTreeView
+                key={`tree-${selectedConvId}-${Date.now()}`}
+                convId={selectedConvId}
+                messages={(selectedConvId && convs[selectedConvId]?.messages) || []}
+              />
+            </div>
           ) : null,
       },
       /* Note: convTree panel still exists on right side for users who prefer it there */
