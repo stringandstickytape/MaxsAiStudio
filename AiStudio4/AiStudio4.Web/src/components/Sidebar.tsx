@@ -23,9 +23,9 @@ export function Sidebar({ wsState }: SidebarProps) {
   }, [activeConvId]);
 
   return (
-    <div className="flex-col h-full bg-gray-900 border-r border-gray-800">
+    <div className="flex flex-col h-full bg-gray-900 border-r border-gray-800">
       {/* Split container - top half */}
-      <div className="h-1/2 border-b border-gray-800">
+      <div className="h-[calc(50%-24px)] border-b border-gray-800">
         <div className="p-2 px-3 text-sm font-medium text-gray-300 bg-gray-800/70 border-b border-gray-700/50">
           Conversation History
         </div>
@@ -35,7 +35,7 @@ export function Sidebar({ wsState }: SidebarProps) {
       </div>
 
       {/* Split container - bottom half */}
-      <div className="h-1/2">
+      <div className="h-[calc(50%-24px)]">
         <div className="p-2 px-3 text-sm font-medium text-gray-300 bg-gray-800/70 border-b border-gray-700/50">
           Message Structure
         </div>
