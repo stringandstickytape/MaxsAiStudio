@@ -288,7 +288,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     nodeLabels
       .append('text')
-      .attr('x', -110)
+      .attr('x', -95)
       .attr('y', -25)
       .attr('font-size', containerWidth < 400 ? '9px' : '10px')
       .attr('font-weight', 'bold')
@@ -303,7 +303,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     nodeLabels
       .append('foreignObject')
-      .attr('x', -110)
+      .attr('x', -95)
       .attr('y', -20)  
       .attr('width', containerWidth < 400 ? 180 : 220)
       .attr('height', containerWidth < 400 ? 60 : 75)
@@ -316,7 +316,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .style('-webkit-line-clamp', containerWidth < 400 ? '3' : '5')
       .style('-webkit-box-orient', 'vertical')
       .style('word-wrap', 'break-word')
-      .style('padding', '0 2px')  
+      .style('padding', '0 5px')  
       .html((d) => {
         const content = d.data.content || '';
         

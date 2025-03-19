@@ -106,7 +106,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         maxWidth: '450px',
         width: '320px',
         zIndex: 40,
-        title: 'Convs',
         render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} /> : null),
       },
       {
