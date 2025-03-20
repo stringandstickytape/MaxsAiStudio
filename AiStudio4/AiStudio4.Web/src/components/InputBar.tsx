@@ -34,6 +34,8 @@ declare global {
     interface Window {
         scrollChatToBottom?: () => void;
         getScrollButtonState?: () => boolean;
+        appendToPrompt?: (text: string) => boolean;
+        setPrompt?: (text: string) => boolean;
     }
 }
 
@@ -225,11 +227,7 @@ export function InputBar({
                 window.scrollChatToBottom && window.scrollChatToBottom();
                 
                 const textAttachments = attachments.filter(att => att.textContent);
-
-                
                 const textFileContent = formatTextAttachments(textAttachments);
-
-                
                 const fullMessage = inputText + textFileContent;
 
                 handleChatMessage(fullMessage);
@@ -295,7 +293,11 @@ export function InputBar({
             setShowScrollButton(event.detail.visible);
 
         window.addEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
-        window.getScrollButtonState && setShowScrollButton(window.getScrollButtonState());
+        
+        // Initial state
+        if (window.getScrollButtonState) {
+            setShowScrollButton(window.getScrollButtonState());
+        }
 
         return () => window.removeEventListener('scroll-button-state-change',
             handleScrollButtonStateChange as EventListener);
