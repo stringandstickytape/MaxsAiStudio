@@ -350,7 +350,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 Cancelling request...
                             </div>
                         )}
-                        <div className="w-full">
+                        <div className="w-full mb-4">
                             {streamTokens.length > 0 ? (
                                 <div className="streaming-content">
                                     {streamTokens.map((token, index) => (

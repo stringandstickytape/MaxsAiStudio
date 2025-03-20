@@ -13,8 +13,8 @@ export function ChatContainer({ isMobile, streamTokens, isCancelling }: ChatCont
   const { isStreaming, lastStreamedContent } = useStreamTokens();
   
   return (
-    <div className="h-full w-full overflow-hidden">
-      <StickToBottom className="h-full relative" resize="smooth" initial="smooth">
+      <div className="h-full w-full overflow-hidden">
+          <StickToBottom className="h-full relative" resize="smooth" initial="smooth" stiffness={0.03} damping={0.15} mass={0.85}>
         <StickToBottom.Content className="flex flex-col h-full">
           <ConvView 
             streamTokens={streamTokens} 
