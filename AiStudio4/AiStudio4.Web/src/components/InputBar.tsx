@@ -1,7 +1,7 @@
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
-import { Mic, Send, BookMarked, X, Wrench, ArrowDown } from 'lucide-react';
+import { Mic, Send, BookMarked, X, Wrench } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
 import { Attachment } from '@/types/attachment';
@@ -53,7 +53,6 @@ export function InputBar({
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
     const [localInputText, setLocalInputText] = useState('');
-    const [showScrollButton, setShowScrollButton] = useState(false);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
 
@@ -288,36 +287,12 @@ export function InputBar({
     const handlePrimaryModelClick = () =>
         window.dispatchEvent(new CustomEvent('select-primary-model'));
 
-    useEffect(() => {
-        const handleScrollButtonStateChange = (event: CustomEvent<{ visible: boolean }>) =>
-            setShowScrollButton(event.detail.visible);
 
-        window.addEventListener('scroll-button-state-change', handleScrollButtonStateChange as EventListener);
-        
-        // Initial state
-        if (window.getScrollButtonState) {
-            setShowScrollButton(window.getScrollButtonState());
-        }
-
-        return () => window.removeEventListener('scroll-button-state-change',
-            handleScrollButtonStateChange as EventListener);
-    }, []);
-
-    const handleScrollToBottom = () => window.scrollChatToBottom?.();
     const handleSecondaryModelClick = () =>
         window.dispatchEvent(new CustomEvent('select-secondary-model'));
 
     return (
         <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
-            {showScrollButton && (
-                <div className="fixed bottom-[280px] right-6 z-50 mb-2 animate-fade-in">
-                    <Button variant="outline" size="sm" onClick={handleScrollToBottom}
-                        className="bg-gray-700/80 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-full h-8 flex items-center justify-center transition-all duration-200 shadow-lg backdrop-blur-sm">
-                        <ArrowDown className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Scroll to bottom</span>
-                    </Button>
-                </div>
-            )}
             <div className="flex flex-col h-full">
                 <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
