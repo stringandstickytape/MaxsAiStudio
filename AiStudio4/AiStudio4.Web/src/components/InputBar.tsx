@@ -221,6 +221,8 @@ export function InputBar({
                 messageId: currentRequest.messageId
             }))
             : inputText.trim() && !isLoading && (() => {
+                // Enable auto-scrolling when sending a message
+                window.scrollChatToBottom && window.scrollChatToBottom();
                 
                 const textAttachments = attachments.filter(att => att.textContent);
 

@@ -66,11 +66,22 @@ export function initializeCoreCommands(handlers: {
         '',
         ['close', 'quit', 'exit', 'end'],
         React.createElement(Terminal, { size: 16 }),
-        () => {
-          window.chrome?.webview?.postMessage({
-            type: 'exit',
-          });
-          console.log('Test message sent to WebView');
+        async () => {
+          try {
+            const response = await fetch('/api/exitApplication', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ clientId: window.localStorage.getItem('clientId') })
+            });
+            const data = await response.json();
+            if (!data.success) {
+              console.error('Failed to exit application:', data.error);
+            }
+          } catch (error) {
+            console.error('Error sending exit application request:', error);
+          }
         },
       ],
     ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({

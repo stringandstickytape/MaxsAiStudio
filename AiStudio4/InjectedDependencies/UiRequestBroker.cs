@@ -9,6 +9,7 @@ using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using Microsoft.Extensions.Logging;
+using System.Windows;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -60,6 +61,14 @@ namespace AiStudio4.InjectedDependencies
         {
             JObject requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
 
+            if (requestType == "exitApplication")
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Application.Current.Shutdown();
+                });
+                return "";
+            }
             try
             {
                 return requestType switch
@@ -123,7 +132,7 @@ namespace AiStudio4.InjectedDependencies
                     "simpleChat" => await HandleSimpleChatRequest(requestObject),
                     "cancelRequest" => await HandleCancelRequestAsync(clientId, requestObject),
                     _ => throw new NotImplementedException()
-                };
+                }; ;
             }
             catch (Exception ex)
             {

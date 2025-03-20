@@ -117,5 +117,4 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     });
 
     
-    console.log(`Registered ${promptCommands.length} system prompts as commands`);
 }

@@ -145,12 +145,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
     useEffect(() => {
         setVisibleCount(Math.min(20, messageChain.length));
-        setAutoScrollEnabled(true);
 
-
-        if (containerRef.current) {
-            containerRef.current.scrollTop = 0;
-        }
     }, [activeConvId, slctdMsgId, messageChain]);
 
 
@@ -221,6 +216,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
         if (!isNearBottom && autoScrollEnabled) {
+            console.log("autoscroll set to false");
             setAutoScrollEnabled(false);
         }
     };
@@ -278,6 +274,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 } else {
 
                     scrollAnimationRef.current = null;
+                    console.log('autoscroll set to true');
                     setAutoScrollEnabled(true);
                     setShowScrollButton(false);
                 }

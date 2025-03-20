@@ -15,7 +15,6 @@ export function CommandInitializationPlugin() {
   useEffect(() => {
     if (systemPrompts.length > 0) {
       registerSystemPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-system-prompt-library')));
-      console.log(`Re-registered ${systemPrompts.length} system prompts as commands`);
     }
   }, [systemPrompts]);
   
@@ -23,7 +22,6 @@ export function CommandInitializationPlugin() {
   useEffect(() => {
     if (userPrompts.length > 0) {
       registerUserPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-user-prompt-library')));
-      console.log(`Re-registered ${userPrompts.length} user prompts as commands`);
     }
   }, [userPrompts]);
   
@@ -31,12 +29,10 @@ export function CommandInitializationPlugin() {
   useEffect(() => {
     const handleSystemPromptsUpdate = () => {
       registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
-      console.log('System prompts registered from event');
     };
     
     const handleUserPromptsUpdate = () => {
       registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
-      console.log('User prompts registered from event');
     };
     
     window.addEventListener('system-prompts-updated', handleSystemPromptsUpdate);

@@ -117,5 +117,4 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
   });
   
   
-  console.log(`Registered ${promptCommands.length} user prompts as commands`);
 }
