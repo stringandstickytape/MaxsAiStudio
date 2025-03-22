@@ -288,7 +288,7 @@ export const HistoricalConvTreeList = () => {
                                             if (newConvId) handleFetchConvTree(newConvId);
                                         }}
                                     >
-                                        <div className="mr-2 text-gray-400">
+                                        <div className="text-gray-400">
                                             {expandedConv === conv.convGuid ?
                                                 <ChevronDown size={18} className="text-blue-400" /> :
                                                 <ChevronRight size={18} />}
