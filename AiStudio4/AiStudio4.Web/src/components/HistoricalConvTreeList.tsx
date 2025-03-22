@@ -223,12 +223,7 @@ export const HistoricalConvTreeList = () => {
 
 
         <div className="overflow-y-auto">
-                {isLoading ? (
-                    <div className="p-4 text-center text-gray-400 flex flex-col items-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500 mb-2"></div>
-                        <span>Loading conversations...</span>
-                    </div>
-                ) : filteredConvs.length === 0 ? (
+                {filteredConvs.length === 0 ? (
                     <div className="p-4 text-center text-gray-400 flex flex-col items-center">
                         {searchTerm ? (
                             <>
