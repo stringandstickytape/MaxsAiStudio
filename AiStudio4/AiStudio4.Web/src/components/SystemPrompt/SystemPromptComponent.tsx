@@ -165,7 +165,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         )}
         onClick={() => setIsHovered(true)}
       >
-        <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
+        <span className="text-gray-300 text-sm truncate block w-full">{getPromptDisplayText()}</span>
       </div>
       
       
