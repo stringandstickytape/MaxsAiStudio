@@ -1,29 +1,20 @@
 import { useState, useEffect } from 'react';
 import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
-import { HistoricalConvTree } from './HistoricalConvTree';
 import { useConvStore } from '@/stores/useConvStore';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { ChevronDown, ChevronRight, Search, X, Calendar, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface TreeNode {
-    id: string;
-    text: string;
-    children: TreeNode[];
-}
 
 export const HistoricalConvTreeList = () => {
-    const [expandedConv, setExpandedConv] = useState<string | null>(null);
-    const [treeData, setTreeData] = useState<TreeNode | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [isLoadingTree, setIsLoadingTree] = useState<boolean>(false);
 
 
     const { clientId } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
-    const { convs, isLoading, fetchAllConvs, fetchConvTree: fetchTreeData, addOrUpdateConv } = useHistoricalConvsStore();
+    const { convs, isLoading, fetchAllConvs, addOrUpdateConv } = useHistoricalConvsStore();
 
 
     useEffect(() => {
@@ -72,26 +63,6 @@ export const HistoricalConvTreeList = () => {
     }, [addOrUpdateConv]);
 
 
-    const handleFetchConvTree = async (convId: string) => {
-        setIsLoadingTree(true);
-        try {
-            const tree = await fetchTreeData(convId);
-
-
-            if (tree) {
-
-
-                if (tree.text === 'Conv Root' || tree.text.includes('system') || tree.text.includes('System')) {
-                    tree.text = 'Conversation Root';
-                }
-            }
-
-            setTreeData(tree);
-        } catch (error) {
-        } finally {
-            setIsLoadingTree(false);
-        }
-    };
 
 
 
@@ -277,51 +248,45 @@ export const HistoricalConvTreeList = () => {
                             {filteredConvs.map((conv) => (
                                 <div
                                     key={conv.convGuid}
-                                    className={`rounded-lg overflow-hidden transition-all duration-200 ${expandedConv === conv.convGuid ? 'bg-gray-800/60' : 'hover:bg-gray-800/40'}`}
+                                    className="rounded-lg overflow-hidden transition-all duration-200 hover:bg-gray-800/40"
                                 >
 
                                     <div
-                                        className="flex items-center cursor-pointer"
-                                        onClick={() => {
-                                            const newConvId = expandedConv === conv.convGuid ? null : conv.convGuid;
-                                            setExpandedConv(newConvId);
-                                            if (newConvId) handleFetchConvTree(newConvId);
+                                        className="flex items-center cursor-pointer p-2 pl-1"
+                                        onClick={async () => {
+                                            if (conv.convGuid) {
+                                                const convData = await getConv(conv.convGuid);
+                                                if (convData && convData.messages && convData.messages.length > 0) {
+                                                    const sortedMessages = [...convData.messages].sort((a, b) => b.timestamp - a.timestamp);
+                                                    
+                                                    const lastUserMessage = sortedMessages.find(msg => msg.source === 'user');
+                                                    const lastAiMessage = sortedMessages.find(msg => msg.source === 'ai');
+                                                    
+                                                    const nodeToClick = lastAiMessage ? lastAiMessage.id : 
+                                                                        lastUserMessage ? lastUserMessage.id : 
+                                                                        sortedMessages[0].id;
+                                                    
+                                                    handleNodeClick(nodeToClick, conv.convGuid);
+                                                }
+                                            }
                                         }}
                                     >
-                                        <div className="text-gray-400">
-                                            {expandedConv === conv.convGuid ?
-                                                <ChevronDown size={18} className="text-blue-400" /> :
-                                                <ChevronRight size={18} />}
+                                        <div className="text-gray-400 mr-2">
+                                            <MessageSquare size={16} className="text-gray-500" />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
                                             <div className="font-medium text-sm text-gray-200 break-words">
                                                 {conv.summary}
                                             </div>
+                                            <div className="text-xs text-gray-400">
+                                                {formatDate(conv.lastModified)}
+                                            </div>
                                         </div>
                                     </div>
 
 
-                                    {expandedConv === conv.convGuid && (
-                                        <div className="transition-all duration-300 overflow-hidden">
-                                            <div className="border-t border-gray-700/50 mx-2"></div>
-                                            <div className="py-1 px-1">
-                                                {isLoadingTree ? (
-                                                    <div className="flex items-center justify-center py-4 text-gray-400 text-sm">
-                                                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500 mr-2"></div>
-                                                        Loading messages...
-                                                    </div>
-                                                ) : treeData ? (
-                                                    <HistoricalConvTree
-                                                        treeData={treeData}
-                                                        onNodeClick={(nodeId) => handleNodeClick(nodeId, expandedConv!)}
-                                                    />
-                                                ) : (
-                                                    <div className="text-sm text-gray-400 p-2 text-center">No messages found</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* We no longer show the expanded conversation tree here */}
                                 </div>
                             ))}
                         </div>
