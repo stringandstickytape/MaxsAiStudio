@@ -4,7 +4,7 @@ import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
-import { ChevronDown, ChevronRight, Search, X, Calendar, MessageSquare } from 'lucide-react';
+import { Search, X, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 
@@ -184,15 +184,7 @@ export const HistoricalConvTreeList = () => {
     );
 
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('en-GB', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
-    };
+    // Removed formatDate function as it's no longer needed
 
     return (
         <div className="flex flex-col h-full">
@@ -239,49 +231,30 @@ export const HistoricalConvTreeList = () => {
                     </div>
                 ) : (
                     <ScrollArea className="h-full pr-1">
-                        <div className="space-y-1 px-1">
+                        <div className="px-1">
                             {filteredConvs.map((conv) => (
                                 <div
                                     key={conv.convGuid}
-                                    className="rounded-lg overflow-hidden transition-all duration-200 hover:bg-gray-800/40"
-                                >
-
-                                    <div
-                                        className="flex items-center cursor-pointer p-2 pl-1"
-                                        onClick={async () => {
-                                            if (conv.convGuid) {
-                                                const convData = await getConv(conv.convGuid);
-                                                if (convData && convData.messages && convData.messages.length > 0) {
-                                                    const sortedMessages = [...convData.messages].sort((a, b) => b.timestamp - a.timestamp);
-                                                    
-                                                    const lastUserMessage = sortedMessages.find(msg => msg.source === 'user');
-                                                    const lastAiMessage = sortedMessages.find(msg => msg.source === 'ai');
-                                                    
-                                                    const nodeToClick = lastAiMessage ? lastAiMessage.id : 
-                                                                        lastUserMessage ? lastUserMessage.id : 
-                                                                        sortedMessages[0].id;
-                                                    
-                                                    handleNodeClick(nodeToClick, conv.convGuid);
-                                                }
+                                    className="text-sm text-gray-200 cursor-pointer truncate px-2 py-0.5 hover:bg-gray-800/40 rounded"
+                                    onClick={async () => {
+                                        if (conv.convGuid) {
+                                            const convData = await getConv(conv.convGuid);
+                                            if (convData && convData.messages && convData.messages.length > 0) {
+                                                const sortedMessages = [...convData.messages].sort((a, b) => b.timestamp - a.timestamp);
+                                                
+                                                const lastUserMessage = sortedMessages.find(msg => msg.source === 'user');
+                                                const lastAiMessage = sortedMessages.find(msg => msg.source === 'ai');
+                                                
+                                                const nodeToClick = lastAiMessage ? lastAiMessage.id : 
+                                                                    lastUserMessage ? lastUserMessage.id : 
+                                                                    sortedMessages[0].id;
+                                                
+                                                handleNodeClick(nodeToClick, conv.convGuid);
                                             }
-                                        }}
-                                    >
-                                        <div className="text-gray-400 mr-2">
-                                            <MessageSquare size={16} className="text-gray-500" />
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-sm text-gray-200 break-words">
-                                                {conv.summary}
-                                            </div>
-                                            <div className="text-xs text-gray-400">
-                                                {formatDate(conv.lastModified)}
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    {/* We no longer show the expanded conversation tree here */}
+                                        }
+                                    }}
+                                >
+                                    {conv.summary}
                                 </div>
                             ))}
                         </div>

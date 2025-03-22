@@ -25,5 +25,6 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-        <local:VsixChat x:Name="WebView"/>
+    <local:VsixChat x:Name="WebView"  KeyboardNavigation.IsTabStop="True"
+              Focusable="True"/>
 </UserControl>

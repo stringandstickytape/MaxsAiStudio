@@ -140,15 +140,55 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     }
   };
 
+  const scrollSelectedItemIntoView = () => {
+    if (selectedIndex < 0) return;
+    
+    const dropdown = document.querySelector('.command-dropdown-menu .overflow-y-auto');
+    if (!dropdown) return;
+    
+    // Find all command items
+    const allItems = Array.from(dropdown.querySelectorAll('[class*="bg-gray-700"]'));
+    
+    // If we have items and the selectedIndex is valid
+    if (allItems.length > 0 && selectedIndex < filteredCommands.length) {
+      // Find the correct item - we need to count only items that are command entries
+      let currentIndex = 0;
+      let targetItem = null;
+      
+      // Find all command containers
+      const commandContainers = dropdown.querySelectorAll('.px-4.py-2.flex.items-center.justify-between');
+      
+      // Loop through and find the one at our selected index
+      if (commandContainers && commandContainers.length > 0) {
+        if (selectedIndex < commandContainers.length) {
+          targetItem = commandContainers[selectedIndex];
+        }
+      }
+      
+      if (targetItem) {
+        targetItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex((prev) => Math.min(prev + 1, filteredCommands.length - 1));
+      scrollSelectedItemIntoView();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      scrollSelectedItemIntoView();
     } else if (e.key === 'Escape') {
       setIsOpen(false);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredCommands.length && selectedIndex >= 0) {
+        executeCommand(filteredCommands[selectedIndex].id);
+        setSearchTerm('');
+        setIsOpen(false);
+      }
     }
   };
 
@@ -204,7 +244,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-2xl">
-      <form onSubmit={handleCommandSubmit}>
+      <form onSubmit={handleCommandSubmit} onKeyDown={handleKeyDown}>
         <div className="relative">
          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <Command className="h-4 w-4 text-gray-400" />
@@ -217,7 +257,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
             placeholder="Type a command or search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={handleKeyDown}
+            
             className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon pl-9"
         />
           {isOpen ? (
@@ -287,7 +327,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                             }}
                         >
                       <div className="flex items-center gap-3">
-                        {command.icon && <div className="text-gray-400">{command.icon}</div>}
+                        {command.icon && <div className="text-gray-400">{typeof command.icon === 'function' ? command.icon() : command.icon}</div>}
                       <div className="max-w-md overflow-hidden">
                           <div className="font-medium text-gray-200">{command.name}</div>
                           {command.description && (
