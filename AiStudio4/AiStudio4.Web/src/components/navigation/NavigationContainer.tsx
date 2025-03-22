@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { Sidebar } from '../Sidebar';
-import { ConvTreeView } from '@/components/ConvTreeView';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
 import { UserPromptLibrary } from '@/components/UserPrompt/UserPromptLibrary';
@@ -81,13 +80,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
 
         if (currentMessagesLength !== lastMessagesLength) {
 
-          if (panels.convTree?.isOpen) {
-            setSelectedConvId(null);
-            setTimeout(() => {
-              setSelectedConvId(activeId);
-            }, 50);
-          }
-
           lastMessagesLength = currentMessagesLength;
         }
       },
@@ -108,27 +100,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         zIndex: 40,
         render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} /> : null),
       },
-      {
-        id: 'convTree',
-        position: 'right',
-        size: '320px',
-        minWidth: '320px',
-        maxWidth: '450px',
-        width: '320px',
-        zIndex: 30,
-        title: 'Conv Tree',
-        render: (isOpen) =>
-          isOpen && selectedConvId ? (
-            <div className="h-full overflow-auto" style={{ height: '100%' }}>
-              <ConvTreeView
-                key={`tree-${selectedConvId}-${Date.now()}`}
-                convId={selectedConvId}
-                messages={(selectedConvId && convs[selectedConvId]?.messages) || []}
-              />
-            </div>
-          ) : null,
-      },
-      /* Note: convTree panel still exists on right side for users who prefer it there */
       {
         id: 'settings',
         position: 'right',

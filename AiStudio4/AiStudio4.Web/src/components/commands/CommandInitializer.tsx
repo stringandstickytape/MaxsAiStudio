@@ -32,10 +32,6 @@ export function CommandInitializer() {
     window.open(window.location.href, '_blank');
   };
 
-  const handleToggleConvTree = () => {
-    togglePanel('convTree');
-  };
-
   const openToolLibrary = () => {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
@@ -78,7 +74,6 @@ export function CommandInitializer() {
   useEffect(() => {
     initializeCoreCommands({
       toggleSidebar: () => togglePanel('sidebar'),
-      toggleConvTree: handleToggleConvTree,
       toggleSettings: () => togglePanel('settings'),
       openNewWindow: handleOpenNewWindow,
     });

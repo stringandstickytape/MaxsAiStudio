@@ -113,7 +113,7 @@ export function ChatSpace() {
                 setIsCommandBarOpen={setIsCommandBarOpen}
                 CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
                 sidebarOpen={panels.sidebar?.isOpen || false}
-                rightSidebarOpen={(panels.convTree?.isOpen || panels.settings?.isOpen) || false}
+                rightSidebarOpen={(panels.settings?.isOpen) || false}
                 activeConvId={activeConvId}
             />
         </div >

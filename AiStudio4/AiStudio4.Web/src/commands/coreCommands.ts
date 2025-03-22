@@ -103,19 +103,11 @@ export function initializeCoreCommands(handlers: {
     commands: [
       [
         'toggle-sidebar',
-        'Conv History Toggle',
+        'Conversation History Toggle',
         shortcut('B'),
-        ['sidebar', 'menu', 'convs', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
+        ['sidebar', 'menu', 'conversations','chats', 'history', 'panel', 'navigation', 'toggle', 'hide', 'show', 'toggle'],
         React.createElement(Plus, { size: 16 }),
         handlers.toggleSidebar,
-      ],
-      [
-        'toggle-conv-tree',
-        'Conv Tree Toggle',
-        shortcut('T'),
-        ['tree', 'structure', 'map', 'messages', 'branch', 'hierarchy', 'conv', 'flow', 'thread', 'graph', 'toggle'],
-        React.createElement(GitBranch, { size: 16 }),
-        handlers.toggleConvTree,
       ],
       [
         'toggle-settings',

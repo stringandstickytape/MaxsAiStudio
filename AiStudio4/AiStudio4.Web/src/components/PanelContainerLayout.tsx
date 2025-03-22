@@ -13,7 +13,7 @@ export function PanelContainerLayout({ children }: PanelContainerLayoutProps) {
   
   const hasLeftPanel = panels.sidebar?.isOpen || false;
   const hasRightPanel =
-    panels.convTree?.isOpen || panels.settings?.isOpen || panels.systemPrompts?.isOpen || panels.toolPanel?.isOpen || false;
+    panels.settings?.isOpen || panels.systemPrompts?.isOpen || panels.toolPanel?.isOpen || false;
 
   
   useEffect(() => {
