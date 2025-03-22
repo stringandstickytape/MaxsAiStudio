@@ -29,9 +29,9 @@ export function Sidebar({ wsState }: SidebarProps) {
         <div className="p-2 px-3 text-sm font-medium text-gray-300 bg-gray-800/70 border-b border-gray-700/50">
           Conversation History
         </div>
-        <ScrollArea className="h-[calc(100%-32px)] bg-gray-900">
+        <div className="h-[calc(100%-32px)] bg-gray-900">
           <HistoricalConvTreeList />
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Split container - bottom half */}

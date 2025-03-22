@@ -195,34 +195,34 @@ export const HistoricalConvTreeList = () => {
     };
 
     return (
-        <div className="flex flex-col h-full space-y-2">
-
-            <div className="px-3 pt-2 pb-1 sticky top-0 z-10 bg-gray-900/90 backdrop-blur-sm">
+        <div className="flex flex-col h-full">
+            {/* Search bar at the top */}
+            <div className="px-3 pt-2 pb-1 bg-gray-900/90 backdrop-blur-sm">
                 <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search size={16} className="text-gray-400" />
+                    <div className="flex items-center">
+                        <Search size={16} className="text-gray-400 absolute left-3" />
+                        <input
+                            type="text"
+                            placeholder="Search conversations..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full py-1.5 pl-10 pr-8 text-sm rounded-md border border-gray-700 bg-gray-800/80 
+                          text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-2 flex items-center text-gray-400 hover:text-gray-200"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Search conversations..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full py-1.5 pl-10 pr-8 text-sm rounded-md border border-gray-700 bg-gray-800/80 
-                      text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-200"
-                        >
-                            <X size={14} />
-                        </button>
-                    )}
                 </div>
             </div>
 
-
-        <div className="overflow-y-auto">
+            {/* Conversation list with scrolling */}
+            <div className="flex-1 overflow-y-auto mt-2">
                 {filteredConvs.length === 0 ? (
                     <div className="p-4 text-center text-gray-400 flex flex-col items-center">
                         {searchTerm ? (
