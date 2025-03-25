@@ -30,7 +30,7 @@ namespace AiStudio4.AiServices
         {
             // Clear any previously generated images
             _generatedImages.Clear();
-            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
             var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
             
             // Apply custom system prompt if provided
@@ -42,10 +42,7 @@ namespace AiStudio4.AiServices
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Add tools if specified
-            if (options.ToolIds?.Any() == true)
-            {
                 AddToolsToRequest(requestPayload, options.ToolIds);
-            }
 
             // Construct the messages array
             var contentsArray = new JArray();

@@ -1,6 +1,7 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using ModelContextProtocol.Protocol.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedClasses.Providers;
@@ -322,10 +323,12 @@ namespace AiStudio4.AiServices
             if (req["tools"] == null)
                 req["tools"] = new JArray();
 
-            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
 
             foreach (var toolId in toolIDs)
                 toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+
+            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.Claude;

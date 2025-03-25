@@ -30,7 +30,7 @@ namespace AiStudio4.AiServices
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 300);
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
             deepseekBodge = ApiUrl.Contains("deepseek");
 
             // Apply custom system prompt if provided
@@ -180,17 +180,16 @@ namespace AiStudio4.AiServices
         // to insert the tool details. The current GetToolFormat() method returns ToolFormat.OpenAI.
         protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
         {
-            if (toolIDs == null || !toolIDs.Any())
-                return;
-
             if (req["tools"] == null)
                 req["tools"] = new JArray();
 
-            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             foreach (var toolId in toolIDs)
             {
                 toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
             }
+
+            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;

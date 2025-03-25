@@ -19,6 +19,7 @@ namespace AiStudio4.AiServices
     public abstract class AiServiceBase : IAiService
     {
         public IToolService ToolService { get; set; }
+        public IMcpService McpService { get; set; }
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
@@ -252,14 +253,15 @@ namespace AiStudio4.AiServices
 
         protected virtual void AddToolsToRequest(JObject request, List<string> toolIDs)
         {
-            if (toolIDs?.Any() != true) return;
-            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             
             // Add each tool to the request
             foreach (var toolID in toolIDs)
             {
                 toolRequestBuilder.AddToolToRequest(request, toolID, GetToolFormat());
             }
+
+            toolRequestBuilder.AddMcpServiceToolsToRequest(request, GetToolFormat());
         }
 
         protected virtual ToolFormat GetToolFormat()

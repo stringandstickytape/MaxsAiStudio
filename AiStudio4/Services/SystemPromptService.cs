@@ -332,6 +332,10 @@ namespace AiStudio4.Services
                     var toolService = scope.ServiceProvider.GetRequiredService<IToolService>();
                     await toolService.InitializeAsync();
 
+                    _logger.LogInformation("Initializing McpService...");
+                    var mcpService = scope.ServiceProvider.GetRequiredService<IMcpService>();
+                    await mcpService.InitializeAsync();
+
                     _logger.LogInformation("Service initialization completed");
                 }
                 catch (Exception ex)

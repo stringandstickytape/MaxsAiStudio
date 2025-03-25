@@ -8,10 +8,50 @@ namespace AiStudio4.Core.Tools
     public class ToolRequestBuilder
     {
         private readonly IToolService toolService;
+        private readonly IMcpService mcpService;
 
-        public ToolRequestBuilder(IToolService toolService)
+        public ToolRequestBuilder(IToolService toolService, IMcpService mcpService)
         {
             this.toolService = toolService;
+            this.mcpService = mcpService;
+        }
+
+        public async void AddMcpServiceToolsToRequest(JObject request, ToolFormat format)
+        {
+            var serverDefinitions = await mcpService.GetAllServerDefinitionsAsync();
+
+            foreach(var serverDefinition in serverDefinitions.Where(x => x.IsEnabled))
+            {
+                var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
+
+                foreach (var tool in tools)
+                {
+                    var obj = new JObject();
+                    obj["name"] = tool.Name.ToString();
+                    obj["description"] = tool.Description.ToString();
+                    obj["input_schema"] = tool.InputSchema.ToString();
+
+                    switch (format)
+                    {
+                        case ToolFormat.OpenAI:
+
+
+                            ConfigureOpenAIFormat(request, obj);
+                            break;
+                        case ToolFormat.Gemini:
+                            ConfigureGeminiFormat(request, obj);
+                            break;
+                        case ToolFormat.Ollama:
+                            ConfigureOllamaFormat(request, obj);
+                            break;
+                        case ToolFormat.Claude:
+                            ConfigureClaudeFormat(request, obj);
+                            break;
+                    }
+                }
+
+            }
+
         }
 
         public async void AddToolToRequest(JObject request, string toolId, ToolFormat format)

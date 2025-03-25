@@ -16,6 +16,7 @@ namespace AiStudio4.Services.Interfaces
             Model model, LinearConv conv, string base64image, string base64ImageType, CancellationToken cancellationToken, ApiSettings apiSettings, bool mustNotUseEmbedding, List<string> toolIds, bool useStreaming = false, bool addEmbeddings = false, string customSystemPrompt = null);
 
         IToolService ToolService { get; set; }
+        IMcpService McpService { get; set; }
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
         public string ChosenTool { get; set; }

@@ -1,16 +1,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
+using AiStudio4.Services;
+using AiStudio4.InjectedDependencies.WebSocketManagement;
+using AiStudio4.InjectedDependencies.WebSocket;
+using Microsoft.Extensions.Hosting;
 using System.Windows;
 using System.IO;
 using AiStudio4.InjectedDependencies;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Services;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies.WebSocket;
-using AiStudio4.InjectedDependencies.WebSocketManagement;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using WebSocketSharp;
 
 namespace AiStudio4
 {
@@ -41,7 +43,7 @@ namespace AiStudio4
             {
                 builder.AddConsole();
                 builder.AddDebug();
-                builder.SetMinimumLevel(LogLevel.Debug);
+                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.None);
             });
 
             // Configure configuration
@@ -62,6 +64,7 @@ namespace AiStudio4
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
             services.AddSingleton<IUserPromptService, UserPromptService>();
             services.AddSingleton<ClientRequestCancellationService>();
+            services.AddSingleton<IMcpService, McpService>(); // Add McpService
 
             // Register application services
             services.AddSingleton<SettingsManager>();
@@ -80,6 +83,7 @@ namespace AiStudio4
 
             // Add hosted service to initialize services during startup
             services.AddHostedService<StartupService>();
+
         }
 
         protected override async void OnStartup(StartupEventArgs e)
@@ -89,6 +93,9 @@ namespace AiStudio4
             // Initialize services that need initialization
             var toolService = _serviceProvider.GetRequiredService<IToolService>();
             await toolService.InitializeAsync();
+
+            var mcpService = _serviceProvider.GetRequiredService<IMcpService>();
+            await mcpService.InitializeAsync();
 
             var systemPromptService = _serviceProvider.GetRequiredService<ISystemPromptService>();
             await systemPromptService.InitializeAsync();

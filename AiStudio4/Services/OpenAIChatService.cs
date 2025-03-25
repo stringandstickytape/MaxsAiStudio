@@ -15,17 +15,19 @@ namespace AiStudio4.Services
         private readonly ILogger<OpenAIChatService> _logger;
         private readonly SettingsManager _settingsManager;
         private readonly IToolService _toolService;
+        private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
 
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager, IToolService toolService, ISystemPromptService systemPromptService)
+        public OpenAIChatService(ILogger<OpenAIChatService> logger, SettingsManager settingsManager, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService)
         {
             _logger = logger;
             _settingsManager = settingsManager;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
+            _mcpService = mcpService;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -60,7 +62,7 @@ namespace AiStudio4.Services
                 }
 
                 var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
-                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService);
+                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 // Create a simple chat request
                 var systemPrompt = await _systemPromptService.GetDefaultSystemPromptAsync();
@@ -118,7 +120,7 @@ namespace AiStudio4.Services
 
                 var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
                 var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
-                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService);
+                var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
 
                 // Wire up streaming events
