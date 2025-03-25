@@ -1,4 +1,5 @@
 ﻿using AiStudio4.Convs;
+using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -35,6 +36,9 @@ namespace AiStudio4.AiServices
             }
             
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
+            
+            // Add tools into the request if any tool IDs were specified
+            AddToolsToRequest(requestPayload, options.ToolIds);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {
@@ -105,6 +109,23 @@ namespace AiStudio4.AiServices
             }
             return messageObj;
         }
+
+        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
+        {
+            if (toolIDs == null || !toolIDs.Any())
+                return;
+            if (req["tools"] == null)
+                req["tools"] = new JArray();
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            foreach (var toolId in toolIDs)
+            {
+                toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+            }
+            // OpenAI sets tool_choice to "auto" when tools are provided
+            req["tool_choice"] = "auto";
+        }
+        protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;
+
         protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
@@ -116,6 +137,8 @@ namespace AiStudio4.AiServices
             using var reader = new StreamReader(stream);
 
             TokenUsage tokenUsage = null;
+            // Reset chosenTool for this response
+            ChosenTool = null;
 
             while (!reader.EndOfStream)
             {
@@ -144,6 +167,18 @@ namespace AiStudio4.AiServices
                     {
                         var jsonData = JObject.Parse(data);
                         var contentChunk = jsonData["choices"]?[0]?["delta"]?["content"]?.ToString();
+                        if (string.IsNullOrEmpty(contentChunk))
+                        {
+                            // If no text content is returned check if a tool call exists.
+                            if (jsonData["choices"]?[0]?["delta"]?["tool_calls"] is JArray toolCalls && toolCalls.Any())
+                            {
+                                // Save the name of the chosen tool if not already set.
+                                if (string.IsNullOrEmpty(ChosenTool))
+                                    ChosenTool = toolCalls[0]["function"]?["name"]?.ToString();
+                                contentChunk = toolCalls[0]["function"]?["arguments"]?.ToString();
+                            }
+                        }
+                        
                         if (!string.IsNullOrEmpty(contentChunk))
                         {
                             fullResponse.Append(contentChunk);
@@ -173,7 +208,8 @@ namespace AiStudio4.AiServices
             {
                 ResponseText = fullResponse.ToString(),
                 Success = true,
-                TokenUsage = tokenUsage ?? new TokenUsage("N/A", "N/A")
+                TokenUsage = tokenUsage ?? new TokenUsage("N/A", "N/A"),
+                ChosenTool = ChosenTool
             };
         }
 
@@ -183,14 +219,30 @@ namespace AiStudio4.AiServices
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JObject.Parse(responseContent);
 
+            string responseText = string.Empty;
+            string chosenToolLocal = null;
+            var message = result["choices"]?[0]?["message"];
+            
+            if (message?["tool_calls"] is JArray toolCalls && toolCalls.Any())
+            {
+                // Extract tool call details
+                chosenToolLocal = toolCalls[0]?["function"]?["name"]?.ToString();
+                responseText = toolCalls[0]?["function"]?["arguments"]?.ToString();
+            }
+            else
+            {
+                responseText = message?["content"]?.ToString();
+            }
+            
             return new AiResponse
             {
-                ResponseText = result["choices"]?[0]?["message"]?["content"]?.ToString(),
+                ResponseText = responseText,
                 Success = true,
                 TokenUsage = new TokenUsage(
                     result["usage"]?["prompt_tokens"]?.ToString() ?? "N/A",
                     result["usage"]?["completion_tokens"]?.ToString() ?? "N/A"
-               )
+               ),
+                ChosenTool = chosenToolLocal
             };
         }
 

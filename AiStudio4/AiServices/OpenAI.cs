@@ -253,6 +253,9 @@ namespace AiStudio4.AiServices
             if (line.Length < 6)
                 return line;
 
+            if (line == ": OPENROUTER PROCESSING")
+                return "";
+
             if (line.StartsWith("\r"))
                 line = line.Substring(1);
 
