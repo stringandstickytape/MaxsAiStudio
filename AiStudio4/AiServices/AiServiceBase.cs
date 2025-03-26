@@ -251,7 +251,7 @@ namespace AiStudio4.AiServices
             return new JObject();
         }
 
-        protected virtual void AddToolsToRequest(JObject request, List<string> toolIDs)
+        protected virtual async Task AddToolsToRequestAsync(JObject request, List<string> toolIDs)
         {
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             
@@ -261,7 +261,7 @@ namespace AiStudio4.AiServices
                 toolRequestBuilder.AddToolToRequest(request, toolID, GetToolFormat());
             }
 
-            toolRequestBuilder.AddMcpServiceToolsToRequest(request, GetToolFormat());
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(request, GetToolFormat());
         }
 
         protected virtual ToolFormat GetToolFormat()

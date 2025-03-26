@@ -148,13 +148,10 @@ namespace AiStudio4.AiServices
 
             var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
-            if (options.ToolIds?.Any() == true)
-            {
-                AddToolsToRequest(req, options.ToolIds);
+                await AddToolsToRequestAsync(req, options.ToolIds);
 
                 if (req["tool_choice"] == null)
                     req["tool_choice"] = new JObject { ["type"] = "auto" };
-            }
 
             if (options.AddEmbeddings)
                 await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
@@ -214,7 +211,8 @@ namespace AiStudio4.AiServices
                     result.CacheCreationInputTokens?.ToString(),
                     result.CacheReadInputTokens?.ToString()
                 ),
-                ChosenTool = streamProcessor.ChosenTool
+                ChosenTool = streamProcessor.ChosenTool,
+                ToolResponses = streamProcessor.ToolResponses
             };
         }
 
@@ -316,9 +314,8 @@ namespace AiStudio4.AiServices
             // Implementation commented out in original code
         }
 
-        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
+        protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {
-            if (!toolIDs.Any()) return;
 
             if (req["tools"] == null)
                 req["tools"] = new JArray();
@@ -328,7 +325,7 @@ namespace AiStudio4.AiServices
             foreach (var toolId in toolIDs)
                 toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
 
-            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(req, GetToolFormat());
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.Claude;
@@ -398,7 +395,8 @@ namespace AiStudio4.AiServices
         }
 
         public string ChosenTool { get; set; } = null;
-
+        public List<ToolResponse> ToolResponses { get; set; } = new List<ToolResponse>();
+        public ToolResponse CurrentToolResponse = null;
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens,
             ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
@@ -424,13 +422,20 @@ namespace AiStudio4.AiServices
                     }*/
                     case "content_block_start":
                         var contentBlockType = eventData["content_block"]?["type"];
-                        if(contentBlockType.ToString() == "tool_use")
+                        if (contentBlockType.ToString() == "tool_use")
                         {
                             ChosenTool = eventData["content_block"]?["name"].ToString();
+                            CurrentToolResponse = new ToolResponse { ToolName = ChosenTool };
+                            ToolResponses.Add(CurrentToolResponse);
                         }
+                        else CurrentToolResponse = null;
+                            break;
+                    case "content_block_stop":
                         break;
                     case "content_block_delta":
                         var text = eventData["delta"]["text"]?.ToString() ?? eventData["delta"]["partial_json"]?.ToString();
+                        if(CurrentToolResponse != null)
+                            CurrentToolResponse.ToolJson += text;
                         Debug.WriteLine(text);
                         StreamingTextReceived?.Invoke(this, text);
                         responseBuilder.Append(text);

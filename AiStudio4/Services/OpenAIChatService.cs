@@ -7,6 +7,9 @@ using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace AiStudio4.Services
 {
@@ -112,6 +115,8 @@ namespace AiStudio4.Services
             }
         }
 
+
+
         public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
         {
             try
@@ -213,9 +218,42 @@ namespace AiStudio4.Services
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions);
-                
-                // Calculate cost from the model directly
-                if (response.TokenUsage != null)
+
+               //var toolResponse = JsonConvert.DeserializeObject<dynamic>(response.ToolResponses[0].ToolJson);
+               //var command = new
+               //{
+               //    type = toolResponse.name.ToString(),
+               //    params_ = new
+               //    {
+               //        type = toolResponse.args.type.ToString(),
+               //        name = "sphere1",
+               //        location = new float[] { 0, 0, 0 },
+               //        scale = new float[] { 1, 1, 1 }
+               //    }
+               //};
+               //
+               //string jsonCommand = System.Text.Json.JsonSerializer.Serialize(command)
+               //    .Replace("params_", "params");
+
+                var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
+
+                if (response.ToolResponses != null)
+                {
+                    foreach (var toolResponse in response.ToolResponses)
+                    {
+                        //Dictionary<string, object> dict = JObject.Parse(toolResponse.ToolJson).ToObject<Dictionary<string, object>>();
+                        var result = CustomJsonParser.ParseJson(toolResponse.ToolJson);
+                        var retVal = await _mcpService.CallToolAsync(serverDefinitions[0].Id, toolResponse.ToolName, result);
+
+                        response.ResponseText += JsonConvert.SerializeObject(retVal);
+                    }
+                }
+
+               // _mcpService.CallToolAsync(serverDefinitions[0].Id, toolResponse.name, toolResponse. );
+                    //var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
+
+                    // Calculate cost from the model directly
+                    if (response.TokenUsage != null)
                 {
                     response.CostInfo = new AiStudio4.Core.Models.TokenCost(
                         response.TokenUsage,
@@ -248,6 +286,77 @@ namespace AiStudio4.Services
             {
                 _logger.LogError(ex, "Error processing chat request");
                 throw new ChatProcessingException("Failed to process chat request", ex);
+            }
+        }
+
+
+    }
+
+    public class CustomJsonParser
+    {
+        public static Dictionary<string, object> ParseJson(string json)
+        {
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                return ProcessJsonElement(doc.RootElement) as Dictionary<string, object>;
+            }
+        }
+
+        private static object ProcessJsonElement(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    var dictionary = new Dictionary<string, object>();
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        dictionary[property.Name] = ProcessJsonElement(property.Value);
+                    }
+                    return dictionary;
+
+                case JsonValueKind.Array:
+                    // Check if all elements are numbers - if so, return as float[]
+                    bool allNumbers = true;
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        if (item.ValueKind != JsonValueKind.Number)
+                        {
+                            allNumbers = false;
+                            break;
+                        }
+                    }
+
+                    if (allNumbers)
+                    {
+                        return element.EnumerateArray()
+                            .Select(e => e.GetSingle())
+                            .ToArray();
+                    }
+                    else
+                    {
+                        return element.EnumerateArray()
+                            .Select(ProcessJsonElement)
+                            .ToArray();
+                    }
+
+                case JsonValueKind.String:
+                    return element.GetString();
+
+                case JsonValueKind.Number:
+                    // You could add additional logic here if needed
+                    return element.GetSingle();
+
+                case JsonValueKind.True:
+                    return true;
+
+                case JsonValueKind.False:
+                    return false;
+
+                case JsonValueKind.Null:
+                    return null;
+
+                default:
+                    return null;
             }
         }
     }

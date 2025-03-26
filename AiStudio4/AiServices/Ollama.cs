@@ -56,7 +56,7 @@ namespace AiStudio4.AiServices
 
             if (options.ToolIds?.Any() == true)
             {
-                AddToolsToRequest(requestPayload, options.ToolIds);
+                AddToolsToRequestAsync(requestPayload, options.ToolIds);
             }
 
             if (options.AddEmbeddings)

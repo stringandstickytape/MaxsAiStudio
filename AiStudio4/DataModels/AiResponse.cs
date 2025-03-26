@@ -14,6 +14,7 @@ namespace AiStudio4.DataModels
         public string ChosenTool { get; set; }
         public TokenCost CostInfo { get; set; }
         public List<Attachment> Attachments { get; set; }
+        public List<AiServices.ToolResponse> ToolResponses { get; internal set; }
 
         public AiResponse()
         {

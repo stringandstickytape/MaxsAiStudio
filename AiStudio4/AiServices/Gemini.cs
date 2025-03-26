@@ -42,7 +42,7 @@ namespace AiStudio4.AiServices
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Add tools if specified
-                AddToolsToRequest(requestPayload, options.ToolIds);
+                await AddToolsToRequestAsync(requestPayload, options.ToolIds);
 
             // Construct the messages array
             var contentsArray = new JArray();
@@ -169,6 +169,9 @@ namespace AiStudio4.AiServices
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }
+
+        public List<ToolResponse> ToolResponses { get; set; } = new List<ToolResponse>();
+        public ToolResponse CurrentToolResponse = null;
         protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
@@ -233,13 +236,22 @@ namespace AiStudio4.AiServices
                                     ResponseText = jsonResponse["args"].ToString(),
                                     Success = !cancellationToken.IsCancellationRequested,
                                     TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
-                                    ChosenTool = jsonResponse["name"]?.ToString()
+                                    ChosenTool = jsonResponse["name"]?.ToString(),
+                                    ToolResponses = ToolResponses
                                 };
                             }
                         }
                         catch(Exception e)
                         {
                             // Fall through to default response
+                            return new AiResponse
+                            {
+                                ResponseText = "Multiple tools",
+                                Success = !cancellationToken.IsCancellationRequested,
+                                TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                                ChosenTool = null,
+                                ToolResponses = ToolResponses
+                            };
                         }
                         
                         // Create attachments from any generated images
@@ -390,6 +402,9 @@ namespace AiStudio4.AiServices
                             if (part["functionCall"] != null)
                             {
                                 var toolResponse = JsonConvert.SerializeObject(part["functionCall"]);
+
+                                ToolResponses.Add(new ToolResponse {ToolName = part["functionCall"]["name"]?.ToString(), ToolJson = toolResponse });
+
                                 chosenTool = part["functionCall"]["name"]?.ToString();
                                 fullResponse.Append(toolResponse);
                                 OnStreamingDataReceived(toolResponse);
@@ -489,5 +504,11 @@ namespace AiStudio4.AiServices
         }
     }
 
+
+    public class ToolResponse
+    {
+        public string ToolName { get; set; }
+        public string ToolJson { get; set; }
+    }
 
 }

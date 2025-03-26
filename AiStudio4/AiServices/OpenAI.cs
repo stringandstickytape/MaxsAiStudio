@@ -64,7 +64,7 @@ namespace AiStudio4.AiServices
             requestPayload["messages"] = messagesArray;
 
             // Add tools into the request if any tool IDs were specified.
-            AddToolsToRequest(requestPayload, options.ToolIds);
+            AddToolsToRequestAsync(requestPayload, options.ToolIds);
 
             if (options.AddEmbeddings)
             {
@@ -178,7 +178,7 @@ namespace AiStudio4.AiServices
         // In this override we mirror the pattern used by Claude.cs:
         // If any toolIDs are supplied, we initialize the "tools" array on the request and use the ToolRequestBuilder
         // to insert the tool details. The current GetToolFormat() method returns ToolFormat.OpenAI.
-        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
+        protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {
             if (req["tools"] == null)
                 req["tools"] = new JArray();
@@ -189,7 +189,7 @@ namespace AiStudio4.AiServices
                 toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
             }
 
-            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
+            toolRequestBuilder.AddMcpServiceToolsToRequestAsync(req, GetToolFormat());
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;
