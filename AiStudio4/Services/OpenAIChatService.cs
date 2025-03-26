@@ -227,15 +227,20 @@ namespace AiStudio4.Services
 
                 var responseText = response.ResponseText;
 
-                if(response.ChosenTool != null)
+                if (response.ToolResponseSet != null)
                 {
-                    var tool = await _toolService.GetToolByNameAsync(response.ChosenTool);
-
-                    if(tool != null)
+                    foreach (var t in response.ToolResponseSet.Tools)
                     {
-                        responseText = $"{new string('`', 3)}{tool.Filetype}\n{responseText}\n{new string('`', 3)}";
+
+                        var tool = await _toolService.GetToolByToolNameAsync(t.ToolName);
+
+                        if (tool != null)
+                        {
+                            responseText += $"\n\n{new string('`', 3)}{tool.Filetype}\n{t.ResponseText}\n{new string('`', 3)}\n\n";
+                        }
                     }
                 }
+
                 return new ChatResponse
                 {
                     Success = true,

@@ -1,5 +1,6 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Services.Interfaces;
@@ -24,6 +25,8 @@ namespace AiStudio4.AiServices
         public event EventHandler<string> StreamingComplete;
 
         public string ChosenTool { get; set; } = null;
+
+        public ToolResponse ToolResponseSet { get; set; } = null;
 
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;

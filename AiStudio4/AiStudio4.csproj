@@ -12,6 +12,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.1.25171.12" />
+		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
 
   <ItemGroup>

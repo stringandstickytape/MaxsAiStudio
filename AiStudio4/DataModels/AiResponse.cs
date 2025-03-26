@@ -12,6 +12,7 @@ namespace AiStudio4.DataModels
         public string? SuggestedNextPrompt { get; set; }
         public TimeSpan Duration { get; set; }
         public string ChosenTool { get; set; }
+
         public TokenCost CostInfo { get; set; }
         public List<Attachment> Attachments { get; set; }
 
@@ -19,5 +20,7 @@ namespace AiStudio4.DataModels
         {
             TokenUsage = new TokenUsage("", "");
         }
+
+        public ToolResponse ToolResponseSet { get; set; }
     }
 }

@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 namespace AiStudio4.AiServices
 {
     // Class to hold generated image data
-    internal class GeneratedImage
+    internal class GenImage
     {
         public string MimeType { get; set; }
         public string Base64Data { get; set; }
@@ -20,7 +20,7 @@ namespace AiStudio4.AiServices
 
     internal class Gemini : AiServiceBase
         {
-        private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
+        private readonly List<GenImage> _generatedImages = new List<GenImage>();
         
         public Gemini()
         {
@@ -414,7 +414,7 @@ namespace AiStudio4.AiServices
                                 if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
                                 {
                                     // Add image to the collection
-                                    _generatedImages.Add(new GeneratedImage
+                                    _generatedImages.Add(new GenImage
                                     {
                                         MimeType = mimeType,
                                         Base64Data = base64Data

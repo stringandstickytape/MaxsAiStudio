@@ -58,12 +58,4 @@ namespace AiStudio4.Core.Models
     {
         public List<string> ToolIds { get; set; } = new List<string>();
     }
-
-    public class ToolResponse
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public Tool Tool { get; set; }
-        public List<Tool> Tools { get; set; }
-    }
 }

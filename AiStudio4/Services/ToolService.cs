@@ -150,7 +150,7 @@ namespace AiStudio4.Services
             return await Task.FromResult(true);
         }
 
-        public async Task<Tool> GetToolByNameAsync(string toolName)
+        public async Task<Tool> GetToolBySchemaNameAsync(string toolName)
         {
             await EnsureInitialized();
 
@@ -162,6 +162,20 @@ namespace AiStudio4.Services
             // Case-insensitive search for a tool with the exact name
             return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
                 string.Equals(t.SchemaName, toolName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public async Task<Tool> GetToolByToolNameAsync(string toolName)
+        {
+            await EnsureInitialized();
+
+            if (string.IsNullOrEmpty(toolName))
+            {
+                return null;
+            }
+
+            // Case-insensitive search for a tool with the exact name
+            return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
+                string.Equals(t.Name.Replace(" ",""), toolName, StringComparison.OrdinalIgnoreCase)));
         }
 
         public async Task<List<ToolCategory>> GetToolCategoriesAsync()
