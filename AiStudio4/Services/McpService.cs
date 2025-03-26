@@ -44,7 +44,8 @@ namespace AiStudio4.Services
             {
                 if (_isInitialized) return;
 
-                LoadDefinitions();
+                //LoadDefinitions();
+                _serverDefinitions = new List<McpServerDefinition>();
 
                 // Create default if none exist
                 if (!_serverDefinitions.Any())
@@ -57,7 +58,7 @@ namespace AiStudio4.Services
                         Command = "uvx",
                         Arguments = "blender-mcp", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false
+                        IsEnabled = true
                     };
                     _serverDefinitions.Add(defaultDefinition);
                     SaveDefinitions();
@@ -192,6 +193,38 @@ namespace AiStudio4.Services
                 }
             }
             return await Task.FromResult(removed);
+        }
+
+
+        public async Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments)
+        {
+            await EnsureInitialized();
+
+            var client = await GetOrStartClientAsync(serverId);
+            if (client == null)
+            {
+                // GetOrStartClientAsync logs the error, we can throw or return empty
+                throw new KeyNotFoundException($"MCP Server Definition with ID {serverId} not found or is disabled.");
+            }
+
+            try
+            {
+                _logger.LogInformation("Listing tools for MCP server {ServerId}", serverId);
+
+                var retval = await client.CallToolAsync(
+    toolName,
+    arguments);
+
+
+                return retval;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing tools for MCP server {ServerId}", serverId);
+                // Consider stopping the client if ListToolsAsync fails consistently?
+                // await StopServerAsync(serverId);
+                throw new McpCommunicationException($"Failed to list tools for server {serverId}.", ex);
+            }
         }
 
         public async Task<IEnumerable<ModelContextProtocol.Protocol.Types.Tool>> ListToolsAsync(string serverId)

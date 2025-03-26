@@ -10,11 +10,14 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using AiStudio4.Core.Models;
 
 namespace AiStudio4.AiServices
 {
     internal class Claude : AiServiceBase
     {
+        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
         private string oneOffPreFill;
         
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
@@ -140,6 +143,9 @@ namespace AiStudio4.AiServices
         // Override the FetchResponseInternal method to implement Claude-specific logic
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
+            // Reset ToolResponseSet for each new request
+            ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+            
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
             // Apply custom system prompt if provided
@@ -214,7 +220,8 @@ namespace AiStudio4.AiServices
                     result.CacheCreationInputTokens?.ToString(),
                     result.CacheReadInputTokens?.ToString()
                 ),
-                ChosenTool = streamProcessor.ChosenTool
+                ChosenTool = streamProcessor.ChosenTool,
+                ToolResponseSet = streamProcessor.ToolResponseSet
             };
         }
 
@@ -243,12 +250,45 @@ namespace AiStudio4.AiServices
 
             var chosenTool = ExtractChosenToolFromCompletion(completion);
             
+            // Process tool calls if present
+            if (chosenTool != null)
+            {
+                // Handle tool calls and populate ToolResponseSet
+                if (completion["content"] != null && completion["content"][0]["type"]?.ToString() == "tool_use")
+                {
+                    string toolName = completion["content"][0]["name"]?.ToString();
+                    string toolArguments = completion["content"][0]["input"].ToString();
+                    
+                    ToolResponseSet.Tools.Add(new ToolResponseItem
+                    {
+                        ToolName = toolName,
+                        ResponseText = toolArguments
+                    });
+                }
+                else if (completion["tool_calls"] != null && completion["tool_calls"].Any())
+                {
+                    // Process all tool calls in the response
+                    foreach (var toolCall in completion["tool_calls"])
+                    {
+                        string toolName = toolCall["function"]["name"]?.ToString();
+                        string toolArguments = toolCall["function"]["arguments"]?.ToString();
+                        
+                        ToolResponseSet.Tools.Add(new ToolResponseItem
+                        {
+                            ToolName = toolName,
+                            ResponseText = toolArguments
+                        });
+                    }
+                }
+            }
+            
             return new AiResponse
             {
                 ResponseText = ExtractResponseTextFromCompletion(completion),
                 Success = true,
                 TokenUsage = ExtractTokenUsageFromCompletion(completion),
-                ChosenTool = chosenTool
+                ChosenTool = chosenTool,
+                ToolResponseSet = ToolResponseSet
             };
         }
 
@@ -344,6 +384,8 @@ namespace AiStudio4.AiServices
         private readonly bool usePromptCaching;
         public event EventHandler<string> StreamingTextReceived;
 
+        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
         public StreamProcessor(bool usePromptCaching) => this.usePromptCaching = usePromptCaching;
 
         public async Task<StreamProcessingResult> ProcessStream(Stream stream, CancellationToken cancellationToken)
@@ -399,6 +441,8 @@ namespace AiStudio4.AiServices
 
         public string ChosenTool { get; set; } = null;
 
+        private ToolResponseItem currentResponseItem = null;
+
         private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens,
             ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
@@ -427,15 +471,34 @@ namespace AiStudio4.AiServices
                         if(contentBlockType.ToString() == "tool_use")
                         {
                             ChosenTool = eventData["content_block"]?["name"].ToString();
+                            
+                            // Create a new ToolResponseItem when a tool is chosen
+                            var toolResponseItem = new ToolResponseItem
+                            {
+                                ToolName = ChosenTool,
+                                ResponseText = ""
+                            };
+
+                            currentResponseItem = toolResponseItem;
+
+                            ToolResponseSet.Tools.Add(toolResponseItem);
+
                         }
                         break;
                     case "content_block_delta":
                         var text = eventData["delta"]["text"]?.ToString() ?? eventData["delta"]["partial_json"]?.ToString();
+                        
                         Debug.WriteLine(text);
+
+                        if (currentResponseItem != null)
+                            currentResponseItem.ResponseText += text;
+
                         StreamingTextReceived?.Invoke(this, text);
                         responseBuilder.Append(text);
                         break;
+                    case "content_block_end":
 
+                        break;
                     case "message_start":
                         inputTokens = eventData["message"]["usage"]["input_tokens"].Value<int>();
 

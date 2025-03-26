@@ -192,23 +192,27 @@ namespace AiStudio4.AiServices
             // Check if the response requires tool calls
             if (completion.FinishReason == ChatFinishReason.ToolCalls && completion.ToolCalls.Count > 0)
             {
-                string chosenTool = completion.ToolCalls[0].FunctionName;
-                string toolArguments = completion.ToolCalls[0].FunctionArguments.ToString();
-                
-                // Add tool response to ToolResponseSet
-                ToolResponseSet.Tools.Add(new ToolResponseItem
+                // Iterate through all tool calls and add them to the ToolResponseSet
+                foreach (var toolCall in completion.ToolCalls)
                 {
-                    ToolName = chosenTool,
-                    ResponseText = toolArguments
-                });
-
+                    string toolName = toolCall.FunctionName;
+                    string toolArguments = toolCall.FunctionArguments.ToString();
+                    ToolResponseSet.Tools.Add(new ToolResponseItem
+                    {
+                        ToolName = toolName,
+                        ResponseText = toolArguments
+                    });
+                }
+                // Return response indicating tool calls were made
                 return new AiResponse
                 {
-                    ResponseText = toolArguments,
+                    // ResponseText can be null or a summary message when multiple tools are called.
+                    ResponseText = null, // Or: $"Multiple tool calls requested: {string.Join(", ", completion.ToolCalls.Select(tc => tc.FunctionName))}",
                     Success = true,
                     TokenUsage = ExtractTokenUsage(completion),
-                    ChosenTool = chosenTool,
-                    ToolResponseSet = ToolResponseSet
+                    // ChosenTool is less relevant with multiple tools. Set to null or first tool name.
+                    ChosenTool = completion.ToolCalls.FirstOrDefault()?.FunctionName, // Set to first tool name or null
+                    ToolResponseSet = ToolResponseSet // Assign the populated set
                 };
             }
             else
