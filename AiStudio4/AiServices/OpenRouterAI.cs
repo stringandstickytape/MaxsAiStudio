@@ -39,7 +39,7 @@ namespace AiStudio4.AiServices
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
             
             // Add tools into the request if any tool IDs were specified
-            AddToolsToRequest(requestPayload, options.ToolIds);
+            AddToolsToRequestAsync(requestPayload, options.ToolIds);
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {
@@ -111,7 +111,7 @@ namespace AiStudio4.AiServices
             return messageObj;
         }
 
-        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
+        protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {
             if (toolIDs == null || !toolIDs.Any())
                 return;
@@ -120,10 +120,10 @@ namespace AiStudio4.AiServices
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             foreach (var toolId in toolIDs)
             {
-                toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+                await toolRequestBuilder.AddToolToRequestAsync(req, toolId, GetToolFormat());
             }
 
-            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(req, GetToolFormat());
             // OpenAI sets tool_choice to "auto" when tools are provided
             req["tool_choice"] = "auto";
         }

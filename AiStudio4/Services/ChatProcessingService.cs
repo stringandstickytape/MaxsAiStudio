@@ -194,54 +194,54 @@ namespace AiStudio4.Services
 
                     System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
 
-                    if (isFirstMessageInConv)
-                    {
-                        try
-                        {
-                            var secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel;
-                            if (!string.IsNullOrEmpty(secondaryModel))
-                            {
-                                var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
-                                if (model != null)
-                                {
-                                    var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
-
-                                    var summaryChatRequest = new ChatRequest
-                                    {
-                                        ClientId = clientId,
-                                        Model = secondaryModel,
-                                        MessageHistory = new List<MessageHistoryItem> { new MessageHistoryItem { Content = summaryMessage, Role = "user" } }
-                                    };
-
-                                    var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
-                                    var summaryResponse = await _chatService.ProcessChatRequest(summaryChatRequest);
-
-                                    if (summaryResponse.Success)
-                                    {
-                                        var summary = summaryResponse.ResponseText.Length > 100
-                                            ? summaryResponse.ResponseText.Substring(0, 97) + "..."
-                                            : summaryResponse.ResponseText;
-
-                                        conv.Summary = summary;
-                                        await _convStorage.SaveConv(conv);
-
-                                        // Update client with the new summary, using our flat structure
-                                        await _notificationService.NotifyConvList(clientId, new ConvListDto
-                                        {
-                                            ConvId = conv.ConvId,
-                                            Summary = summary,
-                                            LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                            FlatMessageStructure = BuildFlatMessageStructure(conv)
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error generating conv summary");
-                        }
-                    }
+                    //if (isFirstMessageInConv)
+                    //{
+                    //    try
+                    //    {
+                    //        var secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel;
+                    //        if (!string.IsNullOrEmpty(secondaryModel))
+                    //        {
+                    //            var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
+                    //            if (model != null)
+                    //            {
+                    //                var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
+                    //
+                    //                var summaryChatRequest = new ChatRequest
+                    //                {
+                    //                    ClientId = clientId,
+                    //                    Model = secondaryModel,
+                    //                    MessageHistory = new List<MessageHistoryItem> { new MessageHistoryItem { Content = summaryMessage, Role = "user" } }
+                    //                };
+                    //
+                    //                var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                    //                var summaryResponse = await _chatService.ProcessChatRequest(summaryChatRequest);
+                    //
+                    //                if (summaryResponse.Success)
+                    //                {
+                    //                    var summary = summaryResponse.ResponseText.Length > 100
+                    //                        ? summaryResponse.ResponseText.Substring(0, 97) + "..."
+                    //                        : summaryResponse.ResponseText;
+                    //
+                    //                    conv.Summary = summary;
+                    //                    await _convStorage.SaveConv(conv);
+                    //
+                    //                    // Update client with the new summary, using our flat structure
+                    //                    await _notificationService.NotifyConvList(clientId, new ConvListDto
+                    //                    {
+                    //                        ConvId = conv.ConvId,
+                    //                        Summary = summary,
+                    //                        LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                    //                        FlatMessageStructure = BuildFlatMessageStructure(conv)
+                    //                    });
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        _logger.LogError(ex, "Error generating conv summary");
+                    //    }
+                    //}
 
                     await _convStorage.SaveConv(conv);
 

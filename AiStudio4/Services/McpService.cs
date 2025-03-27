@@ -59,7 +59,21 @@ namespace AiStudio4.Services
                         Arguments = "blender-mcp", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Example MCP server using uvx (Update arguments if needed)",
                         IsEnabled = true
+                        
                     };
+                    //var env = new Dictionary<string, string>();
+                    //env.Add("EVERYTHING_SDK_PATH", "C:\\Program Files\\Everything\\Everything64.dll");
+                    //var defaultDefinition = new McpServerDefinition
+                    //{
+                    //    Id = "everything",
+                    //    Name = "Everything",
+                    //    Command = "uvx",
+                    //    Arguments = "mcp-server-everything-search", // Note: This might need changing if uvx expects different args for 'Everything'
+                    //    Description = "Example MCP server using uvx (Update arguments if needed)",
+                    //    IsEnabled = true,
+                    //    Env = env
+                    //
+                    //};
                     _serverDefinitions.Add(defaultDefinition);
                     SaveDefinitions();
                 }
@@ -334,9 +348,14 @@ namespace AiStudio4.Services
                     TransportOptions = new Dictionary<string, string>
                     {
                         { "command", definition.Command },
-                        { "arguments", definition.Arguments ?? string.Empty } // Ensure not null
+                        { "arguments", definition.Arguments ?? string.Empty },
                     }
                 };
+
+                if(definition.Env != null && definition.Env.Any())
+                {
+                    serverInfo.TransportOptions.Add($"env:{definition.Env.First().Key}", definition.Env.First().Value);
+                }
 
                 var newClient = await McpClientFactory.CreateAsync(serverInfo, clientOptions);
 

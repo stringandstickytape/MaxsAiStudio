@@ -20,5 +20,7 @@ namespace AiStudio4.Services.Interfaces
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
         public string ChosenTool { get; set; }
+
+
     }
 }

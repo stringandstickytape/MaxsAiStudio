@@ -20,6 +20,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.ClientModel;
 using AiStudio4.Core.Models;
+using AiStudio4.Services;
+using ModelContextProtocol.Protocol.Messages;
+using static System.Windows.Forms.DataFormats;
 
 namespace AiStudio4.AiServices
 {
@@ -91,10 +94,10 @@ namespace AiStudio4.AiServices
                 };
 
                 // Add tools if specified
-                if (options.ToolIds?.Any() == true)
-                {
+                //if (options.ToolIds?.Any() == true)
+                //{
                     await AddToolsToChatOptions(chatOptions, options.ToolIds);
-                }
+                //}
 
                 // Process embeddings if needed
                 if (options.AddEmbeddings)
@@ -115,7 +118,10 @@ namespace AiStudio4.AiServices
                         messages[lastIndex] = new UserChatMessage(newInput);
                     }
                 }
-
+                if (chatOptions.Tools.Any())
+                {
+                    chatOptions.ToolChoice = ChatToolChoice.CreateRequiredChoice();
+                }
                 try
                 {
                     // Handle streaming vs non-streaming requests
@@ -326,8 +332,6 @@ namespace AiStudio4.AiServices
 
         private async Task AddToolsToChatOptions(ChatCompletionOptions options, List<string> toolIDs)
         {
-            if (toolIDs == null || !toolIDs.Any())
-                return;
 
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
 
@@ -341,8 +345,28 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            // Add MCP service tools if needed
-            AddMcpServiceTools(options);
+            var mcpService = toolRequestBuilder.GetMcpService();
+
+            var serverDefinitions = await mcpService.GetAllServerDefinitionsAsync();
+
+            foreach (var serverDefinition in serverDefinitions.Where(x => x.IsEnabled))
+            {
+                var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
+
+                foreach (var tool in tools)
+                {
+
+                    options.Tools.Add(
+                        ChatTool.CreateFunctionTool(
+                       functionName: tool.Name.Replace(" ", ""),
+                       functionDescription: tool.Description,
+                       functionParameters: BinaryData.FromString(tool.InputSchema.ToString()),
+                       functionSchemaIsStrict: true)
+                        );
+                }
+
+            }
+
         }
 
        private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)

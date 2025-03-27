@@ -1,6 +1,7 @@
 using AiStudio4.AiServices;
 using AiStudio4.Core.Interfaces;
 using Newtonsoft.Json.Linq;
+using OpenAI.Chat;
 using System.Text.RegularExpressions;
 
 namespace AiStudio4.Core.Tools
@@ -16,7 +17,7 @@ namespace AiStudio4.Core.Tools
             this.mcpService = mcpService;
         }
 
-        public async void AddMcpServiceToolsToRequest(JObject request, ToolFormat format)
+        public async Task AddMcpServiceToolsToRequestAsync(JObject request, ToolFormat format)
         {
             var serverDefinitions = await mcpService.GetAllServerDefinitionsAsync();
 
@@ -29,7 +30,7 @@ namespace AiStudio4.Core.Tools
                     var obj = new JObject();
                     obj["name"] = tool.Name.ToString();
                     obj["description"] = tool.Description.ToString();
-                    obj["input_schema"] = tool.InputSchema.ToString();
+                    obj["input_schema"] =  JToken.Parse(tool.InputSchema.ToString());
 
                     switch (format)
                     {
@@ -54,7 +55,14 @@ namespace AiStudio4.Core.Tools
 
         }
 
-        public async void AddToolToRequest(JObject request, string toolId, ToolFormat format)
+        public IMcpService GetMcpService()
+        {
+            return mcpService;
+        }
+
+
+
+        public async Task AddToolToRequestAsync(JObject request, string toolId, ToolFormat format)
         {
             var tool = await toolService.GetToolByIdAsync(toolId);
             if (tool == null) return;
@@ -174,5 +182,6 @@ namespace AiStudio4.Core.Tools
                 obj.Remove(prop);
             }
         }
+
     }
 }

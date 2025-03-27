@@ -154,16 +154,91 @@ namespace AiStudio4.AiServices
 
             var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
-            if (options.ToolIds?.Any() == true)
-            {
-                AddToolsToRequest(req, options.ToolIds);
+                await AddToolsToRequestAsync(req, options.ToolIds);
 
-                if (req["tool_choice"] == null)
-                    req["tool_choice"] = new JObject { ["type"] = "auto" };
-            }
+                if (req["tools"] != null)
+                    req["tool_choice"] = new JObject { ["type"] = "any" };
 
             if (options.AddEmbeddings)
                 await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
+
+            // bodge for Everything MCP
+
+            if (req["tools"] != null && req["tools"][0]["description"].ToString().StartsWith("Universal file search tool"))
+            {
+                req["tools"][0]["input_schema"] = (JObject)(JsonConvert.DeserializeObject(@"
+                {
+                ""type"": ""object"",
+                ""$defs"": {
+                    ""WindowsSortOption"": {
+                        ""description"": ""Sort options for Windows Everything search."",
+                        ""enum"": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14],
+                        ""title"": ""WindowsSortOption"",
+                        ""type"": ""integer""
+                    }
+                },
+                ""properties"": {
+                    ""base"": {
+                        ""description"": ""Base search parameters common to all platforms."",
+                        ""properties"": {
+                            ""query"": {
+                                ""description"": ""Search query string. See platform-specific documentation for syntax details."",
+                                ""title"": ""Query"",
+                                ""type"": ""string""
+                            },
+                            ""max_results"": {
+                                ""default"": 100,
+                                ""description"": ""Maximum number of results to return (1-1000)"",
+                                ""maximum"": 1000,
+                                ""minimum"": 1,
+                                ""title"": ""Max Results"",
+                                ""type"": ""integer""
+                            }
+                        },
+                        ""required"": [""query""],
+                        ""title"": ""BaseSearchQuery"",
+                        ""type"": ""object""
+                    },
+                    ""windows_params"": {
+                        ""description"": ""Windows-specific search parameters for Everything SDK."",
+                        ""properties"": {
+                            ""match_path"": {
+                                ""default"": false,
+                                ""description"": ""Match against full path instead of filename only"",
+                                ""title"": ""Match Path"",
+                                ""type"": ""boolean""
+                            },
+                            ""match_case"": {
+                                ""default"": false,
+                                ""description"": ""Enable case-sensitive search"",
+                                ""title"": ""Match Case"",
+                                ""type"": ""boolean""
+                            },
+                            ""match_whole_word"": {
+                                ""default"": false,
+                                ""description"": ""Match whole words only"",
+                                ""title"": ""Match Whole Word"",
+                                ""type"": ""boolean""
+                            },
+                            ""match_regex"": {
+                                ""default"": false,
+                                ""description"": ""Enable regex search"",
+                                ""title"": ""Match Regex"",
+                                ""type"": ""boolean""
+                            },
+                            ""sort_by"": {
+                                ""$ref"": ""#/$defs/WindowsSortOption"",
+                                ""default"": 1,
+                                ""description"": ""Sort order for results""
+                            }
+                        },
+                        ""title"": ""WindowsSpecificParams"",
+                        ""type"": ""object""
+                    }
+                },
+                ""required"": [""base""]
+            }"));
+            }
 
             var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
             //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
@@ -356,19 +431,19 @@ namespace AiStudio4.AiServices
             // Implementation commented out in original code
         }
 
-        protected override void AddToolsToRequest(JObject req, List<string> toolIDs)
+        protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {
-            if (!toolIDs.Any()) return;
 
-            if (req["tools"] == null)
-                req["tools"] = new JArray();
 
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
 
             foreach (var toolId in toolIDs)
-                toolRequestBuilder.AddToolToRequest(req, toolId, GetToolFormat());
+                await toolRequestBuilder.AddToolToRequestAsync(req, toolId, GetToolFormat());
 
-            toolRequestBuilder.AddMcpServiceToolsToRequest(req, GetToolFormat());
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(req, GetToolFormat());
+
+
+
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.Claude;

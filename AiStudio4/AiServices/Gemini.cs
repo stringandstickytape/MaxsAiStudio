@@ -42,7 +42,7 @@ namespace AiStudio4.AiServices
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Add tools if specified
-                AddToolsToRequest(requestPayload, options.ToolIds);
+                await AddToolsToRequestAsync(requestPayload, options.ToolIds);
 
             // Construct the messages array
             var contentsArray = new JArray();

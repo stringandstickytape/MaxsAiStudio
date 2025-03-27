@@ -7,6 +7,8 @@ using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
+using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace AiStudio4.Services
 {
@@ -213,6 +215,20 @@ namespace AiStudio4.Services
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions);
+
+                var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
+
+                if (response.ToolResponseSet != null  && serverDefinitions.Where(x=>x.IsEnabled).Any())
+                {
+                    foreach (var toolResponse in response.ToolResponseSet.Tools)
+                    {
+                        //Dictionary<string, object> dict = JObject.Parse(toolResponse.ToolJson).ToObject<Dictionary<string, object>>();
+                        var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() :CustomJsonParser.ParseJson(toolResponse.ResponseText);
+                        var retVal = await _mcpService.CallToolAsync(serverDefinitions[0].Id, toolResponse.ToolName, result);
+
+                        response.ResponseText += $"\r\n{toolResponse.ToolName} Result: {retVal.Content[0].Text}\r\n\r\n";
+                    }
+                }
                 
                 // Calculate cost from the model directly
                 if (response.TokenUsage != null)
@@ -253,6 +269,75 @@ namespace AiStudio4.Services
             {
                 _logger.LogError(ex, "Error processing chat request");
                 throw new ChatProcessingException("Failed to process chat request", ex);
+            }
+        }
+    }
+
+    public class CustomJsonParser
+    {
+        public static Dictionary<string, object> ParseJson(string json)
+        {
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                return ProcessJsonElement(doc.RootElement) as Dictionary<string, object>;
+            }
+        }
+
+        private static object ProcessJsonElement(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    var dictionary = new Dictionary<string, object>();
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        dictionary[property.Name] = ProcessJsonElement(property.Value);
+                    }
+                    return dictionary;
+
+                case JsonValueKind.Array:
+                    // Check if all elements are numbers - if so, return as float[]
+                    bool allNumbers = true;
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        if (item.ValueKind != JsonValueKind.Number)
+                        {
+                            allNumbers = false;
+                            break;
+                        }
+                    }
+
+                    if (allNumbers)
+                    {
+                        return element.EnumerateArray()
+                            .Select(e => e.GetSingle())
+                            .ToArray();
+                    }
+                    else
+                    {
+                        return element.EnumerateArray()
+                            .Select(ProcessJsonElement)
+                            .ToArray();
+                    }
+
+                case JsonValueKind.String:
+                    return element.GetString();
+
+                case JsonValueKind.Number:
+                    // You could add additional logic here if needed
+                    return element.GetSingle();
+
+                case JsonValueKind.True:
+                    return true;
+
+                case JsonValueKind.False:
+                    return false;
+
+                case JsonValueKind.Null:
+                    return null;
+
+                default:
+                    return null;
             }
         }
     }
