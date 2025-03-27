@@ -245,8 +245,8 @@ export function InputBar({
             // Small delay to ensure UI updates first
             setTimeout(() => {
                 setInputText(".");
-                handleChatMessage(".");
-            }, 2500);
+                handleChatMessage("continue");
+            }, 5000);
         }
     }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]);
 
