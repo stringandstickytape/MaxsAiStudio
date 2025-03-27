@@ -52,13 +52,14 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
+    const lastAutoReplyTimestampRef = useRef<number>(0); // Ref to store the timestamp of the last auto-reply
 
     const [localInputText, setLocalInputText] = useState('');
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
     const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
 
-    
+
     const {
         attachments,
         error: attachmentError,
@@ -68,7 +69,7 @@ export function InputBar({
         clearAttachments
     } = useAttachmentManager({
         maxCount: 5,
-        maxSize: 10 * 1024 * 1024 
+        maxSize: 10 * 1024 * 1024
     });
 
     const inputText = inputValue ?? localInputText;
@@ -90,14 +91,14 @@ export function InputBar({
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
 
-    
+
     useEffect(() => {
         if (onAttachmentChange) {
             onAttachmentChange(attachments);
         }
     }, [attachments, onAttachmentChange]);
 
-    
+
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -194,7 +195,7 @@ export function InputBar({
             });
 
             setInputText('');
-            clearAttachments(); 
+            clearAttachments();
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -212,25 +213,28 @@ export function InputBar({
         convs,
         createConv,
         attachments,
-        clearAttachments
+        clearAttachments,
+        setCurrentRequest // Added setCurrentRequest as dependency
     ]);
 
     const handleSend = () => {
+        console.log("hs1");
         if (isCancelling) return;
-
+        console.log("hs2", isLoading, currentRequest);
         isLoading && currentRequest
             ? (setIsCancelling(true), cancelMessage({
                 convId: currentRequest.convId,
                 messageId: currentRequest.messageId
             }))
-            : inputText.trim() && !isLoading && (() => {
+            : !isLoading && (() => {
+                console.log("hs3");
                 // Enable auto-scrolling when sending a message
                 window.scrollChatToBottom && window.scrollChatToBottom();
-                
+
                 const textAttachments = attachments.filter(att => att.textContent);
                 const textFileContent = formatTextAttachments(textAttachments);
-                const fullMessage = inputText + textFileContent;
-
+                const fullMessage = (inputText ? inputText : ".") + textFileContent;
+                console.log("HandleSend -> ChatMessage");
                 handleChatMessage(fullMessage);
             })();
     };
@@ -239,16 +243,31 @@ export function InputBar({
         if (!isLoading && isCancelling) {
             setIsCancelling(false);
         }
-        
-        // Auto-reply with "." when the chat completes and autoReplyEnabled is true
+
+        const AUTO_REPLY_COOLDOWN = 5000; // 5 seconds in milliseconds
+        const now = Date.now();
+
+        // Auto-reply with "." when the chat completes and autoReplyEnabled is true, respecting cooldown
         if (!isLoading && currentRequest && autoReplyEnabled) {
-            // Small delay to ensure UI updates first
-            setTimeout(() => {
-                setInputText(".");
-                handleChatMessage("continue");
-            }, 5000);
+            if (now - lastAutoReplyTimestampRef.current >= AUTO_REPLY_COOLDOWN) {
+                console.log("Auto-reply triggered (cooldown passed).");
+
+                // Update timestamp immediately to enforce cooldown for subsequent checks
+                lastAutoReplyTimestampRef.current = now;
+
+                // Optional small delay for UI updates before sending
+                const SEND_DELAY = 100; // milliseconds
+                setTimeout(() => {
+                    console.log("Executing delayed auto-reply action.");
+                    setInputText(".");
+                    handleSend();
+                }, SEND_DELAY);
+
+            } else {
+                console.log(`Auto-reply skipped due to cooldown. Time remaining: ${Math.round((AUTO_REPLY_COOLDOWN - (now - lastAutoReplyTimestampRef.current)) / 1000)}s`);
+            }
         }
-    }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]);
+    }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]); // Dependencies for the effect
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -266,7 +285,7 @@ export function InputBar({
     };
 
     useEffect(() => {
-        const focusTextarea = (length: number) => {
+        const focusTextarea = (length: number | null) => { // Allow null for length
             if (!textareaRef.current) return;
             textareaRef.current.focus();
             setTimeout(() => {
@@ -295,7 +314,7 @@ export function InputBar({
             window.removeEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
             window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
         };
-    }, []);
+    }, [setInputText]); // Added setInputText dependency
 
     const handlePrimaryModelClick = () =>
         window.dispatchEvent(new CustomEvent('select-primary-model'));
@@ -318,7 +337,7 @@ export function InputBar({
                             onKeyUp={handleTextAreaKeyUp}
                             onKeyDown={handleKeyDown}
                             placeholder="Type your message here... (Ctrl+Enter to send)"
-                            disabled={isLoading}
+                            disabled={isLoading || disabled} // Reflect outer disabled state
                             showLineCount={true}
                             style={{ height: '100%' }}
                         />
@@ -340,7 +359,7 @@ export function InputBar({
                     <div className="flex flex-col gap-2 justify-end">
                         <FileAttachment
                             onFilesSelected={addAttachments}
-                            disabled={isLoading || disabled}
+                            disabled={isLoading || disabled} // Reflect outer disabled state
                             maxFiles={5}
                         />
 
@@ -350,7 +369,7 @@ export function InputBar({
                             onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
                             className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                             aria-label="User prompts"
-                            disabled={isLoading}
+                            disabled={isLoading || disabled} // Reflect outer disabled state
                         >
                             <BookMarked className="h-5 w-5" />
                         </Button>
@@ -362,7 +381,7 @@ export function InputBar({
                                 onClick={onVoiceInputClick}
                                 className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                                 aria-label="Voice input"
-                                disabled={isLoading}
+                                disabled={isLoading || disabled} // Reflect outer disabled state
                             >
                                 <Mic className="h-5 w-5" />
                             </Button>
@@ -375,7 +394,7 @@ export function InputBar({
                                 onClick={handleSend}
                                 className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn`}
                                 aria-label={isLoading ? 'Cancel' : 'Send message'}
-                                disabled={isCancelling}
+                                disabled={isCancelling || disabled} // Reflect outer disabled state
                             >
                                 {isLoading ? (
                                     <X className="h-5 w-5" />
@@ -383,23 +402,24 @@ export function InputBar({
                                     <Send className="h-5 w-5" />
                                 )}
                             </Button>
-                            
+
                             <div className="flex items-center justify-center gap-1">
-                                <Checkbox 
+                                <Checkbox
                                     id="auto-reply"
                                     checked={autoReplyEnabled}
                                     onCheckedChange={(checked) => setAutoReplyEnabled(checked === true)}
                                     className="bg-gray-800 border-gray-600"
+                                    disabled={disabled} // Reflect outer disabled state
                                 />
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <label htmlFor="auto-reply" className="text-[10px] text-gray-400 cursor-pointer">
+                                            <label htmlFor="auto-reply" className={`text-[10px] text-gray-400 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
                                                 Auto
                                             </label>
                                         </TooltipTrigger>
                                         <TooltipContent side="left">
-                                            <p>Automatically reply with "." when response completes</p>
+                                            <p>Automatically reply with "continue" when response completes (5s cooldown)</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -424,6 +444,7 @@ export function InputBar({
                                 size="sm"
                                 onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
                                 className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                                disabled={disabled} // Reflect outer disabled state
                             >
                                 <Wrench className="h-3 w-3 mr-1" />
                                 <span>Tools</span>
@@ -440,7 +461,8 @@ export function InputBar({
                                                         <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
                                                             <span className="truncate max-w-[100px]">{tool.name}</span>
                                                             <button onClick={() => handleRemoveTool(tool.guid)}
-                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                disabled={disabled}> {/* Reflect outer disabled state */}
                                                                 <X className="h-3 w-3" />
                                                             </button>
                                                         </div>
@@ -459,6 +481,7 @@ export function InputBar({
                                                     <div
                                                         className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
                                                         onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                                        aria-disabled={disabled} // Use aria-disabled for non-button elements
                                                     >
                                                         +{activeTools.length - visibleToolCount} more
                                                     </div>

@@ -225,7 +225,7 @@ namespace AiStudio4.Services
                     {
                         var serverDefinitionId = toolResponse.ToolName.Split("_")[0];
                         //var serverDefinition = serverDefinitions.Single(x => x.Id == serverDefinitionName);
-                        var result2 = JObject.Parse(toolResponse.ResponseText).ToObject<Dictionary<string, object>>();
+                        //var result2 = JObject.Parse(toolResponse.ResponseText).ToObject<Dictionary<string, object>>();
                         var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
                         var retVal = await _mcpService.CallToolAsync(serverDefinitionId, string.Join("_",toolResponse.ToolName.Split("_").Skip(1)), result);
 
