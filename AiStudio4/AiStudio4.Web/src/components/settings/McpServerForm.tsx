@@ -61,9 +61,9 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="text-gray-200">Name</FormLabel>
               <FormControl>
-                <Input placeholder="MCP Server Name" {...field} />
+                <Input placeholder="MCP Server Name" className="bg-gray-700/50 border-gray-600 text-gray-100" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -75,11 +75,11 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
           name="command"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Command</FormLabel>
+              <FormLabel className="text-gray-200">Command</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., uvx" {...field} />
+                <Input placeholder="e.g., uvx" className="bg-gray-700/50 border-gray-600 text-gray-100" {...field} />
               </FormControl>
-              <FormDescription>
+              <FormDescription className="text-gray-400">
                 The command to start the MCP server process
               </FormDescription>
               <FormMessage />
@@ -92,11 +92,11 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
           name="arguments"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Arguments</FormLabel>
+              <FormLabel className="text-gray-200">Arguments</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., blender-mcp" {...field} />
+                <Input placeholder="e.g., blender-mcp" className="bg-gray-700/50 border-gray-600 text-gray-100" {...field} />
               </FormControl>
-              <FormDescription>
+              <FormDescription className="text-gray-400">
                 Command-line arguments for the MCP server
               </FormDescription>
               <FormMessage />
@@ -109,10 +109,11 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel className="text-gray-200">Description</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Describe what this MCP server does" 
+                  className="bg-gray-700/50 border-gray-600 text-gray-100"
                   {...field} 
                 />
               </FormControl>
@@ -125,10 +126,10 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
           control={form.control}
           name="isEnabled"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-3">
+            <FormItem className="flex items-center justify-between rounded-lg border p-3 border-gray-700 bg-gray-800/50">
               <div className="space-y-0.5">
-                <FormLabel>Enabled</FormLabel>
-                <FormDescription>
+                <FormLabel className="text-gray-200">Enabled</FormLabel>
+                <FormDescription className="text-gray-400">
                   Whether this MCP server should be available for use
                 </FormDescription>
               </div>
@@ -147,11 +148,19 @@ const McpServerForm: React.FC<McpServerFormProps> = ({ initialData, onSuccess, o
         
         <div className="flex justify-end space-x-2 pt-4">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+            >
               Cancel
             </Button>
           )}
-          <Button type="submit">
+          <Button 
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             {initialData ? 'Update' : 'Create'} Server
           </Button>
         </div>
