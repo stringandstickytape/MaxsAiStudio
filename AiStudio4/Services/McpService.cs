@@ -51,30 +51,44 @@ namespace AiStudio4.Services
                 if (!_serverDefinitions.Any())
                 {
                     _logger.LogInformation("No MCP server definitions found, creating default 'Everything' server.");
-                    var defaultDefinition = new McpServerDefinition
+                    _serverDefinitions.Add(new McpServerDefinition
                     {
-                        Id = "everything",
-                        Name = "Everything",
+                        Id = "blendermcp",
+                        Name = "Blender",
                         Command = "uvx",
                         Arguments = "blender-mcp", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = true
+                        IsEnabled = false
                         
-                    };
-                    //var env = new Dictionary<string, string>();
-                    //env.Add("EVERYTHING_SDK_PATH", "C:\\Program Files\\Everything\\Everything64.dll");
-                    //var defaultDefinition = new McpServerDefinition
-                    //{
-                    //    Id = "everything",
-                    //    Name = "Everything",
-                    //    Command = "uvx",
-                    //    Arguments = "mcp-server-everything-search", // Note: This might need changing if uvx expects different args for 'Everything'
-                    //    Description = "Example MCP server using uvx (Update arguments if needed)",
-                    //    IsEnabled = true,
-                    //    Env = env
-                    //
-                    //};
-                    _serverDefinitions.Add(defaultDefinition);
+                    });
+
+                    _serverDefinitions.Add(new McpServerDefinition
+                    {
+                        Id = "claudecode",
+                        Name = "ClaudeCode",
+                        Command = "uvx",
+                        Arguments = "--from mcp-claude-code claudecode --allow-path C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool", 
+                        Description = "Example MCP server using uvx (Update arguments if needed)",
+                        IsEnabled = false
+
+                    });
+
+
+                    var env = new Dictionary<string, string>();
+                    env.Add("EVERYTHING_SDK_PATH", "C:\\Program Files\\Everything\\Everything64.dll");
+                    _serverDefinitions.Add(
+                        new McpServerDefinition
+                    {
+                        Id = "everythingsearch",
+                        Name = "Everything File Search",
+                        Command = "uvx",
+                        Arguments = "mcp-server-everything-search", // Note: This might need changing if uvx expects different args for 'Everything'
+                        Description = "Example MCP server using uvx (Update arguments if needed)",
+                        IsEnabled = true,
+                        Env = env
+                    
+                    })
+                        ;
                     SaveDefinitions();
                 }
 

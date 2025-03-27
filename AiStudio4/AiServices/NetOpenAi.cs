@@ -90,7 +90,7 @@ namespace AiStudio4.AiServices
                 // Configure chat completion options
                 ChatCompletionOptions chatOptions = new ChatCompletionOptions
                 {
-                    Temperature = (float)options.ApiSettings.Temperature
+                   //Temperature = (float)options.ApiSettings.Temperature
                 };
 
                 // Add tools if specified
@@ -275,7 +275,7 @@ namespace AiStudio4.AiServices
                                 ToolResponseSet.Tools.Add(toolResponseItem);
                             }
 
-                            if (!string.IsNullOrEmpty(toolCall.FunctionArgumentsUpdate.ToString()))
+                            if (toolCall.FunctionArgumentsUpdate.ToArray().Length > 0 && !string.IsNullOrEmpty(toolCall.FunctionArgumentsUpdate.ToString()))
                             {
                                 string argumentUpdate = toolCall.FunctionArgumentsUpdate.ToString();
                                 responseBuilder.Append(argumentUpdate);
@@ -355,13 +355,14 @@ namespace AiStudio4.AiServices
 
                 foreach (var tool in tools)
                 {
+                    var schema = /*ModifySchema(*/tool.InputSchema.ToString();
 
                     options.Tools.Add(
                         ChatTool.CreateFunctionTool(
-                       functionName: tool.Name.Replace(" ", ""),
-                       functionDescription: tool.Description,
-                       functionParameters: BinaryData.FromString(tool.InputSchema.ToString()),
-                       functionSchemaIsStrict: true)
+                       functionName: $"{serverDefinition.Id.Replace(" ", "")}_{tool.Name.Replace(" ","")}",
+                functionDescription: tool.Description,
+                       functionParameters: BinaryData.FromString(schema),
+                       functionSchemaIsStrict: false)
                         );
                 }
 
@@ -369,7 +370,33 @@ namespace AiStudio4.AiServices
 
         }
 
-       private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)
+        string ModifySchema(string json) => System.Text.Json.JsonSerializer.Serialize(
+    System.Text.Json.JsonDocument.Parse(json).RootElement.ValueKind == System.Text.Json.JsonValueKind.Object ?
+    AddAdditionalPropertiesFalseToRequiredObjects(System.Text.Json.JsonDocument.Parse(json).RootElement) :
+    System.Text.Json.JsonDocument.Parse(json).RootElement);
+
+        dynamic AddAdditionalPropertiesFalseToRequiredObjects(System.Text.Json.JsonElement element) =>
+            element.ValueKind == System.Text.Json.JsonValueKind.Object ?
+                element.EnumerateObject().Any(p => p.Name == "required") && !element.EnumerateObject().Any(p => p.Name == "additionalProperties") ?
+                    element.EnumerateObject().Aggregate(new System.Collections.Generic.Dictionary<string, object>(),
+                        (dict, prop) => {
+                            dict[prop.Name] = prop.Name == "properties" ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
+                                         prop.Value.ValueKind == System.Text.Json.JsonValueKind.Object ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
+                                         prop.Value.ValueKind == System.Text.Json.JsonValueKind.Array ? prop.Value.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
+                                         System.Text.Json.JsonSerializer.Deserialize<object>(prop.Value.GetRawText()); return dict;
+                        })
+                        .Concat(new[] { new KeyValuePair<string, object>("additionalProperties", false) })
+                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value) :
+                    element.EnumerateObject().ToDictionary(
+                        prop => prop.Name,
+                        prop => prop.Value.ValueKind == System.Text.Json.JsonValueKind.Object ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
+                                prop.Value.ValueKind == System.Text.Json.JsonValueKind.Array ? prop.Value.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
+                                System.Text.Json.JsonSerializer.Deserialize<object>(prop.Value.GetRawText())) :
+            element.ValueKind == System.Text.Json.JsonValueKind.Array ?
+                element.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
+                System.Text.Json.JsonSerializer.Deserialize<object>(element.GetRawText());
+
+        private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)
        {
             // Get tool definition from your service
             var toolDef = await ToolService.GetToolByIdAsync(toolId);

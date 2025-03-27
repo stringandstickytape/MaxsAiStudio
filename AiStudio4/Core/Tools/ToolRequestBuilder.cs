@@ -28,7 +28,7 @@ namespace AiStudio4.Core.Tools
                 foreach (var tool in tools)
                 {
                     var obj = new JObject();
-                    obj["name"] = tool.Name.ToString();
+                    obj["name"] = $"{serverDefinition.Id.Replace(" ", "")}_{tool.Name.Replace(" ", "")}";
                     obj["description"] = tool.Description.ToString();
                     obj["input_schema"] =  JToken.Parse(tool.InputSchema.ToString());
 

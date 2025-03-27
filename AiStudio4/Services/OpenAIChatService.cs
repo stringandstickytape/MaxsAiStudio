@@ -9,6 +9,7 @@ using AiStudio4.DataModels;
 using AiStudio4.Convs;
 using Newtonsoft.Json;
 using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AiStudio4.Services
 {
@@ -222,11 +223,13 @@ namespace AiStudio4.Services
                 {
                     foreach (var toolResponse in response.ToolResponseSet.Tools)
                     {
-                        //Dictionary<string, object> dict = JObject.Parse(toolResponse.ToolJson).ToObject<Dictionary<string, object>>();
-                        var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() :CustomJsonParser.ParseJson(toolResponse.ResponseText);
-                        var retVal = await _mcpService.CallToolAsync(serverDefinitions[0].Id, toolResponse.ToolName, result);
+                        var serverDefinitionId = toolResponse.ToolName.Split("_")[0];
+                        //var serverDefinition = serverDefinitions.Single(x => x.Id == serverDefinitionName);
+                        var result2 = JObject.Parse(toolResponse.ResponseText).ToObject<Dictionary<string, object>>();
+                        var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
+                        var retVal = await _mcpService.CallToolAsync(serverDefinitionId, string.Join("_",toolResponse.ToolName.Split("_").Skip(1)), result);
 
-                        response.ResponseText += $"\r\n{toolResponse.ToolName} Result: {retVal.Content[0].Text}\r\n\r\n";
+                        response.ResponseText += $"\r\n\r\n{toolResponse.ToolName} Result: {retVal.Content[0].Text.Replace("\n\n","\n----------\n").Replace("\n","\n\n")}\r\n\r\n";
                     }
                 }
                 

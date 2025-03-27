@@ -9,6 +9,17 @@
         Title="AiStudio4" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen">
     <Grid>
-        <controls:AiStudioWebView2 x:Name="webView" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_MCP Servers" Name="McpServersMenuItem" Loaded="McpServersMenuItem_Loaded"/>
+        </Menu>
+        <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
     </Grid>
 </Window>
