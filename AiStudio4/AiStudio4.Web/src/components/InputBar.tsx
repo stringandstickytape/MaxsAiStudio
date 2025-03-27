@@ -13,12 +13,12 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useConvStore } from '@/stores/useConvStore';
 import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface InputBarProps {
     selectedModel: string;
@@ -52,7 +52,11 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
-    const lastAutoReplyTimestampRef = useRef<number>(0); // Ref to store the timestamp of the last auto-reply
+    const lastAutoReplyTimestampRef = useRef<number>(0);
+    const autoReplyCooldownRef = useRef<number>(5000); // 5 seconds cooldown
+    
+    // Track if an auto-reply is already in progress to prevent multiple triggers
+    const autoReplyInProgressRef = useRef<boolean>(false);
 
     const [localInputText, setLocalInputText] = useState('');
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -233,41 +237,18 @@ export function InputBar({
 
                 const textAttachments = attachments.filter(att => att.textContent);
                 const textFileContent = formatTextAttachments(textAttachments);
-                const fullMessage = (inputText ? inputText : ".") + textFileContent;
+                const fullMessage = (inputText ? inputText : "continue") + textFileContent;
                 console.log("HandleSend -> ChatMessage");
                 handleChatMessage(fullMessage);
             })();
     };
 
+    // Handle cancellation state cleanup
     useEffect(() => {
         if (!isLoading && isCancelling) {
             setIsCancelling(false);
         }
-
-        const AUTO_REPLY_COOLDOWN = 5000; // 5 seconds in milliseconds
-        const now = Date.now();
-
-        // Auto-reply with "." when the chat completes and autoReplyEnabled is true, respecting cooldown
-        if (!isLoading && currentRequest && autoReplyEnabled) {
-            if (now - lastAutoReplyTimestampRef.current >= AUTO_REPLY_COOLDOWN) {
-                console.log("Auto-reply triggered (cooldown passed).");
-
-                // Update timestamp immediately to enforce cooldown for subsequent checks
-                lastAutoReplyTimestampRef.current = now;
-
-                // Optional small delay for UI updates before sending
-                const SEND_DELAY = 100; // milliseconds
-                setTimeout(() => {
-                    console.log("Executing delayed auto-reply action.");
-                    setInputText(".");
-                    handleSend();
-                }, SEND_DELAY);
-
-            } else {
-                console.log(`Auto-reply skipped due to cooldown. Time remaining: ${Math.round((AUTO_REPLY_COOLDOWN - (now - lastAutoReplyTimestampRef.current)) / 1000)}s`);
-            }
-        }
-    }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]); // Dependencies for the effect
+    }, [isLoading, isCancelling, setIsCancelling]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -402,28 +383,6 @@ export function InputBar({
                                     <Send className="h-5 w-5" />
                                 )}
                             </Button>
-
-                            <div className="flex items-center justify-center gap-1">
-                                <Checkbox
-                                    id="auto-reply"
-                                    checked={autoReplyEnabled}
-                                    onCheckedChange={(checked) => setAutoReplyEnabled(checked === true)}
-                                    className="bg-gray-800 border-gray-600"
-                                    disabled={disabled} // Reflect outer disabled state
-                                />
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <label htmlFor="auto-reply" className={`text-[10px] text-gray-400 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-                                                Auto
-                                            </label>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="left">
-                                            <p>Automatically reply with "continue" when response completes (5s cooldown)</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
                         </div>
                     </div>
                 </div>

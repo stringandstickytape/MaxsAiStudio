@@ -44,8 +44,7 @@ namespace AiStudio4.Services
             {
                 if (_isInitialized) return;
 
-                //LoadDefinitions();
-                _serverDefinitions = new List<McpServerDefinition>();
+                LoadDefinitions();
 
                 // Create default if none exist
                 if (!_serverDefinitions.Any())
