@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using SharedClasses.Providers;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
@@ -27,6 +28,7 @@ namespace AiStudio4.InjectedDependencies
         private readonly IServiceProvider _serviceProvider;
         private readonly IChatService _chatService;
         private readonly ClientRequestCancellationService _cancellationService;
+        private readonly IMcpService _mcpService;
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -40,7 +42,8 @@ namespace AiStudio4.InjectedDependencies
             IUserPromptService userPromptService,
             IServiceProvider serviceProvider,
             IChatService chatService,
-            ClientRequestCancellationService cancellationService
+            ClientRequestCancellationService cancellationService,
+            IMcpService mcpService
             )
         {
             _configuration = configuration;
@@ -55,6 +58,7 @@ namespace AiStudio4.InjectedDependencies
             _serviceProvider = serviceProvider;
             _chatService = chatService;
             _cancellationService = cancellationService;
+            _mcpService = mcpService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -131,6 +135,12 @@ namespace AiStudio4.InjectedDependencies
                     "exportUserPrompts" => await HandleExportUserPromptsRequest(),
                     "simpleChat" => await HandleSimpleChatRequest(requestObject),
                     "cancelRequest" => await HandleCancelRequestAsync(clientId, requestObject),
+                    "mcpServers/getAll" => await HandleGetAllMcpServersRequest(),
+                    "mcpServers/getById" => await HandleGetMcpServerByIdRequest(requestObject),
+                    "mcpServers/add" => await HandleAddMcpServerRequest(requestObject),
+                    "mcpServers/update" => await HandleUpdateMcpServerRequest(requestObject),
+                    "mcpServers/delete" => await HandleDeleteMcpServerRequest(requestObject),
+                    "mcpServers/getTools" => await HandleGetMcpServerToolsRequest(requestObject),
                     _ => throw new NotImplementedException()
                 }; ;
             }
@@ -872,6 +882,110 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error processing simple chat request: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region MCP Server Request Handlers
+        private async Task<string> HandleGetAllMcpServersRequest()
+        {
+            try
+            {
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var servers = await _mcpService.GetAllServerDefinitionsAsync();
+                return JsonConvert.SerializeObject(new { success = true, servers });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving MCP servers: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetMcpServerByIdRequest(JObject requestObject)
+        {
+            try
+            {
+                string serverId = requestObject["serverId"]?.ToString();
+                if (string.IsNullOrEmpty(serverId)) return SerializeError("Server ID cannot be empty");
+                
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var server = await _mcpService.GetServerDefinitionByIdAsync(serverId);
+                if (server == null) return SerializeError($"MCP server with ID {serverId} not found");
+                
+                return JsonConvert.SerializeObject(new { success = true, server });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving MCP server: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleAddMcpServerRequest(JObject requestObject)
+        {
+            try
+            {
+                var server = requestObject.ToObject<McpServerDefinition>();
+                if (server == null) return SerializeError("Invalid MCP server data");
+                
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var result = await _mcpService.AddServerDefinitionAsync(server);
+                return JsonConvert.SerializeObject(new { success = true, server = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error adding MCP server: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleUpdateMcpServerRequest(JObject requestObject)
+        {
+            try
+            {
+                var server = requestObject.ToObject<McpServerDefinition>();
+                if (server == null || string.IsNullOrEmpty(server.Id)) 
+                    return SerializeError("Invalid MCP server data or missing server ID");
+                
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var result = await _mcpService.UpdateServerDefinitionAsync(server);
+                return JsonConvert.SerializeObject(new { success = true, server = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error updating MCP server: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleDeleteMcpServerRequest(JObject requestObject)
+        {
+            try
+            {
+                string serverId = requestObject["serverId"]?.ToString();
+                if (string.IsNullOrEmpty(serverId)) return SerializeError("Server ID cannot be empty");
+                
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var success = await _mcpService.DeleteServerDefinitionAsync(serverId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error deleting MCP server: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetMcpServerToolsRequest(JObject requestObject)
+        {
+            try
+            {
+                string serverId = requestObject["serverId"]?.ToString();
+                if (string.IsNullOrEmpty(serverId)) return SerializeError("Server ID cannot be empty");
+                
+                await _mcpService.InitializeAsync(); // Ensure service is initialized
+                var tools = await _mcpService.ListToolsAsync(serverId);
+                return JsonConvert.SerializeObject(new { success = true, tools });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving MCP server tools: {ex.Message}");
             }
         }
         #endregion
