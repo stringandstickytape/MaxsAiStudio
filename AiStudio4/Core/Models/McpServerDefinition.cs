@@ -16,5 +16,6 @@ namespace AiStudio4.Core.Models
         public string Description { get; set; } = string.Empty;
         public DateTime LastModified { get; set; } = DateTime.UtcNow;
         public Dictionary<string, string> Env { get; set; }
+        public bool StdIo { get; set; } = true;
     }
 }

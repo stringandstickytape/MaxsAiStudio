@@ -229,7 +229,9 @@ namespace AiStudio4.Services
                         var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
                         var retVal = await _mcpService.CallToolAsync(serverDefinitionId, string.Join("_",toolResponse.ToolName.Split("_").Skip(1)), result);
 
-                        response.ResponseText += $"\r\n\r\n{toolResponse.ToolName} Result: {retVal.Content[0].Text.Replace("\n\n","\n----------\n").Replace("\n","\n\n")}\r\n\r\n";
+                        response.ResponseText += $"\r\n\r\n{toolResponse.ToolName}";
+                    if(retVal.Content.Count > 0)
+                            response.ResponseText += $"Result: {retVal.Content[0].Text.Replace("\n\n","\n----------\n").Replace("\n","\n\n")}\r\n\r\n";
                     }
                 }
                 

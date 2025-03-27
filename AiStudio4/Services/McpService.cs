@@ -64,6 +64,18 @@ namespace AiStudio4.Services
 
                     _serverDefinitions.Add(new McpServerDefinition
                     {
+                        Id = "fusion",
+                        Name = "mcp-server-fusion",
+                        Command = "http://127.0.0.1:6050/sse",
+                        Description = "Example MCP server using uvx (Update arguments if needed)",
+                        IsEnabled = false,
+                        StdIo = false
+
+
+                    });
+
+                    _serverDefinitions.Add(new McpServerDefinition
+                    {
                         Id = "claudecode",
                         Name = "ClaudeCode",
                         Command = "uvx",
@@ -358,17 +370,23 @@ namespace AiStudio4.Services
                 {
                     Id = definition.Id,
                     Name = definition.Name,
-                    TransportType = TransportTypes.StdIo,
+                    TransportType = definition.StdIo ? TransportTypes.StdIo : TransportTypes.Sse,
                     TransportOptions = new Dictionary<string, string>
                     {
                         { "command", definition.Command },
                         { "arguments", definition.Arguments ?? string.Empty },
-                    }
+                    },
+                    Location = definition.Command
                 };
 
                 if(definition.Env != null && definition.Env.Any())
                 {
                     serverInfo.TransportOptions.Add($"env:{definition.Env.First().Key}", definition.Env.First().Value);
+                }
+
+                if(serverInfo.TransportType == "sse")
+                {
+                    //serverInfo.TransportOptions.Add("uriString", serverInfo.TransportOptions["command"]);
                 }
 
                 var newClient = await McpClientFactory.CreateAsync(serverInfo, clientOptions);
