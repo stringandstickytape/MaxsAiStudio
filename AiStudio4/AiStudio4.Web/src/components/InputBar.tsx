@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface InputBarProps {
     selectedModel: string;
@@ -55,6 +56,7 @@ export function InputBar({
     const [localInputText, setLocalInputText] = useState('');
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
+    const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
 
     
     const {
@@ -234,8 +236,19 @@ export function InputBar({
     };
 
     useEffect(() => {
-        !isLoading && isCancelling && setIsCancelling(false);
-    }, [isLoading, isCancelling, setIsCancelling]);
+        if (!isLoading && isCancelling) {
+            setIsCancelling(false);
+        }
+        
+        // Auto-reply with "." when the chat completes and autoReplyEnabled is true
+        if (!isLoading && currentRequest && autoReplyEnabled) {
+            // Small delay to ensure UI updates first
+            setTimeout(() => {
+                setInputText(".");
+                handleChatMessage(".");
+            }, 100);
+        }
+    }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.ctrlKey) {
@@ -355,20 +368,43 @@ export function InputBar({
                             </Button>
                         )}
 
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handleSend}
-                            className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn`}
-                            aria-label={isLoading ? 'Cancel' : 'Send message'}
-                            disabled={isCancelling}
-                        >
-                            {isLoading ? (
-                                <X className="h-5 w-5" />
-                            ) : (
-                                <Send className="h-5 w-5" />
-                            )}
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleSend}
+                                className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn`}
+                                aria-label={isLoading ? 'Cancel' : 'Send message'}
+                                disabled={isCancelling}
+                            >
+                                {isLoading ? (
+                                    <X className="h-5 w-5" />
+                                ) : (
+                                    <Send className="h-5 w-5" />
+                                )}
+                            </Button>
+                            
+                            <div className="flex items-center justify-center gap-1">
+                                <Checkbox 
+                                    id="auto-reply"
+                                    checked={autoReplyEnabled}
+                                    onCheckedChange={(checked) => setAutoReplyEnabled(checked === true)}
+                                    className="bg-gray-800 border-gray-600"
+                                />
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <label htmlFor="auto-reply" className="text-[10px] text-gray-400 cursor-pointer">
+                                                Auto
+                                            </label>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="left">
+                                            <p>Automatically reply with "." when response completes</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

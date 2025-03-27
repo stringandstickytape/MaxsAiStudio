@@ -22,7 +22,7 @@ export function SystemPromptDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 max-w-3xl h-[80vh] p-0">
-        <div className="h-full overflow-hidden">
+        <div className="h-full ">
           <SystemPromptLibrary
             convId={activeConvId || undefined}
             onApplyPrompt={async (prompt) => {
