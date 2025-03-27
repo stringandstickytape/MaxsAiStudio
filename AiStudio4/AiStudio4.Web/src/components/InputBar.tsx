@@ -246,7 +246,7 @@ export function InputBar({
             setTimeout(() => {
                 setInputText(".");
                 handleChatMessage(".");
-            }, 100);
+            }, 2500);
         }
     }, [isLoading, isCancelling, setIsCancelling, currentRequest, autoReplyEnabled, setInputText, handleChatMessage]);
 

@@ -253,7 +253,15 @@ namespace AiStudio4.Services
                 }
 
                 var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
-                await File.WriteAllTextAsync(path, promptId);
+
+                try
+                {
+                    await File.WriteAllTextAsync(path, promptId);
+                }
+                catch
+                {
+
+                }
 
                 return true;
             }, $"setting system prompt for conv {convId}");
