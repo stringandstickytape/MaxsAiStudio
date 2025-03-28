@@ -310,7 +310,7 @@ export function InputBar({
         <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
                 {/* System Prompt - Moved to be first child */}
-                <div className="mb-2 bg-gray-800/40 rounded-lg flex-shrink-0">
+                <div className="mb-2 rounded-lg flex-shrink-0">
                     <SystemPromptComponent
                         convId={activeConvId || undefined}
                         onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}

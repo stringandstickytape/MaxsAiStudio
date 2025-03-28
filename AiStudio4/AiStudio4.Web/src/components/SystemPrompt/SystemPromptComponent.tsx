@@ -152,20 +152,19 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
 
   return (
     <div 
-      className="relative w-full min-h-[32px] bg-gray-800/30 rounded" 
+      className="relative w-full" 
       ref={promptRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      
       <div 
         className={cn(
-          "absolute inset-0 px-3 py-2 cursor-pointer transition-opacity duration-200 ease-in-out",
+          "absolute inset-0 cursor-pointer transition-opacity duration-200 ease-in-out", // Removed px-3 py-2
           (isHovered || expanded) ? "opacity-0 pointer-events-none" : "opacity-100"
         )}
         onClick={() => setIsHovered(true)}
       >
-        <span className="text-gray-300 text-sm truncate block w-full">{currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
+        <span className="text-gray-300 text-sm truncate block w-full">System Prompt: {currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
       </div>
       
       
@@ -175,15 +174,15 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           (isHovered || expanded) ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div
+
+        <div // Removed border border-gray-700/50 rounded-lg
           className={cn(
-            'border border-gray-700/50 rounded-lg transition-all duration-200',
-            expanded ? 'bg-gray-800/60' : 'bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer',
+            'transition-all duration-200',
+            expanded ? '' : 'cursor-pointer',
           )}
         >
-          <div className="px-3 py-2 flex items-center justify-between" onClick={!expanded ? toggleExpand : undefined}>
+          <div className="flex items-center justify-between" onClick={!expanded ? toggleExpand : undefined}>
             <div className="flex items-center">
-              <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
               <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
             </div>
             {expanded ? (
@@ -194,7 +193,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           </div>
 
           {expanded && (
-            <div className="absolute left-0 right-0 bottom-full mb-1 p-3 bg-gray-900/95 border border-gray-700/50 rounded-lg shadow-lg z-50 max-w-2xl mx-auto">
+            <div className="absolute left-0 right-0 bottom-full z-50 max-w-2xl mx-auto">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
@@ -231,7 +230,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                     placeholder="Enter your system prompt here..."
                   />
 
-                  <div className="flex justify-end gap-2 mt-3">
+                  <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -239,14 +238,14 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                         if (currentPrompt) setPromptContent(currentPrompt.content);
                         setEditMode(false);
                       }}
-                      className="text-xs h-8 bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+                      className="text-xs h-8 text-gray-200 border-gray-600"
                     >
                       Cancel
                     </Button>
                     <Button
                       size="sm"
                       onClick={handleSavePrompt}
-                      className="text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                      className="text-xs h-8 text-white"
                     >
                       Save Changes
                     </Button>
@@ -254,16 +253,16 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 </>
               ) : (
                 <>
-                  <pre className="p-2 bg-gray-700/30 rounded border border-gray-700/50 text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto">
+                  <pre className="text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto">
                     {currentPrompt?.content || 'No system prompt content'}
                   </pre>
 
-                  <div className="flex justify-end mt-3">
+                  <div className="flex justify-end">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleOpenLibrary}
-                      className="text-xs h-8 bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+                      className="text-xs h-8 text-gray-200 border-gray-600"
                     >
                       Manage Prompts
                     </Button>
