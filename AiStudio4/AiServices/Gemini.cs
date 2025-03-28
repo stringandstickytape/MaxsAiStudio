@@ -1,4 +1,5 @@
 using AiStudio4.Convs;
+using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,8 @@ namespace AiStudio4.AiServices
 
     internal class Gemini : AiServiceBase
         {
-        private readonly List<GenImage> _generatedImages = new List<GenImage>();
+private readonly List<GenImage> _generatedImages = new List<GenImage>();
+        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
         
         public Gemini()
         {
@@ -28,8 +30,10 @@ namespace AiStudio4.AiServices
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
         {
-            // Clear any previously generated images
+// Clear any previously generated images
             _generatedImages.Clear();
+            // Reset ToolResponseSet for each new request
+            ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
             var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
             
@@ -230,12 +234,17 @@ namespace AiStudio4.AiServices
                             {
                                 //var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
 
+                                var toolName = jsonResponse["name"]?.ToString();
+                                var toolArgs = jsonResponse["args"].ToString();
+                                
+                                
                                 return new AiResponse
                                 {
-                                    ResponseText = jsonResponse["args"].ToString(),
+                                    ResponseText = toolArgs,
                                     Success = !cancellationToken.IsCancellationRequested,
                                     TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
-                                    ChosenTool = jsonResponse["name"]?.ToString()
+                                    ChosenTool = toolName,
+                                    ToolResponseSet = ToolResponseSet
                                 };
                             }
                         }
@@ -265,7 +274,8 @@ namespace AiStudio4.AiServices
                             Success = !cancellationToken.IsCancellationRequested,
                             TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
                             ChosenTool = null,
-                            Attachments = attachments.Count > 0 ? attachments : null
+                            Attachments = attachments.Count > 0 ? attachments : null,
+                            ToolResponseSet = ToolResponseSet
                         };
                 }
                 }
@@ -356,13 +366,37 @@ namespace AiStudio4.AiServices
                     }
                 }
                 
+                // Process tool calls if present
+                if (chosenTool != null)
+                {
+                    if (completion["candidates"]?[0]?["content"]?["parts"] is JArray partsX)
+                    {
+                        foreach (var part in partsX)
+                        {
+                            if (part["functionCall"] != null)
+                            {
+                                string toolName = part["functionCall"]["name"]?.ToString();
+                                string toolArguments = part["functionCall"]["args"]?.ToString() ?? "{}";
+                                
+                                // Add to ToolResponseSet
+                                ToolResponseSet.Tools.Add(new ToolResponseItem
+                                {
+                                    ToolName = toolName,
+                                    ResponseText = toolArguments
+                                });
+                            }
+                        }
+                    }
+                }
+                
                 return new AiResponse
                 {
                     ResponseText = ExtractResponseText(completion),
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokens, outputTokens),
                     ChosenTool = chosenTool,
-                    Attachments = attachments.Count > 0 ? attachments : null
+                    Attachments = attachments.Count > 0 ? attachments : null,
+                    ToolResponseSet = ToolResponseSet
                 };
             }
             else
@@ -375,6 +409,7 @@ namespace AiStudio4.AiServices
         private string inputTokenCount = "";
         private string outputTokenCount = "";
         private string chosenTool = null;
+        private ToolResponseItem currentResponseItem = null;
         private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
         {
             if (!string.IsNullOrWhiteSpace(jsonString))
@@ -392,7 +427,28 @@ namespace AiStudio4.AiServices
                             if (part["functionCall"] != null)
                             {
                                 var toolResponse = JsonConvert.SerializeObject(part["functionCall"]);
-                                chosenTool = part["functionCall"]["name"]?.ToString();
+                                var toolName = part["functionCall"]["name"]?.ToString();
+                                var toolArgs = part["functionCall"]["args"]?.ToString() ?? "{}";
+                                
+                                chosenTool = toolName;
+                                
+                                // If this is a new tool call, create a new response item
+                                if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
+                                {
+                                    currentResponseItem = new ToolResponseItem
+                                    {
+                                        ToolName = toolName,
+                                        ResponseText = toolArgs
+                                    };
+                                    
+                                    ToolResponseSet.Tools.Add(currentResponseItem);
+                                }
+                                else
+                                {
+                                    // Append to existing response text for this tool
+                                    currentResponseItem.ResponseText += toolArgs;
+                                }
+                                
                                 fullResponse.Append(toolResponse);
                                 OnStreamingDataReceived(toolResponse);
                             }
