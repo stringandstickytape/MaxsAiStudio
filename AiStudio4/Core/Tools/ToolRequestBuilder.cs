@@ -282,13 +282,23 @@ namespace AiStudio4.Core.Tools
         ""title"": ""Path"",
         ""type"": ""string""
       },
-""edits"": {
-  ""items"": {
-    ""type"": ""object"",
-  },
-  ""title"": ""Edits"",
-  ""type"": ""array""
-},
+        ""edits"": {
+          ""items"": {
+            ""properties"": {
+              ""path"": {
+                ""title"": ""oldText"",
+                ""type"": ""string""
+              },
+              ""path"": {
+                ""title"": ""newText"",
+                ""type"": ""string""
+              }
+            },
+            ""type"": ""object"",
+          },
+          ""title"": ""Edits"",
+          ""type"": ""array""
+        },
       ""dry_run"": {
         ""title"": ""Dry Run"",
         ""type"": ""boolean""

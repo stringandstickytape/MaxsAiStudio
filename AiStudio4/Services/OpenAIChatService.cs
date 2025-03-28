@@ -223,6 +223,9 @@ namespace AiStudio4.Services
                 {
                     foreach (var toolResponse in response.ToolResponseSet.Tools)
                     {
+                        if (!toolResponse.ToolName.Contains("_"))
+                            continue;
+
                         var serverDefinitionId = toolResponse.ToolName.Split("_")[0];
                         //var serverDefinition = serverDefinitions.Single(x => x.Id == serverDefinitionName);
                         //var result2 = JObject.Parse(toolResponse.ResponseText).ToObject<Dictionary<string, object>>();
