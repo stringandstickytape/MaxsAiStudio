@@ -13,16 +13,7 @@ interface WebSocketStore {
   currentRequest?: { convId: string; messageId: string };
 
   
-  connect: () => void;
-  disconnect: () => void;
-  send: (messageType: string, content: any) => void;
-  updateConnectionStatus: (status: WebSocketConnectionStatus) => void;
-  updateLastMessageTime: (time: number) => void;
-  setConnected: (isConnected: boolean) => void;
-  setClientId: (clientId: string) => void;
-  setReconnectAttempts: (attempts: number) => void;
-  incrementReconnectAttempts: () => void;
-  resetReconnectAttempts: () => void;
+
   setIsCancelling: (isCancelling: boolean) => void;
   setCurrentRequest: (request: { convId: string; messageId: string } | undefined) => void;
 }
@@ -68,54 +59,6 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     currentRequest: undefined,
 
     
-    connect: () => {
-      webSocketService.connect();
-      
-    },
-
-    disconnect: () => {
-      webSocketService.disconnect();
-      
-    },
-
-    send: (messageType, content) => {
-      webSocketService.send({ messageType, content });
-      set({ lastMessageTime: Date.now() });
-    },
-
-    updateConnectionStatus: (status) => {
-      
-      
-      console.warn('updateConnectionStatus is deprecated - connection status is now managed automatically');
-    },
-
-    updateLastMessageTime: (time) => {
-      set({ lastMessageTime: time });
-    },
-
-    
-    
-    setConnected: (isConnected) => {
-      set({ isConnected });
-      console.warn('setConnected is deprecated - connection status is now managed automatically');
-    },
-
-    setClientId: (clientId) => {
-      set({ clientId });
-      console.warn('setClientId is deprecated - connection status is now managed automatically');
-    },
-
-    setReconnectAttempts: (attempts) => {
-      set({ reconnectAttempts: attempts });
-    },
-
-    incrementReconnectAttempts: () => {
-      set((state) => ({ reconnectAttempts: state.reconnectAttempts + 1 }));
-    },
-
-    resetReconnectAttempts: () => {
-      set({ reconnectAttempts: 0 });
-    },
 
     setIsCancelling: (isCancelling) => {
       set({ isCancelling });
