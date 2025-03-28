@@ -99,7 +99,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
 
             if (showRawContent[blockId] === undefined) {
-                setShowRawContent((prev) => ({ ...prev, [blockId]: true }));
+                setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
             }
 
             const isRawView = showRawContent[blockId];
