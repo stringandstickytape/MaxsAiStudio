@@ -1,7 +1,9 @@
 using AiStudio4.AiServices;
 using AiStudio4.Core.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Newtonsoft.Json.Linq;
 using OpenAI.Chat;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace AiStudio4.Core.Tools
@@ -17,6 +19,8 @@ namespace AiStudio4.Core.Tools
             this.mcpService = mcpService;
         }
 
+
+
         public async Task AddMcpServiceToolsToRequestAsync(JObject request, ToolFormat format)
         {
             var serverDefinitions = await mcpService.GetAllServerDefinitionsAsync();
@@ -25,8 +29,19 @@ namespace AiStudio4.Core.Tools
             {
                 var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
 
+                int ctr = 0;
+
                 foreach (var tool in tools)
                 {
+                    if (ctr == 2)
+                    {
+                        ctr++;
+                        continue;
+                    }
+
+                    //if (ctr == 4)
+                    //    continue;
+
                     var obj = new JObject();
                     obj["name"] = $"{serverDefinition.Id.Replace(" ", "")}_{tool.Name.Replace(" ", "")}";
                     obj["description"] = tool.Description.ToString();
@@ -49,7 +64,10 @@ namespace AiStudio4.Core.Tools
                             ConfigureClaudeFormat(request, obj);
                             break;
                     }
+
+                    ctr++;
                 }
+
 
             }
 
@@ -123,19 +141,164 @@ namespace AiStudio4.Core.Tools
             };
         }
 
+        private JObject ConvertToolToGemini(JObject toolConfig)
+        {
+            var functionObject = toolConfig;
+            var parameters = functionObject["parameters"];
+            var properties = parameters["properties"];
+            var required = parameters["required"];
+
+            var convertedProperties = new JObject();
+            foreach (var property in properties.Cast<JProperty>())
+            {
+                
+                var prop = property.Value;
+                if (prop["type"] != null)
+                {
+                    convertedProperties[property.Name] = new JObject
+                    {
+                        ["type"] = prop["type"].ToString().ToUpper(),
+                        ["description"] = prop["description"]
+                    };
+                }
+            }
+
+            return new JObject
+            {
+                    ["name"] = functionObject["name"],
+                    ["description"] = functionObject["description"],
+                    ["parameters"] = new JObject
+                    {
+                        ["type"] = parameters["type"].ToString().ToUpper(),
+                        ["properties"] = convertedProperties,
+                        ["required"] = required
+                    }
+            };
+        }
+
+        public static JObject RemoveDefaultProperties(JObject jObject)
+        {
+            if (jObject == null)
+                return null;
+
+            // Find properties to remove at the current level
+            var propertiesToRemove = jObject.Properties()
+                .Where(p => p.Name == "default" ||
+                           (p.Name == "type" && p.Value.Type == JTokenType.String && p.Value.ToString() == "null"))
+                .ToList();
+
+            // Remove the found properties
+            foreach (var property in propertiesToRemove)
+            {
+                property.Remove();
+            }
+
+
+
+            // Process nested objects - using ToList() to create a copy since we may modify during iteration
+            foreach (var property in jObject.Properties().ToList())
+            {
+                if (property.Value is JObject nestedObject)
+                {
+                    // Recursively process nested objects
+                    RemoveDefaultProperties(nestedObject);
+
+                    // Remove the property if the nested object is now empty
+                    if (!nestedObject.HasValues)
+                    {
+                        property.Remove();
+                    }
+                }
+                else if (property.Value is JArray jArray)
+                {
+                    // Process arrays of objects
+                    ProcessJArray(jArray);
+
+                    // Remove the property if the array is now empty
+                    if (jArray.Count == 0)
+                    {
+                        property.Remove();
+                    }
+                }
+            }
+
+            // Rename additionalProperties to properties
+            var additionalPropertiesProperty = jObject.Property("additionalProperties");
+            if (additionalPropertiesProperty != null)
+            {
+                // Create a new property with the name "properties" and the value from "additionalProperties"
+                jObject["properties"] = new JObject();
+                jObject["properties"]["additionalProperties"] = additionalPropertiesProperty.Value;
+                jObject["properties"]["type"] = "object";
+                // Remove the old "additionalProperties" property
+                additionalPropertiesProperty.Remove();
+            }
+
+            return jObject;
+        }
+
+        private static void ProcessJArray(JArray jArray)
+        {
+            // Process each item in the array - using ToList() to create a copy since we may modify during iteration
+            for (int i = jArray.Count - 1; i >= 0; i--)
+            {
+                var item = jArray[i];
+
+                if (item is JObject nestedObject)
+                {
+                    // Recursively process objects in the array
+                    RemoveDefaultProperties(nestedObject);
+
+                    // Remove the item if the object is now empty
+                    if (!nestedObject.HasValues)
+                    {
+                        jArray.RemoveAt(i);
+                    }
+                }
+                else if (item is JArray nestedArray)
+                {
+                    // Recursively process nested arrays
+                    ProcessJArray(nestedArray);
+
+                    // Remove the item if the nested array is now empty
+                    if (nestedArray.Count == 0)
+                    {
+                        jArray.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
         private void ConfigureGeminiFormat(JObject request, JObject toolConfig)
         {
             toolConfig["parameters"] = toolConfig["input_schema"];
             toolConfig.Remove("input_schema");
-            RemoveAllOfAnyOfOneOf(toolConfig);
+            RemoveDefaultProperties(toolConfig);
 
-            request["tools"] = new JArray
+            if (request["tools"] == null)
+            {
+                request["tools"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["function_declarations"] = new JArray( )
+                    }
+                };
+            };
+
+            ((JArray)request["tools"][0]["function_declarations"]).Add(toolConfig);
+            
+
+              /*  request["tools"] = new JArray
             {
                 new JObject
                 {
                     ["function_declarations"] = new JArray { toolConfig }
                 }
-            };
+            };*/
+
+
+
             request["tool_config"] = new JObject
             {
                 ["function_calling_config"] = new JObject
@@ -143,6 +306,9 @@ namespace AiStudio4.Core.Tools
                     ["mode"] = "ANY"
                 }
             };
+
+
+
         }
 
         private void ConfigureOllamaFormat(JObject request, JObject toolConfig)
@@ -150,37 +316,11 @@ namespace AiStudio4.Core.Tools
             request["format"] = toolConfig;
         }
 
-        private void RemoveAllOfAnyOfOneOf(JObject obj)
+        private void RemoveDeletedAndAddditionalProps(JObject obj)
         {
             if (obj == null) return;
 
-            var propertiesToRemove = new List<string>();
-            foreach (var property in obj.Properties())
-            {
-                if (property.Name == "allOf" || property.Name == "anyOf" || property.Name == "oneOf")
-                {
-                    propertiesToRemove.Add(property.Name);
-                }
-                else if (property.Value is JObject)
-                {
-                    RemoveAllOfAnyOfOneOf((JObject)property.Value);
-                }
-                else if (property.Value is JArray)
-                {
-                    foreach (var item in (JArray)property.Value)
-                    {
-                        if (item is JObject)
-                        {
-                            RemoveAllOfAnyOfOneOf((JObject)item);
-                        }
-                    }
-                }
-            }
 
-            foreach (var prop in propertiesToRemove)
-            {
-                obj.Remove(prop);
-            }
         }
 
     }

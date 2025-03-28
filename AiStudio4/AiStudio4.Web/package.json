@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",
+    "@hpcc-js/wasm": "^2.22.4",
     "@mdx-js/esbuild": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@radix-ui/react-accordion": "^1.2.3",
@@ -44,6 +45,7 @@
     "@tanstack/react-virtual": "^3.13.2",
     "@types/mdx": "^2.0.13",
     "@types/uuid": "^10.0.0",
+    "@viz-js/viz": "^3.11.0",
     "axios": "^1.8.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -77,6 +79,7 @@
     "use-stick-to-bottom": "^1.0.46",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
+    "viz.js": "^2.1.2",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
   },

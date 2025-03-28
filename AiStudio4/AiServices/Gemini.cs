@@ -176,7 +176,7 @@ namespace AiStudio4.AiServices
                 request.Content = content;
                 using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
-                    response.EnsureSuccessStatusCode();
+                    
                     using (var stream = await response.Content.ReadAsStreamAsync())
                     using (var reader = new StreamReader(stream))
                     {
@@ -209,6 +209,8 @@ namespace AiStudio4.AiServices
                                 jsonBuffer.Clear();
                             }
                         }
+
+                        //response.EnsureSuccessStatusCode();
 
                         if (cancellationToken.IsCancellationRequested)
                         {
@@ -433,6 +435,11 @@ namespace AiStudio4.AiServices
                     {
                         inputTokenCount = streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+                    }
+
+                    if (streamData["error"] != null)
+                    {
+                        fullResponse.Append(streamData["error"]["message"]);
                     }
                 }
                 catch (JsonReaderException ex)
