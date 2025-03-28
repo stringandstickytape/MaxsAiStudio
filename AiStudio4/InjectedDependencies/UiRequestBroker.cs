@@ -254,7 +254,7 @@ namespace AiStudio4.InjectedDependencies
         {
             try
             {
-                string toolId = requestObject["toolId"]?.ToString();
+                string toolId = requestObject["guid"]?.ToString();
                 if (string.IsNullOrEmpty(toolId)) return SerializeError("Tool ID cannot be empty");
                 
                 var success = await _toolService.DeleteToolAsync(toolId);

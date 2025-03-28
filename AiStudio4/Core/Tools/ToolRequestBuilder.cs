@@ -272,37 +272,43 @@ namespace AiStudio4.Core.Tools
 
             if (toolConfig["name"].ToString() == "claudecode_edit_file")
             {
+                return;
+
                 var json = toolConfig.ToString();
+
+
                 json = @"{
   ""name"": ""claudecode_edit_file"",
   ""description"": ""Make line-based edits to a text file.\n\nEach edit replaces exact line sequences with new content.\nReturns a git-style diff showing the changes made.\nOnly works within allowed directories.\n\nArgs:\n    path: Path\n    edits: Edits\n    dry_run: Dry Run (optional)\n\nReturns:\n    Result of the operation"",
   ""parameters"": {
     ""properties"": {
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string""
-      },
-        ""edits"": {
-          ""items"": {
-            ""properties"": {
-              ""path"": {
-                ""title"": ""oldText"",
-                ""type"": ""string""
-              },
-              ""path"": {
-                ""title"": ""newText"",
-                ""type"": ""string""
-              }
-            },
-            ""type"": ""object"",
-          },
-          ""title"": ""Edits"",
-          ""type"": ""array""
-        },
-      ""dry_run"": {
-        ""title"": ""Dry Run"",
-        ""type"": ""boolean""
-      }
+
+""path"": {
+                    ""type"": ""string"",
+                    ""description"": ""The absolute path to the file to modify (must be absolute, not relative)"",
+                },
+                ""edits"": {
+                    ""items"": {
+                        ""properties"": {
+                            ""oldText"": {
+                                ""type"": ""string"",
+                                ""description"": ""The text to replace (must be unique within the file, and must match the file contents exactly, including all whitespace and indentation)"",
+                                },
+                            ""newText"": {
+                                ""type"": ""string"",
+                                ""description"": ""The edited text to replace the old_string"",
+                                },
+                            },
+                        ""type"": ""object""
+                    },
+                    ""description"":""List of edit operations [{\""oldText\"": \""...\"", \""newText\"": \""...\""}]"",
+                    ""type"": ""array""
+                },
+                ""dry_run"": {
+                    ""type"": ""boolean"",
+                    ""description"": ""If true, do not write changes to the file""
+                }
+
     },
     ""required"": [
       ""path"",
@@ -312,6 +318,7 @@ namespace AiStudio4.Core.Tools
     ""type"": ""object""
   }
 }";
+
                 toolConfig = JsonConvert.DeserializeObject<JObject>(json);
             }
 
