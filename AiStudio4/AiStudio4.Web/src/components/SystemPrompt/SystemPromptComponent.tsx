@@ -165,7 +165,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         )}
         onClick={() => setIsHovered(true)}
       >
-        <span className="text-gray-300 text-sm truncate block w-full">{getPromptDisplayText()}</span>
+        <span className="text-gray-300 text-sm truncate block w-full">{currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
       </div>
       
       
@@ -184,7 +184,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           <div className="px-3 py-2 flex items-center justify-between" onClick={!expanded ? toggleExpand : undefined}>
             <div className="flex items-center">
               <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
-              <span className="text-gray-300 text-sm truncate">{currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
+              <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
             </div>
             {expanded ? (
               <ChevronUp className="h-4 w-4 text-gray-400 cursor-pointer" onClick={toggleExpand} />
