@@ -4,6 +4,8 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { BookMarked, Pencil, PlusCircle } from 'lucide-react';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 
+import { useModalStore } from '@/stores/useModalStore';
+
 interface UserPromptCommandsConfig {
   toggleLibrary: () => void;
   createNewPrompt: () => void;
@@ -28,7 +30,7 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
         shortcut('U'),
         ['user', 'prompt', 'library', 'collection', 'manage', 'browse', 'template', 'snippet'],
         React.createElement(BookMarked, { size: 16 }),
-        () => config.toggleLibrary(),
+        () => useModalStore.getState().openModal('userPrompt'),
       ],
       [
         'create-new-user-prompt',

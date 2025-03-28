@@ -1,5 +1,6 @@
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { useModalStore } from '@/stores/useModalStore';
 import { v4 as uuidv4 } from 'uuid';
 import { Mic, Send, BookMarked, X, Wrench } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
@@ -347,7 +348,7 @@ export function InputBar({
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => window.dispatchEvent(new CustomEvent('open-user-prompt-library'))}
+                            onClick={() => useModalStore.getState().openModal('userPrompt')}
                             className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                             aria-label="User prompts"
                             disabled={isLoading || disabled} // Reflect outer disabled state

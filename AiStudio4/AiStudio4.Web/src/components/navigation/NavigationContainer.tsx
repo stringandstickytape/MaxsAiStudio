@@ -4,8 +4,6 @@ import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { Sidebar } from '../Sidebar';
 import { SettingsPanel } from '@/components/SettingsPanel';
-import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibrary';
-import { UserPromptLibrary } from '@/components/UserPrompt/UserPromptLibrary';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -101,7 +99,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} /> : null),
       },
     ],
-    [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState],
+    [wsState],
   );
 
   return (

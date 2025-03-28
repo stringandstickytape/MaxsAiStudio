@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { useModalStore } from '@/stores/useModalStore';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
 import { useCommandStore } from '@/stores/useCommandStore';
@@ -14,25 +15,25 @@ export function CommandInitializationPlugin() {
   
   useEffect(() => {
     if (systemPrompts.length > 0) {
-      registerSystemPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-system-prompt-library')));
+      registerSystemPromptsAsCommands(() => useModalStore.getState().openModal('systemPrompt'));
     }
   }, [systemPrompts]);
   
   
   useEffect(() => {
     if (userPrompts.length > 0) {
-      registerUserPromptsAsCommands(() => window.dispatchEvent(new CustomEvent('open-user-prompt-library')));
+      registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
     }
   }, [userPrompts]);
   
   
   useEffect(() => {
     const handleSystemPromptsUpdate = () => {
-      registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+      registerSystemPromptsAsCommands(() => useModalStore.getState().openModal('systemPrompt'));
     };
     
     const handleUserPromptsUpdate = () => {
-      registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
+      registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
     };
     
     window.addEventListener('system-prompts-updated', handleSystemPromptsUpdate);

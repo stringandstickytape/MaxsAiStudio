@@ -5,6 +5,8 @@ import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
 
+import { useModalStore } from '@/stores/useModalStore';
+
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
     createNewPrompt: () => void;
@@ -29,7 +31,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 shortcut('P'),
                 ['system', 'prompt', 'library', 'collection', 'manage', 'browse'],
                 React.createElement(MessageSquare, { size: 16 }),
-                () => config.toggleLibrary(),
+                () => useModalStore.getState().openModal('systemPrompt'),
             ],
             [
                 'create-new-system-prompt',
@@ -103,7 +105,7 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
             }),
             execute: () => {
                 setCurrentPrompt(prompt);
-                toggleLibrary();
+                useModalStore.getState().openModal('systemPrompt');
             },
         };
     });
