@@ -1,6 +1,7 @@
 using AiStudio4.AiServices;
 using AiStudio4.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenAI.Chat;
 using System.Diagnostics;
@@ -33,11 +34,6 @@ namespace AiStudio4.Core.Tools
 
                 foreach (var tool in tools)
                 {
-                    if (ctr == 2)
-                    {
-                        ctr++;
-                        continue;
-                    }
 
                     //if (ctr == 4)
                     //    continue;
@@ -273,7 +269,46 @@ namespace AiStudio4.Core.Tools
         {
             toolConfig["parameters"] = toolConfig["input_schema"];
             toolConfig.Remove("input_schema");
-            RemoveDefaultProperties(toolConfig);
+
+            if (toolConfig["name"].ToString() == "claudecode_edit_file")
+            {
+                var json = toolConfig.ToString();
+                json = @"{
+  ""name"": ""claudecode_edit_file"",
+  ""description"": ""Make line-based edits to a text file.\n\nEach edit replaces exact line sequences with new content.\nReturns a git-style diff showing the changes made.\nOnly works within allowed directories.\n\nArgs:\n    path: Path\n    edits: Edits\n    dry_run: Dry Run (optional)\n\nReturns:\n    Result of the operation"",
+  ""parameters"": {
+    ""properties"": {
+      ""path"": {
+        ""title"": ""Path"",
+        ""type"": ""string""
+      },
+""edits"": {
+  ""items"": {
+    ""type"": ""object"",
+  },
+  ""title"": ""Edits"",
+  ""type"": ""array""
+},
+      ""dry_run"": {
+        ""title"": ""Dry Run"",
+        ""type"": ""boolean""
+      }
+    },
+    ""required"": [
+      ""path"",
+      ""edits""
+    ],
+    ""title"": ""edit_fileArguments"",
+    ""type"": ""object""
+  }
+}";
+                toolConfig = JsonConvert.DeserializeObject<JObject>(json);
+            }
+
+            else
+            {
+                RemoveDefaultProperties(toolConfig);
+            }
 
             if (request["tools"] == null)
             {
