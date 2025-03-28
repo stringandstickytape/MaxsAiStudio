@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, ChevronUp, MessageSquare, Settings } from 'lucide-react';
+import { ChevronDown, ChevronUp, MessageSquare, Settings, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -194,7 +194,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           </div>
 
           {expanded && (
-            <div className="absolute left-0 right-0 top-full mt-1 p-3 bg-gray-900/95 border border-gray-700/50 rounded-lg shadow-lg z-50 max-w-2xl mx-auto">
+            <div className="absolute left-0 right-0 bottom-full mb-1 p-3 bg-gray-900/95 border border-gray-700/50 rounded-lg shadow-lg z-50 max-w-2xl mx-auto">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
@@ -209,7 +209,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                     onClick={toggleEdit}
                     className="h-7 w-7 text-gray-400 hover:text-gray-100"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"

@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
+import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -57,7 +58,19 @@ function App() {
     } catch (error) {
       console.error('Error checking panel data:', error);
     }
-  };
+    };
+
+    // Effect to handle opening the system prompt library modal via event
+    useEffect(() => {
+        const handleOpenSystemPromptLibrary = () => {
+            console.log("Event 'open-system-prompt-library' received, opening modal...");
+            useModalStore.getState().openModal('systemPrompt');
+        };
+        window.addEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
+        return () => {
+            window.removeEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
+        };
+    }, []); // Empty dependency array ensures this runs once on mount
 
   
   useEffect(() => {
@@ -105,7 +118,8 @@ function App() {
       }
     };
     
-    
+
+
     window.addEventListener(PANEL_EVENTS.BEFORE_UNLOAD, handleBeforeUnload);
     document.addEventListener(PANEL_EVENTS.VISIBILITY_CHANGE, handleVisibilityChange);
     
