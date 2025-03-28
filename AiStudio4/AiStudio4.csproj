@@ -6,10 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-	  <BaseIntermediateOutputPath>C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\build\obj\</BaseIntermediateOutputPath>
-  <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <BaseOutputPath>C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\build\bin</BaseOutputPath>
-    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
 	<ItemGroup>
