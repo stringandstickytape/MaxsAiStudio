@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
+import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 
 interface InputBarProps {
     selectedModel: string;
@@ -308,11 +309,21 @@ export function InputBar({
     return (
         <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
-                <div className="flex-1 flex gap-2">
-                    <div className="relative flex-1">
+                {/* System Prompt - Moved to be first child */}
+                <div className="mb-2 bg-gray-800/40 rounded-lg flex-shrink-0">
+                    <SystemPromptComponent
+                        convId={activeConvId || undefined}
+                        onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}
+                    />
+                </div>
+                {/* Middle Section (Textarea, Attachments, Buttons) - Now second child */}
+                <div className="flex-1 flex gap-2 overflow-hidden mb-2"> {/* Added mb-2 for spacing */}
+                    {/* Textarea Column - Made flex-col */}
+                    <div className="relative flex-1 flex flex-col">
+                        {/* Textarea - Made flex-1 to grow */}
                         <Textarea
                             ref={textareaRef}
-                            className="w-full h-[120px] p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
+                            className="flex-1 w-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost" // Changed h-full to flex-1
                             value={inputText}
                             onChange={handleTextAreaInput}
                             onClick={handleTextAreaClick}
@@ -321,9 +332,10 @@ export function InputBar({
                             placeholder="Type your message here... (Ctrl+Enter to send)"
                             disabled={isLoading || disabled} // Reflect outer disabled state
                             showLineCount={true}
-                            style={{ height: '100%' }}
+                        // style={{ height: '100%' }} // Removed inline style, flex-1 handles height
                         />
                     </div>
+
 
                     {attachments.length > 0 && (
                         <div className="w-14 flex-shrink-0 overflow-auto">
@@ -388,7 +400,7 @@ export function InputBar({
                     </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-700/30">
+                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0"> {/* Added flex-shrink-0 */}
                     <div className="flex items-center">
                         <div className="flex items-center">
                             <ModelStatusBar

@@ -3,7 +3,6 @@ import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react';
-import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -173,12 +172,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     return (
         <div className="w-full h-full flex flex-col gap-4 p-4">
 
-            <div className="mb-2 bg-gray-800/40 rounded-lg">
-                <SystemPromptComponent
-                    convId={activeConvId || undefined}
-                    onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}
-                />
-            </div>
 
             {hasMoreToLoad && (
                 <button
