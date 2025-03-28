@@ -16,13 +16,16 @@ import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;
   convId?: string;
+    initialEditPromptId?: string; // Add prop to receive initial edit ID
+    onEditorClosed?: () => void; // Add prop to handle editor close
 }
 
-export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibraryProps) {
+export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId, onEditorClosed }: SystemPromptLibraryProps) {
   
   const { prompts, defaultPromptId, convPrompts, setPrompts, setCurrentPrompt } = useSystemPromptStore();
 
-  
+    
+
   const { activeConvId: storeConvId } = useConvStore();
 
   
@@ -40,7 +43,24 @@ export function SystemPromptLibrary({ onApplyPrompt, convId }: SystemPromptLibra
     }
   }, [serverPrompts, setPrompts]);
 
-  const handleCreatePrompt = () => {
+    useEffect(() => {
+        if (initialEditPromptId && prompts.length > 0) {
+            const promptToEditOnInit = prompts.find(p => p.guid === initialEditPromptId);
+            if (promptToEditOnInit) {
+                setPromptToEdit(promptToEditOnInit);
+                setShowEditor(true);
+            } else {
+                console.warn(`SystemPromptLibrary: Prompt with initialEditPromptId=${initialEditPromptId} not found.`);
+            }
+        }
+        // Intentionally only run when the component mounts or the specific ID changes, 
+        // and prompts are loaded. Resetting when the dialog re-opens without an ID is handled implicitly.
+        // We include setters in dependency array for correctness, although often implicitly handled.
+    }, [initialEditPromptId, prompts, setPromptToEdit, setShowEditor]);
+
+
+    const handleCreatePrompt = () => {
+        onEditorClosed?.(); // Call the callback to close the dialog
     setPromptToEdit(null);
     setShowEditor(true);
   };

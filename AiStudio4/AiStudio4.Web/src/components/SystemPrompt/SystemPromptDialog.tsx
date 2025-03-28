@@ -5,7 +5,7 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 export function SystemPromptDialog() {
-    const { openModalId, closeModal } = useModalStore();
+    const { openModalId, closeModal, modalProps } = useModalStore();
     const isOpen = openModalId === 'systemPrompt';
 
     const { activeConvId } = useConvStore();
@@ -16,6 +16,11 @@ export function SystemPromptDialog() {
             closeModal();
         }
     };
+    const handleEditorClose = () => {
+        closeModal();
+    };
+
+    const editPromptId = modalProps?.editPromptId as string | undefined;
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="w-[900px] max-w-none h-[700px] max-h-[90vh] flex flex-col p-0">
@@ -26,6 +31,7 @@ export function SystemPromptDialog() {
                     {isOpen && (
                         <SystemPromptLibrary
                             convId={activeConvId || undefined}
+                            initialEditPromptId={editPromptId} // Pass the ID from modal props
                             onApplyPrompt={async (prompt) => {
                                 const convId = activeConvId;
                                 const promptId = prompt?.guid || prompt?.Guid;
@@ -43,8 +49,9 @@ export function SystemPromptDialog() {
                                         promptId
                                     });
                                 }
-                                closeModal();
+                                closeModal(); // Close dialog on apply
                             }}
+                            onEditorClosed={handleEditorClose} // Pass the close handler
                         />
                     )}
                 </div>

@@ -21,6 +21,7 @@ import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
+import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
 export function CommandInitializer() {
   const { togglePanel } = usePanelStore();
   const { models, handleModelSelect } = useModelManagement();
@@ -85,8 +86,7 @@ export function CommandInitializer() {
         window.localStorage.setItem('systemPrompt_action', 'create');
       },
       editPrompt: (promptId) => {
-        window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
-        window.localStorage.setItem('systemPrompt_edit', promptId);
+        useModalStore.getState().openModal('systemPrompt', { editPromptId: promptId });
       },
     });
 
