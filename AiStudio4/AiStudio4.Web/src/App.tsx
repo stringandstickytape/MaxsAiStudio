@@ -7,6 +7,7 @@ import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
 import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
 import { ToolDialog } from './components/tools/ToolDialog';
+import SettingsDialog from './components/modals/SettingsDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -151,7 +152,8 @@ function App() {
       
       <SystemPromptDialog />
       <UserPromptDialog />
-      <ToolDialog />
+          <ToolDialog />
+          <SettingsDialog />
     </FontSizeProvider>
   );
 }

@@ -2,6 +2,7 @@
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';
+import { useModalStore } from '@/stores/useModalStore';
 
 
 type CommandEvent = 'edit-model' | 'edit-provider' | 'settings-tab';
@@ -70,7 +71,8 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
       icon,
       execute: () => {
         commandEvents.emit('settings-tab', tabName);
-        config.openSettings();
+        // config.openSettings(); // Original call using passed function
+        useModalStore.getState().openModal('settings'); // Directly open the modal
       },
     })),
   });
@@ -98,7 +100,8 @@ export function registerModelCommands(
       
       commandEvents.emit('settings-tab', 'models');
       commandEvents.emit('edit-model', model.guid);
-      openSettings();
+      // openSettings(); // Original call using passed function
+      useModalStore.getState().openModal('settings'); // Directly open the modal
     },
   }));
 
@@ -132,7 +135,8 @@ export function registerProviderCommands(
       
       commandEvents.emit('settings-tab', 'providers');
       commandEvents.emit('edit-provider', provider.guid);
-      openSettings();
+      // openSettings(); // Original call using passed function
+      useModalStore.getState().openModal('settings'); // Directly open the modal
     },
   }));
 

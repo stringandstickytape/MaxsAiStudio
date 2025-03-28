@@ -100,18 +100,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         zIndex: 40,
         render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} /> : null),
       },
-      {
-        id: 'settings',
-        position: 'right',
-        size: '320px',
-        minWidth: '320px',
-        maxWidth: '450px',
-        width: '320px',
-        zIndex: 40,
-        title: 'Settings',
-        render: (isOpen) => (isOpen ? <SettingsPanel /> : null),
-      },
-      
     ],
     [activeConvId, convs, selectedConvId, setConvPrompt, setConvSystemPrompt, wsState],
   );

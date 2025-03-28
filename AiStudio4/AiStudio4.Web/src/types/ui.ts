@@ -9,3 +9,4 @@ export interface PanelState {
   zIndex: number;
   title: string;
 }
+export type ModalId = 'settings' | 'systemPrompt' | 'userPrompt' | 'tool' | string;

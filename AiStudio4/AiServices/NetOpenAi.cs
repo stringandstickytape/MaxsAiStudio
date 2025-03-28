@@ -355,7 +355,7 @@ namespace AiStudio4.AiServices
 
                 foreach (var tool in tools)
                 {
-                    var schema = /*ModifySchema(*/tool.InputSchema.ToString();
+                    var schema = ModifySchema(tool.InputSchema.ToString());
 
                     options.Tools.Add(
                         ChatTool.CreateFunctionTool(
@@ -405,11 +405,13 @@ namespace AiStudio4.AiServices
 
             var obj = JsonConvert.DeserializeObject(toolDef.Schema);
 
-           // Convert to OpenAI format
-           return ChatTool.CreateFunctionTool(
+            var schema = ModifySchema(((JObject)obj)["input_schema"].ToString().Replace("\r", "").ToString());
+
+            // Convert to OpenAI format
+            return ChatTool.CreateFunctionTool(
                functionName: toolDef.Name.Replace(" ",""),
                functionDescription: toolDef.Description.Replace(" ",""),
-               functionParameters: BinaryData.FromString(((JObject)obj)["input_schema"].ToString().Replace("\r", "")),
+               functionParameters: BinaryData.FromString(schema),
                functionSchemaIsStrict: true
            );
        }
