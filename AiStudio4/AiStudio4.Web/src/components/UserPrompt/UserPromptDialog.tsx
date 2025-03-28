@@ -12,7 +12,7 @@ export function UserPromptDialog() {
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="w-[900px] max-w-none h-[700px] max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 pt-6 pb-2">
+        <DialogHeader className="px-6 pt-6 pb-2 border-b border-gray-700">
                     <DialogTitle>User Prompts</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-hidden">
