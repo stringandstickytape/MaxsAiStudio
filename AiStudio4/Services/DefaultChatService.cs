@@ -168,7 +168,7 @@ namespace AiStudio4.Services
                 }
 
                 const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
-                const string STOP_TOOL_NAME = "Stop"; // Name of the tool that signals the end of the loop
+                
 
                 int currentIteration = 0;
                 bool continueLoop = true;
@@ -251,109 +251,10 @@ namespace AiStudio4.Services
                     };
                     conv.messages.Add(assistantMessage);
 
-                    var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
+                    accumulatedCostInfo = new TokenCost();
+                    finalAttachments = new List<Attachment>();
 
-                    // Check if tools were called
-                    if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
-                    {
-                        _logger.LogInformation("No tools called or no enabled servers, exiting loop.");
-                        accumulatedCostInfo = new TokenCost();
-                        finalAttachments = new List<Attachment>();
-                        continueLoop = false; // Exit loop if no tools are called
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
-                        bool stopToolCalled = false;
-                        var toolResultMessages = new List<LinearConvMessage>();
-
-                        foreach (var toolResponse in response.ToolResponseSet.Tools)
-                        {
-                            // Check for the Stop tool
-                            if (toolResponse.ToolName.Equals(STOP_TOOL_NAME, StringComparison.OrdinalIgnoreCase))
-                            {
-                                _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", STOP_TOOL_NAME);
-                                stopToolCalled = true;
-                                // We still add a result for the stop tool if needed, but signal loop termination
-                            }
-
-                            string toolResultMessageContent = "";
-                            string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
-
-                            try
-                            {
-                                // Check if it's an MCP tool
-                                if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
-                                {
-                                    var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
-                                    var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
-                                    //var toolParameters = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
-
-                                    var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
-                                        ? new List<Dictionary<string, object>>()
-                                        : ExtractMultipleJsonObjects(toolResponse.ResponseText)
-                                            .Select(json => CustomJsonParser.ParseJson(json))
-                                            .ToList();
-
-                                    foreach (var toolParameterSet in setsOfToolParameters)
-                                    {
-                                        _logger.LogDebug("Calling MCP tool: {ServerId} -> {ToolName}", serverDefinitionId, actualToolName);
-                                        var retVal = await _mcpService.CallToolAsync(serverDefinitionId, actualToolName, toolParameterSet);
-
-                                        // TODO: Decide how to format retVal.Content into a single string or structured JSON for the model
-                                        if (retVal.Content.Count == 0)
-                                        {
-                                            toolResultMessageContent += "\nTool executed successfully with no return content.\n";
-                                        }
-                                        else
-                                        {
-                                            toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
-                                            toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
-                                            toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
-                                        }
-                                        _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
-                                    }
-
-                                }
-                                else
-                                {
-                                    // Handle non-MCP tools or tools where the server definition is missing/disabled
-                                    _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool.", toolResponse.ToolName);
-
-                                    var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
-
-                                    toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
-
-                                    //toolResultMessageContent = $"Error: Tool '{toolResponse.ToolName}' is not a recognized or enabled MCP tool.";
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
-                                toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
-                            }
-
-                            // Add tool result message to conversation history
-                            toolResultMessages.Add(new LinearConvMessage
-                            {
-                                role = "tool",
-                                content = toolResultMessageContent
-                            });
-
-
-                            collatedResponse.AppendLine(toolResultMessageContent);
-                        }
-
-                        foreach (var message in toolResultMessages)
-                        {
-                            conv.messages.Last().content += message.content;
-                        }
-
-                        if (stopToolCalled)
-                        {
-                            continueLoop = false; // Exit loop after processing results if Stop was called
-                        }
-                    }
+                    continueLoop = await ProcessTools(continueLoop, response, conv, collatedResponse);
 
                     // If the loop should continue, add a user message to prompt the next step
                     if (continueLoop && currentIteration < MAX_ITERATIONS)
@@ -368,7 +269,7 @@ namespace AiStudio4.Services
                     }
 
                 } // --- End of Tool Use Loop ---
-                
+
 
 
                 _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
@@ -388,7 +289,115 @@ namespace AiStudio4.Services
             }
         }
 
-            private static List<string> ExtractMultipleJsonObjects(string jsonText)
+        const string STOP_TOOL_NAME = "Stop"; // Name of the tool that signals the end of the loop
+        private async Task<bool> ProcessTools(bool continueLoop, AiResponse response, LinearConv conv, StringBuilder collatedResponse)
+        {
+            var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
+
+            // Check if tools were called
+            if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
+            {
+                _logger.LogInformation("No tools called or no enabled servers, exiting loop.");
+                continueLoop = false; // Exit loop if no tools are called
+            }
+            else
+            {
+                _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
+                bool stopToolCalled = false;
+                var toolResultMessages = new List<LinearConvMessage>();
+
+                foreach (var toolResponse in response.ToolResponseSet.Tools)
+                {
+                    // Check for the Stop tool
+                    if (toolResponse.ToolName.Equals(STOP_TOOL_NAME, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", STOP_TOOL_NAME);
+                        stopToolCalled = true;
+                        // We still add a result for the stop tool if needed, but signal loop termination
+                    }
+
+                    string toolResultMessageContent = "";
+                    string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
+
+                    try
+                    {
+                        // Check if it's an MCP tool
+                        if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
+                        {
+                            var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
+                            var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
+                            //var toolParameters = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
+
+                            var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
+                                ? new List<Dictionary<string, object>>()
+                                : ExtractMultipleJsonObjects(toolResponse.ResponseText)
+                                    .Select(json => CustomJsonParser.ParseJson(json))
+                                    .ToList();
+
+                            foreach (var toolParameterSet in setsOfToolParameters)
+                            {
+                                _logger.LogDebug("Calling MCP tool: {ServerId} -> {ToolName}", serverDefinitionId, actualToolName);
+                                var retVal = await _mcpService.CallToolAsync(serverDefinitionId, actualToolName, toolParameterSet);
+
+                                // TODO: Decide how to format retVal.Content into a single string or structured JSON for the model
+                                if (retVal.Content.Count == 0)
+                                {
+                                    toolResultMessageContent += "\nTool executed successfully with no return content.\n";
+                                }
+                                else
+                                {
+                                    toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
+                                    toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
+                                    toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
+                                }
+                                _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
+                            }
+
+                        }
+                        else
+                        {
+                            // Handle non-MCP tools or tools where the server definition is missing/disabled
+                            _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool.", toolResponse.ToolName);
+
+                            var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+
+                            toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+
+                            //toolResultMessageContent = $"Error: Tool '{toolResponse.ToolName}' is not a recognized or enabled MCP tool.";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
+                        toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
+                    }
+
+                    // Add tool result message to conversation history
+                    toolResultMessages.Add(new LinearConvMessage
+                    {
+                        role = "tool",
+                        content = toolResultMessageContent
+                    });
+
+
+                    collatedResponse.AppendLine(toolResultMessageContent);
+                }
+
+                foreach (var message in toolResultMessages)
+                {
+                    conv.messages.Last().content += message.content;
+                }
+
+                if (stopToolCalled)
+                {
+                    continueLoop = false; // Exit loop after processing results if Stop was called
+                }
+            }
+
+            return continueLoop;
+        }
+
+        private static List<string> ExtractMultipleJsonObjects(string jsonText)
         {
             var result = new List<string>();
             var textReader = new StringReader(jsonText);
