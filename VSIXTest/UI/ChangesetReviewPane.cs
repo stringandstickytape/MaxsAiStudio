@@ -389,7 +389,7 @@ _changeDetailsTextBox.Text = FormatChangeDetails(change, filePath);
                 {
                     _dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindCode);
                     var selection = _dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                    selection.GotoLine(change.lineNumber, true);
+                    selection.GotoLine((change.lineNumber == 0 ? 1 : change.lineNumber), true);
                 }
                 catch (Exception ex)
                 {

@@ -20,7 +20,7 @@ namespace VSIXTest
         /// <returns>The modified file content if a match is found, or the original content if no match is found.</returns>
         public string ReplaceTextAtHint(string sourceFile, string oldText, string newText, int lineNumberHint)
         {
-            if (string.IsNullOrEmpty(sourceFile) || string.IsNullOrEmpty(oldText))
+            if (string.IsNullOrEmpty(sourceFile))
                 return sourceFile;
 
             // Properly split texts with newline preservation
@@ -31,6 +31,13 @@ namespace VSIXTest
             // Add logging for debugging purposes
             System.Diagnostics.Debug.WriteLine($"Source text has {sourceTextInfo.Lines.Count} lines");
             System.Diagnostics.Debug.WriteLine($"Old text has {oldTextInfo.Lines.Count} lines");
+
+            if(string.IsNullOrEmpty(oldText))
+            {
+                sourceTextInfo.Lines.InsertRange(lineNumberHint-1, newTextInfo.Lines);
+                return string.Join("\n", sourceTextInfo.Lines);
+                // insert newTextInfo lines at sourceTextInfo[lineNumberHint]
+            }
 
             // Handle empty file case
             if (sourceTextInfo.Lines.Count == 0)
