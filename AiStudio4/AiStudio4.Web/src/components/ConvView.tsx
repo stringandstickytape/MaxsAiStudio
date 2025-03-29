@@ -338,7 +338,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             {(streamTokens.length > 0 || isStreaming) && (
                 <div key="streaming-message"
                     className="w-full group flex flex-col relative mb-4">
-                    <div className="message-container px-4 py-3 rounded-lg bg-gray-800 shadow-md w-full">
+                    <div className="message-container px-4 py-3 rounded-lg bg-gray-800 shadow-md w-full break-words">
                         {(isCancelling || isCancel) && (
                             <div className="mb-2 p-2 text-yellow-400 bg-yellow-900/20 rounded border border-yellow-800/50 text-sm">
                                 Cancelling request...
