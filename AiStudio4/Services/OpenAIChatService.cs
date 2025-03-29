@@ -10,6 +10,8 @@ using AiStudio4.Convs;
 using Newtonsoft.Json;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
+using System.Text;
+using System.IO;
 
 namespace AiStudio4.Services
 {
@@ -140,7 +142,7 @@ namespace AiStudio4.Services
 
                 // Get the appropriate system prompt
                 string systemPromptContent = "You are a helpful chatbot.";
-                
+
                 if (!string.IsNullOrEmpty(request.SystemPromptContent))
                 {
                     // Use custom system prompt content provided in the request
@@ -164,28 +166,22 @@ namespace AiStudio4.Services
                         systemPromptContent = systemPrompt.Content;
                     }
                 }
-                
+
+                const int MAX_ITERATIONS = 5; // Maximum number of tool call iterations
+                const string STOP_TOOL_NAME = "Stop"; // Name of the tool that signals the end of the loop
+
+                int currentIteration = 0;
+                bool continueLoop = true;
+                AiResponse response = null; // Store the latest response
+                AiStudio4.Core.Models.TokenCost accumulatedCostInfo = null;
+                List<Attachment> finalAttachments = null;
+
+                // Prepare initial conversation state
                 var conv = new LinearConv(DateTime.Now)
                 {
                     systemprompt = systemPromptContent,
                     messages = new List<LinearConvMessage>()
                 };
-
-                // Get tools if specified
-                List<string> toolNames = null;
-                if (request.ToolIds != null && request.ToolIds.Any())
-                {
-                    toolNames = new List<string>();
-                    foreach (var toolId in request.ToolIds)
-                    {
-                        var tool = await _toolService.GetToolByIdAsync(toolId);
-                        if (tool != null)
-                        {
-                            toolNames.Add(tool.Name);
-                        }
-                    }
-                }
-
 
                 // Add all messages from history first
                 foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
@@ -195,82 +191,187 @@ namespace AiStudio4.Services
                         role = historyItem.Role,
                         content = historyItem.Content,
                         attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
+                        // Assuming LinearConvMessage doesn't explicitly store tool calls/results from history
+                        // If it does, map historyItem.ToolCalls and historyItem.ToolResults here
                     };
-                    
-                   
                     conv.messages.Add(message);
                 }
 
-                var requestOptions = new AiRequestOptions
+                // Add the latest user message (the trigger for this request)
+                var lastUserMessage = request.MessageHistory.LastOrDefault(m => m.Role == "user");
+                if (lastUserMessage != null && !conv.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) // Avoid duplicates if history includes the trigger
                 {
-                    ServiceProvider = service,
-                    Model = model,
-                    Conv = conv,
-                    CancellationToken = request.CancellationToken,
-                    ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
-                    MustNotUseEmbedding = true,
-                    ToolIds = request.ToolIds ?? new List<string>(),
-                    UseStreaming = true,
-                    
-                    // No need to set CustomSystemPrompt as we've already set it in the conv object
-                };
-                
-                var response = await aiService.FetchResponse(requestOptions);
-
-                var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
-
-                if (response.ToolResponseSet != null  && serverDefinitions.Where(x=>x.IsEnabled).Any())
-                {
-                    foreach (var toolResponse in response.ToolResponseSet.Tools)
+                    conv.messages.Add(new LinearConvMessage
                     {
-                        if (!toolResponse.ToolName.Contains("_"))
-                            continue;
+                        role = "user",
+                        content = lastUserMessage.Content,
+                        attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
+                    });
+                }
 
-                        var serverDefinitionId = toolResponse.ToolName.Split("_")[0];
-                        //var serverDefinition = serverDefinitions.Single(x => x.Id == serverDefinitionName);
-                        //var result2 = JObject.Parse(toolResponse.ResponseText).ToObject<Dictionary<string, object>>();
-                        var result = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
-                        var retVal = await _mcpService.CallToolAsync(serverDefinitionId, string.Join("_",toolResponse.ToolName.Split("_").Skip(1)), result);
+                StringBuilder collatedResponse = new StringBuilder();
 
-                        response.ResponseText += $"\r\n\r\n{toolResponse.ToolName}";
-                    if(retVal.Content.Count > 0)
-                            response.ResponseText += $"Result: {retVal.Content[0].Text.Replace("\n\n","\n----------\n").Replace("\n","\n\n")}\r\n\r\n";
+                // --- Tool Use Loop ---
+                while (continueLoop && currentIteration < MAX_ITERATIONS)
+                {
+                    currentIteration++;
+                    _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
+
+                    var requestOptions = new AiRequestOptions
+                    {
+                        ServiceProvider = service,
+                        Model = model,
+                        Conv = conv, // Use the current state of the conversation
+                        CancellationToken = request.CancellationToken,
+                        ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
+                        MustNotUseEmbedding = true,
+                        ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
+                        UseStreaming = true, // Optional: Only stream the first response
+                                             // CustomSystemPrompt is already in conv.systemprompt
+                    };
+
+                    response = await aiService.FetchResponse(requestOptions);
+
+                    // Accumulate cost
+                    //if (response.CostInfo != null)
+                    //{
+                    //    if (accumulatedCostInfo == null)
+                    //        accumulatedCostInfo = new AiStudio4.Core.Models.TokenCost(0, 0, response.CostInfo.Model);
+                    //    accumulatedCostInfo.Add(response.CostInfo);
+                    //}
+                    finalAttachments = response.Attachments; // Keep the latest attachments
+
+                    // Add assistant message to conversation history
+                    var assistantMessage = new LinearConvMessage
+                    {
+                        role = "assistant",
+                        content = response.ResponseText,
+                        // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
+                        // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
+                    };
+                    conv.messages.Add(assistantMessage);
+
+                    var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
+
+                    // Check if tools were called
+                    if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any() || !serverDefinitions.Where(x => x.IsEnabled).Any())
+                    {
+                        _logger.LogInformation("No tools called or no enabled servers, exiting loop.");
+                        accumulatedCostInfo = new TokenCost();
+                        finalAttachments = new List<Attachment>();
+                        continueLoop = false; // Exit loop if no tools are called
                     }
-                }
-                
-                // Calculate cost from the model directly
-                if (response.TokenUsage != null)
-                {
-                    response.CostInfo = new AiStudio4.Core.Models.TokenCost(
-                        response.TokenUsage,
-                        model
-                    );
-                }
-
-                _logger.LogInformation("Successfully processed chat request");
-
-                var responseText = response.ResponseText;
-
-                if (response.ToolResponseSet != null)
-                {
-                    foreach (var t in response.ToolResponseSet.Tools)
+                    else
                     {
+                        _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
+                        bool stopToolCalled = false;
+                        var toolResultMessages = new List<LinearConvMessage>();
 
-                        var tool = await _toolService.GetToolByToolNameAsync(t.ToolName);
-
-                        if (tool != null)
+                        foreach (var toolResponse in response.ToolResponseSet.Tools)
                         {
-                            responseText += $"\n\n{new string('`', 3)}{tool.Filetype}\n{t.ResponseText}\n{new string('`', 3)}\n\n";
+                            // Check for the Stop tool
+                            if (toolResponse.ToolName.Equals(STOP_TOOL_NAME, StringComparison.OrdinalIgnoreCase))
+                            {
+                                _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", STOP_TOOL_NAME);
+                                stopToolCalled = true;
+                                // We still add a result for the stop tool if needed, but signal loop termination
+                            }
+
+                            string toolResultMessageContent = "";
+                            string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
+
+                            try
+                            {
+                                // Check if it's an MCP tool
+                                if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
+                                {
+                                    var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
+                                    var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
+                                    //var toolParameters = string.IsNullOrEmpty(toolResponse.ResponseText) ? new Dictionary<string, object>() : CustomJsonParser.ParseJson(toolResponse.ResponseText);
+
+                                    var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
+                                        ? new List<Dictionary<string, object>>()
+                                        : ExtractMultipleJsonObjects(toolResponse.ResponseText)
+                                            .Select(json => CustomJsonParser.ParseJson(json))
+                                            .ToList();
+
+                                    foreach (var toolParameterSet in setsOfToolParameters)
+                                    {
+                                        _logger.LogDebug("Calling MCP tool: {ServerId} -> {ToolName}", serverDefinitionId, actualToolName);
+                                        var retVal = await _mcpService.CallToolAsync(serverDefinitionId, actualToolName, toolParameterSet);
+
+                                        // TODO: Decide how to format retVal.Content into a single string or structured JSON for the model
+                                        if (retVal.Content.Count == 0)
+                                        {
+                                            toolResultMessageContent += "\nTool executed successfully with no return content.\n";
+                                        }
+                                        else
+                                        {
+                                            toolResultMessageContent += $"Tool Use: {actualToolName}\n\n```tool\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
+                                        }
+                                        _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
+                                    }
+
+                                }
+                                else
+                                {
+                                    // Handle non-MCP tools or tools where the server definition is missing/disabled
+                                    _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or format is incorrect. Skipping execution.", toolResponse.ToolName);
+                                    toolResultMessageContent = $"Error: Tool '{toolResponse.ToolName}' is not a recognized or enabled MCP tool.";
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
+                                toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
+                            }
+
+                            // Add tool result message to conversation history
+                            toolResultMessages.Add(new LinearConvMessage
+                            {
+                                role = "tool",
+                                content = toolResultMessageContent
+                            });
+
+
+                            collatedResponse.AppendLine(toolResultMessageContent);
+                        }
+
+                        foreach (var message in toolResultMessages)
+                        {
+                            conv.messages.Last().content += message.content;
+                        }
+
+                        if (stopToolCalled)
+                        {
+                            continueLoop = false; // Exit loop after processing results if Stop was called
                         }
                     }
-                }
 
+                    // If the loop should continue, add a user message to prompt the next step
+                    if (continueLoop && currentIteration < MAX_ITERATIONS)
+                    {
+                        _logger.LogDebug("Adding 'Continue' message for next iteration.");
+                        conv.messages.Add(new LinearConvMessage { role = "user", content = "Continue" });
+                    }
+                    else if (currentIteration >= MAX_ITERATIONS)
+                    {
+                        _logger.LogWarning("Maximum tool iteration limit ({MaxIterations}) reached.", MAX_ITERATIONS);
+                        continueLoop = false; // Ensure loop terminates
+                    }
+
+                } // --- End of Tool Use Loop ---
+                
+
+
+                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
                 return new ChatResponse
                 {
                     Success = true,
-                    ResponseText = responseText,
-                    CostInfo = response.CostInfo,
-                    Attachments = response.Attachments
+                    // Return the text from the *last* assistant response in the loop
+                    ResponseText = $"{(response?.ResponseText ?? "")}\n{collatedResponse.ToString()}",
+                    CostInfo = accumulatedCostInfo, // Return the accumulated cost
+                    Attachments = finalAttachments // Return the latest attachments
                 };
             }
             catch (Exception ex)
@@ -278,6 +379,28 @@ namespace AiStudio4.Services
                 _logger.LogError(ex, "Error processing chat request");
                 throw new ChatProcessingException("Failed to process chat request", ex);
             }
+        }
+
+            private static List<string> ExtractMultipleJsonObjects(string jsonText)
+        {
+            var result = new List<string>();
+            var textReader = new StringReader(jsonText);
+            var jsonReader = new JsonTextReader(textReader)
+            {
+                SupportMultipleContent = true
+            };
+
+            while (jsonReader.Read())
+            {
+                if (jsonReader.TokenType == JsonToken.StartObject)
+                {
+                    // Read a complete JSON object
+                    JObject obj = JObject.Load(jsonReader);
+                    result.Add(obj.ToString(Formatting.None));
+                }
+            }
+
+            return result;
         }
     }
 
