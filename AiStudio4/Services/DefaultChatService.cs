@@ -219,6 +219,13 @@ namespace AiStudio4.Services
                     currentIteration++;
                     _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
 
+                    if(request.ToolIds.Any())
+                    {
+                        var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
+                        if (!request.ToolIds.Contains(stopTool))
+                            request.ToolIds.Add(stopTool);
+                    }
+
                     var requestOptions = new AiRequestOptions
                     {
                         ServiceProvider = service,
