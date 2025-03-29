@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
@@ -66,6 +67,7 @@ namespace AiStudio4
             services.AddSingleton<ClientRequestCancellationService>();
             services.AddSingleton<IMcpService, McpService>(); // Add McpService
             services.AddSingleton<IToolProcessorService, ToolProcessorService>(); // Add ToolProcessorService
+            services.AddSingleton<IBuiltinToolService, BuiltinToolService>(); // Add BuiltinToolService
 
             // Register application services
             services.AddSingleton<SettingsManager>();

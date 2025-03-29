@@ -16,17 +16,19 @@ namespace AiStudio4.Services
         private readonly ILogger<ToolService> _logger;
         private readonly string _toolsDirectory;
         private ToolLibrary _toolLibrary;
+        private readonly IBuiltinToolService _builtinToolService;
         private const string LIBRARY_FILENAME = "toolLibrary.json";
         private bool _isInitialized = false;
 
-        public ToolService(ILogger<ToolService> logger)
+        public ToolService(ILogger<ToolService> logger, IBuiltinToolService builtinToolService)
         {
             _logger = logger;
+            _builtinToolService = builtinToolService; // Inject BuiltinToolService
             _toolsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "Tools");
 
             Directory.CreateDirectory(_toolsDirectory);
 
-            // We'll initialize in InitializeAsync now
+            // Initialization moved to InitializeAsync
         }
 
         public async Task InitializeAsync()
@@ -56,6 +58,16 @@ namespace AiStudio4.Services
                     _logger.LogError(ex, "Error loading tool library");
                     _toolLibrary = new ToolLibrary();
                 }
+
+                var builtinTools = _builtinToolService.GetBuiltinTools();
+
+                foreach(var tool in builtinTools)
+                {
+                    if(!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
+                    {
+                        _toolLibrary.Tools.Add(tool);
+                    }
+                }
             }
             else
             {
@@ -67,6 +79,8 @@ namespace AiStudio4.Services
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70 });
                 SaveToolLibrary();
             }
+
+
         }
 
         private void SaveToolLibrary()

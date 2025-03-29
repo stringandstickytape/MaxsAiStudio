@@ -24,8 +24,6 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
 
-        const string STOP_TOOL_NAME = "Stop"; // Name of the tool that signals the end of the loop
-
         public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -63,12 +61,7 @@ namespace AiStudio4.Services
                 foreach (var toolResponse in response.ToolResponseSet.Tools)
                 {
                     // Check for the Stop tool
-                    if (toolResponse.ToolName.Equals(STOP_TOOL_NAME, StringComparison.OrdinalIgnoreCase))
-                    {
-                        _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", STOP_TOOL_NAME);
-                        stopToolCalled = true;
-                        // We still add a result for the stop tool if needed, but signal loop termination
-                    }
+
 
                     string toolResultMessageContent = "";
                     string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
@@ -120,6 +113,13 @@ namespace AiStudio4.Services
                             var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
                             toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+
+                            if (toolResponse.ToolName.Equals("stop", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", "Stop");
+                                stopToolCalled = true;
+                                // We still add a result for the stop tool if needed, but signal loop termination
+                            }
                         }
                     }
                     catch (Exception ex)
