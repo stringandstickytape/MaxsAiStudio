@@ -21,7 +21,6 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
-import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Added MCP server store
 import { Server } from 'lucide-react'; // Added Server icon
 
 interface InputBarProps {
@@ -65,7 +64,6 @@ export function InputBar({
     const [localInputText, setLocalInputText] = useState('');
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
-    const [visibleMcpCount, setVisibleMcpCount] = useState(3); // Added state for visible MCP servers
     const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
 
 
@@ -100,20 +98,7 @@ export function InputBar({
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
 
-    // Fetch MCP servers
-    const { servers: mcpServers, fetchServers: fetchMcpServers } = useMcpServerStore();
-    useEffect(() => {
-        // Fetch servers on mount
-        fetchMcpServers();
-    }, [fetchMcpServers]);
 
-    const enabledMcpServers = useMemo(() => {
-        console.log('Recalculating enabledMcpServers from:', mcpServers);
-        
-        const enabled = mcpServers.filter(server => server.isEnabled);
-        console.log('Enabled MCP Servers calculated:', enabled);
-        return enabled;
-    }, [mcpServers]);
 
 
     useEffect(() => {
@@ -169,18 +154,6 @@ export function InputBar({
         toolsContainerRef.current && observer.observe(toolsContainerRef.current);
         return () => observer.disconnect();
     }, [isXs, isSm, isMd, visibleToolCount]);
-
-    // Effect to adjust visible MCP server count based on screen size
-    useEffect(() => {
-        const updateVisibleCount = () => {
-            // You might want a different logic/container ref for MCP servers if needed
-            // For now, using the same logic as tools
-            setVisibleMcpCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
-        };
-        updateVisibleCount(); // Initial check
-        // Consider adding a ResizeObserver if the MCP container size can change independently
-    }, [isXs, isSm, isMd]);
-
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
@@ -430,7 +403,7 @@ export function InputBar({
                     </div>
                 </div>
 
-                {/* Bottom Bar: Model Status, Tools, and MCP Servers */}
+                {/* Bottom Bar: Model Status, Tools */}
                 <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5"> {/* Added flex-wrap and gap-y */}
                     {/* Model Status */}
                     <div className="flex items-center mr-3 pr-3 border-r border-gray-700/50">
@@ -501,50 +474,7 @@ export function InputBar({
                         )}
                     </div>
 
-                    {/* MCP Servers Section (moved inside wrapper) */}
-                    {enabledMcpServers.length > 0 && (
-                         <div className="flex items-center gap-2">
-                             <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-purple-600/10 border border-purple-700/20 text-purple-300 flex-shrink-0">
-                                 <Server className="h-3 w-3 mr-1" />
-                                 <span>Servers</span>
-                             </div>
-                            <div className="flex items-center gap-1.5 overflow-hidden">
-                                {enabledMcpServers.slice(0, visibleMcpCount).map(server => (
-                                    <TooltipProvider key={server.id}>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-indigo-600/10 border border-indigo-700/20 text-indigo-200 hover:bg-indigo-600/30 hover:text-indigo-100 transition-colors cursor-default group flex-shrink-0">
-                                                    <span className="truncate max-w-[100px]">{server.name}</span>
-                                                    {/* Optional: Add button to disable/manage if needed */}
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{server.description || 'Enabled MCP Server'}</p>
-                                                <p className="text-xs text-gray-400">{server.baseUrl}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                ))}
-                                {enabledMcpServers.length > visibleMcpCount && (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div
-                                                    className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
-                                                    // Optional: Add onClick to open MCP server management
-                                                >
-                                                    +{enabledMcpServers.length - visibleMcpCount} more
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Click to manage MCP Servers</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                )}
-                            </div>
-                        </div>
-                    )}
+
                     </div> {/* Close Tools & Servers Wrapper */}
 
                 </div>

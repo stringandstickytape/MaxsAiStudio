@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ModelManagement } from './settings/ModelManagement';
 import { ServiceProviderManagement } from './settings/ServiceProviderManagement';
 import { AppearanceTab } from './settings/AppearanceTab';
-import McpServerManagement from './settings/McpServerManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Model, ServiceProvider } from '@/types/settings';
@@ -35,7 +34,7 @@ export const SettingsPanel: React.FC = () => {
   useEffect(() => {
     
     const unsubscribeTab = commandEvents.on('settings-tab', (tabName) => {
-      if (tabName === 'models' || tabName === 'providers' || tabName === 'appearance' || tabName === 'mcpServers') {
+      if (tabName === 'models' || tabName === 'providers' || tabName === 'appearance') {
         setActiveTab(tabName);
       }
     });
@@ -110,7 +109,7 @@ export const SettingsPanel: React.FC = () => {
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4 bg-gray-800 p-1">
+        <TabsList className="grid grid-cols-3 mb-4 bg-gray-800 p-1">
           <TabsTrigger
             value="models"
             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
@@ -128,12 +127,6 @@ export const SettingsPanel: React.FC = () => {
             className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
           >
             Appearance
-          </TabsTrigger>
-          <TabsTrigger
-            value="mcpServers"
-            className="data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 text-gray-400"
-          >
-            MCP Servers
           </TabsTrigger>
         </TabsList>
 
@@ -159,10 +152,6 @@ export const SettingsPanel: React.FC = () => {
 
         <TabsContent value="appearance" className="space-y-4">
           <AppearanceTab />
-        </TabsContent>
-
-        <TabsContent value="mcpServers" className="space-y-4">
-          <McpServerManagement />
         </TabsContent>
       </Tabs>
 
