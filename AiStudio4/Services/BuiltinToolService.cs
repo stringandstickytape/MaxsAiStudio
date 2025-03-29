@@ -20,7 +20,7 @@ namespace AiStudio4.Services
                     Schema = @"{
   ""name"": ""CodeDiff"",
   ""description"": ""Allows you to specify an array of changes to make up a complete code or ASCII file diff, and includes a description of those changes. You must NEVER double-escape content in this diff."",
-  ""parameters"": {
+  ""input_schema"": {
     ""type"": ""object"",
     ""properties"": {
       ""changeset"": {
@@ -115,7 +115,7 @@ namespace AiStudio4.Services
                     Schema = @"{
   ""name"": ""Stop"",
   ""description"": ""A tool which allows you to indicate that all outstanding tasks are completed"",
-  ""parameters"": {
+  ""input_schema"": {
     ""type"": ""object"",
     ""properties"": {
       ""param"": {

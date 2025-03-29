@@ -265,6 +265,12 @@ namespace AiStudio4.Services
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, conv, collatedResponse, request.CancellationToken);
                     continueLoop = toolResult.ContinueProcessing;
+
+                    if(request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
+                    {
+                        continueLoop = false;
+                    }
+
                     if (toolResult.Attachments?.Count > 0)
                     {
                         if (finalAttachments == null) finalAttachments = new List<Attachment>();

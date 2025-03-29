@@ -500,7 +500,11 @@ namespace AiStudio4.AiServices
 
             if (lineBuilder.Length > 0)
             {
-                ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens,
+                var line = lineBuilder.ToString();
+                if (!line.StartsWith("data: "))
+                    line = "data: " + line;
+
+                ProcessLine(line, responseBuilder, ref inputTokens, ref outputTokens,
                     ref cacheCreationInputTokens, ref cacheReadInputTokens);
             }
 
