@@ -175,7 +175,7 @@ namespace AiStudio4.Services
 
             // Case-insensitive search for a tool with the exact name
             return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
-                string.Equals(t.Name.Replace(" ",""), toolName, StringComparison.OrdinalIgnoreCase)));
+                string.Equals(t.SchemaName.Replace(" ",""), toolName, StringComparison.OrdinalIgnoreCase)));
         }
 
         public async Task<List<ToolCategory>> GetToolCategoriesAsync()
