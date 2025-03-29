@@ -236,8 +236,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
                                 var toolName = jsonResponse["name"]?.ToString();
                                 var toolArgs = jsonResponse["args"].ToString();
-                                
-                                
+
+                                currentResponseItem = null;
                                 return new AiResponse
                                 {
                                     ResponseText = toolArgs,
@@ -267,7 +267,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
                             });
                         }
-
+                        currentResponseItem = null;
                         return new AiResponse
                         {
                             ResponseText = fullResponse.ToString(),
@@ -388,7 +388,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                         }
                     }
                 }
-                
+
+                currentResponseItem = null;
                 return new AiResponse
                 {
                     ResponseText = ExtractResponseText(completion),

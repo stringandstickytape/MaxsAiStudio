@@ -21,6 +21,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
+import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Added MCP server store
+import { Server } from 'lucide-react'; // Added Server icon
 
 interface InputBarProps {
     selectedModel: string;
@@ -63,6 +65,7 @@ export function InputBar({
     const [localInputText, setLocalInputText] = useState('');
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
+    const [visibleMcpCount, setVisibleMcpCount] = useState(3); // Added state for visible MCP servers
     const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
 
 
@@ -96,6 +99,21 @@ export function InputBar({
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
+
+    // Fetch MCP servers
+    const { servers: mcpServers, fetchServers: fetchMcpServers } = useMcpServerStore();
+    useEffect(() => {
+        // Fetch servers on mount
+        fetchMcpServers();
+    }, [fetchMcpServers]);
+
+    const enabledMcpServers = useMemo(() => {
+        console.log('Recalculating enabledMcpServers from:', mcpServers);
+        
+        const enabled = mcpServers.filter(server => server.isEnabled);
+        console.log('Enabled MCP Servers calculated:', enabled);
+        return enabled;
+    }, [mcpServers]);
 
 
     useEffect(() => {
@@ -151,6 +169,18 @@ export function InputBar({
         toolsContainerRef.current && observer.observe(toolsContainerRef.current);
         return () => observer.disconnect();
     }, [isXs, isSm, isMd, visibleToolCount]);
+
+    // Effect to adjust visible MCP server count based on screen size
+    useEffect(() => {
+        const updateVisibleCount = () => {
+            // You might want a different logic/container ref for MCP servers if needed
+            // For now, using the same logic as tools
+            setVisibleMcpCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
+        };
+        updateVisibleCount(); // Initial check
+        // Consider adding a ResizeObserver if the MCP container size can change independently
+    }, [isXs, isSm, isMd]);
+
 
     const handleChatMessage = useCallback(async (message: string) => {
         console.log('Sending message with active tools:', activeTools);
@@ -400,75 +430,123 @@ export function InputBar({
                     </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0"> {/* Added flex-shrink-0 */}
-                    <div className="flex items-center">
-                        <div className="flex items-center">
-                            <ModelStatusBar
-                                onPrimaryClick={handlePrimaryModelClick}
-                                onSecondaryClick={handleSecondaryModelClick}
-                            />
-                        </div>
+                {/* Bottom Bar: Model Status, Tools, and MCP Servers */}
+                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5"> {/* Added flex-wrap and gap-y */}
+                    {/* Model Status */}
+                    <div className="flex items-center mr-3 pr-3 border-r border-gray-700/50">
+                        <ModelStatusBar
+                            onPrimaryClick={handlePrimaryModelClick}
+                            onSecondaryClick={handleSecondaryModelClick}
+                        />
+                    </div>
 
-                        <div className="flex items-center gap-2 ml-3 pl-3 border-l border-gray-700/50">
-
+                    {/* Tools & Servers Wrapper */}
+                    <div className="flex items-center gap-4"> {/* New wrapper for Tools and Servers */}
+                        {/* Tools Section (border removed, spacing adjusted) */}
+                        <div className="flex items-center gap-2">
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
-                                disabled={disabled} // Reflect outer disabled state
-                            >
-                                <Wrench className="h-3 w-3 mr-1" />
-                                <span>Tools</span>
-                            </Button>
+                            onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                            disabled={disabled} // Reflect outer disabled state
+                        >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            <span>Tools</span>
+                        </Button>
 
-                            {activeTools.length > 0 && (
-                                <div ref={toolsContainerRef} className="flex items-center gap-1.5 overflow-hidden ml-2">
-                                    {activeTools.slice(0, visibleToolCount).map(toolId => {
-                                        const tool = tools.find(t => t.guid === toolId);
-                                        return !tool ? null : (
-                                            <TooltipProvider key={tool.guid}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
-                                                            <span className="truncate max-w-[100px]">{tool.name}</span>
-                                                            <button onClick={() => handleRemoveTool(tool.guid)}
-                                                                className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                disabled={disabled}> {/* Reflect outer disabled state */}
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{tool.description}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        );
-                                    })}
-                                    {activeTools.length > visibleToolCount && (
-                                        <TooltipProvider>
+                        {activeTools.length > 0 && (
+                            <div ref={toolsContainerRef} className="flex items-center gap-1.5 overflow-hidden ml-2">
+                                {activeTools.slice(0, visibleToolCount).map(toolId => {
+                                    const tool = tools.find(t => t.guid === toolId);
+                                    return !tool ? null : (
+                                        <TooltipProvider key={tool.guid}>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <div
-                                                        className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
-                                                        onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                                                        aria-disabled={disabled} // Use aria-disabled for non-button elements
-                                                    >
-                                                        +{activeTools.length - visibleToolCount} more
+                                                    <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
+                                                        <span className="truncate max-w-[100px]">{tool.name}</span>
+                                                        <button onClick={() => handleRemoveTool(tool.guid)}
+                                                            className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            disabled={disabled}> {/* Reflect outer disabled state */}
+                                                            <X className="h-3 w-3" />
+                                                        </button>
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Click to see all active tools</p>
+                                                    <p>{tool.description}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex-1"></div>
+                                    );
+                                })}
+                                {activeTools.length > visibleToolCount && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div
+                                                    className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
+                                                    onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                                    aria-disabled={disabled} // Use aria-disabled for non-button elements
+                                                >
+                                                    +{activeTools.length - visibleToolCount} more
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Click to see all active tools</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
+                            </div>
+                        )}
                     </div>
+
+                    {/* MCP Servers Section (moved inside wrapper) */}
+                    {enabledMcpServers.length > 0 && (
+                         <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-purple-600/10 border border-purple-700/20 text-purple-300 flex-shrink-0">
+                                 <Server className="h-3 w-3 mr-1" />
+                                 <span>Servers</span>
+                             </div>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                {enabledMcpServers.slice(0, visibleMcpCount).map(server => (
+                                    <TooltipProvider key={server.id}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-indigo-600/10 border border-indigo-700/20 text-indigo-200 hover:bg-indigo-600/30 hover:text-indigo-100 transition-colors cursor-default group flex-shrink-0">
+                                                    <span className="truncate max-w-[100px]">{server.name}</span>
+                                                    {/* Optional: Add button to disable/manage if needed */}
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{server.description || 'Enabled MCP Server'}</p>
+                                                <p className="text-xs text-gray-400">{server.baseUrl}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                ))}
+                                {enabledMcpServers.length > visibleMcpCount && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div
+                                                    className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
+                                                    // Optional: Add onClick to open MCP server management
+                                                >
+                                                    +{enabledMcpServers.length - visibleMcpCount} more
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Click to manage MCP Servers</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    </div> {/* Close Tools & Servers Wrapper */}
+
                 </div>
             </div>
         </div>

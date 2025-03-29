@@ -167,7 +167,7 @@ namespace AiStudio4.Services
                     }
                 }
 
-                const int MAX_ITERATIONS = 5; // Maximum number of tool call iterations
+                const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
                 const string STOP_TOOL_NAME = "Stop"; // Name of the tool that signals the end of the loop
 
                 int currentIteration = 0;
@@ -254,7 +254,7 @@ namespace AiStudio4.Services
                     var serverDefinitions = await _mcpService.GetAllServerDefinitionsAsync();
 
                     // Check if tools were called
-                    if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any() || !serverDefinitions.Where(x => x.IsEnabled).Any())
+                    if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
                     {
                         _logger.LogInformation("No tools called or no enabled servers, exiting loop.");
                         accumulatedCostInfo = new TokenCost();
@@ -307,7 +307,9 @@ namespace AiStudio4.Services
                                         }
                                         else
                                         {
-                                            toolResultMessageContent += $"Tool Use: {actualToolName}\n\n```tool\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
+                                            toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
+                                            toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
+                                            toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
                                         }
                                         _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
                                     }
@@ -316,8 +318,13 @@ namespace AiStudio4.Services
                                 else
                                 {
                                     // Handle non-MCP tools or tools where the server definition is missing/disabled
-                                    _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or format is incorrect. Skipping execution.", toolResponse.ToolName);
-                                    toolResultMessageContent = $"Error: Tool '{toolResponse.ToolName}' is not a recognized or enabled MCP tool.";
+                                    _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool.", toolResponse.ToolName);
+
+                                    var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+
+                                    toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+
+                                    //toolResultMessageContent = $"Error: Tool '{toolResponse.ToolName}' is not a recognized or enabled MCP tool.";
                                 }
                             }
                             catch (Exception ex)
