@@ -63,7 +63,8 @@ namespace AiStudio4.Services
 
                 foreach(var tool in builtinTools)
                 {
-                    if(!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
+                    _toolLibrary.Tools.RemoveAll(x => x.SchemaName == tool.SchemaName);
+                    if (!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
                     {
                         _toolLibrary.Tools.Add(tool);
                     }

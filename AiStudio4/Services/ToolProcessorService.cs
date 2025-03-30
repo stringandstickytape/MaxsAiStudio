@@ -12,6 +12,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SharedClasses;
+using System.Windows.Forms;
 
 namespace AiStudio4.Services
 {
@@ -23,12 +25,14 @@ namespace AiStudio4.Services
         private readonly ILogger<ToolProcessorService> _logger;
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
+        private readonly IBuiltinToolService _builtinToolService;
 
-        public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService)
+        public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
             _mcpService = mcpService ?? throw new ArgumentNullException(nameof(mcpService));
+            _builtinToolService = builtinToolService ?? throw new ArgumentNullException(nameof(builtinToolService));
         }
 
         /// <summary>
@@ -55,14 +59,11 @@ namespace AiStudio4.Services
             else
             {
                 _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
-                bool stopToolCalled = false;
+                bool shouldStopProcessing = false;
                 var toolResultMessages = new List<LinearConvMessage>();
 
                 foreach (var toolResponse in response.ToolResponseSet.Tools)
                 {
-                    // Check for the Stop tool
-
-
                     string toolResultMessageContent = "";
                     string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
 
@@ -107,18 +108,37 @@ namespace AiStudio4.Services
                         }
                         else
                         {
-                            // Handle non-MCP tools or tools where the server definition is missing/disabled
-                            _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool.", toolResponse.ToolName);
-
-                            var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
-
-                            toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
-
-                            if (toolResponse.ToolName.Equals("stop", StringComparison.OrdinalIgnoreCase))
+                            // Process built-in tools first
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText);
+                            
+                            if (builtinToolResult.WasProcessed)
                             {
-                                _logger.LogInformation("'{StopToolName}' tool called, signalling loop end.", "Stop");
-                                stopToolCalled = true;
-                                // We still add a result for the stop tool if needed, but signal loop termination
+                                _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
+                                if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
+                                {
+                                    toolResultMessageContent += builtinToolResult.ResultMessage;
+                                }
+                                
+                                // If the built-in tool indicates processing should stop
+                                if (!builtinToolResult.ContinueProcessing)
+                                {
+                                    shouldStopProcessing = true;
+                                }
+                                
+                                // Add any attachments from the built-in tool
+                                if (builtinToolResult.Attachments != null && builtinToolResult.Attachments.Any())
+                                {
+                                    attachments.AddRange(builtinToolResult.Attachments);
+                                }
+                            }
+                            else
+                            {
+                                // Handle non-MCP, non-built-in tools or tools where the server definition is missing/disabled
+                                _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or recognized built-in tool.", toolResponse.ToolName);
+
+                                var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+
+                                toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
                             }
                         }
                     }
@@ -129,21 +149,14 @@ namespace AiStudio4.Services
                     }
 
                     // Add tool result message to conversation history
-                    toolResultMessages.Add(new LinearConvMessage
-                    {
-                        role = "tool",
-                        content = toolResultMessageContent
-                    });
+                    conv.messages[conv.messages.Count-1].content += $"\n{BacktickHelper.ThreeTicks}\n{toolResultMessageContent}\n{BacktickHelper.ThreeTicks}\n";
 
-                    collatedResponse.AppendLine(toolResultMessageContent);
+                    collatedResponse.AppendLine($"\n{toolResultMessageContent}\n\n");
                 }
 
-                foreach (var message in toolResultMessages)
-                {
-                    conv.messages.Last().content += message.content;
-                }
+          
 
-                if (stopToolCalled)
+                if (shouldStopProcessing)
                 {
                     continueLoop = false; // Exit loop after processing results if Stop was called
                 }
