@@ -9,6 +9,7 @@ using SharedClasses.Git;
 using System.Windows.Forms;
 using System.IO;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AiStudio4.Services
 {
@@ -27,11 +28,42 @@ namespace AiStudio4.Services
             { 
                 CodeDiffTool(),
                 StopTool(),
+                ReadFileTool(),
                 ThinkingTool(),
                 DirectoryTreeTool(),
                 // Add more builtin tools here as needed, using fixed GUIDs
             };
         }
+
+        private static Tool ReadFileTool()
+        {
+            return new Tool
+            {
+                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef05", // New GUID for ReadFile
+                Name = "ReadFile",
+                Description = "Read the contents of one or multiple files.",
+                Schema = @"{
+  ""name"": ""ReadFile"",
+  ""description"": ""Read the contents of one or multiple files.  Can read a single file or multiple files simultaneously. When reading multiple files, each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories."",
+  ""input_schema"": {
+                ""properties"": {
+                ""paths"": {
+                    ""anyOf"": [
+                        {""items"": {""type"": ""string""}, ""type"": ""array""},
+                        {""type"": ""string""}
+                    ],
+                    ""description"": ""absolute path to the file or files to read""
+                }
+            },
+            ""required"": [""paths""],
+            ""type"": ""object""
+  }
+}",
+                    Categories = new List<string> { "File IO" },
+                    Filetype = string.Empty, // Ensure initialized
+                    LastModified = DateTime.UtcNow
+};
+            }
 
         private static Tool DirectoryTreeTool()
         {
@@ -278,6 +310,7 @@ It will not obtain new information or make any changes to the repository, but ju
 
                     var parameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(toolParameters);
 
+ 
                     var searchPath = projectRoot;
                     var searchDepth = 2;
 
@@ -311,7 +344,70 @@ It will not obtain new information or make any changes to the repository, but ju
                     return new BuiltinToolResult { ContinueProcessing = true, ResultMessage = prettyPrintedResult, WasProcessed = true };
 
                 }
+                else if (toolName.Equals("ReadFile", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInformation("ReadFile tool called");
+                    var projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4"; // Base path for security - adjust as needed
+                    var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
+                    var pathsObject = parameters["paths"];
+                    List<string> pathsToRead = new List<string>();
 
+                    if (pathsObject is string singlePath)
+                    {
+                        pathsToRead.Add(singlePath);
+                    }
+                    else if (pathsObject is Newtonsoft.Json.Linq.JArray pathArray)
+                    {
+                        pathsToRead.AddRange(pathArray.Select(p => (string)p));
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Invalid format for 'paths' parameter. Expected string or array of strings.");
+                    }
+
+                    var resultBuilder = new StringBuilder();
+                    foreach (var relativePath in pathsToRead)
+                    {
+                        // IMPORTANT SECURITY CHECK: Ensure the path is within the project root or allowed directories.
+                        // For now, we'll combine with projectRoot, assuming relative paths are intended,
+                        // but the description asks for absolute paths. This needs clarification/robust implementation.
+                        // Let's assume for now the paths provided ARE relative to projectRoot for safety.
+                        var fullPath = Path.GetFullPath(Path.Combine(projectRoot, relativePath));
+
+                        // Security check: Ensure the resolved path is still within the project root directory.
+                        if (!fullPath.StartsWith(projectRoot, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogWarning($"Attempted to read file outside the project root: {relativePath} (Resolved: {fullPath})");
+                            resultBuilder.AppendLine($"---Error reading {relativePath}: Access denied - Path is outside the allowed directory.---");
+                            continue; // Skip this file
+                        }
+
+                        try
+                        {
+                            if (File.Exists(fullPath))
+                            {
+                                var content = await File.ReadAllTextAsync(fullPath);
+                                resultBuilder.AppendLine($"--- File: {relativePath} ---");
+                                resultBuilder.AppendLine(content);
+                            }
+                            else
+                            {
+                                resultBuilder.AppendLine($"---Error reading {relativePath}: File not found.---");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"Error reading file: {fullPath}");
+                            resultBuilder.AppendLine($"---Error reading {relativePath}: {ex.Message}---");
+                        }
+                        resultBuilder.AppendLine(); // Add a separator between files
+                    }
+
+                    result.WasProcessed = true;
+                    result.ContinueProcessing = true; // Reading files doesn't stop the workflow
+                    result.ResultMessage = resultBuilder.ToString();
+                    return result; // Return immediately after processing ReadFile
+                }
 
                 // Add cases for other built-in tools here as they are implemented
                 // else if (toolName.Equals("AnotherBuiltinTool", StringComparison.OrdinalIgnoreCase)) { ... }
