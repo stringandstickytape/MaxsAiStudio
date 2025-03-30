@@ -27,7 +27,7 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly IBuiltinToolService _builtinToolService;
-        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(3);
         private DateTime _lastRequestTime = DateTime.MinValue;
 
         public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)
@@ -92,11 +92,17 @@ namespace AiStudio4.Services
                             var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
                             var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
+                            
                             var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
                                 ? new List<Dictionary<string, object>>()
                                 : ExtractMultipleJsonObjects(toolResponse.ResponseText)
                                     .Select(json => CustomJsonParser.ParseJson(json))
                                     .ToList();
+
+                            if(!setsOfToolParameters.Any())
+                            {
+                                setsOfToolParameters.Add(new Dictionary<string, object>());
+                            }
 
                             foreach (var toolParameterSet in setsOfToolParameters)
                             {
@@ -155,7 +161,7 @@ namespace AiStudio4.Services
 
                                 var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
-                                toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+                                toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool?.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
                             }
                         }
                     }
@@ -166,7 +172,7 @@ namespace AiStudio4.Services
                     }
 
                     // Add tool result message to conversation history
-                    conv.messages[conv.messages.Count-1].content += $"\n{BacktickHelper.ThreeTicks}\n{toolResultMessageContent}\n{BacktickHelper.ThreeTicks}\n";
+                    conv.messages[conv.messages.Count-1].content += $"\n{toolResultMessageContent}\n";
 
                     collatedResponse.AppendLine($"\n{toolResultMessageContent}\n\n");
                 }

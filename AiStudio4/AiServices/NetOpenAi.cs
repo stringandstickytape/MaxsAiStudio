@@ -274,8 +274,7 @@ namespace AiStudio4.AiServices
                                 };
                                 ToolResponseSet.Tools.Add(toolResponseItem);
                             }
-
-                            if (toolCall.FunctionArgumentsUpdate.ToArray().Length > 0 && !string.IsNullOrEmpty(toolCall.FunctionArgumentsUpdate.ToString()))
+                            if (toolCall.FunctionArgumentsUpdate != null && toolCall.FunctionArgumentsUpdate.ToArray().Length > 0 && !string.IsNullOrEmpty(toolCall.FunctionArgumentsUpdate.ToString()))
                             {
                                 string argumentUpdate = toolCall.FunctionArgumentsUpdate.ToString();
                                 responseBuilder.Append(argumentUpdate);
@@ -288,6 +287,18 @@ namespace AiStudio4.AiServices
                                     if (lastToolResponse != null)
                                     {
                                         lastToolResponse.ResponseText += argumentUpdate;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Update the tool response text
+                                if (ToolResponseSet.Tools.Count > 0)
+                                {
+                                    var lastToolResponse = ToolResponseSet.Tools.LastOrDefault(t => t.ToolName == chosenTool);
+                                    if (lastToolResponse != null)
+                                    {
+                                        lastToolResponse.ResponseText += "";
                                     }
                                 }
                             }
