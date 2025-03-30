@@ -22,6 +22,7 @@ namespace AiStudio4.Core
             services.AddTransient<ThinkTool>();
             services.AddTransient<DirectoryTreeTool>();
             services.AddTransient<InfoRequestTool>();
+            services.AddTransient<FileSearchTool>();
 
             // Register the tool service
             services.AddTransient<IBuiltinToolService, BuiltinToolService>();
