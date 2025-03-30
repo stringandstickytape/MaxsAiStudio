@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SharedClasses;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace AiStudio4.Services
 {
@@ -26,6 +27,8 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly IBuiltinToolService _builtinToolService;
+        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
+        private DateTime _lastRequestTime = DateTime.MinValue;
 
         public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)
         {
@@ -44,6 +47,20 @@ namespace AiStudio4.Services
         /// <returns>Tool execution result with success status and updated content</returns>
         public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default)
         {
+            // Rate limiting: If less than 5 seconds have passed since the last request, wait until 5 seconds have elapsed
+            var currentTime = DateTime.Now;
+            var timeSinceLastRequest = currentTime - _lastRequestTime;
+            
+            if (timeSinceLastRequest < _minimumRequestInterval)
+            {
+                var delayTime = _minimumRequestInterval - timeSinceLastRequest;
+                _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle");
+                await Task.Delay(delayTime, cancellationToken);
+            }
+            
+            // Update the last request time after any delay
+            _lastRequestTime = DateTime.Now;
+            
             bool continueLoop = true;
             List<Attachment> attachments = new List<Attachment>();
             TokenCost costInfo = new TokenCost();

@@ -14,6 +14,7 @@ using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using WebSocketSharp;
+using AiStudio4.Core;
 
 namespace AiStudio4
 {
@@ -55,6 +56,8 @@ namespace AiStudio4
 
             // Register configuration
             services.AddSingleton<IConfiguration>(configuration);
+
+            services.AddToolServices();
 
             // Register core services
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();
