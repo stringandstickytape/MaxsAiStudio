@@ -120,14 +120,45 @@ namespace AiStudio4.Core.Tools
                         using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
                         {
                             string line;
+                            int lineNumber = 0;
+                            var fileLines = new List<(int LineNumber, string Content)>();
+                            var matchingLineNumbers = new List<int>();
+
+                            // First, read the file and find matching lines
                             while ((line = reader.ReadLine()) != null)
                             {
+                                lineNumber++;
+                                fileLines.Add((lineNumber, line));
+
                                 // Case-insensitive search
                                 if (searchTerms.Any(term => line.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0))
                                 {
-                                    results.Add(filePath);
-                                    break; // Found a match in this file, no need to read further lines
+                                    matchingLineNumbers.Add(lineNumber);
                                 }
+                            }
+
+                            // If we found matches, add the file path and context to the results
+                            if (matchingLineNumbers.Any())
+                            {
+                                var matchDetails = new StringBuilder();
+                                matchDetails.AppendLine(filePath);
+
+                                foreach (var matchLineNumber in matchingLineNumbers)
+                                {
+                                    // Get 3 lines before and after the match
+                                    int startLine = Math.Max(1, matchLineNumber - 3);
+                                    int endLine = Math.Min(fileLines.Count, matchLineNumber + 3);
+
+                                    matchDetails.AppendLine($"  Match at line {matchLineNumber}:");
+
+                                    for (int i = startLine - 1; i < endLine; i++)
+                                    {
+                                        var (lineNum, content) = fileLines[i];
+                                        matchDetails.AppendLine(content);
+                                    }
+                                    matchDetails.AppendLine();
+                                }
+                                results.Add(matchDetails.ToString());
                             }
                         }
                     }
@@ -164,7 +195,7 @@ namespace AiStudio4.Core.Tools
                 {
                     foreach (var dirPath in Directory.EnumerateDirectories(currentPath))
                     {
-                        if (dirPath.EndsWith("node_modules") || dirPath.EndsWith("bin") || dirPath.EndsWith("obj") || dirPath.EndsWith("obj"))
+                        if (dirPath.EndsWith("node_modules") || dirPath.EndsWith("bin") || dirPath.EndsWith("dist") || dirPath.EndsWith("obj") || dirPath.EndsWith("obj"))
                             continue;
                         // Check if directory is ignored by .gitignore
                         // Note: GitIgnoreFilterManager needs to correctly handle directory patterns (e.g., ending with '/')
@@ -216,7 +247,7 @@ namespace AiStudio4.Core.Tools
         // Renamed original ProcessAsync content to avoid recursion issues with parameter storing
         private Task<BuiltinToolResult> ProcessSearchInternal(string toolParameters) // toolParameters string is technically redundant now but keeps signature
         {
-            List<string> matchingFiles = new List<string>();
+            List<string> matchingFiles = new List<string>(); // Now contains formatted content with context
             try
             {
                 // --- Extract Parameters (using the class member 'parameters') ---
@@ -289,15 +320,12 @@ namespace AiStudio4.Core.Tools
                 SearchFilesRecursively(searchPath, searchPath, depth, validSearchTerms, gitIgnoreFilterManager, matchingFiles);
 
 
-                // --- Format Result (as before) ---
+                // --- Format Result with match context ---
                 if (matchingFiles.Any())
                 {
-                    var relativeMatchingFiles = matchingFiles
-                        .Select(mf => Path.GetRelativePath(searchPath, mf))
-                        .OrderBy(rf => rf)
-                        .ToList();
-                    string resultText = $"Found {relativeMatchingFiles.Count} files containing search terms (relative to '{path}'):\n" +
-                                        string.Join("\n", relativeMatchingFiles);
+                    // The results are now already formatted with context
+                    string resultText = $"Found matches in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
+                                        string.Join("\n", matchingFiles);
                     return Task.FromResult(CreateResult(true, true, resultText));
                 }
                 else
