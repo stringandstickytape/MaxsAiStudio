@@ -17,7 +17,7 @@ namespace AiStudio4.InjectedDependencies
     public class UiRequestBroker
     {
         private readonly IConfiguration _configuration;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsService _settingsService;
         private readonly WebSocketServer _webSocketServer;
         private readonly ChatManager _chatManager;
         private readonly IToolService _toolService;
@@ -32,7 +32,7 @@ namespace AiStudio4.InjectedDependencies
 
         public UiRequestBroker(
             IConfiguration configuration,
-            SettingsManager settingsManager,
+            ISettingsService settingsService,
             WebSocketServer webSocketServer,
             ChatManager chatManager,
             IToolService toolService,
@@ -47,7 +47,7 @@ namespace AiStudio4.InjectedDependencies
             )
         {
             _configuration = configuration;
-            _settingsManager = settingsManager;
+            _settingsService = settingsService;
             _webSocketServer = webSocketServer;
             _chatManager = chatManager;
             _toolService = toolService;
@@ -78,8 +78,8 @@ namespace AiStudio4.InjectedDependencies
                 return requestType switch
                 {
                     "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
-                    "getModels" => JsonConvert.SerializeObject(new { success = true, models = _settingsManager.CurrentSettings.ModelList }),
-                    "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _settingsManager.CurrentSettings.ServiceProviders }),
+                    "getModels" => JsonConvert.SerializeObject(new { success = true, models = _settingsService.CurrentSettings.ModelList }),
+                    "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _settingsService.CurrentSettings.ServiceProviders }),
                     "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
@@ -110,18 +110,18 @@ namespace AiStudio4.InjectedDependencies
                     "getConfig" => JsonConvert.SerializeObject(new
                     {
                         success = true,
-                        models = _settingsManager.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
-                        defaultModel = _settingsManager.DefaultSettings?.DefaultModel ?? "",
-                        secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel ?? ""
-                    }),
-                    "setDefaultModel" => await SetModel(_settingsManager.UpdateDefaultModel, requestObject),
-                    "setSecondaryModel" => await SetModel(_settingsManager.UpdateSecondaryModel, requestObject),
-                    "addModel" => await AddOrUpdateModel(requestObject, _settingsManager.AddModel),
-                    "updateModel" => await AddOrUpdateModel(requestObject, _settingsManager.UpdateModel, true),
-                    "deleteModel" => await DeleteByGuid(_settingsManager.DeleteModel, requestObject, "modelGuid"),
-                    "addServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.AddServiceProvider),
-                    "updateServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsManager.UpdateServiceProvider, true),
-                    "deleteServiceProvider" => await DeleteByGuid(_settingsManager.DeleteServiceProvider, requestObject, "providerGuid"),
+                        models = _settingsService.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
+                        defaultModel = _settingsService.DefaultSettings?.DefaultModel ?? "",
+                        secondaryModel = _settingsService.DefaultSettings?.SecondaryModel ?? ""
+                      }),
+                    "setDefaultModel" => await SetModel(_settingsService.UpdateDefaultModel, requestObject),
+                    "setSecondaryModel" => await SetModel(_settingsService.UpdateSecondaryModel, requestObject),
+                    "addModel" => await AddOrUpdateModel(requestObject, _settingsService.AddModel),
+                    "updateModel" => await AddOrUpdateModel(requestObject, _settingsService.UpdateModel, true),
+                    "deleteModel" => await DeleteByGuid(_settingsService.DeleteModel, requestObject, "modelGuid"),
+                    "addServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsService.AddServiceProvider),
+                    "updateServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsService.UpdateServiceProvider, true),
+                    "deleteServiceProvider" => await DeleteByGuid(_settingsService.DeleteServiceProvider, requestObject, "providerGuid"),
                     "getAppearanceSettings" => await HandleGetAppearanceSettingsRequest(clientId, requestObject),
                     "saveAppearanceSettings" => await HandleSaveAppearanceSettingsRequest(clientId, requestObject),
                     "updateMessage" => await HandleUpdateMessageRequest(clientId, requestObject),
@@ -450,7 +450,7 @@ namespace AiStudio4.InjectedDependencies
                     }
                 }
 
-                var settings = _settingsManager.GetAppearanceSettings(clientId);
+                var settings = _settingsService.GetAppearanceSettings(clientId);
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
@@ -486,7 +486,7 @@ namespace AiStudio4.InjectedDependencies
                     IsDarkMode = isDarkMode
                 };
 
-                _settingsManager.UpdateAppearanceSettings(clientId, settings);
+                _settingsService.UpdateAppearanceSettings(clientId, settings);
                 return JsonConvert.SerializeObject(new { success = true });
             }
             catch (Exception ex)
@@ -587,8 +587,8 @@ namespace AiStudio4.InjectedDependencies
                 var success = await _systemPromptService.SetDefaultSystemPromptAsync(promptId);
                 if (success)
                 {
-                    _settingsManager.CurrentSettings.DefaultSystemPromptId = promptId;
-                    _settingsManager.SaveSettings();
+                    _settingsService.CurrentSettings.DefaultSystemPromptId = promptId;
+                    _settingsService.SaveSettings();
                 }
                 
                 return JsonConvert.SerializeObject(new { success });

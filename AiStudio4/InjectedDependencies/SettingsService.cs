@@ -33,7 +33,7 @@ namespace AiStudio4.InjectedDependencies
         };
     }
 
-    public class SettingsManager
+    public class SettingsService : ISettingsService
     {
         private readonly string _settingsFilePath;
         private Studio4Settings _currentSettings;
@@ -42,7 +42,7 @@ namespace AiStudio4.InjectedDependencies
         public Studio4Settings CurrentSettings => _currentSettings;
         public DefaultSettings DefaultSettings => _defaultSettings;
 
-        public SettingsManager(IConfiguration configuration)
+        public SettingsService(IConfiguration configuration)
         {
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "settings.json");
             var defaultSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json");

@@ -22,7 +22,7 @@ namespace AiStudio4.Services
         private readonly IChatService _chatService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ChatProcessingService> _logger;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsService _settingsService;
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly ClientRequestCancellationService _cancellationService;
@@ -32,7 +32,7 @@ namespace AiStudio4.Services
             IChatService chatService,
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
-            SettingsManager settingsManager,
+            ISettingsService settingsService,
             IToolService toolService,
             ISystemPromptService systemPromptService,
             ClientRequestCancellationService cancellationService)
@@ -41,7 +41,7 @@ namespace AiStudio4.Services
             _chatService = chatService;
             _notificationService = notificationService;
             _logger = logger;
-            _settingsManager = settingsManager;
+            _settingsService = settingsService;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _cancellationService = cancellationService;
@@ -198,7 +198,7 @@ namespace AiStudio4.Services
                     //{
                     //    try
                     //    {
-                    //        var secondaryModel = _settingsManager.DefaultSettings?.SecondaryModel;
+                    //        var secondaryModel = _settingsService.DefaultSettings?.SecondaryModel;
                     //        if (!string.IsNullOrEmpty(secondaryModel))
                     //        {
                     //            var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);

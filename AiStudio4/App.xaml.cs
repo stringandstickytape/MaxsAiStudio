@@ -73,7 +73,7 @@ namespace AiStudio4
             services.AddSingleton<IBuiltinToolService, BuiltinToolService>(); // Add BuiltinToolService
 
             // Register application services
-            services.AddSingleton<SettingsManager>();
+            services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
             services.AddSingleton<WebSocketServer>();
@@ -110,7 +110,7 @@ namespace AiStudio4
             await userPromptService.InitializeAsync();
             
             // Get settings manager
-            var settingsManager = _serviceProvider.GetRequiredService<SettingsManager>();
+            var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();

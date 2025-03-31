@@ -18,7 +18,7 @@ namespace AiStudio4.Services
     public class DefaultChatService : IChatService
     {
         private readonly ILogger<DefaultChatService> _logger;
-        private readonly SettingsManager _settingsManager;
+        private readonly ISettingsService _settingsService;
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
@@ -27,10 +27,10 @@ namespace AiStudio4.Services
         public event EventHandler<string> StreamingTextReceived;
         public event EventHandler<string> StreamingComplete;
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, SettingsManager settingsManager, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService)
+        public DefaultChatService(ILogger<DefaultChatService> logger, ISettingsService settingsService, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService)
         {
             _logger = logger;
-            _settingsManager = settingsManager;
+            _settingsService = settingsService;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _mcpService = mcpService;
@@ -45,7 +45,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Processing simple chat request");
                 
                 // Get the secondary model
-                var secondaryModelName = _settingsManager.DefaultSettings?.SecondaryModel;
+                var secondaryModelName = _settingsService.DefaultSettings?.SecondaryModel;
                 if (string.IsNullOrEmpty(secondaryModelName))
                 {
                     return new SimpleChatResponse
@@ -57,7 +57,7 @@ namespace AiStudio4.Services
                 }
 
                 // Find the model and service provider
-                var model = _settingsManager.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
+                var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
                 if (model == null)
                 {
                     return new SimpleChatResponse
@@ -68,7 +68,7 @@ namespace AiStudio4.Services
                     };
                 }
 
-                var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 // Create a simple chat request
@@ -92,7 +92,7 @@ namespace AiStudio4.Services
                     Model = model,
                     Conv = conv,
                     CancellationToken = new CancellationToken(false),
-                    ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
+                    ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     UseStreaming = false
                 };
@@ -125,8 +125,8 @@ namespace AiStudio4.Services
             {
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.ConvId);
 
-                var model = _settingsManager.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
-                var service = ServiceProvider.GetProviderForGuid(_settingsManager.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var model = _settingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
+                var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
 
@@ -232,7 +232,7 @@ namespace AiStudio4.Services
                         Model = model,
                         Conv = conv, // Use the current state of the conversation
                         CancellationToken = request.CancellationToken,
-                        ApiSettings = _settingsManager.CurrentSettings.ToApiSettings(),
+                        ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
                         UseStreaming = true, // Optional: Only stream the first response
