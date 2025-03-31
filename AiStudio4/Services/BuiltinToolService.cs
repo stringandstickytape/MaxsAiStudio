@@ -21,7 +21,7 @@ namespace AiStudio4.Services
             ILogger<BuiltinToolService> logger,
             CodeDiffTool codeDiffTool,
             StopTool stopTool,
-            ReadFilesTool readFileTool,
+            ReadFilesTool readFilesTool,
             ThinkTool thinkTool,
             DirectoryTreeTool directoryTreeTool,
             FileSearchTool fileSearchTool)
@@ -33,7 +33,7 @@ namespace AiStudio4.Services
             {
                 { codeDiffTool.GetToolDefinition().Name, codeDiffTool },
                 { stopTool.GetToolDefinition().Name, stopTool },
-                { readFileTool.GetToolDefinition().Name, readFileTool },
+                { readFilesTool.GetToolDefinition().Name, readFilesTool },
                 { thinkTool.GetToolDefinition().Name, thinkTool },
                 { directoryTreeTool.GetToolDefinition().Name, directoryTreeTool },
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },

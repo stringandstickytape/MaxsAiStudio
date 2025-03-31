@@ -35,7 +35,7 @@ namespace AiStudio4.Core.Tools
                 Name = "ReadFiles",
                 Description = "Read the contents of one or multiple files.",
                 Schema = @"{
-  ""name"": ""ReadFile"",
+  ""name"": ""ReadFiles"",
   ""description"": ""Read the contents of one or multiple files.  Can read a single file or multiple files simultaneously. When reading multiple files, each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories."",
   ""input_schema"": {
                 ""properties"": {

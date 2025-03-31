@@ -193,7 +193,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           </div>
 
           {expanded && (
-            <div className="absolute left-0 right-0 bottom-full z-50 max-w-2xl mx-auto">
+            <div className="absolute left-0 right-0 bottom-full z-50 max-w-2xl mx-auto bg-gray-800 p-4 rounded-md border border-gray-700/50">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
@@ -262,7 +262,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                       size="sm"
                       variant="outline"
                       onClick={handleOpenLibrary}
-                      className="text-xs h-8 text-gray-200 border-gray-600"
+                      className="text-xs h-8 text-gray-200 border-gray-600 bg-gray-700 hover:bg-gray-600"
                     >
                       Manage Prompts
                     </Button>
