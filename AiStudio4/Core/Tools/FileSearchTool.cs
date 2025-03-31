@@ -1,4 +1,5 @@
 ﻿using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq; // Needed for JArray parsing
@@ -18,7 +19,7 @@ namespace AiStudio4.Core.Tools
     public class FileSearchTool : BaseToolImplementation
     {
 
-        public FileSearchTool(ILogger<FileSearchTool> logger) : base(logger)
+        public FileSearchTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

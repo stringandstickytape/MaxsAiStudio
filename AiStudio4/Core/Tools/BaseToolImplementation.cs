@@ -1,5 +1,6 @@
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -14,10 +15,10 @@ namespace AiStudio4.Core.Tools
         protected readonly ILogger _logger;
 
         protected readonly string _projectRoot;
-        protected BaseToolImplementation(ILogger logger)
+        protected BaseToolImplementation(ILogger logger, ISettingsService settingsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
+            _projectRoot = settingsService.CurrentSettings.ProjectPath;
         }
 
         /// <summary>

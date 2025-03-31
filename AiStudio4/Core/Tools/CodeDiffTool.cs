@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class CodeDiffTool : BaseToolImplementation
     {
-        public CodeDiffTool(ILogger<CodeDiffTool> logger) : base(logger)
+        public CodeDiffTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

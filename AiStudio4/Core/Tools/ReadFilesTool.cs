@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,7 +18,7 @@ namespace AiStudio4.Core.Tools
     public class ReadFilesTool : BaseToolImplementation
     {
 
-        public ReadFilesTool(ILogger<ReadFilesTool> logger) : base(logger)
+        public ReadFilesTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

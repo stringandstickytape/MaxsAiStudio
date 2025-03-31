@@ -18,6 +18,8 @@ namespace AiStudio4.InjectedDependencies
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string DefaultSystemPromptId { get; set; }
 
+        public string ProjectPath { get; set; } = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
+
         // Appearance settings
         public Dictionary<string, AppearanceSettings> UserAppearanceSettings { get; set; } = new();
 

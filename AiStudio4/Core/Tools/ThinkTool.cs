@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ThinkTool : BaseToolImplementation
     {
-        public ThinkTool(ILogger<ThinkTool> logger) : base(logger)
+        public ThinkTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

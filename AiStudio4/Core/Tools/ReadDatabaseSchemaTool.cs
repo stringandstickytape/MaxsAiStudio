@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Text;
 using System.Threading.Tasks;
+using AiStudio4.InjectedDependencies;
 
 namespace AiStudio4.Core.Tools
 {
@@ -14,7 +15,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ReadDatabaseSchemaTool : BaseToolImplementation
     {
-        public ReadDatabaseSchemaTool(ILogger<ReadDatabaseSchemaTool> logger) : base(logger)
+        public ReadDatabaseSchemaTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

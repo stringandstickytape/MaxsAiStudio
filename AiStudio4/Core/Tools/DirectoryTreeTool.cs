@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SharedClasses.Git;
@@ -18,7 +19,7 @@ namespace AiStudio4.Core.Tools
     {
         private readonly string _projectRoot;
 
-        public DirectoryTreeTool(ILogger<DirectoryTreeTool> logger) : base(logger)
+        public DirectoryTreeTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 

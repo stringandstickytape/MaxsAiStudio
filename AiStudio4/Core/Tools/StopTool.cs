@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +12,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class StopTool : BaseToolImplementation
     {
-        public StopTool(ILogger<StopTool> logger) : base(logger)
+        public StopTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
 
