@@ -62,8 +62,6 @@ namespace AiStudio4.Core.Tools
                         ""type"": ""string"",
                         ""description"": ""The type of change that occurred"",
                         ""enum"": [
-                          ""addToFile"",
-                          ""deleteFromFile"",
                           ""modifyFile"",
                           ""createnewFile"",
                           ""replaceFile"",
@@ -110,7 +108,7 @@ namespace AiStudio4.Core.Tools
     ]
   }
 }",
-                Categories = new List<string> { "Development" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

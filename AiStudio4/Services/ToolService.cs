@@ -59,29 +59,32 @@ namespace AiStudio4.Services
                     _toolLibrary = new ToolLibrary();
                 }
 
-                var builtinTools = _builtinToolService.GetBuiltinTools();
 
-                foreach(var tool in builtinTools)
-                {
-                    _toolLibrary.Tools.RemoveAll(x => x.SchemaName == tool.SchemaName);
-                    if (!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
-                    {
-                        _toolLibrary.Tools.Add(tool);
-                    }
-                }
             }
             else
             {
                 _toolLibrary = new ToolLibrary();
                 // Initialize with default categories
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "API Tools", Priority = 100 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70 });
-                SaveToolLibrary();
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "MaxCode", Priority = 110, Id = "MaxCode" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "API Tools", Priority = 100, Id = "APITools" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90, Id = "Development" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80, Id = "DataAnalysis" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70, Id = "Productivity" });
+
             }
 
+            var builtinTools = _builtinToolService.GetBuiltinTools();
 
+            foreach (var tool in builtinTools)
+            {
+                _toolLibrary.Tools.RemoveAll(x => x.SchemaName == tool.SchemaName);
+                if (!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
+                {
+                    _toolLibrary.Tools.Add(tool);
+                }
+            }
+
+            SaveToolLibrary();
         }
 
         private void SaveToolLibrary()

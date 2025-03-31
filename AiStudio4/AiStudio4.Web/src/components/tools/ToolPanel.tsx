@@ -1,4 +1,4 @@
-
+import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
@@ -213,32 +213,42 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
         <div className="md:col-span-1">
           <Card className="card-base">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Categories</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-300">Categories</CardTitle>
             </CardHeader>
             <CardContent className="p-2">
               <div className="space-y-1">
                 <Button
-                  variant={selectedCategory === null ? 'default' : 'ghost'}
+                  variant="outline"
                   size="sm"
-                  className="w-full justify-start"
+                  className={cn(
+                    "w-full justify-start",
+                    selectedCategory === null 
+                      ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
+                      : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
+                  )}
                   onClick={() => setSelectedCategory(null)}
                 >
                   All Tools
                 </Button>
                 {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.id ? 'default' : 'ghost'}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    {category.name}
-                  </Button>
+                    <Button
+                        key={category.id}
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "w-full justify-start", 
+                          selectedCategory === category.id 
+                            ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
+                            : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
+                          )}
+                        onClick={() => setSelectedCategory(category.id)}
+                    >
+                        {category.name}
+                    </Button>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+                          </div>
+                      </CardContent>
+                  </Card>
         </div>
 
         <div className="md:col-span-3">

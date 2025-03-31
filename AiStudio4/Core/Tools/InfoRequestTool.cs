@@ -39,7 +39,7 @@ namespace AiStudio4.Core.Tools
     ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "Interaction" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

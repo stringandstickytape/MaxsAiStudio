@@ -64,7 +64,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "Development" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

@@ -38,7 +38,7 @@ namespace AiStudio4.Core.Tools
     }
   }
 }",
-                Categories = new List<string> { "Development" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

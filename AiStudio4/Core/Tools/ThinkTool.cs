@@ -41,7 +41,7 @@ It will not obtain new information or make any changes to the repository, but ju
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "Development" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

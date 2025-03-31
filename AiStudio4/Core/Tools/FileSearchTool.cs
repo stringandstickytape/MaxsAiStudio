@@ -72,7 +72,7 @@ namespace AiStudio4.Core.Tools
     ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "Development", "Filesystem" },
+                Categories = new List<string> { "MaxCode" },
                 Filetype = string.Empty, // Or specify if relevant, e.g., "text"
                 LastModified = DateTime.UtcNow
             };
