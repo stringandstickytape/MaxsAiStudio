@@ -9,9 +9,10 @@ import { useEffect, useState } from 'react';
 
 interface SidebarProps {
   wsState: WebSocketState;
+  onReconnectClick: () => void;
 }
 
-export function Sidebar({ wsState }: SidebarProps) {
+export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
   const { activeConvId, convs } = useConvStore();
   const [currentConvId, setCurrentConvId] = useState<string | null>(null);
 
@@ -54,8 +55,15 @@ export function Sidebar({ wsState }: SidebarProps) {
         </div>
       </div>
 
-      {/* Connection status footer */}
-      <div className="p-3 border-t border-gray-800 bg-[#1f2937]">
+      {/* Connection status footer */} 
+      <div 
+        className={cn(
+          'p-3 border-t border-gray-800 bg-[#1f2937]',
+          !wsState.isConnected && 'cursor-pointer hover:bg-gray-700/50 rounded-b-md'
+        )}
+        onClick={!wsState.isConnected ? onReconnectClick : undefined}
+        title={!wsState.isConnected ? 'Click to reconnect' : undefined}
+      >
         <div className="flex items-center space-x-2">
           <div
             className={cn('w-2 h-2 rounded-full shadow-glow', wsState.isConnected ? 'bg-green-500' : 'bg-red-500')}

@@ -18,7 +18,7 @@ interface NavigationContainerProps {
 
 export function NavigationContainer({ children }: NavigationContainerProps) {
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
-  const { isConnected, clientId } = useWebSocket();
+  const { isConnected, clientId, connect } = useWebSocket(); // Get connect function
   const wsState = { isConnected, clientId, messages: [] };
 
   const { togglePanel, panels } = usePanelStore();
@@ -96,10 +96,10 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         maxWidth: '450px',
         width: '320px',
         zIndex: 40,
-        render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} /> : null),
+        render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} onReconnectClick={connect} /> : null),
       },
     ],
-    [wsState],
+    [wsState, connect], // Add connect to dependencies
   );
 
   return (
