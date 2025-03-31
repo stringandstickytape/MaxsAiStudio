@@ -24,6 +24,7 @@ namespace AiStudio4.Core
             services.AddTransient<DirectoryTreeTool>();
             services.AddTransient<InfoRequestTool>();
             services.AddTransient<FileSearchTool>();
+            services.AddTransient<ReadDatabaseSchemaTool>();
             services.AddTransient<RunDuckDuckGoSearchTool>();
 
             // Register the tool service
