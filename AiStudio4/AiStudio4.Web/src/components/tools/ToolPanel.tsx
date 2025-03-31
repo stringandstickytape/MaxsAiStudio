@@ -160,28 +160,18 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
-    <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">
+    <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100"> {/* Removed pt-12 */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-100"
-            >
-              <X className="h-4 w-4 mr-1" />
-              <span>Close</span>
-            </Button>
-          )}
+          {/* Removed Close button from here */}
           <h2 className="text-title">Tool Library</h2>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 pr-16"> {/* Added pr-16 */}
           {/* Moved Buttons Start */}
           <Button
             variant="outline"
             size="sm"
-            className="btn-secondary"
+            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
             onClick={handleSelectAll}
             disabled={isLoading || filteredTools.length === 0 || filteredTools.length === activeTools.length}
           >
@@ -190,13 +180,19 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
           <Button
             variant="outline"
             size="sm"
-            className="btn-secondary"
+            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
             onClick={handleSelectNone}
             disabled={isLoading || activeTools.length === 0}
           >
             Select None
           </Button>
-          <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+            onClick={handleExportTools} 
+            disabled={isExporting}
+          >
             <Download className="h-4 w-4 mr-1" />
             {isExporting ? 'Exporting...' : 'Export'}
           </Button>
