@@ -41,7 +41,7 @@ namespace AiStudio4.Services
                 { directoryTreeTool.GetToolDefinition().Name, directoryTreeTool },
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },
                 { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool },
-                { readDatabaseSchemaTool.GetToolDefinition().Name,  readDatabaseSchemaTool }
+                { readDatabaseSchemaTool.GetToolDefinition().Name,  readDatabaseSchemaTool },
 
                 { runDuckDuckGoSearchTool.GetToolDefinition().Name, runDuckDuckGoSearchTool }
                 // Add more tools here as they are implemented

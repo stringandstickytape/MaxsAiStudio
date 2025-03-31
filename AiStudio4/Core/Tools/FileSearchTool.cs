@@ -21,9 +21,6 @@ namespace AiStudio4.Core.Tools
 
         public FileSearchTool(ILogger<FileSearchTool> logger) : base(logger)
         {
-            // This should be configured through DI in a real implementation
-            // Ensure this path is correct for your environment or inject it.
-            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         }
 
         /// <summary>

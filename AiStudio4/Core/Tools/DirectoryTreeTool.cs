@@ -20,8 +20,6 @@ namespace AiStudio4.Core.Tools
 
         public DirectoryTreeTool(ILogger<DirectoryTreeTool> logger) : base(logger)
         {
-            // This should be configured through DI in a real implementation
-            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         }
 
         /// <summary>

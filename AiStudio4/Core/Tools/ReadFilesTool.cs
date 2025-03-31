@@ -20,8 +20,6 @@ namespace AiStudio4.Core.Tools
 
         public ReadFilesTool(ILogger<ReadFilesTool> logger) : base(logger)
         {
-            // TODO: This should be configured through DI (e.g., IConfiguration) instead of being hardcoded.
-            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         }
 
         /// <summary>
