@@ -22,6 +22,7 @@ namespace AiStudio4.Services
             CodeDiffTool codeDiffTool,
             StopTool stopTool,
             ReadFilesTool readFilesTool,
+            ReadDatabaseSchemaTool readDatabaseSchemaTool,
             ThinkTool thinkTool,
             DirectoryTreeTool directoryTreeTool,
             FileSearchTool fileSearchTool,
@@ -38,7 +39,8 @@ namespace AiStudio4.Services
                 { thinkTool.GetToolDefinition().Name, thinkTool },
                 { directoryTreeTool.GetToolDefinition().Name, directoryTreeTool },
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },
-                { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool }
+                { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool },
+                { readDatabaseSchemaTool.GetToolDefinition().Name,  readDatabaseSchemaTool }
                 // Add more tools here as they are implemented
             };
         }
