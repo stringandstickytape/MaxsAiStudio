@@ -171,7 +171,8 @@ namespace AiStudio4.Core.Tools
                                 }
 
                                 // Process each group of consecutive matches
-                                foreach (var (groupStart, groupEnd) in matchGroups)
+                                int maxContextsPerFile = 10;
+                                foreach (var (groupStart, groupEnd) in matchGroups.Take(maxContextsPerFile))
                                 {
                                     // Get context lines (3 lines before first match and 3 lines after last match)
                                     int contextStart = Math.Max(1, groupStart - 3);
@@ -189,12 +190,21 @@ namespace AiStudio4.Core.Tools
                                     // Display context with line numbers
                                     for (int i = contextStart - 1; i < contextEnd; i++)
                                     {
+                                        // Handle potential index out of bounds if fileLines is smaller than contextEnd (safety check)
+                                        if (i < 0 || i >= fileLines.Count) continue;
                                         var (lineNum, content) = fileLines[i];
                                         string prefix = matchingLineNumbers.Contains(lineNum) ? "* " : "  ";
                                         matchDetails.AppendLine($"{lineNum,4} {prefix}{content}");
                                     }
                                     matchDetails.AppendLine();
                                 }
+
+                                // Add the "and more" message if there were more matches than shown
+                                if (matchGroups.Count > maxContextsPerFile)
+                                {
+                                    matchDetails.AppendLine($"  ... and {matchGroups.Count - maxContextsPerFile} more matches found in this file.");
+                                }
+
                                 results.Add(matchDetails.ToString());
                             }
                         }
