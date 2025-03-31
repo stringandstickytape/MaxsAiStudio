@@ -24,7 +24,8 @@ namespace AiStudio4.Services
             ReadFilesTool readFilesTool,
             ThinkTool thinkTool,
             DirectoryTreeTool directoryTreeTool,
-            FileSearchTool fileSearchTool)
+            FileSearchTool fileSearchTool,
+            RetrieveTextFromUrlTool retrieveTextFromUrlTool )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             
@@ -37,6 +38,7 @@ namespace AiStudio4.Services
                 { thinkTool.GetToolDefinition().Name, thinkTool },
                 { directoryTreeTool.GetToolDefinition().Name, directoryTreeTool },
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },
+                { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool }
                 // Add more tools here as they are implemented
             };
         }
