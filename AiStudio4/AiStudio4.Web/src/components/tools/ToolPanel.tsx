@@ -27,10 +27,11 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     fetchToolCategories,
     deleteTool,
     exportTools: exportToolsFn,
+    clearActiveTools, // Added
   } = useToolsManagement();
 
   
-  const { setTools, setCategories, activeTools, addActiveTool, removeActiveTool } = useToolStore();
+  const { setTools, setCategories, activeTools, addActiveTool, removeActiveTool, setActiveTools } = useToolStore(); // Added setActiveTools here
 
   
   useEffect(() => {
@@ -148,6 +149,14 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     }
   };
 
+    const handleSelectAll = () => {
+        const filteredToolIds = filteredTools.map(tool => tool.guid);
+        setActiveTools(filteredToolIds);
+    };
+    const handleSelectNone = () => {
+        clearActiveTools();
+    };
+
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
@@ -168,6 +177,30 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
           <h2 className="text-title">Tool Library</h2>
         </div>
         <div className="flex space-x-2">
+          {/* Moved Buttons Start */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-secondary"
+            onClick={handleSelectAll}
+            disabled={isLoading || filteredTools.length === 0 || filteredTools.length === activeTools.length}
+          >
+            Select All Visible
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-secondary"
+            onClick={handleSelectNone}
+            disabled={isLoading || activeTools.length === 0}
+          >
+            Select None
+          </Button>
+          <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
+            <Download className="h-4 w-4 mr-1" />
+            {isExporting ? 'Exporting...' : 'Export'}
+          </Button>
+          {/* Moved Buttons End */}
           <Button
             variant="outline"
             size="sm"
@@ -339,13 +372,31 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
             </div>
           )}
         </div>
-        <div className="flex space-x-2">
+        {/* Buttons moved to the top */}
+        {/* <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-secondary"
+            onClick={handleSelectAll}
+            disabled={isLoading || filteredTools.length === 0 || filteredTools.length === activeTools.length}
+          >
+            Select All Visible
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-secondary"
+            onClick={handleSelectNone}
+            disabled={isLoading || activeTools.length === 0}
+          >
+            Select None
+          </Button>
           <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
             <Download className="h-4 w-4 mr-1" />
             {isExporting ? 'Exporting...' : 'Export'}
           </Button>
-        </div>
-      </div>
+        </div> */}
 
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
         <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 max-w-2xl">
@@ -355,6 +406,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
           <ToolEditor tool={currentTool} onClose={() => setIsEditorOpen(false)} categories={categories} />
         </DialogContent>
       </Dialog>
+          </div>
     </div>
   );
 }
