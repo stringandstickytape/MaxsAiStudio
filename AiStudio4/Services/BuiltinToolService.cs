@@ -25,7 +25,8 @@ namespace AiStudio4.Services
             ThinkTool thinkTool,
             DirectoryTreeTool directoryTreeTool,
             FileSearchTool fileSearchTool,
-            RetrieveTextFromUrlTool retrieveTextFromUrlTool )
+            RetrieveTextFromUrlTool retrieveTextFromUrlTool,
+            RunDuckDuckGoSearchTool runDuckDuckGoSearchTool)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             
@@ -38,7 +39,8 @@ namespace AiStudio4.Services
                 { thinkTool.GetToolDefinition().Name, thinkTool },
                 { directoryTreeTool.GetToolDefinition().Name, directoryTreeTool },
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },
-                { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool }
+                { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool },
+                { runDuckDuckGoSearchTool.GetToolDefinition().Name, runDuckDuckGoSearchTool }
                 // Add more tools here as they are implemented
             };
         }
