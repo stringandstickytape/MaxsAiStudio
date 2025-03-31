@@ -40,7 +40,10 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 '',
                 ['system', 'prompt', 'create', 'new', 'custom'],
                 React.createElement(PlusCircle, { size: 16 }),
-                () => config.createNewPrompt(),
+                () => {
+                    window.localStorage.setItem('systemPrompt_action', 'create');
+                    window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
+                },
             ],
             [
                 'edit-current-system-prompt',

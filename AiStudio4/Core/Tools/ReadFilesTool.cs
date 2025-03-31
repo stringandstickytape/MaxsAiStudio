@@ -14,11 +14,11 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the ReadFile tool
     /// </summary>
-    public class ReadFileTool : BaseToolImplementation
+    public class ReadFilesTool : BaseToolImplementation
     {
         private readonly string _projectRoot;
 
-        public ReadFileTool(ILogger<ReadFileTool> logger) : base(logger)
+        public ReadFilesTool(ILogger<ReadFilesTool> logger) : base(logger)
         {
             // This should be configured through DI in a real implementation
             _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
@@ -32,7 +32,7 @@ namespace AiStudio4.Core.Tools
             return new Tool
             {
                 Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef05", // Fixed GUID for ReadFile
-                Name = "ReadFile",
+                Name = "ReadFiles",
                 Description = "Read the contents of one or multiple files.",
                 Schema = @"{
   ""name"": ""ReadFile"",

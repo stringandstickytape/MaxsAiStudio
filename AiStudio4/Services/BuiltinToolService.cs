@@ -21,7 +21,7 @@ namespace AiStudio4.Services
             ILogger<BuiltinToolService> logger,
             CodeDiffTool codeDiffTool,
             StopTool stopTool,
-            ReadFileTool readFileTool,
+            ReadFilesTool readFileTool,
             ThinkTool thinkTool,
             DirectoryTreeTool directoryTreeTool,
             FileSearchTool fileSearchTool)

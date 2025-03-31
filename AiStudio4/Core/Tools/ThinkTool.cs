@@ -54,7 +54,7 @@ It will not obtain new information or make any changes to the repository, but ju
         {
             // Think tool doesn't need special processing beyond logging
             _logger.LogInformation("Think tool called with parameters: {Parameters}", toolParameters);
-            return Task.FromResult(CreateResult(true, true));
+            return Task.FromResult(CreateResult(true, false));
         }
     }
 }

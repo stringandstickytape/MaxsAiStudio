@@ -64,13 +64,18 @@ function App() {
     useEffect(() => {
         const handleOpenSystemPromptLibrary = () => {
             console.log("Event 'open-system-prompt-library' received, opening modal...");
-            useModalStore.getState().openModal('systemPrompt');
+            const createAction = window.localStorage.getItem('systemPrompt_action') === 'create';
+            useModalStore.getState().openModal('systemPrompt', { createNew: createAction });
+            // Clear the action after using it
+            if (createAction) {
+                window.localStorage.removeItem('systemPrompt_action');
+            }
         };
         window.addEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
         return () => {
             window.removeEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
         };
-    }, []); // Empty dependency array ensures this runs once on mount
+    }, []);
 
   
   useEffect(() => {

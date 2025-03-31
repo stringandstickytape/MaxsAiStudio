@@ -21,6 +21,7 @@ export function SystemPromptDialog() {
     };
 
     const editPromptId = modalProps?.editPromptId as string | undefined;
+    const createNew = modalProps?.createNew as boolean | undefined;
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="w-[900px] max-w-none h-[700px] max-h-[90vh] flex flex-col p-0">
@@ -32,6 +33,7 @@ export function SystemPromptDialog() {
                         <SystemPromptLibrary
                             convId={activeConvId || undefined}
                             initialEditPromptId={editPromptId} // Pass the ID from modal props
+                            initialShowEditor={createNew} // Show editor immediately if createNew is true
                             onApplyPrompt={async (prompt) => {
                                 const convId = activeConvId;
                                 const promptId = prompt?.guid || prompt?.Guid;

@@ -18,7 +18,7 @@ namespace AiStudio4.Core
             // Register individual tools
             services.AddTransient<CodeDiffTool>();
             services.AddTransient<StopTool>();
-            services.AddTransient<ReadFileTool>();
+            services.AddTransient<ReadFilesTool>();
             services.AddTransient<ThinkTool>();
             services.AddTransient<DirectoryTreeTool>();
             services.AddTransient<InfoRequestTool>();

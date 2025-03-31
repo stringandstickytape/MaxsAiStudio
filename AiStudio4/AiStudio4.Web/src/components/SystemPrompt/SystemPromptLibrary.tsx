@@ -16,11 +16,12 @@ import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;
   convId?: string;
-    initialEditPromptId?: string; // Add prop to receive initial edit ID
-    onEditorClosed?: () => void; // Add prop to handle editor close
+  initialEditPromptId?: string; // Add prop to receive initial edit ID
+  initialShowEditor?: boolean; // Add prop to show editor immediately
+  onEditorClosed?: () => void; // Add prop to handle editor close
 }
 
-export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId, onEditorClosed }: SystemPromptLibraryProps) {
+export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId, initialShowEditor, onEditorClosed }: SystemPromptLibraryProps) {
   
   const { prompts, defaultPromptId, convPrompts, setPrompts, setCurrentPrompt } = useSystemPromptStore();
 
@@ -32,7 +33,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
   const { prompts: serverPrompts, isLoading, setConvSystemPrompt } = useSystemPromptManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(initialShowEditor || false);
   const [promptToEdit, setPromptToEdit] = useState<SystemPrompt | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -60,10 +61,9 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
 
 
     const handleCreatePrompt = () => {
-        onEditorClosed?.(); // Call the callback to close the dialog
-    setPromptToEdit(null);
-    setShowEditor(true);
-  };
+        setPromptToEdit(null);
+        setShowEditor(true);
+    };
 
   const handleEditPrompt = (prompt: SystemPrompt) => {
     setPromptToEdit(prompt);
