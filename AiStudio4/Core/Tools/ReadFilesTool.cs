@@ -16,7 +16,6 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ReadFilesTool : BaseToolImplementation
     {
-        private readonly string _projectRoot;
 
         public ReadFilesTool(ILogger<ReadFilesTool> logger) : base(logger)
         {

@@ -13,11 +13,11 @@ namespace AiStudio4.Core.Tools
     {
         protected readonly ILogger _logger;
 
-        private readonly string _projectRoot;
+        protected readonly string _projectRoot;
         protected BaseToolImplementation(ILogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\MaxsAiTool\\AiStudio4";
+            _projectRoot = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         }
 
         /// <summary>

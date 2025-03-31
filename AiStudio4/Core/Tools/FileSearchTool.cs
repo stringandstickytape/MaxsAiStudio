@@ -17,7 +17,6 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class FileSearchTool : BaseToolImplementation
     {
-        private readonly string _projectRoot;
 
         public FileSearchTool(ILogger<FileSearchTool> logger) : base(logger)
         {
