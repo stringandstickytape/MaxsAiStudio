@@ -122,7 +122,7 @@ namespace AiStudio4.Core.Tools
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
         {
             // CodeDiff doesn't need special processing
-            return Task.FromResult(CreateResult(true, false));
+            return Task.FromResult(CreateResult(true, false, toolParameters));
         }
     }
 }

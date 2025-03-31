@@ -139,7 +139,7 @@ namespace AiStudio4.Services
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
-                                    toolResultMessageContent += builtinToolResult.ResultMessage;
+                                    toolResultMessageContent +=  $"Tool Use: {toolResponse.ToolName}\n\n```json\n{builtinToolResult.ResultMessage}\n```\n\n"; 
                                 }
                                 
                                 // If the built-in tool indicates processing should stop
