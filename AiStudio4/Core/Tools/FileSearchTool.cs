@@ -143,18 +143,55 @@ namespace AiStudio4.Core.Tools
                                 var matchDetails = new StringBuilder();
                                 matchDetails.AppendLine(filePath);
 
-                                foreach (var matchLineNumber in matchingLineNumbers)
+                                // Group consecutive matching lines to avoid redundant context
+                                List<(int Start, int End)> matchGroups = new List<(int Start, int End)>();
+                                
+                                if (matchingLineNumbers.Count > 0)
                                 {
-                                    // Get 3 lines before and after the match
-                                    int startLine = Math.Max(1, matchLineNumber - 3);
-                                    int endLine = Math.Min(fileLines.Count, matchLineNumber + 3);
+                                    int groupStart = matchingLineNumbers[0];
+                                    int groupEnd = matchingLineNumbers[0];
+                                    
+                                    for (int i = 1; i < matchingLineNumbers.Count; i++)
+                                    {
+                                        // If this line is consecutive to the previous one, extend the group
+                                        if (matchingLineNumbers[i] == groupEnd + 1)
+                                        {
+                                            groupEnd = matchingLineNumbers[i];
+                                        }
+                                        // Otherwise, finalize the current group and start a new one
+                                        else
+                                        {
+                                            matchGroups.Add((groupStart, groupEnd));
+                                            groupStart = matchingLineNumbers[i];
+                                            groupEnd = matchingLineNumbers[i];
+                                        }
+                                    }
+                                    // Add the last group
+                                    matchGroups.Add((groupStart, groupEnd));
+                                }
 
-                                    matchDetails.AppendLine($"  Match at line {matchLineNumber}:");
+                                // Process each group of consecutive matches
+                                foreach (var (groupStart, groupEnd) in matchGroups)
+                                {
+                                    // Get context lines (3 lines before first match and 3 lines after last match)
+                                    int contextStart = Math.Max(1, groupStart - 3);
+                                    int contextEnd = Math.Min(fileLines.Count, groupEnd + 3);
 
-                                    for (int i = startLine - 1; i < endLine; i++)
+                                    if (groupStart == groupEnd)
+                                    {
+                                        matchDetails.AppendLine($"  Match at line {groupStart}:");
+                                    }
+                                    else
+                                    {
+                                        matchDetails.AppendLine($"  Matches at lines {groupStart}-{groupEnd}:");
+                                    }
+
+                                    // Display context with line numbers
+                                    for (int i = contextStart - 1; i < contextEnd; i++)
                                     {
                                         var (lineNum, content) = fileLines[i];
-                                        matchDetails.AppendLine(content);
+                                        string prefix = matchingLineNumbers.Contains(lineNum) ? "* " : "  ";
+                                        matchDetails.AppendLine($"{lineNum,4} {prefix}{content}");
                                     }
                                     matchDetails.AppendLine();
                                 }
