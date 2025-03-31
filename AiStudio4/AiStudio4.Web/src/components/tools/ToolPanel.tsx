@@ -211,6 +211,9 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <div className="md:col-span-1">
+          <div className="text-sm text-gray-400 mb-2">
+              <span className="mr-2">Currently selected: {activeTools.length} tool{activeTools.length !== 1 ? 's' : ''}</span>
+            </div>
           <Card className="card-base">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-300">Categories</CardTitle>
@@ -371,39 +374,8 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
       </div>
 
       <div className="flex justify-between items-center mt-4">
-        <div>
-          {activeTools.length > 0 && (
-            <div className="text-sm text-gray-400">
-              <span className="mr-2">Currently selected: {activeTools.length} tool{activeTools.length !== 1 ? 's' : ''}</span>
-            </div>
-          )}
-        </div>
-        {/* Buttons moved to the top */}
-        {/* <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="btn-secondary"
-            onClick={handleSelectAll}
-            disabled={isLoading || filteredTools.length === 0 || filteredTools.length === activeTools.length}
-          >
-            Select All Visible
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="btn-secondary"
-            onClick={handleSelectNone}
-            disabled={isLoading || activeTools.length === 0}
-          >
-            Select None
-          </Button>
-          <Button variant="outline" className="btn-secondary" onClick={handleExportTools} disabled={isExporting}>
-            <Download className="h-4 w-4 mr-1" />
-            {isExporting ? 'Exporting...' : 'Export'}
-          </Button>
-        </div> */}
-
+        {/* Removed 'Currently selected' label from here */}
+        {/* Buttons moved to the top */} 
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
         <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 max-w-2xl">
           <DialogHeader>
