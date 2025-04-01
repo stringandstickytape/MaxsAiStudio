@@ -40,7 +40,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "stop",
+                OutputFileType = "",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

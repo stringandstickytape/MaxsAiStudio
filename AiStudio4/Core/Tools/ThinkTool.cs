@@ -1,6 +1,7 @@
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ It will not obtain new information or make any changes to the repository, but ju
   }
 }",
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "think",
+                OutputFileType = "",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
@@ -57,8 +58,12 @@ It will not obtain new information or make any changes to the repository, but ju
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
         {
             // Think tool doesn't need special processing beyond logging
-            _logger.LogInformation("Think tool called with parameters: {Parameters}", toolParameters);
-            return Task.FromResult(CreateResult(true, false));
+            var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);
+
+            var thought = parameters?["thought"]?.ToString() ?? "";
+
+            _logger.LogInformation("Think tool called with parameters: {Parameters}", thought);
+            return Task.FromResult(CreateResult(true, false, thought));
         }
     }
 }

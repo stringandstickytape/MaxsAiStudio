@@ -62,7 +62,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
   }
 }",
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "dir",
+                OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
