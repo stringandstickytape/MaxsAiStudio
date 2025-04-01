@@ -21,5 +21,6 @@ namespace AiStudio4.InjectedDependencies
         void DeleteServiceProvider(string providerGuid);
         AppearanceSettings GetAppearanceSettings(string clientId);
         void UpdateAppearanceSettings(string clientId, AppearanceSettings settings);
+        void AddProjectPathToHistory(string path); // Added method signature
     }
 }

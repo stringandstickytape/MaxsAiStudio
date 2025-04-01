@@ -1,5 +1,6 @@
 ﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
+using AiStudio4.Services;
 using Microsoft.Win32; // Added for OpenFolderDialog
 using System;
 using System.Text;
@@ -20,14 +21,17 @@ public partial class WebViewWindow : Window
     private readonly WindowManager _windowManager;
     private readonly IMcpService _mcpService;
     private readonly ISettingsService _settingsService; // Added ISettingsService field
+    private readonly IBuiltinToolService _builtinToolService;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService) // Added ISettingsService parameter
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService) // Added ISettingsService parameter
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
         _settingsService = settingsService; // Assign injected service
+        _builtinToolService = builtinToolService;
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
+        UpdateRecentProjectsMenu(); // Populate recent projects menu
         webView.Initialize();
     }
     private void UpdateWindowTitle()
@@ -113,13 +117,68 @@ public partial class WebViewWindow : Window
             {
                 string selectedPath = dialog.FolderName;
                 _settingsService.CurrentSettings.ProjectPath = selectedPath;
+                _settingsService.AddProjectPathToHistory(selectedPath); // Add to history
                 _settingsService.SaveSettings();
+                _builtinToolService.UpdateProjectRoot();
                 UpdateWindowTitle(); // Update title bar after changing the path
-                MessageBox.Show($"Project path updated to: {selectedPath}", "Project Path Set", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateRecentProjectsMenu(); // Update the recent projects menu
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error setting project path: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void UpdateRecentProjectsMenu()
+    {
+        RecentProjectsMenuItem.Items.Clear();
+        var history = _settingsService.CurrentSettings.ProjectPathHistory;
+
+        if (history == null || !history.Any())
+        {
+            RecentProjectsMenuItem.IsEnabled = false;
+            return;
+        }
+
+        RecentProjectsMenuItem.IsEnabled = true;
+        for (int i = 0; i < history.Count; i++)
+        {
+            var path = history[i];
+            var menuItem = new MenuItem
+            {
+                Header = FormatPathForMenu(path, i + 1),
+                Tag = path // Store the full path
+            };
+            menuItem.Click += RecentProjectPathMenuItem_Click;
+            RecentProjectsMenuItem.Items.Add(menuItem);
+        }
+    }
+
+    private string FormatPathForMenu(string path, int index)
+    {
+        // Simple formatting, potentially shorten long paths
+        const int maxLength = 50;
+        string displayPath = path.Length > maxLength ? "..." + path.Substring(path.Length - maxLength) : path;
+        return $"_{index} {displayPath}"; // Add accelerator key
+    }
+
+    private void RecentProjectPathMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is string selectedPath)
+        {
+            try
+            {
+                _settingsService.CurrentSettings.ProjectPath = selectedPath;
+                _settingsService.AddProjectPathToHistory(selectedPath); // Move to top of history
+                _settingsService.SaveSettings();
+                _builtinToolService.UpdateProjectRoot();
+                UpdateWindowTitle();
+                UpdateRecentProjectsMenu();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error setting project path from history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

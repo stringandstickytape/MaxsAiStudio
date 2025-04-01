@@ -18,6 +18,8 @@ namespace AiStudio4.InjectedDependencies
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string DefaultSystemPromptId { get; set; }
 
+        public List<string> ProjectPathHistory { get; set; } = new();
+
         public string ProjectPath { get; set; } = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
 
         // Appearance settings
@@ -66,6 +68,13 @@ namespace AiStudio4.InjectedDependencies
 
             string jsonContent = File.ReadAllText(_settingsFilePath);
             _currentSettings = JsonConvert.DeserializeObject<Studio4Settings>(jsonContent);
+
+            // Ensure ProjectPathHistory is initialized
+            if (_currentSettings.ProjectPathHistory == null)
+            {
+                _currentSettings.ProjectPathHistory = new List<string>();
+                SaveSettings(); // Save if we had to initialize it
+            }
         }
 
         private void LoadDefaultSettings(string defaultSettingsPath)
@@ -210,6 +219,24 @@ namespace AiStudio4.InjectedDependencies
             _currentSettings.UserAppearanceSettings[clientId] = settings;
             SaveSettings();
         }
-        
+        // Method to add/update the project path history
+        public void AddProjectPathToHistory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+            // Ensure the list is initialized
+            _currentSettings.ProjectPathHistory ??= new List<string>();
+            // Remove existing instance if it exists
+            _currentSettings.ProjectPathHistory.Remove(path);
+            // Insert at the beginning
+            _currentSettings.ProjectPathHistory.Insert(0, path);
+            // Keep only the top 10 most recent paths
+            const int maxHistoryItems = 10;
+            if (_currentSettings.ProjectPathHistory.Count > maxHistoryItems)
+            {
+                _currentSettings.ProjectPathHistory = _currentSettings.ProjectPathHistory.Take(maxHistoryItems).ToList();
+            }
+            SaveSettings();
+        }
     }
 }

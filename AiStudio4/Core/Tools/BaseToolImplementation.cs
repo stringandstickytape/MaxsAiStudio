@@ -13,12 +13,19 @@ namespace AiStudio4.Core.Tools
     public abstract class BaseToolImplementation : ITool
     {
         protected readonly ILogger _logger;
+        protected readonly ISettingsService _settingsService;
 
-        protected readonly string _projectRoot;
+        protected string _projectRoot;
         protected BaseToolImplementation(ILogger logger, ISettingsService settingsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _projectRoot = settingsService.CurrentSettings.ProjectPath;
+            _settingsService = settingsService;
+            UpdateProjectRoot();
+        }
+
+        public void UpdateProjectRoot()
+        {
+            _projectRoot = _settingsService.CurrentSettings.ProjectPath;
         }
 
         /// <summary>

@@ -56,6 +56,14 @@ namespace AiStudio4.Services
             return _tools.Values.Select(t => t.GetToolDefinition()).ToList();
         }
 
+        public void UpdateProjectRoot()
+        {
+            foreach(var tool in _tools)
+            {
+                tool.Value.UpdateProjectRoot();
+            }
+        }
+
         /// <summary>
         /// Processes a built-in tool call
         /// </summary>

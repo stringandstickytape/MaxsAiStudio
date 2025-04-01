@@ -20,5 +20,6 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="toolParameters">The parameters passed to the tool</param>
         /// <returns>Result of the tool processing</returns>
         Task<BuiltinToolResult> ProcessAsync(string toolParameters);
+        void UpdateProjectRoot();
     }
 }
