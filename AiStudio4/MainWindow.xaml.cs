@@ -27,9 +27,17 @@ public partial class WebViewWindow : Window
         _mcpService = mcpService;
         _settingsService = settingsService; // Assign injected service
         InitializeComponent();
+        UpdateWindowTitle(); // Set initial window title
         webView.Initialize();
     }
-
+    private void UpdateWindowTitle()
+    {
+        // Ensure ProjectPath is not null or empty before displaying
+        var projectPathDisplay = string.IsNullOrWhiteSpace(_settingsService.CurrentSettings.ProjectPath)
+            ? "[Project Path Not Set]"
+            : _settingsService.CurrentSettings.ProjectPath;
+        this.Title = $"AiStudio4 - {projectPathDisplay}";
+    }
     private async void McpServersMenuItem_Loaded(object sender, RoutedEventArgs e)
     {
         await RefreshMcpServersMenuAsync();
@@ -106,6 +114,7 @@ public partial class WebViewWindow : Window
                 string selectedPath = dialog.FolderName;
                 _settingsService.CurrentSettings.ProjectPath = selectedPath;
                 _settingsService.SaveSettings();
+                UpdateWindowTitle(); // Update title bar after changing the path
                 MessageBox.Show($"Project path updated to: {selectedPath}", "Project Path Set", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
