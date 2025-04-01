@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace AiStudio4.Core.Tools
 {
@@ -16,7 +17,6 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class CodeDiffTool : BaseToolImplementation
     {
-        // StringBuilder to collect error messages across all changes
         private readonly StringBuilder _errorMessages;
 
         public CodeDiffTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
@@ -198,9 +198,10 @@ namespace AiStudio4.Core.Tools
                 _errorMessages.AppendLine($"Unexpected error: {ex.Message}");
                 success = false;
             }
-
+            
+            MessageBox.Show(success ? "All changes applied successfully." : _errorMessages.ToString());
             string resultMessage = success ? "All changes applied successfully." : _errorMessages.ToString();
-            return CreateResult(success, false, resultMessage);
+            return CreateResult(success, false, toolParameters);
         }
 
         /// <summary>
@@ -315,23 +316,163 @@ namespace AiStudio4.Core.Tools
 
             try
             {
+                // Read all lines to work with line numbers
+                string[] fileLines = await File.ReadAllLinesAsync(filePath);
                 string fileContent = await File.ReadAllTextAsync(filePath);
-                if (!fileContent.Contains(oldContent))
+
+                // Normalize line endings and whitespace for comparison
+                string normalizedOldContent = NormalizeText(oldContent);
+                string normalizedFileContent = NormalizeText(fileContent);
+
+                // If line number is provided, search outward from that line
+                if (lineNumber > 0 && lineNumber <= fileLines.Length)
                 {
-                    _errorMessages.AppendLine($"Error: Could not find oldContent in file '{filePath}'.");
-                    return false;
+                    int matchIndex = FindClosestMatch(fileLines, normalizedOldContent, lineNumber);
+                    if (matchIndex >= 0)
+                    {
+                        // Found a match starting at this line
+                        string matchedContent = ExtractOriginalText(fileContent, normalizedFileContent, normalizedOldContent, matchIndex);
+                        string updatedContent = fileContent.Replace(matchedContent, newContent);
+                        await File.WriteAllTextAsync(filePath, updatedContent);
+                        _logger.LogInformation($"Modified file: {filePath} at line {matchIndex + 1}");
+                        return true;
+                    }
                 }
 
-                string updatedContent = fileContent.Replace(oldContent, newContent);
-                await File.WriteAllTextAsync(filePath, updatedContent);
-                _logger.LogInformation($"Modified file: {filePath}");
-                return true;
+                // Fallback: try to find the content anywhere in the file
+                if (normalizedFileContent.Contains(normalizedOldContent))
+                {
+                    string matchedContent = ExtractOriginalText(fileContent, normalizedFileContent, normalizedOldContent, 0);
+                    string updatedContent = fileContent.Replace(matchedContent, newContent);
+                    await File.WriteAllTextAsync(filePath, updatedContent);
+                    _logger.LogInformation($"Modified file: {filePath}");
+                    return true;
+                }
+
+                _errorMessages.AppendLine($"Error: Could not find oldContent in file '{filePath}'.");
+                return false;
             }
             catch (Exception ex)
             {
                 _errorMessages.AppendLine($"Error modifying file '{filePath}': {ex.Message}");
                 return false;
             }
+        }
+
+        // Normalize text for comparison by trimming each line and standardizing line endings
+        private string NormalizeText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+
+            // Split by any type of line ending
+            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            // Trim each line and rejoin with standard line endings
+            return string.Join("\n", lines.Select(line => line.Trim()));
+        }
+
+        // Find the closest matching block of text to the specified line number
+        private int FindClosestMatch(string[] fileLines, string normalizedOldContent, int targetLineNumber)
+        {
+            // Convert normalized content to lines for comparison
+            string[] oldContentLines = normalizedOldContent.Split('\n');
+
+            if (oldContentLines.Length == 0) return -1;
+
+            // Start at the target line and expand outward
+            int maxDistance = Math.Max(fileLines.Length, targetLineNumber);
+
+            for (int distance = 0; distance < maxDistance; distance++)
+            {
+                // Try below the target line
+                int belowIndex = targetLineNumber - 1 + distance;
+                if (belowIndex <= fileLines.Length - oldContentLines.Length)
+                {
+                    if (IsMatchAtIndex(fileLines, oldContentLines, belowIndex))
+                        return belowIndex;
+                }
+
+                // Try above the target line (but don't check negative indices)
+                int aboveIndex = targetLineNumber - 1 - distance;
+                if (aboveIndex >= 0 && aboveIndex <= fileLines.Length - oldContentLines.Length)
+                {
+                    if (IsMatchAtIndex(fileLines, oldContentLines, aboveIndex))
+                        return aboveIndex;
+                }
+            }
+
+            return -1; // No match found
+        }
+
+        // Check if the pattern matches at the given index in the file
+        private bool IsMatchAtIndex(string[] fileLines, string[] patternLines, int startIndex)
+        {
+            if (startIndex < 0 || startIndex + patternLines.Length > fileLines.Length)
+                return false;
+
+            for (int i = 0; i < patternLines.Length; i++)
+            {
+                string normalizedFileLine = fileLines[startIndex + i].Trim();
+                string normalizedPatternLine = patternLines[i].Trim();
+
+                if (normalizedFileLine != normalizedPatternLine)
+                    return false;
+            }
+
+            return true;
+        }
+
+        // Extract the original text (with original whitespace and line endings) that matches the normalized pattern
+        private string ExtractOriginalText(string originalContent, string normalizedContent, string normalizedPattern, int approximateIndex)
+        {
+            int normalizedIndex = normalizedContent.IndexOf(normalizedPattern);
+            if (normalizedIndex < 0) return string.Empty;
+
+            // Get the character count before the match in normalized content
+            int charCountBeforeMatch = normalizedContent.Substring(0, normalizedIndex).Length;
+
+            // Find the corresponding position in the original content
+            // This is approximate since whitespace may differ
+            int originalStartPos = FindOriginalPosition(originalContent, normalizedContent, normalizedIndex);
+
+            // The length in the original might be different due to whitespace
+            int originalEndPos = FindOriginalPosition(originalContent, normalizedContent, normalizedIndex + normalizedPattern.Length);
+
+            return originalContent.Substring(originalStartPos, originalEndPos - originalStartPos);
+        }
+
+        // Find the position in the original text that corresponds to a position in the normalized text
+        private int FindOriginalPosition(string originalContent, string normalizedContent, int normalizedPos)
+        {
+            if (normalizedPos <= 0) return 0;
+            if (normalizedPos >= normalizedContent.Length) return originalContent.Length;
+
+            // Count normalized characters
+            int originalPos = 0;
+            int normalizedCount = 0;
+
+            while (originalPos < originalContent.Length && normalizedCount < normalizedPos)
+            {
+                char c = originalContent[originalPos];
+                originalPos++;
+
+                // Skip whitespace differences in counting
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+                {
+                    // Only increment normalized count if we're at whitespace in normalized content
+                    if (normalizedCount < normalizedContent.Length &&
+                        (normalizedContent[normalizedCount] == ' ' || normalizedContent[normalizedCount] == '\n'))
+                    {
+                        normalizedCount++;
+                    }
+                }
+                else
+                {
+                    normalizedCount++;
+                }
+            }
+
+            return originalPos;
         }
 
         /// <summary>

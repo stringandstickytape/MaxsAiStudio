@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Interfaces; // Main interfaces namespace
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public abstract class BaseToolImplementation : ITool
     {
-        protected readonly ILogger _logger;
+    protected readonly ILogger _logger; // Logger for diagnostic information
         protected readonly ISettingsService _settingsService;
 
 
@@ -47,7 +47,7 @@ namespace AiStudio4.Core.Tools
         /// </summary>
         /// <param name="wasProcessed">Whether the tool was processed</param>
         /// <param name="continueProcessing">Whether to continue processing</param>
-        /// <param name="resultMessage">Optional result message</param>
+        /// <param name="resultMessage">Optional result message explaining the outcome</param>
         /// <returns>A BuiltinToolResult object</returns>
         protected BuiltinToolResult CreateResult(bool wasProcessed, bool continueProcessing, string resultMessage = null)
         {
