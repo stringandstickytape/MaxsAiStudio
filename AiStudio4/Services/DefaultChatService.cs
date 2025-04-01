@@ -169,6 +169,8 @@ namespace AiStudio4.Services
                     }
                 }
 
+                systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _settingsService.CurrentSettings.ProjectPath);
+
                 const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
                 
 
