@@ -441,7 +441,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                         ToolName = toolName,
                                         ResponseText = toolArgs
                                     };
-                                    
+
+                                    // send the live stream message about tool-chosen
+                                    OnStreamingDataReceived($"\n\nTool selected: {toolName}\n\n");
+
                                     ToolResponseSet.Tools.Add(currentResponseItem);
                                 }
                                 else

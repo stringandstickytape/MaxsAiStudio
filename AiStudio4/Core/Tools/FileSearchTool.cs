@@ -70,6 +70,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode" },
+                OutputFileType = "search",
                 Filetype = string.Empty, // Or specify if relevant, e.g., "text"
                 LastModified = DateTime.UtcNow
             };

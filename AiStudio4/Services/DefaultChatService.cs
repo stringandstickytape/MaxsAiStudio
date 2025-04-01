@@ -298,7 +298,7 @@ namespace AiStudio4.Services
                 {
                     Success = true,
                     // Return the text from the *last* assistant response in the loop
-                    ResponseText = $"{(response?.ResponseText ?? "")}\n{collatedResponse.ToString()}",
+                    ResponseText =(string.IsNullOrEmpty(collatedResponse.ToString()) ? response?.ResponseText  : collatedResponse.ToString()),
                     CostInfo = accumulatedCostInfo, // Return the accumulated cost
                     Attachments = finalAttachments // Return the latest attachments
                 };

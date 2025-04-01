@@ -14,6 +14,7 @@ namespace AiStudio4.Core.Interfaces
         /// <returns>The tool definition</returns>
         Tool GetToolDefinition();
 
+
         /// <summary>
         /// Processes a tool call with the given parameters
         /// </summary>

@@ -26,6 +26,7 @@ namespace AiStudio4.Core.Models
         public DateTime LastModified { get; set; } = DateTime.UtcNow;
         public bool IsBuiltIn { get; set; } = false;
         public string Filetype { get; set; } = string.Empty;
+        public string OutputFileType { get; set; } = "unknown";
 
         public bool ValidateSchema()
         {

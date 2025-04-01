@@ -15,6 +15,7 @@ namespace AiStudio4.Core.Tools
         protected readonly ILogger _logger;
         protected readonly ISettingsService _settingsService;
 
+
         protected string _projectRoot;
         protected BaseToolImplementation(ILogger logger, ISettingsService settingsService)
         {

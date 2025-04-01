@@ -64,6 +64,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode"},
+                OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

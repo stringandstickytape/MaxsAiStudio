@@ -23,7 +23,7 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef06", // Fixed GUID for infoRequest
+                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef36", // Fixed GUID for infoRequest
                 Name = "infoRequest",
                 Description = "A tool which allows you to request more information from the user",
                 Schema = @"{
@@ -41,6 +41,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode" },
+                OutputFileType = "infoReq",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

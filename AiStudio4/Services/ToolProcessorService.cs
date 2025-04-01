@@ -136,10 +136,21 @@ namespace AiStudio4.Services
                             
                             if (builtinToolResult.WasProcessed)
                             {
+
+                                var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+                                
+                                var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
+
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
+
+                                if(!string.IsNullOrEmpty(toolResponse.ToolName))
+                                {
+                                    toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n";
+                                }
+
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
-                                    toolResultMessageContent +=  $"Tool Use: {toolResponse.ToolName}\n\n```json\n{builtinToolResult.ResultMessage}\n```\n\n"; 
+                                    toolResultMessageContent += $"Tool result:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n"; 
                                 }
                                 
                                 // If the built-in tool indicates processing should stop
@@ -161,7 +172,7 @@ namespace AiStudio4.Services
 
                                 var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
-                                toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n\n```json{tool?.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```json{tool?.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
                             }
                         }
                     }
@@ -174,7 +185,7 @@ namespace AiStudio4.Services
                     // Add tool result message to conversation history
                     conv.messages[conv.messages.Count-1].content += $"\n{toolResultMessageContent}\n";
 
-                    collatedResponse.AppendLine($"\n{toolResultMessageContent}\n\n");
+                    collatedResponse.AppendLine(toolResultMessageContent);
                 }
 
           

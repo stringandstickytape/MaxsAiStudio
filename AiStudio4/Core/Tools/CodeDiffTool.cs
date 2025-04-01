@@ -110,6 +110,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode" },
+                OutputFileType = "json",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };

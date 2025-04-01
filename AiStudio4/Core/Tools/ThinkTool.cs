@@ -15,6 +15,8 @@ namespace AiStudio4.Core.Tools
         {
         }
 
+        public string OutputFileType { get; } = "md";
+
         /// <summary>
         /// Gets the Think tool definition
         /// </summary>
@@ -43,6 +45,7 @@ It will not obtain new information or make any changes to the repository, but ju
   }
 }",
                 Categories = new List<string> { "MaxCode" },
+                OutputFileType = "think",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
