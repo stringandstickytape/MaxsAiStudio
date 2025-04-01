@@ -2,14 +2,14 @@ import { MarkdownPane } from '@/components/markdown-pane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Clipboard, Pencil, Check, X } from 'lucide-react'; // Removed ArrowDown
+import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
 import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
-import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
+
 
 interface ConvViewProps {
     streamTokens: string[];
@@ -81,20 +81,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
 
-    // Set up global functions for compatibility with existing code
-    const { scrollToBottom, isAtBottom } = useStickToBottomContext();
-
-    useEffect(() => {
-        window.scrollChatToBottom = scrollToBottom;
-        window.getScrollButtonState = () => !isAtBottom;
-
-        return () => {
-            delete window.scrollChatToBottom;
-            delete window.getScrollButtonState;
-        };
-    }, [scrollToBottom, isAtBottom]);
-
-
+    // Removed: useStickToBottomContext hook usage
+    // Removed: useEffect block assigning window.scrollChatToBottom and window.getScrollButtonState
 
     const messageChain = useMemo(() => {
         if (!activeConvId) return [];
@@ -137,28 +125,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     }, [activeConvId, slctdMsgId, messageChain]);
 
 
-    // ScrollToBottom component that uses the parent isAtBottom and scrollToBottom
-    const ScrollToBottom = () => {
-        // Notify InputBar about scroll button state changes
-        useEffect(() => {
-            window.dispatchEvent(new CustomEvent('scroll-button-state-change', {
-                detail: { visible: !isAtBottom }
-            }));
-        }, [isAtBottom]);
-
-        return !isAtBottom ? (
-            <Button
-                className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1 rounded-md h-8 flex items-center justify-center transition-opacity duration-200 opacity-100 absolute bottom-4 right-4 z-10"
-                onClick={scrollToBottom}
-                aria-label="Scroll to bottom"
-            >
-                <ArrowDown className="h-4 w-4 mr-1" />
-                <span className="text-xs">Scroll to bottom</span>
-            </Button>
-        ) : null;
-    };
-
-
+    // Removed: ScrollToBottom component definition
 
     if (!activeConvId) return null;
     if (!messageChain.length) {
@@ -361,7 +328,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                     </div>
                 </div>
             )}
-            <ScrollToBottom />
+            {/* Removed: <ScrollToBottom /> */}
         </div>
     );
 };
