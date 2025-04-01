@@ -57,7 +57,7 @@ namespace AiStudio4.Core.Tools
                     ""properties"": {
                       ""lineNumber"": {
                         ""type"": ""integer"",
-                        ""description"": ""The line number where the change starts, adjusted for previous changes in this changeset (not used for file creation, replacement, renaming, or deletion)""
+                        ""description"": ""The line number where the change starts, adjusted for previous changes in this changeset (set to zero for file creation, replacement, renaming, or deletion)""
                       },
                       ""change_type"": {
                         ""type"": ""string"",
@@ -86,7 +86,8 @@ namespace AiStudio4.Core.Tools
                     ""required"": [
                       ""change_type"",
                       ""oldContent"",
-                      ""newContent""
+                      ""newContent"",
+                      ""lineNumber""
                     ]
                   }
                 }
