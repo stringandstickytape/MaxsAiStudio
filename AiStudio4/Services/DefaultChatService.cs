@@ -12,6 +12,7 @@ using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using System.IO;
+using AiStudio4.Core.Tools;
 
 namespace AiStudio4.Services
 {
@@ -170,6 +171,18 @@ namespace AiStudio4.Services
                 }
 
                 systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _settingsService.CurrentSettings.ProjectPath);
+
+                if (systemPromptContent.Contains("ProjectDirectoryTree"))
+                {
+                    var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _settingsService.CurrentSettings.ProjectPath, _settingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
+                    systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
+
+                        _settingsService.CurrentSettings.ProjectPath);
+                }
+
+
+
+
 
                 const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
                 

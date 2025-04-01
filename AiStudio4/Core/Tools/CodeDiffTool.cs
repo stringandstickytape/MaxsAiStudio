@@ -135,7 +135,7 @@ namespace AiStudio4.Core.Tools
             _errorMessages.Clear(); // Reset error messages for this new changeset
 
             try
-            {               
+            {
                 JObject parameters = JObject.Parse(toolParameters);
                 if (parameters["changeset"] == null)
                 {
@@ -198,8 +198,12 @@ namespace AiStudio4.Core.Tools
                 _errorMessages.AppendLine($"Unexpected error: {ex.Message}");
                 success = false;
             }
-            
+
             MessageBox.Show(success ? "All changes applied successfully." : _errorMessages.ToString());
+            if (!success)
+            {
+                Clipboard.SetText(_errorMessages.ToString());
+            }
             string resultMessage = success ? "All changes applied successfully." : _errorMessages.ToString();
             return CreateResult(success, false, toolParameters);
         }

@@ -61,7 +61,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "MaxCode" },
+                Categories = new List<string> { "Development" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
@@ -93,35 +93,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                     }
                 }
 
-                // Get files recursively
-                var files = GetFilesRecursively(searchPath, depth);
-
-                // Apply gitignore filtering if not including filtered files
-                if (!includeFiltered)
-                {
-                    // First check for .gitignore in the project root
-                    var gitIgnorePath = Path.Combine(_projectRoot, ".gitignore");
-                    // If not found, try one level higher
-                    if (!File.Exists(gitIgnorePath))
-                    {
-                        var parentDirectory = Directory.GetParent(_projectRoot)?.FullName;
-                        if (parentDirectory != null)
-                        {
-                            gitIgnorePath = Path.Combine(parentDirectory, ".gitignore");
-                        }
-                    }
-
-                    // Only apply gitignore filtering if we found a .gitignore file
-                    if (File.Exists(gitIgnorePath))
-                    {
-                        var gitignore = File.ReadAllText(gitIgnorePath);
-                        var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
-                        files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files);
-                    }
-                }
-
-                // Generate pretty file tree
-                var prettyPrintedResult = GeneratePrettyFileTree(files, searchPath);
+                string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, _projectRoot);
                 return Task.FromResult(CreateResult(true, true, prettyPrintedResult));
             }
             catch (Exception ex)
@@ -129,6 +101,40 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 _logger.LogError(ex, "Error processing DirectoryTree tool");
                 return Task.FromResult(CreateResult(true, true, $"Error processing DirectoryTree tool: {ex.Message}"));
             }
+        }
+
+        public static string GetDirectoryTree(int depth, bool includeFiltered, string searchPath, string projectRoot)
+        {
+            // Get files recursively
+            var files = GetFilesRecursively(searchPath, depth);
+
+            // Apply gitignore filtering if not including filtered files
+            if (!includeFiltered)
+            {
+                // First check for .gitignore in the project root
+                var gitIgnorePath = Path.Combine(projectRoot, ".gitignore");
+                // If not found, try one level higher
+                if (!File.Exists(gitIgnorePath))
+                {
+                    var parentDirectory = Directory.GetParent(projectRoot)?.FullName;
+                    if (parentDirectory != null)
+                    {
+                        gitIgnorePath = Path.Combine(parentDirectory, ".gitignore");
+                    }
+                }
+
+                // Only apply gitignore filtering if we found a .gitignore file
+                if (File.Exists(gitIgnorePath))
+                {
+                    var gitignore = File.ReadAllText(gitIgnorePath);
+                    var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+                    files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files);
+                }
+            }
+
+            // Generate pretty file tree
+            var prettyPrintedResult = GeneratePrettyFileTree(files, searchPath);
+            return prettyPrintedResult;
         }
 
         /// <summary>
@@ -154,8 +160,22 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 {
                     foreach (var directory in Directory.GetDirectories(searchPath))
                     {
-                        // Recursively get files from subdirectories with a decremented depth
-                        fileList.AddRange(GetFilesRecursively(directory, searchDepth - 1));
+                        var lastDirectory = directory.Split("\\").Last();
+
+                        if (lastDirectory != "build" &&
+                            lastDirectory != "bin" &&
+                            lastDirectory != "obj" &&
+                            lastDirectory != "node_modules" &&
+                            lastDirectory != "dist")
+                        {
+
+                            // Recursively get files from subdirectories with a decremented depth
+                            fileList.AddRange(GetFilesRecursively(directory, searchDepth - 1));
+                        }
+                        else
+                        {
+
+                        }
                     }
                 }
             }
@@ -203,7 +223,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 // Display new directories that weren't displayed before
                 for (int i = commonDirLength; i < dirParts.Count; i++)
                 {
-                    fileTree.AppendLine($"{new string(' ', i * 2)}?? {dirParts[i]}/");
+                    fileTree.AppendLine($"{new string(' ', i * 2)}> {dirParts[i]}/");
                 }
 
                 // Display the file

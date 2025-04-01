@@ -72,10 +72,13 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
   return (
     <>
       <Card className="card-base card-hover hover:border-gray-600">
-        <CardContent className="p-3"> {/* Reduced padding */} 
-          <div className="flex justify-between items-start gap-2 mb-2"> {/* Top row: Title and Buttons */} 
-            {/* Left side: Title and Default Badge */}
-            <div className="flex-1 min-w-0"> {/* Ensure title area can shrink */} 
+        <CardContent className="p-3"> {/* Reduced padding */}           <div className="flex justify-between items-start gap-2 mb-2"> {/* Top row: Title and Buttons */} 
+            {/* Left side: Title and Default Badge - NOW CLICKABLE */}
+            <div 
+              className="flex-1 min-w-0 cursor-pointer" 
+              onClick={toggleExpand} /* Moved click handler here */
+              title={expanded ? "Collapse prompt" : "Expand prompt"} /* Add tooltip */
+            >
               <div className="flex items-center gap-2"> 
                 <h3 className="text-title text-base truncate">{prompt.title}</h3> {/* Truncate long titles */} 
                 {isDefault && (
@@ -140,11 +143,10 @@ export function SystemPromptCard({ prompt, isDefault, onEdit, onApply }: SystemP
 
           {/* Description (optional) */} 
           {hasDescription && <p className="text-body text-sm mb-2">{prompt.description}</p>} 
-
-          {/* Prompt Content */}
+          {/* Prompt Content - NO LONGER CLICKABLE */}
           <div
-            className={`p-2 bg-gray-700/30 rounded cursor-pointer ${expanded ? '' : 'line-clamp-2'}`} // Reduced line clamp
-            onClick={toggleExpand}
+            className={`p-2 bg-gray-700/30 rounded ${expanded ? '' : 'line-clamp-2'}`} // Removed cursor-pointer
+            // onClick={toggleExpand} // Removed click handler
           >
             <pre className="text-gray-300 text-xs font-mono whitespace-pre-wrap break-words">{prompt.content}</pre> {/* Smaller font */} 
           </div>
