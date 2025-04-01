@@ -1,5 +1,6 @@
 ﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
+using Microsoft.Win32; // Added for OpenFolderDialog
 using System;
 using System.Text;
 using System.Windows;
@@ -18,11 +19,13 @@ public partial class WebViewWindow : Window
 {
     private readonly WindowManager _windowManager;
     private readonly IMcpService _mcpService;
+    private readonly ISettingsService _settingsService; // Added ISettingsService field
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService)
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService) // Added ISettingsService parameter
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
+        _settingsService = settingsService; // Assign injected service
         InitializeComponent();
         webView.Initialize();
     }
@@ -88,5 +91,27 @@ public partial class WebViewWindow : Window
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
         Application.Current.Shutdown();
+    }
+    private void SetProjectPathMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Select Project Path",
+            InitialDirectory = _settingsService.CurrentSettings.ProjectPath ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                string selectedPath = dialog.FolderName;
+                _settingsService.CurrentSettings.ProjectPath = selectedPath;
+                _settingsService.SaveSettings();
+                MessageBox.Show($"Project path updated to: {selectedPath}", "Project Path Set", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error setting project path: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
+                <MenuItem Header="Set _Project Path..." Click="SetProjectPathMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_MCP Servers" Name="McpServersMenuItem" Loaded="McpServersMenuItem_Loaded"/>
         </Menu>

@@ -17,8 +17,6 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class DirectoryTreeTool : BaseToolImplementation
     {
-        private readonly string _projectRoot;
-
         public DirectoryTreeTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
         }
