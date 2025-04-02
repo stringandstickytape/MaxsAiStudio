@@ -274,6 +274,7 @@ namespace AiStudio4.Core.Tools
             try
             {
                 parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
+
                 // Now call the main logic which uses this.parameters
                 return ProcessSearchInternal(toolParameters);
             }
