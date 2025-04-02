@@ -284,7 +284,7 @@ namespace AiStudio4.Core.Tools
             // We return success=true from the tool itself if it *ran*,
             // the actual outcome of the file ops is in the JSON content.
             // The 'hasOutput' parameter depends on whether we want the calling AI to see the summary. Let's assume yes.
-            return CreateResult(true, true, resultJson.ToString(Formatting.None)); // Return summary JSON
+            return CreateResult(true, true, toolParameters); // Return original code block, for now...
         }
 
 
