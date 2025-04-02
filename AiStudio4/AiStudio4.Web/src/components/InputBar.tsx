@@ -22,6 +22,7 @@ import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { Server } from 'lucide-react'; // Added Server icon
+import { webSocketService } from '@/services/websocket/WebSocketService';
 
 interface InputBarProps {
     selectedModel: string;
@@ -91,7 +92,7 @@ export function InputBar({
     const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
     const { activeConvId, slctdMsgId, convs, createConv } = useConvStore();
     const { sendMessage, cancelMessage, isLoading } = useChatManagement();
-    const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
+    const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest, isConnected } = useWebSocketStore();
     const { tools } = useToolsManagement();
 
     const isXs = useMediaQuery('(max-width: 640px)');
@@ -230,22 +231,36 @@ export function InputBar({
         console.log("hs1");
         if (isCancelling) return;
         console.log("hs2", isLoading, currentRequest);
-        isLoading && currentRequest
-            ? (setIsCancelling(true), cancelMessage({
+        
+        // If we're trying to cancel a current request
+        if (isLoading && currentRequest) {
+            setIsCancelling(true);
+            cancelMessage({
                 convId: currentRequest.convId,
                 messageId: currentRequest.messageId
-            }))
-            : !isLoading && (() => {
-                console.log("hs3");
-                // Enable auto-scrolling when sending a message
-                window.scrollChatToBottom && window.scrollChatToBottom();
+            });
+            return;
+        }
+        
+        // Check if WebSocket is disconnected
+        if (!isLoading && !useWebSocketStore.getState().isConnected) {
+            console.log("WebSocket disconnected, attempting to reconnect");
+            webSocketService.connect();
+            return; // Don't send the message yet, user will need to press send again
+        }
+        
+        // Normal sending flow
+        if (!isLoading) {
+            console.log("hs3");
+            // Enable auto-scrolling when sending a message
+            window.scrollChatToBottom && window.scrollChatToBottom();
 
-                const textAttachments = attachments.filter(att => att.textContent);
-                const textFileContent = formatTextAttachments(textAttachments);
-                const fullMessage = (inputText ? inputText : "continue") + textFileContent;
-                console.log("HandleSend -> ChatMessage");
-                handleChatMessage(fullMessage);
-            })();
+            const textAttachments = attachments.filter(att => att.textContent);
+            const textFileContent = formatTextAttachments(textAttachments);
+            const fullMessage = (inputText ? inputText : "continue") + textFileContent;
+            console.log("HandleSend -> ChatMessage");
+            handleChatMessage(fullMessage);
+        }
     };
 
     // Handle cancellation state cleanup
@@ -389,9 +404,11 @@ export function InputBar({
                                 variant="outline"
                                 size="icon"
                                 onClick={handleSend}
-                                className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn`}
-                                aria-label={isLoading ? 'Cancel' : 'Send message'}
+                                className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn
+                                    ${!useWebSocketStore.getState().isConnected && !isLoading ? 'border-red-500 border-2' : ''}`}
+                                aria-label={isLoading ? 'Cancel' : useWebSocketStore.getState().isConnected ? 'Send message' : 'Reconnect and Send'}
                                 disabled={isCancelling || disabled} // Reflect outer disabled state
+                                title={!useWebSocketStore.getState().isConnected && !isLoading ? 'WebSocket disconnected. Click to reconnect.' : ''}
                             >
                                 {isLoading ? (
                                     <X className="h-5 w-5" />
