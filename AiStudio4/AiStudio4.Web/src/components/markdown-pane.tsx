@@ -107,22 +107,38 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             const isRawView = showRawContent[blockId];
             const isCollapsed = isCodeCollapsed[blockId];
 
-
             const toggleView = useCallback(() => {
-                setShowRawContent((prev) => ({
-                    ...prev,
-                    [blockId]: !prev[blockId],
-                }));
 
+                  setShowRawContent((prev) => ({
+                      ...prev,
+                      [blockId]: !prev[blockId],
+                  }));
+        
+        
+                  setMermaidKey((prev) => prev + 1);
+              }, [blockId]);
 
-                setMermaidKey((prev) => prev + 1);
-            }, [blockId]);
-            
             const toggleCollapse = useCallback(() => {
-                setIsCodeCollapsed((prev) => ({
-                    ...prev,
-                    [blockId]: !prev[blockId],
-                }));
+                // Scroll up 150px before collapsing/expanding
+                const markdownPaneElement = document.querySelector('.markdown-pane').parentElement.parentElement || document.documentElement;
+                const currentScrollPosition = markdownPaneElement.scrollTop;
+                markdownPaneElement.scrollTo({
+                    top: Math.max(0, currentScrollPosition - 1),
+                    behavior: 'auto'
+                });
+
+                setTimeout(() => {
+                    setIsCodeCollapsed((prev) => ({
+                        ...prev,
+                        [blockId]: !prev[blockId],
+                    }));
+                    markdownPaneElement.scrollTo({
+                        top: Math.max(0, currentScrollPosition + 1),
+                        behavior: 'auto'
+                    });
+                }, 10); // Small delay to allow scroll to start
+
+
             }, [blockId]);
 
 
@@ -261,8 +277,10 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio]);
 
     return (
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
-            {markdownContent}
-        </ReactMarkdown>
+        
+            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+                {markdownContent}
+            </ReactMarkdown>
+        
     );
 });

@@ -192,7 +192,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 return message.source === 'system' ? null : (
                 <div
                         key={message.id}
-                        className="w-full group flex flex-col relative "
+                        className="w-full group flex flex-col relative markdown-pane"
                         data-message-id={message.id}
                     >
                         <div className={`message-container px-4 py-3 rounded-lg ${message.source === 'user' ? 'bg-blue-800' : 'bg-gray-800'} shadow-md w-full`}>
