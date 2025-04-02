@@ -3,14 +3,16 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';import remarkGfm from 'remark-gfm';
+import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';
+import remarkGfm from 'remark-gfm';
 import { ExternalLink, Clipboard, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface MarkdownPaneProps {
     message: string;
 }
 
-export const MarkdownPane = React.memo(function MarkdownPane({ message }: MarkdownPaneProps) {    const [markdownContent, setMarkdownContent] = useState<string>('');
+export const MarkdownPane = React.memo(function MarkdownPane({ message }: MarkdownPaneProps) {
+    const [markdownContent, setMarkdownContent] = useState<string>('');
     const [mermaidKey, setMermaidKey] = useState(0);
     const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
     const [isCodeCollapsed, setIsCodeCollapsed] = useState<Record<string, boolean>>({});
@@ -47,6 +49,21 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
       li > p {
         display: inline;
         margin: 0;
+      }
+      
+      /* Add transition styles for code block collapsing/expanding */
+      .code-content {
+        max-height: 2000px;
+        transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        overflow: hidden;
+        opacity: 1;
+      }
+      
+      .code-content.collapsed {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
       }
     `;
         document.head.appendChild(styleTag);
@@ -93,13 +110,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             const content = String(children).replace(/\n$/, '');
 
 
-            const diagramRenderer = codeBlockRendererRegistry.get(language);            const blockId = `${language}-${content.slice(0, 20)}`;
+            const diagramRenderer = codeBlockRendererRegistry.get(language);
+            const blockId = `${language}-${content.slice(0, 20)}`;
 
 
             if (showRawContent[blockId] === undefined) {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
             }
-            
+
             // Initialize collapse state to true (collapsed) by default
             if (isCodeCollapsed[blockId] === undefined) {
                 setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: true }));
@@ -109,16 +127,18 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
             const toggleView = useCallback(() => {
 
-                  setShowRawContent((prev) => ({
-                      ...prev,
-                      [blockId]: !prev[blockId],
-                  }));
-        
-        
-                  setMermaidKey((prev) => prev + 1);
-              }, [blockId]);
+                setShowRawContent((prev) => ({
+                    ...prev,
+                    [blockId]: !prev[blockId],
+                }));
+
+
+                setMermaidKey((prev) => prev + 1);
+            }, [blockId]);
 
             const toggleCollapse = useCallback(() => {
+                // Specifically and deliberately scroll up 1px so that when the collapser opens, we don't scroll to bottom <- DO NOT REMOVE THIS COMMENT
+
                 // Scroll up 150px before collapsing/expanding
                 const markdownPaneElement = document.querySelector('.markdown-pane').parentElement.parentElement || document.documentElement;
                 const currentScrollPosition = markdownPaneElement.scrollTop;
@@ -128,16 +148,15 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 });
 
                 setTimeout(() => {
-                    setIsCodeCollapsed((prev) => ({
-                        ...prev,
-                        [blockId]: !prev[blockId],
-                    }));
+                setIsCodeCollapsed((prev) => ({
+                    ...prev,
+                    [blockId]: !prev[blockId],
+                }));
                     markdownPaneElement.scrollTo({
                         top: Math.max(0, currentScrollPosition + 1),
                         behavior: 'auto'
                     });
                 }, 10); // Small delay to allow scroll to start
-
 
             }, [blockId]);
 
@@ -163,12 +182,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                     Launch
                 </button>
             ) : null;
-            const createCodeHeader = useCallback((isFooter = false) => (
+
+            const createCodeHeader = useCallback((isFooter = false) => (
                 <div
                     className={`flex items-center justify-between bg-gray-900 px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} border-gray-700 text-sm text-gray-400`}
                 >
                     <div className="flex items-center space-x-2">
-                        <button 
+                        <button
                             onClick={toggleCollapse}
                             className="text-gray-400 hover:text-gray-300 transition-colors p-1"
                         >
@@ -193,64 +213,61 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                             Copy
                         </button>
                         {showRenderedOrRawButton}
-                    </div>                </div>
+                    </div>
+                </div>
             ), [language, content, isVisualStudio, isCollapsed, toggleCollapse]);
 
             const codeHeader = createCodeHeader(false);
-            if (diagramRenderer) {
+
+            if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
                 return isRawView ? (
                     <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                         {codeHeader}
-                        {!isCollapsed && (
-                            <div className="p-4 bg-gray-800 rounded-b-lg">
-                                <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
-                            </div>
-                        )}
+                        <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800 rounded-b-lg`}>
+                            <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+                        </div>
                     </div>
                 ) : (
                     <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
                         {codeHeader}
-                        {!isCollapsed && (
-                            <div className="p-4 bg-gray-800 rounded-b-lg diagram-container" data-type={diagramRenderer.type[0]} data-content={content}>
-                                <DiagramComponent content={content} className="overflow-auto" />
-                            </div>
-                        )}
+                        <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
+                            <DiagramComponent content={content} className="overflow-auto" />
+                        </div>
                     </div>
                 );
             }
-            return isRawView ? (
+
+            return isRawView ? (
                 <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                     {createCodeHeader(true)}
-                    {!isCollapsed && (
-                        <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl">
-                            <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
-                        </div>
-                    )}
+                    <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
+                        <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+                    </div>
                     {codeHeader}
                 </div>
             ) : (
                 <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
                     {codeHeader}
-                    {!isCollapsed && (
-                        <div className="p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200">
-                            <SyntaxHighlighter
-                                style={nightOwl as any}
-                                language={match[1]}
-                                PreTag="div"
-                                className="rounded-lg"
+                    <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
+                        <SyntaxHighlighter
+                            style={nightOwl as any}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg"
 
-                                wrapLines={false}
-                                wrapLongLines={false}
-                                showLineNumbers={false}
-                                useInlineStyles={true}
-                                customStyle={{ display: 'block', width: '100%', overflow: 'auto' }}
-                            >
-                                {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                        </div>
-                    )}
-                    {!isCollapsed && createCodeHeader(true)}
+                            wrapLines={false}
+                            wrapLongLines={false}
+                            showLineNumbers={false}
+                            useInlineStyles={true}
+                            customStyle={{ display: 'block', width: '100%', overflow: 'auto' }}
+                        >
+                            {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                    </div>
+                    <div className={`code-content ${isCollapsed ? 'collapsed' : ''}`}>
+                        {createCodeHeader(true)}
+                    </div>
                 </div>
             );
         },
@@ -274,13 +291,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         tbody: ({ children }: any) => <tbody className="divide-y divide-gray-700">{children}</tbody>,
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
-        td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio]);
+        td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
+    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio]);
 
     return (
-        
-            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
-                {markdownContent}
-            </ReactMarkdown>
-        
+
+        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+            {markdownContent}
+        </ReactMarkdown>
+
     );
 });
