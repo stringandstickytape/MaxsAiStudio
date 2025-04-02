@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
 import { Model } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useResourceManagement';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ModelManagementProps {
   providers: any[]; 
@@ -151,9 +152,9 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {models.map((model) => (
-            <Card key={model.guid} className="card-base card-hover backdrop-blur-sm group">
+            <Card key={model.guid} className="card-base card-hover backdrop-blur-sm group flex flex-col relative">
               <div
                 className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 animate-hover group-hover:h-3"
                 style={{
@@ -162,67 +163,97 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                   to: model.color || '#4f46e5',
                 }}
               />
-              <div className="p-4 pt-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-gray-100 text-lg flex items-center gap-1">
-                        {model.friendlyName}
-                        {model.starred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
-                      </CardTitle>
-                      <div className="text-mono text-sm text-gray-400">{model.modelName}</div>
+              <div className="p-3 flex flex-col flex-1">
+                <div className="flex items-start pr-6"> {/* Add padding-right to make room for buttons */}
+                  <CardTitle className="text-gray-100 text-lg flex items-center gap-1 truncate">
+                    {model.friendlyName}
+                    {model.starred && <Star className="h-4 w-4 flex-shrink-0 fill-yellow-400 text-yellow-400" />}
+                  </CardTitle>
+                </div>
+
+                <div className="text-mono text-sm text-gray-400 truncate mb-1">{model.modelName}</div>
+
+                <div className="mt-auto space-y-1 text-xs">
+                  <div className="text-gray-400">{getProviderName(model.providerGuid)}</div>
+                  
+                  <div className="text-gray-400">In: ${model.input1MTokenPrice} / Out: ${model.output1MTokenPrice}</div>
+                  
+                  {model.supportsPrefill && (
+                    <div className="text-blue-400 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
+                      Prefill
                     </div>
-                    <div className="flex items-center mt-1 text-xs text-gray-400 gap-2">
-                      <span>{getProviderName(model.providerGuid)}</span>
-                      <span>•</span>
-                      <span>In: ${model.input1MTokenPrice} / Out: ${model.output1MTokenPrice}</span>
-                      {model.supportsPrefill && (
-                        <><span>•</span>
-                        <span className="text-blue-400 flex items-center gap-1">
-                          <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
-                          Prefill
-                        </span></>
-                      )}
-                    </div>
-                    {model.userNotes && (
-                      <div className="text-gray-200 italic text-xs mt-1">{model.userNotes}</div>
-                    )}
-                  </div>
-                  <div className="flex space-x-1 items-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`${model.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'} hover:bg-gray-700 animate-hover p-1`}
-                      onClick={() => handleToggleStarred(model)}
-                      disabled={isProcessing}
-                    >
-                      <Star className={`h-4 w-4 ${model.starred ? 'fill-yellow-400' : ''}`} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="btn-ghost icon-btn p-1"
-                      onClick={() => {
-                        setEditingModel(model);
-                        setEditOpen(true);
-                      }}
-                      disabled={isProcessing}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="btn-danger icon-btn p-1"
-                      onClick={() => {
-                        setModelToDelete(model);
-                        setDeleteOpen(true);
-                      }}
-                      disabled={isProcessing}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  )}
+
+                  {model.userNotes && (
+                    <div className="text-gray-200 italic mt-1 line-clamp-2">{model.userNotes}</div>
+                  )}
+                </div>
+
+                {/* Vertical stacked buttons in the bottom-right corner */}
+                <div className="absolute bottom-1 right-1 flex flex-col space-y-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`${model.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-yellow-400'} hover:bg-gray-700 animate-hover h-6 w-6 p-0`}
+                          onClick={() => handleToggleStarred(model)}
+                          disabled={isProcessing}
+                        >
+                          <Star className={`h-3.5 w-3.5 ${model.starred ? 'fill-yellow-400' : ''}`} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-gray-900 text-gray-100 text-xs border-gray-700">
+                        {model.starred ? 'Remove from favorites' : 'Add to favorites'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="btn-ghost icon-btn h-6 w-6 p-0"
+                          onClick={() => {
+                            setEditingModel(model);
+                            setEditOpen(true);
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-gray-900 text-gray-100 text-xs border-gray-700">
+                        Edit model
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="btn-danger icon-btn h-6 w-6 p-0"
+                          onClick={() => {
+                            setModelToDelete(model);
+                            setDeleteOpen(true);
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-gray-900 text-gray-100 text-xs border-gray-700">
+                        Delete model
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </Card>

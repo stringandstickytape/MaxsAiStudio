@@ -268,9 +268,9 @@ namespace AiStudio4.Core.Tools
 
             _logger.LogInformation("CodeDiff processing finished. Overall Success: {Success}. Summary:\n{Summary}", overallSuccess, resultsSummary.ToString());
 
-            MessageBox.Show(finalMessage, overallSuccess ? "CodeDiff Success" : "CodeDiff Completed with Errors", MessageBoxButton.OK, overallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
             if (!overallSuccess)
             {
+                MessageBox.Show(finalMessage, overallSuccess ? "CodeDiff Success" : "CodeDiff Completed with Errors", MessageBoxButton.OK, overallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
                 Clipboard.SetText(finalMessage); // Copy summary including errors
             }
 
@@ -660,12 +660,12 @@ namespace AiStudio4.Core.Tools
 
                 // Prevent duplicate file entries in the same changeset (simplifies processing logic)
                 // Note: Case-insensitive check for Windows paths. Adjust if needed for other OS.
-                if (!uniquePaths.Add(Path.GetFullPath(filePath))) // Normalize before adding
-                {
-                    _errorMessages.AppendLine($"Error: Duplicate file path '{filePath}' found in changeset. Each file should appear only once.");
-                    validationSuccess = false;
+                //if (!uniquePaths.Add(Path.GetFullPath(filePath))) // Normalize before adding
+                //{
+                    //_errorMessages.AppendLine($"Error: Duplicate file path '{filePath}' found in changeset. Each file should appear only once.");
+                    //validationSuccess = false;
                     // Continue validation for other files
-                }
+                //}
 
 
                 // Security check: Ensure the file path is within the project root
