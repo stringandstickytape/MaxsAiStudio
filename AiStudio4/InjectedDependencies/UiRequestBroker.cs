@@ -118,7 +118,7 @@ namespace AiStudio4.InjectedDependencies
                     "setSecondaryModel" => await SetModel(_settingsService.UpdateSecondaryModel, requestObject),
                     "addModel" => await AddOrUpdateModel(requestObject, _settingsService.AddModel),
                     "updateModel" => await AddOrUpdateModel(requestObject, _settingsService.UpdateModel, true),
-                    "deleteModel" => await DeleteByGuid(_settingsService.DeleteModel, requestObject, "modelGuid"),
+                    "deleteModel" => await DeleteByGuid(_settingsService.DeleteModel, requestObject, "promptId"), // horrible bodge
                     "addServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsService.AddServiceProvider),
                     "updateServiceProvider" => await AddOrUpdateProvider(requestObject, _settingsService.UpdateServiceProvider, true),
                     "deleteServiceProvider" => await DeleteByGuid(_settingsService.DeleteServiceProvider, requestObject, "providerGuid"),
