@@ -102,7 +102,10 @@ namespace AiStudio4.Core.Tools
                       }
                     },
                     ""required"": [
-                      ""change_type""
+                      ""change_type"",
+                    ""oldContent"",
+                    ""newContent"",
+                    ""lineNumber""
                     ]
                   }
                 }
