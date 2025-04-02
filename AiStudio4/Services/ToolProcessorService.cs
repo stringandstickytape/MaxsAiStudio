@@ -27,7 +27,7 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly IBuiltinToolService _builtinToolService;
-        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
         private DateTime _lastRequestTime = DateTime.MinValue;
 
         public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)

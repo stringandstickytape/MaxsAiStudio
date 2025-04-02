@@ -1,4 +1,4 @@
-using AiStudio4.Convs;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using ModelContextProtocol.Protocol.Messages;
@@ -282,25 +282,52 @@ namespace AiStudio4.AiServices
             var streamProcessor = new StreamProcessor(true);
             streamProcessor.StreamingTextReceived += (s, e) => OnStreamingDataReceived(e);
 
-            
-
-            var result = await streamProcessor.ProcessStream(stream, cancellationToken);
-
-            OnStreamingComplete();
-
-            return new AiResponse
+            StreamProcessingResult result = null;
+            try
             {
-                ResponseText = result.ResponseText,
-                Success = true,
-                TokenUsage = new TokenUsage(
-                    result.InputTokens?.ToString(),
-                    result.OutputTokens?.ToString(),
-                    result.CacheCreationInputTokens?.ToString(),
-                    result.CacheReadInputTokens?.ToString()
-                ),
-                ChosenTool = streamProcessor.ChosenTool,
-                ToolResponseSet = streamProcessor.ToolResponseSet
-            };
+                result = await streamProcessor.ProcessStream(stream, cancellationToken);
+                // Normal completion
+                OnStreamingComplete();
+                return new AiResponse
+                {
+                    ResponseText = result.ResponseText,
+                    Success = true,
+                    TokenUsage = new TokenUsage(
+                        result.InputTokens?.ToString(),
+                        result.OutputTokens?.ToString(),
+                        result.CacheCreationInputTokens?.ToString(),
+                        result.CacheReadInputTokens?.ToString()
+                    ),
+                    ChosenTool = streamProcessor.ChosenTool,
+                    ToolResponseSet = streamProcessor.ToolResponseSet,
+                    IsCancelled = false // Explicitly false on normal completion
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Claude streaming cancelled.");
+                // Cancellation happened, use the partial result from the processor
+                result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
+                return new AiResponse
+                {
+                    ResponseText = result.ResponseText,
+                    Success = true, // Indicate successful handling of cancellation
+                    TokenUsage = new TokenUsage(
+                        result.InputTokens?.ToString() ?? "0",
+                        result.OutputTokens?.ToString() ?? "0",
+                        result.CacheCreationInputTokens?.ToString() ?? "0",
+                        result.CacheReadInputTokens?.ToString() ?? "0"
+                    ),
+                    ChosenTool = streamProcessor.ChosenTool,
+                    ToolResponseSet = streamProcessor.ToolResponseSet,
+                    IsCancelled = true
+                };
+            }
+            catch (Exception ex)
+            {
+                // Handle other errors
+                return HandleError(ex, "Error during streaming response");
+            }
         }
 
         protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
@@ -491,7 +518,7 @@ namespace AiStudio4.AiServices
                 {
                     if (c == '\n')
                     {
-                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens,
+                        ProcessLine(lineBuilder.ToString(),  ref inputTokens, ref outputTokens,
                             ref cacheCreationInputTokens, ref cacheReadInputTokens);
                         lineBuilder.Clear();
                     }
@@ -508,7 +535,7 @@ namespace AiStudio4.AiServices
                 if (!line.StartsWith("data: "))
                     line = "data: " + line;
 
-                ProcessLine(line, responseBuilder, ref inputTokens, ref outputTokens,
+                ProcessLine(line,  ref inputTokens, ref outputTokens,
                     ref cacheCreationInputTokens, ref cacheReadInputTokens);
             }
 
@@ -524,9 +551,16 @@ namespace AiStudio4.AiServices
 
         public string ChosenTool { get; set; } = null;
 
+        // Fields to store partial results
+        private StringBuilder responseBuilder = new StringBuilder();
+        private int? inputTokens = null;
+        private int? outputTokens = null;
+        private int? cacheCreationInputTokens = null;
+        private int? cacheReadInputTokens = null;
+
         private ToolResponseItem currentResponseItem = null;
 
-        private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens,
+        private void ProcessLine(string line, /*StringBuilder responseBuilder,*/ ref int? inputTokens, ref int? outputTokens,
             ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
             if (!line.StartsWith("data: ")) return;
@@ -577,32 +611,32 @@ namespace AiStudio4.AiServices
                             currentResponseItem.ResponseText += text;
 
                         StreamingTextReceived?.Invoke(this, text);
-                        responseBuilder.Append(text);
+                        responseBuilder.Append(text); // Append to the class-level builder
                         break;
                     case "content_block_end":
 
                         break;
                     case "message_start":
-                        inputTokens = eventData["message"]["usage"]["input_tokens"].Value<int>();
+                        this.inputTokens = eventData["message"]["usage"]["input_tokens"].Value<int>();
 
                         if (eventData["message"]["usage"]["output_tokens"] != null)
-                            outputTokens = eventData["message"]["usage"]["output_tokens"].Value<int>();
+                            this.outputTokens = eventData["message"]["usage"]["output_tokens"].Value<int>();
 
                         if (eventData["message"]["usage"]["cache_creation_input_tokens"] != null)
-                            cacheCreationInputTokens = eventData["message"]["usage"]["cache_creation_input_tokens"].Value<int>();
+                            this.cacheCreationInputTokens = eventData["message"]["usage"]["cache_creation_input_tokens"].Value<int>();
 
                         if (eventData["message"]["usage"]["cache_read_input_tokens"] != null)
-                            cacheReadInputTokens = eventData["message"]["usage"]["cache_read_input_tokens"].Value<int>();
+                            this.cacheReadInputTokens = eventData["message"]["usage"]["cache_read_input_tokens"].Value<int>();
                         break;
 
                     case "message_delta":
-                        outputTokens = eventData["usage"]["output_tokens"].Value<int>();
+                        this.outputTokens = eventData["usage"]["output_tokens"].Value<int>();
 
                         if (eventData["usage"]["cache_creation_input_tokens"] != null)
-                            cacheCreationInputTokens = eventData["usage"]["cache_creation_input_tokens"].Value<int>();
+                            this.cacheCreationInputTokens = eventData["usage"]["cache_creation_input_tokens"].Value<int>();
 
                         if (eventData["usage"]["cache_read_input_tokens"] != null)
-                            cacheReadInputTokens = eventData["usage"]["cache_read_input_tokens"].Value<int>();
+                            this.cacheReadInputTokens = eventData["usage"]["cache_read_input_tokens"].Value<int>();
                         break;
 
                     case "error":
@@ -611,7 +645,7 @@ namespace AiStudio4.AiServices
                             throw new NotEnoughTokensForCachingException(errorMessage);
 
                         StreamingTextReceived?.Invoke(this, errorMessage);
-                        responseBuilder.Append(errorMessage);
+                        responseBuilder.Append(errorMessage); // Append error to the class-level builder
                         break;
                 }
             }
@@ -619,6 +653,20 @@ namespace AiStudio4.AiServices
             {
                 Console.WriteLine($"Error parsing JSON: {ex.Message}");
             }
+        }
+
+        // Method to get the partial result if cancelled
+        public StreamProcessingResult GetPartialResult()
+        {
+            return new StreamProcessingResult
+            {
+                ResponseText = responseBuilder.ToString(),
+                InputTokens = inputTokens,
+                OutputTokens = outputTokens,
+                CacheCreationInputTokens = cacheCreationInputTokens,
+                CacheReadInputTokens = cacheReadInputTokens,
+                IsCancelled = true // Indicate this is a partial result due to cancellation
+            };
         }
     }
 
@@ -629,5 +677,6 @@ namespace AiStudio4.AiServices
         public int? OutputTokens { get; set; }
         public int? CacheCreationInputTokens { get; set; }
         public int? CacheReadInputTokens { get; set; }
+        public bool IsCancelled { get; set; } = false; // Add IsCancelled flag
     }
 }

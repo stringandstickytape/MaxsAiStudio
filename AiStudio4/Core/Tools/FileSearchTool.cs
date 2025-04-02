@@ -173,8 +173,8 @@ namespace AiStudio4.Core.Tools
                                 foreach (var (groupStart, groupEnd) in matchGroups.Take(maxContextsPerFile))
                                 {
                                     // Get context lines (3 lines before first match and 3 lines after last match)
-                                    int contextStart = Math.Max(1, groupStart - 3);
-                                    int contextEnd = Math.Min(fileLines.Count, groupEnd + 3);
+                                    int contextStart = Math.Max(1, groupStart - 1);
+                                    int contextEnd = Math.Min(fileLines.Count, groupEnd + 1);
 
                                     if (groupStart == groupEnd)
                                     {

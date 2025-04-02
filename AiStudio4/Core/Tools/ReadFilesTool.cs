@@ -105,7 +105,7 @@ namespace AiStudio4.Core.Tools
                         }
                         else
                         {
-                            resultBuilder.AppendLine($"---Error reading {relativePath}: File not found.---");
+                            resultBuilder.AppendLine($"---Error reading {relativePath}: File not found. Did you get the directory wrong?");
                         }
                     }
                     catch (Exception ex)

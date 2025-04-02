@@ -1,4 +1,3 @@
-using AiStudio4.DataModels;
 using SharedClasses.Providers;
 using System.Collections.Generic;
 
@@ -17,21 +16,5 @@ namespace AiStudio4.Core.Models
         public string SystemPromptId { get; set; }
         public string SystemPromptContent { get; set; }
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
-    }
-
-    public class MessageHistoryItem
-    {
-        public string Role { get; set; }
-        public string Content { get; set; }
-        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
-    }
-
-    public class ChatResponse
-    {
-        public bool Success { get; set; }
-        public string ResponseText { get; set; }
-        public string Error { get; set; }
-        public TokenCost CostInfo { get; set; }
-        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
     }
 }

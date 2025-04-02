@@ -22,5 +22,6 @@ namespace AiStudio4.DataModels
         }
 
         public ToolResponse ToolResponseSet { get; set; }
+        public bool IsCancelled { get; set; } = false; // Flag to indicate if the request was cancelled mid-stream
     }
 }

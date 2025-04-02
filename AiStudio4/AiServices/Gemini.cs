@@ -1,4 +1,4 @@
-using AiStudio4.Convs;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
@@ -175,111 +175,144 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         }
         protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
+            StringBuilder fullResponse = new StringBuilder(); // Ensure this is accessible in catch
             OnStreamingDataReceived("");
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
+            try
             {
-                request.Content = content;
-                using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
                 {
-                    
-                    using (var stream = await response.Content.ReadAsStreamAsync())
-                    using (var reader = new StreamReader(stream))
+                    request.Content = content;
+                    using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                     {
-                        StringBuilder fullResponse = new StringBuilder();
-                        StringBuilder jsonBuffer = new StringBuilder();
-                        bool isFirstLine = true;
 
-                        while (!reader.EndOfStream)
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var reader = new StreamReader(stream))
                         {
-                            string line = await reader.ReadLineAsync(cancellationToken);
-                            if (cancellationToken.IsCancellationRequested)
+                            StringBuilder jsonBuffer = new StringBuilder();
+                            bool isFirstLine = true;
+
+                            while (!reader.EndOfStream)
                             {
-                                break;
-                            }
-                            System.Diagnostics.Debug.WriteLine(line);
-                            // :-/
-                            if (isFirstLine)
-                            {
-                                // Remove leading '[' from the first line
-                                line = line.TrimStart('[');
-                                isFirstLine = false;
-                            }
-
-                            jsonBuffer.Append(line);
-                            if (line == "," || line == "]")
-                            {
-                                // We have a complete JSON object
-                                string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
-                                await ProcessJsonObject(jsonObject, fullResponse);
-                                jsonBuffer.Clear();
-                            }
-                        }
-
-                        //response.EnsureSuccessStatusCode();
-
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            reader.Dispose();
-                            await stream.DisposeAsync();
-                        }
-                        else
-                        {
-                            OnStreamingComplete();
-                        }
-
-                        try
-                        {
-                            var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString()); 
-
-                            if (jsonResponse["args"] != null)
-                            {
-                                //var toolCallArray = jsonResponse["choices"]?[0]?["message"]?["tool_calls"] as JArray;
-
-                                var toolName = jsonResponse["name"]?.ToString();
-                                var toolArgs = jsonResponse["args"].ToString();
-
-                                currentResponseItem = null;
-                                return new AiResponse
+                                string line = await reader.ReadLineAsync(cancellationToken);
+                                if (cancellationToken.IsCancellationRequested)
                                 {
-                                    ResponseText = toolArgs,
-                                    Success = !cancellationToken.IsCancellationRequested,
-                                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
-                                    ChosenTool = toolName,
-                                    ToolResponseSet = ToolResponseSet
-                                };
+                                    // Throwing ensures we jump to the catch block
+                                    throw new OperationCanceledException(cancellationToken);
+                                }
+                                System.Diagnostics.Debug.WriteLine(line);
+                                // :-/
+                                if (isFirstLine)
+                                {
+                                    // Remove leading '[' from the first line
+                                    line = line.TrimStart('[');
+                                    isFirstLine = false;
+                                }
+
+                                jsonBuffer.Append(line);
+                                if (line == "," || line == "]")
+                                {
+                                    // We have a complete JSON object
+                                    string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
+                                    await ProcessJsonObject(jsonObject, fullResponse);
+                                    jsonBuffer.Clear();
+                                }
                             }
+
+                            //response.EnsureSuccessStatusCode();
                         }
-                        catch(Exception e)
-                        {
-                            // Fall through to default response
-                        }
-                        
-                        // Create attachments from any generated images
-                        var attachments = new List<DataModels.Attachment>();
-                        int imageIndex = 1;
-                        foreach (var image in _generatedImages)
-                        {
-                            attachments.Add(new DataModels.Attachment
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                Name = $"generated_image_{imageIndex++}.png",
-                                Type = image.MimeType,
-                                Content = image.Base64Data,
-                                Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
-                            });
-                        }
+                    }
+                }
+
+                // Normal completion
+                OnStreamingComplete();
+
+                try
+                {
+                    var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString());
+
+                    if (jsonResponse["args"] != null)
+                    {
+                        var toolName = jsonResponse["name"]?.ToString();
+                        var toolArgs = jsonResponse["args"].ToString();
+
                         currentResponseItem = null;
                         return new AiResponse
                         {
-                            ResponseText = fullResponse.ToString(),
-                            Success = !cancellationToken.IsCancellationRequested,
+                            ResponseText = toolArgs,
+                            Success = true,
                             TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
-                            ChosenTool = null,
-                            Attachments = attachments.Count > 0 ? attachments : null,
-                            ToolResponseSet = ToolResponseSet
+                            ChosenTool = toolName,
+                            ToolResponseSet = ToolResponseSet,
+                            IsCancelled = false // Explicitly false on normal completion
                         };
+                    }
                 }
+                catch (Exception e)
+                {
+                    // Fall through to default response
                 }
+
+                // Create attachments from any generated images
+                var attachments = new List<DataModels.Attachment>();
+                int imageIndex = 1;
+                foreach (var image in _generatedImages)
+                {
+                    attachments.Add(new DataModels.Attachment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"generated_image_{imageIndex++}.png",
+                        Type = image.MimeType,
+                        Content = image.Base64Data,
+                        Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
+                    });
+                }
+                currentResponseItem = null;
+                return new AiResponse
+                {
+                    ResponseText = fullResponse.ToString(),
+                    Success = true,
+                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                    ChosenTool = null,
+                    Attachments = attachments.Count > 0 ? attachments : null,
+                    ToolResponseSet = ToolResponseSet,
+                    IsCancelled = false // Explicitly false on normal completion
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation happened
+                System.Diagnostics.Debug.WriteLine("Gemini streaming cancelled.");
+                // Create attachments from any partially generated images
+                var attachments = new List<DataModels.Attachment>();
+                int imageIndex = 1;
+                foreach (var image in _generatedImages)
+                {
+                    attachments.Add(new DataModels.Attachment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"generated_image_{imageIndex++}.png",
+                        Type = image.MimeType,
+                        Content = image.Base64Data,
+                        Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
+                    });
+                }
+                currentResponseItem = null;
+                // Return partial response
+                return new AiResponse
+                {
+                    ResponseText = fullResponse.ToString(),
+                    Success = true, // Indicate successful handling of cancellation
+                    TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0"),
+                    ChosenTool = chosenTool, // Use the tool identified so far
+                    Attachments = attachments.Count > 0 ? attachments : null,
+                    ToolResponseSet = ToolResponseSet, // Use partially populated set
+                    IsCancelled = true
+                };
+            }
+            catch (Exception ex)
+            {
+                // Handle other errors
+                return HandleError(ex, "Error during streaming response");
             }
         }
 
