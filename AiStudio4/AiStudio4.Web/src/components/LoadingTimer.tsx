@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 
 export function LoadingTimer() {
   const [seconds, setSeconds] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
     const startTime = Date.now();
@@ -12,6 +14,15 @@ export function LoadingTimer() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle component unmounting with animation
+  useEffect(() => {
+    return () => {
+      setVisible(false);
+      // Wait for animation to complete before actual unmount
+      setTimeout(() => setShouldRender(false), 300);
+    };
   }, []);
 
   const formatTime = (totalSeconds: number) => {
@@ -24,8 +35,14 @@ export function LoadingTimer() {
     }
   };
 
+  if (!shouldRender) return null;
+
   return (
-    <div className="flex flex-col items-center py-8">
+    <div
+      className={`flex flex-col items-center py-8 transition-all duration-300 ease-in-out transform ${
+        visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+      }`}
+    >
       <div className="relative">
         {/* Outer glow container */}
         <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md animate-pulse"></div>

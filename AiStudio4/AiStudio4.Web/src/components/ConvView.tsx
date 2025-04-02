@@ -331,7 +331,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 Cancelling request...
                             </div>
                             )}
-                            <LoadingTimer />
+                            <div className="overflow-hidden">  
+                                <LoadingTimer />
+                            </div>
                         <div className="w-full mb-4">
                             {streamTokens.length > 0 ? (
 
