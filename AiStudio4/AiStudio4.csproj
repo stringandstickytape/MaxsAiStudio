@@ -51,6 +51,7 @@
 		<Content Include="@(TypeScriptFiles)">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
+		<Content Include="AiStudio4.Web\src\components\LoadingTimer.css" />
 	</ItemGroup>
 
 	<ItemGroup>
