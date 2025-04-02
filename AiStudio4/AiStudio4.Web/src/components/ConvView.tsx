@@ -1,8 +1,9 @@
-import { MarkdownPane } from '@/components/markdown-pane';
+﻿import { MarkdownPane } from '@/components/markdown-pane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react'; // Changed ArrowCircleDown to ArrowDown
+import { LoadingTimer } from './LoadingTimer';
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -320,25 +321,33 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
             {(streamTokens.length > 0 || isStreaming) && (
+
                 <div key="streaming-message"
-                    className="w-full group flex flex-col relative mb-4">
+                        className="w-full group flex flex-col relative mb-4">
+                        
                     <div className="message-container px-4 py-3 rounded-lg bg-gray-800 shadow-md w-full break-words">
                         {(isCancelling || isCancel) && (
                             <div className="mb-2 p-2 text-yellow-400 bg-yellow-900/20 rounded border border-yellow-800/50 text-sm">
                                 Cancelling request...
                             </div>
-                        )}
+                            )}
+                            <LoadingTimer />
                         <div className="w-full mb-4">
                             {streamTokens.length > 0 ? (
+
                                 <div className="streaming-content">
                                     {streamTokens.map((token, index) => (
                                         <LiveStreamToken key={index} token={token} />
                                     ))}
+                                        
                                 </div>
                             ) : isStreaming ? (
-
                                 <div className="streaming-content">
-                                    <span className="whitespace-pre-wrap">{lastStreamedContent}</span>
+                                    {lastStreamedContent ? (
+                                        <span className="whitespace-pre-wrap">{lastStreamedContent}</span>
+                                    ) : (
+                                        <div/>
+                                    )}
                                 </div>
                             ) : null}
                         </div>

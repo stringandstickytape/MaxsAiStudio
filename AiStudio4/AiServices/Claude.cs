@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using AiStudio4.Core.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AiStudio4.AiServices
 {
@@ -281,6 +282,8 @@ namespace AiStudio4.AiServices
             var streamProcessor = new StreamProcessor(true);
             streamProcessor.StreamingTextReceived += (s, e) => OnStreamingDataReceived(e);
 
+            
+
             var result = await streamProcessor.ProcessStream(stream, cancellationToken);
 
             OnStreamingComplete();
@@ -465,6 +468,7 @@ namespace AiStudio4.AiServices
 
         public async Task<StreamProcessingResult> ProcessStream(Stream stream, CancellationToken cancellationToken)
         {
+            StreamingTextReceived?.Invoke(this, "");
             var responseBuilder = new StringBuilder();
             var lineBuilder = new StringBuilder();
             var buffer = new byte[48];

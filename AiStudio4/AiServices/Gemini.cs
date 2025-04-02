@@ -175,6 +175,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         }
         protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
         {
+            OnStreamingDataReceived("");
             using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
             {
                 request.Content = content;
