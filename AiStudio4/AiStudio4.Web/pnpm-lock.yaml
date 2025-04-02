@@ -207,8 +207,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.0)
       use-stick-to-bottom:
-        specifier: ^1.0.46
-        version: 1.0.46(react@19.0.0)
+        specifier: ^1.0.52
+        version: 1.0.52(react@19.0.0)
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -3776,8 +3776,8 @@ packages:
       '@types/react':
         optional: true
 
-  use-stick-to-bottom@1.0.46:
-    resolution: {integrity: sha512-2EQ9dbLNQ+8FylNuG1qx3BBl0WnNEOIkKFLEsG065A27Dd7lgTqSHA7pIlAVItnvOoFzrk9YyD2gW8idjTBPTw==}
+  use-stick-to-bottom@1.0.52:
+    resolution: {integrity: sha512-KqnZB6zjCBeSLQqqTdiPiGI45oi5dALb8MekuCSVhmSElc+KWFM87GVxGUNxhh+TmagzMUZR7Bc5KVOOdLlCkg==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8051,7 +8051,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.0.10
 
-  use-stick-to-bottom@1.0.46(react@19.0.0):
+  use-stick-to-bottom@1.0.52(react@19.0.0):
     dependencies:
       react: 19.0.0
 
