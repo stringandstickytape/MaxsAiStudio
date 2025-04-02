@@ -162,24 +162,33 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                   to: model.color || '#4f46e5',
                 }}
               />
-              <CardHeader className="pb-2 pt-4 px-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col gap-1">
+              <div className="p-4 pt-3">
+                <div className="flex justify-between items-center">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="flex items-center gap-2 text-gray-100 text-lg">
+                      <CardTitle className="text-gray-100 text-lg flex items-center gap-1">
                         {model.friendlyName}
                         {model.starred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
                       </CardTitle>
-                      <div className="text-xs text-gray-400">
-                        <span>Provider: {getProviderName(model.providerGuid)}</span>
-                        <span className="mx-2">|</span>
-                        <span>In: ${model.input1MTokenPrice} / Out: ${model.output1MTokenPrice}</span>
-                      </div>
+                      <div className="text-mono text-sm text-gray-400">{model.modelName}</div>
                     </div>
-                    
-                    <CardDescription className="text-mono text-sm">{model.modelName}</CardDescription>
+                    <div className="flex items-center mt-1 text-xs text-gray-400 gap-2">
+                      <span>{getProviderName(model.providerGuid)}</span>
+                      <span>•</span>
+                      <span>In: ${model.input1MTokenPrice} / Out: ${model.output1MTokenPrice}</span>
+                      {model.supportsPrefill && (
+                        <><span>•</span>
+                        <span className="text-blue-400 flex items-center gap-1">
+                          <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
+                          Prefill
+                        </span></>
+                      )}
+                    </div>
+                    {model.userNotes && (
+                      <div className="text-gray-200 italic text-xs mt-1">{model.userNotes}</div>
+                    )}
                   </div>
-                  <div className="flex flex-row space-x-2 items-center">
+                  <div className="flex space-x-1 items-center">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -215,20 +224,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-2 pb-4 px-4">
-                {model.userNotes && (
-                  <div className="pt-2 mt-2 border-t border-gray-700/50">
-                    <div className="text-gray-200 italic text-sm">{model.userNotes}</div>
-                  </div>
-                )}
-                {model.supportsPrefill && (
-                  <div className="mt-2 text-xs flex items-center gap-1 text-blue-400">
-                    <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
-                    Supports prefilling content
-                  </div>
-                )}
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
