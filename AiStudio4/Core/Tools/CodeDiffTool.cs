@@ -1,48 +1,56 @@
+// AiStudio4.Core\Tools\CodeDiffTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SharedClasses.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows; // Assuming MessageBox and Clipboard are still desired for UI feedback
 
 namespace AiStudio4.Core.Tools
 {
     /// <summary>
-    /// Implementation of the CodeDiff tool that automatically applies code changes with safety guardrails
+    /// Implementation of the CodeDiff tool that applies code changes directly,
+    /// using a secondary AI to process content modifications.
     /// </summary>
     public class CodeDiffTool : BaseToolImplementation
     {
         private readonly StringBuilder _errorMessages;
+        private readonly ISecondaryAiService _secondaryAiService;
+        private const string SuccessMarker = "SUCCESS"; // Marker for successful AI content processing
+        private const string ErrorMarker = "ERROR:"; // Marker for AI processing errors
 
-        public CodeDiffTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+
+        public CodeDiffTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService, ISecondaryAiService secondaryAiService) : base(logger, settingsService)
         {
             _errorMessages = new StringBuilder();
+            _secondaryAiService = secondaryAiService ?? throw new ArgumentNullException(nameof(secondaryAiService));
         }
 
-        /// <summary>
-        /// Gets the CodeDiff tool definition
-        /// </summary>
         public override Tool GetToolDefinition()
         {
+            // Schema remains the same as it describes the input structure
             return new Tool
             {
                 Guid = "a1b2c3d4-e5f6-7890-1234-567890abcdef", // Fixed GUID for CodeDiff
-                Description = "Allows you to specify edits, file creations and deletions",
+                Description = "Applies specified edits, file creations, replacements, renames, and deletions to files within the project.",
                 Name = "CodeDiff",
                 Schema = @"{
   ""name"": ""CodeDiff"",
-  ""description"": ""Allows you to specify an array of changes to make up a complete code or ASCII file diff, and includes a description of those changes. You must NEVER double-escape content in this diff."",
+  ""description"": ""Allows you to specify an array of changes (modify, create, replace, rename, delete) for one or more files. Apply changes sequentially. Uses a secondary AI to process content modifications."",
   ""input_schema"": {
     ""type"": ""object"",
     ""properties"": {
       ""changeset"": {
         ""type"": ""object"",
-        ""description"": """",
+        ""description"": ""A collection of changes to apply."",
         ""properties"": {
           ""description"": {
             ""type"": ""string"",
@@ -50,7 +58,7 @@ namespace AiStudio4.Core.Tools
           },
           ""files"": {
             ""type"": ""array"",
-            ""description"": """",
+            ""description"": ""An array of files to be modified, created, deleted, etc."",
             ""items"": {
               ""type"": ""object"",
               ""properties"": {
@@ -60,17 +68,17 @@ namespace AiStudio4.Core.Tools
                 },
                 ""changes"": {
                   ""type"": ""array"",
-                  ""description"": """",
+                  ""description"": ""An array of changes for this specific file."",
                   ""items"": {
                     ""type"": ""object"",
                     ""properties"": {
                       ""lineNumber"": {
                         ""type"": ""integer"",
-                        ""description"": ""The line number where the change starts, adjusted for previous changes in this changeset (set to zero for file creation, replacement, renaming, or deletion)""
+                        ""description"": ""The approximate line number where a 'modifyFile' change starts (ignored for other change types).""
                       },
                       ""change_type"": {
                         ""type"": ""string"",
-                        ""description"": ""The type of change that occurred"",
+                        ""description"": ""The type of change."",
                         ""enum"": [
                           ""modifyFile"",
                           ""createnewFile"",
@@ -81,11 +89,11 @@ namespace AiStudio4.Core.Tools
                       },
                       ""oldContent"": {
                         ""type"": ""string"",
-                        ""description"": ""The lines that were removed or modified (ignored for createFile, replaceFile, renameFile, and deleteFile)""
+                        ""description"": ""The lines to be removed or replaced in a 'modifyFile' operation. Should include significant context. Ignored for other change types.""
                       },
                       ""newContent"": {
                         ""type"": ""string"",
-                        ""description"": ""The lines that were added, modified, or created (for replaceFile, this contains the entire new file content; for renameFile, this contains the new file path)""
+                        ""description"": ""The lines to be added or to replace oldContent in 'modifyFile'. For 'createnewFile' or 'replaceFile', this is the entire file content. For 'renameFile', this is the new absolute file path.""
                       },
                       ""description"": {
                         ""type"": ""string"",
@@ -93,10 +101,7 @@ namespace AiStudio4.Core.Tools
                       }
                     },
                     ""required"": [
-                      ""change_type"",
-                      ""oldContent"",
-                      ""newContent"",
-                      ""lineNumber""
+                      ""change_type""
                     ]
                   }
                 }
@@ -120,503 +125,706 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "json",
+                OutputFileType = "json", // Output summarizes the operation result
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
         }
 
         /// <summary>
-        /// Processes a CodeDiff tool call and applies all changes automatically
+        /// Processes a CodeDiff tool call, validates inputs, performs file operations,
+        /// and uses a secondary AI for content modifications.
         /// </summary>
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
         {
-            bool success = true;
-            _errorMessages.Clear(); // Reset error messages for this new changeset
+            _errorMessages.Clear();
+            var overallSuccess = true;
+            var resultsSummary = new StringBuilder();
+            JObject parameters;
+            JObject changeset = null;
+            string changesetDescription = "No description provided";
+            JArray files = null;
 
+            // --- 1. Parse and Validate Input ---
             try
             {
-                JObject parameters = JObject.Parse(toolParameters);
-                if (parameters["changeset"] == null)
-                {
-                    _errorMessages.AppendLine("Error: Missing 'changeset' object in parameters.");
-                    return CreateResult(false, false, _errorMessages.ToString());
-                }
+                parameters = JObject.Parse(toolParameters);
+                changeset = parameters["changeset"] as JObject;
 
-                var changeset = parameters["changeset"] as JObject;
                 if (changeset == null)
                 {
-                    _errorMessages.AppendLine("Error: 'changeset' is not a valid JSON object.");
+                    _errorMessages.AppendLine("Error: Missing or invalid 'changeset' object in parameters.");
                     return CreateResult(false, false, _errorMessages.ToString());
                 }
 
-                string changesetDescription = changeset["description"]?.ToString() ?? "No description provided";
-                _logger.LogInformation($"Processing changeset: {changesetDescription}");
+                changesetDescription = changeset["description"]?.ToString() ?? "No description provided";
+                _logger.LogInformation("Processing changeset: {Description}", changesetDescription);
 
-                var files = changeset["files"] as JArray;
+                files = changeset["files"] as JArray;
                 if (files == null || !files.Any())
                 {
                     _errorMessages.AppendLine("Error: 'files' array is missing or empty.");
                     return CreateResult(false, false, _errorMessages.ToString());
                 }
 
-                foreach (var fileObj in files)
+                if (!ValidateChangesetStructure(files))
                 {
-                    string filePath = fileObj["path"]?.ToString();
-                    if (string.IsNullOrEmpty(filePath))
-                    {
-                        _errorMessages.AppendLine("Error: File path is missing or empty.");
-                        success = false;
-                        continue;
-                    }
-
-                    // Security check: Ensure the file path is within the project root
-                    if (!IsPathWithinProjectRoot(filePath))
-                    {
-                        _errorMessages.AppendLine($"Security Error: The file path '{filePath}' is outside the project root. Access denied.");
-                        success = false;
-                        continue;
-                    }
-
-                    var changes = fileObj["changes"] as JArray;
-                    if (changes == null || !changes.Any())
-                    {
-                        _errorMessages.AppendLine($"Error: No changes specified for file '{filePath}'.");
-                        success = false;
-                        continue;
-                    }
-
-                    // Process all changes for this file
-                    if (!await ProcessFileChangesAsync(filePath, changes))
-                    {
-                        success = false;
-                    }
+                    // Validation errors are added to _errorMessages within ValidateChangesetStructure
+                    overallSuccess = false;
                 }
+            }
+            catch (JsonException jsonEx)
+            {
+                _errorMessages.AppendLine($"Error parsing tool parameters JSON: {jsonEx.Message}");
+                overallSuccess = false;
             }
             catch (Exception ex)
             {
-                _errorMessages.AppendLine($"Unexpected error: {ex.Message}");
-                success = false;
+                _errorMessages.AppendLine($"Unexpected error during initial parsing: {ex.Message}");
+                _logger.LogError(ex, "Unexpected error during CodeDiff initial parsing.");
+                overallSuccess = false;
             }
 
-            MessageBox.Show(success ? "All changes applied successfully." : _errorMessages.ToString());
-            if (!success)
+            if (!overallSuccess)
             {
+                _logger.LogError("CodeDiff request validation failed:\n{Errors}", _errorMessages.ToString());
+                MessageBox.Show(_errorMessages.ToString(), "CodeDiff Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Clipboard.SetText(_errorMessages.ToString());
+                return CreateResult(false, false, $"Validation failed: {_errorMessages.ToString()}");
             }
-            string resultMessage = success ? "All changes applied successfully." : _errorMessages.ToString();
-            return CreateResult(success, false, toolParameters);
-        }
 
-        /// <summary>
-        /// Process all changes for a specific file
-        /// </summary>
-        private async Task<bool> ProcessFileChangesAsync(string filePath, JArray changes)
-        {
-            bool success = true;
-            string directoryPath = Path.GetDirectoryName(filePath);
+            // --- 2. Process Each File Operation ---
+            _logger.LogInformation("Validation successful. Starting file operations for changeset '{Description}'.", changesetDescription);
+            resultsSummary.AppendLine($"Changeset '{changesetDescription}' processing results:");
 
-            // Process all changes for this file
-            foreach (var change in changes)
+            foreach (var fileToken in files)
             {
-                string changeType = change["change_type"]?.ToString();
-                if (string.IsNullOrEmpty(changeType))
-                {
-                    _errorMessages.AppendLine($"Error: Missing change_type for a change in file '{filePath}'.");
-                    success = false;
-                    continue;
-                }
+                var fileObj = fileToken as JObject;
+                if (fileObj == null) continue; // Should not happen if validation passed
+
+                string filePath = fileObj["path"]?.ToString();
+                var changes = fileObj["changes"] as JArray;
+
+                // Determine the primary action for the file
+                var deleteChange = changes.FirstOrDefault(c => c["change_type"]?.ToString() == "deleteFile");
+                var renameChange = changes.FirstOrDefault(c => c["change_type"]?.ToString() == "renameFile");
+                var replaceChange = changes.FirstOrDefault(c => c["change_type"]?.ToString() == "replaceFile");
+                var createChange = changes.FirstOrDefault(c => c["change_type"]?.ToString() == "createnewFile");
+                var modifyChanges = changes.Where(c => c["change_type"]?.ToString() == "modifyFile").ToList();
+
+                string fileResult;
 
                 try
                 {
-                    switch (changeType)
+                    if (deleteChange != null)
                     {
-                        case "modifyFile":
-                            if (!await ModifyFileAsync(filePath, change))
-                            {
-                                success = false;
-                            }
-                            break;
-
-                        case "createnewFile":
-                            if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
-                            {
-                                // Ensure the directory exists
-                                if (IsPathWithinProjectRoot(directoryPath))
-                                {
-                                    Directory.CreateDirectory(directoryPath);
-                                }
-                                else
-                                {
-                                    _errorMessages.AppendLine($"Security Error: Cannot create directory '{directoryPath}' outside the project root.");
-                                    success = false;
-                                    continue;
-                                }
-                            }
-
-                            if (!await CreateNewFileAsync(filePath, change))
-                            {
-                                success = false;
-                            }
-                            break;
-
-                        case "replaceFile":
-                            if (!await ReplaceFileAsync(filePath, change))
-                            {
-                                success = false;
-                            }
-                            break;
-
-                        case "renameFile":
-                            if (!await RenameFileAsync(filePath, change))
-                            {
-                                success = false;
-                            }
-                            break;
-
-                        case "deleteFile":
-                            if (!await DeleteFileAsync(filePath))
-                            {
-                                success = false;
-                            }
-                            break;
-
-                        default:
-                            _errorMessages.AppendLine($"Error: Unknown change_type '{changeType}' for file '{filePath}'.");
-                            success = false;
-                            break;
+                        fileResult = await HandleDeleteFileAsync(filePath, deleteChange);
+                    }
+                    else if (renameChange != null)
+                    {
+                        fileResult = await HandleRenameFileAsync(filePath, renameChange);
+                    }
+                    else if (replaceChange != null)
+                    {
+                        fileResult = await HandleReplaceFileAsync(filePath, replaceChange);
+                    }
+                    else if (createChange != null)
+                    {
+                        fileResult = await HandleCreateFileAsync(filePath, createChange);
+                    }
+                    else if (modifyChanges.Any())
+                    {
+                        fileResult = await HandleModifyFileAsync(filePath, modifyChanges);
+                    }
+                    else
+                    {
+                        // Should have been caught by validation, but handle defensively
+                        fileResult = $"Skipped: No valid change type found for file '{filePath}'.";
+                        _logger.LogWarning("No valid change type processed for file '{FilePath}'", filePath);
+                        overallSuccess = false; // Treat this as an error
                     }
                 }
                 catch (Exception ex)
                 {
-                    _errorMessages.AppendLine($"Error processing {changeType} for '{filePath}': {ex.Message}");
-                    success = false;
+                    fileResult = $"Failed: Unexpected error processing file '{filePath}'. Error: {ex.Message}";
+                    _logger.LogError(ex, "Unexpected error processing file operation for '{FilePath}'", filePath);
+                    overallSuccess = false;
+                }
+
+                resultsSummary.AppendLine($"- {filePath}: {fileResult}");
+                if (fileResult.StartsWith("Failed:") || fileResult.StartsWith("Skipped:"))
+                {
+                    overallSuccess = false;
                 }
             }
 
-            return success;
+            // --- 3. Finalize and Report ---
+            string finalMessage = resultsSummary.ToString();
+            if (!overallSuccess && _errorMessages.Length > 0)
+            {
+                finalMessage += "\n\nErrors Encountered:\n" + _errorMessages.ToString();
+            }
+
+            _logger.LogInformation("CodeDiff processing finished. Overall Success: {Success}. Summary:\n{Summary}", overallSuccess, resultsSummary.ToString());
+
+            MessageBox.Show(finalMessage, overallSuccess ? "CodeDiff Success" : "CodeDiff Completed with Errors", MessageBoxButton.OK, overallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            if (!overallSuccess)
+            {
+                Clipboard.SetText(finalMessage); // Copy summary including errors
+            }
+
+            // Return a JSON summary of the operation
+            var resultJson = new JObject
+            {
+                ["overallSuccess"] = overallSuccess,
+                ["summary"] = resultsSummary.ToString().Trim(),
+                ["errors"] = _errorMessages.ToString().Trim()
+            };
+
+            // We return success=true from the tool itself if it *ran*,
+            // the actual outcome of the file ops is in the JSON content.
+            // The 'hasOutput' parameter depends on whether we want the calling AI to see the summary. Let's assume yes.
+            return CreateResult(true, true, resultJson.ToString(Formatting.None)); // Return summary JSON
         }
 
-        /// <summary>
-        /// Modify an existing file by replacing oldContent with newContent
-        /// </summary>
-        private async Task<bool> ModifyFileAsync(string filePath, JToken change)
+
+        // --- File Operation Handlers ---
+
+        private async Task<string> HandleDeleteFileAsync(string filePath, JToken change)
         {
-            if (!File.Exists(filePath))
-            {
-                _errorMessages.AppendLine($"Error: Cannot modify non-existent file '{filePath}'.");
-                return false;
-            }
-
-            string oldContent = change["oldContent"]?.ToString();
-            string newContent = change["newContent"]?.ToString();
-            int lineNumber = change["lineNumber"]?.Value<int>() ?? 0;
-
-            if (string.IsNullOrEmpty(oldContent))
-            {
-                _errorMessages.AppendLine($"Error: oldContent is required for modifyFile operation on '{filePath}'.");
-                return false;
-            }
-
             try
             {
-                // Read all lines to work with line numbers
-                string[] fileLines = await File.ReadAllLinesAsync(filePath);
-                string fileContent = await File.ReadAllTextAsync(filePath);
-
-                // Normalize line endings and whitespace for comparison
-                string normalizedOldContent = NormalizeText(oldContent);
-                string normalizedFileContent = NormalizeText(fileContent);
-
-                // If line number is provided, search outward from that line
-                if (lineNumber > 0 && lineNumber <= fileLines.Length)
+                if (!File.Exists(filePath))
                 {
-                    int matchIndex = FindClosestMatch(fileLines, normalizedOldContent, lineNumber);
-                    if (matchIndex >= 0)
-                    {
-                        // Found a match starting at this line
-                        string matchedContent = ExtractOriginalText(fileContent, normalizedFileContent, normalizedOldContent, matchIndex);
-                        string updatedContent = fileContent.Replace(matchedContent, newContent);
-                        await File.WriteAllTextAsync(filePath, updatedContent);
-                        _logger.LogInformation($"Modified file: {filePath} at line {matchIndex + 1}");
-                        return true;
-                    }
+                    _errorMessages.AppendLine($"Delete Failed: File '{filePath}' not found.");
+                    return $"Failed: File not found.";
                 }
-
-                // Fallback: try to find the content anywhere in the file
-                if (normalizedFileContent.Contains(normalizedOldContent))
-                {
-                    string matchedContent = ExtractOriginalText(fileContent, normalizedFileContent, normalizedOldContent, 0);
-                    string updatedContent = fileContent.Replace(matchedContent, newContent);
-                    await File.WriteAllTextAsync(filePath, updatedContent);
-                    _logger.LogInformation($"Modified file: {filePath}");
-                    return true;
-                }
-
-                _errorMessages.AppendLine($"Error: Could not find oldContent in file '{filePath}'.");
-                return false;
+                File.Delete(filePath);
+                _logger.LogInformation("Deleted file '{FilePath}'", filePath);
+                return "Success: File deleted.";
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Delete Failed: IO Error deleting file '{filePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error deleting file '{FilePath}'", filePath);
+                return $"Failed: IO Error. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Delete Failed: Permissions error deleting file '{filePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error deleting file '{FilePath}'", filePath);
+                return $"Failed: Permissions error. {uaEx.Message}";
             }
             catch (Exception ex)
             {
-                _errorMessages.AppendLine($"Error modifying file '{filePath}': {ex.Message}");
-                return false;
+                _errorMessages.AppendLine($"Delete Failed: Unexpected error deleting file '{filePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error deleting file '{FilePath}'", filePath);
+                return $"Failed: Unexpected error. {ex.Message}";
             }
         }
 
-        // Normalize text for comparison by trimming each line and standardizing line endings
-        private string NormalizeText(string text)
+        private async Task<string> HandleRenameFileAsync(string oldFilePath, JToken change)
         {
-            if (string.IsNullOrEmpty(text)) return string.Empty;
-
-            // Split by any type of line ending
-            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-
-            // Trim each line and rejoin with standard line endings
-            return string.Join("\n", lines.Select(line => line.Trim()));
-        }
-
-        // Find the closest matching block of text to the specified line number
-        private int FindClosestMatch(string[] fileLines, string normalizedOldContent, int targetLineNumber)
-        {
-            // Convert normalized content to lines for comparison
-            string[] oldContentLines = normalizedOldContent.Split('\n');
-
-            if (oldContentLines.Length == 0) return -1;
-
-            // Start at the target line and expand outward
-            int maxDistance = Math.Max(fileLines.Length, targetLineNumber);
-
-            for (int distance = 0; distance < maxDistance; distance++)
+            string newFilePath = change["newContent"]?.ToString();
+            if (string.IsNullOrEmpty(newFilePath))
             {
-                // Try below the target line
-                int belowIndex = targetLineNumber - 1 + distance;
-                if (belowIndex <= fileLines.Length - oldContentLines.Length)
-                {
-                    if (IsMatchAtIndex(fileLines, oldContentLines, belowIndex))
-                        return belowIndex;
-                }
-
-                // Try above the target line (but don't check negative indices)
-                int aboveIndex = targetLineNumber - 1 - distance;
-                if (aboveIndex >= 0 && aboveIndex <= fileLines.Length - oldContentLines.Length)
-                {
-                    if (IsMatchAtIndex(fileLines, oldContentLines, aboveIndex))
-                        return aboveIndex;
-                }
+                _errorMessages.AppendLine($"Rename Failed: 'newContent' (the new path) is missing for rename operation on '{oldFilePath}'.");
+                return "Failed: New path missing.";
             }
-
-            return -1; // No match found
-        }
-
-        // Check if the pattern matches at the given index in the file
-        private bool IsMatchAtIndex(string[] fileLines, string[] patternLines, int startIndex)
-        {
-            if (startIndex < 0 || startIndex + patternLines.Length > fileLines.Length)
-                return false;
-
-            for (int i = 0; i < patternLines.Length; i++)
+            if (!IsPathWithinProjectRoot(newFilePath)) // Validate new path
             {
-                string normalizedFileLine = fileLines[startIndex + i].Trim();
-                string normalizedPatternLine = patternLines[i].Trim();
-
-                if (normalizedFileLine != normalizedPatternLine)
-                    return false;
-            }
-
-            return true;
-        }
-
-        // Extract the original text (with original whitespace and line endings) that matches the normalized pattern
-        private string ExtractOriginalText(string originalContent, string normalizedContent, string normalizedPattern, int approximateIndex)
-        {
-            int normalizedIndex = normalizedContent.IndexOf(normalizedPattern);
-            if (normalizedIndex < 0) return string.Empty;
-
-            // Get the character count before the match in normalized content
-            int charCountBeforeMatch = normalizedContent.Substring(0, normalizedIndex).Length;
-
-            // Find the corresponding position in the original content
-            // This is approximate since whitespace may differ
-            int originalStartPos = FindOriginalPosition(originalContent, normalizedContent, normalizedIndex);
-
-            // The length in the original might be different due to whitespace
-            int originalEndPos = FindOriginalPosition(originalContent, normalizedContent, normalizedIndex + normalizedPattern.Length);
-
-            return originalContent.Substring(originalStartPos, originalEndPos - originalStartPos);
-        }
-
-        // Find the position in the original text that corresponds to a position in the normalized text
-        private int FindOriginalPosition(string originalContent, string normalizedContent, int normalizedPos)
-        {
-            if (normalizedPos <= 0) return 0;
-            if (normalizedPos >= normalizedContent.Length) return originalContent.Length;
-
-            // Count normalized characters
-            int originalPos = 0;
-            int normalizedCount = 0;
-
-            while (originalPos < originalContent.Length && normalizedCount < normalizedPos)
-            {
-                char c = originalContent[originalPos];
-                originalPos++;
-
-                // Skip whitespace differences in counting
-                if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-                {
-                    // Only increment normalized count if we're at whitespace in normalized content
-                    if (normalizedCount < normalizedContent.Length &&
-                        (normalizedContent[normalizedCount] == ' ' || normalizedContent[normalizedCount] == '\n'))
-                    {
-                        normalizedCount++;
-                    }
-                }
-                else
-                {
-                    normalizedCount++;
-                }
-            }
-
-            return originalPos;
-        }
-
-        /// <summary>
-        /// Create a new file with the provided content
-        /// </summary>
-        private async Task<bool> CreateNewFileAsync(string filePath, JToken change)
-        {
-            if (File.Exists(filePath))
-            {
-                _errorMessages.AppendLine($"Error: File '{filePath}' already exists. Cannot create new file.");
-                return false;
-            }
-
-            string newContent = change["newContent"]?.ToString() ?? string.Empty;
-
-            try
-            {
-                await File.WriteAllTextAsync(filePath, newContent);
-                _logger.LogInformation($"Created new file: {filePath}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _errorMessages.AppendLine($"Error creating file '{filePath}': {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Replace an existing file with new content
-        /// </summary>
-        private async Task<bool> ReplaceFileAsync(string filePath, JToken change)
-        {
-            string newContent = change["newContent"]?.ToString() ?? string.Empty;
-
-            try
-            {
-                await File.WriteAllTextAsync(filePath, newContent);
-                _logger.LogInformation($"Replaced file: {filePath}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _errorMessages.AppendLine($"Error replacing file '{filePath}': {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Rename a file to a new path
-        /// </summary>
-        private async Task<bool> RenameFileAsync(string filePath, JToken change)
-        {
-            if (!File.Exists(filePath))
-            {
-                _errorMessages.AppendLine($"Error: Cannot rename non-existent file '{filePath}'.");
-                return false;
-            }
-
-            string newPath = change["newContent"]?.ToString();
-            if (string.IsNullOrEmpty(newPath))
-            {
-                _errorMessages.AppendLine($"Error: New path is required for renameFile operation on '{filePath}'.");
-                return false;
-            }
-
-            // Security check: Ensure the new path is within the project root
-            if (!IsPathWithinProjectRoot(newPath))
-            {
-                _errorMessages.AppendLine($"Security Error: The new path '{newPath}' is outside the project root. Access denied.");
-                return false;
+                _errorMessages.AppendLine($"Rename Failed: Security Error: The new rename path '{newFilePath}' for file '{oldFilePath}' is outside the project root. Access denied.");
+                return $"Failed: New path '{newFilePath}' is outside project root.";
             }
 
             try
             {
-                // Ensure the target directory exists
-                string targetDir = Path.GetDirectoryName(newPath);
-                if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+                if (!File.Exists(oldFilePath))
+                {
+                    _errorMessages.AppendLine($"Rename Failed: Source file '{oldFilePath}' not found.");
+                    return $"Failed: Source file not found.";
+                }
+                if (File.Exists(newFilePath))
+                {
+                    _errorMessages.AppendLine($"Rename Failed: Target file '{newFilePath}' already exists.");
+                    return $"Failed: Target file '{newFilePath}' already exists.";
+                }
+
+                // Ensure target directory exists
+                string targetDir = Path.GetDirectoryName(newFilePath);
+                if (!Directory.Exists(targetDir))
                 {
                     Directory.CreateDirectory(targetDir);
+                    _logger.LogInformation("Created directory '{DirectoryPath}' for rename operation.", targetDir);
                 }
 
-                // If destination file exists, delete it first
-                if (File.Exists(newPath))
-                {
-                    File.Delete(newPath);
-                }
 
-                File.Move(filePath, newPath);
-                _logger.LogInformation($"Renamed file: {filePath} to {newPath}");
-                return true;
+                File.Move(oldFilePath, newFilePath);
+                _logger.LogInformation("Renamed file '{OldFilePath}' to '{NewFilePath}'", oldFilePath, newFilePath);
+                return $"Success: Renamed to '{newFilePath}'.";
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Rename Failed: IO Error renaming file '{oldFilePath}' to '{newFilePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error renaming file '{OldFilePath}' to '{NewFilePath}'", oldFilePath, newFilePath);
+                return $"Failed: IO Error. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Rename Failed: Permissions error renaming file '{oldFilePath}' to '{newFilePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error renaming file '{OldFilePath}'", oldFilePath);
+                return $"Failed: Permissions error. {uaEx.Message}";
             }
             catch (Exception ex)
             {
-                _errorMessages.AppendLine($"Error renaming file '{filePath}' to '{newPath}': {ex.Message}");
-                return false;
+                _errorMessages.AppendLine($"Rename Failed: Unexpected error renaming file '{oldFilePath}' to '{newFilePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error renaming file '{OldFilePath}' to '{NewFilePath}'", oldFilePath, newFilePath);
+                return $"Failed: Unexpected error. {ex.Message}";
             }
         }
 
-        /// <summary>
-        /// Delete an existing file
-        /// </summary>
-        private async Task<bool> DeleteFileAsync(string filePath)
+        private async Task<string> HandleCreateFileAsync(string filePath, JToken change)
         {
-            if (!File.Exists(filePath))
+            string initialContent = change["newContent"]?.ToString() ?? ""; // Allow empty file creation
+            string changeDesc = change["description"]?.ToString() ?? "Create file";
+
+
+            try
             {
-                _errorMessages.AppendLine($"Error: Cannot delete non-existent file '{filePath}'.");
-                return false;
+                if (File.Exists(filePath))
+                {
+                    _errorMessages.AppendLine($"Create Failed: File '{filePath}' already exists.");
+                    return $"Failed: File already exists.";
+                }
+
+                // Ensure target directory exists
+                string targetDir = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                    _logger.LogInformation("Created directory '{DirectoryPath}' for create operation.", targetDir);
+                }
+
+                // Ask AI to finalize/format the content
+                string prompt = $"You are a file content creation assistant. Create the content for the file '{Path.GetFileName(filePath)}'. Description: {changeDesc}. Initial content provided below.\n" +
+                                $"Ensure the final content is well-formatted and complete. Respond ONLY with the final, complete file content.\n" +
+                                $"---\n" +
+                                $"{initialContent}";
+
+                var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
+
+                if (!aiResponse.Success || string.IsNullOrWhiteSpace(aiResponse.Response))
+                {
+                    _errorMessages.AppendLine($"Create Failed: Secondary AI failed to generate content for '{filePath}'. Error: {aiResponse.Error}. Response: {aiResponse.Response}");
+                    _logger.LogError("Secondary AI failed for create file '{FilePath}'. Error: {Error}. Response: {Response}", filePath, aiResponse.Error, aiResponse.Response);
+                    return $"Failed: AI content generation failed. {aiResponse.Error}";
+                }
+
+                string finalContent = aiResponse.Response;
+                // Basic check for accidental AI markers in response (should ideally not happen with good prompting)
+                if (finalContent.StartsWith(SuccessMarker) || finalContent.StartsWith(ErrorMarker))
+                {
+                    _logger.LogWarning("AI response for file creation contained unexpected marker. Content: {Content}", finalContent);
+                    // Attempt to recover or mark as failure? For now, log and proceed. Could add logic to strip marker.
+                }
+
+
+                await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
+                _logger.LogInformation("Created file '{FilePath}' with AI-processed content.", filePath);
+                return "Success: File created.";
+
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Create Failed: IO Error creating file '{filePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error creating file '{FilePath}'", filePath);
+                return $"Failed: IO Error. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Create Failed: Permissions error creating file '{filePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error creating file '{FilePath}'", filePath);
+                return $"Failed: Permissions error. {uaEx.Message}";
+            }
+            catch (Exception ex)
+            {
+                _errorMessages.AppendLine($"Create Failed: Unexpected error creating file '{filePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error creating file '{FilePath}'", filePath);
+                return $"Failed: Unexpected error. {ex.Message}";
+            }
+        }
+
+        private async Task<string> HandleReplaceFileAsync(string filePath, JToken change)
+        {
+            string initialContent = change["newContent"]?.ToString();
+            string changeDesc = change["description"]?.ToString() ?? "Replace file content";
+
+
+            if (initialContent == null) // Replacement requires content
+            {
+                _errorMessages.AppendLine($"Replace Failed: 'newContent' is missing for replace operation on '{filePath}'.");
+                return "Failed: New content missing.";
             }
 
             try
             {
-                File.Delete(filePath);
-                _logger.LogInformation($"Deleted file: {filePath}");
-                return true;
+                // Although replacing, check if dir exists, maybe it's replacing a deleted file path
+                string targetDir = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                    _logger.LogInformation("Created directory '{DirectoryPath}' for replace operation.", targetDir);
+                }
+
+                // Ask AI to finalize/format the content
+                string prompt = $"You are a file content replacement assistant. Replace the entire content for the file '{Path.GetFileName(filePath)}'. Description: {changeDesc}. New content provided below.\n" +
+                                $"Ensure the final content is well-formatted and complete. Respond ONLY with the final, complete file content.\n" +
+                                $"---\n" +
+                                $"{initialContent}";
+
+                var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
+
+                if (!aiResponse.Success || string.IsNullOrWhiteSpace(aiResponse.Response))
+                {
+                    _errorMessages.AppendLine($"Replace Failed: Secondary AI failed to generate content for '{filePath}'. Error: {aiResponse.Error}. Response: {aiResponse.Response}");
+                    _logger.LogError("Secondary AI failed for replace file '{FilePath}'. Error: {Error}. Response: {Response}", filePath, aiResponse.Error, aiResponse.Response);
+                    return $"Failed: AI content generation failed. {aiResponse.Error}";
+                }
+
+                string finalContent = aiResponse.Response;
+                // Basic check for accidental AI markers
+                if (finalContent.StartsWith(SuccessMarker) || finalContent.StartsWith(ErrorMarker))
+                {
+                    _logger.LogWarning("AI response for file replacement contained unexpected marker. Content: {Content}", finalContent);
+                }
+
+                await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
+                _logger.LogInformation("Replaced file '{FilePath}' with AI-processed content.", filePath);
+                return "Success: File replaced.";
+
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Replace Failed: IO Error writing file '{filePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error replacing file '{FilePath}'", filePath);
+                return $"Failed: IO Error. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Replace Failed: Permissions error writing file '{filePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error replacing file '{FilePath}'", filePath);
+                return $"Failed: Permissions error. {uaEx.Message}";
             }
             catch (Exception ex)
             {
-                _errorMessages.AppendLine($"Error deleting file '{filePath}': {ex.Message}");
-                return false;
+                _errorMessages.AppendLine($"Replace Failed: Unexpected error replacing file '{filePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error replacing file '{FilePath}'", filePath);
+                return $"Failed: Unexpected error. {ex.Message}";
             }
         }
+
+        private async Task<string> HandleModifyFileAsync(string filePath, List<JToken> changes)
+        {
+            string originalContent;
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    _errorMessages.AppendLine($"Modify Failed: File '{filePath}' not found for modification.");
+                    return $"Failed: File not found.";
+                }
+                originalContent = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Modify Failed: IO Error reading file '{filePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error reading file '{FilePath}' for modification.", filePath);
+                return $"Failed: IO Error reading file. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Modify Failed: Permissions error reading file '{filePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error reading file '{FilePath}' for modification.", filePath);
+                return $"Failed: Permissions error reading file. {uaEx.Message}";
+            }
+            catch (Exception ex)
+            {
+                _errorMessages.AppendLine($"Modify Failed: Unexpected error reading file '{filePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error reading file '{FilePath}' for modification", filePath);
+                return $"Failed: Unexpected error reading file. {ex.Message}";
+            }
+
+            // --- Prepare AI Request ---
+            var modificationsJson = new JArray(changes.Select(ch => new JObject
+            {
+                // Include relevant fields for the AI to understand the modification
+                ["lineNumber"] = ch["lineNumber"],
+                ["oldContent"] = ch["oldContent"],
+                ["newContent"] = ch["newContent"],
+                ["description"] = ch["description"]
+            })).ToString(Formatting.Indented);
+
+            string prompt = $"You are a code modification assistant. Apply the following modifications to the original file content provided below.\n" +
+                           $"The 'modifications' array describes the changes. Apply them carefully, considering line numbers and context ('oldContent').\n" +
+                           $"Respond ONLY with the complete, modified file content. Do not include explanations or summaries.\n\n" +
+                           $"File Path: {filePath}\n\n" +
+                           $"Modifications JSON:\n{modificationsJson}\n\n" +
+                           $"--- ORIGINAL FILE CONTENT ---\n" +
+                           $"{originalContent}";
+
+
+            // --- Send to AI and Process Response ---
+            try
+            {
+                var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
+
+                if (!aiResponse.Success || string.IsNullOrEmpty(aiResponse.Response)) // Allow empty only if original was empty and changes resulted in empty
+                {
+                    _errorMessages.AppendLine($"Modify Failed: Secondary AI failed to process modifications for '{filePath}'. Error: {aiResponse.Error}. Response: {aiResponse.Response}");
+                    _logger.LogError("Secondary AI failed modifications for '{FilePath}'. Error: {Error}. Response: {Response}", filePath, aiResponse.Error, aiResponse.Response);
+                    return $"Failed: AI modification processing failed. {aiResponse.Error}";
+                }
+
+                string modifiedContent = aiResponse.Response;
+                // Basic check for accidental AI markers
+                if (modifiedContent.StartsWith(SuccessMarker) || modifiedContent.StartsWith(ErrorMarker))
+                {
+                    _logger.LogWarning("AI response for file modification contained unexpected marker. Content snippet: {Content}", modifiedContent.Substring(0, Math.Min(100, modifiedContent.Length)));
+                }
+
+
+                // --- Write Modified Content Back ---
+                await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
+                _logger.LogInformation("Modified file '{FilePath}' with AI-processed changes.", filePath);
+                return $"Success: Applied {changes.Count} modification(s).";
+            }
+            catch (IOException ioEx)
+            {
+                _errorMessages.AppendLine($"Modify Failed: IO Error writing modified file '{filePath}'. {ioEx.Message}");
+                _logger.LogError(ioEx, "IO Error writing modified file '{FilePath}'.", filePath);
+                return $"Failed: IO Error writing file. {ioEx.Message}";
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _errorMessages.AppendLine($"Modify Failed: Permissions error writing modified file '{filePath}'. {uaEx.Message}");
+                _logger.LogError(uaEx, "Permissions error writing modified file '{FilePath}'.", filePath);
+                return $"Failed: Permissions error writing file. {uaEx.Message}";
+            }
+            catch (Exception ex)
+            {
+                _errorMessages.AppendLine($"Modify Failed: Unexpected error during AI call or writing file '{filePath}'. {ex.Message}");
+                _logger.LogError(ex, "Unexpected error during AI call or writing modified file '{FilePath}'", filePath);
+                return $"Failed: Unexpected error during AI processing/write. {ex.Message}";
+            }
+        }
+
+
+        // --- Validation Helpers ---
+
+        private bool ValidateChangesetStructure(JArray files)
+        {
+            bool validationSuccess = true;
+            var uniquePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                var fileObj = files[i] as JObject;
+                if (fileObj == null)
+                {
+                    _errorMessages.AppendLine($"Error: Item at index {i} in 'files' array is not a valid JSON object.");
+                    validationSuccess = false;
+                    continue;
+                }
+
+                string filePath = fileObj["path"]?.ToString();
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    _errorMessages.AppendLine($"Error: File path is missing or empty for file entry at index {i}.");
+                    validationSuccess = false;
+                    continue;
+                }
+
+                // Prevent duplicate file entries in the same changeset (simplifies processing logic)
+                // Note: Case-insensitive check for Windows paths. Adjust if needed for other OS.
+                if (!uniquePaths.Add(Path.GetFullPath(filePath))) // Normalize before adding
+                {
+                    _errorMessages.AppendLine($"Error: Duplicate file path '{filePath}' found in changeset. Each file should appear only once.");
+                    validationSuccess = false;
+                    // Continue validation for other files
+                }
+
+
+                // Security check: Ensure the file path is within the project root
+                if (!IsPathWithinProjectRoot(filePath))
+                {
+                    _errorMessages.AppendLine($"Security Error: The file path '{filePath}' is outside the project root. Access denied.");
+                    validationSuccess = false;
+                    continue; // Check next file
+                }
+
+                var changes = fileObj["changes"] as JArray;
+                if (changes == null || !changes.Any())
+                {
+                    _errorMessages.AppendLine($"Error: No changes specified for file '{filePath}'.");
+                    validationSuccess = false;
+                    continue; // Check next file
+                }
+
+                // Check for conflicting top-level actions (e.g., delete and modify same file)
+                var actionTypes = changes.Select(c => c["change_type"]?.ToString()).Where(ct => !string.IsNullOrEmpty(ct)).ToList();
+                var fileLevelActions = actionTypes.Count(a => a == "deleteFile" || a == "renameFile" || a == "replaceFile" || a == "createnewFile");
+
+                if (fileLevelActions > 1)
+                {
+                    _errorMessages.AppendLine($"Error: Conflicting file-level operations (delete, rename, replace, create) specified for file '{filePath}'. Only one is allowed per file entry.");
+                    validationSuccess = false;
+                }
+                if (fileLevelActions > 0 && actionTypes.Any(a => a == "modifyFile"))
+                {
+                    _errorMessages.AppendLine($"Error: Cannot specify 'modifyFile' along with delete, rename, replace, or create for file '{filePath}'.");
+                    validationSuccess = false;
+                }
+
+
+                // Validate each change within the file
+                for (int j = 0; j < changes.Count; j++)
+                {
+                    var change = changes[j] as JObject;
+                    if (change == null)
+                    {
+                        _errorMessages.AppendLine($"Error: Change entry at index {j} for file '{filePath}' is not a valid JSON object.");
+                        validationSuccess = false;
+                        continue;
+                    }
+
+                    string changeType = change["change_type"]?.ToString();
+                    if (string.IsNullOrEmpty(changeType) || !IsValidChangeType(changeType))
+                    {
+                        _errorMessages.AppendLine($"Error: Missing or invalid change_type ('{changeType}') for change {j} in file '{filePath}'.");
+                        validationSuccess = false;
+                        continue; // Check next change
+                    }
+
+                    string oldContent = change["oldContent"]?.ToString(); // Null is acceptable for some types
+                    string newContent = change["newContent"]?.ToString(); // Null is acceptable for delete/modify
+
+                    // Content Validation based on type
+                    if (changeType == "modifyFile" && oldContent == null) // newContent can be empty for deletion within modify
+                    {
+                        _errorMessages.AppendLine($"Error: oldContent is required for 'modifyFile' operation {j} on '{filePath}'.");
+                        validationSuccess = false;
+                    }
+                    if ((changeType == "createnewFile" || changeType == "replaceFile") && newContent == null)
+                    {
+                        _errorMessages.AppendLine($"Error: newContent is required for '{changeType}' operation {j} on '{filePath}'.");
+                        validationSuccess = false;
+                    }
+                    if (changeType == "renameFile")
+                    {
+                        if (string.IsNullOrEmpty(newContent))
+                        {
+                            _errorMessages.AppendLine($"Error: newContent (new path) is required for 'renameFile' operation {j} on '{filePath}'.");
+                            validationSuccess = false;
+                        }
+                        else if (!IsPathWithinProjectRoot(newContent)) // Validate new path security here too
+                        {
+                            _errorMessages.AppendLine($"Security Error: The new rename path '{newContent}' for file '{filePath}' (change {j}) is outside the project root. Access denied.");
+                            validationSuccess = false;
+                        }
+                    }
+
+                    // Ensure directory for create is valid (redundant with file path check, but good practice)
+                    string directoryPath = changeType == "createnewFile" ? Path.GetDirectoryName(filePath) : null;
+                    if (directoryPath != null && !IsPathWithinProjectRoot(directoryPath))
+                    {
+                        _errorMessages.AppendLine($"Security Error: Cannot create directory '{directoryPath}' for file '{filePath}' outside the project root.");
+                        validationSuccess = false;
+                    }
+                }
+            }
+
+            return validationSuccess;
+        }
+
+        private bool IsValidChangeType(string changeType)
+        {
+            return changeType == "modifyFile" ||
+                   changeType == "createnewFile" ||
+                   changeType == "replaceFile" ||
+                   changeType == "renameFile" ||
+                   changeType == "deleteFile";
+        }
+
 
         /// <summary>
         /// Check if a path is within the project root directory
         /// </summary>
         private bool IsPathWithinProjectRoot(string path)
         {
+            if (string.IsNullOrEmpty(_projectRoot))
+            {
+                // Logged during SettingsService initialization usually, but good to check here
+                if (!_errorMessages.ToString().Contains("Project root path is not set")) // Avoid duplicate messages
+                {
+                    _errorMessages.AppendLine("Error: Project root path is not set. Cannot validate file paths.");
+                    _logger.LogError("Project root path is not set in CodeDiffTool.");
+                }
+                return false; // Cannot validate if root is not set
+            }
+            if (string.IsNullOrEmpty(path))
+            {
+                if (!_errorMessages.ToString().Contains("Received an empty path"))
+                {
+                    _errorMessages.AppendLine("Error: Received an empty path for validation.");
+                    _logger.LogWarning("Received an empty path for validation in IsPathWithinProjectRoot.");
+                }
+                return false; // Empty path is invalid
+            }
+
             try
             {
                 // Normalize paths to ensure consistent comparison
-                string normalizedPath = Path.GetFullPath(path);
+                string normalizedPath = Path.GetFullPath(path); // Resolves relative paths, ., ..
                 string normalizedRoot = Path.GetFullPath(_projectRoot);
-                
+
+                // Ensure the root path ends with a directory separator for accurate StartsWith check
+                string rootWithSeparator = normalizedRoot.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? normalizedRoot
+                    : normalizedRoot + Path.DirectorySeparatorChar;
+
+
                 // Check if the normalized path starts with the normalized root path
-                return normalizedPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase);
+                // Using OrdinalIgnoreCase for case-insensitivity (common on Windows)
+                return normalizedPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase);
             }
-            catch (Exception ex)
+            catch (ArgumentException argEx)
+            {
+                _errorMessages.AppendLine($"Error validating path '{path}': Invalid characters or format. {argEx.Message}");
+                _logger.LogWarning(argEx, "ArgumentException during path normalization for '{Path}'.", path);
+                return false;
+            }
+            catch (PathTooLongException ptle)
+            {
+                _errorMessages.AppendLine($"Error validating path '{path}': Path is too long. {ptle.Message}");
+                _logger.LogWarning(ptle, "PathTooLongException during path normalization for '{Path}'.", path);
+                return false;
+            }
+            catch (NotSupportedException nse)
+            {
+                _errorMessages.AppendLine($"Error validating path '{path}': Path format not supported. {nse.Message}");
+                _logger.LogWarning(nse, "NotSupportedException during path normalization for '{Path}'.", path);
+                return false;
+            }
+            catch (System.Security.SecurityException secEx) // Catch security exceptions during path normalization
+            {
+                _errorMessages.AppendLine($"Security error validating path '{path}': {secEx.Message}");
+                _logger.LogWarning(secEx, "SecurityException during path normalization for '{Path}'.", path);
+                return false;
+            }
+            catch (Exception ex) // Catch other potential exceptions
             {
                 _errorMessages.AppendLine($"Error validating path '{path}': {ex.Message}");
+                _logger.LogError(ex, "Unexpected error validating path '{Path}'.", path);
                 return false;
             }
         }
