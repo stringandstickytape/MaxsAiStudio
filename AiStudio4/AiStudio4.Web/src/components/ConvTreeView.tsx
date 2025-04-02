@@ -30,39 +30,22 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-
-    const scrollToMessage = (messageId: string) => {
+    const scrollToMessage = () => {
         // Find all message containers in the chat view
         const messageElements = document.querySelectorAll('.message-container');
-        let targetElement = null;
-        // Check element data attributes or look for an ID match
-        for (const element of messageElements) {
-            // First try the parent container which might have data attributes
-            const parentElement = element.closest('[data-message-id]');
-            if (parentElement && parentElement.getAttribute('data-message-id') === messageId) {
-                targetElement = parentElement;
-                break;
-            }
-            // Otherwise look for any element with the ID or a data-id attribute
-            const idElement = element.querySelector(`#msg-${messageId}, [data-id="${messageId}"]`);
-            if (idElement) {
-                targetElement = element;
-                break;
-            }
-            // Fall back to checking the inner HTML for the message ID
-            // This is less reliable but provides a fallback
-            if (element.innerHTML.includes(messageId)) {
-                targetElement = element;
-                break;
-            }
-        }
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Check if there are any message elements
+        if (messageElements.length > 0) {
+            // Get the last message element
+            const lastMessageElement = messageElements[messageElements.length - 1];
+
+            // Jump the top of the last message element into view
+            lastMessageElement.scrollIntoView({ block: 'start' });
         } else {
-            console.log('Message element not found for ID:', messageId);
+            console.log('No message elements found to scroll to.');
         }
     };
-  
+    
   useEffect(() => {
     setUpdateKey((prev) => prev + 1);
   }, [convId]);
@@ -125,11 +108,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 if (message && message.parentId) {
                     setActiveConv({
                         convId: convId,
-                        slctdMsgId: message.parentId,
-                    });
+                        slctdMsgId: message.parentId,                    });
 
-                    // Scroll to the parent message after a brief delay to allow rendering
-                    setTimeout(() => scrollToMessage(message.parentId), 100);
+                    // Scroll to the last message after a brief delay
+                    setTimeout(() => scrollToMessage(), 100);
                     return;
                 }
             }
@@ -137,12 +119,11 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
             window.setPrompt("");
         }
         setActiveConv({
-            convId: convId,
-            slctdMsgId: nodeId,
+            convId: convId,            slctdMsgId: nodeId,
         });
 
-        // Scroll to the clicked message after a brief delay to allow rendering
-        setTimeout(() => scrollToMessage(nodeId), 100);
+        // Scroll to the last message after a brief delay
+        setTimeout(() => scrollToMessage(), 100);
     };
 
     const handleFocusOnLatest = useCallback(() => {
