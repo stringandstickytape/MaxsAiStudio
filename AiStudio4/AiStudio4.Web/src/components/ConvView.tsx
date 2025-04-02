@@ -2,13 +2,14 @@ import { MarkdownPane } from '@/components/markdown-pane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X } from 'lucide-react'; // Removed ArrowDown
+import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react'; // Changed ArrowCircleDown to ArrowDown
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
 import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'; // Added import
 
 
 interface ConvViewProps {
@@ -76,13 +77,12 @@ const formatTimestamp = (timestamp?: number | null) => {
 };
 
 export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = false, lastStreamedContent = '' }: ConvViewProps) => {
+    // Get necessary state and actions from stores
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
 
-    // Removed: useStickToBottomContext hook usage
-    // Removed: useEffect block assigning window.scrollChatToBottom and window.getScrollButtonState
 
     const messageChain = useMemo(() => {
         if (!activeConvId) return [];
@@ -127,6 +127,22 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
     // Removed: ScrollToBottom component definition
 
+    // Define ScrollToBottom button component using the context
+    const ScrollToBottom = () => {
+        const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+        return (
+            !isAtBottom && (
+                <button
+                    className="absolute i-ph-arrow-circle-down-fill text-4xl rounded-lg left-[50%] translate-x-[-50%] bottom-4 bg-gray-700/50 hover:bg-gray-600/70 p-1 text-white transition-opacity duration-300"
+                    onClick={() => scrollToBottom()}
+                    title="Scroll to bottom"
+                >
+                    <ArrowDown size={24}/>
+                </button>
+            )
+        );
+    }
+
     if (!activeConvId) return null;
     if (!messageChain.length) {
         return null;
@@ -137,8 +153,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const hasMoreToLoad = visibleCount < messageChain.length;
 
     return (
-        <div className="w-full h-full flex flex-col gap-4 p-4">
-
+        <StickToBottom className="h-full relative overflow-y-auto" resize="smooth" initial="smooth">
+            <StickToBottom.Content className="flex flex-col gap-4 p-4">
 
             {hasMoreToLoad && (
                 <button
@@ -329,6 +345,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 </div>
             )}
             {/* Removed: <ScrollToBottom /> */}
-        </div>
+            </StickToBottom.Content>
+            <ScrollToBottom />
+        </StickToBottom>
     );
 };
