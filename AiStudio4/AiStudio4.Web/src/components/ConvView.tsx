@@ -133,11 +133,12 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         return (
             !isAtBottom && (
                 <button
-                    className="absolute i-ph-arrow-circle-down-fill text-4xl rounded-lg left-[50%] translate-x-[-50%] bottom-4 bg-gray-700/50 hover:bg-gray-600/70 p-1 text-white transition-opacity duration-300"
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-800/70 hover:bg-gray-700/90 text-white text-xs font-medium rounded-full flex items-center gap-2 shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500"
                     onClick={() => scrollToBottom()}
                     title="Scroll to bottom"
                 >
-                    <ArrowDown size={24}/>
+                    <ArrowDown size={16} className="flex-shrink-0" />
+                    <span>Scroll to bottom</span>
                 </button>
             )
         );
