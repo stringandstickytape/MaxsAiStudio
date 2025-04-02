@@ -5,6 +5,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SharedClasses;
 using SharedClasses.Models;
 using System;
 using System.Collections.Generic;
@@ -428,7 +429,7 @@ namespace AiStudio4.Core.Tools
                     // Attempt to recover or mark as failure? For now, log and proceed. Could add logic to strip marker.
                 }
 
-
+                finalContent = RemoveBacktickQuotingIfPresent(finalContent);
                 await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
                 _logger.LogInformation("Created file '{FilePath}' with AI-processed content.", filePath);
                 return "Success: File created.";
@@ -497,6 +498,8 @@ namespace AiStudio4.Core.Tools
                 {
                     _logger.LogWarning("AI response for file replacement contained unexpected marker. Content: {Content}", finalContent);
                 }
+
+                finalContent = RemoveBacktickQuotingIfPresent(finalContent);
 
                 await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
                 _logger.LogInformation("Replaced file '{FilePath}' with AI-processed content.", filePath);
@@ -592,6 +595,8 @@ namespace AiStudio4.Core.Tools
                     _logger.LogWarning("AI response for file modification contained unexpected marker. Content snippet: {Content}", modifiedContent.Substring(0, Math.Min(100, modifiedContent.Length)));
                 }
 
+                modifiedContent = RemoveBacktickQuotingIfPresent(modifiedContent);
+
 
                 // --- Write Modified Content Back ---
                 await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
@@ -616,6 +621,15 @@ namespace AiStudio4.Core.Tools
                 _logger.LogError(ex, "Unexpected error during AI call or writing modified file '{FilePath}'", filePath);
                 return $"Failed: Unexpected error during AI processing/write. {ex.Message}";
             }
+        }
+
+        private static string RemoveBacktickQuotingIfPresent(string modifiedContent)
+        {
+            var lines = modifiedContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            if (lines.Length >= 2 && lines[0].StartsWith(BacktickHelper.ThreeTicks) && lines[lines.Length - 1].StartsWith(BacktickHelper.ThreeTicks))
+                modifiedContent = string.Join(lines[0].Contains("\r") ? "\r\n" : "\n", lines.Skip(1).Take(lines.Length - 2));
+            return modifiedContent;
         }
 
 
