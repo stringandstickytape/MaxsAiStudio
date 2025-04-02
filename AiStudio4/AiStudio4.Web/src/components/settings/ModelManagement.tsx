@@ -153,7 +153,16 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {models.map((model) => (
+          {[...models]
+            .sort((a, b) => {
+              // First sort by starred status (starred models first)
+              if (a.starred && !b.starred) return -1;
+              if (!a.starred && b.starred) return 1;
+              
+              // Then sort alphabetically by friendly name
+              return a.friendlyName.localeCompare(b.friendlyName);
+            })
+            .map((model) => (
             <Card key={model.guid} className="card-base card-hover backdrop-blur-sm group flex flex-col relative">
               <div
                 className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 animate-hover group-hover:h-3"
