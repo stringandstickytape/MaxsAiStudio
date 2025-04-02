@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { ServiceProviderForm } from './ServiceProviderForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useModelManagement } from '@/hooks/useResourceManagement';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServiceProviderManagementProps {
   providers: ServiceProvider[];
@@ -126,9 +127,9 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {providers.map((provider) => (
-            <Card key={provider.guid} className="card-base card-hover backdrop-blur-sm group">
+            <Card key={provider.guid} className="card-base card-hover backdrop-blur-sm group flex flex-col relative">
               <div
                 className="h-2 bg-gradient-to-r from-opacity-80 to-opacity-100 transition-all duration-300 group-hover:h-3"
                 style={{
@@ -137,45 +138,68 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                   to: '#4f46e5',
                 }}
               />
-              <CardHeader className="pb-2 pt-4 px-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <CardTitle className="flex items-center gap-2 text-gray-100 text-lg">
-                        {provider.friendlyName}
-                      </CardTitle>
-                      <CardDescription className="text-mono">Protocol: {provider.serviceName}</CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 animate-hover"
-                      onClick={() => {
-                        setEditingProvider(provider);
-                        setEditOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/20 animate-hover"
-                      onClick={() => {
-                        setDeleteConfirmProvider(provider);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              <div className="p-3 flex flex-col flex-1">
+                <div className="flex items-start pr-6">
+                  <CardTitle className="text-gray-100 text-lg flex items-center gap-1 truncate">
+                    {provider.friendlyName}
+                  </CardTitle>
+                </div>
+                
+                <div className="text-mono text-sm text-gray-400 truncate mb-1">Protocol: {provider.serviceName}</div>
+                
+                <div className="mt-auto space-y-1 text-xs">
+                  <div className="text-gray-200 overflow-hidden text-ellipsis">
+                    {provider.url}
                   </div>
                 </div>
-                <span className="text-gray-200 font-medium overflow-hidden text-ellipsis max-w-[250px]">
-                  {provider.url}
-                </span>
-              </CardHeader>
+
+                {/* Vertical stacked buttons in the bottom-right corner */}
+                <div className="absolute bottom-1 right-1 flex flex-col space-y-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-gray-100 hover:bg-gray-700 animate-hover h-6 w-6 p-0"
+                          onClick={() => {
+                            setEditingProvider(provider);
+                            setEditOpen(true);
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-gray-900 text-gray-100 text-xs border-gray-700">
+                        Edit provider
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 animate-hover h-6 w-6 p-0"
+                          onClick={() => {
+                            setDeleteConfirmProvider(provider);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-gray-900 text-gray-100 text-xs border-gray-700">
+                        Delete provider
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             </Card>
           ))}
         </div>
@@ -265,5 +289,3 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
     </>
   );
 };
-
-
