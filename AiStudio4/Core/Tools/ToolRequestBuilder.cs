@@ -1,4 +1,4 @@
-using AiStudio4.AiServices;
+﻿using AiStudio4.AiServices;
 using AiStudio4.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Newtonsoft.Json;
@@ -127,14 +127,82 @@ namespace AiStudio4.Core.Tools
 
         private void ConfigureOpenAIFormat(JObject request, JObject toolConfig)
         {
-            toolConfig["schema"] = toolConfig["input_schema"];
-            toolConfig.Remove("input_schema");
-
-            request["response_format"] = new JObject
+            // Ensure the tools array exists
+            if (request["tools"] == null)
             {
-                ["type"] = "json_schema",
-                ["json_schema"] = toolConfig
+                request["tools"] = new JArray();
+            }
+
+            // Get the parameters schema
+            var parametersSchema = toolConfig["input_schema"] as JObject;
+            if (parametersSchema != null)
+            {
+                // Recursively add "additionalProperties": false
+                SetAdditionalPropertiesFalse(parametersSchema);
+            }
+            else
+            {
+                // Handle cases where input_schema might be missing or not an object
+                // For now, we'll create an empty object schema
+                parametersSchema = new JObject { ["type"] = "object", ["properties"] = new JObject() };
+                SetAdditionalPropertiesFalse(parametersSchema); // Add additionalProperties: false even to empty schema
+            }
+
+            // Create the correctly formatted tool object for OpenAI
+            var openAiTool = new JObject
+            {
+                ["type"] = "function",
+                ["function"] = new JObject
+                {
+                    ["name"] = toolConfig["name"],
+                    ["description"] = toolConfig["description"],
+                    ["parameters"] = parametersSchema
+                }
             };
+
+            // Add the tool to the tools array
+            ((JArray)request["tools"]).Add(openAiTool);
+
+            // Set tool_choice to "auto" which is OpenAI's default when tools are present
+            request["tool_choice"] = "auto";
+        }
+
+        // Helper function to recursively add "additionalProperties": false
+        private void SetAdditionalPropertiesFalse(JObject schemaObject)
+        {
+            if (schemaObject == null) return;
+
+            // Check if it's an object type with properties
+            if (schemaObject["type"]?.ToString() == "object" && schemaObject["properties"] is JObject properties)
+            {
+                // Add additionalProperties: false to this object
+                schemaObject["additionalProperties"] = false;
+
+                // Recursively process properties
+                foreach (var property in properties.Properties())
+                {
+                    if (property.Value is JObject subSchema)
+                    {
+                        SetAdditionalPropertiesFalse(subSchema);
+                    }
+                    else if (property.Value is JObject itemSchemaContainer && itemSchemaContainer["items"] is JObject itemSchema)
+                    { // Handle array items schema
+                         if(itemSchemaContainer["type"]?.ToString() == "array")
+                         {
+                            SetAdditionalPropertiesFalse(itemSchema);
+                         }
+                    }
+                     else if (property.Value is JObject itemSchemaContainerComplex && itemSchemaContainerComplex["type"]?.ToString() == "array" && itemSchemaContainerComplex["items"] is JObject itemSchemaComplex)
+                    { // Handle array items schema explicitly
+                        SetAdditionalPropertiesFalse(itemSchemaComplex);
+                    }
+                }
+            }
+             // Handle array items directly if the top level is an array schema
+            else if (schemaObject["type"]?.ToString() == "array" && schemaObject["items"] is JObject itemSchema)
+            {
+                 SetAdditionalPropertiesFalse(itemSchema);
+            }
         }
 
         private JObject ConvertToolToGemini(JObject toolConfig)
