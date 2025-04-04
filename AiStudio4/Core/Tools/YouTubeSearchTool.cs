@@ -64,7 +64,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "Search", "Online Services" },
-                OutputFileType = "json",
+                OutputFileType = "text", // Changed from json to text
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
@@ -101,9 +101,40 @@ namespace AiStudio4.Core.Tools
                 }
 
                 var searchResult = await SearchYouTube(query, maxResults, type);
-                string jsonResult = JsonConvert.SerializeObject(searchResult, Formatting.Indented);
+                //string jsonResult = JsonConvert.SerializeObject(searchResult, Formatting.Indented);
 
-                return CreateResult(true, true, jsonResult);
+                // Format results as a text table
+                var outputBuilder = new System.Text.StringBuilder();
+                outputBuilder.AppendLine("YouTube Search Results:");
+                outputBuilder.AppendLine("-----------------------");
+
+                if (searchResult?.items != null && searchResult.items.Any(i => i.id?.kind == "youtube#video"))
+                {
+                    outputBuilder.AppendLine("| Title                                                    | URL                                               |");
+                    outputBuilder.AppendLine("|----------------------------------------------------------|---------------------------------------------------|");
+
+                    foreach (var item in searchResult.items)
+                    {
+                        if (item.id?.kind == "youtube#video" && !string.IsNullOrEmpty(item.id.videoId))
+                        {
+                            string title = item.snippet?.title ?? "(No Title)";
+                            // Truncate title if too long for the table layout
+                            if (title.Length > 50)
+                            {
+                                title = title.Substring(0, 47) + "...";
+                            }
+                            string url = $"https://www.youtube.com/watch?v={item.id.videoId}";
+                            outputBuilder.AppendLine($"| {title,-50} | {url,-49} |");
+                        }
+                        // Optionally handle other types like channels or playlists here
+                    }
+                }
+                else
+                {
+                    outputBuilder.AppendLine("No video results found.");
+                }
+
+                return CreateResult(true, true, outputBuilder.ToString());
             }
             catch (JsonSerializationException ex)
             {
