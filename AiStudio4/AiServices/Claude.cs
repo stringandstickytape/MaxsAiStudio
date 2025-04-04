@@ -518,7 +518,7 @@ namespace AiStudio4.AiServices
                 {
                     if (c == '\n')
                     {
-                        ProcessLine(lineBuilder.ToString(),  ref inputTokens, ref outputTokens,
+                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens,
                             ref cacheCreationInputTokens, ref cacheReadInputTokens);
                         lineBuilder.Clear();
                     }
@@ -535,7 +535,7 @@ namespace AiStudio4.AiServices
                 if (!line.StartsWith("data: "))
                     line = "data: " + line;
 
-                ProcessLine(line,  ref inputTokens, ref outputTokens,
+                ProcessLine(line, responseBuilder, ref inputTokens, ref outputTokens,
                     ref cacheCreationInputTokens, ref cacheReadInputTokens);
             }
 
@@ -560,7 +560,7 @@ namespace AiStudio4.AiServices
 
         private ToolResponseItem currentResponseItem = null;
 
-        private void ProcessLine(string line, /*StringBuilder responseBuilder,*/ ref int? inputTokens, ref int? outputTokens,
+        private void ProcessLine(string line, StringBuilder responseBuilder, ref int? inputTokens, ref int? outputTokens,
             ref int? cacheCreationInputTokens, ref int? cacheReadInputTokens)
         {
             if (!line.StartsWith("data: ")) return;
