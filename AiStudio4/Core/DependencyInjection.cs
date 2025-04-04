@@ -36,6 +36,8 @@ namespace AiStudio4.Core
             services.AddTransient<ReadDatabaseSchemaTool>();
             // RunDuckDuckGoSearchTool: Allows the AI to perform searches using the DuckDuckGo search engine.
             services.AddTransient<RunDuckDuckGoSearchTool>();
+            // YouTubeSearchTool: Enables searching YouTube for videos, channels, and playlists.
+            services.AddTransient<YouTubeSearchTool>();
 
             // Register the tool service
             // BuiltinToolService: Manages the available tools and provides a centralized way to access them.

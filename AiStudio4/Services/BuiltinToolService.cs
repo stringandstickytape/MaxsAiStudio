@@ -27,7 +27,8 @@ namespace AiStudio4.Services
             DirectoryTreeTool directoryTreeTool,
             FileSearchTool fileSearchTool,
             RetrieveTextFromUrlTool retrieveTextFromUrlTool,
-            RunDuckDuckGoSearchTool runDuckDuckGoSearchTool)
+            RunDuckDuckGoSearchTool runDuckDuckGoSearchTool,
+            YouTubeSearchTool youTubeSearchTool)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             
@@ -42,8 +43,8 @@ namespace AiStudio4.Services
                 { fileSearchTool.GetToolDefinition().Name, fileSearchTool },
                 { retrieveTextFromUrlTool.GetToolDefinition().Name, retrieveTextFromUrlTool },
                 { readDatabaseSchemaTool.GetToolDefinition().Name,  readDatabaseSchemaTool },
-
-                { runDuckDuckGoSearchTool.GetToolDefinition().Name, runDuckDuckGoSearchTool }
+                { runDuckDuckGoSearchTool.GetToolDefinition().Name, runDuckDuckGoSearchTool },
+                { youTubeSearchTool.GetToolDefinition().Name, youTubeSearchTool }
                 // Add more tools here as they are implemented
             };
         }
