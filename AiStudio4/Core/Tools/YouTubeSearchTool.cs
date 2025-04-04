@@ -3,9 +3,12 @@ using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -71,98 +74,161 @@ namespace AiStudio4.Core.Tools
         }
 
         /// <summary>
-        /// Processes a YouTubeSearch tool call.
+        /// Processes a YouTubeSearch tool call. Handles single or multiple concatenated JSON objects.
         /// </summary>
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
         {
-            _logger.LogInformation("YouTubeSearch tool called");
+            _logger.LogInformation("YouTubeSearch tool called with parameters: {Parameters}", toolParameters);
+            var overallResultBuilder = new StringBuilder();
+            var serializer = new JsonSerializer();
+            bool anySuccess = false;
+            bool allSuccess = true;
 
             try
             {
-                var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
-
-                if (!parameters.TryGetValue("query", out var queryObj) || string.IsNullOrWhiteSpace(queryObj as string))
+                using (var stringReader = new StringReader(toolParameters))
+                using (var jsonReader = new JsonTextReader(stringReader) { SupportMultipleContent = true })
                 {
-                    return CreateResult(true, false, "Error: 'query' parameter is required and cannot be empty.");
+                    int requestIndex = 0;
+                    while (await jsonReader.ReadAsync())
+                    {
+                        if (jsonReader.TokenType == JsonToken.StartObject)
+                        {
+                            requestIndex++;
+                            _logger.LogInformation("Processing search request #{Index}", requestIndex);
+                            try
+                            {
+                                var parameters = serializer.Deserialize<Dictionary<string, object>>(jsonReader);
+                                string singleResult = await ProcessSingleSearchRequestAsync(parameters);
+                                overallResultBuilder.AppendLine(singleResult);
+                                anySuccess = true; // Mark success if at least one request processes without throwing an exception here
+                            }
+                            catch (JsonSerializationException jsonEx)
+                            {
+                                _logger.LogError(jsonEx, "Error deserializing or processing search request #{Index}", requestIndex);
+                                overallResultBuilder.AppendLine($"## Error processing request #{requestIndex}: Invalid JSON format. {jsonEx.Message}\n");
+                                allSuccess = false;
+                            }
+                            catch (ArgumentException argEx)
+                            {
+                                _logger.LogError(argEx, "Error processing search request #{Index}", requestIndex);
+                                overallResultBuilder.AppendLine($"## Error processing request #{requestIndex}: {argEx.Message}\n");
+                                allSuccess = false;
+                            }
+                            catch (HttpRequestException httpEx)
+                            {
+                                _logger.LogError(httpEx, "HTTP request error during search request #{Index}", requestIndex);
+                                overallResultBuilder.AppendLine($"## Error processing request #{requestIndex}: Failed to connect to YouTube API. {httpEx.Message}\n");
+                                allSuccess = false;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "An unexpected error occurred during search request #{Index}", requestIndex);
+                                overallResultBuilder.AppendLine($"## Error processing request #{requestIndex}: An unexpected error occurred. {ex.Message}\n");
+                                allSuccess = false;
+                            }
+                        }
+                    }
+
+                    if (requestIndex == 0) // Handle case where input was empty or not valid JSON at all
+                    {
+                         _logger.LogWarning("No valid JSON objects found in the input parameters.");
+                         return CreateResult(true, false, "Error: Input did not contain any valid JSON search requests.");
+                    }
                 }
 
-                string query = queryObj.ToString();
-                int maxResults = 10; // Default value
-                string type = "video,channel,playlist"; // Default value
+                // Return combined result
+                return CreateResult(true, allSuccess && anySuccess, overallResultBuilder.ToString().TrimEnd());
+            }
+            catch (Exception ex) // Catch errors during the reader setup or initial read
+            {
+                _logger.LogError(ex, "An unexpected error occurred while processing multiple YouTube search requests.");
+                return CreateResult(true, false, $"Error: An unexpected error occurred while parsing search requests. {ex.Message}");
+            }
+        }
 
-                if (parameters.TryGetValue("maxResults", out var maxResultsObj) && int.TryParse(maxResultsObj.ToString(), out int parsedMaxResults))
+        /// <summary>
+        /// Processes a single YouTube search request based on provided parameters.
+        /// </summary>
+        /// <param name="parameters">The deserialized parameters for the search.</param>
+        /// <returns>A formatted string containing the search results or an error message.</returns>
+        /// <exception cref="ArgumentException">Thrown if required parameters are missing or invalid.</exception>
+        /// <exception cref="HttpRequestException">Thrown if the API request fails.</exception>
+        private async Task<string> ProcessSingleSearchRequestAsync(Dictionary<string, object> parameters)
+        {
+            if (!parameters.TryGetValue("query", out var queryObj) || string.IsNullOrWhiteSpace(queryObj as string))
+            {
+                throw new ArgumentException("Error: 'query' parameter is required and cannot be empty.");
+            }
+
+            string query = queryObj.ToString();
+            int maxResults = 10; // Default value
+            string type = "video,channel,playlist"; // Default value
+
+            if (parameters.TryGetValue("maxResults", out var maxResultsObj))
+            {
+                if (int.TryParse(maxResultsObj.ToString(), out int parsedMaxResults))
                 {
                     maxResults = Math.Clamp(parsedMaxResults, 1, 50);
                 }
-
-                if (parameters.TryGetValue("type", out var typeObj) && !string.IsNullOrWhiteSpace(typeObj as string))
-                {
-                    type = typeObj.ToString();
-                }
-
-                var searchResult = await SearchYouTube(query, maxResults, type);
-                //string jsonResult = JsonConvert.SerializeObject(searchResult, Formatting.Indented);
-
-                // Format results as a Markdown list
-                var outputBuilder = new System.Text.StringBuilder();
-                outputBuilder.AppendLine("## YouTube Search Results:");
-                outputBuilder.AppendLine(); // Add a blank line for spacing
-
-                if (searchResult?.items != null && searchResult.items.Any(i => i.id?.kind == "youtube#video"))
-                {
-                    var videosFound = false;
-                    foreach (var item in searchResult.items)
-                    {
-                        if (item.id?.kind == "youtube#video" && !string.IsNullOrEmpty(item.id.videoId))
-                        {
-                            videosFound = true;
-                            string title = item.snippet?.title ?? "(No Title)";
-                            // Escape Markdown characters in title if necessary (e.g., brackets)
-                            title = title.Replace("[", "\\[").Replace("]", "\\]");
-                            string url = $"https://www.youtube.com/watch?v={item.id.videoId}";
-                            outputBuilder.AppendLine($"* [{title}]({url})");
-                        }
-                        // Optionally handle other types like channels or playlists here
-                        // else if (item.id?.kind == "youtube#channel" && !string.IsNullOrEmpty(item.id.channelId))
-                        // {
-                        //     string title = item.snippet?.title ?? "(No Title)";
-                        //     string url = $"https://www.youtube.com/channel/{item.id.channelId}";
-                        //     outputBuilder.AppendLine($"* Channel: [{title}]({url})");
-                        // }
-                        // else if (item.id?.kind == "youtube#playlist" && !string.IsNullOrEmpty(item.id.playlistId))
-                        // {
-                        //     string title = item.snippet?.title ?? "(No Title)";
-                        //     string url = $"https://www.youtube.com/playlist?list={item.id.playlistId}";
-                        //     outputBuilder.AppendLine($"* Playlist: [{title}]({url})");
-                        // }
-                    }
-                    if (!videosFound)
-                    {
-                         outputBuilder.AppendLine("No video results found.");
-                    }
-                }
                 else
+                {
+                    _logger.LogWarning("'maxResults' parameter was provided but could not be parsed as an integer: {Value}. Using default {Default}.", maxResultsObj, maxResults);
+                }
+            }
+
+            if (parameters.TryGetValue("type", out var typeObj) && typeObj is string typeStr && !string.IsNullOrWhiteSpace(typeStr))
+            {
+                type = typeStr;
+            }
+
+            // Perform the search (throws HttpRequestException on failure)
+            var searchResult = await SearchYouTube(query, maxResults, type);
+
+            // Format results as a Markdown list
+            var outputBuilder = new System.Text.StringBuilder();
+            outputBuilder.AppendLine($"## YouTube Search Results for \\\"{query}\\\":");
+            outputBuilder.AppendLine(); // Add a blank line for spacing
+
+            if (searchResult?.items != null && searchResult.items.Any(i => i.id?.kind == "youtube#video"))
+            {
+                var videosFound = false;
+                foreach (var item in searchResult.items)
+                {
+                    if (item.id?.kind == "youtube#video" && !string.IsNullOrEmpty(item.id.videoId))
+                    {
+                        videosFound = true;
+                        string title = item.snippet?.title ?? "(No Title)";
+                        // Escape Markdown characters in title if necessary (e.g., brackets)
+                        title = title.Replace("[", "\\[").Replace("]", "\\]");
+                        string url = $"https://www.youtube.com/watch?v={item.id.videoId}";
+                        outputBuilder.AppendLine($"* [{title}]({url})");
+                    }
+                    // Optionally handle other types like channels or playlists here
+                    // else if (item.id?.kind == "youtube#channel" && !string.IsNullOrEmpty(item.id.channelId))
+                    // {
+                    //     string title = item.snippet?.title ?? "(No Title)";
+                    //     string url = $"https://www.youtube.com/channel/{item.id.channelId}";
+                    //     outputBuilder.AppendLine($"* Channel: [{title}]({url})");
+                    // }
+                    // else if (item.id?.kind == "youtube#playlist" && !string.IsNullOrEmpty(item.id.playlistId))
+                    // {
+                    //     string title = item.snippet?.title ?? "(No Title)";
+                    //     string url = $"https://www.youtube.com/playlist?list={item.id.playlistId}";
+                    //     outputBuilder.AppendLine($"* Playlist: [{title}]({url})");
+                    // }
+                }
+                if (!videosFound)
                 {
                     outputBuilder.AppendLine("No video results found.");
                 }
+            }
+            else
+            {
+                outputBuilder.AppendLine("No video results found.");
+            }
 
-                return CreateResult(true, true, outputBuilder.ToString());
-            }
-            catch (JsonSerializationException ex)
-            {
-                _logger.LogError(ex, "Error deserializing tool parameters: {ToolParameters}", toolParameters);
-                return CreateResult(true, false, $"Error: Invalid JSON format in tool parameters. {ex.Message}");
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "HTTP request error while searching YouTube.");
-                return CreateResult(true, false, $"Error: Failed to connect to YouTube API. {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An unexpected error occurred while searching YouTube.");
-                return CreateResult(true, false, $"Error: An unexpected error occurred. {ex.Message}");
-            }
+            return outputBuilder.ToString();
         }
 
         private async Task<YouTubeSearchResult> SearchYouTube(string query, int maxResults, string type)
