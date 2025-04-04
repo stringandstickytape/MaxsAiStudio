@@ -804,6 +804,9 @@ namespace AiStudio4.Core.Tools
                 string normalizedPath = Path.GetFullPath(path); // Resolves relative paths, ., ..
                 string normalizedRoot = Path.GetFullPath(_projectRoot);
 
+                string pathWithSeparator = normalizedPath.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? normalizedPath
+                    : normalizedPath + Path.DirectorySeparatorChar;
                 // Ensure the root path ends with a directory separator for accurate StartsWith check
                 string rootWithSeparator = normalizedRoot.EndsWith(Path.DirectorySeparatorChar.ToString())
                     ? normalizedRoot
@@ -812,7 +815,7 @@ namespace AiStudio4.Core.Tools
 
                 // Check if the normalized path starts with the normalized root path
                 // Using OrdinalIgnoreCase for case-insensitivity (common on Windows)
-                return normalizedPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase);
+                return pathWithSeparator.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase);
             }
             catch (ArgumentException argEx)
             {
