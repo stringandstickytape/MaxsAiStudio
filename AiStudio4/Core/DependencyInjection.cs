@@ -38,6 +38,8 @@ namespace AiStudio4.Core
             services.AddTransient<RunDuckDuckGoSearchTool>();
             // YouTubeSearchTool: Enables searching YouTube for videos, channels, and playlists.
             services.AddTransient<YouTubeSearchTool>();
+            // LaunchUrlTool: Launches one or more URLs in the default web browser.
+            services.AddTransient<LaunchUrlTool>();
 
             // Register the tool service
             // BuiltinToolService: Manages the available tools and provides a centralized way to access them.

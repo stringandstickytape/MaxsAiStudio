@@ -239,7 +239,7 @@ namespace AiStudio4.Core.Tools
             queryParams["q"] = query;
             queryParams["maxResults"] = maxResults.ToString();
             queryParams["type"] = type;
-            queryParams["key"] = ApiKey; // Use the API Key
+            queryParams["key"] = "AIzaSyDMYdxeSI2tWD6YWnSLIUoLUKhqR2zGAzA"; // Use the API Key
 
             urlBuilder.Query = queryParams.ToString();
             string requestUrl = urlBuilder.ToString();
