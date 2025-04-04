@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
@@ -191,7 +191,7 @@ namespace AiStudio4.Services
                 bool continueLoop = true;
                 AiResponse response = null; // Store the latest response
                 AiStudio4.Core.Models.TokenCost accumulatedCostInfo = null;
-                List<Attachment> finalAttachments = null;
+                List<Attachment> finalAttachments = new List<Attachment>(); // Initialize here
 
                 // Prepare initial conversation state
                 var conv = new LinearConv(DateTime.Now)
@@ -263,7 +263,10 @@ namespace AiStudio4.Services
                     //        accumulatedCostInfo = new AiStudio4.Core.Models.TokenCost(0, 0, response.CostInfo.Model);
                     //    accumulatedCostInfo.Add(response.CostInfo);
                     //}
-                    finalAttachments = response.Attachments; // Keep the latest attachments
+                    if (response.Attachments != null && response.Attachments.Any())
+                    {
+                        finalAttachments.AddRange(response.Attachments); // Accumulate attachments
+                    }
 
                     // Add assistant message to conversation history
                     var assistantMessage = new LinearConvMessage
@@ -276,7 +279,6 @@ namespace AiStudio4.Services
                     conv.messages.Add(assistantMessage);
 
                     accumulatedCostInfo = new TokenCost();
-                    finalAttachments = new List<Attachment>();
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, conv, collatedResponse, request.CancellationToken);
                     continueLoop = toolResult.ContinueProcessing;
