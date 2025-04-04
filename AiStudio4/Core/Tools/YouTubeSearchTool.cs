@@ -64,7 +64,7 @@ namespace AiStudio4.Core.Tools
   }
 }",
                 Categories = new List<string> { "Search", "Online Services" },
-                OutputFileType = "text", // Changed from json to text
+                OutputFileType = "", // Changed from json to text
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
@@ -103,30 +103,42 @@ namespace AiStudio4.Core.Tools
                 var searchResult = await SearchYouTube(query, maxResults, type);
                 //string jsonResult = JsonConvert.SerializeObject(searchResult, Formatting.Indented);
 
-                // Format results as a text table
+                // Format results as a Markdown list
                 var outputBuilder = new System.Text.StringBuilder();
-                outputBuilder.AppendLine("YouTube Search Results:");
-                outputBuilder.AppendLine("-----------------------");
+                outputBuilder.AppendLine("## YouTube Search Results:");
+                outputBuilder.AppendLine(); // Add a blank line for spacing
 
                 if (searchResult?.items != null && searchResult.items.Any(i => i.id?.kind == "youtube#video"))
                 {
-                    outputBuilder.AppendLine("| Title                                                    | URL                                               |");
-                    outputBuilder.AppendLine("|----------------------------------------------------------|---------------------------------------------------|");
-
+                    var videosFound = false;
                     foreach (var item in searchResult.items)
                     {
                         if (item.id?.kind == "youtube#video" && !string.IsNullOrEmpty(item.id.videoId))
                         {
+                            videosFound = true;
                             string title = item.snippet?.title ?? "(No Title)";
-                            // Truncate title if too long for the table layout
-                            if (title.Length > 50)
-                            {
-                                title = title.Substring(0, 47) + "...";
-                            }
+                            // Escape Markdown characters in title if necessary (e.g., brackets)
+                            title = title.Replace("[", "\\[").Replace("]", "\\]");
                             string url = $"https://www.youtube.com/watch?v={item.id.videoId}";
-                            outputBuilder.AppendLine($"| {title,-50} | {url,-49} |");
+                            outputBuilder.AppendLine($"* [{title}]({url})");
                         }
                         // Optionally handle other types like channels or playlists here
+                        // else if (item.id?.kind == "youtube#channel" && !string.IsNullOrEmpty(item.id.channelId))
+                        // {
+                        //     string title = item.snippet?.title ?? "(No Title)";
+                        //     string url = $"https://www.youtube.com/channel/{item.id.channelId}";
+                        //     outputBuilder.AppendLine($"* Channel: [{title}]({url})");
+                        // }
+                        // else if (item.id?.kind == "youtube#playlist" && !string.IsNullOrEmpty(item.id.playlistId))
+                        // {
+                        //     string title = item.snippet?.title ?? "(No Title)";
+                        //     string url = $"https://www.youtube.com/playlist?list={item.id.playlistId}";
+                        //     outputBuilder.AppendLine($"* Playlist: [{title}]({url})");
+                        // }
+                    }
+                    if (!videosFound)
+                    {
+                         outputBuilder.AppendLine("No video results found.");
                     }
                 }
                 else
