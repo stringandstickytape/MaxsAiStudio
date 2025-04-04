@@ -93,11 +93,8 @@ namespace AiStudio4.AiServices
                    //Temperature = (float)options.ApiSettings.Temperature
                 };
 
-                // Add tools if specified
-                //if (options.ToolIds?.Any() == true)
-                //{
-                    await AddToolsToChatOptions(chatOptions, options.ToolIds);
-                //}
+                // Add tools if specified or if using MCP service tools
+                await AddToolsToChatOptions(chatOptions, options.ToolIds);
 
                 // Process embeddings if needed
                 if (options.AddEmbeddings)
@@ -343,95 +340,80 @@ namespace AiStudio4.AiServices
 
         private async Task AddToolsToChatOptions(ChatCompletionOptions options, List<string> toolIDs)
         {
-
+            // Create a ToolRequestBuilder to handle tool construction
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
-
-            foreach (var toolId in toolIDs)
+            
+            // Create a JObject that will mimic the request structure expected by ToolRequestBuilder
+            JObject requestObj = new JObject
             {
-                // Convert tool definitions to ChatTool format
-                ChatTool tool = await ConvertToolToOpenAIFormatAsync(toolId);
-                if (tool != null)
+                ["tools"] = new JArray()
+            };
+            
+            // Add user-selected tools
+            if (toolIDs?.Any() == true)
+            {
+                foreach (var toolId in toolIDs)
                 {
-                    options.Tools.Add(tool);
+                    await toolRequestBuilder.AddToolToRequestAsync(requestObj, toolId, ToolFormat.OpenAI);
                 }
             }
-
-            var mcpService = toolRequestBuilder.GetMcpService();
-
-            var serverDefinitions = await mcpService.GetAllServerDefinitionsAsync();
-
-            foreach (var serverDefinition in serverDefinitions.Where(x => x.IsEnabled))
+            
+            // Add MCP service tools
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(requestObj, ToolFormat.OpenAI);
+            
+            // Convert the JArray of tools to ChatTool objects
+            if (requestObj["tools"] is JArray toolsArray && toolsArray.Count > 0)
             {
-                var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
-
-                foreach (var tool in tools)
+                foreach (JObject toolObj in toolsArray)
                 {
-                    var schema = ModifySchema(tool.InputSchema.ToString());
-
-                    options.Tools.Add(
-                        ChatTool.CreateFunctionTool(
-                       functionName: $"{serverDefinition.Id.Replace(" ", "")}_{tool.Name.Replace(" ","")}",
-                functionDescription: tool.Description,
-                       functionParameters: BinaryData.FromString(schema),
-                       functionSchemaIsStrict: false)
-                        );
+                    if (toolObj["type"]?.ToString() == "function" && toolObj["function"] is JObject functionObj)
+                    {
+                        string name = functionObj["name"]?.ToString();
+                        string description = functionObj["description"]?.ToString();
+                        JObject parameters = functionObj["parameters"] as JObject;
+                        
+                        if (!string.IsNullOrEmpty(name) && parameters != null)
+                        {
+                            options.Tools.Add(ChatTool.CreateFunctionTool(
+                                functionName: name,
+                                functionDescription: description,
+                                functionParameters: BinaryData.FromString(parameters.ToString()),
+                                functionSchemaIsStrict: false
+                            ));
+                        }
+                    }
                 }
-
             }
-
         }
 
-        string ModifySchema(string json) => System.Text.Json.JsonSerializer.Serialize(
-    System.Text.Json.JsonDocument.Parse(json).RootElement.ValueKind == System.Text.Json.JsonValueKind.Object ?
-    AddAdditionalPropertiesFalseToRequiredObjects(System.Text.Json.JsonDocument.Parse(json).RootElement) :
-    System.Text.Json.JsonDocument.Parse(json).RootElement);
+        // This method has been removed as we now use ToolRequestBuilder to handle tool conversion
+        
+        //private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)
+        //{
+        //    // Get tool definition from your service
+        //    var toolDef = await ToolService.GetToolByIdAsync(toolId);
+        //   if (toolDef == null)
+        //       return null;
+        //
+        //    var obj = JsonConvert.DeserializeObject(toolDef.Schema);
+        //
+        //    var schema = ((JObject)obj)["input_schema"].ToString().Replace("\r", "").ToString();
+        //
+        //    // Convert to OpenAI format
+        //    return ChatTool.CreateFunctionTool(
+        //       functionName: toolDef.Name.Replace(" ",""),
+        //       functionDescription: toolDef.Description.Replace(" ",""),
+        //       functionParameters: BinaryData.FromString(schema),
+        //       functionSchemaIsStrict: true
+        //   );
+        //}
 
-        dynamic AddAdditionalPropertiesFalseToRequiredObjects(System.Text.Json.JsonElement element) =>
-            element.ValueKind == System.Text.Json.JsonValueKind.Object ?
-                element.EnumerateObject().Any(p => p.Name == "required") && !element.EnumerateObject().Any(p => p.Name == "additionalProperties") ?
-                    element.EnumerateObject().Aggregate(new System.Collections.Generic.Dictionary<string, object>(),
-                        (dict, prop) => {
-                            dict[prop.Name] = prop.Name == "properties" ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
-                                         prop.Value.ValueKind == System.Text.Json.JsonValueKind.Object ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
-                                         prop.Value.ValueKind == System.Text.Json.JsonValueKind.Array ? prop.Value.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
-                                         System.Text.Json.JsonSerializer.Deserialize<object>(prop.Value.GetRawText()); return dict;
-                        })
-                        .Concat(new[] { new KeyValuePair<string, object>("additionalProperties", false) })
-                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value) :
-                    element.EnumerateObject().ToDictionary(
-                        prop => prop.Name,
-                        prop => prop.Value.ValueKind == System.Text.Json.JsonValueKind.Object ? AddAdditionalPropertiesFalseToRequiredObjects(prop.Value) :
-                                prop.Value.ValueKind == System.Text.Json.JsonValueKind.Array ? prop.Value.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
-                                System.Text.Json.JsonSerializer.Deserialize<object>(prop.Value.GetRawText())) :
-            element.ValueKind == System.Text.Json.JsonValueKind.Array ?
-                element.EnumerateArray().Select(item => AddAdditionalPropertiesFalseToRequiredObjects(item)).ToArray() :
-                System.Text.Json.JsonSerializer.Deserialize<object>(element.GetRawText());
-
-        private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)
-       {
-            // Get tool definition from your service
-            var toolDef = await ToolService.GetToolByIdAsync(toolId);
-           if (toolDef == null)
-               return null;
-
-            var obj = JsonConvert.DeserializeObject(toolDef.Schema);
-
-            var schema = ModifySchema(((JObject)obj)["input_schema"].ToString().Replace("\r", "").ToString());
-
-            // Convert to OpenAI format
-            return ChatTool.CreateFunctionTool(
-               functionName: toolDef.Name.Replace(" ",""),
-               functionDescription: toolDef.Description.Replace(" ",""),
-               functionParameters: BinaryData.FromString(schema),
-               functionSchemaIsStrict: true
-           );
-       }
-
-        private void AddMcpServiceTools(ChatCompletionOptions options)
-        {
-            // Implement MCP service tools conversion if needed
-            // This would be similar to ConvertToolToOpenAIFormat but for MCP tools
-        }
+        // This method has been removed as we now use ToolRequestBuilder to handle MCP service tools
+        //private void AddMcpServiceTools(ChatCompletionOptions options)
+        //{
+        //    // Implement MCP service tools conversion if needed
+        //    // This would be similar to ConvertToolToOpenAIFormat but for MCP tools
+        //}
 
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
         {
