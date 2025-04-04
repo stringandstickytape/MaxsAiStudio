@@ -1,4 +1,4 @@
-using SharedClasses.Providers;
+﻿using SharedClasses.Providers;
 using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
@@ -16,5 +16,9 @@ namespace AiStudio4.Core.Models
         public string SystemPromptId { get; set; }
         public string SystemPromptContent { get; set; }
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+
+        // Callbacks for streaming updates
+        public Action<string> OnStreamingUpdate { get; set; }
+        public Action OnStreamingComplete { get; set; }
     }
 }

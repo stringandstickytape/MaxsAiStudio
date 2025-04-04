@@ -1,4 +1,4 @@
-using AiStudio4.Convs;
+﻿using AiStudio4.Convs;
 using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
@@ -36,6 +36,10 @@ namespace AiStudio4.DataModels
         // Custom system prompt override
         public string CustomSystemPrompt { get; set; }
 
+        // Callbacks for streaming updates
+        public Action<string> OnStreamingUpdate { get; set; }
+        public Action OnStreamingComplete { get; set; }
+
         // Factory method to create from the old parameter list for backward compatibility
         public static AiRequestOptions Create(
             ServiceProvider serviceProvider,
@@ -66,7 +70,10 @@ namespace AiStudio4.DataModels
                 UseStreaming = useStreaming,
                 AddEmbeddings = addEmbeddings,
                 CustomSystemPrompt = customSystemPrompt,
-                Attachments = attachments ?? new List<Attachment>()
+                Attachments = attachments ?? new List<Attachment>(),
+                // Initialize callbacks to null for backward compatibility
+                OnStreamingUpdate = null,
+                OnStreamingComplete = null
             };
         }
     }

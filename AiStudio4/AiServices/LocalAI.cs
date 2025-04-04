@@ -55,7 +55,7 @@ namespace AiStudio4.AiServices
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             StartOllama(ApiModel);
-            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+            return await HandleResponse(options, content); // Pass options
         }
 
 
@@ -84,11 +84,14 @@ namespace AiStudio4.AiServices
             };
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
             request.Content = content;
-            client.Timeout = TimeSpan.FromSeconds(1800);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
@@ -116,7 +119,7 @@ namespace AiStudio4.AiServices
                     if (c == '\n')
                     {
                         Debug.WriteLine(lineBuilder.ToString().Trim());
-                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
+                        ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount, onStreamingUpdate); // Pass callback
                         lineBuilder.Clear();
                     }
                 }
@@ -125,9 +128,9 @@ namespace AiStudio4.AiServices
             // Process any remaining content
             if (lineBuilder.Length > 0)
             {
-                ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount);
+                ProcessLine(lineBuilder.ToString().Trim(), fullResponse, ref promptEvalCount, ref evalCount, onStreamingUpdate); // Pass callback
             }
-            OnStreamingComplete();
+            onStreamingComplete?.Invoke(); // Use callback
             return new AiResponse
             {
                 ResponseText = fullResponse.ToString(),
@@ -136,7 +139,7 @@ namespace AiStudio4.AiServices
             };
         }
 
-        private void ProcessLine(string line, StringBuilder fullResponse, ref int promptEvalCount, ref int evalCount)
+        private void ProcessLine(string line, StringBuilder fullResponse, ref int promptEvalCount, ref int evalCount, Action<string> onStreamingUpdate)
         {
             if (string.IsNullOrEmpty(line)) return;
 
@@ -148,7 +151,7 @@ namespace AiStudio4.AiServices
                 {
                     fullResponse.Append(chunkResponse["message"]["content"]);
                     Debug.WriteLine(chunkResponse["message"]["content"]);
-                    OnStreamingDataReceived(chunkResponse["message"]["content"].ToString());
+                    onStreamingUpdate?.Invoke(chunkResponse["message"]["content"].ToString()); // Use callback
                 }
 
                 if (chunkResponse["done"]?.Value<bool>() == true)
@@ -163,7 +166,11 @@ namespace AiStudio4.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             var response = await client.PostAsync(ApiUrl, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();

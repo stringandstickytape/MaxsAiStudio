@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
@@ -53,15 +53,21 @@ namespace AiStudio4.Services
             {
                 // Get cancellation token from the service
                 var cancellationToken = _cancellationService.AddTokenSource(clientId);
-                
-                // Create and attach event handlers
-                EventHandler<string> streamingHandler = (s, text) =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
-                EventHandler<string> completeHandler = (s, text) =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = text });
 
-                _chatService.StreamingTextReceived += streamingHandler;
-                _chatService.StreamingComplete += completeHandler;
+                // Define callbacks inline, capturing clientId
+                Action<string> streamingUpdateCallback = (text) =>
+                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
+                Action streamingCompleteCallback = () =>
+                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = "" }); // Send empty content on complete
+
+                // Old event handler setup - REMOVED
+                // EventHandler<string> streamingHandler = (s, text) =>
+                //    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
+                // EventHandler<string> completeHandler = (s, text) =>
+                //    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = text });
+
+                // _chatService.StreamingTextReceived += streamingHandler;
+                // _chatService.StreamingComplete += completeHandler;
 
                 try
                 {
@@ -110,7 +116,9 @@ namespace AiStudio4.Services
                         ToolIds = requestObject["toolIds"]?.ToObject<List<string>>() ?? new List<string>(),
                         SystemPromptId = (string)requestObject["systemPromptId"],
                         SystemPromptContent = (string)requestObject["systemPromptContent"],
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
+                        OnStreamingUpdate = streamingUpdateCallback, // Pass the callback
+                        OnStreamingComplete = streamingCompleteCallback // Pass the callback
                     };
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
@@ -261,8 +269,9 @@ namespace AiStudio4.Services
                 }
                 finally
                 {
-                    _chatService.StreamingTextReceived -= streamingHandler;
-                    _chatService.StreamingComplete -= completeHandler;
+                    // Remove old event unsubscribing
+                    // _chatService.StreamingTextReceived -= streamingHandler;
+                    // _chatService.StreamingComplete -= completeHandler;
                     _cancellationService.RemoveTokenSource(clientId, cancellationToken);
                 }
             }

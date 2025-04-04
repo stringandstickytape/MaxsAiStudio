@@ -106,7 +106,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
-                return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+                return await HandleResponse(options, content); // Pass options
             }
         }
 
@@ -173,10 +173,14 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }
-        protected override async Task<AiResponse> HandleStreamingResponse( HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse( 
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             StringBuilder fullResponse = new StringBuilder(); // Ensure this is accessible in catch
-            OnStreamingDataReceived("");
+            onStreamingUpdate?.Invoke(""); // Use callback
             try
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
@@ -213,7 +217,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 {
                                     // We have a complete JSON object
                                     string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
-                                    await ProcessJsonObject(jsonObject, fullResponse);
+                                    await ProcessJsonObject(jsonObject, fullResponse, onStreamingUpdate); // Pass callback
                                     jsonBuffer.Clear();
                                 }
                             }
@@ -224,7 +228,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 }
 
                 // Normal completion
-                OnStreamingComplete();
+                onStreamingComplete?.Invoke(); // Use callback
 
                 try
                 {
@@ -359,7 +363,11 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             return null;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse( HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse( 
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used in non-streaming
+            Action onStreamingComplete) // Parameter added but not used in non-streaming
         {
             HttpResponseMessage response = await client.PostAsync($"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}", content, cancellationToken);
 
@@ -445,7 +453,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         private string outputTokenCount = "";
         private string chosenTool = null;
         private ToolResponseItem currentResponseItem = null;
-        private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse)
+        private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse, Action<string> onStreamingUpdate)
         {
             if (!string.IsNullOrWhiteSpace(jsonString))
             {
@@ -477,7 +485,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     };
 
                                     // send the live stream message about tool-chosen
-                                    OnStreamingDataReceived($"\n\nTool selected: {toolName}\n\n");
+                                    onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); // Use callback
 
                                     ToolResponseSet.Tools.Add(currentResponseItem);
                                 }
@@ -488,7 +496,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 }
                                 
                                 fullResponse.Append(toolResponse);
-                                OnStreamingDataReceived(toolResponse);
+                                onStreamingUpdate?.Invoke(toolResponse); // Use callback
                             }
                             // Handle text responses
                             else if (part["text"] != null)
@@ -497,7 +505,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 if (!string.IsNullOrEmpty(textChunk))
                                 {
                                     fullResponse.Append(textChunk);
-                                    OnStreamingDataReceived(textChunk);
+                                    onStreamingUpdate?.Invoke(textChunk); // Use callback
                                 }
                             }
                             // Handle image responses
@@ -519,7 +527,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     // Add a placeholder in the response text
                                     var imagePlaceholder = "[Generated Image]";
                                     fullResponse.Append(imagePlaceholder);
-                                    OnStreamingDataReceived(imagePlaceholder);
+                                    onStreamingUpdate?.Invoke(imagePlaceholder); // Use callback
                                 }
                             }
                         }

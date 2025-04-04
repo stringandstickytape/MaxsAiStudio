@@ -252,7 +252,7 @@ namespace AiStudio4.AiServices
             {
                 try
                 {
-                    var response = await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+                    var response = await HandleResponse(options, content); // Pass options
                     if (oneOffPreFill != null)
                     {
                         response.ResponseText = $"{oneOffPreFill}{response.ResponseText}";
@@ -274,20 +274,24 @@ namespace AiStudio4.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             using var response = await SendRequest(content, cancellationToken, true);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             var streamProcessor = new StreamProcessor(true);
-            streamProcessor.StreamingTextReceived += (s, e) => OnStreamingDataReceived(e);
+            streamProcessor.StreamingTextReceived += (s, e) => onStreamingUpdate?.Invoke(e); // Use callback
 
             StreamProcessingResult result = null;
             try
             {
                 result = await streamProcessor.ProcessStream(stream, cancellationToken);
                 // Normal completion
-                OnStreamingComplete();
+                onStreamingComplete?.Invoke(); // Use callback
                 return new AiResponse
                 {
                     ResponseText = result.ResponseText,
@@ -330,7 +334,11 @@ namespace AiStudio4.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             using var response = await SendRequest(content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);

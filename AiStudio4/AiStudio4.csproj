@@ -48,6 +48,7 @@
 		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.ts" />
 		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.jsx" />
 		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.js" />
+		<Compile Remove="AiServices\MockAiService.cs" />
 		<Content Include="@(TypeScriptFiles)">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>

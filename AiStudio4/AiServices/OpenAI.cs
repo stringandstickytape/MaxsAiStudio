@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AiStudio4.Core.Tools; // added for tool support
+using System;
 
 namespace AiStudio4.AiServices
 {
@@ -91,7 +92,7 @@ namespace AiStudio4.AiServices
             });
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+            return await HandleResponse(options, content); // Pass options
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
@@ -195,7 +196,11 @@ namespace AiStudio4.AiServices
         protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;
         // --------------------- END TOOL SUPPORT ---------------------
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             using var response = await SendRequest(content, cancellationToken, true);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -221,7 +226,7 @@ namespace AiStudio4.AiServices
 
                 foreach (var line in lines)
                 {
-                    leftovers = ProcessLine($"{leftovers}{line}", responseBuilder, ref inputTokens, ref outputTokens);
+                    leftovers = ProcessLine($"{leftovers}{line}", responseBuilder, ref inputTokens, ref outputTokens, onStreamingUpdate); // Pass callback
                 }
             }
 
@@ -234,7 +239,7 @@ namespace AiStudio4.AiServices
                 return HandleError(e, $"Response leftovers: {leftovers}");
             }
 
-            OnStreamingComplete();
+            onStreamingComplete?.Invoke(); // Use callback
 
             return new AiResponse
             {
@@ -247,7 +252,7 @@ namespace AiStudio4.AiServices
 
         // In this method we update the response as streaming data is received.
         // In addition to appending text we check for the presence of a tool_call.
-        private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens)
+        private string ProcessLine(string line, StringBuilder responseBuilder, ref int inputTokens, ref int outputTokens, Action<string> onStreamingUpdate)
         {
             if (line.Length < 6)
                 return line;
@@ -296,7 +301,7 @@ namespace AiStudio4.AiServices
                         if (!string.IsNullOrEmpty(content))
                         {
                             responseBuilder.Append(content);
-                            OnStreamingDataReceived(content);
+                            onStreamingUpdate?.Invoke(content); // Use callback
                         }
                         return string.Empty;
                     }
@@ -323,7 +328,11 @@ namespace AiStudio4.AiServices
             return line;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             var response = await SendRequest(content, cancellationToken);
             ValidateResponse(response);

@@ -124,11 +124,11 @@ namespace AiStudio4.AiServices
                     // Handle streaming vs non-streaming requests
                     if (options.UseStreaming)
                     {
-                        return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken);
+                        return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
                     }
                     else
                     {
-                        return await HandleNonStreamingChatCompletion(messages, chatOptions, options.CancellationToken);
+                        return await HandleNonStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
                     }
                 }
                 catch (Exception ex)
@@ -188,7 +188,12 @@ namespace AiStudio4.AiServices
             }
         }
 
-        private async Task<AiResponse> HandleNonStreamingChatCompletion(List<ChatMessage> messages, ChatCompletionOptions options, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleNonStreamingChatCompletion(
+            List<ChatMessage> messages, 
+            ChatCompletionOptions options, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options, cancellationToken);
 
@@ -232,7 +237,12 @@ namespace AiStudio4.AiServices
             }
         }
 
-        private async Task<AiResponse> HandleStreamingChatCompletion(List<ChatMessage> messages, ChatCompletionOptions options, CancellationToken cancellationToken)
+        private async Task<AiResponse> HandleStreamingChatCompletion(
+            List<ChatMessage> messages, 
+            ChatCompletionOptions options, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             StringBuilder responseBuilder = new StringBuilder();
             string chosenTool = null;
@@ -251,7 +261,7 @@ namespace AiStudio4.AiServices
                     {
                         string textChunk = update.ContentUpdate[0].Text;
                         responseBuilder.Append(textChunk);
-                        OnStreamingDataReceived(textChunk);
+                        onStreamingUpdate?.Invoke(textChunk); // Use callback
                     }
 
                     // Handle tool call updates
@@ -275,7 +285,7 @@ namespace AiStudio4.AiServices
                             {
                                 string argumentUpdate = toolCall.FunctionArgumentsUpdate.ToString();
                                 responseBuilder.Append(argumentUpdate);
-                                OnStreamingDataReceived(argumentUpdate);
+                                onStreamingUpdate?.Invoke(argumentUpdate); // Use callback
 
                                 // Update the tool response text
                                 if (ToolResponseSet.Tools.Count > 0)
@@ -310,7 +320,7 @@ namespace AiStudio4.AiServices
                     }
                 }
 
-                OnStreamingComplete();
+                onStreamingComplete?.Invoke(); // Use callback
 
                 return new AiResponse
                 {
@@ -427,13 +437,21 @@ namespace AiStudio4.AiServices
             return new JObject();
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             // Not used in this implementation as we're using the OpenAI .NET client directly
             return new AiResponse { Success = false, ResponseText = "Not implemented" };
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             // Not used in this implementation as we're using the OpenAI .NET client directly
             return new AiResponse { Success = false, ResponseText = "Not implemented" };

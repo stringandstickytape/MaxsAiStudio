@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 
 namespace AiStudio4.Core.Interfaces
 {
@@ -6,7 +6,8 @@ namespace AiStudio4.Core.Interfaces
     {
         Task<ChatResponse> ProcessChatRequest(ChatRequest request);
         Task<SimpleChatResponse> ProcessSimpleChatRequest(string request);
-        event EventHandler<string> StreamingTextReceived;
-        event EventHandler<string> StreamingComplete;
+        // Events removed, replaced by callbacks in ChatRequest
+        // event EventHandler<string> StreamingTextReceived;
+        // event EventHandler<string> StreamingComplete;
     }
 }

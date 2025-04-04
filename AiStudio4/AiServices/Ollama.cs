@@ -69,7 +69,7 @@ namespace AiStudio4.AiServices
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+            return await HandleResponse(options, content); // Pass options
         }
 
         protected override JObject CreateRequestPayload(
@@ -92,7 +92,9 @@ namespace AiStudio4.AiServices
 
         protected override async Task<AiResponse> HandleStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             using var response = await SendRequest(content, cancellationToken, true);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -115,7 +117,7 @@ namespace AiStudio4.AiServices
                     {
                         var text = chunk["response"].ToString();
                         responseBuilder.Append(text);
-                        OnStreamingDataReceived(text);
+                        onStreamingUpdate?.Invoke(text); // Use callback
                     }
 
                     if (chunk["done"]?.Value<bool>() == true)
@@ -131,7 +133,7 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            OnStreamingComplete();
+            onStreamingComplete?.Invoke(); // Use callback
 
             return new AiResponse
             {
@@ -146,7 +148,9 @@ namespace AiStudio4.AiServices
 
         protected override async Task<AiResponse> HandleNonStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             var response = await SendRequest(content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);

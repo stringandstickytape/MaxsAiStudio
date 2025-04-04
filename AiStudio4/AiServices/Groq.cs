@@ -64,7 +64,7 @@ namespace AiStudio4.AiServices
             var json = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+            return await HandleResponse(options, content); // Pass options
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
@@ -76,7 +76,11 @@ namespace AiStudio4.AiServices
             };
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             var response = await SendRequest(content, cancellationToken, streamingRequest: true);
 
@@ -103,7 +107,7 @@ namespace AiStudio4.AiServices
 
                     if (c == '\n')
                     {
-                        ProcessLine(lineSb.ToString(), sb);
+                        ProcessLine(lineSb.ToString(), sb, onStreamingUpdate); // Pass callback
                         lineSb.Clear();
                     }
                 }
@@ -112,15 +116,15 @@ namespace AiStudio4.AiServices
             // Process any remaining content
             if (lineSb.Length > 0)
             {
-                ProcessLine(lineSb.ToString(), sb);
+                ProcessLine(lineSb.ToString(), sb, onStreamingUpdate); // Pass callback
             }
 
-            OnStreamingComplete();
+            onStreamingComplete?.Invoke(); // Use callback
             return new AiResponse { ResponseText = sb.ToString(), Success = true };
         }
 
 
-        private void ProcessLine(string line, StringBuilder sb)
+        private void ProcessLine(string line, StringBuilder sb, Action<string> onStreamingUpdate)
         {
             if (line.StartsWith("data: "))
             {
@@ -136,7 +140,7 @@ namespace AiStudio4.AiServices
                     {
                         System.Diagnostics.Debug.WriteLine(content);
                         sb.Append(content);
-                        OnStreamingDataReceived(content);
+                        onStreamingUpdate?.Invoke(content); // Use callback
                     }
                 }
                 catch (Exception ex)
@@ -147,7 +151,11 @@ namespace AiStudio4.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             var response = await SendRequest(content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);

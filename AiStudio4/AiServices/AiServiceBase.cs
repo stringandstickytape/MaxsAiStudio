@@ -1,4 +1,4 @@
-using AiStudio4.Convs;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
@@ -21,8 +21,9 @@ namespace AiStudio4.AiServices
     {
         public IToolService ToolService { get; set; }
         public IMcpService McpService { get; set; }
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
+        // Events removed
+        // public event EventHandler<string> StreamingTextReceived;
+        // public event EventHandler<string> StreamingComplete;
 
         public string ChosenTool { get; set; } = null;
 
@@ -89,6 +90,10 @@ namespace AiStudio4.AiServices
                 cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
                 useStreaming, addEmbeddings, customSystemPrompt);
             
+            // Pass null for callbacks in the legacy overload
+            options.OnStreamingUpdate = null;
+            options.OnStreamingComplete = null;
+            
             return FetchResponse(options);
         }
         
@@ -152,15 +157,18 @@ namespace AiStudio4.AiServices
         }
 
         protected virtual async Task<AiResponse> HandleResponse(
-            HttpContent content,
-            bool useStreaming,
-            CancellationToken cancellationToken)
+            AiRequestOptions options,
+            HttpContent content)
         {
             try
             {
-                return useStreaming
-                    ? await HandleStreamingResponse(content, cancellationToken)
-                    : await HandleNonStreamingResponse(content, cancellationToken);
+                // Extract callbacks from options
+                var onStreamingUpdate = options.OnStreamingUpdate;
+                var onStreamingComplete = options.OnStreamingComplete;
+
+                return options.UseStreaming
+                    ? await HandleStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete)
+                    : await HandleNonStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete);
             }
             catch (Exception ex)
             {
@@ -170,21 +178,26 @@ namespace AiStudio4.AiServices
 
         protected abstract Task<AiResponse> HandleStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete);
 
         protected abstract Task<AiResponse> HandleNonStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete);
 
-        protected virtual void OnStreamingDataReceived(string data)
-        {
-            StreamingTextReceived?.Invoke(this, data);
-        }
-
-        protected virtual void OnStreamingComplete()
-        {
-            StreamingComplete?.Invoke(this, null);
-        }
+        // Removed OnStreamingDataReceived and OnStreamingComplete methods
+        // protected virtual void OnStreamingDataReceived(string data)
+        // {
+        //     StreamingTextReceived?.Invoke(this, data);
+        // }
+        //
+        // protected virtual void OnStreamingComplete()
+        // {
+        //     StreamingComplete?.Invoke(this, null);
+        // }
 
         protected virtual AiResponse HandleError(Exception ex, string additionalContext = null)
         {

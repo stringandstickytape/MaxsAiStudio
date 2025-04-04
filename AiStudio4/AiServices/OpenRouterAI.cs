@@ -65,7 +65,7 @@ namespace AiStudio4.AiServices
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
-                return await HandleResponse(content, options.UseStreaming, options.CancellationToken);
+                return await HandleResponse(options, content); // Pass options
             }
         }
         protected override JObject CreateRequestPayload(
@@ -129,7 +129,11 @@ namespace AiStudio4.AiServices
         }
         protected override ToolFormat GetToolFormat() => ToolFormat.OpenAI;
 
-        protected override async Task<AiResponse> HandleStreamingResponse(HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
             request.Content = content;
@@ -152,7 +156,7 @@ namespace AiStudio4.AiServices
 
                 if (string.IsNullOrEmpty(line) || line.StartsWith(": OPENROUTER PROCESSING"))
                 {
-                    OnStreamingDataReceived("");
+                    onStreamingUpdate?.Invoke(""); // Use callback
 
                     continue;
                 }
@@ -185,7 +189,7 @@ namespace AiStudio4.AiServices
                         if (!string.IsNullOrEmpty(contentChunk))
                         {
                             fullResponse.Append(contentChunk);
-                            OnStreamingDataReceived(contentChunk);
+                            onStreamingUpdate?.Invoke(contentChunk); // Use callback
                         }
 
                         // Check for usage information
@@ -205,7 +209,7 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            OnStreamingComplete();
+            onStreamingComplete?.Invoke(); // Use callback
 
             return new AiResponse
             {
@@ -216,7 +220,11 @@ namespace AiStudio4.AiServices
             };
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse( HttpContent content, CancellationToken cancellationToken)
+        protected override async Task<AiResponse> HandleNonStreamingResponse( 
+            HttpContent content, 
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, // Parameter added but not used
+            Action onStreamingComplete) // Parameter added but not used
         {
             var response = await client.PostAsync(baseUrl, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync();

@@ -25,8 +25,9 @@ namespace AiStudio4.Services
         private readonly ISystemPromptService _systemPromptService;
         private readonly IToolProcessorService _toolProcessorService;
 
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
+        // Events removed
+        // public event EventHandler<string> StreamingTextReceived;
+        // public event EventHandler<string> StreamingComplete;
 
         public DefaultChatService(ILogger<DefaultChatService> logger, ISettingsService settingsService, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService)
         {
@@ -131,17 +132,17 @@ namespace AiStudio4.Services
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
 
-                // Wire up streaming events
-                aiService.StreamingTextReceived += (sender, text) =>
-                {
-                    _logger.LogTrace("Received streaming text fragment");
-                    StreamingTextReceived?.Invoke(this, text);
-                };
-                aiService.StreamingComplete += (sender, text) =>
-                {
-                    _logger.LogDebug("Streaming complete");
-                    StreamingComplete?.Invoke(this, text);
-                };
+                // Wire up streaming events - REMOVED
+                // aiService.StreamingTextReceived += (sender, text) =>
+                // {
+                //     _logger.LogTrace("Received streaming text fragment");
+                //     StreamingTextReceived?.Invoke(this, text);
+                // };
+                // aiService.StreamingComplete += (sender, text) =>
+                // {
+                //     _logger.LogDebug("Streaming complete");
+                //     StreamingComplete?.Invoke(this, text);
+                // };
 
                 // Get the appropriate system prompt
                 string systemPromptContent = "You are a helpful chatbot.";
@@ -252,6 +253,9 @@ namespace AiStudio4.Services
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
                         UseStreaming = true, // Optional: Only stream the first response
                                              // CustomSystemPrompt is already in conv.systemprompt
+                        // Pass callbacks from the original request
+                        OnStreamingUpdate = request.OnStreamingUpdate,
+                        OnStreamingComplete = request.OnStreamingComplete
                     };
 
                     response = await aiService.FetchResponse(requestOptions);
