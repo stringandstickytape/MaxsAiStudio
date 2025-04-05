@@ -1,4 +1,4 @@
-
+﻿// AiStudio4.Web/src/stores/useWebSocketStore.ts
 import { create } from 'zustand';
 import { webSocketService, WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
@@ -23,11 +23,20 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
   if (typeof window !== 'undefined') {
     
     webSocketService.onConnectionStatusChange((status) => {
-      set({
-        isConnected: status.isConnected,
-        clientId: status.clientId,
-        reconnectAttempts: webSocketService.getReconnectAttempts()
-      });
+      // Compare incoming status with current state to prevent unnecessary updates
+      const currentState = get();
+      const currentAttempts = webSocketService.getReconnectAttempts(); // Get fresh attempts count
+      if (
+        currentState.isConnected !== status.isConnected ||
+        currentState.clientId !== status.clientId ||
+        currentState.reconnectAttempts !== currentAttempts
+      ) {
+        set({
+          isConnected: status.isConnected,
+          clientId: status.clientId,
+          reconnectAttempts: currentAttempts,
+        });
+      }
     });
     
     
@@ -84,4 +93,3 @@ export const debugWebSocketStore = () => {
 
 
 (window as any).debugWebSocketStore = debugWebSocketStore;
-

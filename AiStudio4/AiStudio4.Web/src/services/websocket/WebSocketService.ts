@@ -1,3 +1,4 @@
+﻿// AiStudio4.Web/src/services/websocket/WebSocketService.ts
 import { dispatchWebSocketEvent } from './websocketEvents';
 import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
 export interface WebSocketMessage {
@@ -127,11 +128,12 @@ export class WebSocketService {
 
   public onConnectionStatusChange(handler: (status: WebSocketConnectionStatus) => void): (() => void) {
     this.connectionStatusSubscribers.add(handler);
-    
-    handler({
-      isConnected: this.connected,
-      clientId: this.clientId,
-    });
+    // Removed immediate synchronous call to handler to prevent potential initial loop trigger.
+    // The initial state should be pulled from the store by components on mount.
+    // handler({
+    //   isConnected: this.connected,
+    //   clientId: this.clientId,
+    // });
     
     
     return () => this.offConnectionStatusChange(handler);
