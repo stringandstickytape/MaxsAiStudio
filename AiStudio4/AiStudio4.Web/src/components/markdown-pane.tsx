@@ -271,7 +271,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 </div>
             );
         },
-
+        code: ({ children }: any) => <code style={{ whiteSpace: 'break-spaces' }}> {children}</code>,
         p: ({ children }: any) => <p className="my-4 whitespace-pre-wrap ">{children}</p>,
         h1: ({ children }: any) => <h1 className="text-3xl font-bold my-6">{children}</h1>,
         h2: ({ children }: any) => <h2 className="text-2xl font-bold my-5">{children}</h2>,
@@ -296,7 +296,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
     return (
 
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]} >
             {markdownContent}
         </ReactMarkdown>
 
