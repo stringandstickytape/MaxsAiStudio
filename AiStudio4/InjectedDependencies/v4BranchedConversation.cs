@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,6 +61,40 @@ namespace AiStudio4.InjectedDependencies
         public List<v4BranchedConvMessage> GetAllMessages()
         {
             return Messages;
+        }
+
+        /// <summary>
+        /// Gets the sequence of messages from the root to the specified message ID.
+        /// </summary>
+        /// <param name="messageId">The ID of the message to trace back from.</param>
+        /// <returns>A list of cloned messages representing the path from the root to the target message.</returns>
+        public List<v4BranchedConvMessage> GetMessageHistory(string messageId)
+        {
+            var allMessages = GetAllMessages(); // Use the existing method to get all messages
+            var messageMap = allMessages.ToDictionary(m => m.Id);
+            var path = new List<v4BranchedConvMessage>();
+
+            // Find the target message
+            if (!messageMap.TryGetValue(messageId, out var currentMessage))
+            {
+                // Message not found, return empty path or handle as error?
+                return path;
+            }
+
+            // Build path from message to root
+            while (currentMessage != null)
+            {
+                // Add a clone of the message to the beginning of the path
+                path.Insert(0, currentMessage.Clone()); // Use the new Clone method
+
+                // Stop if we've reached a message with no parent or a non-existent parent
+                if (string.IsNullOrEmpty(currentMessage.ParentId) || !messageMap.TryGetValue(currentMessage.ParentId, out currentMessage))
+                {
+                    break;
+                }
+            }
+
+            return path;
         }
     }
 }

@@ -168,8 +168,8 @@ namespace AiStudio4.Services
                         FlatMessageStructure = messagesForClient
                     });
 
-                    // Get message history without tree builder
-                    var messageHistory = GetMessageHistory(conv, chatRequest.MessageId);
+                    // Get message history using the method on the conversation object
+                    var messageHistory = conv.GetMessageHistory(chatRequest.MessageId);
                     chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
@@ -300,46 +300,46 @@ namespace AiStudio4.Services
             }).ToList<object>();
         }
 
-        // Helper method to get message history without using tree builder
-        private List<v4BranchedConvMessage> GetMessageHistory(v4BranchedConv conv, string messageId)
-        {
-            var allMessages = conv.GetAllMessages();
-            var path = new List<v4BranchedConvMessage>();
+        // Helper method to get message history without using tree builder -- REMOVED
+        // private List<v4BranchedConvMessage> GetMessageHistory(v4BranchedConv conv, string messageId)
+        // {
+        //     var allMessages = conv.GetAllMessages();
+        //     var path = new List<v4BranchedConvMessage>();
 
-            // Find the target message
-            var currentMessage = allMessages.FirstOrDefault(m => m.Id == messageId);
+        //     // Find the target message
+        //     var currentMessage = allMessages.FirstOrDefault(m => m.Id == messageId);
 
-            // Build path from message to root
-            while (currentMessage != null)
-            {
-                // Add message to the beginning of the path (so we get root → leaf order)
-                path.Insert(0, CloneMessage(currentMessage));
+        //     // Build path from message to root
+        //     while (currentMessage != null)
+        //     {
+        //         // Add message to the beginning of the path (so we get root → leaf order)
+        //         path.Insert(0, CloneMessage(currentMessage));
 
-                // Stop if we've reached a message with no parent
-                if (string.IsNullOrEmpty(currentMessage.ParentId))
-                    break;
+        //         // Stop if we've reached a message with no parent
+        //         if (string.IsNullOrEmpty(currentMessage.ParentId))
+        //             break;
 
-                // Find the parent of the current message
-                currentMessage = allMessages.FirstOrDefault(m => m.Id == currentMessage.ParentId);
-            }
+        //         // Find the parent of the current message
+        //         currentMessage = allMessages.FirstOrDefault(m => m.Id == currentMessage.ParentId);
+        //     }
 
-            return path;
-        }
+        //     return path;
+        // }
 
-        // Helper method to clone a message
-        private v4BranchedConvMessage CloneMessage(v4BranchedConvMessage message)
-        {
-            return new v4BranchedConvMessage
-            {
-                Id = message.Id,
-                UserMessage = message.UserMessage,
-                Role = message.Role,
-                ParentId = message.ParentId,
-                CostInfo = message.CostInfo,
-                Attachments = message.Attachments,
-                Timestamp = message.Timestamp,
-                DurationMs = message.DurationMs
-            };
-        }
+        // Helper method to clone a message -- REMOVED
+        // private v4BranchedConvMessage CloneMessage(v4BranchedConvMessage message)
+        // {
+        //     return new v4BranchedConvMessage
+        //     {
+        //         Id = message.Id,
+        //         UserMessage = message.UserMessage,
+        //         Role = message.Role,
+        //         ParentId = message.ParentId,
+        //         CostInfo = message.CostInfo,
+        //         Attachments = message.Attachments,
+        //         Timestamp = message.Timestamp,
+        //         DurationMs = message.DurationMs
+        //     };
+        // }
     }
 }
