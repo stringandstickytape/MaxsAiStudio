@@ -59,8 +59,8 @@ export function InputBar({
     
 
     
-    
-
+    const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+    const [visibleToolCount, setVisibleToolCount] = useState(3);
     const [localInputText, setLocalInputText] = useState('');
 
 
