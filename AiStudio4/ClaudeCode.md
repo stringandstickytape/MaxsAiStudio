@@ -1,4 +1,4 @@
-# ClaudeCode.md - AiStudio4 Architectural Overview
+﻿# ClaudeCode.md - AiStudio4 Architectural Overview
 
 ## Core Architecture
 
@@ -18,6 +18,11 @@ AiStudio4 is a hybrid desktop application built using:
 *   **Technology:** Based on the project setup (`AiStudio4.csproj`), this is likely a **React/TypeScript** SPA located in the `AiStudio4.Web` directory.
 *   **Build:** Built using npm (as indicated by the `NpmBuild` target in the `.csproj`). The built static assets (`dist` folder) are embedded as resources in the main application assembly and potentially copied to the output directory.
 *   **Communication:** Interacts with the C# backend primarily via **WebSockets** (`WebSocketServer.cs`, `WebSocketMessageHandler.cs`, `IWebSocketNotificationService`) for real-time updates and potentially standard HTTP requests to the embedded Kestrel server.
+*   **State Management:**
+    *   **Zustand:** Used as the primary global state management solution. Stores are located in `src/stores/` and cover various application domains (e.g., `useConvStore`, `useModelStore`, `useToolStore`, `useAppearanceStore`, `useWebSocketStore`). These stores hold shared application data, settings, and status.
+    *   **React `useState`:** Employed extensively within components for managing local UI state, such as dialog visibility, temporary form input values, hover/drag states, component lifecycle flags, and filter/search terms.
+    *   **Custom Hooks:** Located in `src/hooks/`. These often encapsulate related state logic, potentially combining local `useState` with interactions with Zustand stores or backend APIs (e.g., `useChatManagement`, `useResourceManagement`, `useAttachmentManager`).
+    *   **`react-hook-form`:** Utilized within form components (like `GenericForm.tsx`) for managing form state, validation, and submission.
 
 ## Backend (C# - AiStudio4 Project)
 
