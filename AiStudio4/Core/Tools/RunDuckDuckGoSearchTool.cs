@@ -58,7 +58,7 @@ namespace AiStudio4.Core.Tools
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "MaxCode"},
+                Categories = new List<string> { "Development"},
                 OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow

@@ -66,7 +66,7 @@ namespace AiStudio4.Core.Tools
     ""required"": [""query""]
   }
 }",
-                Categories = new List<string> { "Search", "Online Services" },
+                Categories = new List<string> { "Development" },
                 OutputFileType = "", // Changed from json to text
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow

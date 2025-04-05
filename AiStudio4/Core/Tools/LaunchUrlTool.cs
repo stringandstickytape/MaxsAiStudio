@@ -51,7 +51,7 @@ namespace AiStudio4.Core.Tools
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "System" }, // Or another relevant category
+                Categories = new List<string> { "Development" }, 
                 OutputFileType = "",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
