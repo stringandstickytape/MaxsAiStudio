@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/stores/useModalStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,16 +56,12 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
-    const lastAutoReplyTimestampRef = useRef<number>(0);
-    const autoReplyCooldownRef = useRef<number>(5000); // 5 seconds cooldown
     
-    // Track if an auto-reply is already in progress to prevent multiple triggers
-    const autoReplyInProgressRef = useRef<boolean>(false);
+
+    
+    
 
     const [localInputText, setLocalInputText] = useState('');
-    const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-    const [visibleToolCount, setVisibleToolCount] = useState(3);
-    const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
 
 
     const {
