@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
@@ -87,7 +87,7 @@ namespace AiStudio4.InjectedDependencies
             }
 
             string jsonContent = File.ReadAllText(defaultSettingsPath);
-            _defaultSettings = JsonConvert.DeserializeObject<DefaultSettings>(jsonContent);
+            _defaultSettings = JsonConvert.DeserializeObject<DefaultSettings>(jsonContent) ?? new DefaultSettings(); // Handle potential null deserialization
         }
 
         private void SaveDefaultSettings(string defaultSettingsPath)
@@ -237,6 +237,14 @@ namespace AiStudio4.InjectedDependencies
                 _currentSettings.ProjectPathHistory = _currentSettings.ProjectPathHistory.Take(maxHistoryItems).ToList();
             }
             SaveSettings();
+        }
+
+        // Implementation for the new interface method
+        public void UpdateYouTubeApiKey(string apiKey)
+        {
+            _defaultSettings ??= new DefaultSettings();
+            _defaultSettings.YouTubeApiKey = apiKey ?? string.Empty;
+            SaveDefaultSettings(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json"));
         }
     }
 }

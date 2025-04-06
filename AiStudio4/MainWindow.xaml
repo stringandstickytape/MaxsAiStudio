@@ -16,13 +16,16 @@
         
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
+                <MenuItem Header="_Secrets">
+                    <MenuItem Header="_Set Youtube API Key..." Name="SetYouTubeApiKeyMenuItem" Click="SetYouTubeApiKeyMenuItem_Click"/>
+                </MenuItem>
+                <Separator/>
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_Project">
                 <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
                 <Separator/>
                 <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
-                <!-- Recent projects will be added here dynamically -->
             </MenuItem>
             <MenuItem Header="_MCP Servers" Name="McpServersMenuItem" Loaded="McpServersMenuItem_Loaded"/>
         </Menu>

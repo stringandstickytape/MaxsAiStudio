@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 using SharedClasses.Providers;
 
 namespace AiStudio4.InjectedDependencies
@@ -22,5 +22,6 @@ namespace AiStudio4.InjectedDependencies
         AppearanceSettings GetAppearanceSettings(string clientId);
         void UpdateAppearanceSettings(string clientId, AppearanceSettings settings);
         void AddProjectPathToHistory(string path); // Added method signature
+        void UpdateYouTubeApiKey(string apiKey); // Added method for YouTube API Key
     }
 }

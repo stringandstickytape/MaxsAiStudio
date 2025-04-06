@@ -1,4 +1,6 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/MainWindow.xaml.cs
+using AiStudio4.Core.Interfaces;
+using AiStudio4.Dialogs; // Added for WpfInputDialog
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
 using Microsoft.Win32; // Added for OpenFolderDialog
@@ -179,6 +181,37 @@ public partial class WebViewWindow : Window
             catch (Exception ex)
             {
                 MessageBox.Show($"Error setting project path from history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentKey = _settingsService.DefaultSettings?.YouTubeApiKey ?? string.Empty;
+        string prompt = "Enter your YouTube Data API v3 Key:";
+        string title = "Set YouTube API Key";
+
+        var dialog = new WpfInputDialog(title, prompt, currentKey)
+        {
+            Owner = this // Set the owner to center the dialog over the main window
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            string newKey = dialog.ResponseText;
+
+            // Check if the key actually changed
+            if (newKey != currentKey)
+            {
+                try
+                {
+                    _settingsService.UpdateYouTubeApiKey(newKey);
+                    MessageBox.Show("YouTube API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving YouTube API Key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

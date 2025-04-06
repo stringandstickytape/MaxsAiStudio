@@ -19,12 +19,14 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class YouTubeSearchTool : BaseToolImplementation, IDisposable
     {
-        private string ApiKey = "insert_key_here"; // Hardcoded API Key
+        // Removed hardcoded API Key
         private const string ApiBaseUrl = "https://www.googleapis.com/youtube/v3/search";
         private readonly HttpClient _httpClient;
+        private readonly ISettingsService _settingsService; // Store settings service
 
         public YouTubeSearchTool(ILogger<YouTubeSearchTool> logger, ISettingsService settingsService) : base(logger, settingsService)
         {
+            _settingsService = settingsService; // Assign injected service
             _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromSeconds(30); // Default timeout
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4/1.0 YouTubeSearchTool");
@@ -156,6 +158,15 @@ namespace AiStudio4.Core.Tools
         /// <exception cref="HttpRequestException">Thrown if the API request fails.</exception>
         private async Task<string> ProcessSingleSearchRequestAsync(Dictionary<string, object> parameters)
         {
+            // --- Check for API Key first ---
+            string apiKey = _settingsService?.DefaultSettings?.YouTubeApiKey;
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                _logger.LogWarning("YouTube API Key is not configured.");
+                return "## Error: YouTube API Key is not configured. Please set it in the File -> Secrets menu.";
+            }
+            // --- End API Key check ---
+
             if (!parameters.TryGetValue("query", out var queryObj) || string.IsNullOrWhiteSpace(queryObj as string))
             {
                 throw new ArgumentException("Error: 'query' parameter is required and cannot be empty.");
@@ -233,13 +244,22 @@ namespace AiStudio4.Core.Tools
 
         private async Task<YouTubeSearchResult> SearchYouTube(string query, int maxResults, string type)
         {
+            string apiKey = _settingsService?.DefaultSettings?.YouTubeApiKey;
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                 // This case should ideally be caught earlier in ProcessSingleSearchRequestAsync,
+                 // but we add a check here for robustness.
+                _logger.LogError("YouTube Search attempted without an API key.");
+                throw new InvalidOperationException("YouTube API Key is missing or not configured.");
+            }
+
             var urlBuilder = new UriBuilder(ApiBaseUrl);
             var queryParams = HttpUtility.ParseQueryString(string.Empty);
             queryParams["part"] = "snippet";
             queryParams["q"] = query;
             queryParams["maxResults"] = maxResults.ToString();
             queryParams["type"] = type;
-            queryParams["key"] = "AIzaSyDMYdxeSI2tWD6YWnSLIUoLUKhqR2zGAzA"; // Use the API Key
+            queryParams["key"] = apiKey; // Use the API Key from settings
 
             urlBuilder.Query = queryParams.ToString();
             string requestUrl = urlBuilder.ToString();
