@@ -101,7 +101,9 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (promptRef.current && !promptRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // This condition should prevent closing if the click is inside promptRef
+      if (promptRef.current && !promptRef.current.contains(target) && portalContentRef.current && !portalContentRef.current.contains(target)) {
         if (expanded) {
           setExpanded(false);
           setEditMode(false);
