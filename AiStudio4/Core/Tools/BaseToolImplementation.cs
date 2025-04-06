@@ -49,13 +49,14 @@ namespace AiStudio4.Core.Tools
         /// <param name="continueProcessing">Whether to continue processing</param>
         /// <param name="resultMessage">Optional result message explaining the outcome</param>
         /// <returns>A BuiltinToolResult object</returns>
-        protected BuiltinToolResult CreateResult(bool wasProcessed, bool continueProcessing, string resultMessage = null)
+        protected BuiltinToolResult CreateResult(bool wasProcessed, bool continueProcessing, string resultMessage = null, string statusMessage = null)
         {
             return new BuiltinToolResult
             {
                 WasProcessed = wasProcessed,
                 ContinueProcessing = continueProcessing,
-                ResultMessage = resultMessage
+                ResultMessage = resultMessage,
+                StatusMessage = statusMessage
             };
         }
     }

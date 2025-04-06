@@ -272,7 +272,7 @@ namespace AiStudio4.Core.Tools
             // We return success=true from the tool itself if it *ran* (didn't crash validation),
             // the actual outcome of the file ops is indicated by the UI/log and optionally the returned JSON.
             // Consider returning resultJson.ToString() instead of toolParameters if the caller needs the summary.
-            return CreateResult(true, true, toolParameters);
+            return CreateResult(true, true, toolParameters, overallSuccess ? "File changes applied successfully." : "There were errors applying the file changes.");
         }
 
 

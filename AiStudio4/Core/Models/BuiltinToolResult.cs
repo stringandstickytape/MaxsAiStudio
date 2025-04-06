@@ -29,5 +29,6 @@ namespace AiStudio4.Core.Models
         /// Any attachments to include with the result
         /// </summary>
         public List<Attachment> Attachments { get; set; } = new List<Attachment>();
+        public string StatusMessage { get;  set; } = string.Empty;
     }
 }

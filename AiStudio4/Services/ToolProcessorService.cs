@@ -152,10 +152,15 @@ namespace AiStudio4.Services
                                 {
                                     if(string.IsNullOrEmpty(tool.OutputFileType))
                                         toolResultMessageContent += $"{builtinToolResult.ResultMessage}\n\n";
-                                    else toolResultMessageContent += $"Tool result:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
+                                    else toolResultMessageContent += $"Tool Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
                                 }
-                                
-                                // If the built-in tool indicates processing should stop
+
+                                if (!string.IsNullOrEmpty(builtinToolResult.StatusMessage))
+                                {
+                                    toolResultMessageContent += $"Result: {builtinToolResult.StatusMessage}\n\n";
+                                }
+
+                                    // If the built-in tool indicates processing should stop
                                 if (!builtinToolResult.ContinueProcessing)
                                 {
                                     shouldStopProcessing = true;
