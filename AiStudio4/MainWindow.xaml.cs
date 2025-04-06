@@ -15,6 +15,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading.Tasks;
+using System.Linq;
+using System.IO;
 
 namespace AiStudio4;
 
@@ -24,13 +27,15 @@ public partial class WebViewWindow : Window
     private readonly IMcpService _mcpService;
     private readonly ISettingsService _settingsService; // Added ISettingsService field
     private readonly IBuiltinToolService _builtinToolService;
+    private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService) // Added ISettingsService parameter
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService) // Added service parameter
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
         _settingsService = settingsService; // Assign injected service
         _builtinToolService = builtinToolService;
+        _audioTranscriptionService = audioTranscriptionService;
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
@@ -63,6 +63,7 @@ namespace AiStudio4
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();
             services.AddSingleton<IChatService, DefaultChatService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
+            services.AddSingleton<IAudioTranscriptionService, AudioTranscriptionService>();
             services.AddSingleton<IToolService, ToolService>();
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
