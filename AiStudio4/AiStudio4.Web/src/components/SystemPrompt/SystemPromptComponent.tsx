@@ -27,6 +27,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     const [isHovered, setIsHovered] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [promptContent, setPromptContent] = useState('');
+    const [portalReady, setPortalReady] = useState(false);
     const [currentPrompt, setCurrentPrompt] = useState<SystemPrompt | null>(null);
     const [portalStyle, setPortalStyle] = useState<React.CSSProperties>({});
     const promptRef = useRef<HTMLDivElement>(null);
@@ -129,6 +130,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 if (expanded) {
                     setExpanded(false);
                     setEditMode(false);
+                    setPortalReady(false);
                 }
                 setIsHovered(false);
             }
@@ -151,8 +153,14 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     };
 
     const toggleExpand = () => {
-        setExpanded(!expanded);
-        setEditMode(false);
+        if (expanded) {
+            setExpanded(false);
+            setEditMode(false);
+            setPortalReady(false);
+        } else {
+            setExpanded(true);
+            setEditMode(false);
+        }
     };
 
     const toggleEdit = () => {
