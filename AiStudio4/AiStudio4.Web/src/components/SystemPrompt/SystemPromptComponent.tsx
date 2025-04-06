@@ -28,7 +28,54 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
   const [editMode, setEditMode] = useState(false);
   const [promptContent, setPromptContent] = useState('');
   const [currentPrompt, setCurrentPrompt] = useState<SystemPrompt | null>(null);
+  const [portalStyle, setPortalStyle] = useState<React.CSSProperties>({});
   const promptRef = useRef<HTMLDivElement>(null);
+  const portalContentRef = useRef<HTMLDivElement>(null);
+
+  // Calculate portal position
+  const updatePosition = () => {
+    if (promptRef.current && portalContentRef.current) {
+      const triggerRect = promptRef.current.getBoundingClientRect();
+      const portalRect = portalContentRef.current.getBoundingClientRect();
+      const spaceAbove = triggerRect.top;
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const PADDING = 8; // Space between trigger and portal
+
+      let top;
+      if (spaceAbove > portalRect.height + PADDING || spaceAbove >= spaceBelow) {
+        // Position above
+        top = triggerRect.top - portalRect.height - PADDING;
+      } else {
+        // Position below
+        top = triggerRect.bottom + PADDING;
+      }
+
+      setPortalStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${triggerRect.left}px`,
+        minWidth: `${triggerRect.width}px`,
+        maxWidth: 'max(50vw, 400px)', // Limit width, responsive
+      });
+    }
+  };
+
+  // Update position when expanded state changes
+  useEffect(() => {
+    if (expanded) {
+      // Timeout ensures the portal content is rendered and measurable
+      const timer = setTimeout(updatePosition, 0);
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true); // Use capture phase for scroll
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
+    } else {
+      setPortalStyle({}); // Clear style when closed
+    }
+  }, [expanded]);
 
   useEffect(() => {
     let promptToUse: SystemPrompt | null = null;
@@ -206,7 +253,11 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
           </div>
 
           {expanded && createPortal(
-            <div className="absolute left-0 right-0 bottom-full z-50 max-w-2xl mx-auto bg-gray-800 p-4 rounded-md border border-gray-700/50">
+            <div 
+              ref={portalContentRef}
+              style={portalStyle}
+              className="fixed z-50 bg-gray-800 p-4 rounded-md border border-gray-700/50 shadow-xl"
+            >
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
