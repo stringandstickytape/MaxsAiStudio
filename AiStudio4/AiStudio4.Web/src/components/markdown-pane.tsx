@@ -106,7 +106,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             const match = /language-(\w+)/.exec(className || '');
 
             // unformatted / no filetype
-            //if (!match) return <code className={className}>{children}</code>;
+            if (!match) return <code className={className}>{children}</code>;
 
             const language = match ? match[1] : 'txt';
 
