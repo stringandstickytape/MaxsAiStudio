@@ -39,6 +39,8 @@ AiStudio4 is a hybrid desktop application built using:
     *   `WindowManager`: Manages application windows.
     *   `UiRequestBroker`: Likely facilitates communication or requests between UI and backend services.
     *   `FileServer`: Provides file access capabilities.
+    *   **Dialogs:**
+        *   `WpfInputDialog`: A reusable WPF window for simple text input, located in the `Dialogs` folder. Used for tasks like setting the YouTube API key via the main menu.
 *   **AI Integration:** Uses `OpenAI` and `ModelContextProtocol` NuGet packages, indicating direct interaction with OpenAI models and potentially other AI services via MCP.
 *   **Project Dependencies:** Relies on `AiTool3` and `SharedClasses` projects for additional functionality.
 
