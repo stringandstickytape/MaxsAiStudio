@@ -1,5 +1,6 @@
 ﻿// AiStudio4.Web\src\components\SystemPrompt\SystemPromptComponent.tsx
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronDown, ChevronUp, MessageSquare, Settings, Edit } from 'lucide-react';
@@ -204,7 +205,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             )}
           </div>
 
-          {expanded && (
+          {expanded && createPortal(
             <div className="absolute left-0 right-0 bottom-full z-50 max-w-2xl mx-auto bg-gray-800 p-4 rounded-md border border-gray-700/50">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
@@ -282,7 +283,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                           currentPrompt?.guid === prompt.guid 
                             ? "bg-blue-600/20 border-blue-700/30 text-blue-200 hover:bg-blue-600/40 hover:text-blue-100"
                             : "bg-gray-600/10 border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100"
-                        )}
+                      )}
                       >
                         {prompt.title}
                       </Button>
@@ -302,7 +303,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                   </div>
                 </>
               )}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>
