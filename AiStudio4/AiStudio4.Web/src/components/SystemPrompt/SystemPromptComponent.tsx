@@ -1,4 +1,4 @@
-
+﻿// AiStudio4.Web\src\components\SystemPrompt\SystemPromptComponent.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -141,6 +141,18 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     }
   };
 
+  const handleSelectPrompt = async (prompt: SystemPrompt) => {
+    const effectiveConvId = convId || storeConvId;
+    if (!effectiveConvId) return; // Cannot set without a conversation
+
+    try {
+      await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
+      setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
+    } catch (error) {
+      console.error(`Failed to set conversation prompt ${effectiveConvId} to ${prompt.guid}:`, error);
+    }
+  };
+
   if (loading && !currentPrompt) {
     return (
       <div className="flex items-center justify-center h-8 text-gray-400 text-sm">
@@ -226,7 +238,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                   <Textarea
                     value={promptContent}
                     onChange={(e) => setPromptContent(e.target.value)}
-                    className="min-h-[100px] max-h-[300px] h-[300px] overflow-y-auto bg-gray-700 border-gray-600 text-gray-100 font-mono text-sm"
+                    className="min-h-[100px] max-h-[300px] h-[300px] overflow-y-auto bg-gray-700 border-gray-600 text-gray-100 font-mono text-sm mb-2"
                     placeholder="Enter your system prompt here..."
                   />
 
@@ -253,9 +265,30 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 </>
               ) : (
                 <>
-                  <pre className="text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto">
+                  <pre className="text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto mb-3">
                     {currentPrompt?.content || 'No system prompt content'}
                   </pre>
+                  
+                  {/* --- Prompt Pill Bar --- */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {prompts.map((prompt) => (
+                      <Button
+                        key={prompt.guid}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSelectPrompt(prompt)}
+                        className={cn(
+                          "h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0",
+                          currentPrompt?.guid === prompt.guid 
+                            ? "bg-blue-600/20 border-blue-700/30 text-blue-200 hover:bg-blue-600/40 hover:text-blue-100"
+                            : "bg-gray-600/10 border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100"
+                        )}
+                      >
+                        {prompt.title}
+                      </Button>
+                    ))}
+                  </div>
+                  {/* --- End Prompt Pill Bar --- */}
 
                   <div className="flex justify-end">
                     <Button
@@ -276,5 +309,3 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     </div>
   );
 }
-
-
