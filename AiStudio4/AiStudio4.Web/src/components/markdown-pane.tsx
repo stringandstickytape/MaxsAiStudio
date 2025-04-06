@@ -104,9 +104,12 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     const components = useMemo(() => ({
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '');
-            if (!match) return <code className={className}>{children}</code>;
 
-            const language = match[1];
+            // unformatted / no filetype
+            //if (!match) return <code className={className}>{children}</code>;
+
+            const language = match ? match[1] : 'txt';
+
             const content = String(children).replace(/\n$/, '');
 
 
@@ -271,7 +274,6 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 </div>
             );
         },
-        code: ({ children }: any) => <code style={{ whiteSpace: 'break-spaces' }}> {children}</code>,
         p: ({ children }: any) => <p className="my-4 whitespace-pre-wrap ">{children}</p>,
         h1: ({ children }: any) => <h1 className="text-3xl font-bold my-6">{children}</h1>,
         h2: ({ children }: any) => <h2 className="text-2xl font-bold my-5">{children}</h2>,
@@ -296,7 +298,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
     return (
 
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]} >
+        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
             {markdownContent}
         </ReactMarkdown>
 
