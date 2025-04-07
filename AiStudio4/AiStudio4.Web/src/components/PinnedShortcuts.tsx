@@ -136,10 +136,10 @@ export function PinnedShortcuts({
 
         const calculateVisibleButtons = () => {
             const containerWidth = containerRef.current?.clientWidth || 0;
-            const buttonWidth = 90 + 4;
+            const buttonWidth = 160 + 8;
             const dropdownWidth = 30;
 
-            const availableWidth = containerWidth - dropdownWidth;
+            const availableWidth = containerWidth;
             const maxButtonsPerRow = Math.floor(availableWidth / buttonWidth);
             
             
@@ -288,7 +288,7 @@ export function PinnedShortcuts({
                                         <div
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
-                                            className="flex items-center gap-1 flex-row"
+                                            className="flex items-center gap-2 flex-row"
                                         >
                                             {rowCommands.map((command, index) => {
                                                 
@@ -319,7 +319,7 @@ export function PinnedShortcuts({
                                                                                 e.preventDefault();
                                                                                 handlePinCommand(command.id, true);
                                                                             }}
-                                                                            className="h-auto min-h-[32px] max-h-[36px] w-[80px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
+                                                                            className="h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
                                                                         >
                                                                             <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                                 {command.name}
@@ -385,7 +385,7 @@ export function PinnedShortcuts({
                                                                     e.preventDefault();
                                                                     handlePinCommand(command.id, true);
                                                                 }}
-                                                                className="h-auto min-h-[32px] max-h-[36px] w-[80px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
+                                                                className="h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
                                                             >
                                                                 <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                     {command.name}

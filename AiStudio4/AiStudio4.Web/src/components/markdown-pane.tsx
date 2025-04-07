@@ -53,7 +53,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
       
       /* Add transition styles for code block collapsing/expanding */
       .code-content {
-        max-height: 2000px;
+        max-height: 50000px;
         transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
         overflow: hidden;
         opacity: 1;
