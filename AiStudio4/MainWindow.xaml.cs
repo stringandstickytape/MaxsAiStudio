@@ -220,4 +220,55 @@ public partial class WebViewWindow : Window
             }
         }
     }
+
+    private async void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var openFileDialog = new OpenFileDialog
+        {
+            Title = "Select Audio File for Transcription",
+            Filter = "Audio Files|*.wav;*.mp3;*.m4a;*.ogg;*.flac|All Files|*.*", // Add more formats if needed
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            string filePath = openFileDialog.FileName;
+            try
+            {
+                // TODO: Add a loading indicator if transcription takes time
+                MessageBox.Show($"Attempting to transcribe: {System.IO.Path.GetFileName(filePath)}", "Transcription Started", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                using var filestream = new FileStream(filePath, FileMode.Open);
+                string transcription = await _audioTranscriptionService.TranscribeAudioAsync(filestream); // only accepts wavs...
+
+                if (!string.IsNullOrEmpty(transcription))
+                {
+                    // Display the transcription in a scrollable text box or a dedicated window for longer text
+                    // For simplicity, using MessageBox here, but consider a better UI for long results.
+                    var resultWindow = new Window
+                    {
+                        Title = "Transcription Result",
+                        Content = new ScrollViewer { Content = new TextBox { Text = transcription, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } },
+                        Width = 600,
+                        Height = 400,
+                        Owner = this,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner
+                    };
+                    resultWindow.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("Transcription returned empty.", "Transcription Result", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (FileNotFoundException fnfEx)
+            {
+                MessageBox.Show($"Error: The audio file was not found.\n{fnfEx.Message}", "File Not Found Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred during transcription: {ex.Message}", "Transcription Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
 }
