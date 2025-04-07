@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -304,7 +303,7 @@ export function PinnedShortcuts({
                                                             >
                                                                 <div
                                                                     {...provided.dragHandleProps}
-                                                                    className="cursor-grab h-2 w-[90px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
+                                                                    className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
                                                                 >
                                                                     <div className="w-12 flex items-center justify-center">
                                                                         <div className="h-[3px] w-8 bg-current rounded-full"></div>
@@ -320,10 +319,9 @@ export function PinnedShortcuts({
                                                                                 e.preventDefault();
                                                                                 handlePinCommand(command.id, true);
                                                                             }}
-                                                                            className="h-auto min-h-[40px] max-h-[50px] w-[90px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-start gap-1 relative"
+                                                                            className="h-auto min-h-[32px] max-h-[36px] w-[80px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
                                                                         >
-                                                                            <div className="flex-shrink-0">{getIconForCommand(command.id, command.iconName)}</div>
-                                                                            <span className="text-xs font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
+                                                                            <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                                 {command.name}
                                                                             </span>
                                                                         </Button>
@@ -371,7 +369,7 @@ export function PinnedShortcuts({
                                                 >
                                                     <div
                                                         {...provided.dragHandleProps}
-                                                        className="cursor-grab h-2 w-[90px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
+                                                        className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
                                                     >
                                                         <div className="w-12 flex items-center justify-center">
                                                             <div className="h-[3px] w-8 bg-current rounded-full"></div>
@@ -387,10 +385,9 @@ export function PinnedShortcuts({
                                                                     e.preventDefault();
                                                                     handlePinCommand(command.id, true);
                                                                 }}
-                                                                className="h-auto min-h-[40px] max-h-[50px] w-[90px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-start gap-1 relative"
+                                                                className="h-auto min-h-[32px] max-h-[36px] w-[80px] px-1 py-1 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
                                                             >
-                                                                <div className="flex-shrink-0">{getIconForCommand(command.id, command.iconName)}</div>
-                                                                <span className="text-xs font-medium flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2">
+                                                                <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                     {command.name}
                                                                 </span>
                                                             </Button>
@@ -442,7 +439,6 @@ export function PinnedShortcuts({
                                             }}
                                             className="flex items-center gap-1 text-xs whitespace-normal"
                                         >
-                                            <span className="flex-shrink-0">{getIconForCommand(command.id, command.iconName)}</span>
                                             <span>{command.name}</span>
                                         </DropdownMenuItem>
                                     ))}
