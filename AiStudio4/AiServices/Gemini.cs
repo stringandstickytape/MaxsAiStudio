@@ -504,8 +504,11 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 var textChunk = part["text"]?.ToString();
                                 if (!string.IsNullOrEmpty(textChunk))
                                 {
-                                    fullResponse.Append(textChunk);
-                                    onStreamingUpdate?.Invoke(textChunk); // Use callback
+                                    if (fullResponse.Length != 0 || (textChunk != "ny"))
+                                    {
+                                        fullResponse.Append(textChunk);
+                                        onStreamingUpdate?.Invoke(textChunk); // Use callback
+                                    }
                                 }
                             }
                             // Handle image responses
