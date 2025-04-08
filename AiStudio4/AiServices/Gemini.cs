@@ -230,6 +230,12 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 // Normal completion
                 onStreamingComplete?.Invoke(); // Use callback
                 Debug.WriteLine("Streaming Complete");
+
+                if(ToolResponseSet.Tools.Count == 0)
+                {
+                    var json = ExtractTrailingJsonObject(fullResponse.ToString());
+                }
+
                 try
                 {
                     var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString());
@@ -243,7 +249,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
                         currentResponseItem = null;
 
-                        Debug.WriteLine("Returning... (1)");
+                        Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set... (1)");
 
                         return new AiResponse
                         {
@@ -276,7 +282,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     });
                 }
                 currentResponseItem = null;
-                Debug.WriteLine("Returning... (2)");
+                Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
                 return new AiResponse
                 {
                     ResponseText = fullResponse.ToString(),
@@ -325,6 +331,55 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 // Handle other errors
                 return HandleError(ex, "Error during streaming response");
             }
+        }
+
+        public static string ExtractTrailingJsonObject(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            // Start from the end and work backwards
+            for (int i = input.Length - 1; i >= 0; i--)
+            {
+                if (input[i] == '}')
+                {
+                    // Found a closing brace, now find the matching opening brace
+                    int depth = 1;
+                    int j;
+
+                    for (j = i - 1; j >= 0; j--)
+                    {
+                        if (input[j] == '}')
+                            depth++;
+                        else if (input[j] == '{')
+                            depth--;
+
+                        // When depth reaches 0, we've found the outermost matching opening brace
+                        if (depth == 0)
+                            break;
+                    }
+
+                    // If we found a matching opening brace
+                    if (j >= 0)
+                    {
+                        string potentialJson = input.Substring(j);
+
+                        // Validate it's proper JSON
+                        try
+                        {
+                            System.Text.Json.JsonDocument.Parse(potentialJson);
+                            return potentialJson;
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            // Not valid JSON, continue searching
+                            i = j; // Skip to before this opening brace
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         private string ExtractResponseText(JObject completion)
@@ -485,8 +540,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 Debug.WriteLine($"Tool chosen: {chosenTool}");
 
                                 // If this is a new tool call, create a new response item
-                                if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
-                                {
+                                //if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
+                                //{
                                     Debug.WriteLine($"new ToolResponseItem: {chosenTool} -> {toolArgs}");
                                     currentResponseItem = new ToolResponseItem
                                     {
@@ -498,12 +553,11 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); // Use callback
 
                                     ToolResponseSet.Tools.Add(currentResponseItem);
-                                }
-                                else
-                                {
-                                    // Append to existing response text for this tool
-                                    currentResponseItem.ResponseText += toolArgs;
-                                }
+                                //}
+                                //else
+                                //{
+                                //    currentResponseItem.ResponseText += toolArgs;
+                                //}
                                 
                                 fullResponse.Append(toolResponse);
                                 onStreamingUpdate?.Invoke(toolResponse); // Use callback
@@ -518,6 +572,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     {
                                         fullResponse.Append(textChunk);
                                         onStreamingUpdate?.Invoke(textChunk); // Use callback
+                                        Debug.WriteLine($"text: {textChunk}");
                                     }
                                     else
                                     {
@@ -546,6 +601,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     fullResponse.Append(imagePlaceholder);
                                     onStreamingUpdate?.Invoke(imagePlaceholder); // Use callback
                                 }
+                            }
+                            else
+                            {
+
                             }
                         }
                     }
