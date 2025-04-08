@@ -31,9 +31,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         setIsVisualStudio(isVS);
     }, []);
 
-
     useEffect(() => {
-
         const timer = setTimeout(() => {
             codeBlockRendererRegistry.renderAll();
         }, 50);
@@ -104,7 +102,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     const components = useMemo(() => ({
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '');
-
+            
             // unformatted / no filetype
             if (!match) return <code className={className}>{children}</code>;
 
@@ -115,7 +113,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `${language}-${content.slice(0, 20)}`;
-
+            
 
             if (showRawContent[blockId] === undefined) {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
