@@ -233,14 +233,23 @@ namespace AiStudio4.Services
                     }
 
                     // Add assistant message to conversation history
-                    var assistantMessage = new LinearConvMessage
-                    {
-                        role = "assistant",
-                        content = response.ResponseText,
-                        // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
-                        // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
-                    };
-                    linearConversation.messages.Add(assistantMessage);
+                    //var assistantMessage = new LinearConvMessage
+                    //{
+                    //    role = "assistant",
+                    //    content = response.ResponseText,
+                    //    // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
+                    //    // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
+                    //};
+                    //linearConversation.messages.Add(assistantMessage);
+
+                    var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
+                    
+
+
+
+                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        userMessage: response.ResponseText, parentMessageId: request.MessageId, attachments: response.Attachments);
+
 
                     accumulatedCostInfo = new TokenCost();
 
@@ -261,8 +270,12 @@ namespace AiStudio4.Services
                     // If the loop should continue, add a user message to prompt the next step
                     if (continueLoop && currentIteration < MAX_ITERATIONS)
                     {
+                        var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         _logger.LogDebug("Adding 'Continue' message for next iteration.");
-                        linearConversation.messages.Add(new LinearConvMessage { role = "user", content = "Continue" });
+                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
+                            userMessage: collatedResponse.ToString(), parentMessageId: newAssistantMessageId, attachments: response.Attachments);
+                        request.MessageId = newUserMessageId;
+
                     }
                     else if (currentIteration >= MAX_ITERATIONS)
                     {

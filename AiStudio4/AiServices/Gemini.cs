@@ -203,7 +203,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     // Throwing ensures we jump to the catch block
                                     throw new OperationCanceledException(cancellationToken);
                                 }
-                                System.Diagnostics.Debug.WriteLine(line);
+                                //System.Diagnostics.Debug.WriteLine(line);
                                 // :-/
                                 if (isFirstLine)
                                 {
@@ -229,17 +229,22 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
                 // Normal completion
                 onStreamingComplete?.Invoke(); // Use callback
-
+                Debug.WriteLine("Streaming Complete");
                 try
                 {
                     var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString());
 
                     if (jsonResponse["args"] != null)
                     {
+                        Debug.WriteLine("Args are not null");
+
                         var toolName = jsonResponse["name"]?.ToString();
                         var toolArgs = jsonResponse["args"].ToString();
 
                         currentResponseItem = null;
+
+                        Debug.WriteLine("Returning... (1)");
+
                         return new AiResponse
                         {
                             ResponseText = toolArgs,
@@ -271,6 +276,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     });
                 }
                 currentResponseItem = null;
+                Debug.WriteLine("Returning... (2)");
                 return new AiResponse
                 {
                     ResponseText = fullResponse.ToString(),
@@ -285,8 +291,9 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             catch (OperationCanceledException)
             {
                 // Cancellation happened
-                System.Diagnostics.Debug.WriteLine("Gemini streaming cancelled.");
+                //System.Diagnostics.Debug.WriteLine("Gemini streaming cancelled.");
                 // Create attachments from any partially generated images
+                Debug.WriteLine("Cancelled. ");
                 var attachments = new List<DataModels.Attachment>();
                 int imageIndex = 1;
                 foreach (var image in _generatedImages)
@@ -474,10 +481,13 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 var toolArgs = part["functionCall"]["args"]?.ToString() ?? "{}";
                                 
                                 chosenTool = toolName;
-                                
+
+                                Debug.WriteLine($"Tool chosen: {chosenTool}");
+
                                 // If this is a new tool call, create a new response item
                                 if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
                                 {
+                                    Debug.WriteLine($"new ToolResponseItem: {chosenTool} -> {toolArgs}");
                                     currentResponseItem = new ToolResponseItem
                                     {
                                         ToolName = toolName,
