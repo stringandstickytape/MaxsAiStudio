@@ -196,6 +196,16 @@ namespace VSIXTest
             _quickButtonManager.ShowQuickButtonOptionsWindow(message);
         }
 
+        internal async void SendHomeAsync(bool isCtrlPressed, bool isShiftPressed, bool isAltPressed)
+        {
+            await _webViewManager.SendHomeAsync(isCtrlPressed, isShiftPressed, isAltPressed).ConfigureAwait(true);
+        }
+
+        internal async void SendEndAsync(bool isCtrlPressed, bool isShiftPressed, bool isAltPressed)
+        {
+            await _webViewManager.SendEndAsync(isCtrlPressed, isShiftPressed, isAltPressed).ConfigureAwait(true);
+        }
+
         private bool _changesetPaneInitted = false;
 
     }

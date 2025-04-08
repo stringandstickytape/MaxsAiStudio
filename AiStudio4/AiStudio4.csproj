@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icon\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -54,6 +55,7 @@
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
 		<Content Include="AiStudio4.Web\src\components\LoadingTimer.css" />
+		<Content Include="Icon\icon.ico" />
 	</ItemGroup>
 
 	<ItemGroup>

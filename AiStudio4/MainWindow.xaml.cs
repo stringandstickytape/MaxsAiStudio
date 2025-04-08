@@ -241,6 +241,6 @@ public partial class WebViewWindow : Window
             Multiselect = false
         };
 
-        // need to add condapath setting, then do what fileattachmentmanager.cs does
+        // need to add condapath setting, then do what fileattachmentmanager.cs doespi
     }
 }
