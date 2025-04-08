@@ -509,6 +509,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                         fullResponse.Append(textChunk);
                                         onStreamingUpdate?.Invoke(textChunk); // Use callback
                                     }
+                                    else
+                                    {
+
+                                    }
                                 }
                             }
                             // Handle image responses
