@@ -55,6 +55,10 @@ console.log('set window prompt');
         
         // Reset the stream tokens
         reset();
+        
+        // Also reset the streaming state and last streamed content
+        setIsStreaming(false);
+        setLastStreamedContent('');
     }, [reset]);
     
     useEffect(() => {
@@ -87,6 +91,7 @@ console.log('set window prompt');
             // Use resetStreamTokensAndInput instead of reset
             resetStreamTokensAndInput();
             setIsStreaming(false);
+            console.log("sIS = false");
         };
         
         const handleCancelled = () => {

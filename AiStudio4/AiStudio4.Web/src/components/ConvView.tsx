@@ -125,6 +125,25 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         setVisibleCount(Math.min(20, messageChain.length));
     }, [activeConvId, slctdMsgId, messageChain]);
 
+    // Listen for stream:clear event to reset streamTokens
+    useEffect(() => {
+        const handleClearStream = () => {
+            console.log("handleClearStream");
+            if (streamTokens.length > 0) {
+                // This will clear the displayed tokens in the parent component
+                // by passing an empty array to setStreamTokens
+                console.log("handleClearStream2");
+                streamTokens = [];
+                
+            }
+        };
+        
+        window.addEventListener('stream:clear', handleClearStream);
+        return () => {
+            console.log("stream:clear");
+            window.removeEventListener('stream:clear', handleClearStream);
+        };
+    }, [streamTokens]);
 
     // Removed: ScrollToBottom component definition
 

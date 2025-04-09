@@ -71,9 +71,14 @@ export function useStreamableWebSocketData<T = any>(
   }, [data]);
 
   const reset = useCallback(() => {
-
-      // clear convview streamTokens here...
+      // Directly clear the data state
       setData([]);
+      
+      // Also dispatch an event to clear streamTokens in ConvView
+      const clearEvent = new CustomEvent('stream:clear', {
+        detail: { cleared: true }
+      });
+      window.dispatchEvent(clearEvent);
 
     setIsActive(false);
     if (options?.onReset) options.onReset();
