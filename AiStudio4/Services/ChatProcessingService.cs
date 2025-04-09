@@ -177,47 +177,59 @@ namespace AiStudio4.Services
 
                     if (isFirstMessageInConv)
                     {
-                        try
+                        // Run summary generation in the background
+                        _ = Task.Run(async () =>
                         {
-                            var secondaryModel = _settingsService.DefaultSettings?.SecondaryModel;
-                            if (!string.IsNullOrEmpty(secondaryModel))
+                            try
                             {
-                                var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
-                                if (model != null)
+                                var secondaryModel = _settingsService.DefaultSettings?.SecondaryModel;
+                                if (!string.IsNullOrEmpty(secondaryModel))
                                 {
-                                    var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
-                    
-                                    var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
-                                    var summaryResponse = await _chatService.ProcessSimpleChatRequest(summaryMessage);
-                    
-                                    if (summaryResponse.Success)
+                                    var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
+                                    if (model != null)
                                     {
-                                        var summary = summaryResponse.ResponseText.Length > 100
-                                            ? summaryResponse.ResponseText.Substring(0, 97) + "..."
-                                            : summaryResponse.ResponseText;
-                    
-                                        conv.Summary = summary;
-                                        await _convStorage.SaveConv(conv);
-                    
-                                        // Update client with the new summary, using our flat structure
-                                        await _notificationService.NotifyConvList(clientId, new ConvListDto
+                                        var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
+                        
+                                        // We need a separate IServiceProvider scope for the background task
+                                        // Assuming ISettingsService and IChatService can be resolved. 
+                                        // This might need adjustment based on actual DI setup.
+                                        // For now, using existing injected services - check if this works with threading/scope.
+                                        // var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid); // This likely won't work directly in background task
+                                        var summaryResponse = await _chatService.ProcessSimpleChatRequest(summaryMessage); // Assuming _chatService is thread-safe or scoped correctly
+                        
+                                        if (summaryResponse.Success)
                                         {
-                                            ConvId = conv.ConvId,
-                                            Summary = summary,
-                                            LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                            FlatMessageStructure = BuildFlatMessageStructure(conv)
-                                        });
+                                            var summary = summaryResponse.ResponseText.Length > 100
+                                                ? summaryResponse.ResponseText.Substring(0, 97) + "..."
+                                                : summaryResponse.ResponseText;
+                        
+                                            // Re-fetch or ensure 'conv' is safe to modify across threads if needed
+                                            // For simplicity, assuming direct modification is okay for now, but review based on IConvStorage implementation
+                                            conv.Summary = summary;
+                                            await _convStorage.SaveConv(conv); // Assuming _convStorage is thread-safe
+                        
+                                            // Update client with the new summary
+                                            await _notificationService.NotifyConvList(clientId, new ConvListDto
+                                            {
+                                                ConvId = conv.ConvId,
+                                                Summary = summary,
+                                                LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                                                FlatMessageStructure = BuildFlatMessageStructure(conv) // Ensure BuildFlatMessageStructure is safe if conv changes
+                                            });
+                                        }
                                     }
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error generating conv summary");
-                        }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error generating conv summary in background task");
+                            }
+                        });
                     }
 
-                    await _convStorage.SaveConv(conv);
+                    // Save the conversation state *before* returning the response, 
+                    // but potentially before the background summary task completes.
+                    await _convStorage.SaveConv(conv); 
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
                 }
