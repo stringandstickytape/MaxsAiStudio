@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { WebSocketEventType, WebSocketEventDetail, listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { WebSocketConnectionStatus } from '@/services/websocket/WebSocketService';
 
@@ -72,7 +71,10 @@ export function useStreamableWebSocketData<T = any>(
   }, [data]);
 
   const reset = useCallback(() => {
-    setData(initialData);
+
+      // clear convview streamTokens here...
+      setData([]);
+
     setIsActive(false);
     if (options?.onReset) options.onReset();
   }, [initialData, options]);
@@ -127,4 +129,3 @@ export function useStreamableWebSocketData<T = any>(
 
   return { data, reset };
 }
-

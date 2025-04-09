@@ -1,6 +1,5 @@
-
-import { useStreamableWebSocketData } from '@/utils/webSocketUtils';
-import { useState, useRef, useEffect } from 'react';
+﻿import { useStreamableWebSocketData } from '@/utils/webSocketUtils';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
@@ -44,6 +43,19 @@ export function useStreamTokens() {
         wasCancellingRef.current = isCancelling;
     }, [streamTokens, isStreaming, isCancelling]);
 
+
+    // Create a wrapper for reset that also clears the input bar
+    const resetStreamTokensAndInput = useCallback(() => {
+console.log('resetstreamtokensandinput');
+        // Clear the input bar
+        if (window.setPrompt) {
+console.log('set window prompt');
+            window.setPrompt('123');
+        }
+        
+        // Reset the stream tokens
+        reset();
+    }, [reset]);
     
     useEffect(() => {
         if (!activeConvId || !isStreaming) return;
@@ -63,21 +75,24 @@ export function useStreamTokens() {
             if (newestMessage.id !== lastMessageIdRef.current && isStreaming) {
                 lastMessageIdRef.current = newestMessage.id;
                 setIsStreaming(false);
-                reset();
+                // Use resetStreamTokensAndInput instead of reset
+                resetStreamTokensAndInput();
             }
         }
-    }, [activeConvId, convs, isStreaming, reset]);
+    }, [activeConvId, convs, isStreaming, resetStreamTokensAndInput]);
 
     
     useEffect(() => {
         const handleStreamEnd = () => {
-            reset();
+            // Use resetStreamTokensAndInput instead of reset
+            resetStreamTokensAndInput();
             setIsStreaming(false);
         };
         
         const handleCancelled = () => {
             setIsStreaming(false);
-            reset();
+            // Use resetStreamTokensAndInput instead of reset
+            resetStreamTokensAndInput();
         };
         
         
@@ -88,13 +103,14 @@ export function useStreamTokens() {
             unsubscribeEnd();
             window.removeEventListener('request:cancelled', handleCancelled);
         };
-    }, [reset]);
+    }, [resetStreamTokensAndInput]);
+
+
 
     return { 
         streamTokens, 
-        resetStreamTokens: reset,
+        resetStreamTokens: resetStreamTokensAndInput,
         isStreaming,
         lastStreamedContent
     };
 }
-
