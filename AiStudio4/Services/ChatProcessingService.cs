@@ -175,30 +175,6 @@ namespace AiStudio4.Services
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
 
-                    var newId = $"msg_{Guid.NewGuid()}";
-                    var newAiReply = conv.AddNewMessage(v4BranchedConvMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
-
-                    // Store cost information if available
-                    if (response.CostInfo != null)
-                    {
-                        newAiReply.CostInfo = response.CostInfo;
-                    }
-                    
-                    // Add any attachments from the response
-                    if (response.Attachments != null && response.Attachments.Any())
-                    {
-                        newAiReply.Attachments.AddRange(response.Attachments);
-                    }
-                    
-                    // Set duration for AI message (difference between now and when the user message was created)
-                    var userMessage = conv.Messages.FirstOrDefault(m => m.Id == chatRequest.MessageId);
-                    if (userMessage != null)
-                    {
-                        newAiReply.DurationMs = (long)(DateTime.UtcNow - userMessage.Timestamp).TotalMilliseconds;
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"<-- Message: {response.ResponseText}, MessageId: {newId}, ParentMessageId: {chatRequest.MessageId}");
-
                     //if (isFirstMessageInConv)
                     //{
                     //    try
@@ -249,18 +225,6 @@ namespace AiStudio4.Services
                     //}
 
                     await _convStorage.SaveConv(conv);
-
-                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
-                    {
-                        MessageId = newAiReply.Id,
-                        Content = newAiReply.UserMessage,
-                        ParentId = chatRequest.MessageId,
-                        Timestamp = new DateTimeOffset(newAiReply.Timestamp).ToUnixTimeMilliseconds(),
-                        Source = "ai", // Explicitly set source as "ai"
-                        CostInfo = newAiReply.CostInfo,
-                        Attachments = newAiReply.Attachments,
-                        DurationMs = newAiReply.DurationMs
-                    });
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
                 }
