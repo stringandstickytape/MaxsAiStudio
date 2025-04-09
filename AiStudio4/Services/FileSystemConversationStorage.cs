@@ -1,4 +1,4 @@
-using AiStudio4.Core.Exceptions;
+﻿using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -134,6 +134,38 @@ namespace AiStudio4.Services
         {
             // Check if any message in the flat structure has the given ID
             return conv.Messages.Any(m => m.Id == messageId);
+        }
+
+        /// <summary>
+        /// Deletes a conversation by its ID
+        /// </summary>
+        /// <param name="convId">The ID of the conversation to delete</param>
+        /// <returns>True if the conversation was successfully deleted, false otherwise</returns>
+        public async Task<bool> DeleteConv(string convId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(convId))
+                {
+                    throw new ArgumentException("Conversation ID cannot be empty", nameof(convId));
+                }
+
+                var path = Path.Combine(_basePath, $"{convId}.json");
+                if (!File.Exists(path))
+                {
+                    _logger.LogWarning("Cannot delete conversation: file not found for ID {ConvId}", convId);
+                    return false;
+                }
+
+                File.Delete(path);
+                _logger.LogInformation("Deleted conversation {ConvId}", convId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting conversation {ConvId}", convId);
+                throw new ConvStorageException($"Failed to delete conversation {convId}", ex);
+            }
         }
 
         // Methods removed as they're no longer needed with flat structure

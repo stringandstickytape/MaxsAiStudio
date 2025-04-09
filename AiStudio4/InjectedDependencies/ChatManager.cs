@@ -88,5 +88,18 @@ namespace AiStudio4.InjectedDependencies
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
+
+        internal async Task<string> HandleDeleteConvRequest(string clientId, JObject? requestObject)
+        {
+            try
+            {
+                return await _convService.HandleDeleteConvRequest(clientId, requestObject);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in HandleDeleteConvRequest");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-using AiStudio4.InjectedDependencies;
+﻿using AiStudio4.InjectedDependencies;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -31,5 +31,12 @@ namespace AiStudio4.Core.Interfaces
         /// </summary>
         /// <returns>All convs</returns>
         Task<IEnumerable<v4BranchedConv>> GetAllConvs();
+
+        /// <summary>
+        /// Deletes a conversation by its ID
+        /// </summary>
+        /// <param name="convId">The ID of the conversation to delete</param>
+        /// <returns>True if the conversation was successfully deleted, false otherwise</returns>
+        Task<bool> DeleteConv(string convId);
     }
 }

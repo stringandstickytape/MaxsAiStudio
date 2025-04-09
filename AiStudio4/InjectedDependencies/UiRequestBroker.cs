@@ -84,6 +84,7 @@ namespace AiStudio4.InjectedDependencies
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "deleteMessageWithDescendants" => await _chatManager.HandleDeleteMessageWithDescendantsRequest(clientId, requestObject),
+                    "deleteConv" => await _chatManager.HandleDeleteConvRequest(clientId, requestObject),
                     "chat" => await _chatManager.HandleChatRequest(clientId, requestObject),
                     "getTools" => await HandleGetToolsRequest(),
                     "getTool" => await HandleGetToolRequest(requestObject),

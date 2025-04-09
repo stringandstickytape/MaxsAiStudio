@@ -128,6 +128,41 @@ namespace AiStudio4.Services
             }
         }
 
+        public async Task<string> HandleDeleteConvRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                var convId = requestObject["convId"]?.ToString();
+                if (string.IsNullOrEmpty(convId))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, error = "Conversation ID cannot be empty" });
+                }
+                
+                var success = await _convStorage.DeleteConv(convId);
+                
+                if (success)
+                {
+                    // Notify client of success via WebSocket
+                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
+                    {
+                        MessageId = null,
+                        Content = new { type = "conversationDeleted", convId }
+                    });
+                    
+                    return JsonConvert.SerializeObject(new { success = true });
+                }
+                else
+                {
+                    return JsonConvert.SerializeObject(new { success = false, error = "Failed to delete conversation" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling delete conversation request");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
+
         public async Task<string> HandleGetAllHistoricalConvTreesRequest(string clientId)
         {
             try
