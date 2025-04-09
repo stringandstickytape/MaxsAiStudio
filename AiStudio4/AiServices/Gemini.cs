@@ -234,6 +234,19 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 if(ToolResponseSet.Tools.Count == 0)
                 {
                     var json = ExtractTrailingJsonObject(fullResponse.ToString());
+                    if(json != null)
+                    {
+                        var jsonResponse = JsonConvert.DeserializeObject<JObject>(json);
+
+                        if (jsonResponse["args"] != null)
+                        {
+                            Debug.WriteLine("Args are not null");
+
+                            var toolName = jsonResponse["name"]?.ToString();
+                            var toolArgs = jsonResponse["args"].ToString();
+                            ToolResponseSet.Tools.Add(new ToolResponseItem { ToolName = toolName, ResponseText = toolArgs });
+                        }
+                    }
                 }
 
                 try

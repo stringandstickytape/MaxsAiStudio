@@ -52,7 +52,7 @@ namespace AiStudio4.Core.Models
             decimal inCreate = (TokenUsage.CacheCreationInputTokens / 1_000_000m) * InputCostPer1M * 1.25m;
             decimal inRead = (TokenUsage.CacheReadInputTokens / 1_000_000m) * InputCostPer1M * 0.1m;
 
-            TotalCost = inputCost + outputCost;
+            TotalCost = inputCost + outputCost + inCreate + inRead;
         }
     }
 }
