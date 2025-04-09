@@ -32,11 +32,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
-            console.log('event');
-            console.log('event2');
-            console.log('event3');
-            console.log('WebSocket conv:new event received:', { content, activeConvId, currentSlctdMsgId: slctdMsgId });
-            
             if (activeConvId) {
                 const conv = getConv(activeConvId);
                 let parentId = content.parentId;
@@ -60,14 +55,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     : undefined;
                 
                 // Always select AI messages when they arrive
-                // Check for both 'ai' and 'assistant' sources
                 const newSelectedMsgId = isAiMessage ? content.id : undefined;
-                console.log('Adding message via WebSocket with selection:', { 
-                    messageId: content.id, 
-                    source: content.source, 
-                    newSelectedMsgId: newSelectedMsgId,
-                    isAiMessage: isAiMessage
-                });
 
                 // First add the message to the conversation
                 addMessage({
@@ -85,31 +73,25 @@ export const useConvStore = create<ConvState>((set, get) => {
                     slctdMsgId: isAiMessage ? content.id : undefined, // Explicitly pass message ID for AI messages
                 });
                 
-                // For AI messages, explicitly set active conversation with this message selected
+                // Special handling for AI messages: ensure they're selected in the UI
                 if (isAiMessage) {
-                    console.log('IMPORTANT - Setting active conversation with AI message selected:', { convId: activeConvId, msgId: content.id });
+                    // Force-selection strategy for AI messages:
+                    // 1. Directly update the store state to select this message
+                    set(state => ({
+                        ...state,
+                        slctdMsgId: content.id
+                    }));
                     
-                    // Force update the store directly with the new selected message ID for AI messages
-                    set(state => {
-                        console.log('⚡ FORCE-SELECTING AI MESSAGE ID:', content.id);
-                        return {
+                    // 2. Use a small delay to ensure selection persists even if other operations
+                    // might interfere with state updates
+                    setTimeout(() => {
+                        set(state => ({
                             ...state,
                             slctdMsgId: content.id
-                        };
-                    });
-                    
-                    // Force update the state again after a small delay to ensure it sticks
-                    setTimeout(() => {
-                        set(state => {
-                            console.log('⚡ DELAYED FORCE-SELECTING AI MESSAGE ID:', content.id);
-                            return {
-                                ...state,
-                                slctdMsgId: content.id
-                            };
-                        });
+                        }));
                     }, 10);
                     
-                    // Also call setActiveConv to ensure everything is updated
+                    // 3. Also update via the standard setActiveConv method for completeness
                     setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
                 }
                 
@@ -201,7 +183,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) {
-                    console.log('⚠️ addMessage: Conversation not found', { convId, messageId: message.id });
                     return s;
                 }
                 
@@ -219,14 +200,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 };
                 
                 const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
-                console.log('📩 addMessage:', { 
-                    convId,
-                    messageId: message.id, 
-                    source: message.source,
-                    oldSelectedMsgId: s.slctdMsgId,
-                    newProvidedMsgId: slctdMsgId,
-                    newSelectedMsgId: newSelectedMsgId
-                });
                 
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: [...conv.messages, updMsg] } },
@@ -235,18 +208,11 @@ export const useConvStore = create<ConvState>((set, get) => {
             }),
 
         setActiveConv: ({ convId, slctdMsgId }) => {
-            console.log('🔄 setActiveConv called:', { convId, providedMsgId: slctdMsgId });
             return set(s => {
                 if (!s.convs[convId]) {
-                    console.log('⚠️ setActiveConv: Conversation not found', { convId });
                     return s;
                 }
                 const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
-                console.log('✅ setActiveConv setting:', { 
-                    convId, 
-                    oldSelectedMsgId: s.slctdMsgId, 
-                    newSelectedMsgId: newSelectedMsgId 
-                });
                 return {
                     activeConvId: convId,
                     slctdMsgId: newSelectedMsgId,
