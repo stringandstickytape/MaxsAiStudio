@@ -1,4 +1,5 @@
 
+// AiStudio4.Web\src\components\ConvTreeView.tsx
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { cn } from '@/lib/utils';
@@ -108,8 +109,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 if (message && message.parentId) {
                     setActiveConv({
                         convId: convId,
-                        slctdMsgId: message.parentId,                    });
-
+                        slctdMsgId: message.parentId,
+                    });
                     // Scroll to the last message after a brief delay
                     setTimeout(() => scrollToMessage(), 100);
                     return;
@@ -119,12 +120,31 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
             window.setPrompt("");
         }
         setActiveConv({
-            convId: convId,            slctdMsgId: nodeId,
+            convId: convId, slctdMsgId: nodeId,
         });
-
         // Scroll to the last message after a brief delay
         setTimeout(() => scrollToMessage(), 100);
     };
+
+    const handleNodeMiddleClick = (event: any, nodeId: string) => {
+        // Middle mouse button is button 1
+        if (event.button === 1) {
+            event.preventDefault();
+
+            // Show confirmation dialog
+            if (window.confirm('Delete this message and all its descendants?')) {
+                // Delete message and its descendants locally
+                useConvStore.getState().deleteMessage({ convId, messageId: nodeId });
+
+                // Delete on the server
+                import('@/services/api/apiClient').then(({ deleteMessageWithDescendants }) => {
+                    deleteMessageWithDescendants({ convId, messageId: nodeId })
+                        .catch(e => console.error('Failed to delete message on server:', e));
+                });
+            }
+        }
+    };
+
 
     const handleFocusOnLatest = useCallback(() => {
         if (svgRef.current && zoomRef.current && containerRef.current && messages.length > 0) {
@@ -270,7 +290,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .attr('class', 'node')
       .attr('transform', (d) => `translate(${d.x},${d.y})`) 
       .attr('cursor', 'pointer')
-      .on('click', (_, d) => handleNodeClick(d.data.id, d.data.source, d.data.content));
+      .on('click', (e, d) => handleNodeClick(d.data.id, d.data.source, d.data.content))
+      .on('mousedown', (e, d) => handleNodeMiddleClick(e, d.data.id));
 
     
     nodeGroups
