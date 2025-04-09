@@ -23,5 +23,6 @@ namespace AiStudio4.InjectedDependencies
         void UpdateAppearanceSettings(string clientId, AppearanceSettings settings);
         void AddProjectPathToHistory(string path); // Added method signature
         void UpdateYouTubeApiKey(string apiKey); // Added method for YouTube API Key
+        void UpdateCondaPath(string newKey);
     }
 }

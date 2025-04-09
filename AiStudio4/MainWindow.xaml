@@ -16,8 +16,9 @@
         
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
-                <MenuItem Header="_Secrets">
+                <MenuItem Header="_Settings">
                     <MenuItem Header="_Set Youtube API Key..." Name="SetYouTubeApiKeyMenuItem" Click="SetYouTubeApiKeyMenuItem_Click"/>
+                    <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>

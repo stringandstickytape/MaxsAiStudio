@@ -246,5 +246,12 @@ namespace AiStudio4.InjectedDependencies
             _defaultSettings.YouTubeApiKey = apiKey ?? string.Empty;
             SaveDefaultSettings(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json"));
         }
+
+        public void UpdateCondaPath(string path)
+        {
+            _defaultSettings ??= new DefaultSettings();
+            _defaultSettings.CondaPath = path ?? string.Empty;
+            SaveDefaultSettings(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "defaultSettings.json"));
+        }
     }
 }

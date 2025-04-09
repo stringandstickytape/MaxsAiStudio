@@ -14,10 +14,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Threading.Tasks;
 using System.Linq;
 using System.IO;
+using System.Diagnostics;
 
 namespace AiStudio4;
 
@@ -189,7 +189,36 @@ public partial class WebViewWindow : Window
             }
         }
     }
+    private void SetCondaPathMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentKey = _settingsService.DefaultSettings?.CondaPath ?? string.Empty;
+        string prompt = "Enter conda path here, eg C:\\Users\\username\\miniconda3\\Scripts\\conda.exe:";
+        string title = "Set conda path";
 
+        var dialog = new WpfInputDialog(title, prompt, currentKey)
+        {
+            Owner = this // Set the owner to center the dialog over the main window
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            string newKey = dialog.ResponseText;
+
+            // Check if the key actually changed
+            if (newKey != currentKey)
+            {
+                try
+                {
+                    _settingsService.UpdateCondaPath(newKey);
+                    MessageBox.Show("Conda path updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Conda path YouTube API Key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+    }
     private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
         string currentKey = _settingsService.DefaultSettings?.YouTubeApiKey ?? string.Empty;
@@ -241,6 +270,88 @@ public partial class WebViewWindow : Window
             Multiselect = false
         };
 
-        // need to add condapath setting, then do what fileattachmentmanager.cs doespi
+        var result = openFileDialog.ShowDialog();
+
+        if(result.Value)
+        {
+            var filename = openFileDialog.FileName;
+
+            var condaActivateScriptPath = _settingsService.DefaultSettings.CondaPath;
+            
+                        // Path to the Miniconda installation
+            string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat");
+
+            if (!File.Exists(condaPath))
+            {
+                MessageBox.Show($"Conda activate script not found at {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
+            }
+
+            // Command to activate the WhisperX environment and run Whisper
+            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{Path.GetDirectoryName(filename)}\" ";
+
+            //if(!string.IsNullOrEmpty(hfToken))
+            //{
+            //    arguments += $"--hf_token {hfToken} --diarize ";
+            //}
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.OutputDataReceived += (sender, e) => Debug.WriteLine(e.Data);
+                process.ErrorDataReceived += (sender, e) => Debug.WriteLine(e.Data);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    var filenameOnly = filename.Split('\\').Last();
+
+                    if (filenameOnly.Contains("."))
+                    {
+                        filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".vtt";
+                    }
+                    else
+                    {
+                        filenameOnly += ".json";
+                    }
+                    var fullFilename = Path.Combine(Path.GetDirectoryName(filename)!, filenameOnly);
+
+                    var json = File.ReadAllText(fullFilename);
+
+                    //List<string> result = new List<string>();
+                    //
+                    //dynamic jsonObj = JObject.Parse(json);
+                    //
+                    //foreach (var segment in jsonObj.segments)
+                    //{
+                    //    double start = segment.start;
+                    //    double end = segment.end;
+                    //    string text = segment.text;
+                    //    string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
+                    //    result.Add(formattedText);
+                    //}
+                    //string output = NewMethod(filename, result);
+
+                    MessageBox.Show(json);
+
+                }
+                else
+                {
+                    MessageBox.Show("Unable to transcribe file.");
+                }
+            }
+        }
     }
 }
