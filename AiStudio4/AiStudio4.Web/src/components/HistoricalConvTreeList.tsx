@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -231,11 +231,12 @@ export const HistoricalConvTreeList = () => {
                     </div>
                 ) : (
                     <ScrollArea className="h-full pr-1">
-                        <div className="px-1">
+                        <div className="px-1" style={{ display: 'block', minWidth: '100%' }}>
                             {filteredConvs.map((conv) => (
                                 <div
                                     key={conv.convGuid}
-                                    className="text-sm text-gray-200 cursor-pointer truncate px-2 py-0.5 hover:bg-gray-800/40 rounded"
+                                    className="text-sm text-gray-200 cursor-pointer px-2 py-0.5 hover:bg-gray-800/40 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
+                                    style={{ display: 'block', wordBreak: 'break-word' }}
                                     onClick={async () => {
                                         if (conv.convGuid) {
                                             const convData = await getConv(conv.convGuid);

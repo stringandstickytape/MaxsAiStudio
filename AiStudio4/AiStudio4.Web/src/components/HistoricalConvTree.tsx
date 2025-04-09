@@ -77,16 +77,17 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
         >
           {hasChildren ? (
             <div 
-              className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer mr-1"
+              className="w-4 h-4 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer mr-1"
               onClick={(e) => toggleNode(node.id, e)}
             >
               {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </div>
           ) : (
-            <MessageCircle size={12} className="w-4 h-4 mr-1 text-gray-500 opacity-70" />
+            <MessageCircle size={12} className="w-4 h-4 flex-shrink-0 mr-1 text-gray-500 opacity-70" />
           )}
           <div
-            className="text-sm text-gray-300 group-hover:text-white cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-full transition-colors duration-150"
+            className="text-sm text-gray-300 group-hover:text-white cursor-pointer overflow-hidden text-ellipsis whitespace-normal break-words flex-grow max-w-[calc(100%-24px)] pr-1 transition-colors duration-150"
+            style={{ display: 'block', wordBreak: 'break-word' }}
             title={node.text}
           >
             {node.text}
@@ -103,4 +104,3 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
 
   return <div className="px-0.5 py-1">{treeData && renderTree(treeData)}</div>;
 };
-
