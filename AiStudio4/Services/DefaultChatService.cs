@@ -24,12 +24,13 @@ namespace AiStudio4.Services
         private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly IToolProcessorService _toolProcessorService;
+        private readonly IWebSocketNotificationService _notificationService;
 
         // Events removed
         // public event EventHandler<string> StreamingTextReceived;
         // public event EventHandler<string> StreamingComplete;
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, ISettingsService settingsService, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService)
+        public DefaultChatService(ILogger<DefaultChatService> logger, ISettingsService settingsService, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -37,6 +38,7 @@ namespace AiStudio4.Services
             _systemPromptService = systemPromptService;
             _mcpService = mcpService;
             _toolProcessorService = toolProcessorService;
+            _notificationService = notificationService;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -125,68 +127,16 @@ namespace AiStudio4.Services
         {
             try
             {
-                _logger.LogInformation("Processing chat request for conv {ConvId}", request.ConvId);
+                _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
                 var model = _settingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
                 var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
-
-                // Wire up streaming events - REMOVED
-                // aiService.StreamingTextReceived += (sender, text) =>
-                // {
-                //     _logger.LogTrace("Received streaming text fragment");
-                //     StreamingTextReceived?.Invoke(this, text);
-                // };
-                // aiService.StreamingComplete += (sender, text) =>
-                // {
-                //     _logger.LogDebug("Streaming complete");
-                //     StreamingComplete?.Invoke(this, text);
-                // };
-
-                // Get the appropriate system prompt
-                string systemPromptContent = "You are a helpful chatbot.";
-
-                if (!string.IsNullOrEmpty(request.SystemPromptContent))
-                {
-                    // Use custom system prompt content provided in the request
-                    systemPromptContent = request.SystemPromptContent;
-                }
-                else if (!string.IsNullOrEmpty(request.SystemPromptId))
-                {
-                    // Use specified system prompt ID
-                    var systemPrompt = await _systemPromptService.GetSystemPromptByIdAsync(request.SystemPromptId);
-                    if (systemPrompt != null)
-                    {
-                        systemPromptContent = systemPrompt.Content;
-                    }
-                }
-                else if (!string.IsNullOrEmpty(request.ConvId))
-                {
-                    // Use conv-specific system prompt
-                    var systemPrompt = await _systemPromptService.GetConvSystemPromptAsync(request.ConvId);
-                    if (systemPrompt != null)
-                    {
-                        systemPromptContent = systemPrompt.Content;
-                    }
-                }
-
-                systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _settingsService.CurrentSettings.ProjectPath);
-
-                if (systemPromptContent.Contains("ProjectDirectoryTree"))
-                {
-                    var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _settingsService.CurrentSettings.ProjectPath, _settingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
-                    systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
-
-                        _settingsService.CurrentSettings.ProjectPath);
-                }
-
-
-
-
+                string systemPromptContent = await GetSystemPrompt(request);
 
                 const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
-                
+
 
                 int currentIteration = 0;
                 bool continueLoop = true;
@@ -194,38 +144,7 @@ namespace AiStudio4.Services
                 AiStudio4.Core.Models.TokenCost accumulatedCostInfo = null;
                 List<Attachment> finalAttachments = new List<Attachment>(); // Initialize here
 
-                // Prepare initial conversation state
-                var conv = new LinearConv(DateTime.Now)
-                {
-                    systemprompt = systemPromptContent,
-                    messages = new List<LinearConvMessage>()
-                };
 
-                // Add all messages from history first
-                foreach (var historyItem in request.MessageHistory.Where(x => x.Role != "system"))
-                {
-                    var message = new LinearConvMessage
-                    {
-                        role = historyItem.Role,
-                        content = historyItem.Content,
-                        attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
-                        // Assuming LinearConvMessage doesn't explicitly store tool calls/results from history
-                        // If it does, map historyItem.ToolCalls and historyItem.ToolResults here
-                    };
-                    conv.messages.Add(message);
-                }
-
-                // Add the latest user message (the trigger for this request)
-                var lastUserMessage = request.MessageHistory.LastOrDefault(m => m.Role == "user");
-                if (lastUserMessage != null && !conv.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) // Avoid duplicates if history includes the trigger
-                {
-                    conv.messages.Add(new LinearConvMessage
-                    {
-                        role = "user",
-                        content = lastUserMessage.Content,
-                        attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
-                    });
-                }
 
                 StringBuilder collatedResponse = new StringBuilder();
 
@@ -233,9 +152,52 @@ namespace AiStudio4.Services
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
                     currentIteration++;
+
+                    // Prepare initial conversation state
+                    var linearConversation = new LinearConv(DateTime.Now)
+                    {
+                        systemprompt = systemPromptContent,
+                        messages = new List<LinearConvMessage>()
+                    };
+
+                    var messageHistory = request.BranchedConv.GetMessageHistory(request.MessageId)
+                        .Select(msg => new MessageHistoryItem
+                        {
+                            Role = msg.Role.ToString().ToLower(),
+                            Content = msg.UserMessage,
+                            Attachments = msg.Attachments
+                        }).ToList();
+
+
+                    // Add all messages from history first
+                    foreach (var historyItem in messageHistory.Where(x => x.Role != "system"))
+                    {
+                        var message = new LinearConvMessage
+                        {
+                            role = historyItem.Role,
+                            content = historyItem.Content,
+                            attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
+                            // Assuming LinearConvMessage doesn't explicitly store tool calls/results from history
+                            // If it does, map historyItem.ToolCalls and historyItem.ToolResults here
+                        };
+                        linearConversation.messages.Add(message);
+                    }
+
+                    // Add the latest user message (the trigger for this request)
+                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
+                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) // Avoid duplicates if history includes the trigger
+                    {
+                        linearConversation.messages.Add(new LinearConvMessage
+                        {
+                            role = "user",
+                            content = lastUserMessage.Content,
+                            attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
+                        });
+                    }
+
                     _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
 
-                    if(request.ToolIds.Any())
+                    if (request.ToolIds.Any())
                     {
                         var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
                         if (!request.ToolIds.Contains(stopTool))
@@ -246,14 +208,14 @@ namespace AiStudio4.Services
                     {
                         ServiceProvider = service,
                         Model = model,
-                        Conv = conv, // Use the current state of the conversation
+                        Conv = linearConversation, // Use the current state of the conversation
                         CancellationToken = request.CancellationToken,
                         ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
                         UseStreaming = true, // Optional: Only stream the first response
                                              // CustomSystemPrompt is already in conv.systemprompt
-                        // Pass callbacks from the original request
+                                             // Pass callbacks from the original request
                         OnStreamingUpdate = request.OnStreamingUpdate,
                         OnStreamingComplete = request.OnStreamingComplete
                     };
@@ -273,21 +235,40 @@ namespace AiStudio4.Services
                     }
 
                     // Add assistant message to conversation history
-                    var assistantMessage = new LinearConvMessage
+                    //var assistantMessage = new LinearConvMessage
+                    //{
+                    //    role = "assistant",
+                    //    content = response.ResponseText,
+                    //    // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
+                    //    // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
+                    //};
+                    //linearConversation.messages.Add(assistantMessage);
+
+                    var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
+
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {
-                        role = "assistant",
-                        content = response.ResponseText,
-                        // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
-                        // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
-                    };
-                    conv.messages.Add(assistantMessage);
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = newAssistantMessageId,
+                        Content = response.ResponseText,
+                        ParentId = request.MessageId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "assistant",
+                        Attachments = response.Attachments,
+                        DurationMs = 0 
+                    });
+
+
+                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        userMessage: response.ResponseText, parentMessageId: request.MessageId, attachments: response.Attachments);
+
 
                     accumulatedCostInfo = new TokenCost();
 
-                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, conv, collatedResponse, request.CancellationToken);
+                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
                     continueLoop = toolResult.ContinueProcessing;
 
-                    if(request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
+                    if (request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
                     {
                         continueLoop = false;
                     }
@@ -301,8 +282,24 @@ namespace AiStudio4.Services
                     // If the loop should continue, add a user message to prompt the next step
                     if (continueLoop && currentIteration < MAX_ITERATIONS)
                     {
-                        _logger.LogDebug("Adding 'Continue' message for next iteration.");
-                        conv.messages.Add(new LinearConvMessage { role = "user", content = "Continue" });
+                        var newUserMessageId = $"msg_{Guid.NewGuid()}";
+                        
+                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
+                            userMessage: collatedResponse.ToString(), parentMessageId: newAssistantMessageId, attachments: response.Attachments);
+                        request.MessageId = newUserMessageId;
+
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = newUserMessageId,
+                            Content = collatedResponse.ToString(),
+                            ParentId = newAssistantMessageId,
+                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                            Source = "user",
+                            Attachments = response.Attachments,
+                            DurationMs = 0 
+                        });
+
                     }
                     else if (currentIteration >= MAX_ITERATIONS)
                     {
@@ -331,6 +328,47 @@ namespace AiStudio4.Services
             }
         }
 
+        private async Task<string> GetSystemPrompt(ChatRequest request)
+        {
+            // Get the appropriate system prompt
+            string systemPromptContent = "You are a helpful chatbot.";
+
+            if (!string.IsNullOrEmpty(request.SystemPromptContent))
+            {
+                // Use custom system prompt content provided in the request
+                systemPromptContent = request.SystemPromptContent;
+            }
+            else if (!string.IsNullOrEmpty(request.SystemPromptId))
+            {
+                // Use specified system prompt ID
+                var systemPrompt = await _systemPromptService.GetSystemPromptByIdAsync(request.SystemPromptId);
+                if (systemPrompt != null)
+                {
+                    systemPromptContent = systemPrompt.Content;
+                }
+            }
+            else if (request.BranchedConv != null)
+            {
+                // Use conv-specific system prompt
+                var systemPrompt = await _systemPromptService.GetConvSystemPromptAsync(request.BranchedConv.ConvId);
+                if (systemPrompt != null)
+                {
+                    systemPromptContent = systemPrompt.Content;
+                }
+            }
+
+            systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _settingsService.CurrentSettings.ProjectPath);
+
+            if (systemPromptContent.Contains("ProjectDirectoryTree"))
+            {
+                var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _settingsService.CurrentSettings.ProjectPath, _settingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
+                systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
+
+                    _settingsService.CurrentSettings.ProjectPath);
+            }
+
+            return systemPromptContent;
+        }
     }
 
     public class CustomJsonParser
