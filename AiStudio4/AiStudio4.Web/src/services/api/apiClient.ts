@@ -1,5 +1,4 @@
-
-import axios from 'axios';
+﻿import axios from 'axios';
 import { create } from 'zustand';
 import { webSocketService } from '../websocket/WebSocketService';
 
@@ -47,6 +46,16 @@ export async function updateMessage(params: { convId: string; messageId: string;
     return response.data;
   } catch (error) {
     console.error('Error updating message:', error);
+    throw error;
+  }
+}
+
+export async function deleteMessageWithDescendants(params: { convId: string; messageId: string }) {
+  try {
+    const response = await apiClient.post('/api/deleteMessageWithDescendants', params);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting message with descendants:', error);
     throw error;
   }
 }

@@ -1,4 +1,4 @@
-using AiStudio4.Services;
+﻿using AiStudio4.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -72,6 +72,19 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in HandleGetAllHistoricalConvTreesRequest");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
+
+        internal async Task<string> HandleDeleteMessageWithDescendantsRequest(string clientId, JObject? requestObject)
+        {
+            try
+            {
+                return await _convService.HandleDeleteMessageWithDescendantsRequest(clientId, requestObject);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in HandleDeleteMessageWithDescendantsRequest");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }

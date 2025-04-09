@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { ChevronRight, ChevronDown, MessageCircle } from 'lucide-react';
 

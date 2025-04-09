@@ -1,4 +1,4 @@
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Text;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
 using Microsoft.Extensions.Logging;

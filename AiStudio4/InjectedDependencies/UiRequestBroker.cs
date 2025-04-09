@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -83,6 +83,7 @@ namespace AiStudio4.InjectedDependencies
                     "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
+                    "deleteMessageWithDescendants" => await _chatManager.HandleDeleteMessageWithDescendantsRequest(clientId, requestObject),
                     "chat" => await _chatManager.HandleChatRequest(clientId, requestObject),
                     "getTools" => await HandleGetToolsRequest(),
                     "getTool" => await HandleGetToolRequest(requestObject),
@@ -942,9 +943,9 @@ namespace AiStudio4.InjectedDependencies
             try
             {
                 var server = requestObject.ToObject<McpServerDefinition>();
-                if (server == null || string.IsNullOrEmpty(server.Id)) 
+                if (server == null || string.IsNullOrEmpty(server.Id))
                     return SerializeError("Invalid MCP server data or missing server ID");
-                
+
                 await _mcpService.InitializeAsync(); // Ensure service is initialized
                 var result = await _mcpService.UpdateServerDefinitionAsync(server);
                 return JsonConvert.SerializeObject(new { success = true, server = result });
@@ -961,7 +962,7 @@ namespace AiStudio4.InjectedDependencies
             {
                 string serverId = requestObject["serverId"]?.ToString();
                 if (string.IsNullOrEmpty(serverId)) return SerializeError("Server ID cannot be empty");
-                
+
                 await _mcpService.InitializeAsync(); // Ensure service is initialized
                 var success = await _mcpService.DeleteServerDefinitionAsync(serverId);
                 return JsonConvert.SerializeObject(new { success });
@@ -978,7 +979,7 @@ namespace AiStudio4.InjectedDependencies
             {
                 string serverId = requestObject["serverId"]?.ToString();
                 if (string.IsNullOrEmpty(serverId)) return SerializeError("Server ID cannot be empty");
-                
+
                 await _mcpService.InitializeAsync(); // Ensure service is initialized
                 var tools = await _mcpService.ListToolsAsync(serverId);
                 return JsonConvert.SerializeObject(new { success = true, tools });

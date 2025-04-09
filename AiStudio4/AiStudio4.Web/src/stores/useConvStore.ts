@@ -248,10 +248,34 @@ export const useConvStore = create<ConvState>((set, get) => {
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) return s;
-                const msgs = conv.messages.filter(m => m.id !== messageId);
+                
+                // Find all descendant message IDs including the message itself
+                const toDelete = new Set<string>();
+                
+                // Helper function to recursively find all descendants
+                const findDescendants = (id: string) => {
+                    toDelete.add(id);
+                    // Find all messages that have this message as parent
+                    const children = conv.messages.filter(m => m.parentId === id);
+                    // Recursively process each child
+                    children.forEach(child => findDescendants(child.id));
+                };
+                
+                // Start the recursive search
+                findDescendants(messageId);
+                
+                // Filter out all messages marked for deletion
+                const msgs = conv.messages.filter(m => !toDelete.has(m.id));
+                
+                // Update selected message ID if needed
+                let newSelectedMsgId = s.slctdMsgId;
+                if (toDelete.has(s.slctdMsgId || '')) {
+                    newSelectedMsgId = msgs.length ? msgs[msgs.length - 1].id : null;
+                }
+                
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: msgs } },
-                    slctdMsgId: s.slctdMsgId === messageId ? (msgs.length ? msgs[msgs.length - 1].id : null) : s.slctdMsgId,
+                    slctdMsgId: newSelectedMsgId,
                 };
             }),
 

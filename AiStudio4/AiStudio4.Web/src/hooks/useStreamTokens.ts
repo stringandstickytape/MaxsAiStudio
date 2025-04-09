@@ -50,7 +50,7 @@ console.log('resetstreamtokensandinput');
         // Clear the input bar
         if (window.setPrompt) {
 console.log('set window prompt');
-            window.setPrompt('123');
+            window.setPrompt('');
         }
         
         // Reset the stream tokens

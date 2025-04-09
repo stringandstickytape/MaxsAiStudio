@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -67,6 +67,63 @@ namespace AiStudio4.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling historical conv tree request");
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+            }
+        }
+
+        public async Task<string> HandleDeleteMessageWithDescendantsRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                var convId = requestObject["convId"].ToString();
+                var messageId = requestObject["messageId"].ToString();
+                
+                var conv = await _convStorage.LoadConv(convId);
+                
+                if (conv == null)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, error = "Conversation not found" });
+                }
+                
+                // Get all messages to find descendants
+                var allMessages = conv.GetAllMessages().ToList();
+                var toDelete = new HashSet<string>();
+                
+                // Helper function to recursively find all descendants
+                void FindDescendants(string id)
+                {
+                    toDelete.Add(id);
+                    var children = allMessages.Where(m => m.ParentId == id).ToList();
+                    foreach (var child in children)
+                    {
+                        FindDescendants(child.Id);
+                    }
+                }
+                
+                // Start the recursive search
+                FindDescendants(messageId);
+                
+                // Remove all messages marked for deletion
+                var messagesToKeep = allMessages.Where(m => !toDelete.Contains(m.Id)).ToList();
+                
+                // Update the conversation (this depends on your data structure)
+                conv.Messages = messagesToKeep;
+                
+                // Save the updated conversation
+                await _convStorage.SaveConv(conv);
+                
+                // Notify client of success
+                await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
+                {
+                    MessageId = messageId,
+                    Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
+                });
+                
+                return JsonConvert.SerializeObject(new { success = true, deletedCount = toDelete.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling delete message with descendants request");
                 return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
             }
         }
