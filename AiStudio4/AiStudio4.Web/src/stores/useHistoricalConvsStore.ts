@@ -41,7 +41,8 @@ interface HistoricalConvsStore {
 export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) => {
   
   typeof window !== 'undefined' && 
-    listenToWebSocketEvent('historical:update', (detail) => {
+      listenToWebSocketEvent('historical:update', (detail) => {
+          console.log('historical:update listener: summary = ' + detail.content.summary ?? detail.content.content ?? 'Untitled Conv');
       const content = detail.content;
       content && get().addOrUpdateConv({
         convGuid: content.convId ?? content.convGuid,
@@ -147,7 +148,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
       }
     },
 
-    addOrUpdateConv: (conv) => {
+      addOrUpdateConv: (conv) => {
+          console.log('addOrUpdateConv: ', conv);
       set((state) => {
         const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
         return exists ? { convs: state.convs } : { convs: [conv, ...state.convs] };

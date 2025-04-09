@@ -207,6 +207,7 @@ export class WebSocketService {
                     content: message.content,
                 });
             } else if (message.messageType === 'historicalConvTree') {
+                console.log('historical:update');
                 dispatchWebSocketEvent('historical:update', {
                     type: 'tree',
                     content: message.content,
