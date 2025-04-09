@@ -75,24 +75,24 @@ export const useConvStore = create<ConvState>((set, get) => {
                 
                 // Special handling for AI messages: ensure they're selected in the UI
                 if (isAiMessage) {
-                    // Force-selection strategy for AI messages:
                     // 1. Directly update the store state to select this message
                     set(state => ({
                         ...state,
                         slctdMsgId: content.id
                     }));
-                    
+
+                    // don't think we need these:
                     // 2. Use a small delay to ensure selection persists even if other operations
                     // might interfere with state updates
-                    setTimeout(() => {
-                        set(state => ({
-                            ...state,
-                            slctdMsgId: content.id
-                        }));
-                    }, 10);
+                    //setTimeout(() => {
+                    //    set(state => ({
+                    //        ...state,
+                    //        slctdMsgId: content.id
+                    //    }));
+                    //}, 10);
                     
                     // 3. Also update via the standard setActiveConv method for completeness
-                    setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
+                    //setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
                 }
                 
             } else {
