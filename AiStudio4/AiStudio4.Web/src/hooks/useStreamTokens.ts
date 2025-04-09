@@ -71,7 +71,7 @@ export function useStreamTokens() {
     
     useEffect(() => {
         const handleStreamEnd = () => {
-            
+            reset();
             setIsStreaming(false);
         };
         
