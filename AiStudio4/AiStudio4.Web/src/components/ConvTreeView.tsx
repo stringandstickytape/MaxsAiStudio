@@ -1,5 +1,4 @@
-
-// AiStudio4.Web\src\components\ConvTreeView.tsx
+﻿// AiStudio4.Web\src\components\ConvTreeView.tsx
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { cn } from '@/lib/utils';
@@ -398,7 +397,11 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         style={{  height: '100%' }}
       >
         <svg ref={svgRef} className="w-full h-full bg-[#111827]" key={`tree-${convId}-${updateKey}`}  />
-
+        
+        {/* Info tooltip about middle-click functionality */}
+        <div className="absolute top-2 left-2 text-xs text-gray-400 bg-gray-800/70 px-2 py-1 rounded-md backdrop-blur-sm">
+          <span>Middle-click to delete</span>
+        </div>
         
               <div className="absolute bottom-4 right-4 flex flex-col gap-2">
                   <button
