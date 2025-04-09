@@ -104,11 +104,12 @@ namespace AiStudio4.Services
                             });
                         }
                     }
-                    
+
+                    v4BranchedConv? conv = await _convStorage.LoadConv((string)requestObject["convId"]);
+
                     var chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
-                        ConvId = (string)requestObject["convId"],
                         MessageId = (string)requestObject["newMessageId"],
                         ParentMessageId = (string)requestObject["parentMessageId"],
                         Message = message,
@@ -118,11 +119,12 @@ namespace AiStudio4.Services
                         SystemPromptContent = (string)requestObject["systemPromptContent"],
                         CancellationToken = cancellationToken,
                         OnStreamingUpdate = streamingUpdateCallback, // Pass the callback
-                        OnStreamingComplete = streamingCompleteCallback // Pass the callback
+                        OnStreamingComplete = streamingCompleteCallback, // Pass the callback
+                        BranchedConv = conv
                     };
-                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
 
-                    var conv = await _convStorage.LoadConv(chatRequest.ConvId);
+                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
+                    
                     // Check if this is the first non-system message in the conversation
                     bool isFirstMessageInConv = conv.Messages.Count <= 1 ||
                         (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
@@ -139,7 +141,7 @@ namespace AiStudio4.Services
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
                     {
                         conv.SystemPromptId = chatRequest.SystemPromptId;
-                        await _systemPromptService.SetConvSystemPromptAsync(chatRequest.ConvId, chatRequest.SystemPromptId);
+                        await _systemPromptService.SetConvSystemPromptAsync(chatRequest.BranchedConv.ConvId, chatRequest.SystemPromptId);
                     }
 
                     await _convStorage.SaveConv(conv);
@@ -168,16 +170,11 @@ namespace AiStudio4.Services
                         FlatMessageStructure = messagesForClient
                     });
 
-                    // Get message history using the method on the conversation object
-                    var messageHistory = conv.GetMessageHistory(chatRequest.MessageId);
-                    chatRequest.MessageHistory = messageHistory.Select(msg => new MessageHistoryItem
-                    {
-                        Role = msg.Role.ToString().ToLower(),
-                        Content = msg.UserMessage,
-                        Attachments = msg.Attachments
-                    }).ToList();
+
+                    chatRequest.BranchedConv = conv;
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
+
                     var newId = $"msg_{Guid.NewGuid()}";
                     var newAiReply = conv.AddNewMessage(v4BranchedConvMessageRole.Assistant, newId, response.ResponseText, chatRequest.MessageId);
 

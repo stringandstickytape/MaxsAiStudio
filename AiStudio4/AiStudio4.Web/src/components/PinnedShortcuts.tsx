@@ -44,6 +44,30 @@ const getIconForCommand = (commandId: string, iconName?: string) => {
            <Command {...iconProps} />;
 }
 
+const getCategoryBorderColor = (section?: string) => {
+        switch(section) {
+            case 'conv': return 'border-blue-500/70';
+            case 'model': return 'border-purple-500/70';
+            case 'view': return 'border-green-500/70';
+            case 'settings': return 'border-yellow-500/70';
+            case 'utility': return 'border-orange-500/70';
+            case 'appearance': return 'border-pink-500/70';
+            default: return 'border-gray-700/40';
+        }
+    };
+    
+    const getCategoryBackgroundColor = (section?: string) => {
+        switch(section) {
+            case 'conv': return 'bg-blue-900/20';
+            case 'model': return 'bg-purple-900/20';
+            case 'view': return 'bg-green-900/20';
+            case 'settings': return 'bg-yellow-900/20';
+            case 'utility': return 'bg-orange-900/20';
+            case 'appearance': return 'bg-pink-900/20';
+            default: return 'bg-gray-800/60';
+        }
+    };
+
 export function PinnedShortcuts({
     orientation = 'horizontal',
     maxShown = 10,
@@ -319,7 +343,7 @@ export function PinnedShortcuts({
                                                                                 e.preventDefault();
                                                                                 handlePinCommand(command.id, true);
                                                                             }}
-                                                                            className="h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
+                                                                            className={`h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 border ${getCategoryBorderColor(command.section)} text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative`}
                                                                         >
                                                                             <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                                 {command.name}
@@ -328,7 +352,10 @@ export function PinnedShortcuts({
                                                                     </TooltipTrigger>
                                                                     <TooltipContent side="bottom">
                                                                         <p>{command.name}</p>
-                                                                        <p className="text-small-gray-400">
+                                                                        <p className="text-xs text-gray-400">
+                                                                            Category: {command.section || 'Unknown'}
+                                                                        </p>
+                                                                        <p className="text-xs text-gray-400">
                                                                             Drag handle above button to reorder · Right-click to unpin
                                                                         </p>
                                                                     </TooltipContent>
@@ -385,7 +412,7 @@ export function PinnedShortcuts({
                                                                     e.preventDefault();
                                                                     handlePinCommand(command.id, true);
                                                                 }}
-                                                                className="h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative"
+                                                                className={`h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 border ${getCategoryBorderColor(command.section)} text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative`}
                                                             >
                                                                 <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
                                                                     {command.name}
@@ -394,7 +421,10 @@ export function PinnedShortcuts({
                                                         </TooltipTrigger>
                                                         <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
                                                             <p>{command.name}</p>
-                                                            <p className="text-small-gray-400">
+                                                            <p className="text-xs text-gray-400">
+                                                                Category: {command.section || 'Unknown'}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400">
                                                                 Drag handle above button to reorder · Right-click to unpin
                                                             </p>
                                                         </TooltipContent>
