@@ -81,6 +81,17 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     // Get necessary state and actions from stores
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
+    
+    // Debug selected message ID changes
+    useEffect(() => {
+        console.debug('🔍 ConvView - Selected message changed:', { 
+            activeConvId, 
+            slctdMsgId,
+            hasConv: activeConvId ? Boolean(convs[activeConvId]) : false,
+            msgCount: activeConvId && convs[activeConvId] ? convs[activeConvId].messages.length : 0
+        });
+    }, [activeConvId, slctdMsgId, convs]);
+    
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
 

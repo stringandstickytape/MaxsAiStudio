@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -26,18 +26,27 @@ interface ConvState {
 
 
 export const useConvStore = create<ConvState>((set, get) => {
+    console.log('useConvStore');
     if (typeof window !== 'undefined') {
         listenToWebSocketEvent('conv:new', ({ content }) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
-
+            
+            console.log('event');
+            console.log('event2');
+            console.log('event3');
+            console.log('WebSocket conv:new event received:', { content, activeConvId, currentSlctdMsgId: slctdMsgId });
+            
             if (activeConvId) {
                 const conv = getConv(activeConvId);
                 let parentId = content.parentId;
 
                 if (!parentId && content.source === 'user') parentId = slctdMsgId;
 
-                if (!parentId && conv?.messages.length > 0 && content.source === 'ai') {
+                // Check for both 'ai' and 'assistant' sources
+                const isAiMessage = content.source === 'ai' || content.source === 'assistant';
+                
+                if (!parentId && conv?.messages.length > 0 && isAiMessage) {
                     const userMsgs = conv.messages
                         .filter(m => m.source === 'user')
                         .sort((a, b) => b.timestamp - a.timestamp);
@@ -49,7 +58,18 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
+                
+                // Always select AI messages when they arrive
+                // Check for both 'ai' and 'assistant' sources
+                const newSelectedMsgId = isAiMessage ? content.id : undefined;
+                console.log('Adding message via WebSocket with selection:', { 
+                    messageId: content.id, 
+                    source: content.source, 
+                    newSelectedMsgId: newSelectedMsgId,
+                    isAiMessage: isAiMessage
+                });
 
+                // First add the message to the conversation
                 addMessage({
                     convId: activeConvId,
                     message: {
@@ -62,8 +82,36 @@ export const useConvStore = create<ConvState>((set, get) => {
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
-                    slctdMsgId: content.source === 'ai' ? content.id : undefined,
+                    slctdMsgId: isAiMessage ? content.id : undefined, // Explicitly pass message ID for AI messages
                 });
+                
+                // For AI messages, explicitly set active conversation with this message selected
+                if (isAiMessage) {
+                    console.log('IMPORTANT - Setting active conversation with AI message selected:', { convId: activeConvId, msgId: content.id });
+                    
+                    // Force update the store directly with the new selected message ID for AI messages
+                    set(state => {
+                        console.log('⚡ FORCE-SELECTING AI MESSAGE ID:', content.id);
+                        return {
+                            ...state,
+                            slctdMsgId: content.id
+                        };
+                    });
+                    
+                    // Force update the state again after a small delay to ensure it sticks
+                    setTimeout(() => {
+                        set(state => {
+                            console.log('⚡ DELAYED FORCE-SELECTING AI MESSAGE ID:', content.id);
+                            return {
+                                ...state,
+                                slctdMsgId: content.id
+                            };
+                        });
+                    }, 10);
+                    
+                    // Also call setActiveConv to ensure everything is updated
+                    setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
+                }
                 
             } else {
                 const convId = `conv_${Date.now()}`;
@@ -152,7 +200,10 @@ export const useConvStore = create<ConvState>((set, get) => {
         addMessage: ({ convId, message, slctdMsgId }) =>
             set(s => {
                 const conv = s.convs[convId];
-                if (!conv) return s;
+                if (!conv) {
+                    console.log('⚠️ addMessage: Conversation not found', { convId, messageId: message.id });
+                    return s;
+                }
                 
                 // Create message with all properties explicitly copied
                 const updMsg = { 
@@ -167,19 +218,41 @@ export const useConvStore = create<ConvState>((set, get) => {
                     attachments: message.attachments
                 };
                 
-                // Log message creation
+                const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
+                console.log('📩 addMessage:', { 
+                    convId,
+                    messageId: message.id, 
+                    source: message.source,
+                    oldSelectedMsgId: s.slctdMsgId,
+                    newProvidedMsgId: slctdMsgId,
+                    newSelectedMsgId: newSelectedMsgId
+                });
                 
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: [...conv.messages, updMsg] } },
-                    slctdMsgId: slctdMsgId ?? s.slctdMsgId,
+                    slctdMsgId: newSelectedMsgId,
                 };
             }),
 
-        setActiveConv: ({ convId, slctdMsgId }) =>
-            set(s => !s.convs[convId] ? s : {
-                activeConvId: convId,
-                slctdMsgId: slctdMsgId ?? s.slctdMsgId,
-            }),
+        setActiveConv: ({ convId, slctdMsgId }) => {
+            console.log('🔄 setActiveConv called:', { convId, providedMsgId: slctdMsgId });
+            return set(s => {
+                if (!s.convs[convId]) {
+                    console.log('⚠️ setActiveConv: Conversation not found', { convId });
+                    return s;
+                }
+                const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
+                console.log('✅ setActiveConv setting:', { 
+                    convId, 
+                    oldSelectedMsgId: s.slctdMsgId, 
+                    newSelectedMsgId: newSelectedMsgId 
+                });
+                return {
+                    activeConvId: convId,
+                    slctdMsgId: newSelectedMsgId,
+                };
+            });
+        },
 
         getConv: convId => get().convs[convId],
 

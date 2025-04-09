@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+﻿import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
@@ -61,10 +61,17 @@ export function useChatManagement() {
 
     const sendMessage = useCallback(
         async (params: SendMessageParams) => {
+            console.debug('🚀 Sending message via API:', { 
+                convId: params.convId, 
+                hasParentId: Boolean(params.parentMessageId),
+                model: params.model,
+                hasAttachments: params.attachments ? params.attachments.length : 0
+            });
+            
             return executeApiCall(async () => {
                 
                 const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
-
+                console.debug('📩 Generated newMessageId for API call:', newMessageId);
                 
                 let requestParams = { ...params };
 
@@ -83,13 +90,18 @@ export function useChatManagement() {
                     newMessageId,
                 });
 
+                console.debug('✅ Message sent successfully via API:', { 
+                    messageId: data.messageId,
+                    convId: params.convId
+                });
+                
                 return {
                     messageId: data.messageId,
                     success: true,
                 };
             });
         },
-        [executeApiCall, addMessage],
+        [executeApiCall], // Removed addMessage as it's not used - messages are added via WebSocket events
     );
 
 
