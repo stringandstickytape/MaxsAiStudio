@@ -550,10 +550,10 @@ namespace AiStudio4.AiServices
             return new StreamProcessingResult
             {
                 ResponseText = responseBuilder.ToString(),
-                InputTokens = inputTokens,
-                OutputTokens = outputTokens,
-                CacheCreationInputTokens = cacheCreationInputTokens,
-                CacheReadInputTokens = cacheReadInputTokens
+                InputTokens = this.inputTokens,
+                OutputTokens = this.outputTokens,
+                CacheCreationInputTokens = this.cacheCreationInputTokens,
+                CacheReadInputTokens = this.cacheReadInputTokens
             };
         }
 

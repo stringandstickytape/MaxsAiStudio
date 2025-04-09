@@ -245,7 +245,7 @@ namespace AiStudio4.Services
                     //linearConversation.messages.Add(assistantMessage);
 
                     var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
-
+                    
                     await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {
                         ConvId = request.BranchedConv.ConvId,
@@ -255,15 +255,13 @@ namespace AiStudio4.Services
                         Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                         Source = "assistant",
                         Attachments = response.Attachments,
-                        DurationMs = 0 
+                        DurationMs = 0 ,
+                        CostInfo = new TokenCost(response.TokenUsage, model),
+                        TokenUsage = response.TokenUsage
                     });
-
 
                     request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                         userMessage: response.ResponseText, parentMessageId: request.MessageId, attachments: response.Attachments);
-
-
-                    accumulatedCostInfo = new TokenCost();
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
                     continueLoop = toolResult.ContinueProcessing;
@@ -315,10 +313,6 @@ namespace AiStudio4.Services
                 return new ChatResponse
                 {
                     Success = true,
-                    // Return the text from the *last* assistant response in the loop
-                    ResponseText = response?.ResponseText,
-                    CostInfo = accumulatedCostInfo, // Return the accumulated cost
-                    Attachments = finalAttachments // Return the latest attachments
                 };
             }
             catch (Exception ex)
