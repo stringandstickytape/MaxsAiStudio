@@ -1,5 +1,4 @@
-
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { apiClient } from '@/services/api/apiClient';
 import { webSocketService } from '@/services/websocket/WebSocketService';
@@ -152,7 +151,17 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           console.log('addOrUpdateConv: ', conv);
       set((state) => {
         const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
-        return exists ? { convs: state.convs } : { convs: [conv, ...state.convs] };
+        
+        if (exists) {
+          // Update the existing conversation instead of ignoring the changes
+          const updatedConvs = state.convs.map((c) => 
+            c.convGuid === conv.convGuid ? { ...c, ...conv } : c
+          );
+          return { convs: updatedConvs };
+        } else {
+          // Add new conversation to the beginning of the array
+          return { convs: [conv, ...state.convs] };
+        }
       });
     },
 
