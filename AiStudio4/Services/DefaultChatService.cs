@@ -106,7 +106,7 @@ namespace AiStudio4.Services
                 return new SimpleChatResponse
                 {
                     Success = response.Success,
-                    Response = response.ResponseText,
+                    ResponseText = response.ResponseText,
                     Error = response.Success ? null : "Failed to process chat request",
                     ProcessingTime = DateTime.UtcNow - startTime
                 };
@@ -303,17 +303,20 @@ namespace AiStudio4.Services
                     {
                         _logger.LogWarning("Maximum tool iteration limit ({MaxIterations}) reached.", MAX_ITERATIONS);
                         continueLoop = false; // Ensure loop terminates
+
+ 
                     }
 
                 } // --- End of Tool Use Loop ---
 
-
-
-                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
                 return new ChatResponse
                 {
                     Success = true,
+                    ResponseText = response.ResponseText
                 };
+
+                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
+
             }
             catch (Exception ex)
             {
