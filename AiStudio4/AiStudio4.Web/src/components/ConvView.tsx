@@ -90,6 +90,22 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             hasConv: activeConvId ? Boolean(convs[activeConvId]) : false,
             msgCount: activeConvId && convs[activeConvId] ? convs[activeConvId].messages.length : 0
         });
+        
+        // Debug message costInfo for AI messages
+        if (activeConvId && convs[activeConvId]) {
+            const messages = convs[activeConvId].messages;
+            const aiMessages = messages.filter(msg => msg.source === 'ai');
+            
+            console.log('🔍 ConvView - AI Messages CostInfo Debug:');
+            aiMessages.forEach((msg, idx) => {
+                console.log(`AI Message ${idx+1}/${aiMessages.length} (${msg.id}):`, {
+                    hasCostInfo: !!msg.costInfo,
+                    modelGuid: msg.costInfo?.modelGuid,
+                    tokenUsage: msg.costInfo?.tokenUsage ? `${msg.costInfo.tokenUsage.inputTokens} in / ${msg.costInfo.tokenUsage.outputTokens} out` : 'N/A',
+                    content: msg.content.substring(0, 30) + '...',
+                });
+            });
+        }
     }, [activeConvId, slctdMsgId, convs]);
     
     const [editContent, setEditContent] = useState<string>('');

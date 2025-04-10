@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AiStudio4.Core.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +28,7 @@ namespace AiStudio4.InjectedDependencies
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
 
-        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId, List<DataModels.Attachment> attachments = null)
+        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId, List<DataModels.Attachment> attachments = null, TokenCost costInfo = null)
         {
             var newMessage = new v4BranchedConvMessage
             {
@@ -36,6 +37,7 @@ namespace AiStudio4.InjectedDependencies
                 Id = newMessageId,
                 ParentId = parentMessageId,
                 Attachments = attachments ?? new List<DataModels.Attachment>(),
+                CostInfo = costInfo
             };
 
             // If no messages exist, create a system message as the root

@@ -390,6 +390,15 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .style('text-overflow', 'ellipsis')
       .style('white-space', 'nowrap')
       .html((d) => {
+        // Debug: Log the node data to inspect costInfo
+        console.log('📊 ConvTreeView Node Data:', {
+          id: d.data.id,
+          source: d.data.source,
+          hasCostInfo: !!d.data.costInfo,
+          modelGuid: d.data.costInfo?.modelGuid,
+          timestamp: d.data.timestamp
+        });
+        
         // Format timestamp
         let timeInfo = '';
         if (d.data.timestamp) {
@@ -407,6 +416,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
           const modelGuid = d.data.costInfo?.modelGuid;
           // Get just the model name without the 'Model:' prefix
           modelInfo = getModelFriendlyName(modelGuid);
+          console.log(`📊 Model info for node ${d.data.id}:`, {
+            modelGuid,
+            resolvedName: modelInfo
+          });
         }
         
         const formatCaption = (text: string) => {
@@ -420,15 +433,16 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
           modelInfo.substring(0, (containerWidth < 400 ? 10 : 15)) + '...' : 
           modelInfo;
         
-        if (modelInfo && timeInfo) {
-          // Use a styled span for model info to make it stand out
-          return `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span> · ${timeInfo}`;
-        } else if (modelInfo) {
-          return `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>`;
-        } else if (timeInfo) {
-          return formatCaption(timeInfo);
-        }
-        return '';
+        // Debug the final caption content
+        const caption = modelInfo && timeInfo ? 
+          `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span> · ${timeInfo}` :
+          modelInfo ? 
+            `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>` :
+            timeInfo ? formatCaption(timeInfo) : '';
+        
+        console.log(`📊 Caption for node ${d.data.id}:`, caption);
+        
+        return caption;
       });
 
     return () => {

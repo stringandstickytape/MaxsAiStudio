@@ -146,11 +146,12 @@ namespace AiStudio4.Services
 
 
 
-                StringBuilder collatedResponse = new StringBuilder();
+                
 
                 // --- Tool Use Loop ---
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
+                    StringBuilder collatedResponse = new StringBuilder();
                     currentIteration++;
 
                     // Prepare initial conversation state
@@ -261,7 +262,8 @@ namespace AiStudio4.Services
                     });
 
                     request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-                        userMessage: response.ResponseText, parentMessageId: request.MessageId, attachments: response.Attachments);
+                        userMessage: response.ResponseText, parentMessageId: request.MessageId, 
+                        attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
                     continueLoop = toolResult.ContinueProcessing;
