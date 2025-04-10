@@ -90,7 +90,7 @@ namespace AiStudio4.AiServices
                 // Configure chat completion options
                 ChatCompletionOptions chatOptions = new ChatCompletionOptions
                 {
-                   //Temperature = (float)options.ApiSettings.Temperature
+                   Temperature = 0.2f
                 };
 
                 // Add tools if specified or if using MCP service tools

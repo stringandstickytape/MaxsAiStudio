@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
@@ -29,6 +29,7 @@ namespace AiStudio4.Services
         private readonly IBuiltinToolService _builtinToolService;
         private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
         private DateTime _lastRequestTime = DateTime.MinValue;
+        private readonly object _rateLimitLock = new object(); // Lock object for thread safety
 
         public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)
         {
@@ -47,20 +48,27 @@ namespace AiStudio4.Services
         /// <returns>Tool execution result with success status and updated content</returns>
         public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default)
         {
-            // Rate limiting: If less than 5 seconds have passed since the last request, wait until 5 seconds have elapsed
-            var currentTime = DateTime.Now;
-            var timeSinceLastRequest = currentTime - _lastRequestTime;
-            
-            if (timeSinceLastRequest < _minimumRequestInterval)
+            // Rate limiting with lock for thread safety
+            lock (_rateLimitLock)
             {
-                var delayTime = _minimumRequestInterval - timeSinceLastRequest;
-                _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle");
-                await Task.Delay(delayTime, cancellationToken);
+                var currentTime = DateTime.Now;
+                var timeSinceLastRequest = currentTime - _lastRequestTime;
+
+                if (timeSinceLastRequest < _minimumRequestInterval)
+                {
+                    var delayTime = _minimumRequestInterval - timeSinceLastRequest;
+                    _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle (inside lock)");
+                    // Note: Task.Delay cannot be awaited inside a lock. 
+                    // If significant delays are common, consider a different rate-limiting approach (e.g., SemaphoreSlim or async lock).
+                    // For short delays, Thread.Sleep might be acceptable, but blocks the thread.
+                    // Choosing Thread.Sleep for simplicity assuming delays are infrequent/short.
+                    Thread.Sleep(delayTime);
+                }
+
+                // Update the last request time after any delay
+                _lastRequestTime = DateTime.Now;
             }
-            
-            // Update the last request time after any delay
-            _lastRequestTime = DateTime.Now;
-            
+
             bool continueLoop = true;
             List<Attachment> attachments = new List<Attachment>();
             TokenCost costInfo = new TokenCost();

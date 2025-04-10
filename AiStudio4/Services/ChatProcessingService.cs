@@ -13,6 +13,7 @@ using AiTool3.Helpers;
 using SharedClasses;
 using SharedClasses.Helpers;
 using AiStudio4.DataModels;
+using Microsoft.Extensions.DependencyInjection; // Added for IServiceProvider
 
 namespace AiStudio4.Services
 {
@@ -26,6 +27,7 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly ClientRequestCancellationService _cancellationService;
+        private readonly IServiceProvider _serviceProvider; // Added for scoping
 
         public ChatProcessingService(
             IConvStorage convStorage,
@@ -35,7 +37,8 @@ namespace AiStudio4.Services
             ISettingsService settingsService,
             IToolService toolService,
             ISystemPromptService systemPromptService,
-            ClientRequestCancellationService cancellationService)
+            ClientRequestCancellationService cancellationService,
+            IServiceProvider serviceProvider) // Added IServiceProvider
         {
             _convStorage = convStorage;
             _chatService = chatService;
@@ -45,6 +48,7 @@ namespace AiStudio4.Services
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _cancellationService = cancellationService;
+            _serviceProvider = serviceProvider; // Assign injected service provider
         }
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
@@ -177,59 +181,84 @@ namespace AiStudio4.Services
 
                     if (isFirstMessageInConv)
                     {
-                        // Run summary generation in the background
+                        // Run summary generation in the background using a proper DI scope
                         _ = Task.Run(async () =>
                         {
-                            try
+                            using (var scope = _serviceProvider.CreateScope()) // Create DI scope
                             {
-                                var secondaryModel = _settingsService.DefaultSettings?.SecondaryModel;
-                                if (!string.IsNullOrEmpty(secondaryModel))
+                                var scopedConvStorage = scope.ServiceProvider.GetRequiredService<IConvStorage>();
+                                var scopedChatService = scope.ServiceProvider.GetRequiredService<IChatService>();
+                                var scopedSettingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+                                var scopedNotificationService = scope.ServiceProvider.GetRequiredService<IWebSocketNotificationService>();
+                                var scopedLogger = scope.ServiceProvider.GetRequiredService<ILogger<ChatProcessingService>>(); // Resolve logger from scope
+                                string conversationId = conv.ConvId; // Capture convId for use in background task
+
+                                try
                                 {
-                                    var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModel);
-                                    if (model != null)
+                                    var secondaryModelName = scopedSettingsService.DefaultSettings?.SecondaryModel;
+                                    if (!string.IsNullOrEmpty(secondaryModelName))
                                     {
-                                        var summaryMessage = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {(chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message)}\nAI: {(response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText)}";
-                        
-                                        // We need a separate IServiceProvider scope for the background task
-                                        // Assuming ISettingsService and IChatService can be resolved. 
-                                        // This might need adjustment based on actual DI setup.
-                                        // For now, using existing injected services - check if this works with threading/scope.
-                                        // var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid); // This likely won't work directly in background task
-                                        var summaryResponse = await _chatService.ProcessSimpleChatRequest(summaryMessage); // Assuming _chatService is thread-safe or scoped correctly
-                        
-                                        if (summaryResponse.Success)
+                                        var model = scopedSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
+                                        if (model != null)
                                         {
-                                            var summary = summaryResponse.ResponseText.Length > 100
-                                                ? summaryResponse.ResponseText.Substring(0, 97) + "..."
-                                                : summaryResponse.ResponseText;
-                        
-                                            // Re-fetch or ensure 'conv' is safe to modify across threads if needed
-                                            // For simplicity, assuming direct modification is okay for now, but review based on IConvStorage implementation
-                                            conv.Summary = summary;
-                                            await _convStorage.SaveConv(conv); // Assuming _convStorage is thread-safe
-                        
-                                            // Update client with the new summary
-                                            await _notificationService.NotifyConvList(clientId, new ConvListDto
+                                            // Use captured request/response excerpts
+                                            string userMessageExcerpt = chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message;
+                                            string aiResponseExcerpt = response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText;
+                                            var summaryPrompt = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}";
+
+                                            // Use scoped chat service
+                                            var summaryResponse = await scopedChatService.ProcessSimpleChatRequest(summaryPrompt); // Pass necessary model/provider info if needed by ProcessSimpleChatRequest
+
+                                            if (summaryResponse.Success)
                                             {
-                                                ConvId = conv.ConvId,
-                                                Summary = summary,
-                                                LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                                                FlatMessageStructure = BuildFlatMessageStructure(conv) // Ensure BuildFlatMessageStructure is safe if conv changes
-                                            });
+                                                var summary = summaryResponse.ResponseText.Length > 100
+                                                    ? summaryResponse.ResponseText.Substring(0, 97) + "..."
+                                                    : summaryResponse.ResponseText;
+
+                                                // Re-load the conversation within the scope before modifying/saving
+                                                var currentConv = await scopedConvStorage.LoadConv(conversationId);
+                                                if (currentConv != null)
+                                                {
+                                                    currentConv.Summary = summary;
+                                                    await scopedConvStorage.SaveConv(currentConv); // Use scoped storage
+
+                                                    // Update client using scoped notification service, with error handling
+                                                    try
+                                                    {
+                                                        await scopedNotificationService.NotifyConvList(clientId, new ConvListDto
+                                                        {
+                                                            ConvId = currentConv.ConvId,
+                                                            Summary = summary,
+                                                            LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                                                            FlatMessageStructure = BuildFlatMessageStructure(currentConv) // Use the re-loaded conv
+                                                        });
+                                                    }
+                                                    catch (Exception notifyEx)
+                                                    {
+                                                        // Log error if notification fails (e.g., client disconnected)
+                                                        scopedLogger.LogWarning(notifyEx, "Failed to send summary update notification to client {ClientId} for ConvId {ConvId}", clientId, conversationId);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    scopedLogger.LogWarning("Conversation {ConvId} not found when trying to save summary in background task.", conversationId);
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error generating conv summary in background task");
+                                catch (Exception ex)
+                                {
+                                    // Use scoped logger and captured convId
+                                    scopedLogger.LogError(ex, "Error generating conv summary in background task for ConvId {ConvId}", conversationId);
+                                }
                             }
                         });
                     }
 
                     // Save the conversation state *before* returning the response, 
                     // but potentially before the background summary task completes.
-                    await _convStorage.SaveConv(conv); 
+                    await _convStorage.SaveConv(conv);
 
                     return JsonConvert.SerializeObject(new { success = true, response = response });
                 }

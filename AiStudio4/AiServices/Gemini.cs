@@ -64,7 +64,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             {
                 requestPayload["generationConfig"] = new JObject
                 {
-                    ["responseModalities"] = new JArray { "Text", "Image" }
+                    ["responseModalities"] = new JArray { "Text", "Image" },
+                    ["temperature"] = 0.2
                 };
             }
             else
@@ -75,6 +76,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     {
                         ["text"] = options.Conv.SystemPromptWithDateTime()
                     }
+                };
+                requestPayload["generationConfig"] = new JObject
+                {
+                    ["temperature"] = 0.2
                 };
             }
 
