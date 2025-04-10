@@ -84,7 +84,6 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   const handleDeleteModelConfirm = async () => {
     if (!modelToDelete) return;
 
-      debugger;
     setIsProcessing(true);
     setLocalError(null);
     try {
