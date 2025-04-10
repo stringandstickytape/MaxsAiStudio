@@ -50,8 +50,6 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
 
             // Jump the top of the last message element into view
             lastMessageElement.scrollIntoView({ block: 'start' });
-        } else {
-            console.log('No message elements found to scroll to.');
         }
     };
     
@@ -98,18 +96,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       
       return buildTree(rootMessage);
     } catch (error) {
-      console.error('Error creating tree data:', error);
       return null;
     }
   }, [messages, updateKey]);
 
   
     const handleNodeClick = (nodeId: string, nodeSource: string, nodeContent: string) => {
-        console.log('Tree Node clicked:', {
-            node: nodeId,
-            convId: convId,
-            source: nodeSource
-        });
         if (nodeSource === 'user') {
             window.setPrompt(nodeContent);
             const conv = convs[convId];
@@ -390,15 +382,6 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .style('text-overflow', 'ellipsis')
       .style('white-space', 'nowrap')
       .html((d) => {
-          // Debug: Log the node data to inspect costInfo
-          console.log('📊 ConvTreeView Node Data:', {
-              id: d.data.id,
-              source: d.data.source,
-              hasCostInfo: !!d.data.costInfo,
-              modelGuid: d.data.costInfo?.modelGuid,
-              timestamp: d.data.timestamp
-          });
-
           // Format timestamp
           let timeInfo = '';
           if (d.data.timestamp) {
@@ -415,20 +398,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
               // Use the imported function from modelUtils
               const modelGuid = d.data.costInfo.modelGuid;
               
-              // Log model GUID for debugging
-              console.log(`📊 Processing model info for node ${d.data.id}, modelGuid: ${modelGuid}`);
-              
-              // Add direct debug of model store
-              const models = useConvStore.getState().models || [];
-              console.log(`📊 Available models count: ${models.length}`);
-              
               // Get just the model name without the 'Model:' prefix
               modelInfo = getModelFriendlyName(modelGuid);
-              console.log(`📊 Model info for node ${d.data.id}:`, {
-                  modelGuid,
-                  resolvedName: modelInfo,
-                  isModelInfoEmpty: modelInfo === ''
-              });
               
               // Fallback if modelInfo is empty
               if (!modelInfo || modelInfo === 'Unknown Model') {
@@ -454,8 +425,6 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
               modelInfo ?
                   `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>` :
                   timeInfo ? formatCaption(timeInfo) : '';
-
-          console.log(`📊 Caption for node ${d.data.id}:`, caption);
 
           return caption;
 
