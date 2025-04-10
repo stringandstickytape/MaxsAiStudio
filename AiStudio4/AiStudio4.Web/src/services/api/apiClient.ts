@@ -60,6 +60,16 @@ export async function deleteMessageWithDescendants(params: { convId: string; mes
   }
 }
 
+export async function deleteConv(params: { convId: string }) {
+  try {
+    const response = await apiClient.post('/api/deleteConv', params);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    throw error;
+  }
+}
+
 export async function cancelRequest(params: { convId: string; messageId: string }) {
   try {
     const response = await apiClient.post('/api/cancelRequest', params);

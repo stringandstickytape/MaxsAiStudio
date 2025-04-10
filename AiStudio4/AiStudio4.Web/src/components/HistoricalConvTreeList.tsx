@@ -14,7 +14,7 @@ export const HistoricalConvTreeList = () => {
 
     const { clientId } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
-    const { convs, isLoading, fetchAllConvs, addOrUpdateConv } = useHistoricalConvsStore();
+    const { convs, isLoading, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
 
 
     useEffect(() => {
@@ -183,6 +183,24 @@ export const HistoricalConvTreeList = () => {
         searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
     );
 
+    // Handle middle-click to delete conversation
+    const handleMiddleClick = async (event: React.MouseEvent, convId: string) => {
+        // Middle mouse button is button 1
+        if (event.button === 1) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Show confirmation dialog
+            if (window.confirm('Delete this conversation?')) {
+                try {
+                    // Delete conversation using the store function
+                    await deleteConv(convId);
+                } catch (e) {
+                    console.error('Failed to delete conversation:', e);
+                }
+            }
+        }
+    };
 
     // Removed formatDate function as it's no longer needed
 
@@ -237,6 +255,7 @@ export const HistoricalConvTreeList = () => {
                                     key={conv.convGuid}
                                     className="text-sm text-gray-200 cursor-pointer px-2 py-0.5 hover:bg-gray-800/40 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
                                     style={{ display: 'block', wordBreak: 'break-word' }}
+                                    onMouseDown={(e) => handleMiddleClick(e, conv.convGuid)}
                                     onClick={async () => {
                                         if (conv.convGuid) {
                                             const convData = await getConv(conv.convGuid);
