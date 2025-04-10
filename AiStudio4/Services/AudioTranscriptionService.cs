@@ -16,14 +16,18 @@ namespace AiStudio4.Services
     public class AudioTranscriptionService : IAudioTranscriptionService
     {
         private readonly ILogger<AudioTranscriptionService> _logger;
+        private readonly IWebSocketNotificationService _webSocketNotificationService;
         private readonly string _modelDirectory;
         private readonly string _modelFileName = "ggml-base.en.bin"; // Or choose another model like small.en, etc.
         private readonly GgmlType _ggmlType = GgmlType.BaseEn;
         private WhisperFactory? _whisperFactory;
 
-        public AudioTranscriptionService(ILogger<AudioTranscriptionService> logger)
+        public AudioTranscriptionService(
+            ILogger<AudioTranscriptionService> logger,
+            IWebSocketNotificationService webSocketNotificationService)
         {
             _logger = logger;
+            _webSocketNotificationService = webSocketNotificationService;
             // Store models in a subdirectory relative to the application executable
             string assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
             _modelDirectory = Path.Combine(assemblyLocation, "WhisperModels");
@@ -79,35 +83,11 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<string> TranscribeAudioAsync(Stream audioStream, CancellationToken cancellationToken = default)
+        public async Task<string> TranscribeAudioAsync(Stream audioStream, string clientId = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                await InitializeFactoryAsync(cancellationToken); // Ensure factory is ready
-
-                if (_whisperFactory == null)
-                {
-                    throw new InvalidOperationException("WhisperFactory could not be initialized.");
-                }
-
-                // Note: Whisper.net ideally wants WAV format, 16kHz, mono.
-                // Consider adding conversion logic if supporting other formats like MP3.
-                _logger.LogInformation("Starting audio transcription...");
-
-                using var processor = _whisperFactory.CreateBuilder()
-                    .WithLanguage("en") // Or use WithLanguageDetection()
-                    .Build();
-
-                var transcriptionResult = new StringBuilder();
-                await foreach (var result in processor.ProcessAsync(audioStream, cancellationToken))
-                {
-                    _logger.LogDebug("Segment: {Start} -> {End}: {Text}", result.Start, result.End, result.Text);
-                    transcriptionResult.Append(result.Text).Append(" "); // Add space between segments
-                }
-
-                string fullText = transcriptionResult.ToString().Trim();
-                _logger.LogInformation("Transcription completed successfully. Length: {Length}", fullText.Length);
-                return fullText;
+                return "";
             }
             catch (Exception ex)
             {

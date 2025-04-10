@@ -1,4 +1,4 @@
-using AiStudio4.Core.Exceptions;
+﻿using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -116,6 +116,31 @@ namespace AiStudio4.Services
             {
                 _logger.LogError(ex, "Failed to send conv list to client {ClientId}", clientId);
                 throw new WebSocketNotificationException("Failed to send conv list", ex);
+            }
+        }
+        public async Task NotifyTranscription(string transcriptionText)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(transcriptionText)) throw new ArgumentNullException(nameof(transcriptionText));
+
+                var message = new
+                {
+                    messageType = "transcription",
+                    content = new
+                    {
+                        text = transcriptionText,
+                        action = "appendToUserPrompt"
+                    }
+                };
+
+                await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
+                _logger.LogDebug("Sent transcription update to all clients");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send transcription update to all clients");
+                throw new WebSocketNotificationException("Failed to send transcription update", ex);
             }
         }
     }

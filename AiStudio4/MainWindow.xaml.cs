@@ -28,14 +28,16 @@ public partial class WebViewWindow : Window
     private readonly ISettingsService _settingsService; // Added ISettingsService field
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
+    private readonly IWebSocketNotificationService _notificationService;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService) // Added service parameter
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService) // Added service parameter
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
         _settingsService = settingsService; // Assign injected service
         _builtinToolService = builtinToolService;
         _audioTranscriptionService = audioTranscriptionService;
+        _notificationService = notificationService; // Assign injected service
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
@@ -329,23 +331,7 @@ public partial class WebViewWindow : Window
                     var fullFilename = Path.Combine(Path.GetDirectoryName(filename)!, filenameOnly);
 
                     var json = File.ReadAllText(fullFilename);
-
-                    //List<string> result = new List<string>();
-                    //
-                    //dynamic jsonObj = JObject.Parse(json);
-                    //
-                    //foreach (var segment in jsonObj.segments)
-                    //{
-                    //    double start = segment.start;
-                    //    double end = segment.end;
-                    //    string text = segment.text;
-                    //    string formattedText = $"[{start:F3} - {end:F3}] {text.Trim()}";
-                    //    result.Add(formattedText);
-                    //}
-                    //string output = NewMethod(filename, result);
-
-                    MessageBox.Show(json);
-
+                    await _notificationService.NotifyTranscription(json);
                 }
                 else
                 {

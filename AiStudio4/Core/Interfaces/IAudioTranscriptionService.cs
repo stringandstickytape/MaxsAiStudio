@@ -7,6 +7,6 @@ namespace AiStudio4.Core.Interfaces
 {
     public interface IAudioTranscriptionService
     {
-        Task<string> TranscribeAudioAsync(Stream audioStream, CancellationToken cancellationToken = default);
+        Task<string> TranscribeAudioAsync(Stream audioStream, string clientId = null, CancellationToken cancellationToken = default);
     }
 }

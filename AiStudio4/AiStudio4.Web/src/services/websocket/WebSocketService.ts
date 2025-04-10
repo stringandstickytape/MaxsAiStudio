@@ -217,6 +217,20 @@ export class WebSocketService {
                     type: 'cancelled',
                     content: message.content,
                 });
+            } else if (message.messageType === 'transcription') {
+                // Handle transcription messages for appending to user prompt
+                dispatchWebSocketEvent('transcription:received', {
+                    type: 'transcription',
+                    content: message.content,
+                });
+                
+                // If the transcription contains text and requests to append to user prompt
+                if (message.content && message.content.text && message.content.action === 'appendToUserPrompt') {
+                    // Use the global appendToPrompt function if it exists
+                    if (typeof window.appendToPrompt === 'function') {
+                        window.appendToPrompt(message.content.text, { newLine: true });
+                    }
+                }
             }
 
             this.notifySubscribers(message.messageType, message.content);
