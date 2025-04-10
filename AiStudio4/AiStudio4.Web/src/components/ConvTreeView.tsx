@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Message } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
+import { getModelFriendlyName } from '@/utils/modelUtils';
 
 interface TreeViewProps {
   convId: string;
@@ -22,6 +23,14 @@ interface TreeNode {
   y?: number;
   timestamp?: number;
   durationMs?: number;
+  costInfo?: {
+    modelGuid?: string;
+    totalCost?: number;
+    tokenUsage?: {
+      inputTokens: number;
+      outputTokens: number;
+    };
+  } | null;
 }
 
 export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
@@ -76,6 +85,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
           depth: depth,
           timestamp: message.timestamp,
           durationMs: message.durationMs,
+          costInfo: message.costInfo,
         };
 
         
@@ -235,7 +245,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     
     // Adjust node size for better fit in smaller sidebar space
     const nodeSizeWidth = containerWidth < 400 ? 120 : 135;
-    const nodeSizeHeight = containerWidth < 400 ? 100 : 130;
+    const nodeSizeHeight = containerWidth < 400 ? 120 : 150; // Increased vertical spacing to prevent caption overlap
     const treeLayout = d3.tree<TreeNode>().size([containerWidth - 80, containerHeight - 120]).nodeSize([nodeSizeWidth, nodeSizeHeight]);
 
     
@@ -296,7 +306,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     nodeGroups
       .append('rect')
       .attr('width', containerWidth < 400 ? 200 : 240)
-      .attr('height', containerWidth < 400 ? 80 : 100)  
+      .attr('height', containerWidth < 400 ? 85 : 110) // Increased height to accommodate caption  
       .attr('x', containerWidth < 400 ? -100 : -120)
       .attr('y', -40)
       .attr('rx', 10)
@@ -313,7 +323,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         if (source === 'system') return '#374151';
         return '#4338ca';
       })
-      .attr('stroke-width', 1);
+      .attr('stroke-width', 1)
+      .attr('class', 'node-rect') // Add class for hover effects;
 
     
     
@@ -340,17 +351,18 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .attr('x', -95)
       .attr('y', -20)  
       .attr('width', containerWidth < 400 ? 180 : 220)
-      .attr('height', containerWidth < 400 ? 60 : 75)
+      .attr('height', containerWidth < 400 ? 55 : 65) // Reduced height to make room for the caption
       .append('xhtml:div')
       .style('color', 'white')
       .style('font-size', '10px')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
       .style('display', '-webkit-box')
-      .style('-webkit-line-clamp', containerWidth < 400 ? '3' : '5')
+      .style('-webkit-line-clamp', containerWidth < 400 ? '3' : '4') // Reduced to allow room for the caption
       .style('-webkit-box-orient', 'vertical')
       .style('word-wrap', 'break-word')
       .style('padding', '0 5px')  
+      .style('margin-bottom', '3px') // Add space before caption
       .html((d) => {
         const content = d.data.content || '';
         
@@ -360,6 +372,63 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
           .replace(/>/g, '&gt;')
           .replace(/\"/g, '&quot;')
           .replace(/'/g, '&#039;');
+      });
+      
+    // Add caption with model info and timestamp
+    nodeLabels
+      .append('foreignObject')
+      .attr('x', -95)
+      .attr('y', containerWidth < 400 ? 35 : 50) // Position at the bottom of the node
+      .attr('width', containerWidth < 400 ? 180 : 220)
+      .attr('height', 20) // Fixed height for the caption
+      .append('xhtml:div')
+      .style('color', '#c7d2fe') // Light indigo color for better visibility
+      .style('font-size', containerWidth < 400 ? '7px' : '8px') // Smaller font on mobile
+      .style('text-align', 'right')
+      .style('padding', '0 5px')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+      .style('white-space', 'nowrap')
+      .html((d) => {
+        // Format timestamp
+        let timeInfo = '';
+        if (d.data.timestamp) {
+          const date = new Date(d.data.timestamp);
+          // Use more concise date/time format
+          const dateOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+          const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+          timeInfo = `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)}`;
+        }
+        
+        // Get model info
+        let modelInfo = '';
+        if (d.data.source === 'ai' && d.data.costInfo?.modelGuid) {
+          // Use the imported function from modelUtils
+          const modelGuid = d.data.costInfo?.modelGuid;
+          // Get just the model name without the 'Model:' prefix
+          modelInfo = getModelFriendlyName(modelGuid);
+        }
+        
+        const formatCaption = (text: string) => {
+          // Limit caption length to prevent overflow
+          const maxLength = containerWidth < 400 ? 24 : 32;
+          return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        };
+        
+        // Limit model info length
+        const shortModelInfo = modelInfo.length > (containerWidth < 400 ? 10 : 15) ? 
+          modelInfo.substring(0, (containerWidth < 400 ? 10 : 15)) + '...' : 
+          modelInfo;
+        
+        if (modelInfo && timeInfo) {
+          // Use a styled span for model info to make it stand out
+          return `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span> · ${timeInfo}`;
+        } else if (modelInfo) {
+          return `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>`;
+        } else if (timeInfo) {
+          return formatCaption(timeInfo);
+        }
+        return '';
       });
 
     return () => {
