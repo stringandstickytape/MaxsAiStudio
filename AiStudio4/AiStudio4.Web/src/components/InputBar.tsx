@@ -433,58 +433,26 @@ export function InputBar({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                            onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
-                            disabled={disabled} // Reflect outer disabled state
-                        >
-                            <Wrench className="h-3 w-3 mr-1" />
-                            <span>Tools</span>
-                        </Button>
-
-                        {activeTools.length > 0 && (
-                            <div ref={toolsContainerRef} className="flex items-center gap-1.5 overflow-hidden ml-2">
-                                {activeTools.slice(0, visibleToolCount).map(toolId => {
-                                    const tool = tools.find(t => t.guid === toolId);
-                                    return !tool ? null : (
-                                        <TooltipProvider key={tool.guid}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="flex items-center gap-0.5 h-5 px-2 py-0 text-xs rounded-full bg-green-600/10 border border-green-700/20 text-green-200 hover:bg-green-600/30 hover:text-green-100 transition-colors cursor-pointer group flex-shrink-0">
-                                                        <span className="truncate max-w-[100px]">{tool.name}</span>
-                                                        <button onClick={() => handleRemoveTool(tool.guid)}
-                                                            className="ml-1 text-gray-400 hover:text-gray-100 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            disabled={disabled}> {/* Reflect outer disabled state */}
-                                                            <X className="h-3 w-3" />
-                                                        </button>
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{tool.description}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    );
-                                })}
-                                {activeTools.length > visibleToolCount && (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div
-                                                    className="flex items-center h-5 px-2 py-0 text-xs rounded-full bg-blue-600/20 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors cursor-pointer flex-shrink-0"
-                                                    onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
-                                                    aria-disabled={disabled} // Use aria-disabled for non-button elements
-                                                >
-                                                    +{activeTools.length - visibleToolCount} more
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Click to see all active tools</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
+                                onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                onMouseDown={(e) => {
+                                    if (e.button === 1) { // Middle mouse button
+                                        e.preventDefault(); // Prevent default middle-click behavior (e.g., autoscroll)
+                                        activeTools.forEach(toolId => removeActiveTool(toolId));
+                                    }
+                                }}
+                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
+                                disabled={disabled} // Reflect outer disabled state
+                            >
+                                <Wrench className="h-3 w-3 mr-1" />
+                                <span>Tools</span>
+                                {activeTools.length > 0 && (
+                                    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Middle-click to clear all">
+                                        {activeTools.length}
+                                    </span>
                                 )}
-                            </div>
-                        )}
+                            </Button>
+
+                        
                     </div>
 
 

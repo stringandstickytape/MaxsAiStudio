@@ -40,7 +40,7 @@ namespace AiStudio4.Core.Tools
     ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "MaxCode" },
+                Categories = new List<string> { "Development" },
                 OutputFileType = "",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
