@@ -62,6 +62,17 @@ namespace AiStudio4.Services
 
                     _serverDefinitions.Add(new McpServerDefinition
                     {
+                        Id = "browsermcp",
+                        Name = "browsermcp",
+                        Command = "npx",
+                        Arguments = "@browsermcp/mcp@latest", // Note: This might need changing if uvx expects different args for 'Everything'
+                        Description = "Browser MCP",
+                        IsEnabled = false
+
+                    });
+
+                    _serverDefinitions.Add(new McpServerDefinition
+                    {
                         Id = "fusion",
                         Name = "mcp-server-fusion",
                         Command = "http://127.0.0.1:6050/sse",
