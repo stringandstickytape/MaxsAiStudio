@@ -10,7 +10,7 @@ namespace AiStudio4.InjectedDependencies
     {
         public List<Model> ModelList { get; set; } = new();
         public List<ServiceProvider> ServiceProviders { get; set; } = new();
-        public float Temperature { get; set; } = 0.9f;
+        public float Temperature { get; set; } = 0.2f;
         public bool UseEmbeddings { get; set; } = false;
         public bool UsePromptCaching { get; set; } = true;
         public bool StreamResponses { get; set; } = false;
