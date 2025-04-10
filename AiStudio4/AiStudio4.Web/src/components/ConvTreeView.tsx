@@ -390,59 +390,75 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
       .style('text-overflow', 'ellipsis')
       .style('white-space', 'nowrap')
       .html((d) => {
-        // Debug: Log the node data to inspect costInfo
-        console.log('📊 ConvTreeView Node Data:', {
-          id: d.data.id,
-          source: d.data.source,
-          hasCostInfo: !!d.data.costInfo,
-          modelGuid: d.data.costInfo?.modelGuid,
-          timestamp: d.data.timestamp
-        });
-        
-        // Format timestamp
-        let timeInfo = '';
-        if (d.data.timestamp) {
-          const date = new Date(d.data.timestamp);
-          // Use more concise date/time format
-          const dateOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-          const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
-          timeInfo = `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)}`;
-        }
-        
-        // Get model info
-        let modelInfo = '';
-        if (d.data.source === 'ai' && d.data.costInfo?.modelGuid) {
-          // Use the imported function from modelUtils
-          const modelGuid = d.data.costInfo?.modelGuid;
-          // Get just the model name without the 'Model:' prefix
-          modelInfo = getModelFriendlyName(modelGuid);
-          console.log(`📊 Model info for node ${d.data.id}:`, {
-            modelGuid,
-            resolvedName: modelInfo
+          // Debug: Log the node data to inspect costInfo
+          console.log('📊 ConvTreeView Node Data:', {
+              id: d.data.id,
+              source: d.data.source,
+              hasCostInfo: !!d.data.costInfo,
+              modelGuid: d.data.costInfo?.modelGuid,
+              timestamp: d.data.timestamp
           });
-        }
-        
-        const formatCaption = (text: string) => {
-          // Limit caption length to prevent overflow
-          const maxLength = containerWidth < 400 ? 24 : 32;
-          return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-        };
-        
-        // Limit model info length
-        const shortModelInfo = modelInfo.length > (containerWidth < 400 ? 10 : 15) ? 
-          modelInfo.substring(0, (containerWidth < 400 ? 10 : 15)) + '...' : 
-          modelInfo;
-        
-        // Debug the final caption content
-        const caption = modelInfo && timeInfo ? 
-          `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span> · ${timeInfo}` :
-          modelInfo ? 
-            `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>` :
-            timeInfo ? formatCaption(timeInfo) : '';
-        
-        console.log(`📊 Caption for node ${d.data.id}:`, caption);
-        
-        return caption;
+
+          // Format timestamp
+          let timeInfo = '';
+          if (d.data.timestamp) {
+              const date = new Date(d.data.timestamp);
+              // Use more concise date/time format
+              const dateOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+              const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+              timeInfo = `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)}`;
+          }
+
+          // Get model info - but only for AI messages
+          let modelInfo = '';
+          if (d.data.source === 'ai' && d.data.costInfo?.modelGuid) {
+              // Use the imported function from modelUtils
+              const modelGuid = d.data.costInfo.modelGuid;
+              
+              // Log model GUID for debugging
+              console.log(`📊 Processing model info for node ${d.data.id}, modelGuid: ${modelGuid}`);
+              
+              // Add direct debug of model store
+              const models = useConvStore.getState().models || [];
+              console.log(`📊 Available models count: ${models.length}`);
+              
+              // Get just the model name without the 'Model:' prefix
+              modelInfo = getModelFriendlyName(modelGuid);
+              console.log(`📊 Model info for node ${d.data.id}:`, {
+                  modelGuid,
+                  resolvedName: modelInfo,
+                  isModelInfoEmpty: modelInfo === ''
+              });
+              
+              // Fallback if modelInfo is empty
+              if (!modelInfo || modelInfo === 'Unknown Model') {
+                // Try to extract a simple model identifier from the GUID
+                modelInfo = modelGuid.split('-')[0] || 'AI';
+              }
+          }
+
+          const formatCaption = (text: string) => {
+              // Limit caption length to prevent overflow
+              const maxLength = containerWidth < 400 ? 24 : 32;
+              return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+          };
+
+          // Limit model info length
+          const shortModelInfo = modelInfo.length > (containerWidth < 400 ? 10 : 15) ?
+              modelInfo.substring(0, (containerWidth < 400 ? 10 : 15)) + '...' :
+              modelInfo;
+
+          // Debug the final caption content
+          const caption = modelInfo && timeInfo ?
+              `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span> · ${timeInfo}` :
+              modelInfo ?
+                  `<span style=\"background-color: rgba(99, 102, 241, 0.2); border-radius: 4px; padding: 1px 3px;\">${shortModelInfo}</span>` :
+                  timeInfo ? formatCaption(timeInfo) : '';
+
+          console.log(`📊 Caption for node ${d.data.id}:`, caption);
+
+          return caption;
+
       });
 
     return () => {
