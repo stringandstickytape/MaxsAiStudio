@@ -19,26 +19,27 @@ namespace AiStudio4.Services
     public class DefaultChatService : IChatService
     {
         private readonly ILogger<DefaultChatService> _logger;
-        private readonly ISettingsService _settingsService;
+        
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly IToolProcessorService _toolProcessorService;
         private readonly IWebSocketNotificationService _notificationService;
+        private readonly IGeneralSettingsService _generalSettingsService;
 
         // Events removed
         // public event EventHandler<string> StreamingTextReceived;
         // public event EventHandler<string> StreamingComplete;
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, ISettingsService settingsService, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService)
         {
             _logger = logger;
-            _settingsService = settingsService;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _mcpService = mcpService;
             _toolProcessorService = toolProcessorService;
             _notificationService = notificationService;
+            _generalSettingsService = generalSettingsService;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -49,7 +50,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Processing simple chat request");
                 
                 // Get the secondary model
-                var secondaryModelName = _settingsService.DefaultSettings?.SecondaryModel;
+                var secondaryModelName = _generalSettingsService.CurrentSettings.DefaultSystemPromptId;
                 if (string.IsNullOrEmpty(secondaryModelName))
                 {
                     return new SimpleChatResponse
@@ -61,7 +62,7 @@ namespace AiStudio4.Services
                 }
 
                 // Find the model and service provider
-                var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
+                var model = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
                 if (model == null)
                 {
                     return new SimpleChatResponse
@@ -72,7 +73,7 @@ namespace AiStudio4.Services
                     };
                 }
 
-                var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var service = ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 // Create a simple chat request
@@ -96,7 +97,7 @@ namespace AiStudio4.Services
                     Model = model,
                     Conv = conv,
                     CancellationToken = new CancellationToken(false),
-                    ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
+                    ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     UseStreaming = false
                 };
@@ -129,8 +130,8 @@ namespace AiStudio4.Services
             {
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
-                var model = _settingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
-                var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
+                var service = ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 string systemPromptContent = await GetSystemPrompt(request);
@@ -211,7 +212,7 @@ namespace AiStudio4.Services
                         Model = model,
                         Conv = linearConversation, // Use the current state of the conversation
                         CancellationToken = request.CancellationToken,
-                        ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
+                        ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
                         UseStreaming = true, // Optional: Only stream the first response
@@ -359,14 +360,14 @@ namespace AiStudio4.Services
                 }
             }
 
-            systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _settingsService.CurrentSettings.ProjectPath);
+            systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
 
             if (systemPromptContent.Contains("ProjectDirectoryTree"))
             {
-                var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _settingsService.CurrentSettings.ProjectPath, _settingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
+                var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _generalSettingsService.CurrentSettings.ProjectPath, _generalSettingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
                 systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
 
-                    _settingsService.CurrentSettings.ProjectPath);
+                    _generalSettingsService.CurrentSettings.ProjectPath);
             }
 
             return systemPromptContent;

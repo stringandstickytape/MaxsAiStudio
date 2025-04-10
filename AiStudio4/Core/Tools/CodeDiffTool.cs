@@ -33,7 +33,7 @@ namespace AiStudio4.Core.Tools
         private const string ErrorMarker = "ERROR:"; // Marker for AI processing errors
         private const int MaxConcurrency = 4; // Limit parallel file operations
 
-        public CodeDiffTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService, ISecondaryAiService secondaryAiService) : base(logger, settingsService)
+        public CodeDiffTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, ISecondaryAiService secondaryAiService) : base(logger, generalSettingsService)
         {
             _validationErrorMessages = new StringBuilder();
             _secondaryAiService = secondaryAiService ?? throw new ArgumentNullException(nameof(secondaryAiService));

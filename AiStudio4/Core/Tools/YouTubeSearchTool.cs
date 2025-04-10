@@ -22,11 +22,11 @@ namespace AiStudio4.Core.Tools
         // Removed hardcoded API Key
         private const string ApiBaseUrl = "https://www.googleapis.com/youtube/v3/search";
         private readonly HttpClient _httpClient;
-        private readonly ISettingsService _settingsService; // Store settings service
+        private readonly IGeneralSettingsService _generalSettingsService;
 
-        public YouTubeSearchTool(ILogger<YouTubeSearchTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+        public YouTubeSearchTool(ILogger<YouTubeSearchTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
-            _settingsService = settingsService; // Assign injected service
+            _generalSettingsService = generalSettingsService;
             _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromSeconds(30); // Default timeout
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4/1.0 YouTubeSearchTool");
@@ -159,7 +159,7 @@ namespace AiStudio4.Core.Tools
         private async Task<string> ProcessSingleSearchRequestAsync(Dictionary<string, object> parameters)
         {
             // --- Check for API Key first ---
-            string apiKey = _settingsService?.DefaultSettings?.YouTubeApiKey;
+            string apiKey = _generalSettingsService?.CurrentSettings?.YouTubeApiKey;
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 _logger.LogWarning("YouTube API Key is not configured.");
@@ -244,7 +244,7 @@ namespace AiStudio4.Core.Tools
 
         private async Task<YouTubeSearchResult> SearchYouTube(string query, int maxResults, string type)
         {
-            string apiKey = _settingsService?.DefaultSettings?.YouTubeApiKey;
+            string apiKey = _generalSettingsService?.CurrentSettings?.YouTubeApiKey;
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                  // This case should ideally be caught earlier in ProcessSingleSearchRequestAsync,

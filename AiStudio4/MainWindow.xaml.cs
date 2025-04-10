@@ -25,16 +25,20 @@ public partial class WebViewWindow : Window
 {
     private readonly WindowManager _windowManager;
     private readonly IMcpService _mcpService;
-    private readonly ISettingsService _settingsService; // Added ISettingsService field
+    private readonly IGeneralSettingsService _generalSettingsService;
+    private readonly IAppearanceSettingsService _appearanceSettingsService;
+    private readonly IProjectHistoryService _projectHistoryService;
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, ISettingsService settingsService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService) // Added service parameter
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
-        _settingsService = settingsService; // Assign injected service
+        _generalSettingsService = generalSettingsService;
+        _appearanceSettingsService = appearanceSettingsService;
+        _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
         _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
@@ -46,9 +50,9 @@ public partial class WebViewWindow : Window
     private void UpdateWindowTitle()
     {
         // Ensure ProjectPath is not null or empty before displaying
-        var projectPathDisplay = string.IsNullOrWhiteSpace(_settingsService.CurrentSettings.ProjectPath)
+        var projectPathDisplay = string.IsNullOrWhiteSpace(_generalSettingsService.CurrentSettings.ProjectPath)
             ? "[Project Path Not Set]"
-            : _settingsService.CurrentSettings.ProjectPath;
+            : _generalSettingsService.CurrentSettings.ProjectPath;
         this.Title = $"AiStudio4 - {projectPathDisplay}";
     }
     private async void McpServersMenuItem_Loaded(object sender, RoutedEventArgs e)
@@ -118,16 +122,17 @@ public partial class WebViewWindow : Window
         var dialog = new OpenFolderDialog
         {
             Title = "Select Project Path",
-            InitialDirectory = _settingsService.CurrentSettings.ProjectPath ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            InitialDirectory = _generalSettingsService.CurrentSettings.ProjectPath ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
         };
         if (dialog.ShowDialog() == true)
         {
             try
             {
                 string selectedPath = dialog.FolderName;
-                _settingsService.CurrentSettings.ProjectPath = selectedPath;
-                _settingsService.AddProjectPathToHistory(selectedPath); // Add to history
-                _settingsService.SaveSettings();
+                _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
+                _projectHistoryService.AddProjectPathToHistory(selectedPath);
+                _generalSettingsService.SaveSettings();
+                _projectHistoryService.SaveSettings();
                 _builtinToolService.UpdateProjectRoot();
                 UpdateWindowTitle(); // Update title bar after changing the path
                 UpdateRecentProjectsMenu(); // Update the recent projects menu
@@ -142,7 +147,7 @@ public partial class WebViewWindow : Window
     private void UpdateRecentProjectsMenu()
     {
         RecentProjectsMenuItem.Items.Clear();
-        var history = _settingsService.CurrentSettings.ProjectPathHistory;
+        var history = _projectHistoryService.GetProjectPathHistory();
 
         if (history == null || !history.Any())
         {
@@ -178,9 +183,10 @@ public partial class WebViewWindow : Window
         {
             try
             {
-                _settingsService.CurrentSettings.ProjectPath = selectedPath;
-                _settingsService.AddProjectPathToHistory(selectedPath); // Move to top of history
-                _settingsService.SaveSettings();
+                _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
+                _projectHistoryService.AddProjectPathToHistory(selectedPath);
+                _generalSettingsService.SaveSettings();
+                _projectHistoryService.SaveSettings();
                 _builtinToolService.UpdateProjectRoot();
                 UpdateWindowTitle();
                 UpdateRecentProjectsMenu();
@@ -193,7 +199,7 @@ public partial class WebViewWindow : Window
     }
     private void SetCondaPathMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _settingsService.DefaultSettings?.CondaPath ?? string.Empty;
+        string currentKey = _generalSettingsService.CurrentSettings.CondaPath ?? string.Empty;
         string prompt = "Enter conda path here, eg C:\\Users\\username\\miniconda3\\Scripts\\conda.exe:";
         string title = "Set conda path";
 
@@ -211,7 +217,7 @@ public partial class WebViewWindow : Window
             {
                 try
                 {
-                    _settingsService.UpdateCondaPath(newKey);
+                    _generalSettingsService.UpdateCondaPath(newKey);
                     MessageBox.Show("Conda path updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -223,7 +229,7 @@ public partial class WebViewWindow : Window
     }
     private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _settingsService.DefaultSettings?.YouTubeApiKey ?? string.Empty;
+        string currentKey = _generalSettingsService.CurrentSettings.YouTubeApiKey ?? string.Empty;
         string prompt = "Enter your YouTube Data API v3 Key:";
         string title = "Set YouTube API Key";
 
@@ -241,7 +247,7 @@ public partial class WebViewWindow : Window
             {
                 try
                 {
-                    _settingsService.UpdateYouTubeApiKey(newKey);
+                    _generalSettingsService.UpdateYouTubeApiKey(newKey);
                     MessageBox.Show("YouTube API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -278,7 +284,7 @@ public partial class WebViewWindow : Window
         {
             var filename = openFileDialog.FileName;
 
-            var condaActivateScriptPath = _settingsService.DefaultSettings.CondaPath;
+            var condaActivateScriptPath = _generalSettingsService.CurrentSettings.CondaPath;
             
                         // Path to the Miniconda installation
             string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat");

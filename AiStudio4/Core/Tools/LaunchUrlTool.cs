@@ -18,7 +18,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class LaunchUrlTool : BaseToolImplementation
     {
-        public LaunchUrlTool(ILogger<LaunchUrlTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+        public LaunchUrlTool(ILogger<LaunchUrlTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
         }
 

@@ -19,7 +19,7 @@ namespace AiStudio4.Core.Tools
     public class FileSearchTool : BaseToolImplementation
     {
 
-        public FileSearchTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+        public FileSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
         }
 

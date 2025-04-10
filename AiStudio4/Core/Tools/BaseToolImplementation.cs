@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces; // Main interfaces namespace
+﻿using AiStudio4.Core.Interfaces; // Main interfaces namespace
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -13,20 +13,20 @@ namespace AiStudio4.Core.Tools
     public abstract class BaseToolImplementation : ITool
     {
     protected readonly ILogger _logger; // Logger for diagnostic information
-        protected readonly ISettingsService _settingsService;
+        protected readonly IGeneralSettingsService _generalSettingsService;
 
 
         protected string _projectRoot;
-        protected BaseToolImplementation(ILogger logger, ISettingsService settingsService)
+        protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _settingsService = settingsService;
+            _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
             UpdateProjectRoot();
         }
 
         public void UpdateProjectRoot()
         {
-            _projectRoot = _settingsService.CurrentSettings.ProjectPath;
+            _projectRoot = _generalSettingsService.CurrentSettings.ProjectPath;
         }
 
         /// <summary>

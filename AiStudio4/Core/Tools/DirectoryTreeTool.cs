@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+ï»¿using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -17,7 +17,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class DirectoryTreeTool : BaseToolImplementation
     {
-        public DirectoryTreeTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+        public DirectoryTreeTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
         }
 
@@ -227,7 +227,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 }
 
                 // Display the file
-                fileTree.AppendLine($"{new string(' ', dirParts.Count * 2)}• {fileName}");
+                fileTree.AppendLine($"{new string(' ', dirParts.Count * 2)} {fileName}");
 
                 // Update previous path parts for next comparison
                 previousPathParts = dirParts;

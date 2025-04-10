@@ -23,7 +23,7 @@ namespace AiStudio4.Services
         private readonly IChatService _chatService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly ILogger<ChatProcessingService> _logger;
-        private readonly ISettingsService _settingsService;
+        private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IToolService _toolService;
         private readonly ISystemPromptService _systemPromptService;
         private readonly ClientRequestCancellationService _cancellationService;
@@ -34,7 +34,7 @@ namespace AiStudio4.Services
             IChatService chatService,
             IWebSocketNotificationService notificationService,
             ILogger<ChatProcessingService> logger,
-            ISettingsService settingsService,
+            IGeneralSettingsService generalSettingsService,
             IToolService toolService,
             ISystemPromptService systemPromptService,
             ClientRequestCancellationService cancellationService,
@@ -44,7 +44,7 @@ namespace AiStudio4.Services
             _chatService = chatService;
             _notificationService = notificationService;
             _logger = logger;
-            _settingsService = settingsService;
+            _generalSettingsService = generalSettingsService;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _cancellationService = cancellationService;
@@ -188,14 +188,14 @@ namespace AiStudio4.Services
                             {
                                 var scopedConvStorage = scope.ServiceProvider.GetRequiredService<IConvStorage>();
                                 var scopedChatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-                                var scopedSettingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+                                var scopedSettingsService = scope.ServiceProvider.GetRequiredService<IGeneralSettingsService>();
                                 var scopedNotificationService = scope.ServiceProvider.GetRequiredService<IWebSocketNotificationService>();
                                 var scopedLogger = scope.ServiceProvider.GetRequiredService<ILogger<ChatProcessingService>>(); // Resolve logger from scope
                                 string conversationId = conv.ConvId; // Capture convId for use in background task
 
                                 try
                                 {
-                                    var secondaryModelName = scopedSettingsService.DefaultSettings?.SecondaryModel;
+                                    var secondaryModelName = scopedSettingsService.CurrentSettings.DefaultSystemPromptId;
                                     if (!string.IsNullOrEmpty(secondaryModelName))
                                     {
                                         var model = scopedSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);

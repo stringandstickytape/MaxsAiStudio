@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Interfaces;
 using SharedClasses.Providers;
@@ -18,15 +18,16 @@ namespace AiStudio4.Services
     /// </summary>
     public class SecondaryAiService : ISecondaryAiService
     {
-        private readonly ISettingsService _settingsService;
+        
         private readonly ILogger<SecondaryAiService> _logger;
         private readonly IMcpService _mcpService;
+        private readonly IGeneralSettingsService _generalSettingsService;
 
-        public SecondaryAiService(ISettingsService settingsService, ILogger<SecondaryAiService> logger, IMcpService mcpService)
+        public SecondaryAiService(ILogger<SecondaryAiService> logger, IMcpService mcpService, IGeneralSettingsService generalSettingsService)
         {
-            _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mcpService = mcpService ?? throw new ArgumentNullException(nameof(mcpService));
+            _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Processing secondary AI request");
                 
                 // Get the secondary model
-                var secondaryModelName = _settingsService.DefaultSettings?.SecondaryModel;
+                var secondaryModelName = _generalSettingsService.CurrentSettings.DefaultSystemPromptId;
                 if (string.IsNullOrEmpty(secondaryModelName))
                 {
                     return new SecondaryAiResponse
@@ -53,7 +54,7 @@ namespace AiStudio4.Services
                 }
 
                 // Find the model and service provider
-                var model = _settingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
+                var model = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
                 if (model == null)
                 {
                     return new SecondaryAiResponse
@@ -63,7 +64,7 @@ namespace AiStudio4.Services
                     };
                 }
 
-                var service = ServiceProvider.GetProviderForGuid(_settingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var service = ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, null, _mcpService);
 
                 if (aiService == null)
@@ -95,7 +96,7 @@ namespace AiStudio4.Services
                     Model = model,
                     Conv = conv,
                     CancellationToken = CancellationToken.None,
-                    ApiSettings = _settingsService.CurrentSettings.ToApiSettings(),
+                    ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
                     UseStreaming = false
                 };

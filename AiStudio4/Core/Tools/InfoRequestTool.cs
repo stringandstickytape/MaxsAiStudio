@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class InfoRequestTool : BaseToolImplementation
     {
-        public InfoRequestTool(ILogger<CodeDiffTool> logger, ISettingsService settingsService) : base(logger, settingsService)
+        public InfoRequestTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
         }
 

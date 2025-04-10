@@ -75,7 +75,9 @@ namespace AiStudio4
             services.AddSingleton<ISecondaryAiService, SecondaryAiService>(); // Add SecondaryAiService
 
             // Register application services
-            services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
+            services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
+            services.AddSingleton<IProjectHistoryService, ProjectHistoryService>();
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
             services.AddSingleton<WebSocketServer>();
@@ -112,7 +114,9 @@ namespace AiStudio4
             await userPromptService.InitializeAsync();
             
             // Get settings manager
-            var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
+            var generalSettingsService = _serviceProvider.GetRequiredService<IGeneralSettingsService>();
+            var appearanceSettingsService = _serviceProvider.GetRequiredService<IAppearanceSettingsService>();
+            var projectHistoryService = _serviceProvider.GetRequiredService<IProjectHistoryService>();
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();
