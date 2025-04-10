@@ -26,6 +26,14 @@ import ThemeManager from './lib/ThemeManager';
       popupBorderColor: '#ff00ff',
       editBackground: '#222',
       editTextColor: '#0ff',
+      // Explicitly set all color props to force CSS var injection
+      // even if redundant
+      pillActiveBg: '#00ff0033',
+      pillInactiveBg: '#ff000033',
+      popupBackground: 'rgba(0,0,0,0.7)',
+      popupBorderColor: '#ff00ff',
+      editBackground: '#222',
+      editTextColor: '#0ff',
       style: {
         backgroundImage: 'linear-gradient(135deg, #4b0082, #8a2be2)',
         filter: 'brightness(1.2) contrast(1.1)',
