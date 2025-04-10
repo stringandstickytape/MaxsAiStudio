@@ -3,6 +3,16 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+
+// Expose themeable properties for ThemeManager
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--systemprompt-bg',
+    description: 'System prompt background color',
+    default: '#2d3748', // dark gray default
+  },
+};
+
 import { ChevronDown, ChevronUp, MessageSquare, Settings, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
@@ -248,10 +258,11 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
 
     return (
         <div
-            className="relative w-full"
+            className="relative w-full SystemPromptComponent"
             ref={promptRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            style={{ backgroundColor: 'var(--systemprompt-bg, #2d3748)' }}
         >
             <div
                 className={cn(

@@ -56,9 +56,9 @@ export function InputBar({
 }: InputBarProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
-    
 
-    
+
+
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
     const [localInputText, setLocalInputText] = useState('');
@@ -227,7 +227,7 @@ export function InputBar({
         console.log("hs1");
         if (isCancelling) return;
         console.log("hs2", isLoading, currentRequest);
-        
+
         // If we're trying to cancel a current request
         if (isLoading && currentRequest) {
             setIsCancelling(true);
@@ -237,14 +237,14 @@ export function InputBar({
             });
             return;
         }
-        
+
         // Check if WebSocket is disconnected
         if (!isLoading && !useWebSocketStore.getState().isConnected) {
             console.log("WebSocket disconnected, attempting to reconnect");
             webSocketService.connect();
             return; // Don't send the message yet, user will need to press send again
         }
-        
+
         // Normal sending flow
         if (!isLoading) {
             console.log("hs3");
@@ -321,7 +321,12 @@ export function InputBar({
         window.dispatchEvent(new CustomEvent('select-secondary-model'));
 
     return (
-        <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+        <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
+            style={{
+                backgroundColor: "var(--inputbar-bg, #1f2937)",
+                
+            }}
+        >
             <div className="flex flex-col h-full">
                 {/* System Prompt - Moved to be first child */}
                 <div className="mb-2 rounded-lg flex-shrink-0">
@@ -476,16 +481,6 @@ export const themeableProps = {
     cssVar: '--inputbar-bg',
     description: 'Input bar background color',
     default: '#1f2937',
-  },
-  borderColor: {
-    cssVar: '--inputbar-border',
-    description: 'Input bar border color',
-    default: '#374151',
-  },
-  textColor: {
-    cssVar: '--inputbar-text',
-    description: 'Input bar text color',
-    default: '#ffffff',
   },
 };
 

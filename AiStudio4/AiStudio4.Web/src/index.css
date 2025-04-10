@@ -204,13 +204,6 @@
 
 /* You can add global styles to this file */
 
-/* Theme overrides for InputBar */
-.InputBar {
-  background-color: var(--inputbar-bg, #1f2937);
-  border-color: var(--inputbar-border, #374151);
-  color: var(--inputbar-text, #ffffff);
-}
-
 /* Drag and drop styles */
 .dragging {
   opacity: 0.7;
