@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+﻿import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
@@ -157,6 +157,22 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
         clearActiveTools();
     };
 
+    // New handler for double-clicking category buttons
+    const handleCategoryDoubleClick = (categoryId: string | null) => {
+      let toolsToSelect: Tool[] = [];
+      if (categoryId === null) {
+        // Select all tools if \"All Tools\" is double-clicked
+        toolsToSelect = tools;
+      } else {
+        // Select tools belonging to the specific category
+        toolsToSelect = tools.filter(tool => tool.categories.includes(categoryId));
+      }
+      const toolIdsToSelect = toolsToSelect.map(tool => tool.guid);
+      setActiveTools(toolIdsToSelect);
+      onClose?.(); // Close the dialog
+    };
+
+
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
@@ -217,6 +233,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
           <Card className="card-base">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-300">Categories</CardTitle>
+              <p className="text-xs text-gray-400 mt-1">(Double-click to select all)</p> 
             </CardHeader>
             <CardContent className="p-2">
               <div className="space-y-1">
@@ -230,6 +247,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                       : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
                   )}
                   onClick={() => setSelectedCategory(null)}
+                  onDoubleClick={() => handleCategoryDoubleClick(null)} // Add double-click handler
                 >
                   All Tools
                 </Button>
@@ -245,6 +263,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                             : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
                           )}
                         onClick={() => setSelectedCategory(category.id)}
+                        onDoubleClick={() => handleCategoryDoubleClick(category.id)} // Add double-click handler
                     >
                         {category.name}
                     </Button>
@@ -388,5 +407,3 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     </div>
   );
 }
-
-
