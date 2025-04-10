@@ -410,13 +410,15 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
 
           const formatCaption = (text: string) => {
               // Limit caption length to prevent overflow
-              const maxLength = containerWidth < 400 ? 24 : 32;
+              // Increased maxLength for more space
+              const maxLength = containerWidth < 400 ? 50 : 60; 
               return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
           };
 
           // Limit model info length
-          const shortModelInfo = modelInfo.length > (containerWidth < 400 ? 10 : 15) ?
-              modelInfo.substring(0, (containerWidth < 400 ? 10 : 15)) + '...' :
+          // Increased substring length for model info
+          const shortModelInfo = modelInfo.length > (containerWidth < 400 ? 35 : 40) ? 
+              modelInfo.substring(0, (containerWidth < 400 ? 35 : 40)) + '...' : 
               modelInfo;
 
           // Debug the final caption content
