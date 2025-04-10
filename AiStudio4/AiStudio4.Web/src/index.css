@@ -1,4 +1,4 @@
-@layer components {
+﻿@layer components {
     /* Base Utilities */
     .text-xs-gray {
         @apply text-xs text-gray-400;
@@ -201,6 +201,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* You can add global styles to this file */
+
+/* Theme overrides for InputBar */
+.InputBar {
+  background-color: var(--inputbar-bg, #1f2937);
+  border-color: var(--inputbar-border, #374151);
+  color: var(--inputbar-text, #ffffff);
+}
 
 /* Drag and drop styles */
 .dragging {

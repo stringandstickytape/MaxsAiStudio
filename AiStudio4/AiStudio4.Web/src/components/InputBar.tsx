@@ -321,7 +321,7 @@ export function InputBar({
         window.dispatchEvent(new CustomEvent('select-secondary-model'));
 
     return (
-        <div className="h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
+        <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm">
             <div className="flex flex-col h-full">
                 {/* System Prompt - Moved to be first child */}
                 <div className="mb-2 rounded-lg flex-shrink-0">
@@ -468,6 +468,25 @@ window.appendToPrompt = text => {
     window.dispatchEvent(new CustomEvent('append-to-prompt', { detail: { text } }));
     console.log(`Appended to prompt: "${text}"`);
     return true;
+};
+
+// Expose themeable properties for ThemeManager
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--inputbar-bg',
+    description: 'Input bar background color',
+    default: '#1f2937',
+  },
+  borderColor: {
+    cssVar: '--inputbar-border',
+    description: 'Input bar border color',
+    default: '#374151',
+  },
+  textColor: {
+    cssVar: '--inputbar-text',
+    description: 'Input bar text color',
+    default: '#ffffff',
+  },
 };
 
 window.setPrompt = text => {
