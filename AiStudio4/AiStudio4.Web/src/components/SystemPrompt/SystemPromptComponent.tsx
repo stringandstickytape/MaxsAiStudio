@@ -229,8 +229,9 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
             setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
 
-            // Update position after the prompt changes
-            setTimeout(updatePosition, 10);
+            // Close the popup after selecting a prompt
+            setExpanded(false);
+            setEditMode(false);
         } catch (error) {
             console.error(`Failed to set conversation prompt ${effectiveConvId} to ${prompt.guid}:`, error);
         }
