@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using System.ClientModel;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
-using ModelContextProtocol.Protocol.Messages;
 using static System.Windows.Forms.DataFormats;
 
 namespace AiStudio4.AiServices

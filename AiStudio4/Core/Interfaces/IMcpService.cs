@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol.Types;
 using System;

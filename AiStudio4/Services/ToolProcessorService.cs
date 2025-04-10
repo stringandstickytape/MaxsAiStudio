@@ -100,7 +100,7 @@ namespace AiStudio4.Services
                             var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
                             var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
-                            
+                            response.ResponseText += $"\n\n{actualToolName}\n\n";
                             var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
                                 ? new List<Dictionary<string, object>>()
                                 : ExtractMultipleJsonObjects(toolResponse.ResponseText)
@@ -144,7 +144,7 @@ namespace AiStudio4.Services
                             
                             if (builtinToolResult.WasProcessed)
                             {
-
+                                response.ResponseText += $"\n\n{toolResponse.ToolName}\n\n";
                                 var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
                                 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);

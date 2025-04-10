@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using AiStudio4.Core.Exceptions;
 using ModelContextProtocol.Protocol.Transport;
 using ModelContextProtocol.Protocol.Types;
-using ModelContextProtocol.Configuration; // Assuming McpCommunicationException is defined here
 
 namespace AiStudio4.Services
 {
@@ -248,21 +247,19 @@ namespace AiStudio4.Services
 
             try
             {
-                _logger.LogInformation("Listing tools for MCP server {ServerId}", serverId);
+                _logger.LogInformation("Calling tool {ToolName} for MCP server {ServerId}", toolName, serverId);
 
-                var retval = await client.CallToolAsync(
-    toolName,
-    arguments);
+                var retval = await client.CallToolAsync(toolName, arguments);
 
-
+                _logger.LogInformation("Successfully called tool {ToolName} for MCP server {ServerId}", toolName, serverId);
                 return retval;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error listing tools for MCP server {ServerId}", serverId);
-                // Consider stopping the client if ListToolsAsync fails consistently?
+                _logger.LogError(ex, "Error calling tool {ToolName} for MCP server {ServerId}", toolName, serverId);
+                // Consider stopping the client if CallToolAsync fails consistently
                 // await StopServerAsync(serverId);
-                throw new McpCommunicationException($"Failed to list tools for server {serverId}.", ex);
+                throw new McpCommunicationException($"Failed to call tool {toolName} for server {serverId}.", ex);
             }
         }
 
@@ -281,9 +278,10 @@ namespace AiStudio4.Services
             {
                 _logger.LogInformation("Listing tools for MCP server {ServerId}", serverId);
                 List<ModelContextProtocol.Protocol.Types.Tool> tools = new List<ModelContextProtocol.Protocol.Types.Tool>();
-                await foreach (var tool in client.ListToolsAsync())
+                var availableTools = await client.ListToolsAsync();
+                foreach (var tool in availableTools)
                 {
-                    tools.Add(tool);
+                    tools.Add(tool.ProtocolTool);
                 }
 
                 _logger.LogInformation("Successfully listed {Count} tools for MCP server {ServerId}", tools?.Count() ?? 0, serverId);
@@ -359,41 +357,38 @@ namespace AiStudio4.Services
 
             try
             {
-                var clientOptions = new McpClientOptions
+                IMcpClient newClient;
+                
+                if (definition.StdIo)
                 {
-                    ClientInfo = new Implementation { Name = "AiStudio4", Version = "1.0" }
-                    // Add other options if needed, e.g., Logger
-                };
-
-                var serverInfo = new McpServerConfig
-                {
-                    Id = definition.Id,
-                    Name = definition.Name,
-                    TransportType = definition.StdIo ? TransportTypes.StdIo : TransportTypes.Sse,
-                    TransportOptions = new Dictionary<string, string>
-                    {
-                        { "command", definition.Command },
-                        { "arguments", definition.Arguments ?? string.Empty },
-                    },
-                    Location = definition.Command
-                };
-
-                if(definition.Env != null && definition.Env.Any())
-                {
-                    serverInfo.TransportOptions.Add($"env:{definition.Env.First().Key}", definition.Env.First().Value);
+                    // Create a StdioClientTransport for command-line based MCP servers
+                    newClient = await McpClientFactory.CreateAsync(
+                        new StdioClientTransport(new()
+                        {
+                            Command = definition.Command,
+                            Arguments = definition.Arguments?.Split(' ').ToList() ?? new List<string>(),
+                            Name = definition.Name,
+                            EnvironmentVariables = definition.Env,
+                            //WorkingDirectory
+                            //ShutdownTimeout
+                        }));
                 }
-
-                if(serverInfo.TransportType == "sse")
+                else
                 {
-                    //serverInfo.TransportOptions.Add("uriString", serverInfo.TransportOptions["command"]);
+                    // For SSE transport (HTTP-based MCP servers)
+                    newClient = await McpClientFactory.CreateAsync(
+                        new SseClientTransport(new ()
+                        {
+                            Endpoint = new Uri(definition.Command),
+                            Name = definition.Name,
+                            
+
+                        }));
                 }
-
-                var newClient = await McpClientFactory.CreateAsync(serverInfo, clientOptions);
-
+                
                 if (_activeClients.TryAdd(serverId, newClient))
                 {
                     _logger.LogInformation("Successfully started and added MCP client for server {ServerId}", serverId);
-                    // Optional: Register for client-side events like disconnection if the library provides them
                     return newClient;
                 }
                 else

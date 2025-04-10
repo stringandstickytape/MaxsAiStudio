@@ -261,11 +261,14 @@ namespace AiStudio4.Services
                         TokenUsage = response.TokenUsage
                     });
 
-                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-                        userMessage: response.ResponseText, parentMessageId: request.MessageId, 
-                        attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
+
+                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+    userMessage: response.ResponseText, parentMessageId: request.MessageId,
+    attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
                     continueLoop = toolResult.ContinueProcessing;
 
                     if (request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
