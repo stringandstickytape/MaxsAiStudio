@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.AspNetCore.Builder;
@@ -62,6 +62,9 @@ namespace AiStudio4.InjectedDependencies
             });
             var port = _configuration.GetValue("WebServer:Port", 35005);
 
+            // Register services (ThemeService, controllers, etc)
+            builder.Services.AddAiStudio4Services();
+
             // Configure Kestrel for HTTPS
             builder.WebHost.UseKestrel(options =>
             {
@@ -85,6 +88,13 @@ namespace AiStudio4.InjectedDependencies
             app.UseResponseCompression();
 
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
+
+            // Enable routing and controllers for API
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); // This exposes ThemeController at /api/themes
+            });
 
             ConfigureRoutes();
 
