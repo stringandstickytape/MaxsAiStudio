@@ -82,7 +82,7 @@ export const updateTheme = createApiRequest<Theme, Theme>(
  * Sets a theme as the default theme.
  */
 export const setDefaultTheme = createApiRequest<string, void>(
-  'themes/setDefault',
+  (themeId) => `themes/setDefault/${themeId}`,
   'POST'
 );
 
@@ -90,7 +90,7 @@ export const setDefaultTheme = createApiRequest<string, void>(
  * Gets the current default theme.
  */
 export const getDefaultTheme = createApiRequest<void, Theme>(
-  'themes/getDefault',
+  'themes/default',
   'GET',
   {
     transformResponse: (data) => data

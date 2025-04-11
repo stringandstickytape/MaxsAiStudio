@@ -88,5 +88,30 @@ namespace AiStudio4.Controllers
             var json = await _themeService.ExportThemesAsync(themeIds);
             return Ok(json);
         }
+
+        /// <summary>
+        /// Sets a theme as the default theme.
+        /// </summary>
+        [HttpPost("setDefault/{id}")]
+        public async Task<IActionResult> SetDefaultTheme(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return BadRequest("Theme ID is required.");
+
+            var success = await _themeService.SetDefaultThemeAsync(id);
+            if (!success) return NotFound("Theme not found or could not be set as default.");
+            return Ok();
+        }
+
+        /// <summary>
+        /// Gets the current default theme.
+        /// </summary>
+        [HttpGet("default")]
+        public async Task<ActionResult<Theme>> GetDefaultTheme()
+        {
+            var theme = await _themeService.GetDefaultThemeAsync();
+            if (theme == null) return NotFound("No default theme set.");
+            return Ok(theme);
+        }
     }
 }

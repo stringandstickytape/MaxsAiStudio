@@ -16,6 +16,7 @@ namespace AiStudio4.Services
     public class ThemeService : IThemeService
     {
         private readonly string _themeLibraryPath;
+        private readonly string _defaultThemePath;
         private ThemeLibrary _themeLibrary;
         private readonly object _lock = new();
 
@@ -25,6 +26,7 @@ namespace AiStudio4.Services
             var themeDir = Path.Combine(appData, "AiStudio4", "Themes");
             if (!Directory.Exists(themeDir)) Directory.CreateDirectory(themeDir);
             _themeLibraryPath = Path.Combine(themeDir, "themeLibrary.json");
+            _defaultThemePath = Path.Combine(themeDir, "defaultTheme.json");
             _themeLibrary = new ThemeLibrary();
         }
 
@@ -192,6 +194,52 @@ namespace AiStudio4.Services
                 Created = theme.Created,
                 LastModified = theme.LastModified
             };
+        }
+
+        /// <summary>
+        /// Sets a theme as the default theme.
+        /// </summary>
+        public async Task<bool> SetDefaultThemeAsync(string themeId)
+        {
+            Theme theme;
+            lock (_lock)
+            {
+                theme = _themeLibrary.Themes.FirstOrDefault(t => t.Guid == themeId);
+                if (theme == null) return false;
+                theme = CloneTheme(theme);
+            }
+
+            try
+            {
+                var json = JsonSerializer.Serialize(theme, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_defaultThemePath, json);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error setting default theme: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the current default theme.
+        /// </summary>
+        public async Task<Theme> GetDefaultThemeAsync()
+        {
+            if (!File.Exists(_defaultThemePath)) return null;
+
+            try
+            {
+                var json = await File.ReadAllTextAsync(_defaultThemePath);
+                var theme = JsonSerializer.Deserialize<Theme>(json);
+                return theme;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error getting default theme: {ex.Message}");
+                return null;
+            }
         }
     }
 }

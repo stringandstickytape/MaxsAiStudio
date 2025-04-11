@@ -56,5 +56,18 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="json">The JSON string containing theme data.</param>
         /// <returns>List of imported themes.</returns>
         Task<List<Theme>> ImportThemesAsync(string json);
+
+        /// <summary>
+        /// Sets a theme as the default theme.
+        /// </summary>
+        /// <param name="themeId">The unique ID of the theme to set as default.</param>
+        /// <returns>True if successful; otherwise, false.</returns>
+        Task<bool> SetDefaultThemeAsync(string themeId);
+
+        /// <summary>
+        /// Gets the current default theme.
+        /// </summary>
+        /// <returns>The default theme if set; otherwise, null.</returns>
+        Task<Theme> GetDefaultThemeAsync();
     }
 }

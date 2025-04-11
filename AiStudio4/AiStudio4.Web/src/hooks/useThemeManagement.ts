@@ -80,8 +80,17 @@ export function useThemeManagement() {
   );
 
   // Apply a theme
-  const applyTheme = useCallback((theme: Theme) => {
+  const applyTheme = useCallback(async (theme: Theme) => {
+    // Apply theme visually
     themeManagerInstance.applyTheme(theme.themeJson);
+    
+    // Save as default theme in backend
+    try {
+      await themeApi.setDefaultTheme(theme.guid);
+      console.log(`Theme "${theme.name}" set as default`);
+    } catch (error) {
+      console.error('Error setting default theme:', error);
+    }
   }, []);
 
   // Toggle theme selection
