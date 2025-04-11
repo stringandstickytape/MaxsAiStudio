@@ -105,6 +105,16 @@ export const themeableProps = {
     description: 'Command item selected background',
     default: '#555',
   },
+  commandItemBg: {
+    cssVar: '--commandbar-command-bg',
+    description: 'Command item background color (not selected)',
+    default: 'transparent',
+  },
+  commandItemTextColor: {
+    cssVar: '--commandbar-command-text-color',
+    description: 'Command item text color',
+    default: '#eee',
+  },
   style: {
     description: 'Arbitrary style for root CommandBar',
     default: {},
@@ -484,28 +494,29 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 {commands.map((command, index) => {
                   const isSelected = filteredCommands.indexOf(command) === selectedIndex;
                   const isPinned = pinnedCommands.some((cmd) => cmd.id === command.id);
-
-                    return (
-                        <div
-                            key={command.id}
-                            className={cn(
-                                'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
-                                isSelected && 'bg-gray-700/70',
-                            )}
-                            style={{
-                              backgroundColor: isSelected
-                                ? 'var(--commandbar-command-selected-bg, #555)'
-                                : undefined,
-                              ...(window?.theme?.CommandBar?.commandItemStyle || {})
-                            }}
-                            onMouseDown={(e) => {
-                                e.preventDefault(); 
-                            }}
-                            onMouseUp={(e) => {
-                                e.stopPropagation(); 
-                                handleCommandClick(command.id);
-                            }}
-                        >
+                  
+                  return (
+                      <div
+                          key={command.id}
+                          className={cn(
+                              'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
+                              isSelected && 'bg-gray-700/70',
+                          )}
+                          style={{
+                            backgroundColor: isSelected
+                              ? 'var(--commandbar-command-selected-bg, #555)'
+                              : 'var(--commandbar-command-bg, transparent)',
+                            color: 'var(--commandbar-command-text-color, #eee)',
+                            ...(window?.theme?.CommandBar?.commandItemStyle || {})
+                          }}
+                          onMouseDown={(e) => {
+                              e.preventDefault(); 
+                          }}
+                          onMouseUp={(e) => {
+                              e.stopPropagation(); 
+                              handleCommandClick(command.id);
+                          }}
+                      >
                       <div className="flex items-center gap-3">
                         {command.icon && <div className="">{typeof command.icon === 'function' ? command.icon() : command.icon}</div>}
                       <div className="max-w-md overflow-hidden">

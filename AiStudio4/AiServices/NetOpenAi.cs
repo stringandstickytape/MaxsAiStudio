@@ -255,6 +255,8 @@ namespace AiStudio4.AiServices
 
                 await foreach (StreamingChatCompletionUpdate update in completionUpdates.WithCancellation(cancellationToken))
                 {
+                    if (responseBuilder.ToString().EndsWith("\r\n\r\n\n\r\n\r\n\r\n\n\r\n\r\n\r\n\n"))
+                        break;
                     // Handle content updates (text)
                     if (update.ContentUpdate != null && update.ContentUpdate.Count > 0 && !string.IsNullOrEmpty(update.ContentUpdate[0].Text))
                     {

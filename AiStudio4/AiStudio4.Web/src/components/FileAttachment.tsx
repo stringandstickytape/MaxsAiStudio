@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,8 @@ interface FileAttachmentProps {
     className?: string;
     maxFiles?: number;
     acceptedTypes?: string;
+    style?: React.CSSProperties; 
+
 }
 
 export const FileAttachment: React.FC<FileAttachmentProps> = ({
@@ -17,7 +19,8 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     disabled = false,
     className,
     maxFiles = DEFAULT_ATTACHMENT_OPTIONS.maxCount,
-    acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv,application/pdf"
+    acceptedTypes = ".jpg,.jpeg,.png,.gif,.pdf,.txt,.md,.js,.jsx,.ts,.tsx,.py,.html,.css,.json,.csv,application/pdf",
+    style
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -112,6 +115,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                 aria-label="Attach file"
                 title="Attach file"
+                style={style}
             >
                 <Paperclip className="h-5 w-5" />
             </Button>
