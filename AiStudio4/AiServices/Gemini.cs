@@ -250,6 +250,9 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                             var toolName = jsonResponse["name"]?.ToString();
                             var toolArgs = jsonResponse["args"].ToString();
                             ToolResponseSet.Tools.Add(new ToolResponseItem { ToolName = toolName, ResponseText = toolArgs });
+                            
+                            // Clear the response text when a tool is chosen
+                            //fullResponse.Clear();
                         }
                     }
                 }
@@ -506,6 +509,17 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                     ToolName = toolName,
                                     ResponseText = toolArguments
                                 });
+                                
+                                // When a tool is chosen, don't include the tool response in ResponseText
+                                return new AiResponse
+                                {
+                                    ResponseText = "", // Empty response text for tool calls
+                                    Success = true,
+                                    TokenUsage = new TokenUsage(inputTokens, outputTokens),
+                                    ChosenTool = chosenTool,
+                                    Attachments = attachments.Count > 0 ? attachments : null,
+                                    ToolResponseSet = ToolResponseSet
+                                };
                             }
                         }
                     }
@@ -577,7 +591,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 //    currentResponseItem.ResponseText += toolArgs;
                                 //}
                                 
-                                fullResponse.Append(toolResponse);
+                                // Don't append tool response to fullResponse
+                                // fullResponse.Append(toolResponse);
                                 onStreamingUpdate?.Invoke(toolResponse); // Use callback
                             }
                             // Handle text responses

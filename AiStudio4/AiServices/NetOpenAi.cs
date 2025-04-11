@@ -213,8 +213,8 @@ namespace AiStudio4.AiServices
                 // Return response indicating tool calls were made
                 return new AiResponse
                 {
-                    // ResponseText can be null or a summary message when multiple tools are called.
-                    ResponseText = null, // Or: $"Multiple tool calls requested: {string.Join(", ", completion.ToolCalls.Select(tc => tc.FunctionName))}",
+                    // ResponseText should be empty when tool calls are made
+                    ResponseText = "", // Empty string instead of null or summary message
                     Success = true,
                     TokenUsage = ExtractTokenUsage(completion),
                     // ChosenTool is less relevant with multiple tools. Set to null or first tool name.
@@ -281,11 +281,15 @@ namespace AiStudio4.AiServices
                                     ResponseText = ""
                                 };
                                 ToolResponseSet.Tools.Add(toolResponseItem);
+                                
+                                // Clear the response builder when a tool is chosen
+                                //responseBuilder.Clear();
                             }
                             if (toolCall.FunctionArgumentsUpdate != null && toolCall.FunctionArgumentsUpdate.ToArray().Length > 0 && !string.IsNullOrEmpty(toolCall.FunctionArgumentsUpdate.ToString()))
                             {
                                 string argumentUpdate = toolCall.FunctionArgumentsUpdate.ToString();
-                                responseBuilder.Append(argumentUpdate);
+                                // Don't append to responseBuilder for tool calls
+                                // responseBuilder.Append(argumentUpdate);
                                 onStreamingUpdate?.Invoke(argumentUpdate); // Use callback
 
                                 // Update the tool response text
