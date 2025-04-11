@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -207,6 +207,20 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                             </button>
                         )}
                         {launchButton}
+                        {language === 'theme' && (
+                            <button
+                                onClick={() => {
+                                    try {
+                                        window.applyLLMTheme(JSON.parse(content));
+                                    } catch (e) {
+                                        console.error('Invalid theme JSON', e);
+                                    }
+                                }}
+                                className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                            >
+                                Use Theme
+                            </button>
+                        )}
                         <button
                             onClick={() => navigator.clipboard.writeText(content)}
                             className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"

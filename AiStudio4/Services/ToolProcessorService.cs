@@ -187,7 +187,7 @@ namespace AiStudio4.Services
 
                                 var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
-                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```json{tool?.Filetype}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
                             }
                         }
                     }

@@ -146,13 +146,13 @@ namespace AiStudio4.Services
                 List<Attachment> finalAttachments = new List<Attachment>(); // Initialize here
 
 
+                StringBuilder collatedResponse = new StringBuilder();
 
-                
 
                 // --- Tool Use Loop ---
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
-                    StringBuilder collatedResponse = new StringBuilder();
+                    collatedResponse = new StringBuilder();
                     currentIteration++;
 
                     // Prepare initial conversation state
@@ -248,26 +248,28 @@ namespace AiStudio4.Services
 
                     var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
                     
-                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                    {
-                        ConvId = request.BranchedConv.ConvId,
-                        MessageId = newAssistantMessageId,
-                        Content = response.ResponseText,
-                        ParentId = request.MessageId,
-                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                        Source = "assistant",
-                        Attachments = response.Attachments,
-                        DurationMs = 0 ,
-                        CostInfo = new TokenCost(response.TokenUsage, model),
-                        TokenUsage = response.TokenUsage
-                    });
+
 
 
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
 
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = newAssistantMessageId,
+                        Content = collatedResponse.ToString(),
+                        ParentId = request.MessageId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "assistant",
+                        Attachments = response.Attachments,
+                        DurationMs = 0,
+                        CostInfo = new TokenCost(response.TokenUsage, model),
+                        TokenUsage = response.TokenUsage
+                    });
+
                     request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-    userMessage: response.ResponseText, parentMessageId: request.MessageId,
+    userMessage: collatedResponse.ToString(), parentMessageId: request.MessageId,
     attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
                     continueLoop = toolResult.ContinueProcessing;
@@ -318,7 +320,7 @@ namespace AiStudio4.Services
                 return new ChatResponse
                 {
                     Success = true,
-                    ResponseText = response.ResponseText
+                    ResponseText = collatedResponse.ToString()
                 };
 
                 _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
