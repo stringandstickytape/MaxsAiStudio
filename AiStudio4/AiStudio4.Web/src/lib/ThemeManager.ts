@@ -60,7 +60,7 @@ class ThemeManager {
         console.warn(`Theme discovery failed for ${path}:`, error);
       }
     }
-    console.log('[ThemeManager] Theme discovery complete. Schema:', this.schema);
+    console.log('[ThemeManager] Theme discovery complete. Schema:', JSON.stringify(this.schema));
   }
 
   /**

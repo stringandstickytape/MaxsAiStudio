@@ -10,26 +10,26 @@ import ThemeManager from './lib/ThemeManager';
 
     const theme = {
         InputBar: {
-            backgroundColor: '#000000', // deep charcoal background
+            backgroundColor: '#1a1a1a', // deep dark background
         },
         SystemPromptComponent: {
-            backgroundColor: '#000000', // slightly lighter dark background
-            textColor: '#e0e0e0',       // soft light gray text
-            borderColor: '#444',        // subtle border
+            backgroundColor: '#1a1a1a', // dark background
+            textColor: '#f9e1e9',       // sakura pink text
+            borderColor: '#ff8fb1',     // soft pink border
             borderRadius: '12px',
-            fontFamily: 'Segoe UI, Roboto, sans-serif',
+            fontFamily: '"Segoe UI", "Noto Sans JP", sans-serif',
             fontSize: '1rem',
             boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
 
-            pillActiveBg: '#3a3f5a',       // muted indigo for active pill
-            pillInactiveBg: '#444',        // dark gray for inactive pill
+            pillActiveBg: '#ff8fb133',       // translucent pink for active pill
+            pillInactiveBg: '#444',          // dark gray for inactive pill
             popupBackground: 'rgba(30,30,30,0.95)', // dark semi-transparent popup
-            popupBorderColor: '#555',      // subtle border for popup
-            editBackground: '#1e1e1e',     // match input bar
-            editTextColor: '#ccc',         // soft gray text in edit area
+            popupBorderColor: '#ff8fb1',     // pink border for popup
+            editBackground: '#2a2a2a',       // dark edit background
+            editTextColor: '#f9e1e9',        // sakura pink text in edit area
 
             style: {
-                backgroundImage: 'linear-gradient(135deg, #2a2a2a, #1e1e1e)', // subtle gradient
+                backgroundImage: 'linear-gradient(135deg, #1a1a1a, #2a1a1f)', // subtle dark gradient with hint of pink
                 filter: 'none',
                 transform: 'none',
             },
@@ -37,17 +37,18 @@ import ThemeManager from './lib/ThemeManager';
             popupStyle: {
                 backdropFilter: 'blur(6px)',
                 borderRadius: '14px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
             },
 
             pillStyle: {
                 fontWeight: '500',
                 textTransform: 'none',
                 letterSpacing: '0.5px',
+                color: '#f9e1e9', // pink text on pills
             },
 
             editAreaStyle: {
-                fontFamily: 'Consolas, monospace',
+                fontFamily: '"Consolas", monospace',
                 fontSize: '0.95rem',
             },
         },
