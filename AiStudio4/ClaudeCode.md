@@ -31,30 +31,4 @@ AiStudio4 is a hybrid desktop application built using:
 *   **Key Services & Responsibilities:**
     *   `ISettingsService`: Manages application settings, crucially the `ProjectPath`.
     *   `IConvStorage`, `IChatService`, `ChatManager`, `ChatProcessingService`, `MessageHistoryService`: Handle chat session logic, storage, and processing.
-    *   `IToolService`, `IBuiltinToolService`, `IToolProcessorService`: Manage and execute available tools (both built-in and potentially external).
-    *   `IMcpService`: Interacts with Model Context Protocol servers (likely for AI model interactions).
-    *   `ISystemPromptService`, `IPinnedCommandService`, `IUserPromptService`: Manage different types of prompts used in AI interactions.
-    *   `WebSocketServer`, `WebSocketConnectionManager`, `WebSocketMessageHandler`: Handle WebSocket communication with the frontend.
-    *   `WebServer`: Hosts the SPA/API using Kestrel.
-    *   `WindowManager`: Manages application windows.
-    *   `UiRequestBroker`: Likely facilitates communication or requests between UI and backend services.
-    *   `FileServer`: Provides file access capabilities.
-    *   **Dialogs:**
-        *   `WpfInputDialog`: A reusable WPF window for simple text input, located in the `Dialogs` folder. Used for tasks like setting the YouTube API key via the main menu.
-*   **AI Integration:** Uses `OpenAI` and `ModelContextProtocol` NuGet packages, indicating direct interaction with OpenAI models and potentially other AI services via MCP.
-*   **Project Dependencies:** Relies on `AiTool3` and `SharedClasses` projects for additional functionality.
-
-## Critical Configuration
-
-*   **`ProjectPath`:** This setting, managed by `ISettingsService` and configured via the "File" menu in the UI (`WebViewWindow.xaml.cs`), is **essential**. It determines the context for many operations, especially file system access and context-aware AI tasks performed by tools (`IBuiltinToolService.UpdateProjectRoot`).
-*   **`appsettings.json`:** Contains backend configuration details.
-*   **MCP Server Definitions:** Managed via `IMcpService` and configurable through the UI, determining available AI model endpoints.
-
-## Key Patterns & Concepts
-
-*   **Dependency Injection:** Central to the application's structure.
-*   **Service-Oriented Architecture:** Logic is encapsulated in distinct services.
-*   **Hybrid Application Model:** Combines native WPF shell with a web-based UI (WebView2).
-*   **Real-time Communication:** WebSockets are used for frontend-backend interaction.
-*   **Settings Management:** Centralized handling of user/application settings.
-*   **Tool Abstraction:** Tools are managed and executed through dedicated services.
+*   **Theme Library:** Located at `%AppData%/AiStudio4/Themes/themeLibrary.json`, stores user-defined themes.
