@@ -1,5 +1,4 @@
-
-import { Command } from 'lucide-react';
+﻿import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
@@ -46,20 +45,36 @@ export function AppHeader({
     return (
         <div className="app-container">
             <div className={cn(
-                'header-section relative z-2 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
+                'AppHeader header-section relative z-2 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
             )}
+            style={{
+                backgroundColor: 'var(--appheader-bg, #1a1f2c)', // Default dark blue-gray
+                color: 'var(--appheader-text-color, #e0e0e0)',
+                borderColor: 'var(--appheader-border-color, #3a3f4c)',
+                borderRadius: 'var(--appheader-border-radius, 0px)', // Default no radius for header
+                fontFamily: 'var(--appheader-font-family, inherit)',
+                fontSize: 'var(--appheader-font-size, 0.875rem)',
+                boxShadow: 'var(--appheader-box-shadow, 0 2px 4px rgba(0,0,0,0.2))',
+                ...(window?.theme?.AppHeader?.style || {})
+            }}
             >
                 
                 <div className="flex flex-1 justify-center justify-items-center ">
-                <div className={cn("w-full justify-items-center ", 
-                    sidebarOpen || rightSidebarOpen ? "max-w-[calc(100%-40px)]" : "max-w-2xl",
-                    sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
-                )} style={{margin: '0 auto'}}>
+                <div 
+                    className={cn("w-full justify-items-center ", 
+                        sidebarOpen || rightSidebarOpen ? "max-w-[calc(100%-40px)]" : "max-w-2xl",
+                        sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
+                    )} 
+                    style={{
+                        margin: '0 auto',
+                        ...(window?.theme?.AppHeader?.commandBarStyle || {})
+                    }}
+                >
                         
                         {CommandBarComponent || (
                             <form onSubmit={handleCommandSubmit} className="relative w-full mb-2">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Command className="h-4 w-4 text-gray-400" />
+                                    <Command className="h-4 w-4" />
                                 </div>
                                 <Input
                                     id="command-input"
@@ -83,7 +98,10 @@ export function AppHeader({
 
                 
                 <div className="mt-1 border-t border-gray-700/30 pt-1 flex flex-col gap-0.5">
-                    <div className="w-full pb-1">
+                    <div 
+                        className="w-full pb-1"
+                        style={{ ...(window?.theme?.AppHeader?.pinnedShortcutsStyle || {}) }}
+                    >
                         <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" maxRows={3} />
                     </div>
                 </div>
@@ -92,3 +110,54 @@ export function AppHeader({
     );
 }
 
+// Expose themeable properties for ThemeManager
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--appheader-bg',
+    description: 'App header background color',
+    default: '#1a1f2c', // Default dark blue-gray
+  },
+  textColor: {
+    cssVar: '--appheader-text-color',
+    description: 'App header text color',
+    default: '#e0e0e0',
+  },
+  borderColor: {
+    cssVar: '--appheader-border-color',
+    description: 'App header border color (used for bottom border)',
+    default: '#3a3f4c',
+  },
+  borderRadius: {
+    cssVar: '--appheader-border-radius',
+    description: 'App header border radius',
+    default: '0px',
+  },
+  fontFamily: {
+    cssVar: '--appheader-font-family',
+    description: 'App header font family',
+    default: 'inherit',
+  },
+  fontSize: {
+    cssVar: '--appheader-font-size',
+    description: 'App header base font size',
+    default: '0.875rem',
+  },
+  boxShadow: {
+    cssVar: '--appheader-box-shadow',
+    description: 'App header box shadow',
+    default: '0 2px 4px rgba(0,0,0,0.2)',
+  },
+  // Arbitrary style overrides
+  style: {
+    description: 'Arbitrary CSS style for the root AppHeader container',
+    default: {},
+  },
+  commandBarStyle: {
+    description: 'Arbitrary CSS style for the inner container holding the command bar/input',
+    default: {},
+  },
+  pinnedShortcutsStyle: {
+    description: 'Arbitrary CSS style for the container holding the pinned shortcuts bar',
+    default: {},
+  },
+};

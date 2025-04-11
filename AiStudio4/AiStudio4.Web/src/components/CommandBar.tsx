@@ -391,7 +391,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
       <form onSubmit={handleCommandSubmit} onKeyDown={handleKeyDown}>
         <div className="relative">
          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Command className="h-4 w-4 text-gray-400" />
+        <Command className="h-4 w-4" />
         </div>
         <Input
             ref={inputRef}
@@ -422,7 +422,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 color: 'var(--commandbar-button-text-color, #eee)',
                 ...(window?.theme?.CommandBar?.buttonStyle || {})
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1.5 px-3 py-1 text-gray-300 hover:text-white bg-gray-700/60 hover:bg-gray-700/90 rounded border border-gray-600/50 hover:border-gray-500 animate-hover text-xs font-medium"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1.5 px-3 py-1 hover:text-white bg-gray-700/60 hover:bg-gray-700/90 rounded border border-gray-600/50 hover:border-gray-500 animate-hover text-xs font-medium"
               aria-label="Clear and close"
             >
               <svg
@@ -442,7 +442,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
               <span>Close</span>
             </button>
           ) : (
-            <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
+            <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700">
               {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
             </kbd>
           )}
@@ -507,11 +507,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                             }}
                         >
                       <div className="flex items-center gap-3">
-                        {command.icon && <div className="text-gray-400">{typeof command.icon === 'function' ? command.icon() : command.icon}</div>}
+                        {command.icon && <div className="">{typeof command.icon === 'function' ? command.icon() : command.icon}</div>}
                       <div className="max-w-md overflow-hidden">
-                          <div className="font-medium text-gray-200">{command.name}</div>
+                          <div className="font-medium">{command.name}</div>
                           {command.description && (
-                            <div className="text-small-gray-400 whitespace-pre-line line-clamp-3">
+                            <div className="whitespace-pre-line line-clamp-3">
                               {command.description}
                             </div>
                           )}
@@ -548,7 +548,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                           </Tooltip>
                         </TooltipProvider>
                         {command.shortcut && (
-                          <kbd className="px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-800 rounded border border-gray-700">
+                          <kbd className="px-2 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700">
                             {command.shortcut}
                           </kbd>
                         )}
