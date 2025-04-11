@@ -390,10 +390,12 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                             ref={portalContentRef}
                             style={{
                                 ...portalStyle,
-                                backgroundColor: 'var(--systemprompt-popup-bg, #1a202c)',
-                                borderColor: 'var(--systemprompt-popup-border-color, #4a5568)',
-                                borderRadius: 'var(--systemprompt-border-radius, 8px)',
-                                boxShadow: 'var(--systemprompt-box-shadow, 0 4px 12px rgba(0,0,0,0.3))',
+                                // Use direct theme values instead of CSS variables for portal content
+                                // since portals are outside the component hierarchy and won't inherit CSS variables
+                                backgroundColor: window?.theme?.SystemPromptComponent?.popupBackground || '#1a202c',
+                                borderColor: window?.theme?.SystemPromptComponent?.popupBorderColor || '#4a5568',
+                                borderRadius: window?.theme?.SystemPromptComponent?.borderRadius || '8px',
+                                boxShadow: window?.theme?.SystemPromptComponent?.boxShadow || '0 4px 12px rgba(0,0,0,0.3)',
                                 ...(window?.theme?.SystemPromptComponent?.popupStyle || {})
                             }}
                             className="fixed z-50 p-4 border shadow-xl SystemPromptComponent"

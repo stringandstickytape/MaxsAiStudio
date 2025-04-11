@@ -29,7 +29,7 @@ import ThemeManager from './lib/ThemeManager';
             editTextColor: '#f9e1e9',        // sakura pink text in edit area
 
             style: {
-                backgroundImage: 'linear-gradient(135deg, #1a1a1a, #2a1a1f)', // subtle dark gradient with hint of pink
+                backgroundImage: '', // subtle dark gradient with hint of pink
                 filter: 'none',
                 transform: 'none',
             },
