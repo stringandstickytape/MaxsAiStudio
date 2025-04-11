@@ -592,10 +592,10 @@ namespace AiStudio4.AiServices
                     }*/
                     case "content_block_start":
                         var contentBlockType = eventData["content_block"]?["type"];
-                        if(contentBlockType.ToString() == "tool_use")
+                        if (contentBlockType.ToString() == "tool_use")
                         {
                             ChosenTool = eventData["content_block"]?["name"].ToString();
-                            
+
                             // Create a new ToolResponseItem when a tool is chosen
                             var toolResponseItem = new ToolResponseItem
                             {
@@ -608,17 +608,23 @@ namespace AiStudio4.AiServices
                             ToolResponseSet.Tools.Add(toolResponseItem);
 
                         }
+                        else
+                            ChosenTool = null;
                         break;
                     case "content_block_delta":
                         var text = eventData["delta"]["text"]?.ToString() ?? eventData["delta"]["partial_json"]?.ToString();
                         
                         Debug.WriteLine(text);
 
+                        StreamingTextReceived?.Invoke(this, text);
+
                         if (currentResponseItem != null)
                             currentResponseItem.ResponseText += text;
 
-                        StreamingTextReceived?.Invoke(this, text);
-                        responseBuilder.Append(text); // Append to the class-level builder
+                        else
+                        {
+                            responseBuilder.Append(text); // Append to the class-level builder
+                        }
                         break;
                     case "content_block_end":
 
