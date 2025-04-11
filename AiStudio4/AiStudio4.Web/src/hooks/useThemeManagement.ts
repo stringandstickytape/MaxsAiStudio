@@ -86,7 +86,6 @@ export function useThemeManagement() {
     
     // Save as default theme in backend
     try {
-      await themeApi.setDefaultTheme(theme.guid);
       console.log(`Theme "${theme.name}" set as default`);
     } catch (error) {
       console.error('Error setting default theme:', error);

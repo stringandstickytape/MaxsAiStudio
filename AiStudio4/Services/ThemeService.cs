@@ -164,15 +164,12 @@ namespace AiStudio4.Services
         {
             if (theme.ThemeJson == null)
                 throw new ArgumentException("ThemeJson must not be null.");
-            foreach (var comp in theme.ThemeJson)
+            foreach (var entry in theme.ThemeJson)
             {
-                if (comp.Value == null)
-                    throw new ArgumentException($"ThemeJson component '{comp.Key}' must not be null.");
-                foreach (var prop in comp.Value)
-                {
-                    if (prop.Value == null)
-                        throw new ArgumentException($"ThemeJson[{comp.Key}][{prop.Key}] must not be null.");
-                }
+                if (entry.Value == null)
+                    throw new ArgumentException($"ThemeJson value for key '{entry.Key}' must not be null.");
+                if (!entry.Key.Contains('-'))
+                    throw new ArgumentException($"ThemeJson key '{entry.Key}' must be in format 'Component-property'.");
             }
         }
 
@@ -188,9 +185,7 @@ namespace AiStudio4.Services
                 Description = theme.Description,
                 Author = theme.Author,
                 PreviewColors = theme.PreviewColors != null ? new List<string>(theme.PreviewColors) : new List<string>(),
-                ThemeJson = theme.ThemeJson != null ? theme.ThemeJson.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value != null ? new Dictionary<string, string>(kvp.Value) : new Dictionary<string, string>()) : new Dictionary<string, Dictionary<string, string>>(),
+                ThemeJson = theme.ThemeJson != null ? new Dictionary<string, string>(theme.ThemeJson) : new Dictionary<string, string>(),
                 Created = theme.Created,
                 LastModified = theme.LastModified
             };

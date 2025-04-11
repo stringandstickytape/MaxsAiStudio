@@ -227,7 +227,6 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                         // Add theme to library and set as default
                                         const themeApi = await import('@/api/themeApi');
                                         const addedTheme = await themeApi.addTheme(theme);
-                                        await themeApi.setDefaultTheme(addedTheme.guid);
                                         console.log('Theme added to library and set as default');
                                     } catch (e) {
                                         console.error('Error processing theme:', e);

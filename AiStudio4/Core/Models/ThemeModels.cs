@@ -35,9 +35,9 @@ namespace AiStudio4.Core.Models
         public List<string> PreviewColors { get; set; } = new List<string>();
 
         /// <summary>
-        /// The theme's JSON data, organized by category and property.
+        /// The theme's JSON data, using a flat structure with keys in the format "Component-property".
         /// </summary>
-        public Dictionary<string, Dictionary<string, string>> ThemeJson { get; set; } = new();
+        public Dictionary<string, string> ThemeJson { get; set; } = new();
 
         /// <summary>
         /// Date and time when the theme was created (UTC).
