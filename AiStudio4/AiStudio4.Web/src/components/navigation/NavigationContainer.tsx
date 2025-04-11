@@ -1,4 +1,4 @@
-
+﻿// AiStudio4.Web\src\components\navigation\NavigationContainer.tsx
 import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
@@ -11,6 +11,52 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
+
+/**
+ * Themeable properties for NavigationContainer
+ */
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--navigationcontainer-bg',
+    description: 'Background color of the navigation container',
+    default: 'transparent',
+  },
+  textColor: {
+    cssVar: '--navigationcontainer-text-color',
+    description: 'Text color for the navigation container',
+    default: 'inherit',
+  },
+  borderColor: {
+    cssVar: '--navigationcontainer-border-color',
+    description: 'Border color for the navigation container',
+    default: 'transparent',
+  },
+  borderRadius: {
+    cssVar: '--navigationcontainer-border-radius',
+    description: 'Border radius for the navigation container',
+    default: '0px',
+  },
+  boxShadow: {
+    cssVar: '--navigationcontainer-box-shadow',
+    description: 'Box shadow for the navigation container',
+    default: 'none',
+  },
+  padding: {
+    cssVar: '--navigationcontainer-padding',
+    description: 'Padding for the navigation container',
+    default: '0px',
+  },
+  
+  // Arbitrary style overrides
+  style: {
+    description: 'Arbitrary CSS style for the main container',
+    default: {},
+  },
+  innerContainerStyle: {
+    description: 'Arbitrary CSS style for the inner container that holds children',
+    default: {},
+  },
+};
 
 interface NavigationContainerProps {
   children: ReactNode;
@@ -104,11 +150,31 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
 
   return (
     <>
-      <PanelContainerLayout>
-        <div className="h-full flex flex-col">{children}</div>
-      </PanelContainerLayout>
+      <div 
+        className="NavigationContainer"
+        style={{
+          backgroundColor: 'var(--navigationcontainer-bg, transparent)',
+          color: 'var(--navigationcontainer-text-color, inherit)',
+          borderColor: 'var(--navigationcontainer-border-color, transparent)',
+          borderRadius: 'var(--navigationcontainer-border-radius, 0px)',
+          boxShadow: 'var(--navigationcontainer-box-shadow, none)',
+          padding: 'var(--navigationcontainer-padding, 0px)',
+          ...(window?.theme?.NavigationContainer?.style || {})
+        }}
+      >
+        <PanelContainerLayout>
+          <div 
+            className="NavigationContainer h-full flex flex-col"
+            style={{
+              ...(window?.theme?.NavigationContainer?.innerContainerStyle || {})
+            }}
+          >
+            {children}
+          </div>
+        </PanelContainerLayout>
 
-      <PanelManager panels={panelConfigs} />
+        <PanelManager panels={panelConfigs} />
+      </div>
     </>
   );
 }
