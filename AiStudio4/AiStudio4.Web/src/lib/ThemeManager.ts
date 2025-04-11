@@ -135,6 +135,41 @@ class ThemeManager {
     }
     styleTag.innerHTML = css;
   }
+
+  /**
+   * Generate an LLM-compatible JSON schema describing theme properties.
+   */
+  public generateLLMToolSchema(): object {
+    const properties: Record<string, any> = {};
+    for (const component in this.schema) {
+      const props = this.schema[component];
+      for (const propName in props) {
+        const key = `${component}-${propName}`;
+        properties[key] = {
+          type: 'string',
+          description: props[propName].description || `Set ${propName} for ${component}`
+        };
+      }
+    }
+
+    return {
+      name: 'set_theme_properties',
+      description: 'Sets theme properties for UI components.',
+      parameters: {
+        type: 'object',
+        properties,
+        required: [] // Optionally populate required fields
+      }
+    };
+  }
 }
 
-export default ThemeManager.getInstance();
+const themeManagerInstance = ThemeManager.getInstance();
+
+// Expose schema generator globally for console access
+// Usage: window.generateThemeLLMSchema()
+if (typeof window !== 'undefined') {
+  (window as any).generateThemeLLMSchema = () => themeManagerInstance.generateLLMToolSchema();
+}
+
+export default themeManagerInstance;
