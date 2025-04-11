@@ -8,53 +8,50 @@ import ThemeManager from './lib/ThemeManager';
 
   console.log('Theme schema:', ThemeManager.getSchema());
 
-  ThemeManager.applyTheme({
-    InputBar: {
-      backgroundColor: '#ff69b4', // hot pink background for test purposes
-    },
-    SystemPromptComponent: {
-      backgroundColor: '#4b0082',
-      textColor: '#ffeb3b',
-      borderColor: '#00ffff',
-      borderRadius: '16px',
-      fontFamily: 'Comic Sans MS, cursive',
-      fontSize: '1rem',
-      boxShadow: '0 0 20px #00ffff',
-      pillActiveBg: '#00ff0033',
-      pillInactiveBg: '#ff000033',
-      popupBackground: 'rgba(0,0,0,0.7)',
-      popupBorderColor: '#ff00ff',
-      editBackground: '#222',
-      editTextColor: '#0ff',
-      // Explicitly set all color props to force CSS var injection
-      // even if redundant
-      pillActiveBg: '#00ff0033',
-      pillInactiveBg: '#ff000033',
-      popupBackground: 'rgba(0,0,0,0.7)',
-      popupBorderColor: '#ff00ff',
-      editBackground: '#222',
-      editTextColor: '#0ff',
-      style: {
-        backgroundImage: 'linear-gradient(135deg, #4b0082, #8a2be2)',
-        filter: 'brightness(1.2) contrast(1.1)',
-        transform: 'skewY(-2deg)',
-      },
-      popupStyle: {
-        backdropFilter: 'blur(8px)',
-        borderRadius: '20px',
-        boxShadow: '0 0 30px rgba(0,255,255,0.5)',
-      },
-      pillStyle: {
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-        letterSpacing: '1px',
-      },
-      editAreaStyle: {
-        fontFamily: 'Courier New, monospace',
-        fontSize: '0.9rem',
-      },
-    },
-  });
+    ThemeManager.applyTheme({
+        InputBar: {
+            backgroundColor: '#000000', // deep charcoal background
+        },
+        SystemPromptComponent: {
+            backgroundColor: '#000000', // slightly lighter dark background
+            textColor: '#e0e0e0',       // soft light gray text
+            borderColor: '#444',        // subtle border
+            borderRadius: '12px',
+            fontFamily: 'Segoe UI, Roboto, sans-serif',
+            fontSize: '1rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+
+            pillActiveBg: '#3a3f5a',       // muted indigo for active pill
+            pillInactiveBg: '#444',        // dark gray for inactive pill
+            popupBackground: 'rgba(30,30,30,0.95)', // dark semi-transparent popup
+            popupBorderColor: '#555',      // subtle border for popup
+            editBackground: '#1e1e1e',     // match input bar
+            editTextColor: '#ccc',         // soft gray text in edit area
+
+            style: {
+                backgroundImage: 'linear-gradient(135deg, #2a2a2a, #1e1e1e)', // subtle gradient
+                filter: 'none',
+                transform: 'none',
+            },
+
+            popupStyle: {
+                backdropFilter: 'blur(6px)',
+                borderRadius: '14px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+            },
+
+            pillStyle: {
+                fontWeight: '500',
+                textTransform: 'none',
+                letterSpacing: '0.5px',
+            },
+
+            editAreaStyle: {
+                fontFamily: 'Consolas, monospace',
+                fontSize: '0.95rem',
+            },
+        },
+    });
 
   createRoot(document.getElementById('root')!).render(<App />);
 })();
