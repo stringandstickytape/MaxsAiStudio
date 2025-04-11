@@ -212,16 +212,18 @@ namespace AiStudio4.Services
             }
 
             // Prepare tool request and result information
-            string toolRequestInfo = "";
-            string toolResultInfo = "";
+            StringBuilder toolRequestInfo = new StringBuilder();
+            string toolResultInfo = collatedResponse.ToString();
             
             if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
             {
-                // Get the first tool for the ToolRequested property
-                toolRequestInfo = $"Tool use requested: {response.ToolResponseSet.Tools.First().ToolName}";
-                
-                // Use the collated response for the ToolResult property
-                toolResultInfo = collatedResponse.ToString();
+                // Collect all tool names for the ToolRequested property
+                foreach (var tool in response.ToolResponseSet.Tools)
+                {
+                    if (toolRequestInfo.Length > 0)
+                        toolRequestInfo.AppendLine();
+                    toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
+                }
             }
             
             return new ToolExecutionResult
@@ -233,7 +235,7 @@ namespace AiStudio4.Services
                 IterationCount = 1, // This is incremented at the caller level
                 // ContinueProcessing flag to indicate whether the tool loop should continue
                 ContinueProcessing = continueLoop,
-                ToolRequested = toolRequestInfo,
+                ToolRequested = toolRequestInfo.ToString(),
                 ToolResult = toolResultInfo
             };
         }
