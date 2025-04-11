@@ -9,6 +9,8 @@ This guide explains how to make any React component in AiStudio4 **extensively t
 - **Themes** are applied via CSS variables and inline styles.
 - **ThemeManager** discovers themeable properties and injects CSS variables **scoped to a CSS class matching the component name**.
 - Components use these CSS variables (with sensible defaults) and can also accept **arbitrary style overrides**.
+- **All relevant elements must have the component class (e.g., `Sidebar`, `HistoricalConvTreeList`, `ConvTreeView`) for CSS vars to apply.**
+- **D3 or canvas-based visualizations should read theme CSS vars at render time and use them for drawing.**
 - This enables both structured, documented theming and maximum flexibility.
 
 ---
@@ -110,7 +112,8 @@ In your component JSX:
 
 - ThemeManager injects CSS variables **scoped to `.MyComponent { ... }`**
 - So **every element that needs those vars must have class `MyComponent`**
-- This includes **portal content**:
+- This includes **portal content** and **all nested elements that require CSS vars**.
+- For complex components (e.g., D3 visualizations), ensure the SVG or canvas root has the class, and read CSS vars in JS if needed.
 
 ```tsx
 createPortal(
@@ -179,7 +182,8 @@ ThemeManager.applyTheme({
   - Instead of just `style` and `popupStyle`, expose overrides like `dropdownStyle`, `inputStyle`, `buttonStyle`, `pinButtonStyle`, `sectionHeaderStyle`, `commandItemStyle` (as done in CommandBar).
   - This enables **fine-grained control** over every part of the component.
   - Arbitrary override slots can be added **without reusing generic names**.
-- **Add the component CSS class to all relevant elements, including portals and dropdowns**, so CSS vars apply everywhere.
+- **Add the component CSS class to all relevant elements, including portals, dropdowns, and all nested containers, so CSS vars apply everywhere.**
+- **For D3/canvas/JS-rendered visualizations, read CSS vars at render time and use them for drawing.**
 - **Use descriptive `description` fields** in `themeableProps` to help LLMs and users understand each property.
 - This encourages LLMs or users to create **versatile, exciting, and creative themes** by providing clear options.
 - The more granular and well-documented the properties, the more control and inspiration for theme designers.
@@ -191,7 +195,8 @@ ThemeManager.applyTheme({
 - Use CSS variables for common props.
 - Allow arbitrary style overrides.
 - Scope CSS vars to component class.
-- Add class to portals.
+- Add class to portals and all relevant nested elements.
+- For D3/canvas/JS-rendered elements, read CSS vars in JS and apply them to drawing.
 - Explicitly set theme props to ensure vars are injected.
 - This enables **extremely flexible, LLM-driven theming**.
 
