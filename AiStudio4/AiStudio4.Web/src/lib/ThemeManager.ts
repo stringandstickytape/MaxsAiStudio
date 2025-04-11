@@ -162,6 +162,29 @@ class ThemeManager {
       }
     };
   }
+
+  /**
+   * Accepts a flat LLM theme response (e.g., {"Component-prop": value, ...}),
+   * converts it into nested Theme object, and applies it.
+   */
+  public applyLLMTheme(flatThemeObj: Record<string, string>): void {
+    console.log('[ThemeManager] Applying LLM theme response:', flatThemeObj);
+    const nestedTheme: Theme = {};
+    for (const flatKey in flatThemeObj) {
+      const value = flatThemeObj[flatKey];
+      const sepIndex = flatKey.indexOf('-');
+      if (sepIndex === -1) {
+        console.warn(`[ThemeManager] Invalid theme key (missing dash): ${flatKey}`);
+        continue;
+      }
+      const component = flatKey.substring(0, sepIndex);
+      const prop = flatKey.substring(sepIndex + 1);
+      if (!nestedTheme[component]) nestedTheme[component] = {};
+      nestedTheme[component][prop] = value;
+    }
+    console.log('[ThemeManager] Parsed nested theme:', nestedTheme);
+    this.applyTheme(nestedTheme);
+  }
 }
 
 const themeManagerInstance = ThemeManager.getInstance();
@@ -170,6 +193,7 @@ const themeManagerInstance = ThemeManager.getInstance();
 // Usage: window.generateThemeLLMSchema()
 if (typeof window !== 'undefined') {
   (window as any).generateThemeLLMSchema = () => themeManagerInstance.generateLLMToolSchema();
+  (window as any).applyLLMTheme = (json: Record<string, string>) => themeManagerInstance.applyLLMTheme(json);
 }
 
 export default themeManagerInstance;
