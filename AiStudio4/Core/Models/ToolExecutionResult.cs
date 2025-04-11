@@ -1,4 +1,4 @@
-using AiStudio4.DataModels;
+﻿using AiStudio4.DataModels;
 using System.Collections.Generic;
 using System.Text;
 
@@ -43,6 +43,16 @@ namespace AiStudio4.Core.Models
         /// Flag to determine if the tool processing loop should continue
         /// </summary>
         public bool ContinueProcessing { get; set; }
+
+        /// <summary>
+        /// The name of the tool that was requested by the AI
+        /// </summary>
+        public string ToolRequested { get; set; }
+
+        /// <summary>
+        /// The result of running the tool
+        /// </summary>
+        public string ToolResult { get; set; }
 
         /// <summary>
         /// Creates a new successful tool execution result
