@@ -48,6 +48,7 @@ namespace AiStudio4.Core.Models
         /// Date and time when the theme was last modified (UTC).
         /// </summary>
         public DateTime LastModified { get; set; } = DateTime.UtcNow;
+        public object Id { get; internal set; }
     }
 
     /// <summary>

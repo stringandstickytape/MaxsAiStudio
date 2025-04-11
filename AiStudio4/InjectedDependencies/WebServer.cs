@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using AiStudio4.Core;
 
 namespace AiStudio4.InjectedDependencies
 {

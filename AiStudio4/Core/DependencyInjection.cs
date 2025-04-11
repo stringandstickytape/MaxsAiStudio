@@ -18,8 +18,6 @@ namespace AiStudio4.Core
         /// </summary>
         public static IServiceCollection AddAiStudio4Services(this IServiceCollection services)
         {
-            // Register ThemeService
-            services.AddSingleton<AiStudio4.Core.Interfaces.IThemeService, AiStudio4.Services.ThemeService>();
             // Register controllers (for minimal hosting, this is needed)
             services.AddControllers();
             // Register all tool-related services
