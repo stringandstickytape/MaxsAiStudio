@@ -265,7 +265,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = request.BranchedConv.ConvId,
                         MessageId = newAssistantMessageId,
-                        Content = collatedResponse.ToString(),
+                        Content = toolResult.ToolRequested,
                         ParentId = request.MessageId,
                         Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                         Source = "assistant",
@@ -276,7 +276,7 @@ namespace AiStudio4.Services
                     });
 
                     request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-    userMessage: collatedResponse.ToString(), parentMessageId: request.MessageId,
+    userMessage: toolResult.ToolRequested, parentMessageId: request.MessageId,
     attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
                     continueLoop = toolResult.ContinueProcessing;
@@ -305,7 +305,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = collatedResponse.ToString(),
+                            Content = toolResult.ToolResult,
                             ParentId = newAssistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",

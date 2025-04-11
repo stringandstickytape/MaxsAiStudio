@@ -225,7 +225,9 @@ namespace AiStudio4.Services
                     toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
                 }
             }
-            
+
+            var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
+
             return new ToolExecutionResult
             {
                 ResponseText = collatedResponse.ToString(),
@@ -235,7 +237,7 @@ namespace AiStudio4.Services
                 IterationCount = 1, // This is incremented at the caller level
                 // ContinueProcessing flag to indicate whether the tool loop should continue
                 ContinueProcessing = continueLoop,
-                ToolRequested = toolRequestInfo.ToString(),
+                ToolRequested = toolRequestInfoOut,
                 ToolResult = toolResultInfo
             };
         }
