@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -235,6 +234,26 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         <Button variant="outline" onClick={handleValidateSchema} disabled={isLoading} className="btn-secondary">
           {isLoading ? 'Validating...' : 'Validate'}
         </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            try {
+              const themeSchema = window.generateThemeLLMSchema();
+              const cloned = JSON.parse(JSON.stringify(themeSchema));
+              cloned.input_schema = cloned.parameters;
+              delete cloned.parameters;
+              const jsonStr = JSON.stringify(cloned, null, 2);
+              setSchema(jsonStr);
+            } catch (e) {
+              console.error('Failed to generate theme schema', e);
+              alert('Failed to generate theme schema: ' + (e instanceof Error ? e.message : e));
+            }
+          }}
+          disabled={isLoading}
+          className="btn-secondary"
+        >
+          Use Theme Schema
+        </Button>
         <Button variant="outline" onClick={onClose} className="btn-secondary" disabled={isLoading}>
           Cancel
         </Button>
@@ -266,5 +285,4 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
     </div>
   );
 }
-
 
