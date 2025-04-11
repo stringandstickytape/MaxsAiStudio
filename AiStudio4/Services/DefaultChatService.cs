@@ -152,6 +152,13 @@ namespace AiStudio4.Services
                 // --- Tool Use Loop ---
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
+                    // Check for cancellation at the start of each loop iteration
+                    if (request.CancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("Cancellation requested during tool loop. Exiting loop.");
+                        break;
+                    }
+
                     collatedResponse = new StringBuilder();
                     currentIteration++;
 
