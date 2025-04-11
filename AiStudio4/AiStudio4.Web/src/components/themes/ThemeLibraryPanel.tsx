@@ -94,14 +94,14 @@ export function ThemeLibraryPanel({ isOpen = true, onClose, onApplyTheme }: Them
     }
   };
 
-  const filteredThemes = themes.filter((theme) => {
+  const filteredThemes = Array.isArray(themes) ? themes.filter((theme) => {
     return (
       searchTerm === '' ||
       theme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      theme.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (theme.description && theme.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (theme.author && theme.author.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  });
+  }) : [];
 
   return (
     <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100">

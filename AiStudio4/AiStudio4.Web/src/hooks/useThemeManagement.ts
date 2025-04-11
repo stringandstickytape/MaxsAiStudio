@@ -5,6 +5,7 @@ import { Theme } from '@/types/theme';
 import { useApiCallState } from '@/utils/apiUtils';
 import * as themeApi from '@/api/themeApi';
 import themeManagerInstance from '@/lib/ThemeManager';
+import { themeEvents } from '@/commands/themeCommands';
 
 export function useThemeManagement() {
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -15,8 +16,12 @@ export function useThemeManagement() {
   const fetchThemes = useCallback(async () => {
     return executeApiCall(async () => {
       const fetchedThemes = await themeApi.fetchThemes();
-      setThemes(fetchedThemes);
-      return fetchedThemes;
+      // Ensure fetchedThemes is an array
+      const themesArray = Array.isArray(fetchedThemes) ? fetchedThemes : [];
+      setThemes(themesArray);
+      // Emit event for theme commands to update
+      themeEvents.emit('themes-updated', themesArray);
+      return themesArray;
     });
   }, [executeApiCall]);
 

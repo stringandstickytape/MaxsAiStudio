@@ -1,5 +1,4 @@
-
-import { NavigationContainer } from './components/navigation/NavigationContainer';
+﻿import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
@@ -7,6 +6,7 @@ import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
 import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
 import { ToolDialog } from './components/tools/ToolDialog';
+import { ThemeDialog } from './components/themes/ThemeDialog';
 import SettingsDialog from './components/modals/SettingsDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -171,11 +171,11 @@ function App() {
       
       <SystemPromptDialog />
       <UserPromptDialog />
-          <ToolDialog />
-          <SettingsDialog />
+      <ToolDialog />
+      <ThemeDialog />
+      <SettingsDialog />
     </FontSizeProvider>
   );
 }
 
 export default App;
-

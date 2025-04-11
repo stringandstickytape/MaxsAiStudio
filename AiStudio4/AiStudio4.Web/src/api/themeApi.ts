@@ -7,7 +7,7 @@ import { createApiRequest } from '../utils/apiUtils';
  * Fetches all themes from the server.
  */
 export const fetchThemes = createApiRequest<void, Theme[]>(
-  '/api/themes',
+  'themes/getAll',
   'GET',
   {
     transformResponse: (data) => data || []
@@ -18,7 +18,7 @@ export const fetchThemes = createApiRequest<void, Theme[]>(
  * Fetches a single theme by ID.
  */
 export const fetchTheme = createApiRequest<string, Theme>(
-  '/api/themes/{id}',
+  'themes/getById',
   'GET',
   {
     transformResponse: (data) => data
@@ -29,19 +29,8 @@ export const fetchTheme = createApiRequest<string, Theme>(
  * Adds a new theme to the library.
  */
 export const addTheme = createApiRequest<Theme, Theme>(
-  '/api/themes',
+  'themes/add',
   'POST',
-  {
-    transformResponse: (data) => data
-  }
-);
-
-/**
- * Updates an existing theme.
- */
-export const updateTheme = createApiRequest<Theme, Theme>(
-  '/api/themes/{id}',
-  'PUT',
   {
     transformResponse: (data) => data
   }
@@ -51,7 +40,7 @@ export const updateTheme = createApiRequest<Theme, Theme>(
  * Deletes a theme by ID.
  */
 export const deleteTheme = createApiRequest<string, void>(
-  '/api/themes/{id}',
+  'themes/delete',
   'DELETE'
 );
 
@@ -59,7 +48,7 @@ export const deleteTheme = createApiRequest<string, void>(
  * Imports themes from a JSON string.
  */
 export const importThemes = createApiRequest<string, Theme[]>(
-  '/api/themes/import',
+  'themes/import',
   'POST',
   {
     transformResponse: (data) => data || []
@@ -71,8 +60,19 @@ export const importThemes = createApiRequest<string, Theme[]>(
  * If ids is not provided, exports all themes.
  */
 export const exportThemes = createApiRequest<string[] | undefined, string>(
-  '/api/themes/export',
+  'themes/export',
   'POST',
+  {
+    transformResponse: (data) => data
+  }
+);
+
+/**
+ * Updates an existing theme.
+ */
+export const updateTheme = createApiRequest<Theme, Theme>(
+  'themes/update',
+  'PUT',
   {
     transformResponse: (data) => data
   }
@@ -82,7 +82,7 @@ export const exportThemes = createApiRequest<string[] | undefined, string>(
  * Sets a theme as the default theme.
  */
 export const setDefaultTheme = createApiRequest<string, void>(
-  '/api/themes/{id}/default',
+  'themes/setDefault',
   'POST'
 );
 
@@ -90,7 +90,7 @@ export const setDefaultTheme = createApiRequest<string, void>(
  * Gets the current default theme.
  */
 export const getDefaultTheme = createApiRequest<void, Theme>(
-  '/api/themes/default',
+  'themes/getDefault',
   'GET',
   {
     transformResponse: (data) => data

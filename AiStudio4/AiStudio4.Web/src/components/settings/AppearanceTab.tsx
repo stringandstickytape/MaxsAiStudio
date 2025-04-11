@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FontSizeControl } from './FontSizeControl';
@@ -63,9 +63,35 @@ export function AppearanceTab() {
                     <CardTitle className="text-title text-lg">Theme</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/50">
-                        <p className="text-body mb-2">Theme settings coming soon</p>
-                        <p className="text-subtitle">Additional theme options will be available in a future update.</p>
+                    <div className="space-y-3">
+                        <p className="text-body">Manage and apply themes to customize the appearance of the application.</p>
+                        
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button 
+                                onClick={() => {
+                                    window.dispatchEvent(new CustomEvent('open-theme-library'));
+                                }}
+                                className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+                            >
+                                Browse Theme Library
+                            </Button>
+                            
+                            <Button 
+                                onClick={() => {
+                                    // Open theme library with install flag set to true
+                                    const modalStore = window.useModalStore || window.useModalStore;
+                                    if (modalStore) {
+                                        modalStore.getState().openModal('theme', { installTheme: true });
+                                    } else {
+                                        window.dispatchEvent(new CustomEvent('open-theme-library'));
+                                    }
+                                }}
+                                variant="outline"
+                                className="btn-secondary flex items-center space-x-1"
+                            >
+                                Install New Theme
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
