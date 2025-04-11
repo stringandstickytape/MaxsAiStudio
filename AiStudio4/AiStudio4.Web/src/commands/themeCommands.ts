@@ -90,8 +90,17 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
         keywords: ['theme', 'apply', 'style', theme.name.toLowerCase()],
         section: 'themes',
         icon: React.createElement(PaintBucket, { size: 16 }),
-        execute: () => {
+        execute: async () => {
+          // Apply theme visually
           themeManagerInstance.applyTheme(theme.themeJson);
+          
+          // Save as default theme in backend
+          try {
+            await import('@/api/themeApi').then(api => api.setDefaultTheme(theme.guid));
+            console.log(`Theme "${theme.name}" set as default`);
+          } catch (error) {
+            console.error('Error setting default theme:', error);
+          }
         },
       });
     });
@@ -118,8 +127,17 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
           keywords: ['theme', 'apply', 'style', theme.name.toLowerCase()],
           section: 'themes',
           icon: React.createElement(PaintBucket, { size: 16 }),
-          execute: () => {
+          execute: async () => {
+            // Apply theme visually
             themeManagerInstance.applyTheme(theme.themeJson);
+            
+            // Save as default theme in backend
+            try {
+              await import('@/api/themeApi').then(api => api.setDefaultTheme(theme.guid));
+              console.log(`Theme "${theme.name}" set as default`);
+            } catch (error) {
+              console.error('Error setting default theme:', error);
+            }
           },
         });
       });

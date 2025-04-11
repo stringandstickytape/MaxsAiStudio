@@ -29,7 +29,7 @@ export const fetchTheme = createApiRequest<string, Theme>(
  * Adds a new theme to the library.
  */
 export const addTheme = createApiRequest<Theme, Theme>(
-  'themes/add',
+  'api/themes/add',
   'POST',
   {
     transformResponse: (data) => data

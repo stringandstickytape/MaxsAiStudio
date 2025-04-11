@@ -209,11 +209,28 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                         {launchButton}
                         {language === 'theme' && (
                             <button
-                                onClick={() => {
+                                onClick={async () => {
                                     try {
+                                        // Apply theme visually
                                         window.applyLLMTheme(JSON.parse(content));
+                                        
+                                        // Create a theme object from the content
+                                        const themeJson = JSON.parse(content);
+                                        const theme = {
+                                            guid: `theme_${Date.now()}`,
+                                            name: 'Theme from Code Block',
+                                            description: 'Theme created from code block',
+                                            author: 'AiStudio4 User',
+                                            themeJson: themeJson
+                                        };
+                                        
+                                        // Add theme to library and set as default
+                                        const themeApi = await import('@/api/themeApi');
+                                        const addedTheme = await themeApi.addTheme(theme);
+                                        await themeApi.setDefaultTheme(addedTheme.guid);
+                                        console.log('Theme added to library and set as default');
                                     } catch (e) {
-                                        console.error('Invalid theme JSON', e);
+                                        console.error('Error processing theme:', e);
                                     }
                                 }}
                                 className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
