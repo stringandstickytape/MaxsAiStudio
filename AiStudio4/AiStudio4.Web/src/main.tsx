@@ -8,7 +8,7 @@ import ThemeManager from './lib/ThemeManager';
 
   console.log('Theme schema:', ThemeManager.getSchema());
 
-    ThemeManager.applyTheme({
+    const theme = {
         InputBar: {
             backgroundColor: '#000000', // deep charcoal background
         },
@@ -51,7 +51,10 @@ import ThemeManager from './lib/ThemeManager';
                 fontSize: '0.95rem',
             },
         },
-    });
+    };
+
+    ThemeManager.applyTheme(theme);
+    window.theme = theme;
 
   createRoot(document.getElementById('root')!).render(<App />);
 })();
