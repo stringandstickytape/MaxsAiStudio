@@ -1,9 +1,140 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Command, Pin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useCommandStore } from '@/stores/useCommandStore';
+
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--commandbar-bg',
+    description: 'Command bar background color',
+    default: '#222',
+  },
+  textColor: {
+    cssVar: '--commandbar-text-color',
+    description: 'Command bar text color',
+    default: '#eee',
+  },
+  borderColor: {
+    cssVar: '--commandbar-border-color',
+    description: 'Command bar border color',
+    default: '#555',
+  },
+  borderRadius: {
+    cssVar: '--commandbar-border-radius',
+    description: 'Command bar border radius',
+    default: '8px',
+  },
+  fontFamily: {
+    cssVar: '--commandbar-font-family',
+    description: 'Font family',
+    default: 'inherit',
+  },
+  fontSize: {
+    cssVar: '--commandbar-font-size',
+    description: 'Font size',
+    default: '0.875rem',
+  },
+  boxShadow: {
+    cssVar: '--commandbar-box-shadow',
+    description: 'Box shadow',
+    default: '0 4px 12px rgba(0,0,0,0.3)',
+  },
+  dropdownBackgroundColor: {
+    cssVar: '--commandbar-dropdown-bg',
+    description: 'Dropdown background color',
+    default: '#333',
+  },
+  dropdownBorderColor: {
+    cssVar: '--commandbar-dropdown-border-color',
+    description: 'Dropdown border color',
+    default: '#555',
+  },
+  dropdownBoxShadow: {
+    cssVar: '--commandbar-dropdown-box-shadow',
+    description: 'Dropdown box shadow',
+    default: '0 4px 12px rgba(0,0,0,0.3)',
+  },
+  inputBackgroundColor: {
+    cssVar: '--commandbar-input-bg',
+    description: 'Input background color',
+    default: '#444',
+  },
+  inputTextColor: {
+    cssVar: '--commandbar-input-text-color',
+    description: 'Input text color',
+    default: '#eee',
+  },
+  buttonBackgroundColor: {
+    cssVar: '--commandbar-button-bg',
+    description: 'Close button background',
+    default: '#555',
+  },
+  buttonTextColor: {
+    cssVar: '--commandbar-button-text-color',
+    description: 'Close button text color',
+    default: '#eee',
+  },
+  pinButtonColor: {
+    cssVar: '--commandbar-pin-button-color',
+    description: 'Pin button color',
+    default: '#888',
+  },
+  pinButtonHoverColor: {
+    cssVar: '--commandbar-pin-button-hover-color',
+    description: 'Pin button hover color',
+    default: '#ccc',
+  },
+  sectionHeaderBackground: {
+    cssVar: '--commandbar-section-header-bg',
+    description: 'Section header background',
+    default: '#111',
+  },
+  sectionHeaderTextColor: {
+    cssVar: '--commandbar-section-header-text-color',
+    description: 'Section header text color',
+    default: '#aaa',
+  },
+  commandItemHoverBg: {
+    cssVar: '--commandbar-command-hover-bg',
+    description: 'Command item hover background',
+    default: '#444',
+  },
+  commandItemSelectedBg: {
+    cssVar: '--commandbar-command-selected-bg',
+    description: 'Command item selected background',
+    default: '#555',
+  },
+  style: {
+    description: 'Arbitrary style for root CommandBar',
+    default: {},
+  },
+  dropdownStyle: {
+    description: 'Arbitrary style for dropdown panel',
+    default: {},
+  },
+  inputStyle: {
+    description: 'Arbitrary style for input box',
+    default: {},
+  },
+  buttonStyle: {
+    description: 'Arbitrary style for close button',
+    default: {},
+  },
+  pinButtonStyle: {
+    description: 'Arbitrary style for pin buttons',
+    default: {},
+  },
+  sectionHeaderStyle: {
+    description: 'Arbitrary style for section headers',
+    default: {},
+  },
+  commandItemStyle: {
+    description: 'Arbitrary style for command items',
+    default: {},
+  },
+};
+
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -243,7 +374,20 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
   );
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-2xl">
+    <div
+      ref={containerRef}
+      className="relative w-full max-w-2xl CommandBar"
+      style={{
+        backgroundColor: 'var(--commandbar-bg, #222)',
+        color: 'var(--commandbar-text-color, #eee)',
+        borderColor: 'var(--commandbar-border-color, #555)',
+        borderRadius: 'var(--commandbar-border-radius, 8px)',
+        fontFamily: 'var(--commandbar-font-family, inherit)',
+        fontSize: 'var(--commandbar-font-size, 0.875rem)',
+        boxShadow: 'var(--commandbar-box-shadow, 0 4px 12px rgba(0,0,0,0.3))',
+        ...(window?.theme?.CommandBar?.style || {})
+      }}
+    >
       <form onSubmit={handleCommandSubmit} onKeyDown={handleKeyDown}>
         <div className="relative">
          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -257,7 +401,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
             placeholder="Type a command or search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            
+            style={{
+              backgroundColor: 'var(--commandbar-input-bg, #444)',
+              color: 'var(--commandbar-input-text-color, #eee)',
+              fontFamily: 'var(--commandbar-font-family, inherit)',
+              fontSize: 'var(--commandbar-font-size, 0.875rem)',
+              ...(window?.theme?.CommandBar?.inputStyle || {})
+            }}
             className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon pl-9"
         />
           {isOpen ? (
@@ -266,6 +416,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
               onClick={() => {
                 setSearchTerm('');
                 setIsOpen(false);
+              }}
+              style={{
+                backgroundColor: 'var(--commandbar-button-bg, #555)',
+                color: 'var(--commandbar-button-text-color, #eee)',
+                ...(window?.theme?.CommandBar?.buttonStyle || {})
               }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1.5 px-3 py-1 text-gray-300 hover:text-white bg-gray-700/60 hover:bg-gray-700/90 rounded border border-gray-600/50 hover:border-gray-500 animate-hover text-xs font-medium"
               aria-label="Clear and close"
@@ -294,16 +449,35 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         </div>
       </form>
           {isOpen && (searchTerm || filteredCommands.length) && createPortal(
-              <div className="fixed z-50 command-dropdown-menu" style={{
+              <div
+                className="fixed z-50 command-dropdown-menu CommandBar"
+                style={{
                   top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + 8 : 0,
                   left: inputRef.current ? inputRef.current.getBoundingClientRect().left : 0,
                   width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto',
-                  maxWidth: '100vw'
-              }}>
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+                  maxWidth: '100vw',
+                  ...(window?.theme?.CommandBar?.dropdownStyle || {})
+                }}
+              >
+        <div
+          className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--commandbar-dropdown-bg, #333)',
+            borderColor: 'var(--commandbar-dropdown-border-color, #555)',
+            boxShadow: 'var(--commandbar-dropdown-box-shadow, 0 4px 12px rgba(0,0,0,0.3))',
+            ...(window?.theme?.CommandBar?.dropdownStyle || {})
+          }}
+        >
           {Object.entries(groupedCommands).map(([section, commands]) => (
             <div key={section} className="border-t border-gray-700 first:border-t-0">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-900/70">
+              <div
+                className="px-3 py-2 text-xs font-semibold"
+                style={{
+                  backgroundColor: 'var(--commandbar-section-header-bg, #111)',
+                  color: 'var(--commandbar-section-header-text-color, #aaa)',
+                  ...(window?.theme?.CommandBar?.sectionHeaderStyle || {})
+                }}
+              >
                 {section.charAt(0).toUpperCase() + section.slice(1)}
               </div>
               <div>
@@ -318,6 +492,12 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                 'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
                                 isSelected && 'bg-gray-700/70',
                             )}
+                            style={{
+                              backgroundColor: isSelected
+                                ? 'var(--commandbar-command-selected-bg, #555)'
+                                : undefined,
+                              ...(window?.theme?.CommandBar?.commandItemStyle || {})
+                            }}
                             onMouseDown={(e) => {
                                 e.preventDefault(); 
                             }}
@@ -349,6 +529,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                 onMouseUp={(e) => {
                                   e.stopPropagation();
                                   handlePinCommand(e, command);
+                                }}
+                                style={{
+                                  color: 'var(--commandbar-pin-button-color, #888)',
+                                  ...(window?.theme?.CommandBar?.pinButtonStyle || {})
                                 }}
                                 className={cn(
                                   'p-1 rounded hover:bg-gray-600/50 cursor-pointer',
@@ -382,4 +566,3 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
     </div>
   );
 }
-

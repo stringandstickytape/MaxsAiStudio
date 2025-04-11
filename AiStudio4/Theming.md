@@ -175,6 +175,12 @@ ThemeManager.applyTheme({
   - Button disabled opacity
   - And any other button-specific styles (e.g., font, border radius, shadow)
 - For example, the **InputBar** component now exposes CSS variables and theme props for **all four of its key buttons** (send/cancel, voice input, user prompts, file attach), so they can be themed independently from the background or text.
+- **Favor granular, component-specific override slots over generic ones.**
+  - Instead of just `style` and `popupStyle`, expose overrides like `dropdownStyle`, `inputStyle`, `buttonStyle`, `pinButtonStyle`, `sectionHeaderStyle`, `commandItemStyle` (as done in CommandBar).
+  - This enables **fine-grained control** over every part of the component.
+  - Arbitrary override slots can be added **without reusing generic names**.
+- **Add the component CSS class to all relevant elements, including portals and dropdowns**, so CSS vars apply everywhere.
+- **Use descriptive `description` fields** in `themeableProps` to help LLMs and users understand each property.
 - This encourages LLMs or users to create **versatile, exciting, and creative themes** by providing clear options.
 - The more granular and well-documented the properties, the more control and inspiration for theme designers.
 
