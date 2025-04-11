@@ -168,6 +168,13 @@ ThemeManager.applyTheme({
 - **Expose both structured props and arbitrary style objects** in `themeableProps`.
 - **Test themes with unusual styles** (gradients, filters, transforms) to verify flexibility.
 - **Aspire to include many specific, sensibly-chosen properties** (colors, fonts, borders, shadows, spacing, etc.) in the schema.
+- **Explicitly include button styling in your theming design.** This means:
+  - Button background color, hover background color
+  - Button border color
+  - Button icon color
+  - Button disabled opacity
+  - And any other button-specific styles (e.g., font, border radius, shadow)
+- For example, the **InputBar** component now exposes CSS variables and theme props for **all four of its key buttons** (send/cancel, voice input, user prompts, file attach), so they can be themed independently from the background or text.
 - This encourages LLMs or users to create **versatile, exciting, and creative themes** by providing clear options.
 - The more granular and well-documented the properties, the more control and inspiration for theme designers.
 

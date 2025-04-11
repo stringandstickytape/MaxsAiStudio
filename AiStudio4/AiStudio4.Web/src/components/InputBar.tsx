@@ -386,15 +386,28 @@ export function InputBar({
                             onFilesSelected={addAttachments}
                             disabled={isLoading || disabled} // Reflect outer disabled state
                             maxFiles={5}
+                            style={{
+                                backgroundColor: 'var(--inputbar-button-bg)',
+                                borderColor: 'var(--inputbar-button-border)',
+                                color: 'var(--inputbar-button-icon-color)',
+                                opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
+                                ...(window?.theme?.InputBar?.buttonStyle || {})
+                            }}
                         />
 
                         <Button
                             variant="outline"
                             size="icon"
                             onClick={() => useModalStore.getState().openModal('userPrompt')}
-                            className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                             aria-label="User prompts"
                             disabled={isLoading || disabled} // Reflect outer disabled state
+                            style={{
+                                backgroundColor: 'var(--inputbar-button-bg)',
+                                borderColor: 'var(--inputbar-button-border)',
+                                color: 'var(--inputbar-button-icon-color)',
+                                opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
+                                ...(window?.theme?.InputBar?.buttonStyle || {})
+                            }}
                         >
                             <BookMarked className="h-5 w-5" />
                         </Button>
@@ -404,9 +417,15 @@ export function InputBar({
                                 variant="outline"
                                 size="icon"
                                 onClick={onVoiceInputClick}
-                                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                                 aria-label="Voice input"
                                 disabled={isLoading || disabled} // Reflect outer disabled state
+                                style={{
+                                    backgroundColor: 'var(--inputbar-button-bg)',
+                                    borderColor: 'var(--inputbar-button-border)',
+                                    color: 'var(--inputbar-button-icon-color)',
+                                    opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
+                                    ...(window?.theme?.InputBar?.buttonStyle || {})
+                                }}
                             >
                                 <Mic className="h-5 w-5" />
                             </Button>
@@ -417,11 +436,16 @@ export function InputBar({
                                 variant="outline"
                                 size="icon"
                                 onClick={handleSend}
-                                className={`${isLoading ? 'bg-red-600 hover:bg-red-700' : 'btn-primary'} icon-btn
-                                    ${!useWebSocketStore.getState().isConnected && !isLoading ? 'border-red-500 border-2' : ''}`}
                                 aria-label={isLoading ? 'Cancel' : useWebSocketStore.getState().isConnected ? 'Send message' : 'Reconnect and Send'}
                                 disabled={isCancelling || disabled} // Reflect outer disabled state
                                 title={!useWebSocketStore.getState().isConnected && !isLoading ? 'WebSocket disconnected. Click to reconnect.' : ''}
+                                style={{
+                                    backgroundColor: isLoading ? '#dc2626' : 'var(--inputbar-button-bg)',
+                                    borderColor: !useWebSocketStore.getState().isConnected && !isLoading ? 'red' : 'var(--inputbar-button-border)',
+                                    color: 'var(--inputbar-button-icon-color)',
+                                    opacity: (isCancelling || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
+                                    ...(window?.theme?.InputBar?.buttonStyle || {})
+                                }}
                             >
                                 {isLoading ? (
                                     <X className="h-5 w-5" />
@@ -554,6 +578,34 @@ export const themeableProps = {
     description: 'Inactive pill background color',
     default: '#4a556822',
   },
+
+  // Button theming for InputBar buttons (send, voice, user prompt, attach)
+  buttonBackground: {
+    cssVar: '--inputbar-button-bg',
+    description: 'Input bar button background color',
+    default: '#2d3748',
+  },
+  buttonHoverBackground: {
+    cssVar: '--inputbar-button-hover-bg',
+    description: 'Input bar button hover background color',
+    default: '#4a5568',
+  },
+  buttonBorderColor: {
+    cssVar: '--inputbar-button-border',
+    description: 'Input bar button border color',
+    default: '#4a5568',
+  },
+  buttonIconColor: {
+    cssVar: '--inputbar-button-icon-color',
+    description: 'Input bar button icon color',
+    default: '#e2e8f0',
+  },
+  buttonDisabledOpacity: {
+    cssVar: '--inputbar-button-disabled-opacity',
+    description: 'Input bar button disabled opacity',
+    default: '0.5',
+  },
+
   style: {
     description: 'Arbitrary CSS style for InputBar root',
     default: {},
@@ -568,6 +620,10 @@ export const themeableProps = {
   },
   editAreaStyle: {
     description: 'Arbitrary CSS style for textarea',
+    default: {},
+  },
+  buttonStyle: {
+    description: 'Arbitrary CSS style override for InputBar buttons',
     default: {},
   },
 };
