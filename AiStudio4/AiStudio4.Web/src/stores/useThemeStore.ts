@@ -312,16 +312,5 @@ if (typeof window !== 'undefined') {
   (window as any).addThemeToStore = addThemeToStore;
 }
 
-// Initialize by loading themes from server
-if (typeof window !== 'undefined') {
-  // Load themes and active theme on initialization
-  const { loadThemes, loadActiveTheme } = useThemeStore.getState();
-  
-  // Use Promise.all to load both in parallel
-  Promise.all([
-    loadThemes(),
-    loadActiveTheme()
-  ]).catch(err => {
-    console.warn('Failed to initialize theme store:', err);
-  });
-}
+// Theme loading is now handled explicitly in main.tsx
+// No automatic initialization here

@@ -41,6 +41,7 @@ namespace AiStudio4.Services
                 {
                     _userThemes = new List<Theme>();
                     _activeThemeId = "";
+                    CreateDefaultTheme();
                     SaveSettings();
                     return;
                 }
@@ -75,6 +76,19 @@ namespace AiStudio4.Services
                 {
                     _activeThemeId = "";
                 }
+                
+                // If no themes exist or no active theme is set, create a default theme
+                if (_userThemes.Count == 0)
+                {
+                    CreateDefaultTheme();
+                    SaveSettings();
+                }
+                else if (string.IsNullOrEmpty(_activeThemeId) || !_userThemes.Any(t => t.Guid == _activeThemeId))
+                {
+                    // Set the first theme as active if no active theme is set or the active theme doesn't exist
+                    _activeThemeId = _userThemes.First().Guid;
+                    SaveSettings();
+                }
             }
         }
 
@@ -105,6 +119,49 @@ namespace AiStudio4.Services
 
                 File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
             }
+        }
+        
+        /// <summary>
+        /// Creates a default theme if none exists
+        /// </summary>
+        private void CreateDefaultTheme()
+        {
+            var defaultTheme = new Theme
+            {
+                Guid = Guid.NewGuid().ToString(),
+                Name = "Default Theme",
+                Description = "Default application theme",
+                Author = "System",
+                Created = DateTime.UtcNow.ToString("o"),
+                LastModified = DateTime.UtcNow.ToString("o"),
+                PreviewColors = new List<string> { "#1a1a1a", "#f9e1e9", "#ff8fb1" },
+                ThemeJson = new Dictionary<string, Dictionary<string, string>>
+                {
+                    ["InputBar"] = new Dictionary<string, string>
+                    {
+                        ["backgroundColor"] = "#1a1a1a"
+                    },
+                    ["SystemPromptComponent"] = new Dictionary<string, string>
+                    {
+                        ["backgroundColor"] = "#1a1a1a",
+                        ["textColor"] = "#f9e1e9",
+                        ["borderColor"] = "#ff8fb1",
+                        ["borderRadius"] = "12px",
+                        ["fontFamily"] = "\"Segoe UI\", \"Noto Sans JP\", sans-serif",
+                        ["fontSize"] = "1rem",
+                        ["boxShadow"] = "0 4px 12px rgba(0,0,0,0.4)",
+                        ["pillActiveBg"] = "#ff8fb133",
+                        ["pillInactiveBg"] = "#444",
+                        ["popupBackground"] = "rgba(30,30,30,0.95)",
+                        ["popupBorderColor"] = "#ff8fb1",
+                        ["editBackground"] = "#2a2a2a",
+                        ["editTextColor"] = "#f9e1e9"
+                    }
+                }
+            };
+            
+            _userThemes.Add(defaultTheme);
+            _activeThemeId = defaultTheme.Guid;
         }
 
         /// <summary>
