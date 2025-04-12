@@ -87,7 +87,7 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
         name: `Apply Theme: ${theme.name}`,
         description: theme.description || `Apply the ${theme.name} theme`,
         shortcut: '',
-        keywords: ['theme', 'apply', 'style', theme.name.toLowerCase()],
+        keywords: ['theme', 'apply', 'style', theme.name],
         section: 'themes',
         icon: React.createElement(PaintBucket, { size: 16 }),
         execute: async () => {
@@ -121,13 +121,15 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
 
     // Then register new commands for each theme
     if (Array.isArray(themes)) {
-      themes.forEach(theme => {
+        themes.forEach(theme => {
+
+
         registerCommand({
           id: `apply-theme-${theme.guid}`,
           name: `Apply Theme: ${theme.name}`,
           description: theme.description || `Apply the ${theme.name} theme`,
           shortcut: '',
-          keywords: ['theme', 'apply', 'style', theme.name.toLowerCase()],
+          keywords: ['theme', 'apply', 'style', theme.name], 
           section: 'themes',
           icon: React.createElement(PaintBucket, { size: 16 }),
           execute: async () => {

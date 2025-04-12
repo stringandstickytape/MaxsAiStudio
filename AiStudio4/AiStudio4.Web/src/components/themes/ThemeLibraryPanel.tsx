@@ -45,9 +45,8 @@ export function ThemeLibraryPanel({ isOpen = true, onClose, onApplyTheme }: Them
     }
   }, [isOpen, fetchThemes]);
 
-  const handleApplyTheme = (theme: Theme) => {
-    applyTheme(theme);
-    onApplyTheme(theme);
+    const handleApplyTheme = (theme: Theme) => {
+        window.applyLLMTheme(theme.themeJson);
   };
 
   const handleDeleteTheme = async (themeId: string) => {
