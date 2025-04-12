@@ -21,9 +21,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
-import { Server, Palette } from 'lucide-react'; // Added Server and Palette icons
+import { Server } from 'lucide-react'; // Added Server icon
 import { webSocketService } from '@/services/websocket/WebSocketService';
-import { useThemeStore } from '@/stores/useThemeStore';
 
 interface InputBarProps {
     selectedModel: string;
@@ -42,8 +41,6 @@ declare global {
         getScrollButtonState?: () => boolean;
         appendToPrompt?: (text: string) => boolean;
         setPrompt?: (text: string) => boolean;
-        applyRandomTheme?: () => string | undefined;
-        theme?: any;
     }
 }
 
@@ -499,30 +496,6 @@ export function InputBar({
                         
                     </div>
 
-                    {/* Theme Button */}
-                    <div className="ml-4">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                                // Get the current theme from window.theme
-                                if (window.theme) {
-                                    // Add the current theme to the theme store
-                                    useThemeStore.getState().addTheme({
-                                        name: 'Saved Theme ' + new Date().toLocaleTimeString(),
-                                        description: 'Theme saved from UI',
-                                        themeJson: window.theme
-                                    });
-                                    console.log('Theme saved to store');
-                                }
-                            }}
-                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
-                            disabled={disabled}
-                        >
-                            <Palette className="h-3 w-3 mr-1" />
-                            <span>Use Theme</span>
-                        </Button>
-                    </div>
 
                     </div> {/* Close Tools & Servers Wrapper */}
 
