@@ -35,58 +35,60 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  addTheme: (themeData: Partial<Theme>) => {
-    const now = new Date().toISOString();
-    const newTheme: Theme = {
-      guid: themeData.guid || uuidv4(),
-      name: themeData.name || 'Unnamed Theme',
-      description: themeData.description || 'No description',
-      author: themeData.author || 'Unknown',
-      previewColors: themeData.previewColors || ['#000000'],
-      themeJson: themeData.themeJson || {},
-      created: themeData.created || now,
-      lastModified: themeData.lastModified || now,
-    };
-    
-    // Add to local state immediately
-    set(state => ({
-      themes: [...state.themes, newTheme],
-    }));
-    
-    // Save to server in background
-    get().saveTheme(newTheme).catch(err => {
-      console.error('Error saving new theme to server:', err);
-    });
-    
-    return newTheme.guid;
-  },
+    addTheme: (themeData: Partial<Theme>) => {
+        const now = new Date().toISOString();
+        const newTheme: Theme = {
+            guid: themeData.guid || uuidv4(),
+            name: themeData.name || 'Unnamed Theme',
+            description: themeData.description || 'No description',
+            author: themeData.author || 'Unknown',
+            previewColors: themeData.previewColors || ['#000000'],
+            themeJson: themeData.themeJson || {},
+            created: themeData.created || now,
+            lastModified: themeData.lastModified || now,
+        };
 
-  updateTheme: (themeId: string, updates: Partial<Theme>) => {
-    // Update local state immediately
-    let updatedTheme: Theme | null = null;
-    
-    set(state => {
-      const themes = state.themes.map(theme => {
-        if (theme.guid === themeId) {
-          updatedTheme = { 
-            ...theme, 
-            ...updates, 
-            lastModified: new Date().toISOString() 
-          };
-          return updatedTheme;
+        // Add to local state immediately
+        set(state => ({
+            themes: [...state.themes, newTheme],
+        }));
+
+        // Save to server in background (always add)
+        get().addThemeToServer(newTheme).catch(err => {
+            console.error('Error adding new theme to server:', err);
+        });
+
+        return newTheme.guid;
+    },
+
+
+    updateTheme: (themeId: string, updates: Partial<Theme>) => {
+        // Update local state immediately
+        let updatedTheme: Theme | null = null;
+
+        set(state => {
+            const themes = state.themes.map(theme => {
+                if (theme.guid === themeId) {
+                    updatedTheme = {
+                        ...theme,
+                        ...updates,
+                        lastModified: new Date().toISOString()
+                    };
+                    return updatedTheme;
+                }
+                return theme;
+            });
+            return { themes };
+        });
+
+        // Save to server in background if we found and updated the theme (always update)
+        if (updatedTheme) {
+            get().updateThemeOnServer(updatedTheme).catch(err => {
+                console.error('Error updating theme on server:', err);
+            });
         }
-        return theme;
-      });
-      return { themes };
-    });
-    
-    // Save to server in background if we found and updated the theme
-    if (updatedTheme) {
-      get().saveTheme(updatedTheme).catch(err => {
-        console.error('Error saving updated theme to server:', err);
-      });
-    }
-  },
+    },
+
 
   removeTheme: (themeId: string) => {
     // Update local state immediately
@@ -163,42 +165,60 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     }
   },
   
-  saveTheme: async (theme: Theme) => {
-    set({ isLoading: true, error: null });
-    try {
-      // Always use the add endpoint for new themes
-      // This ensures we don't try to update a theme that doesn't exist on the server
-      const endpoint = '/api/themes/add';
-      
-      console.log('Saving theme:', { themeId: theme.guid, endpoint });
-      
-      const response = await apiClient.post(endpoint, theme);
-      if (response.data.success) {
-        const savedTheme = response.data.theme;
-        
-        // Update local state
-        if (get().themes.some(t => t.guid === savedTheme.guid)) {
-          set(state => ({
-            themes: state.themes.map(t => t.guid === savedTheme.guid ? savedTheme : t)
-          }));
-        } else {
-          set(state => ({
-            themes: [...state.themes, savedTheme]
-          }));
+    // Add theme to server (always /api/themes/add)
+    addThemeToServer: async (theme: Theme) => {
+        set({ isLoading: true, error: null });
+        try {
+            const endpoint = '/api/themes/add';
+            const response = await apiClient.post(endpoint, theme);
+            if (response.data.success) {
+                const savedTheme = response.data.theme;
+                // Update local state
+                if (get().themes.some(t => t.guid === savedTheme.guid)) {
+                    set(state => ({
+                        themes: state.themes.map(t => t.guid === savedTheme.guid ? savedTheme : t)
+                    }));
+                } else {
+                    set(state => ({
+                        themes: [...state.themes, savedTheme]
+                    }));
+                }
+                return savedTheme;
+            } else {
+                throw new Error(response.data.error || `Failed to add theme`);
+            }
+        } catch (err: any) {
+            set({ error: err?.message || 'Unknown error adding theme' });
+            console.error('Error adding theme:', err);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
-        
-        return savedTheme;
-      } else {
-        throw new Error(response.data.error || `Failed to add theme`);
-      }
-    } catch (err: any) {
-      set({ error: err?.message || 'Unknown error saving theme' });
-      console.error('Error saving theme:', err);
-      throw err;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+    },
+    // Update theme on server (always /api/themes/update)
+    updateThemeOnServer: async (theme: Theme) => {
+        set({ isLoading: true, error: null });
+        try {
+            const endpoint = '/api/themes/update';
+            const response = await apiClient.post(endpoint, theme);
+            if (response.data.success) {
+                const savedTheme = response.data.theme;
+                // Update local state
+                set(state => ({
+                    themes: state.themes.map(t => t.guid === savedTheme.guid ? savedTheme : t)
+                }));
+                return savedTheme;
+            } else {
+                throw new Error(response.data.error || `Failed to update theme`);
+            }
+        } catch (err: any) {
+            set({ error: err?.message || 'Unknown error updating theme' });
+            console.error('Error updating theme:', err);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
   
   deleteThemeFromServer: async (themeId: string) => {
     set({ isLoading: true, error: null });
