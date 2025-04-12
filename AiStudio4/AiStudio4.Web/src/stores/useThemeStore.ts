@@ -59,7 +59,8 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   applyTheme: (themeId: string) => {
     const theme = get().themes.find(t => t.guid === themeId);
     if (theme) {
-      ThemeManager.applyTheme(theme.themeJson);
+      // Use applyLLMTheme instead of applyTheme for flat theme objects
+      ThemeManager.applyLLMTheme(theme.themeJson);
       set({ activeThemeId: themeId });
     } else {
       set({ error: `Theme with ID ${themeId} not found` });

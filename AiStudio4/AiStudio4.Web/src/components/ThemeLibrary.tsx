@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeManagement } from '@/hooks/useThemeManagement';
 import { Theme } from '@/types/theme';
 import { AlertCircle } from 'lucide-react';
 
@@ -14,7 +15,7 @@ interface ThemeLibraryProps {
 }
 
 export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }) => {
-  const { themes, isLoading, error } = useThemeStore();
+  const { themes, isLoading, error, applyTheme } = useThemeStore();
 
   // Function to render color preview swatches
   const renderColorSwatches = (colors: string[]) => {
@@ -88,6 +89,16 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
                     {theme.previewColors && theme.previewColors.length > 0 && renderColorSwatches(theme.previewColors)}
                   </div>
                 </div>
+                <CardFooter className="p-3 pt-0">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2" 
+                    onClick={() => applyTheme(theme.guid)}
+                  >
+                    Apply
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>
