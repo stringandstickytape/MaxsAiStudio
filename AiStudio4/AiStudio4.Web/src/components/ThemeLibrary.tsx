@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useThemeManagement } from '@/hooks/useThemeManagement';
 import { Theme } from '@/types/theme';
-import { AlertCircle, Edit2 } from 'lucide-react';
+import { AlertCircle, Edit2, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -73,10 +73,11 @@ const ThemeNameEditDialog: React.FC<ThemeNameEditDialogProps> = ({
 
 export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }) => {
   const { themes, isLoading, error, applyTheme } = useThemeStore();
-  const { updateThemeName } = useThemeManagement();
+  const { updateThemeName, refreshThemes } = useThemeManagement();
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [themeToEdit, setThemeToEdit] = useState<Theme | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   
   const handleEditThemeName = (theme: Theme) => {
     setThemeToEdit(theme);
@@ -85,6 +86,15 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
   
   const handleSaveThemeName = (themeId: string, name: string) => {
     updateThemeName(themeId, name);
+  };
+  
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshThemes();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // Function to render color preview swatches
@@ -112,8 +122,17 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
       />
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl bg-gray-800 border-gray-700 text-gray-100">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-gray-100">Theme Library</DialogTitle>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleRefresh} 
+              disabled={refreshing || isLoading}
+              className="h-8 w-8 text-gray-400 hover:text-gray-100"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
           </DialogHeader>
 
           {error && (

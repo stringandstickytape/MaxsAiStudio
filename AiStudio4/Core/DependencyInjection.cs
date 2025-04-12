@@ -30,6 +30,9 @@ namespace AiStudio4.Core
         /// </summary>
         public static IServiceCollection AddToolServices(this IServiceCollection services)
         {
+            // Register theme service
+            services.AddTransient<IThemeService, Services.ThemeService>();
+            
             // Register individual tools by scanning the assembly for ITool implementations
             var toolInterfaceType = typeof(ITool);
             var assembly = toolInterfaceType.Assembly; // Assuming tools are in the same assembly as ITool

@@ -22,7 +22,12 @@ export function useThemeManagement() {
     setActiveTheme,
     applyTheme,
     applyRandomTheme,
-    setError
+    setError,
+    loadThemes,
+    saveTheme,
+    deleteThemeFromServer,
+    setActiveThemeOnServer,
+    loadActiveTheme
   } = useThemeStore();
 
   /**
@@ -121,6 +126,32 @@ export function useThemeManagement() {
     setError(null);
   }, [setError]);
 
+  /**
+   * Refreshes the themes list from the server
+   */
+  const refreshThemes = useCallback(async () => {
+    try {
+      await loadThemes();
+      return true;
+    } catch (err: any) {
+      setError(err?.message || 'Failed to refresh themes');
+      return false;
+    }
+  }, [loadThemes, setError]);
+
+  /**
+   * Loads the active theme from the server
+   */
+  const loadActive = useCallback(async () => {
+    try {
+      await loadActiveTheme();
+      return true;
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load active theme');
+      return false;
+    }
+  }, [loadActiveTheme, setError]);
+
   return {
     themes,
     activeThemeId,
@@ -132,6 +163,8 @@ export function useThemeManagement() {
     applyTheme: applyThemeById,
     applyRandomTheme: applyRandom,
     updateThemeName,
-    clearError
+    clearError,
+    refreshThemes,
+    loadActiveTheme: loadActive
   };
 }

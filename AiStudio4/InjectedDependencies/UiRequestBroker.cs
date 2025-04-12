@@ -32,6 +32,7 @@ namespace AiStudio4.InjectedDependencies
         private readonly IChatService _chatService;
         private readonly ClientRequestCancellationService _cancellationService;
         private readonly IMcpService _mcpService;
+        private readonly IThemeService _themeService;
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -48,7 +49,8 @@ namespace AiStudio4.InjectedDependencies
             IServiceProvider serviceProvider,
             IChatService chatService,
             ClientRequestCancellationService cancellationService,
-            IMcpService mcpService
+            IMcpService mcpService,
+            IThemeService themeService
             )
         {
             _configuration = configuration;
@@ -66,6 +68,7 @@ namespace AiStudio4.InjectedDependencies
             _chatService = chatService;
             _cancellationService = cancellationService;
             _mcpService = mcpService;
+            _themeService = themeService;
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -152,6 +155,13 @@ namespace AiStudio4.InjectedDependencies
                     "mcpServers/update" => await HandleUpdateMcpServerRequest(requestObject),
                     "mcpServers/delete" => await HandleDeleteMcpServerRequest(requestObject),
                     "mcpServers/getTools" => await HandleGetMcpServerToolsRequest(requestObject),
+                    "themes/getAll" => await HandleGetAllThemesRequest(clientId, requestObject),
+                    "themes/getById" => await HandleGetThemeByIdRequest(clientId, requestObject),
+                    "themes/add" => await HandleAddThemeRequest(clientId, requestObject),
+                    "themes/update" => await HandleUpdateThemeRequest(clientId, requestObject),
+                    "themes/delete" => await HandleDeleteThemeRequest(clientId, requestObject),
+                    "themes/setActive" => await HandleSetActiveThemeRequest(clientId, requestObject),
+                    "themes/getActive" => await HandleGetActiveThemeRequest(clientId, requestObject),
                     _ => throw new NotImplementedException()
                 }; ;
             }
@@ -997,6 +1007,197 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 return SerializeError($"Error retrieving MCP server tools: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Theme Request Handlers
+        private async Task<string> HandleGetAllThemesRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var themes = await _themeService.GetAllThemesAsync(clientId);
+                return JsonConvert.SerializeObject(new { success = true, themes });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving themes: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetThemeByIdRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                string themeId = requestObject["themeId"]?.ToString();
+                if (string.IsNullOrEmpty(themeId))
+                {
+                    return SerializeError("Theme ID is required");
+                }
+
+                var theme = await _themeService.GetThemeByIdAsync(clientId, themeId);
+                if (theme == null)
+                {
+                    return SerializeError($"Theme with ID {themeId} not found");
+                }
+
+                return JsonConvert.SerializeObject(new { success = true, theme });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleAddThemeRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var theme = requestObject.ToObject<Theme>();
+                if (theme == null)
+                {
+                    return SerializeError("Invalid theme data");
+                }
+
+                var result = await _themeService.AddThemeAsync(clientId, theme);
+                return JsonConvert.SerializeObject(new { success = true, theme = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error adding theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleUpdateThemeRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var theme = requestObject.ToObject<Theme>();
+                if (theme == null || string.IsNullOrEmpty(theme.Guid))
+                {
+                    return SerializeError("Invalid theme data or missing theme ID");
+                }
+
+                var result = await _themeService.UpdateThemeAsync(clientId, theme);
+                return JsonConvert.SerializeObject(new { success = true, theme = result });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error updating theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleDeleteThemeRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                string themeId = requestObject["themeId"]?.ToString();
+                if (string.IsNullOrEmpty(themeId))
+                {
+                    return SerializeError("Theme ID is required");
+                }
+
+                var success = await _themeService.DeleteThemeAsync(clientId, themeId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error deleting theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSetActiveThemeRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                string themeId = requestObject["themeId"]?.ToString();
+                if (string.IsNullOrEmpty(themeId))
+                {
+                    return SerializeError("Theme ID is required");
+                }
+
+                var success = await _themeService.SetActiveThemeAsync(clientId, themeId);
+                return JsonConvert.SerializeObject(new { success });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting active theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetActiveThemeRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    clientId = requestObject["clientId"]?.ToString();
+                    if (string.IsNullOrEmpty(clientId))
+                    {
+                        return SerializeError("Client ID is required");
+                    }
+                }
+
+                var themeId = await _themeService.GetActiveThemeIdAsync(clientId);
+                return JsonConvert.SerializeObject(new { success = true, themeId });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving active theme: {ex.Message}");
             }
         }
         #endregion
