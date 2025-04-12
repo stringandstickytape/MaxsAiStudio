@@ -113,7 +113,6 @@ class ThemeManager {
         if (cssVar) {
           css += `\n  ${cssVar}: ${value};`;
         } else {
-          console.warn(`[ThemeManager] No cssVar found for ${component}.${prop}`);
         }
       }
       css += '\n}\n';
@@ -184,7 +183,7 @@ class ThemeManager {
     for (const flatKey in flatThemeObj) {
       processedKeys++;
       const value = flatThemeObj[flatKey];
-      console.log(`[ThemeManager] Processing key: "${flatKey}" with value: "${value}"`);
+      //console.log(`[ThemeManager] Processing key: "${flatKey}" with value: "${value}"`);
       
       const sepIndex = flatKey.indexOf('-');
       if (sepIndex === -1) {
@@ -194,17 +193,17 @@ class ThemeManager {
       
       const component = flatKey.substring(0, sepIndex);
       const prop = flatKey.substring(sepIndex + 1);
-      console.log(`[ThemeManager] Extracted component: "${component}", prop: "${prop}"`);
+      //console.log(`[ThemeManager] Extracted component: "${component}", prop: "${prop}"`);
       
       if (!nestedTheme[component]) {
-        console.log(`[ThemeManager] Creating new component entry for: ${component}`);
+        //console.log(`[ThemeManager] Creating new component entry for: ${component}`);
         nestedTheme[component] = {};
       }
       
       nestedTheme[component][prop] = value;
     }
     
-    console.log(`[ThemeManager] Processed ${processedKeys} theme properties`);
+    //console.log(`[ThemeManager] Processed ${processedKeys} theme properties`);
     console.log('[ThemeManager] Parsed nested theme:', nestedTheme);
     
     if (processedKeys === 0) {
