@@ -5,6 +5,7 @@ import { FontSizeControl } from './FontSizeControl';
 import { useAppearanceManagement } from '@/hooks/useAppearanceManagement';
 import { RefreshCw } from 'lucide-react';
 import { fontSizeUtils } from '@/stores/useAppearanceStore';
+import { useModalStore } from '@/stores/useModalStore';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -69,7 +70,7 @@ export function AppearanceTab() {
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button 
                                 onClick={() => {
-                                    window.dispatchEvent(new CustomEvent('open-theme-library'));
+                                    useModalStore.getState().openModal('theme');
                                 }}
                                 className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
                             >
@@ -78,13 +79,7 @@ export function AppearanceTab() {
                             
                             <Button 
                                 onClick={() => {
-                                    // Open theme library with install flag set to true
-                                    const modalStore = window.useModalStore || window.useModalStore;
-                                    if (modalStore) {
-                                        modalStore.getState().openModal('theme', { installTheme: true });
-                                    } else {
-                                        window.dispatchEvent(new CustomEvent('open-theme-library'));
-                                    }
+                                    useModalStore.getState().openModal('theme', { installTheme: true });
                                 }}
                                 variant="outline"
                                 className="btn-secondary flex items-center space-x-1"

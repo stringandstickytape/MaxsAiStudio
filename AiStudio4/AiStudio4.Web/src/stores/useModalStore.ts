@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 
-export type ModalId = 'settings' | 'systemPrompt' | 'userPrompt' | 'tool' | string; // Added string for potential future flexibility
+export type ModalId = 'settings' | 'systemPrompt' | 'userPrompt' | 'tool' | 'theme' | string; // Added 'theme' for theme library
 
 interface ModalState {
   openModalId: ModalId | null;
