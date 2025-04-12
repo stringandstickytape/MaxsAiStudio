@@ -1,13 +1,13 @@
 ﻿// AiStudio4.Web/src/components/ThemeLibrary.tsx
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useThemeManagement } from '@/hooks/useThemeManagement';
 import { Theme } from '@/types/theme';
-import { AlertCircle, Edit2, RefreshCw } from 'lucide-react';
+import { AlertCircle, Edit2, RefreshCw, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -22,6 +22,44 @@ interface ThemeNameEditDialogProps {
   theme: Theme | null;
   onSave: (themeId: string, name: string) => void;
 }
+
+interface DeleteConfirmationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  theme: Theme | null;
+  onConfirm: (themeId: string) => void;
+}
+
+const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
+  open,
+  onOpenChange,
+  theme,
+  onConfirm
+}) => {
+  const handleConfirm = () => {
+    if (theme) {
+      onConfirm(theme.guid);
+      onOpenChange(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-gray-800 border-gray-700 text-gray-100">
+        <DialogHeader>
+          <DialogTitle className="text-gray-100">Delete Theme</DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Are you sure you want to delete the theme "{theme?.name}"? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex justify-end space-x-2 mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={handleConfirm}>Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const ThemeNameEditDialog: React.FC<ThemeNameEditDialogProps> = ({ 
   open, 
@@ -73,10 +111,12 @@ const ThemeNameEditDialog: React.FC<ThemeNameEditDialogProps> = ({
 
 export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }) => {
   const { themes, isLoading, error, applyTheme } = useThemeStore();
-  const { updateThemeName, refreshThemes } = useThemeManagement();
+  const { updateThemeName, refreshThemes, deleteTheme } = useThemeManagement();
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [themeToEdit, setThemeToEdit] = useState<Theme | null>(null);
+  const [themeToDelete, setThemeToDelete] = useState<Theme | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   
   const handleEditThemeName = (theme: Theme) => {
@@ -84,8 +124,17 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
     setEditDialogOpen(true);
   };
   
+  const handleDeleteTheme = (theme: Theme) => {
+    setThemeToDelete(theme);
+    setDeleteDialogOpen(true);
+  };
+  
   const handleSaveThemeName = (themeId: string, name: string) => {
     updateThemeName(themeId, name);
+  };
+  
+  const handleConfirmDelete = (themeId: string) => {
+    deleteTheme(themeId);
   };
   
   const handleRefresh = async () => {
@@ -119,6 +168,12 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
         onOpenChange={setEditDialogOpen}
         theme={themeToEdit}
         onSave={handleSaveThemeName}
+      />
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        theme={themeToDelete}
+        onConfirm={handleConfirmDelete}
       />
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl bg-gray-800 border-gray-700 text-gray-100">
@@ -173,17 +228,30 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
                 <div className="p-3 flex flex-col flex-1">
                   <div className="flex items-start justify-between">
                     <h3 className="text-gray-100 text-lg font-medium truncate">{theme.name}</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-gray-400 hover:text-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditThemeName(theme);
-                      }}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditThemeName(theme);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-gray-400 hover:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTheme(theme);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   {theme.author && (
