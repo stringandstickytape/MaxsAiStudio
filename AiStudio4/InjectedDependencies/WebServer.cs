@@ -109,7 +109,15 @@ namespace AiStudio4.InjectedDependencies
 
             // API requests
             app.MapPost("/api/{requestType}", HandleApiRequest);
+            app.MapDelete("/api/{requestType}", HandleApiRequest);
+            app.MapGet("/api/{requestType}", HandleApiRequest);
+            app.MapPut("/api/{requestType}", HandleApiRequest);
             app.MapPost("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapDelete("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapGet("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapPut("/api/{requestType}/{action}", HandleApiRequest);
+
+
 
             // Add OPTIONS handler for CORS preflight requests
             app.MapMethods("/api/{requestType}", new[] { "OPTIONS" }, context =>

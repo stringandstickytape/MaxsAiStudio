@@ -12,17 +12,27 @@ export const apiClient = axios.create({
 
 
 apiClient.interceptors.request.use((config) => {
+    console.log('[ApiClient Debug] Request intercepted:', config.method?.toUpperCase(), config.url);
+    console.log('[ApiClient Debug] Request headers:', config.headers);
+    console.log('[ApiClient Debug] Request data:', config.data);
+    
     const clientId = webSocketService.getClientId();
     if (clientId) {
         config.headers['X-Client-Id'] = clientId;
+        console.log('[ApiClient Debug] Added client ID to headers:', clientId);
     }
-  return config;
+    return config;
 });
 
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('[ApiClient Debug] Response received:', response.status, response.config.url);
+    console.log('[ApiClient Debug] Response data:', response.data);
+    return response;
+  },
   (error) => {
+    console.log('[ApiClient Debug] Response error:', error);
     
     const errorResponse = {
       message: error.message || 'An unknown error occurred',
@@ -30,9 +40,7 @@ apiClient.interceptors.response.use(
       data: error.response?.data,
     };
 
-    
-    console.error('API Error:', errorResponse);
-
+    console.error('[ApiClient Debug] Formatted error response:', errorResponse);
     
     return Promise.reject(errorResponse);
   },

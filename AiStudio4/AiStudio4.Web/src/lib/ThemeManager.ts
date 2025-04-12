@@ -169,20 +169,48 @@ class ThemeManager {
    */
   public applyLLMTheme(flatThemeObj: Record<string, string>): void {
     console.log('[ThemeManager] Applying LLM theme response:', flatThemeObj);
+    console.log('[ThemeManager] Theme response type:', typeof flatThemeObj);
+    console.log('[ThemeManager] Is array?', Array.isArray(flatThemeObj));
+    
+    // Handle if the input is not in the expected format
+    if (typeof flatThemeObj !== 'object' || flatThemeObj === null) {
+      console.error('[ThemeManager] Invalid theme object format:', flatThemeObj);
+      return;
+    }
+    
     const nestedTheme: Theme = {};
+    let processedKeys = 0;
+    
     for (const flatKey in flatThemeObj) {
+      processedKeys++;
       const value = flatThemeObj[flatKey];
+      console.log(`[ThemeManager] Processing key: "${flatKey}" with value: "${value}"`);
+      
       const sepIndex = flatKey.indexOf('-');
       if (sepIndex === -1) {
         console.warn(`[ThemeManager] Invalid theme key (missing dash): ${flatKey}`);
         continue;
       }
+      
       const component = flatKey.substring(0, sepIndex);
       const prop = flatKey.substring(sepIndex + 1);
-      if (!nestedTheme[component]) nestedTheme[component] = {};
+      console.log(`[ThemeManager] Extracted component: "${component}", prop: "${prop}"`);
+      
+      if (!nestedTheme[component]) {
+        console.log(`[ThemeManager] Creating new component entry for: ${component}`);
+        nestedTheme[component] = {};
+      }
+      
       nestedTheme[component][prop] = value;
     }
+    
+    console.log(`[ThemeManager] Processed ${processedKeys} theme properties`);
     console.log('[ThemeManager] Parsed nested theme:', nestedTheme);
+    
+    if (processedKeys === 0) {
+      console.warn('[ThemeManager] No valid theme properties found in the input');
+    }
+    
     this.applyTheme(nestedTheme);
   }
 }

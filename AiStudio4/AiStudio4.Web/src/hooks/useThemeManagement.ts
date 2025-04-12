@@ -81,16 +81,38 @@ export function useThemeManagement() {
 
   // Apply a theme
   const applyTheme = useCallback(async (theme: Theme) => {
+    console.log('[ThemeManagement Debug] applyTheme called with:', theme);
+    
     // Apply theme visually
+    console.log('[ThemeManagement Debug] Applying theme visually with themeJson:', theme.themeJson);
     themeManagerInstance.applyTheme(theme.themeJson);
     
-    // Save as default theme in backend
+    // Save theme to library if it doesn't exist yet
     try {
-      console.log(`Theme "${theme.name}" set as default`);
+      // Check if theme already exists in library
+      console.log('[ThemeManagement Debug] Checking if theme exists in library, guid:', theme.guid);
+      console.log('[ThemeManagement Debug] Current themes:', themes);
+      const existingTheme = themes.find(t => t.guid === theme.guid);
+      
+      if (!existingTheme) {
+        console.log('[ThemeManagement Debug] Theme not found in library, adding it');
+        // Add theme to library
+        const addedTheme = await themeApi.addTheme(theme);
+        console.log('[ThemeManagement Debug] Theme added to library:', addedTheme);
+        await fetchThemes(); // Refresh the list
+        console.log(`[ThemeManagement Debug] Theme "${theme.name}" added to library and themes refreshed`);
+      } else {
+        console.log('[ThemeManagement Debug] Theme already exists in library:', existingTheme);
+      }
+      
+      // Set as default theme in backend
+      console.log('[ThemeManagement Debug] Setting theme as default, guid:', theme.guid);
+      await themeApi.setDefaultTheme(theme.guid);
+      console.log(`[ThemeManagement Debug] Theme "${theme.name}" set as default`);
     } catch (error) {
-      console.error('Error setting default theme:', error);
+      console.error('[ThemeManagement Debug] Error saving theme:', error);
     }
-  }, []);
+  }, [themes, fetchThemes]);
 
   // Toggle theme selection
   const toggleThemeSelection = useCallback((themeId: string) => {

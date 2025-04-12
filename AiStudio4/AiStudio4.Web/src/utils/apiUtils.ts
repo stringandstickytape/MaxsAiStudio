@@ -1,5 +1,4 @@
-
-import { useState, useRef, useCallback, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, useEffect } from 'react';
 import { apiClient } from '@/services/api/apiClient';
 
 export enum ErrorCategory {
@@ -96,22 +95,33 @@ export function createApiRequest<TParams, TResponse>(
   },
 ) {
   return async (params?: TParams): Promise<TResponse> => {
+    console.log(`[API Debug] Making ${method} request to ${endpoint}`);
+    console.log('[API Debug] Request params:', params);
+    
     try {
-      const response = await apiClient.request({
+      const requestConfig = {
         url: endpoint,
         method,
         [method === 'GET' ? 'params' : 'data']: params || {},
-      });
+      };
+      console.log('[API Debug] Request config:', requestConfig);
+      
+      const response = await apiClient.request(requestConfig);
+      console.log(`[API Debug] Response from ${endpoint}:`, response);
 
       const data = response.data;
+      console.log(`[API Debug] Response data from ${endpoint}:`, data);
 
       if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+        console.error(`[API Debug] Request to ${endpoint} returned success: false with error:`, data.error);
         throw new Error(data.error || `API request to ${endpoint} failed`);
       }
 
-      return options?.transformResponse ? options.transformResponse(data) : data;
+      const transformedData = options?.transformResponse ? options.transformResponse(data) : data;
+      console.log(`[API Debug] Transformed response data from ${endpoint}:`, transformedData);
+      return transformedData;
     } catch (err) {
-      console.error(`Error in API request to ${endpoint}:`, err);
+      console.error(`[API Debug] Error in API request to ${endpoint}:`, err);
       throw err;
     }
   };

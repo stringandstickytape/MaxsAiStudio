@@ -73,6 +73,8 @@ namespace AiStudio4.InjectedDependencies
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
+            if (!requestData.StartsWith("{"))
+                requestData = $"{{param:{requestData}}}";
             JObject requestObject = JsonConvert.DeserializeObject<JObject>(requestData);
 
             if (requestType == "exitApplication")
@@ -160,6 +162,7 @@ namespace AiStudio4.InjectedDependencies
                     "themes/delete" => await HandleDeleteThemeRequest(requestObject),
                     "themes/import" => await HandleImportThemesRequest(requestObject),
                     "themes/export" => await HandleExportThemesRequest(requestObject),
+                    "themes/setDefault" => "",
                     _ => throw new NotImplementedException()
                 }; ;
             }
@@ -1061,11 +1064,11 @@ namespace AiStudio4.InjectedDependencies
         {
             try
             {
-                string themeId = requestObject["themeId"]?.ToString(); // Assuming the ID is passed as 'themeId'
+                string themeId = requestObject["param"]?.ToString(); // Assuming the ID is passed as 'themeId'
                 if (string.IsNullOrEmpty(themeId)) return SerializeError("Theme ID cannot be empty");
 
                 var success = await _themeService.DeleteThemeAsync(themeId);
-                return JsonConvert.SerializeObject(new { success });
+                return JsonConvert.SerializeObject(new { result = success });
             }
             catch (Exception ex)
             {

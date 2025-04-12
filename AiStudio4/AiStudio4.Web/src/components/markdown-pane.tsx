@@ -102,7 +102,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
     const components = useMemo(() => ({
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '');
-            
+
             // unformatted / no filetype
             if (!match) return <code className={className}>{children}</code>;
 
@@ -113,7 +113,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `${language}-${content.slice(0, 20)}`;
-            
+
 
             if (showRawContent[blockId] === undefined) {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
@@ -149,10 +149,10 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 });
 
                 setTimeout(() => {
-                setIsCodeCollapsed((prev) => ({
-                    ...prev,
-                    [blockId]: !prev[blockId],
-                }));
+                    setIsCodeCollapsed((prev) => ({
+                        ...prev,
+                        [blockId]: !prev[blockId],
+                    }));
                     markdownPaneElement.scrollTo({
                         top: Math.max(0, currentScrollPosition + 1),
                         behavior: 'auto'
@@ -211,9 +211,15 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                             <button
                                 onClick={async () => {
                                     try {
+                                        console.log('[Theme Debug] Starting theme application from code block');
+                                        console.log('[Theme Debug] Theme content:', content);
+
                                         // Apply theme visually
-                                        window.applyLLMTheme(JSON.parse(content));
-                                        
+                                        const parsedContent = JSON.parse(content);
+                                        console.log('[Theme Debug] Parsed content:', parsedContent);
+                                        window.applyLLMTheme(parsedContent);
+                                        console.log('[Theme Debug] Theme applied visually');
+
                                         // Create a theme object from the content
                                         const themeJson = JSON.parse(content);
                                         const theme = {
@@ -221,15 +227,23 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                             name: 'Theme from Code Block',
                                             description: 'Theme created from code block',
                                             author: 'AiStudio4 User',
+                                            previewColors: ['#3498db', '#2ecc71', '#e74c3c'], // Add default preview colors
                                             themeJson: themeJson
                                         };
-                                        
+                                        console.log('[Theme Debug] Created theme object:', theme);
+
                                         // Add theme to library and set as default
                                         const themeApi = await import('@/api/themeApi');
+                                        console.log('[Theme Debug] Calling themeApi.addTheme');
                                         const addedTheme = await themeApi.addTheme(theme);
-                                        console.log('Theme added to library and set as default');
+                                        console.log('[Theme Debug] Theme added to library:', addedTheme);
+
+                                        // Set as default theme
+                                        console.log('[Theme Debug] Setting theme as default, ID:', addedTheme?.guid || theme.guid);
+                                        await themeApi.setDefaultTheme(addedTheme?.guid || theme.guid);
+                                        console.log('[Theme Debug] Theme set as default successfully');
                                     } catch (e) {
-                                        console.error('Error processing theme:', e);
+                                        console.error('[Theme Debug] Error processing theme:', e);
                                     }
                                 }}
                                 className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"

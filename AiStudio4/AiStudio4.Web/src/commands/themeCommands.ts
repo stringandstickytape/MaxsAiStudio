@@ -91,15 +91,18 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
         section: 'themes',
         icon: React.createElement(PaintBucket, { size: 16 }),
         execute: async () => {
-          // Apply theme visually
-          themeManagerInstance.applyTheme(theme.themeJson);
-          
-          // Save as default theme in backend
           try {
-            await import('@/api/themeApi').then(api => api.setDefaultTheme(theme.guid));
-            console.log(`Theme "${theme.name}" set as default`);
+            // Import both theme API and hook
+            const themeApi = await import('@/api/themeApi');
+            const { useThemeManagement } = await import('@/hooks/useThemeManagement');
+            const { applyTheme } = useThemeManagement();
+            
+            // Use the hook's applyTheme function which handles both visual application
+            // and saving to library
+            await applyTheme(theme);
+            console.log(`Theme "${theme.name}" added to library and set as default`);
           } catch (error) {
-            console.error('Error setting default theme:', error);
+            console.error('Error applying theme:', error);
           }
         },
       });
@@ -128,15 +131,18 @@ export function initializeThemeCommands(config: ThemeCommandsConfig) {
           section: 'themes',
           icon: React.createElement(PaintBucket, { size: 16 }),
           execute: async () => {
-            // Apply theme visually
-            themeManagerInstance.applyTheme(theme.themeJson);
-            
-            // Save as default theme in backend
             try {
-              await import('@/api/themeApi').then(api => api.setDefaultTheme(theme.guid));
-              console.log(`Theme "${theme.name}" set as default`);
+              // Import both theme API and hook
+              const themeApi = await import('@/api/themeApi');
+              const { useThemeManagement } = await import('@/hooks/useThemeManagement');
+              const { applyTheme } = useThemeManagement();
+              
+              // Use the hook's applyTheme function which handles both visual application
+              // and saving to library
+              await applyTheme(theme);
+              console.log(`Theme "${theme.name}" added to library and set as default`);
             } catch (error) {
-              console.error('Error setting default theme:', error);
+              console.error('Error applying theme:', error);
             }
           },
         });
