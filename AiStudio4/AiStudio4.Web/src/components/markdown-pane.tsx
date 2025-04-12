@@ -217,7 +217,18 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                         // Apply theme visually
                                         const parsedContent = JSON.parse(content);
                                         console.log('[Theme Debug] Parsed content:', parsedContent);
+                                        
+                                        // Apply theme visually
                                         window.applyLLMTheme(parsedContent);
+                                        
+                                        // Add theme to zustand store
+                                        if (window.addThemeToStore) {
+                                            window.addThemeToStore({
+                                                name: `Theme from code block ${new Date().toLocaleTimeString()}`,
+                                                description: 'Theme applied from markdown code block',
+                                                themeJson: parsedContent
+                                            });
+                                        }
                                     } catch (e) {
                                         console.error('[Theme Debug] Error processing theme:', e);
                                     }

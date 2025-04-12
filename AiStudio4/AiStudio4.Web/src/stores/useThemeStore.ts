@@ -74,7 +74,14 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     }
     const randomIndex = Math.floor(Math.random() * themes.length);
     const randomTheme = themes[randomIndex];
-    ThemeManager.applyTheme(randomTheme.themeJson);
+    
+    // Use window.applyLLMTheme instead of ThemeManager.applyTheme
+    if (typeof window !== 'undefined' && window.applyLLMTheme) {
+      window.applyLLMTheme(randomTheme.themeJson);
+    } else {
+      ThemeManager.applyTheme(randomTheme.themeJson);
+    }
+    
     set({ activeThemeId: randomTheme.guid });
     return randomTheme.guid;
   },
@@ -82,9 +89,13 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   setError: (error: string | null) => set({ error }),
 }));
 
-// Export a function to apply a random theme for window access
+// Export functions for window access
 export const applyRandomTheme = () => {
   return useThemeStore.getState().applyRandomTheme();
+};
+
+export const addThemeToStore = (themeData: Partial<Theme>) => {
+  return useThemeStore.getState().addTheme(themeData);
 };
 
 // Debug helper
@@ -99,8 +110,9 @@ export const debugThemeStore = () => {
   return state;
 };
 
-// Expose debug function to window
+// Expose functions to window
 if (typeof window !== 'undefined') {
   (window as any).debugThemeStore = debugThemeStore;
   (window as any).applyRandomTheme = applyRandomTheme;
+  (window as any).addThemeToStore = addThemeToStore;
 }

@@ -2,6 +2,7 @@
 import './index.css';
 import App from './App.tsx';
 import ThemeManager from './lib/ThemeManager';
+import { useThemeStore, debugThemeStore, applyRandomTheme, addThemeToStore } from './stores/useThemeStore';
 
 (async () => {
   await ThemeManager.discoverThemes();
@@ -56,6 +57,18 @@ import ThemeManager from './lib/ThemeManager';
 
     ThemeManager.applyTheme(theme);
     window.theme = theme;
+    
+    // Initialize theme store with the default theme
+    useThemeStore.getState().addTheme({
+      name: 'Default Theme',
+      description: 'Default application theme',
+      themeJson: theme
+    });
+    
+    // Explicitly assign window functions
+    window.debugThemeStore = debugThemeStore;
+    window.applyRandomTheme = applyRandomTheme;
+    window.addThemeToStore = addThemeToStore;
 
   createRoot(document.getElementById('root')!).render(<App />);
 })();
