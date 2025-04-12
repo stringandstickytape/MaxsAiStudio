@@ -19,23 +19,3 @@ export interface ThemeCategory {
 export interface ThemeColors {
   [category: string]: Record<string, string>;
 }
-
-export interface ThemeCreateRequest {
-  name: string;
-  description: string;
-  author?: string;
-  themeJson: ThemeColors;
-}
-
-export interface ThemeUpdateRequest {
-  guid: string;
-  name?: string;
-  description?: string;
-  author?: string;
-  themeJson?: ThemeColors;
-}
-
-export interface ThemeListResponse {
-  themes: Theme[];
-  totalCount: number;
-}

@@ -6,7 +6,6 @@ import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
 import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
 import { ToolDialog } from './components/tools/ToolDialog';
-import { ThemeDialog } from './components/themes/ThemeDialog';
 import SettingsDialog from './components/modals/SettingsDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -169,10 +168,10 @@ function App() {
       </NavigationContainer>
 
       
+      {/* Modals */}
       <SystemPromptDialog />
       <UserPromptDialog />
       <ToolDialog />
-      <ThemeDialog />
       <SettingsDialog />
     </FontSizeProvider>
   );

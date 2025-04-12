@@ -6,20 +6,12 @@ import { useModalStore } from '@/stores/useModalStore';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { initializeThemeCommands } from './commands/themeCommands';
-import { useThemeManagement } from './hooks/useThemeManagement';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
   const { prompts: userPrompts } = useUserPromptStore();
   const { togglePanel } = usePanelStore();
   const { openModal } = useModalStore();
-  const { themes, fetchThemes } = useThemeManagement();
-  
-  // Fetch themes when component mounts
-  useEffect(() => {
-    fetchThemes();
-  }, [fetchThemes]);
   
   useEffect(() => {
     if (systemPrompts.length > 0) {
@@ -57,14 +49,6 @@ export function CommandInitializationPlugin() {
     };
   }, [systemPrompts.length, userPrompts.length]);
   
-  
-  useEffect(() => {
-    // Initialize theme commands
-    initializeThemeCommands({
-      openThemeLibrary: () => openModal('theme'),
-      availableThemes: themes,
-    });
-  }, [openModal, themes]);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
