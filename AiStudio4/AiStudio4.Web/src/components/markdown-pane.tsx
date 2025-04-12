@@ -232,16 +232,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                         };
                                         console.log('[Theme Debug] Created theme object:', theme);
 
-                                        // Add theme to library and set as default
-                                        const themeApi = await import('@/api/themeApi');
-                                        console.log('[Theme Debug] Calling themeApi.addTheme');
-                                        const addedTheme = await themeApi.addTheme(theme);
-                                        console.log('[Theme Debug] Theme added to library:', addedTheme);
-
-                                        // Set as default theme
-                                        console.log('[Theme Debug] Setting theme as default, ID:', addedTheme?.guid || theme.guid);
-                                        await themeApi.setDefaultTheme(addedTheme?.guid || theme.guid);
-                                        console.log('[Theme Debug] Theme set as default successfully');
+                                        // Import the theme store directly
+                                        const { useThemeStore } = await import('@/stores/useThemeStore');
+                                        const themeStore = useThemeStore.getState();
+                                        
+                                        // Use applyTheme which handles both adding the theme and setting it as default
+                                        console.log('[Theme Debug] Applying theme to library');
+                                        await themeStore.applyTheme(theme);
+                                        console.log('[Theme Debug] Theme applied and set as default successfully');
                                     } catch (e) {
                                         console.error('[Theme Debug] Error processing theme:', e);
                                     }
