@@ -62,7 +62,6 @@ namespace AiStudio4
             // Register core services
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();
             services.AddSingleton<IChatService, DefaultChatService>();
-            services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IAudioTranscriptionService, AudioTranscriptionService>();
             services.AddSingleton<IToolService, ToolService>();

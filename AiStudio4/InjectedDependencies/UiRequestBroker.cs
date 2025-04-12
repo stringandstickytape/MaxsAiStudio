@@ -32,7 +32,6 @@ namespace AiStudio4.InjectedDependencies
         private readonly IChatService _chatService;
         private readonly ClientRequestCancellationService _cancellationService;
         private readonly IMcpService _mcpService;
-        private readonly IThemeService _themeService; // Added ThemeService
 
         public UiRequestBroker(
             IConfiguration configuration,
@@ -49,8 +48,7 @@ namespace AiStudio4.InjectedDependencies
             IServiceProvider serviceProvider,
             IChatService chatService,
             ClientRequestCancellationService cancellationService,
-            IMcpService mcpService,
-            IThemeService themeService // Added ThemeService parameter
+            IMcpService mcpService
             )
         {
             _configuration = configuration;
@@ -68,7 +66,6 @@ namespace AiStudio4.InjectedDependencies
             _chatService = chatService;
             _cancellationService = cancellationService;
             _mcpService = mcpService;
-            _themeService = themeService; // Assign ThemeService
         }
 
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
@@ -155,14 +152,6 @@ namespace AiStudio4.InjectedDependencies
                     "mcpServers/update" => await HandleUpdateMcpServerRequest(requestObject),
                     "mcpServers/delete" => await HandleDeleteMcpServerRequest(requestObject),
                     "mcpServers/getTools" => await HandleGetMcpServerToolsRequest(requestObject),
-                    // Theme API Handlers
-                    "themes/getAll" => await HandleGetAllThemesRequest(),
-                    "themes/getById" => await HandleGetThemeByIdRequest(requestObject),
-                    "themes/add" => await HandleAddThemeRequest(requestObject),
-                    "themes/delete" => await HandleDeleteThemeRequest(requestObject),
-                    "themes/import" => await HandleImportThemesRequest(requestObject),
-                    "themes/export" => await HandleExportThemesRequest(requestObject),
-                    "themes/setDefault" => "",
                     _ => throw new NotImplementedException()
                 }; ;
             }
@@ -1012,100 +1001,5 @@ namespace AiStudio4.InjectedDependencies
         }
         #endregion
 
-        #region Theme Request Handlers
-        private async Task<string> HandleGetAllThemesRequest()
-        {
-            try
-            {
-                var themes = await _themeService.GetAllThemesAsync();
-                return JsonConvert.SerializeObject(new { success = true, themes });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error retrieving themes: {ex.Message}");
-            }
-        }
-
-        private async Task<string> HandleGetThemeByIdRequest(JObject requestObject)
-        {
-            try
-            {
-                string themeId = requestObject["themeId"]?.ToString();
-                if (string.IsNullOrEmpty(themeId)) return SerializeError("Theme ID cannot be empty");
-
-                var theme = await _themeService.GetThemeByIdAsync(themeId);
-                if (theme == null) return SerializeError($"Theme with ID {themeId} not found");
-
-                return JsonConvert.SerializeObject(new { success = true, theme });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error retrieving theme: {ex.Message}");
-            }
-        }
-
-        private async Task<string> HandleAddThemeRequest(JObject requestObject)
-        {
-            try
-            {
-                var theme = requestObject.ToObject<Theme>();
-                if (theme == null) return SerializeError("Invalid theme data");
-
-                var addedTheme = await _themeService.AddThemeAsync(theme);
-                return JsonConvert.SerializeObject(new { success = true, theme = addedTheme });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error adding theme: {ex.Message}");
-            }
-        }
-
-        private async Task<string> HandleDeleteThemeRequest(JObject requestObject)
-        {
-            try
-            {
-                string themeId = requestObject["param"]?.ToString(); // Assuming the ID is passed as 'themeId'
-                if (string.IsNullOrEmpty(themeId)) return SerializeError("Theme ID cannot be empty");
-
-                var success = await _themeService.DeleteThemeAsync(themeId);
-                return JsonConvert.SerializeObject(new { result = success });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error deleting theme: {ex.Message}");
-            }
-        }
-
-        private async Task<string> HandleImportThemesRequest(JObject requestObject)
-        {
-            try
-            {
-                string json = requestObject["json"]?.ToString();
-                if (string.IsNullOrWhiteSpace(json)) return SerializeError("JSON data cannot be empty");
-
-                var importedThemes = await _themeService.ImportThemesAsync(json);
-                return JsonConvert.SerializeObject(new { success = true, themes = importedThemes });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error importing themes: {ex.Message}");
-            }
-        }
-
-        private async Task<string> HandleExportThemesRequest(JObject requestObject)
-        {
-            try
-            {
-                var themeIds = requestObject["themeIds"]?.ToObject<List<string>>();
-                // If themeIds is null or empty, ExportThemesAsync should handle exporting all themes.
-                var json = await _themeService.ExportThemesAsync(themeIds);
-                return JsonConvert.SerializeObject(new { success = true, json });
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Error exporting themes: {ex.Message}");
-            }
-        }
-        #endregion
     }
 }

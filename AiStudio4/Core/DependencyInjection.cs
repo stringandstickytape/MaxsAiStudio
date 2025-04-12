@@ -14,7 +14,7 @@ namespace AiStudio4.Core
     public static class DependencyInjection
     {
         /// <summary>
-        /// Registers theme library and tool-related services.
+        /// Registers tool-related services.
         /// </summary>
         public static IServiceCollection AddAiStudio4Services(this IServiceCollection services)
         {
