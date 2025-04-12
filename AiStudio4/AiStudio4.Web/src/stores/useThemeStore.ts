@@ -13,6 +13,7 @@ interface ThemeState {
 
   // Actions
   addTheme: (theme: Partial<Theme>) => string;
+  updateTheme: (themeId: string, updates: Partial<Theme>) => void;
   removeTheme: (themeId: string) => void;
   setActiveTheme: (themeId: string) => void;
   applyTheme: (themeId: string) => void;
@@ -42,6 +43,16 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       themes: [...state.themes, newTheme],
     }));
     return newTheme.guid;
+  },
+
+  updateTheme: (themeId: string, updates: Partial<Theme>) => {
+    set(state => ({
+      themes: state.themes.map(theme => 
+        theme.guid === themeId 
+          ? { ...theme, ...updates, lastModified: new Date().toISOString() }
+          : theme
+      )
+    }));
   },
 
   removeTheme: (themeId: string) => {

@@ -17,6 +17,7 @@ export function useThemeManagement() {
     isLoading, 
     error,
     addTheme,
+    updateTheme,
     removeTheme,
     setActiveTheme,
     applyTheme,
@@ -100,6 +101,20 @@ export function useThemeManagement() {
   }, [applyRandomTheme, setError]);
 
   /**
+   * Updates a theme's name.
+   * @param themeId The ID of the theme to update.
+   * @param name The new name for the theme.
+   */
+  const updateThemeName = useCallback((themeId: string, name: string) => {
+    try {
+      updateTheme(themeId, { name });
+    } catch (err: any) {
+      setError(err?.message || 'Failed to update theme name');
+      throw err;
+    }
+  }, [updateTheme, setError]);
+
+  /**
    * Clears the current error state.
    */
   const clearError = useCallback(() => {
@@ -116,6 +131,7 @@ export function useThemeManagement() {
     activateTheme,
     applyTheme: applyThemeById,
     applyRandomTheme: applyRandom,
+    updateThemeName,
     clearError
   };
 }
