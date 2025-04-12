@@ -218,28 +218,6 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                         const parsedContent = JSON.parse(content);
                                         console.log('[Theme Debug] Parsed content:', parsedContent);
                                         window.applyLLMTheme(parsedContent);
-                                        console.log('[Theme Debug] Theme applied visually');
-
-                                        // Create a theme object from the content
-                                        const themeJson = JSON.parse(content);
-                                        const theme = {
-                                            guid: `theme_${Date.now()}`,
-                                            name: 'Theme from Code Block',
-                                            description: 'Theme created from code block',
-                                            author: 'AiStudio4 User',
-                                            previewColors: ['#3498db', '#2ecc71', '#e74c3c'], // Add default preview colors
-                                            themeJson: themeJson
-                                        };
-                                        console.log('[Theme Debug] Created theme object:', theme);
-
-                                        // Import the theme store directly
-                                        const { useThemeStore } = await import('@/stores/useThemeStore');
-                                        const themeStore = useThemeStore.getState();
-                                        
-                                        // Use applyTheme which handles both adding the theme and setting it as default
-                                        console.log('[Theme Debug] Applying theme to library');
-                                        await themeStore.applyTheme(theme);
-                                        console.log('[Theme Debug] Theme applied and set as default successfully');
                                     } catch (e) {
                                         console.error('[Theme Debug] Error processing theme:', e);
                                     }
