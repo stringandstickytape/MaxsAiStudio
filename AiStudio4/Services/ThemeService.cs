@@ -20,8 +20,8 @@ namespace AiStudio4.Services
     {
         private readonly string _settingsFilePath;
         private readonly object _lock = new object();
-        private Dictionary<string, List<Theme>> _userThemes = new Dictionary<string, List<Theme>>();
-        private Dictionary<string, string> _activeThemeIds = new Dictionary<string, string>();
+        private List<Theme> _userThemes = new List<Theme>();
+        private string _activeThemeId = "";
 
         public ThemeService(IConfiguration configuration)
         {
@@ -39,8 +39,8 @@ namespace AiStudio4.Services
             {
                 if (!File.Exists(_settingsFilePath))
                 {
-                    _userThemes = new Dictionary<string, List<Theme>>();
-                    _activeThemeIds = new Dictionary<string, string>();
+                    _userThemes = new List<Theme>();
+                    _activeThemeId = "";
                     SaveSettings();
                     return;
                 }
@@ -58,22 +58,22 @@ namespace AiStudio4.Services
                         Converters = { new StringEnumConverter() }
                     };
                     
-                    _userThemes = JsonConvert.DeserializeObject<Dictionary<string, List<Theme>>>(themesSection.ToString(), settings) 
-                        ?? new Dictionary<string, List<Theme>>();
+                    _userThemes = JsonConvert.DeserializeObject<List<Theme>>(themesSection.ToString(), settings) 
+                        ?? new List<Theme>();
                 }
                 else
                 {
-                    _userThemes = new Dictionary<string, List<Theme>>();
+                    _userThemes = new List<Theme>();
                 }
 
-                var activeThemesSection = json["activeThemes"];
-                if (activeThemesSection != null)
+                var activeThemeSection = json["activeTheme"];
+                if (activeThemeSection != null)
                 {
-                    _activeThemeIds = activeThemesSection.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+                    _activeThemeId = activeThemeSection.ToString();
                 }
                 else
                 {
-                    _activeThemeIds = new Dictionary<string, string>();
+                    _activeThemeId = "";
                 }
             }
         }
@@ -95,12 +95,12 @@ namespace AiStudio4.Services
                 };
                 
                 var themesJson = JsonConvert.SerializeObject(_userThemes, settings);
-                var activeThemesJson = JsonConvert.SerializeObject(_activeThemeIds, settings);
+                var activeThemeJson = JsonConvert.SerializeObject(_activeThemeId, settings);
                 
                 var json = new JObject
                 {
                     ["themes"] = JToken.Parse(themesJson),
-                    ["activeThemes"] = JToken.Parse(activeThemesJson)
+                    ["activeTheme"] = JToken.Parse(activeThemeJson)
                 };
 
                 File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
@@ -110,51 +110,34 @@ namespace AiStudio4.Services
         /// <summary>
         /// Gets all themes for a client
         /// </summary>
-        public Task<List<Theme>> GetAllThemesAsync(string clientId)
+        public List<Theme> GetAllThemes()
         {
             lock (_lock)
             {
-                if (!_userThemes.TryGetValue(clientId, out var themes))
-                {
-                    themes = new List<Theme>();
-                    _userThemes[clientId] = themes;
-                    SaveSettings();
-                }
 
-                return Task.FromResult(themes);
+                return _userThemes;
             }
         }
 
         /// <summary>
         /// Gets a theme by its ID
         /// </summary>
-        public Task<Theme> GetThemeByIdAsync(string clientId, string themeId)
+        public Theme GetThemeById(string themeId)
         {
             lock (_lock)
             {
-                if (!_userThemes.TryGetValue(clientId, out var themes))
-                {
-                    return Task.FromResult<Theme>(null);
-                }
-
-                var theme = themes.FirstOrDefault(t => t.Guid == themeId);
-                return Task.FromResult(theme);
+                var theme = _userThemes.FirstOrDefault(t => t.Guid == themeId);
+                return theme;
             }
         }
 
         /// <summary>
         /// Adds a new theme
         /// </summary>
-        public Task<Theme> AddThemeAsync(string clientId, Theme theme)
+        public Theme AddTheme(Theme theme)
         {
             lock (_lock)
             {
-                if (!_userThemes.TryGetValue(clientId, out var themes))
-                {
-                    themes = new List<Theme>();
-                    _userThemes[clientId] = themes;
-                }
-
                 // Ensure the theme has a GUID
                 if (string.IsNullOrEmpty(theme.Guid))
                 {
@@ -176,26 +159,21 @@ namespace AiStudio4.Services
                 theme.PreviewColors ??= new List<string>();
                 theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
 
-                themes.Add(theme);
+                _userThemes.Add(theme);
                 SaveSettings();
 
-                return Task.FromResult(theme);
+                return theme;
             }
         }
 
         /// <summary>
         /// Updates an existing theme
         /// </summary>
-        public Task<Theme> UpdateThemeAsync(string clientId, Theme theme)
+        public Theme UpdateTheme(Theme theme)
         {
             lock (_lock)
             {
-                if (!_userThemes.TryGetValue(clientId, out var themes))
-                {
-                    throw new KeyNotFoundException($"No themes found for client {clientId}");
-                }
-
-                var existingThemeIndex = themes.FindIndex(t => t.Guid == theme.Guid);
+                var existingThemeIndex = _userThemes.FindIndex(t => t.Guid == theme.Guid);
                 if (existingThemeIndex == -1)
                 {
                     throw new KeyNotFoundException($"Theme with ID {theme.Guid} not found");
@@ -207,78 +185,57 @@ namespace AiStudio4.Services
                 // Preserve creation timestamp
                 if (string.IsNullOrEmpty(theme.Created))
                 {
-                    theme.Created = themes[existingThemeIndex].Created;
+                    theme.Created = _userThemes[existingThemeIndex].Created;
                 }
 
                 // Initialize collections if null
                 theme.PreviewColors ??= new List<string>();
                 theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
 
-                themes[existingThemeIndex] = theme;
+                _userThemes[existingThemeIndex] = theme;
                 SaveSettings();
 
-                return Task.FromResult(theme);
+                return theme;
             }
         }
 
         /// <summary>
         /// Deletes a theme
         /// </summary>
-        public Task<bool> DeleteThemeAsync(string clientId, string themeId)
+        public bool DeleteTheme(string themeId)
         {
             lock (_lock)
             {
-                if (!_userThemes.TryGetValue(clientId, out var themes))
-                {
-                    return Task.FromResult(false);
-                }
+                var removed = _userThemes.RemoveAll(t => t.Guid == themeId) > 0;
 
-                var removed = themes.RemoveAll(t => t.Guid == themeId) > 0;
-                if (removed)
-                {
-                    // If the active theme was deleted, clear it
-                    if (_activeThemeIds.TryGetValue(clientId, out var activeThemeId) && activeThemeId == themeId)
-                    {
-                        _activeThemeIds.Remove(clientId);
-                    }
+                SaveSettings();
 
-                    SaveSettings();
-                }
-
-                return Task.FromResult(removed);
+                return removed;
             }
         }
 
         /// <summary>
         /// Sets the active theme for a client
         /// </summary>
-        public Task<bool> SetActiveThemeAsync(string clientId, string themeId)
+        public bool SetActiveTheme(string themeId)
         {
             lock (_lock)
             {
-                // Verify the theme exists
-                if (!_userThemes.TryGetValue(clientId, out var themes) || 
-                    !themes.Any(t => t.Guid == themeId))
-                {
-                    return Task.FromResult(false);
-                }
-
-                _activeThemeIds[clientId] = themeId;
+                _activeThemeId = themeId;
                 SaveSettings();
 
-                return Task.FromResult(true);
+                return true;
             }
         }
 
         /// <summary>
         /// Gets the active theme ID for a client
         /// </summary>
-        public Task<string> GetActiveThemeIdAsync(string clientId)
+        public string GetActiveThemeId()
         {
             lock (_lock)
             {
-                _activeThemeIds.TryGetValue(clientId, out var themeId);
-                return Task.FromResult(themeId);
+                return _activeThemeId;
             }
         }
     }

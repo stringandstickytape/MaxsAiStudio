@@ -1025,7 +1025,7 @@ namespace AiStudio4.InjectedDependencies
                     }
                 }
 
-                var themes = await _themeService.GetAllThemesAsync(clientId);
+                var themes = _themeService.GetAllThemes();
                 return JsonConvert.SerializeObject(new { success = true, themes });
             }
             catch (Exception ex)
@@ -1053,7 +1053,7 @@ namespace AiStudio4.InjectedDependencies
                     return SerializeError("Theme ID is required");
                 }
 
-                var theme = await _themeService.GetThemeByIdAsync(clientId, themeId);
+                var theme = _themeService.GetThemeById(themeId);
                 if (theme == null)
                 {
                     return SerializeError($"Theme with ID {themeId} not found");
@@ -1086,7 +1086,7 @@ namespace AiStudio4.InjectedDependencies
                     return SerializeError("Invalid theme data");
                 }
 
-                var result = await _themeService.AddThemeAsync(clientId, theme);
+                var result = _themeService.AddTheme(theme);
                 return JsonConvert.SerializeObject(new { success = true, theme = result });
             }
             catch (Exception ex)
@@ -1114,7 +1114,7 @@ namespace AiStudio4.InjectedDependencies
                     return SerializeError("Invalid theme data or missing theme ID");
                 }
 
-                var result = await _themeService.UpdateThemeAsync(clientId, theme);
+                var result = _themeService.UpdateTheme(theme);
                 return JsonConvert.SerializeObject(new { success = true, theme = result });
             }
             catch (Exception ex)
@@ -1142,7 +1142,7 @@ namespace AiStudio4.InjectedDependencies
                     return SerializeError("Theme ID is required");
                 }
 
-                var success = await _themeService.DeleteThemeAsync(clientId, themeId);
+                var success = _themeService.DeleteTheme(themeId);
                 return JsonConvert.SerializeObject(new { success });
             }
             catch (Exception ex)
@@ -1170,7 +1170,7 @@ namespace AiStudio4.InjectedDependencies
                     return SerializeError("Theme ID is required");
                 }
 
-                var success = await _themeService.SetActiveThemeAsync(clientId, themeId);
+                var success = _themeService.SetActiveTheme(themeId);
                 return JsonConvert.SerializeObject(new { success });
             }
             catch (Exception ex)
@@ -1192,7 +1192,7 @@ namespace AiStudio4.InjectedDependencies
                     }
                 }
 
-                var themeId = await _themeService.GetActiveThemeIdAsync(clientId);
+                var themeId = _themeService.GetActiveThemeId();
                 return JsonConvert.SerializeObject(new { success = true, themeId });
             }
             catch (Exception ex)
