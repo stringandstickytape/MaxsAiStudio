@@ -2,6 +2,7 @@
 import './index.css';
 import App from './App.tsx';
 import ThemeManager from './lib/ThemeManager';
+import { useThemeStore } from './stores/useThemeStore';
 
 (async () => {
   await ThemeManager.discoverThemes();
@@ -56,6 +57,14 @@ import ThemeManager from './lib/ThemeManager';
 
     ThemeManager.applyTheme(theme);
     window.theme = theme;
+    
+    // Initialize the theme store with the default theme
+    useThemeStore.getState().addTheme({
+      name: 'Default Theme',
+      description: 'The default application theme',
+      themeJson: theme,
+      previewColors: ['#1a1a1a', '#f9e1e9', '#ff8fb1']
+    });
 
   createRoot(document.getElementById('root')!).render(<App />);
 })();
