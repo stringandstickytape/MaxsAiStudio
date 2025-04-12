@@ -1,8 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { ZoomIn, ZoomOut, RotateCcw, Settings } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Settings, Palette } from 'lucide-react';
 import { useAppearanceStore, fontSizeUtils } from '@/stores/useAppearanceStore';
 import { commandEvents } from '@/commands/settingsCommands';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface AppearanceCommandsConfig {
   openAppearanceSettings: () => void;
@@ -29,6 +30,17 @@ export function initializeAppearanceCommands(config: AppearanceCommandsConfig) {
         () => {
           commandEvents.emit('settings-tab', 'appearance');
           config.openAppearanceSettings();
+        },
+      ],
+      [
+        'open-theme-library',
+        'Theme Library',
+        'Browse and manage application themes',
+        shortcut('T'),
+        ['theme', 'library', 'color', 'palette', 'style', 'appearance', 'customize'],
+        React.createElement(Palette, { size: 16 }),
+        () => {
+          useModalStore.getState().openModal('theme');
         },
       ],
       [
