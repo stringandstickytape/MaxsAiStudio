@@ -110,8 +110,8 @@ const ThemeNameEditDialog: React.FC<ThemeNameEditDialogProps> = ({
 };
 
 export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }) => {
-  const { themes, isLoading, error, applyTheme } = useThemeStore();
-  const { updateThemeName, refreshThemes, deleteTheme } = useThemeManagement();
+  const { themes, isLoading, error } = useThemeStore();
+  const { updateThemeName, refreshThemes, deleteTheme, activateTheme } = useThemeManagement();
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -269,7 +269,7 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
                     variant="outline" 
                     size="sm" 
                     className="w-full mt-2" 
-                    onClick={() => applyTheme(theme.guid)}
+                    onClick={() => activateTheme(theme.guid)}
                   >
                     Apply
                   </Button>

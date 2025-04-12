@@ -159,8 +159,8 @@ namespace AiStudio4.InjectedDependencies
                     "themes/getById" => await HandleGetThemeByIdRequest(clientId, requestObject),
                     "themes/add" => await HandleAddThemeRequest(clientId, requestObject),
                     "themes/update" => await HandleUpdateThemeRequest(clientId, requestObject),
-                    "themes/delete" => await HandleDeleteThemeRequest(clientId, requestObject),
-                    "themes/setActive" => await HandleSetActiveThemeRequest(clientId, requestObject),
+                    "themes/delete" => await HandleDeleteThemeRequest(requestObject),
+                    "themes/setActive" => await HandleSetActiveThemeRequest(requestObject),
                     "themes/getActive" => await HandleGetActiveThemeRequest(clientId, requestObject),
                     _ => throw new NotImplementedException()
                 }; ;
@@ -1123,19 +1123,10 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        private async Task<string> HandleDeleteThemeRequest(string clientId, JObject requestObject)
+        private async Task<string> HandleDeleteThemeRequest(JObject requestObject)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    clientId = requestObject["clientId"]?.ToString();
-                    if (string.IsNullOrEmpty(clientId))
-                    {
-                        return SerializeError("Client ID is required");
-                    }
-                }
-
                 string themeId = requestObject["themeId"]?.ToString();
                 if (string.IsNullOrEmpty(themeId))
                 {
@@ -1151,19 +1142,10 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        private async Task<string> HandleSetActiveThemeRequest(string clientId, JObject requestObject)
+        private async Task<string> HandleSetActiveThemeRequest(JObject requestObject)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    clientId = requestObject["clientId"]?.ToString();
-                    if (string.IsNullOrEmpty(clientId))
-                    {
-                        return SerializeError("Client ID is required");
-                    }
-                }
-
                 string themeId = requestObject["themeId"]?.ToString();
                 if (string.IsNullOrEmpty(themeId))
                 {
