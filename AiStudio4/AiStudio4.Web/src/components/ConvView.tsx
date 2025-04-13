@@ -39,15 +39,14 @@ export const themeableProps = {
     description: 'Arbitrary CSS style for the root container',
     default: {},
   },
-  // Keeping these additional properties as they're essential for the conversation view
-  userMessageBg: {
-    cssVar: '--convview-user-message-bg',
-    description: 'Background color for user messages',
+  userMessageBackground: {
+    cssVar: '--user-message-background',
+    description: 'Background for user messages (supports gradients, images, etc.)',
     default: '#1e40af', // blue-800
   },
-  aiMessageBg: {
-    cssVar: '--convview-ai-message-bg',
-    description: 'Background color for AI messages',
+  aiMessageBackground: {
+    cssVar: '--ai-message-background',
+    description: 'Background for assistant messages (supports gradients, images, etc.)',
     default: '#1f2937', // gray-800
   }
 };
@@ -302,9 +301,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                         <div 
                             className={`ConvView message-container px-4 py-3 shadow-md w-full`}
                             style={{
-                                backgroundColor: message.source === 'user' 
-                                    ? 'var(--convview-user-message-bg, #1e40af)' 
-                                    : 'var(--convview-ai-message-bg, #1f2937)',
+                                background: message.source === 'user' 
+                                    ? 'var(--user-message-background, #1e40af)' 
+                                    : 'var(--ai-message-background, #1f2937)',
                                 color: 'var(--convview-text-color, #ffffff)',
                                 borderRadius: 'var(--convview-border-radius, 0.5rem)',
                                 ...(window?.theme?.ConvView?.style || {})
@@ -476,7 +475,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                         className="ConvView w-full group flex flex-col relative mb-4">
                         
                     <div className="ConvView message-container px-4 py-3 shadow-md w-full break-words" style={{
-                        backgroundColor: 'var(--convview-ai-message-bg, #1f2937)',
+                        background: 'var(--ai-message-background, #1f2937)',
                         color: 'var(--convview-text-color, #ffffff)',
                         borderRadius: '0.5rem',
                         ...(window?.theme?.ConvView?.style || {})
