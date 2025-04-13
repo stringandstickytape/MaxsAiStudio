@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web\src\components\ConvView.tsx
-import { MarkdownPane } from '@/components/markdown-pane';
+import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
