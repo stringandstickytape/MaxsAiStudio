@@ -176,7 +176,7 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
         onConfirm={handleConfirmDelete}
       />
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl bg-gray-800 border-gray-700 text-gray-100">
+        <DialogContent className="max-w-4xl bg-gray-800 border-gray-700 text-gray-100 flex flex-col max-h-[90vh] overflow-hidden">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-gray-100">Theme Library</DialogTitle>
             <Button 
@@ -211,7 +211,7 @@ export const ThemeLibrary: React.FC<ThemeLibraryProps> = ({ open, onOpenChange }
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto p-1">
+            <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
               {themes.map((theme: Theme) => (
                 <Card
                   key={theme.guid}
