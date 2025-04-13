@@ -1,5 +1,4 @@
-
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
 import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
@@ -11,8 +10,10 @@ import {
   registerProviderCommands,
 } from '@/commands/settingsCommands';
 import { initializeAppearanceCommands } from '@/commands/appearanceCommands';
+import { registerThemeCommands } from '@/commands/themeCommands';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useModelStore } from '@/stores/useModelStore';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useToolCommands } from '@/hooks/useToolCommands';
@@ -118,7 +119,21 @@ export function CommandInitializer() {
       selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName),
     });
 
-      initializeVoiceInputCommand();
+    // Register theme commands initially and subscribe to theme changes
+    const selectTheme = (themeGuid: string) => {
+      useThemeStore.getState().setActiveThemeId(themeGuid);
+    };
+    console.log('[CommandInitializer] Registering theme commands (initial)');
+    registerThemeCommands(selectTheme);
+    const unsubscribeThemes = useThemeStore.subscribe(
+      (state) => [state.themes, state.activeThemeId],
+      () => {
+        console.log('[CommandInitializer] Theme store changed, re-registering theme commands');
+        registerThemeCommands(selectTheme);
+      }
+    );
+
+    initializeVoiceInputCommand();
 
 
     const systemPromptsUpdated = () => {
@@ -170,9 +185,9 @@ export function CommandInitializer() {
       unsubscribeUserPrompts();
       unsubscribeModels();
       unsubscribeProviders();
+      unsubscribeThemes();
     };
   }, [models, togglePanel, handleModelSelect]);
 
   return null;
 }
-

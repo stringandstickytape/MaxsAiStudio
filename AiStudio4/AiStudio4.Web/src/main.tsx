@@ -48,6 +48,8 @@ window.createTheme = createTheme;
       // Fetch all themes to populate the store (if not already done elsewhere)
       const allThemesResp = await createApiRequest('/api/themes/getAll', 'POST')({});
       if (allThemesResp.success && Array.isArray(allThemesResp.themes)) {
+        // Populate the theme store so theme commands can be registered
+        useThemeStore.getState().setThemes(allThemesResp.themes);
         // Find the active theme
         const activeTheme = allThemesResp.themes.find(t => t.guid === response.themeId);
         if (activeTheme) {

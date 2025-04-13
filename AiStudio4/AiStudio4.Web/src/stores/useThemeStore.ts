@@ -17,7 +17,7 @@ interface ThemeState {
   setError: (error: string | null) => void;
 }
 
-export const useThemeStore = create<ThemeState>((set) => ({
+export const useThemeStore = create<ThemeState>((set, get) => ({
   // Initial state
   themes: [],
   activeThemeId: null,
@@ -26,7 +26,10 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
   // Actions
   setThemes: (themes) => set({ themes }),
-  setActiveThemeId: (themeId) => set({ activeThemeId: themeId }),
+  setActiveThemeId: (themeId) => {
+    set({ activeThemeId: themeId });
+    // Optionally: persist, apply, or broadcast theme change here
+  },
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 }));
