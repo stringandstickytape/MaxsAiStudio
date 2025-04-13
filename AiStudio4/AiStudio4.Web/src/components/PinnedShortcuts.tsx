@@ -24,7 +24,7 @@ interface PinnedShortcutsProps {
 
 const getIconForCommand = (commandId: string, iconName?: string) => {
     const iconProps = { className: "h-3.5 w-3.5" };
-    
+
     if (iconName) {
         const iconMap: Record<string, JSX.Element> = {
             'Plus': <Plus {...iconProps} />,
@@ -55,7 +55,7 @@ const getCategoryBorderColor = (section?: string) => {
             default: return 'border-gray-700/40';
         }
     };
-    
+
     const getCategoryBackgroundColor = (section?: string) => {
         switch(section) {
             case 'conv': return 'bg-blue-900/20';
@@ -139,7 +139,7 @@ export function PinnedShortcuts({
     const [userModified, setUserModified] = useState(false);
 
     const isModified = usePinnedCommandsStore(state => state.isModified);
-    
+
     useEffect(() => {
         if (loading || !initialLoadComplete || !isModified) {
             return;
@@ -165,8 +165,8 @@ export function PinnedShortcuts({
 
             const availableWidth = containerWidth;
             const maxButtonsPerRow = Math.floor(availableWidth / buttonWidth);
-            
-            
+
+
             const effectiveRows = Math.min(maxRows, Math.ceil(pinnedCommands.length / maxButtonsPerRow));
             const newItemsPerRow = maxButtonsPerRow;
             const newRowCount = Math.min(effectiveRows, Math.ceil(pinnedCommands.length / newItemsPerRow));
@@ -175,11 +175,11 @@ export function PinnedShortcuts({
             if (newItemsPerRow !== itemsPerRow) {
                 setItemsPerRow(newItemsPerRow);
             }
-            
+
             if (newRowCount !== rowCount) {
                 setRowCount(newRowCount);
             }
-            
+
             if (newVisibleCount !== visibleCount) {
                 setVisibleCount(newVisibleCount);
             }
@@ -212,7 +212,7 @@ export function PinnedShortcuts({
 
         setUserModified(true);
 
-        
+
     };
 
     const handleCommandClick = (commandId: string) => {
@@ -224,7 +224,7 @@ export function PinnedShortcuts({
 
         if (isCurrentlyPinned) {
             removePinnedCommand(commandId);
-            
+
             savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
         } else {
             const command = useCommandStore.getState().getCommandById(commandId);
@@ -252,8 +252,8 @@ export function PinnedShortcuts({
     const visibleCommands = pinnedCommands.slice(0, effectiveVisibleCount);
     const hiddenCommands = pinnedCommands.slice(effectiveVisibleCount);
     const hasMoreCommands = pinnedCommands.length > effectiveVisibleCount;
-    
-    
+
+
     const commandRows: typeof pinnedCommands[] = [];
     if (orientation === 'horizontal' && autoFit && rowCount > 1) {
         for (let i = 0; i < rowCount; i++) {
@@ -292,13 +292,14 @@ export function PinnedShortcuts({
                 <div
                     ref={containerRef}
                     className={cn(
-                        'flex justify-center gap-1 overflow-x-auto',
+                        'PinnedShortcuts flex justify-center gap-1 overflow-x-auto',
                         orientation === 'vertical' ? 'flex-col items-center' : 'flex-col w-full',
                         className,
                     )}
+                    style={window?.theme?.PinnedShortcuts?.style || {}}
                 >
                     {orientation === 'horizontal' && autoFit && rowCount > 1 ? (
-                        
+
                         commandRows.map((rowCommands, rowIndex) => (
                             <div key={`row-${rowIndex}`} className="flex flex-row items-center justify-center gap-1 w-full">
                                 <Droppable
@@ -315,7 +316,7 @@ export function PinnedShortcuts({
                                             className="flex items-center gap-2 flex-row"
                                         >
                                             {rowCommands.map((command, index) => {
-                                                
+
                                                 const globalIndex = rowIndex * itemsPerRow + index;
                                                 return (
                                                     <Draggable key={command.id} draggableId={command.id} index={globalIndex}>
@@ -343,9 +344,20 @@ export function PinnedShortcuts({
                                                                                 e.preventDefault();
                                                                                 handlePinCommand(command.id, true);
                                                                             }}
-                                                                            className={`h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 border ${getCategoryBorderColor(command.section)} text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative`}
+                                                                            className={`PinnedShortcuts h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
+                                                                            style={{
+                                                                                '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
+                                                                                border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
+                                                                                color: 'var(--pinnedshortcuts-text-color, #e5e7eb)',
+                                                                                fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
+                                                                                fontFamily: 'var(--pinnedshortcuts-font-family, inherit)',
+                                                                                ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
+                                                                            }}
                                                                         >
-                                                                            <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
+                                                                            <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
+                                                                                  style={{
+                                                                                      fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
+                                                                                  }}>
                                                                                 {command.name}
                                                                             </span>
                                                                         </Button>
@@ -372,7 +384,7 @@ export function PinnedShortcuts({
                             </div>
                         ))
                     ) : (
-                        
+
                         <Droppable
                             droppableId="pinned-commands"
                             direction={orientation === 'vertical' ? 'vertical' : 'horizontal'}
@@ -412,9 +424,20 @@ export function PinnedShortcuts({
                                                                     e.preventDefault();
                                                                     handlePinCommand(command.id, true);
                                                                 }}
-                                                                className={`h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 border ${getCategoryBorderColor(command.section)} text-gray-300 hover:text-gray-100 flex flex-row items-center justify-center relative`}
+                                                                className={`PinnedShortcuts h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
+                                                                style={{
+                                                                    '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
+                                                                    border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
+                                                                    color: 'var(--pinnedshortcuts-text-color, #e5e7eb)',
+                                                                    fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
+                                                                    fontFamily: 'var(--pinnedshortcuts-font-family, inherit)',
+                                                                    ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
+                                                                }}
                                                             >
-                                                                <span className="text-xs font-medium flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden">
+                                                                <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
+                                                                      style={{
+                                                                          fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
+                                                                      }}>
                                                                     {command.name}
                                                                 </span>
                                                             </Button>
@@ -481,3 +504,50 @@ export function PinnedShortcuts({
         </TooltipProvider>
     );
 }
+
+// Expose themeable properties for ThemeManager
+export const themeableProps = {
+  borderColor: {
+    cssVar: '--pinnedshortcuts-border-color',
+    description: 'Border color for pinned shortcut buttons',
+    default: '', // Default will use category-based colors
+  },
+  borderStyle: {
+    cssVar: '--pinnedshortcuts-border-style',
+    description: 'Border style for pinned shortcut buttons',
+    default: 'solid',
+  },
+  borderWidth: {
+    cssVar: '--pinnedshortcuts-border-width',
+    description: 'Border width for pinned shortcut buttons',
+    default: '1px',
+  },
+  textColor: {
+    cssVar: '--pinnedshortcuts-text-color',
+    description: 'Text color for pinned shortcut buttons',
+    default: '#e5e7eb', // Equivalent to text-gray-300
+  },
+  textColorHover: {
+    cssVar: '--pinnedshortcuts-text-color-hover',
+    description: 'Text color for pinned shortcut buttons on hover',
+    default: '#f9fafb', // Equivalent to text-gray-100
+  },
+  fontWeight: {
+    cssVar: '--pinnedshortcuts-font-weight',
+    description: 'Font weight for pinned shortcut buttons',
+    default: '500', // Equivalent to font-medium
+  },
+  fontFamily: {
+    cssVar: '--pinnedshortcuts-font-family',
+    description: 'Font family for pinned shortcut buttons',
+    default: 'inherit',
+  },
+  style: {
+    description: 'Arbitrary CSS style for the root PinnedShortcuts container',
+    default: {},
+  },
+  buttonStyle: {
+    description: 'Arbitrary CSS style for individual shortcut buttons',
+    default: {},
+  },
+};
