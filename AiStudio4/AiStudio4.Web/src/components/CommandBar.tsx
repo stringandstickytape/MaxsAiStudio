@@ -36,6 +36,11 @@
   }
 };
 
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Command, Pin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { Command as CommandType } from '@/commands/types';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

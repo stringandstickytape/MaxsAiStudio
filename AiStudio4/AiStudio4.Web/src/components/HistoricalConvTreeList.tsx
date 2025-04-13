@@ -209,6 +209,7 @@ export const HistoricalConvTreeList = () => {
             style={{
                 backgroundColor: 'var(--historylist-bg, transparent)',
                 color: 'var(--historylist-text-color, #e5e7eb)',
+                borderColor: 'var(--historylist-border-color, #374151)',
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
         >
@@ -216,16 +217,17 @@ export const HistoricalConvTreeList = () => {
             <div className="HistoricalConvTreeList px-3 pt-2 pb-1 backdrop-blur-sm"
                 style={{
                     backgroundColor: 'var(--historylist-search-bg, rgba(17, 24, 39, 0.9))',
-                    backdropFilter: 'var(--historylist-search-blur, blur(4px))',
-                    ...(window?.theme?.HistoricalConvTreeList?.searchContainerStyle || {})
+                    backdropFilter: 'blur(4px)',
+                    borderColor: 'var(--historylist-border-color, #374151)',
+                    ...(window?.theme?.HistoricalConvTreeList?.style || {})
                 }}
             >
                 <div className="relative">
                     <div className="flex items-center">
                         <Search size={16} className="HistoricalConvTreeList absolute left-3" 
                             style={{
-                                color: 'var(--historylist-search-icon-color, #9ca3af)',
-                                ...(window?.theme?.HistoricalConvTreeList?.searchIconStyle || {})
+                                color: 'var(--historylist-text-color, #9ca3af)',
+                                ...(window?.theme?.HistoricalConvTreeList?.style || {})
                             }}
                         />
                         <input
@@ -235,19 +237,19 @@ export const HistoricalConvTreeList = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="HistoricalConvTreeList w-full py-1.5 pl-10 pr-8 text-sm rounded-md border"
                             style={{
-                                backgroundColor: 'var(--historylist-search-input-bg, rgba(31, 41, 55, 0.8))',
-                                borderColor: 'var(--historylist-search-input-border, #374151)',
-                                color: 'var(--historylist-search-input-text, #e5e7eb)',
-                                caretColor: 'var(--historylist-search-input-caret, #60a5fa)',
+                                backgroundColor: 'var(--historylist-bg, rgba(31, 41, 55, 0.8))',
+                                borderColor: 'var(--historylist-border-color, #374151)',
+                                color: 'var(--historylist-text-color, #e5e7eb)',
+                                caretColor: 'var(--historylist-accent-color, #60a5fa)',
                                 '::placeholder': {
-                                    color: 'var(--historylist-search-input-placeholder, #6b7280)'
+                                    color: 'var(--historylist-text-color, #6b7280)'
                                 },
                                 ':focus': {
                                     outline: 'none',
-                                    borderColor: 'var(--historylist-search-input-focus-border, #3b82f6)',
-                                    boxShadow: 'var(--historylist-search-input-focus-shadow, 0 0 0 1px #3b82f6)'
+                                    borderColor: 'var(--historylist-accent-color, #3b82f6)',
+                                    boxShadow: '0 0 0 1px var(--historylist-accent-color, #3b82f6)'
                                 },
-                                ...(window?.theme?.HistoricalConvTreeList?.searchInputStyle || {})
+                                ...(window?.theme?.HistoricalConvTreeList?.style || {})
                             }}
                         />
                         {searchTerm && (
@@ -255,11 +257,11 @@ export const HistoricalConvTreeList = () => {
                                 onClick={() => setSearchTerm('')}
                                 className="HistoricalConvTreeList absolute right-2 flex items-center"
                                 style={{
-                                    color: 'var(--historylist-search-clear-color, #9ca3af)',
+                                    color: 'var(--historylist-text-color, #9ca3af)',
                                     ':hover': {
-                                        color: 'var(--historylist-search-clear-hover-color, #e5e7eb)'
+                                        color: 'var(--historylist-accent-color, #e5e7eb)'
                                     },
-                                    ...(window?.theme?.HistoricalConvTreeList?.searchClearStyle || {})
+                                    ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                 }}
                             >
                                 <X size={14} />
@@ -272,22 +274,22 @@ export const HistoricalConvTreeList = () => {
             {/* Conversation list with scrolling */}
             <div className="HistoricalConvTreeList flex-1 overflow-y-auto mt-2"
                 style={{
-                    ...(window?.theme?.HistoricalConvTreeList?.listContainerStyle || {})
+                    ...(window?.theme?.HistoricalConvTreeList?.style || {})
                 }}
             >
                 {filteredConvs.length === 0 ? (
                     <div className="HistoricalConvTreeList p-4 text-center flex flex-col items-center"
                         style={{
-                            color: 'var(--historylist-empty-text-color, #9ca3af)',
-                            ...(window?.theme?.HistoricalConvTreeList?.emptyStateStyle || {})
+                            color: 'var(--historylist-text-color, #9ca3af)',
+                            ...(window?.theme?.HistoricalConvTreeList?.style || {})
                         }}
                     >
                         {searchTerm ? (
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--historylist-empty-icon-color, #6b7280)',
-                                        ...(window?.theme?.HistoricalConvTreeList?.emptyIconStyle || {})
+                                        color: 'var(--historylist-text-color, #6b7280)',
+                                        ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
                                 <span>No conversations matching "{searchTerm}"</span>
@@ -296,8 +298,8 @@ export const HistoricalConvTreeList = () => {
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--historylist-empty-icon-color, #6b7280)',
-                                        ...(window?.theme?.HistoricalConvTreeList?.emptyIconStyle || {})
+                                        color: 'var(--historylist-text-color, #6b7280)',
+                                        ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
                                 <span>No conversations found</span>
@@ -314,12 +316,13 @@ export const HistoricalConvTreeList = () => {
                                     style={{ 
                                         display: 'block', 
                                         wordBreak: 'break-word',
-                                        color: 'var(--historylist-item-text-color, #e5e7eb)',
-                                        backgroundColor: 'var(--historylist-item-bg, transparent)',
+                                        color: 'var(--historylist-text-color, #e5e7eb)',
+                                        backgroundColor: 'var(--historylist-bg, transparent)',
                                         ':hover': {
-                                            backgroundColor: 'var(--historylist-item-hover-bg, rgba(31, 41, 55, 0.4))'
+                                            backgroundColor: 'var(--historylist-accent-color, rgba(31, 41, 55, 0.4))',
+                                            opacity: 0.7
                                         },
-                                        ...(window?.theme?.HistoricalConvTreeList?.itemStyle || {})
+                                        ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                     onMouseDown={(e) => handleMiddleClick(e, conv.convGuid)}
                                     onClick={async () => {
@@ -363,127 +366,25 @@ export const themeableProps = {
         description: 'History list text color',
         default: '#e5e7eb',
     },
+    borderColor: {
+        cssVar: '--historylist-border-color',
+        description: 'History list border color',
+        default: '#374151',
+    },
+    accentColor: {
+        cssVar: '--historylist-accent-color',
+        description: 'History list accent color (used for highlights, focus states)',
+        default: '#3b82f6',
+    },
+    // Only keeping one extra property that's essential for this component
     searchBackground: {
         cssVar: '--historylist-search-bg',
         description: 'Search bar background color',
         default: 'rgba(17, 24, 39, 0.9)',
     },
-    searchBlur: {
-        cssVar: '--historylist-search-blur',
-        description: 'Search bar backdrop blur effect',
-        default: 'blur(4px)',
-    },
-    searchIconColor: {
-        cssVar: '--historylist-search-icon-color',
-        description: 'Search icon color',
-        default: '#9ca3af',
-    },
-    searchInputBackground: {
-        cssVar: '--historylist-search-input-bg',
-        description: 'Search input background color',
-        default: 'rgba(31, 41, 55, 0.8)',
-    },
-    searchInputBorder: {
-        cssVar: '--historylist-search-input-border',
-        description: 'Search input border color',
-        default: '#374151',
-    },
-    searchInputText: {
-        cssVar: '--historylist-search-input-text',
-        description: 'Search input text color',
-        default: '#e5e7eb',
-    },
-    searchInputCaret: {
-        cssVar: '--historylist-search-input-caret',
-        description: 'Search input caret color',
-        default: '#60a5fa',
-    },
-    searchInputPlaceholder: {
-        cssVar: '--historylist-search-input-placeholder',
-        description: 'Search input placeholder color',
-        default: '#6b7280',
-    },
-    searchInputFocusBorder: {
-        cssVar: '--historylist-search-input-focus-border',
-        description: 'Search input focus border color',
-        default: '#3b82f6',
-    },
-    searchInputFocusShadow: {
-        cssVar: '--historylist-search-input-focus-shadow',
-        description: 'Search input focus shadow',
-        default: '0 0 0 1px #3b82f6',
-    },
-    searchClearColor: {
-        cssVar: '--historylist-search-clear-color',
-        description: 'Search clear button color',
-        default: '#9ca3af',
-    },
-    searchClearHoverColor: {
-        cssVar: '--historylist-search-clear-hover-color',
-        description: 'Search clear button hover color',
-        default: '#e5e7eb',
-    },
-    emptyTextColor: {
-        cssVar: '--historylist-empty-text-color',
-        description: 'Empty state text color',
-        default: '#9ca3af',
-    },
-    emptyIconColor: {
-        cssVar: '--historylist-empty-icon-color',
-        description: 'Empty state icon color',
-        default: '#6b7280',
-    },
-    itemTextColor: {
-        cssVar: '--historylist-item-text-color',
-        description: 'Conversation item text color',
-        default: '#e5e7eb',
-    },
-    itemBackground: {
-        cssVar: '--historylist-item-bg',
-        description: 'Conversation item background color',
-        default: 'transparent',
-    },
-    itemHoverBackground: {
-        cssVar: '--historylist-item-hover-bg',
-        description: 'Conversation item hover background color',
-        default: 'rgba(31, 41, 55, 0.4)',
-    },
-    
-    // Style overrides
+    // Style override
     style: {
         description: 'Arbitrary CSS style for HistoricalConvTreeList root',
         default: {},
-    },
-    searchContainerStyle: {
-        description: 'Arbitrary CSS style for search container',
-        default: {},
-    },
-    searchIconStyle: {
-        description: 'Arbitrary CSS style for search icon',
-        default: {},
-    },
-    searchInputStyle: {
-        description: 'Arbitrary CSS style for search input',
-        default: {},
-    },
-    searchClearStyle: {
-        description: 'Arbitrary CSS style for search clear button',
-        default: {},
-    },
-    listContainerStyle: {
-        description: 'Arbitrary CSS style for conversation list container',
-        default: {},
-    },
-    emptyStateStyle: {
-        description: 'Arbitrary CSS style for empty state',
-        default: {},
-    },
-    emptyIconStyle: {
-        description: 'Arbitrary CSS style for empty state icon',
-        default: {},
-    },
-    itemStyle: {
-        description: 'Arbitrary CSS style for conversation items',
-        default: {},
-    },
+    }
 }

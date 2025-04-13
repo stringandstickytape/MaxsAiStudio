@@ -41,12 +41,12 @@ The goal is to **simplify** each component’s theming surface by reducing the num
 
 | Component                                                                 | Completed? |
 |---------------------------------------------------------------------------|------------|
-| AiStudio4.Web/src/components/Sidebar.tsx                                  |            |
-| AiStudio4.Web/src/components/AppHeader.tsx                                |            |
-| AiStudio4.Web/src/components/CommandBar.tsx                               |            |
-| AiStudio4.Web/src/components/ConvTreeView.tsx                             |            |
-| AiStudio4.Web/src/components/ConvView.tsx                                 |            |
-| AiStudio4.Web/src/components/HistoricalConvTreeList.tsx                   |            |
+| AiStudio4.Web/src/components/Sidebar.tsx                                  |     Y      |
+| AiStudio4.Web/src/components/AppHeader.tsx                                |     Y      |
+| AiStudio4.Web/src/components/CommandBar.tsx                               |     Y      |
+| AiStudio4.Web/src/components/ConvTreeView.tsx                             |     Y      |
+| AiStudio4.Web/src/components/ConvView.tsx                                 |     Y      |
+| AiStudio4.Web/src/components/HistoricalConvTreeList.tsx                   |     Y      |
 | AiStudio4.Web/src/components/InputBar.tsx                                 |            |
 | AiStudio4.Web/src/components/navigation/NavigationContainer.tsx            |            |
 | AiStudio4.Web/src/components/SystemPrompt/SystemPromptComponent.tsx        |            |
