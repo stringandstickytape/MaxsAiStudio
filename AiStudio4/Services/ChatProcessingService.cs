@@ -195,7 +195,7 @@ namespace AiStudio4.Services
 
                                 try
                                 {
-                                    var secondaryModelName = scopedSettingsService.CurrentSettings.DefaultSystemPromptId;
+                                    var secondaryModelName = scopedSettingsService.CurrentSettings.SecondaryModel;
                                     if (!string.IsNullOrEmpty(secondaryModelName))
                                     {
                                         var model = scopedSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);

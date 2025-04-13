@@ -50,7 +50,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Processing simple chat request");
                 
                 // Get the secondary model
-                var secondaryModelName = _generalSettingsService.CurrentSettings.DefaultSystemPromptId;
+                var secondaryModelName = _generalSettingsService.CurrentSettings.SecondaryModel;
                 if (string.IsNullOrEmpty(secondaryModelName))
                 {
                     return new SimpleChatResponse

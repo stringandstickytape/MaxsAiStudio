@@ -74,14 +74,14 @@ namespace AiStudio4.InjectedDependencies
 
         public void UpdateDefaultModel(string modelName)
         {
-            CurrentSettings.DefaultSystemPromptId = modelName;
+            CurrentSettings.DefaultModel = modelName;
             SaveSettings();
         }
 
         public void UpdateSecondaryModel(string modelName)
         {
             // For now, treat same as default prompt id
-            CurrentSettings.DefaultSystemPromptId = modelName;
+            CurrentSettings.SecondaryModel = modelName;
             SaveSettings();
         }
 

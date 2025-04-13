@@ -125,8 +125,8 @@ namespace AiStudio4.InjectedDependencies
                     {
                         success = true,
                         models = _generalSettingsService.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
-                        defaultModel = _generalSettingsService.CurrentSettings.DefaultSystemPromptId ?? "",
-                        secondaryModel = _generalSettingsService.CurrentSettings.DefaultSystemPromptId ?? ""
+                        defaultModel = _generalSettingsService.CurrentSettings.DefaultModel ?? "",
+                        secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? ""
                       }),
                     "setDefaultModel" => await SetModel(_generalSettingsService.UpdateDefaultModel, requestObject),
                     "setSecondaryModel" => await SetModel(_generalSettingsService.UpdateSecondaryModel, requestObject),

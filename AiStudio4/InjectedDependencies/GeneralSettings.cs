@@ -20,6 +20,9 @@ namespace AiStudio4.InjectedDependencies
         public string YouTubeApiKey { get; set; }
         public string CondaPath { get; set; }
 
+        public string DefaultModel { get; set; } = string.Empty;
+        public string SecondaryModel { get; set; } = string.Empty;
+
         public ApiSettings ToApiSettings() => new()
         {
             Temperature = this.Temperature,
