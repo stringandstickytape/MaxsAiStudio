@@ -298,7 +298,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                             const themeName = `Theme from code block ${new Date().toLocaleTimeString()}`;
                                             
                                             // Install the theme to the library
-                                            if (window.createTheme) {
+                                            if (typeof window.createTheme === 'function') {
                                                 await window.createTheme({
                                                     name: themeName,
                                                     description: 'Theme installed from markdown code block',
@@ -308,8 +308,32 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                                         .slice(0, 5)
                                                 });
                                                 console.log('[Theme Debug] Theme installed successfully');
+                                                alert('Theme installed successfully!');
                                             } else {
                                                 console.error('[Theme Debug] createTheme function not available on window');
+                                                // Try to import the function directly as a fallback
+                                                try {
+                                                    const { useThemeManagement } = await import('@/hooks/useThemeManagement');
+                                                    const { createTheme } = useThemeManagement();
+                                                    
+                                                    if (typeof createTheme === 'function') {
+                                                        await createTheme({
+                                                            name: themeName,
+                                                            description: 'Theme installed from markdown code block',
+                                                            themeJson: parsedContent,
+                                                            previewColors: Object.values(parsedContent)
+                                                                .filter(value => typeof value === 'string' && value.startsWith('#'))
+                                                                .slice(0, 5)
+                                                        });
+                                                        console.log('[Theme Debug] Theme installed successfully via fallback');
+                                                        alert('Theme installed successfully!');
+                                                    } else {
+                                                        throw new Error('createTheme function not available');
+                                                    }
+                                                } catch (importError) {
+                                                    console.error('[Theme Debug] Failed to import useThemeManagement:', importError);
+                                                    alert('Failed to install theme. Please try again later.');
+                                                }
                                             }
                                         } catch (e) {
                                             console.error('[Theme Debug] Error installing theme:', e);
