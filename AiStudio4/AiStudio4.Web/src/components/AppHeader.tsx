@@ -51,10 +51,9 @@ export function AppHeader({
                 backgroundColor: 'var(--appheader-bg, #1a1f2c)', // Default dark blue-gray
                 color: 'var(--appheader-text-color, #e0e0e0)',
                 borderColor: 'var(--appheader-border-color, #3a3f4c)',
-                borderRadius: 'var(--appheader-border-radius, 0px)', // Default no radius for header
                 fontFamily: 'var(--appheader-font-family, inherit)',
                 fontSize: 'var(--appheader-font-size, 0.875rem)',
-                boxShadow: 'var(--appheader-box-shadow, 0 2px 4px rgba(0,0,0,0.2))',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                 ...(window?.theme?.AppHeader?.style || {})
             }}
             >
@@ -66,8 +65,7 @@ export function AppHeader({
                         sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
                     )} 
                     style={{
-                        margin: '0 auto',
-                        ...(window?.theme?.AppHeader?.commandBarStyle || {})
+                        margin: '0 auto'
                     }}
                 >
                         
@@ -100,7 +98,6 @@ export function AppHeader({
                 <div className="mt-1 border-t border-gray-700/30 pt-1 flex flex-col gap-0.5">
                     <div 
                         className="w-full pb-1"
-                        style={{ ...(window?.theme?.AppHeader?.pinnedShortcutsStyle || {}) }}
                     >
                         <PinnedShortcuts orientation="horizontal" maxShown={15} className="overflow-x-auto" maxRows={3} />
                     </div>
@@ -127,11 +124,16 @@ export const themeableProps = {
     description: 'App header border color (used for bottom border)',
     default: '#3a3f4c',
   },
-  borderRadius: {
-    cssVar: '--appheader-border-radius',
-    description: 'App header border radius',
-    default: '0px',
+  accentColor: {
+    cssVar: '--appheader-accent-color',
+    description: 'App header accent color for highlights and active elements',
+    default: '#3b82f6',
   },
+  style: {
+    description: 'Arbitrary CSS style for the root AppHeader container',
+    default: {},
+  },
+  // Keeping font properties as they're essential for readability
   fontFamily: {
     cssVar: '--appheader-font-family',
     description: 'App header font family',
@@ -141,23 +143,5 @@ export const themeableProps = {
     cssVar: '--appheader-font-size',
     description: 'App header base font size',
     default: '0.875rem',
-  },
-  boxShadow: {
-    cssVar: '--appheader-box-shadow',
-    description: 'App header box shadow',
-    default: '0 2px 4px rgba(0,0,0,0.2)',
-  },
-  // Arbitrary style overrides
-  style: {
-    description: 'Arbitrary CSS style for the root AppHeader container',
-    default: {},
-  },
-  commandBarStyle: {
-    description: 'Arbitrary CSS style for the inner container holding the command bar/input',
-    default: {},
-  },
-  pinnedShortcutsStyle: {
-    description: 'Arbitrary CSS style for the container holding the pinned shortcuts bar',
-    default: {},
-  },
+  }
 };

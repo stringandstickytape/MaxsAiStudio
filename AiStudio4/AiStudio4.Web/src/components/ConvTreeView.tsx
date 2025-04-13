@@ -471,18 +471,16 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         return (
             <div className="ConvTreeView text-center p-4 rounded-md shadow-inner mx-auto my-8 max-w-md border"
                 style={{
-                    backgroundColor: 'var(--convtree-empty-bg, #111827)',
-                    color: 'var(--convtree-empty-text-color, #9ca3af)',
-                    borderColor: 'var(--convtree-empty-border-color, #1f2937)',
-                    boxShadow: 'var(--convtree-empty-shadow, inset 0 2px 4px 0 rgba(0, 0, 0, 0.3))',
-                    ...(window?.theme?.ConvTreeView?.emptyStateStyle || {})
+                    backgroundColor: 'var(--convtree-bg, #111827)',
+                    color: 'var(--convtree-text-color, #9ca3af)',
+                    borderColor: 'var(--convtree-border-color, #1f2937)',
+                    boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.3)'
                 }}
             >
                 <p>No conv history to display</p>
                 <p className="ConvTreeView text-sm mt-2"
                     style={{
-                        color: 'var(--convtree-empty-subtext-color, #6b7280)',
-                        ...(window?.theme?.ConvTreeView?.emptySubtextStyle || {})
+                        color: 'var(--convtree-text-color, #6b7280)'
                     }}
                 >Start a new conv to see the tree view</p>
             </div>
@@ -499,8 +497,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 className={cn('ConvTreeView flex-1 relative', !messages.length && 'flex items-center justify-center')}
                 ref={containerRef}
                 style={{
-                    height: '100%',
-                    ...(window?.theme?.ConvTreeView?.containerStyle || {})
+                    height: '100%'
                 }}
             >
                 <svg
@@ -508,18 +505,16 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                     className="ConvTreeView w-full h-full"
                     key={`tree-${convId}-${updateKey}`}
                     style={{
-                        backgroundColor: 'var(--convtree-bg, #111827)',
-                        ...(window?.theme?.ConvTreeView?.svgStyle || {})
+                        backgroundColor: 'var(--convtree-bg, #111827)'
                     }}
                 />
 
                 {/* Info tooltip about middle-click functionality */}
                 <div className="ConvTreeView absolute top-2 left-2 text-xs px-2 py-1 rounded-md backdrop-blur-sm"
                     style={{
-                        backgroundColor: 'var(--convtree-tooltip-bg, rgba(31, 41, 55, 0.7))',
-                        color: 'var(--convtree-tooltip-text-color, #9ca3af)',
-                        backdropFilter: 'var(--convtree-tooltip-blur, blur(4px))',
-                        ...(window?.theme?.ConvTreeView?.tooltipStyle || {})
+                        backgroundColor: 'var(--convtree-bg, rgba(31, 41, 55, 0.7))',
+                        color: 'var(--convtree-text-color, #9ca3af)',
+                        backdropFilter: 'blur(4px)'
                     }}
                 >
                     <span>Middle-click to delete</span>
@@ -531,13 +526,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                         className="ConvTreeView p-2 rounded-full shadow-lg"
                         title="Focus on Latest Message"
                         style={{
-                            backgroundColor: 'var(--convtree-button-bg, #1f2937)',
-                            color: 'var(--convtree-button-text-color, #ffffff)',
-                            boxShadow: 'var(--convtree-button-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))',
+                            backgroundColor: 'var(--convtree-bg, #1f2937)',
+                            color: 'var(--convtree-text-color, #ffffff)',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                             ':hover': {
-                                backgroundColor: 'var(--convtree-button-hover-bg, #374151)'
-                            },
-                            ...(window?.theme?.ConvTreeView?.buttonStyle || {})
+                                backgroundColor: 'var(--convtree-accent-color, #374151)'
+                            }
                         }}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -550,13 +544,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                         className="ConvTreeView p-2 rounded-full shadow-lg"
                         title="Center View"
                         style={{
-                            backgroundColor: 'var(--convtree-button-bg, #1f2937)',
-                            color: 'var(--convtree-button-text-color, #ffffff)',
-                            boxShadow: 'var(--convtree-button-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))',
+                            backgroundColor: 'var(--convtree-bg, #1f2937)',
+                            color: 'var(--convtree-text-color, #ffffff)',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                             ':hover': {
-                                backgroundColor: 'var(--convtree-button-hover-bg, #374151)'
-                            },
-                            ...(window?.theme?.ConvTreeView?.buttonStyle || {})
+                                backgroundColor: 'var(--convtree-accent-color, #374151)'
+                            }
                         }}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -572,13 +565,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                         className="ConvTreeView p-2 rounded-full shadow-lg"
                         title="Zoom In"
                         style={{
-                            backgroundColor: 'var(--convtree-button-bg, #1f2937)',
-                            color: 'var(--convtree-button-text-color, #ffffff)',
-                            boxShadow: 'var(--convtree-button-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))',
+                            backgroundColor: 'var(--convtree-bg, #1f2937)',
+                            color: 'var(--convtree-text-color, #ffffff)',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                             ':hover': {
-                                backgroundColor: 'var(--convtree-button-hover-bg, #374151)'
-                            },
-                            ...(window?.theme?.ConvTreeView?.buttonStyle || {})
+                                backgroundColor: 'var(--convtree-accent-color, #374151)'
+                            }
                         }}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -594,13 +586,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                         className="ConvTreeView p-2 rounded-full shadow-lg"
                         title="Zoom Out"
                         style={{
-                            backgroundColor: 'var(--convtree-button-bg, #1f2937)',
-                            color: 'var(--convtree-button-text-color, #ffffff)',
-                            boxShadow: 'var(--convtree-button-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))',
+                            backgroundColor: 'var(--convtree-bg, #1f2937)',
+                            color: 'var(--convtree-text-color, #ffffff)',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                             ':hover': {
-                                backgroundColor: 'var(--convtree-button-hover-bg, #374151)'
-                            },
-                            ...(window?.theme?.ConvTreeView?.buttonStyle || {})
+                                backgroundColor: 'var(--convtree-accent-color, #374151)'
+                            }
                         }}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -620,11 +611,26 @@ export const themeableProps = {
         description: 'Conversation tree background color',
         default: '#111827',
     },
-    linkColor: {
-        cssVar: '--convtree-link-color',
-        description: 'Tree connection line color',
-        default: '#6b7280',
+    textColor: {
+        cssVar: '--convtree-text-color',
+        description: 'Conversation tree text color',
+        default: '#e5e7eb',
     },
+    borderColor: {
+        cssVar: '--convtree-border-color',
+        description: 'Conversation tree border color',
+        default: '#1f2937',
+    },
+    accentColor: {
+        cssVar: '--convtree-accent-color',
+        description: 'Conversation tree accent color for highlights and active elements',
+        default: '#4f46e5',
+    },
+    style: {
+        description: 'Arbitrary CSS style for ConvTreeView root',
+        default: {},
+    },
+    // Keeping node colors as they're essential for the tree visualization
     userNodeColor: {
         cssVar: '--convtree-user-node-color',
         description: 'User message node background color',
@@ -640,109 +646,9 @@ export const themeableProps = {
         description: 'AI message node background color',
         default: '#4f46e5',
     },
-    userNodeBorder: {
-        cssVar: '--convtree-user-node-border',
-        description: 'User message node border color',
-        default: '#1e3a8a',
-    },
-    systemNodeBorder: {
-        cssVar: '--convtree-system-node-border',
-        description: 'System message node border color',
-        default: '#374151',
-    },
-    aiNodeBorder: {
-        cssVar: '--convtree-ai-node-border',
-        description: 'AI message node border color',
-        default: '#4338ca',
-    },
-    emptyBackground: {
-        cssVar: '--convtree-empty-bg',
-        description: 'Empty state background color',
-        default: '#111827',
-    },
-    emptyTextColor: {
-        cssVar: '--convtree-empty-text-color',
-        description: 'Empty state text color',
-        default: '#9ca3af',
-    },
-    emptySubtextColor: {
-        cssVar: '--convtree-empty-subtext-color',
-        description: 'Empty state subtext color',
+    linkColor: {
+        cssVar: '--convtree-link-color',
+        description: 'Tree connection line color',
         default: '#6b7280',
-    },
-    emptyBorderColor: {
-        cssVar: '--convtree-empty-border-color',
-        description: 'Empty state border color',
-        default: '#1f2937',
-    },
-    emptyShadow: {
-        cssVar: '--convtree-empty-shadow',
-        description: 'Empty state box shadow',
-        default: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.3)',
-    },
-    tooltipBackground: {
-        cssVar: '--convtree-tooltip-bg',
-        description: 'Tooltip background color',
-        default: 'rgba(31, 41, 55, 0.7)',
-    },
-    tooltipTextColor: {
-        cssVar: '--convtree-tooltip-text-color',
-        description: 'Tooltip text color',
-        default: '#9ca3af',
-    },
-    tooltipBlur: {
-        cssVar: '--convtree-tooltip-blur',
-        description: 'Tooltip backdrop blur effect',
-        default: 'blur(4px)',
-    },
-    buttonBackground: {
-        cssVar: '--convtree-button-bg',
-        description: 'Control button background color',
-        default: '#1f2937',
-    },
-    buttonHoverBackground: {
-        cssVar: '--convtree-button-hover-bg',
-        description: 'Control button hover background color',
-        default: '#374151',
-    },
-    buttonTextColor: {
-        cssVar: '--convtree-button-text-color',
-        description: 'Control button text/icon color',
-        default: '#ffffff',
-    },
-    buttonShadow: {
-        cssVar: '--convtree-button-shadow',
-        description: 'Control button shadow',
-        default: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    },
-
-    // Style overrides
-    style: {
-        description: 'Arbitrary CSS style for ConvTreeView root',
-        default: {},
-    },
-    containerStyle: {
-        description: 'Arbitrary CSS style for tree container',
-        default: {},
-    },
-    svgStyle: {
-        description: 'Arbitrary CSS style for SVG element',
-        default: {},
-    },
-    emptyStateStyle: {
-        description: 'Arbitrary CSS style for empty state',
-        default: {},
-    },
-    emptySubtextStyle: {
-        description: 'Arbitrary CSS style for empty state subtext',
-        default: {},
-    },
-    tooltipStyle: {
-        description: 'Arbitrary CSS style for tooltips',
-        default: {},
-    },
-    buttonStyle: {
-        description: 'Arbitrary CSS style for control buttons',
-        default: {},
-    },
+    }
 }

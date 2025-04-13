@@ -44,24 +44,21 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       {/* Split container - top half */}
       <div className="Sidebar h-[calc(50%-24px)] border-b" 
         style={{
-          borderColor: 'var(--sidebar-divider-color, #1f2937)',
-          ...(window?.theme?.Sidebar?.sectionStyle || {})
+          borderColor: 'var(--sidebar-border-color, #1f2937)'
         }}
       >
         <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
           style={{
-            backgroundColor: 'var(--sidebar-header-bg, rgba(31, 41, 55, 0.7))',
-            borderColor: 'var(--sidebar-header-border-color, rgba(75, 85, 99, 0.5))',
-            color: 'var(--sidebar-header-text-color, #d1d5db)',
-            ...(window?.theme?.Sidebar?.headerStyle || {})
+            backgroundColor: 'var(--sidebar-bg, rgba(31, 41, 55, 0.7))',
+            borderColor: 'var(--sidebar-border-color, rgba(75, 85, 99, 0.5))',
+            color: 'var(--sidebar-text-color, #d1d5db)'
           }}
         >
           Conversation History
         </div>
         <div className="Sidebar h-[calc(100%-32px)]" 
           style={{
-            backgroundColor: 'var(--sidebar-content-bg, #111827)',
-            ...(window?.theme?.Sidebar?.contentStyle || {})
+            backgroundColor: 'var(--sidebar-bg, #111827)'
           }}
         >
           <HistoricalConvTreeList />
@@ -72,18 +69,16 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       <div className="Sidebar h-[calc(50%-24px)]">
         <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
           style={{
-            backgroundColor: 'var(--sidebar-header-bg, rgba(31, 41, 55, 0.7))',
-            borderColor: 'var(--sidebar-header-border-color, rgba(75, 85, 99, 0.5))',
-            color: 'var(--sidebar-header-text-color, #d1d5db)',
-            ...(window?.theme?.Sidebar?.headerStyle || {})
+            backgroundColor: 'var(--sidebar-bg, rgba(31, 41, 55, 0.7))',
+            borderColor: 'var(--sidebar-border-color, rgba(75, 85, 99, 0.5))',
+            color: 'var(--sidebar-text-color, #d1d5db)'
           }}
         >
           Message Structure
         </div>
         <div className="Sidebar h-[calc(100%-32px)] overflow-auto" 
           style={{
-            backgroundColor: 'var(--sidebar-content-bg, #111827)',
-            ...(window?.theme?.Sidebar?.contentStyle || {})
+            backgroundColor: 'var(--sidebar-bg, #111827)'
           }}
         >
           {currentConvId && convs[currentConvId] ? (
@@ -95,8 +90,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
           ) : (
             <div className="Sidebar text-center p-4" 
               style={{
-                color: 'var(--sidebar-empty-text-color, #9ca3af)',
-                ...(window?.theme?.Sidebar?.emptyStateStyle || {})
+                color: 'var(--sidebar-text-color, #9ca3af)'
               }}
             >
               <p>Select a conversation to view its structure</p>
@@ -114,12 +108,11 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         onClick={!wsState.isConnected ? onReconnectClick : undefined}
         title={!wsState.isConnected ? 'Click to reconnect' : undefined}
         style={{
-          backgroundColor: 'var(--sidebar-footer-bg, #1f2937)',
+          backgroundColor: 'var(--sidebar-bg, #1f2937)',
           borderColor: 'var(--sidebar-border-color, #1f2937)',
-          ...(window?.theme?.Sidebar?.footerStyle || {}),
           ...((!wsState.isConnected) ? {
             '&:hover': {
-              backgroundColor: 'var(--sidebar-footer-hover-bg, rgba(55, 65, 81, 0.5))'
+              backgroundColor: 'var(--sidebar-bg, rgba(55, 65, 81, 0.5))'
             }
           } : {})
         }}
@@ -129,18 +122,16 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             className="w-2 h-2 rounded-full shadow-glow"
             style={{
               backgroundColor: wsState.isConnected ? 
-                'var(--sidebar-status-connected, #10b981)' : 
-                'var(--sidebar-status-disconnected, #ef4444)',
+                'var(--sidebar-accent-color, #10b981)' : 
+                '#ef4444',
               boxShadow: wsState.isConnected ?
-                'var(--sidebar-status-connected-glow, 0 0 8px rgba(16, 185, 129, 0.6))' :
-                'var(--sidebar-status-disconnected-glow, 0 0 8px rgba(239, 68, 68, 0.6))',
-              ...(window?.theme?.Sidebar?.statusDotStyle || {})
+                '0 0 8px rgba(16, 185, 129, 0.6)' :
+                '0 0 8px rgba(239, 68, 68, 0.6)'
             }}
           />
           <span className="Sidebar text-xs" 
             style={{
-              color: 'var(--sidebar-footer-text-color, #d1d5db)',
-              ...(window?.theme?.Sidebar?.footerTextStyle || {})
+              color: 'var(--sidebar-text-color, #d1d5db)'
             }}
           >
             WebSocket: {wsState.isConnected ? 'Connected' : 'Disconnected'}
@@ -149,8 +140,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         {wsState.clientId && 
           <div className="Sidebar mt-1 text-xs truncate" 
             style={{
-              color: 'var(--sidebar-footer-id-color, #9ca3af)',
-              ...(window?.theme?.Sidebar?.footerIdStyle || {})
+              color: 'var(--sidebar-text-color, #9ca3af)'
             }}
           >
             ID: {wsState.clientId}
@@ -168,16 +158,26 @@ export const themeableProps = {
     description: 'Sidebar background color',
     default: '#111827',
   },
-  borderColor: {
-    cssVar: '--sidebar-border-color',
-    description: 'Sidebar border color',
-    default: '#1f2937',
-  },
   textColor: {
     cssVar: '--sidebar-text-color',
     description: 'Sidebar text color',
     default: '#e5e7eb',
   },
+  borderColor: {
+    cssVar: '--sidebar-border-color',
+    description: 'Sidebar border color',
+    default: '#1f2937',
+  },
+  accentColor: {
+    cssVar: '--sidebar-accent-color',
+    description: 'Sidebar accent color for highlights and status indicators',
+    default: '#10b981',
+  },
+  style: {
+    description: 'Arbitrary CSS style for Sidebar root',
+    default: {},
+  },
+  // Only keeping font-related properties as they're essential for readability
   fontFamily: {
     cssVar: '--sidebar-font-family',
     description: 'Sidebar font family',
@@ -187,113 +187,5 @@ export const themeableProps = {
     cssVar: '--sidebar-font-size',
     description: 'Sidebar font size',
     default: '0.875rem',
-  },
-  dividerColor: {
-    cssVar: '--sidebar-divider-color',
-    description: 'Sidebar divider color',
-    default: '#1f2937',
-  },
-  headerBackground: {
-    cssVar: '--sidebar-header-bg',
-    description: 'Sidebar header background color',
-    default: 'rgba(31, 41, 55, 0.7)',
-  },
-  headerBorderColor: {
-    cssVar: '--sidebar-header-border-color',
-    description: 'Sidebar header border color',
-    default: 'rgba(75, 85, 99, 0.5)',
-  },
-  headerTextColor: {
-    cssVar: '--sidebar-header-text-color',
-    description: 'Sidebar header text color',
-    default: '#d1d5db',
-  },
-  contentBackground: {
-    cssVar: '--sidebar-content-bg',
-    description: 'Sidebar content background color',
-    default: '#111827',
-  },
-  emptyTextColor: {
-    cssVar: '--sidebar-empty-text-color',
-    description: 'Sidebar empty state text color',
-    default: '#9ca3af',
-  },
-  footerBackground: {
-    cssVar: '--sidebar-footer-bg',
-    description: 'Sidebar footer background color',
-    default: '#1f2937',
-  },
-  footerHoverBackground: {
-    cssVar: '--sidebar-footer-hover-bg',
-    description: 'Sidebar footer hover background color',
-    default: 'rgba(55, 65, 81, 0.5)',
-  },
-  footerTextColor: {
-    cssVar: '--sidebar-footer-text-color',
-    description: 'Sidebar footer text color',
-    default: '#d1d5db',
-  },
-  footerIdColor: {
-    cssVar: '--sidebar-footer-id-color',
-    description: 'Sidebar footer ID text color',
-    default: '#9ca3af',
-  },
-  statusConnected: {
-    cssVar: '--sidebar-status-connected',
-    description: 'Sidebar connected status color',
-    default: '#10b981',
-  },
-  statusDisconnected: {
-    cssVar: '--sidebar-status-disconnected',
-    description: 'Sidebar disconnected status color',
-    default: '#ef4444',
-  },
-  statusConnectedGlow: {
-    cssVar: '--sidebar-status-connected-glow',
-    description: 'Sidebar connected status glow effect',
-    default: '0 0 8px rgba(16, 185, 129, 0.6)',
-  },
-  statusDisconnectedGlow: {
-    cssVar: '--sidebar-status-disconnected-glow',
-    description: 'Sidebar disconnected status glow effect',
-    default: '0 0 8px rgba(239, 68, 68, 0.6)',
-  },
-  
-  // Style overrides
-  style: {
-    description: 'Arbitrary CSS style for Sidebar root',
-    default: {},
-  },
-  sectionStyle: {
-    description: 'Arbitrary CSS style for sidebar sections',
-    default: {},
-  },
-  headerStyle: {
-    description: 'Arbitrary CSS style for sidebar headers',
-    default: {},
-  },
-  contentStyle: {
-    description: 'Arbitrary CSS style for sidebar content areas',
-    default: {},
-  },
-  emptyStateStyle: {
-    description: 'Arbitrary CSS style for empty state messages',
-    default: {},
-  },
-  footerStyle: {
-    description: 'Arbitrary CSS style for sidebar footer',
-    default: {},
-  },
-  footerTextStyle: {
-    description: 'Arbitrary CSS style for footer text',
-    default: {},
-  },
-  footerIdStyle: {
-    description: 'Arbitrary CSS style for footer ID text',
-    default: {},
-  },
-  statusDotStyle: {
-    description: 'Arbitrary CSS style for status indicator dot',
-    default: {},
-  },
+  }
 }
