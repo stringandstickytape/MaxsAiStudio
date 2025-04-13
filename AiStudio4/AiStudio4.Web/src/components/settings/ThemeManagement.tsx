@@ -23,18 +23,18 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   editDialogOpen: externalEditOpen,
   setEditDialogOpen: externalSetEditOpen,
 }) => {
-  const { 
-    themes, 
-    activeThemeId, 
-    isLoading, 
-    error: storeError, 
-    createTheme, 
-    updateTheme, 
-    deleteTheme, 
+  const {
+    themes,
+    activeThemeId,
+    isLoading,
+    error: storeError,
+    createTheme,
+    updateTheme,
+    deleteTheme,
     activateTheme,
     applyTheme,
     refreshThemes,
-    clearError 
+    clearError
   } = useThemeManagement();
 
   // Handle internal/external state for editing
@@ -92,14 +92,21 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   };
 
   const handleDeleteThemeConfirm = async () => {
-    if (!themeToDelete) return;
+    if (!themeToDelete) {
+      console.log('[ThemeManagement] No theme to delete');
+      return;
+    }
 
+    console.log('[ThemeManagement] Deleting theme:', themeToDelete.guid, themeToDelete.name);
     setIsProcessing(true);
     setLocalError(null);
     try {
-      await deleteTheme(themeToDelete.guid);
+      console.log('[ThemeManagement] Calling deleteTheme with ID:', themeToDelete.guid);
+      const result = await deleteTheme(themeToDelete.guid);
+      console.log('[ThemeManagement] Delete theme result:', result);
       setDeleteOpen(false);
     } catch (err: any) {
+      console.error('[ThemeManagement] Error deleting theme:', err);
       setLocalError(err?.message || 'Failed to delete theme');
     } finally {
       setIsProcessing(false);
@@ -161,10 +168,10 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
       <div className="flex-between mb-4">
         <h2 className="text-title">Themes</h2>
         <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleRefresh} 
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
             disabled={refreshing || isLoading}
             className="h-8 w-8 text-gray-400 hover:text-gray-100"
           >
@@ -225,10 +232,10 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
 
                 <div className="mt-auto">
                   {theme.previewColors && theme.previewColors.length > 0 && renderColorSwatches(theme.previewColors)}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-2" 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
                     onClick={() => handleApplyTheme(theme.guid)}
                     disabled={isProcessing}
                   >
@@ -256,7 +263,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -278,7 +285,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

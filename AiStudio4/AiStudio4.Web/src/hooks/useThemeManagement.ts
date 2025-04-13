@@ -150,6 +150,23 @@ export function useThemeManagement() {
     return await addTheme(newThemeData as Theme);
   }, [addTheme]);
 
+    /**
+     * Deletes a theme by its ID.
+     * @param themeId The ID of the theme to delete.
+     */
+    const deleteThemeById = useCallback(async (themeId: string) => {
+        console.log('[ThemeManagement] Deleting theme with ID:', themeId);
+        return await executeApiCall(async () => {
+            const response = await createApiRequest('/api/themes/delete', 'POST')({ themeId });
+            if (response.success) {
+                await fetchThemes();
+                return true;
+            } else {
+                throw new Error(response.error || 'Failed to delete theme');
+            }
+        });
+    }, [executeApiCall, fetchThemes]);
+
   return {
     themes,
     activeThemeId,
@@ -157,7 +174,7 @@ export function useThemeManagement() {
     error: themesError,
     createTheme,
     updateTheme,
-    deleteTheme,
+    deleteTheme: deleteThemeById,
     activateTheme,
     applyTheme,
     applyRandomTheme,
