@@ -255,8 +255,7 @@ namespace AiStudio4.AiServices
 
                 await foreach (StreamingChatCompletionUpdate update in completionUpdates.WithCancellation(cancellationToken))
                 {
-                    if (responseBuilder.ToString().EndsWith("\r\n\r\n\n\r\n\r\n\r\n\n\r\n\r\n\r\n\n"))
-                        break;
+
                     // Handle content updates (text)
                     if (update.ContentUpdate != null && update.ContentUpdate.Count > 0 && !string.IsNullOrEmpty(update.ContentUpdate[0].Text))
                     {
@@ -299,6 +298,23 @@ namespace AiStudio4.AiServices
                                     if (lastToolResponse != null)
                                     {
                                         lastToolResponse.ResponseText += argumentUpdate;
+                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != '\r' && x != '\n'))
+                                        {
+                                            // request cancellation on cancellationtoken
+
+                                            onStreamingComplete?.Invoke(); // Use callback
+                                            lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
+                                            return new AiResponse
+                                            {
+                                                ResponseText = responseBuilder.ToString().TrimEnd(),
+                                                Success = true,
+                                                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                                                ChosenTool = chosenTool,
+                                                ToolResponseSet = ToolResponseSet
+
+                                            };
+
+                                        }
                                     }
                                 }
                             }

@@ -37,11 +37,27 @@ window.applyRandomTheme = applyRandomTheme;
 window.addThemeToStore = addThemeToStore;
 window.createTheme = createTheme;
 
-// Expose functions to window object
-
 (async () => {
   await ThemeManager.discoverThemes();
   console.log('Theme schema:', ThemeManager.getSchema());
+
+  // Fetch and load the active theme after theme discovery
+  try {
+    const response = await createApiRequest('/api/themes/getActive', 'POST')({});
+    if (response.success && response.themeId) {
+      // Fetch all themes to populate the store (if not already done elsewhere)
+      const allThemesResp = await createApiRequest('/api/themes/getAll', 'POST')({});
+      if (allThemesResp.success && Array.isArray(allThemesResp.themes)) {
+        // Find the active theme
+        const activeTheme = allThemesResp.themes.find(t => t.guid === response.themeId);
+        if (activeTheme) {
+          ThemeManager.applyLLMTheme(activeTheme.themeJson);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load and apply active theme at startup:', err);
+  }
 
   try {
     // Render the app

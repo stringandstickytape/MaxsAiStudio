@@ -236,7 +236,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                     variant="outline"
                     size="sm"
                     className="w-full mt-2"
-                    onClick={() => handleApplyTheme(theme.guid)}
+                    onClick={() => handleActivateTheme(theme.guid)}
                     disabled={isProcessing}
                   >
                     Apply Theme
