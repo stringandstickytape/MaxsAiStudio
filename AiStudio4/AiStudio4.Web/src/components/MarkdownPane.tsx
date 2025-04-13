@@ -1,6 +1,35 @@
-﻿import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿// AiStudio4.Web\src\components\MarkdownPane.tsx
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+
+// Themeable properties for MarkdownPane code headers
+export const themeableProps = {
+    codeHeaderBackground: {
+        cssVar: '--markdownpane-codeheader-bg',
+        description: 'Background color for code block header',
+        default: '#181c20',
+    },
+    codeHeaderText: {
+        cssVar: '--markdownpane-codeheader-text',
+        description: 'Text color for code block header',
+        default: '#bfc7d5',
+    },
+    codeHeaderBorder: {
+        cssVar: '--markdownpane-codeheader-border',
+        description: 'Border color for code block header',
+        default: '#283040',
+    },
+    codeHeaderAccent: {
+        cssVar: '--markdownpane-codeheader-accent',
+        description: 'Accent color for code block header buttons/highlights',
+        default: '#4f8cff',
+    },
+    style: {
+        description: 'Arbitrary CSS style for MarkdownPane root',
+        default: {},
+    },
+};
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';
@@ -186,12 +215,21 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
             const createCodeHeader = useCallback((isFooter = false) => (
                 <div
-                    className={`flex items-center justify-between bg-gray-900 px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} border-gray-700 text-sm text-gray-400`}
+                    className={`MarkdownPane flex items-center justify-between px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} text-sm`}
+                    style={{
+                        background: 'var(--markdownpane-codeheader-bg, #181c20)',
+                        color: 'var(--markdownpane-codeheader-text, #bfc7d5)',
+                        borderColor: 'var(--markdownpane-codeheader-border, #283040)',
+                        borderStyle: 'solid',
+                        borderWidth: '1px 0 0 0', // Only top border for footer, bottom for header
+                        ...(isFooter ? { borderTopWidth: '1px', borderBottomWidth: 0 } : { borderBottomWidth: '1px', borderTopWidth: 0 }),
+                    }}
                 >
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={toggleCollapse}
-                            className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+                            className="transition-colors p-1"
+                            style={{ color: 'var(--markdownpane-codeheader-accent, #4f8cff)' }}
                         >
                             {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                         </button>
@@ -201,7 +239,11 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                         {isVisualStudio && (
                             <button
                                 onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
-                                className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                                className="px-2 py-1 rounded transition-colors"
+                                style={{
+                                    background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                    color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                                }}
                             >
                                 Apply Diff
                             </button>
@@ -233,14 +275,22 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                         console.error('[Theme Debug] Error processing theme:', e);
                                     }
                                 }}
-                                className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                                className="px-2 py-1 rounded transition-colors"
+                                style={{
+                                    background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                    color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                                }}
                             >
                                 Use Theme
                             </button>
                         )}
                         <button
                             onClick={() => navigator.clipboard.writeText(content)}
-                            className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                            className="px-2 py-1 rounded transition-colors"
+                            style={{
+                                background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                            }}
                         >
                             Copy
                         </button>
