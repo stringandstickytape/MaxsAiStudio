@@ -1,4 +1,4 @@
-// AiStudio4.Web/src/components/settings/ThemeManagement.tsx
+﻿// AiStudio4.Web/src/components/settings/ThemeManagement.tsx
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -32,6 +32,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     updateTheme, 
     deleteTheme, 
     activateTheme,
+    applyTheme,
     refreshThemes,
     clearError 
   } = useThemeManagement();
@@ -128,6 +129,18 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     }
   };
 
+  const handleApplyTheme = async (themeId: string) => {
+    setIsProcessing(true);
+    setLocalError(null);
+    try {
+      applyTheme(themeId);
+    } catch (err: any) {
+      setLocalError(err?.message || 'Failed to apply theme');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Function to render color preview swatches
   const renderColorSwatches = (colors: string[]) => {
     return (
@@ -212,6 +225,15 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
 
                 <div className="mt-auto">
                   {theme.previewColors && theme.previewColors.length > 0 && renderColorSwatches(theme.previewColors)}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2" 
+                    onClick={() => handleApplyTheme(theme.guid)}
+                    disabled={isProcessing}
+                  >
+                    Apply Theme
+                  </Button>
                 </div>
 
                 {/* Vertical stacked buttons in the bottom-right corner */}
