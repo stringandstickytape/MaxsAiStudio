@@ -230,12 +230,23 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
 
         // Theme colors for tree elements
         const linkColor = getThemeColor('--convtree-link-color', '#6b7280');
-        const userNodeColor = getThemeColor('--convtree-user-node-color', '#1e40af');
+        
+        // Map ConvView theme values to tree nodes
+        // Use ConvView background colors for nodes with fallback to tree-specific values
+        const userNodeColor = getThemeColor('--user-message-background', getThemeColor('--convtree-user-node-color', '#1e40af'));
         const systemNodeColor = getThemeColor('--convtree-system-node-color', '#4B5563');
-        const aiNodeColor = getThemeColor('--convtree-ai-node-color', '#4f46e5');
-        const userNodeBorderColor = getThemeColor('--convtree-user-node-border', '#1e3a8a');
+        const aiNodeColor = getThemeColor('--ai-message-background', getThemeColor('--convtree-ai-node-color', '#4f46e5'));
+        
+        // Use ConvView border colors with fallback to tree-specific values
+        const userNodeBorderColor = getThemeColor('--user-message-border-color', getThemeColor('--convtree-user-node-border', '#1e3a8a'));
         const systemNodeBorderColor = getThemeColor('--convtree-system-node-border', '#374151');
-        const aiNodeBorderColor = getThemeColor('--convtree-ai-node-border', '#4338ca');
+        const aiNodeBorderColor = getThemeColor('--ai-message-border-color', getThemeColor('--convtree-ai-node-border', '#4338ca'));
+        
+        // Get border widths and styles from ConvView theme
+        const userNodeBorderWidth = getThemeColor('--user-message-border-width', '1px');
+        const aiNodeBorderWidth = getThemeColor('--ai-message-border-width', '1px');
+        const userNodeBorderStyle = getThemeColor('--user-message-border-style', 'solid');
+        const aiNodeBorderStyle = getThemeColor('--ai-message-border-style', 'solid');
 
         d3.select(svgRef.current).selectAll('*').remove();
 
@@ -330,7 +341,25 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 if (source === 'system') return systemNodeBorderColor;
                 return aiNodeBorderColor;
             })
-            .attr('stroke-width', 1)
+            .attr('stroke-width', (d) => {
+                const source = d.data.source;
+                if (source === 'user') return userNodeBorderWidth;
+                if (source === 'system') return '1px';
+                return aiNodeBorderWidth;
+            })
+            .attr('stroke-dasharray', (d) => {
+                const source = d.data.source;
+                // Convert CSS border style to SVG stroke-dasharray
+                if (source === 'user') {
+                    return userNodeBorderStyle === 'dashed' ? '3,3' : 
+                           userNodeBorderStyle === 'dotted' ? '1,1' : 
+                           'none';
+                }
+                if (source === 'system') return 'none';
+                return aiNodeBorderStyle === 'dashed' ? '3,3' : 
+                       aiNodeBorderStyle === 'dotted' ? '1,1' : 
+                       'none';
+            })
             .attr('class', 'node-rect ConvTreeView') // Add class for hover effects;
 
 
