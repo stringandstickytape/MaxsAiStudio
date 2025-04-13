@@ -220,6 +220,13 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
 
     useEffect(() => {
         if (!svgRef.current || !containerRef.current || !hierarchicalData) return;
+        
+        // Log theme values for debugging
+        console.log('ConvTreeView theme values:', {
+            userMessageBackground: window?.theme?.ConvView?.userMessageBackground,
+            aiMessageBackground: window?.theme?.ConvView?.aiMessageBackground,
+            userNodeColor: window?.theme?.ConvTreeView?.userNodeColor
+        });
 
         // Get theme values from CSS variables
         const getThemeColor = (varName: string, fallback: string) => {
@@ -482,7 +489,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         };
 
 
-    }, [hierarchicalData, convId]);
+    // Add window.theme as a dependency to re-render when theme changes
+    }, [hierarchicalData, convId, window?.theme]);
 
     // Auto-focus on latest message when a new message is added
     useEffect(() => {
