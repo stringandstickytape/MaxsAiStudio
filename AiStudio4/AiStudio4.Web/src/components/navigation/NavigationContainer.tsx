@@ -31,29 +31,13 @@ export const themeableProps = {
     description: 'Border color for the navigation container',
     default: 'transparent',
   },
-  borderRadius: {
-    cssVar: '--navigationcontainer-border-radius',
-    description: 'Border radius for the navigation container',
-    default: '0px',
+  accentColor: {
+    cssVar: '--navigationcontainer-accent-color',
+    description: 'Accent color for the navigation container highlights',
+    default: '#3b82f6',
   },
-  boxShadow: {
-    cssVar: '--navigationcontainer-box-shadow',
-    description: 'Box shadow for the navigation container',
-    default: 'none',
-  },
-  padding: {
-    cssVar: '--navigationcontainer-padding',
-    description: 'Padding for the navigation container',
-    default: '0px',
-  },
-  
-  // Arbitrary style overrides
   style: {
-    description: 'Arbitrary CSS style for the main container',
-    default: {},
-  },
-  innerContainerStyle: {
-    description: 'Arbitrary CSS style for the inner container that holds children',
+    description: 'Arbitrary CSS style for the NavigationContainer root',
     default: {},
   },
 };
@@ -156,9 +140,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           backgroundColor: 'var(--navigationcontainer-bg, transparent)',
           color: 'var(--navigationcontainer-text-color, inherit)',
           borderColor: 'var(--navigationcontainer-border-color, transparent)',
-          borderRadius: 'var(--navigationcontainer-border-radius, 0px)',
-          boxShadow: 'var(--navigationcontainer-box-shadow, none)',
-          padding: 'var(--navigationcontainer-padding, 0px)',
           ...(window?.theme?.NavigationContainer?.style || {})
         }}
       >
@@ -166,7 +147,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           <div 
             className="NavigationContainer h-full flex flex-col"
             style={{
-              ...(window?.theme?.NavigationContainer?.innerContainerStyle || {})
+              ...(window?.theme?.NavigationContainer?.style || {})
             }}
           >
             {children}
@@ -178,4 +159,3 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
     </>
   );
 }
-

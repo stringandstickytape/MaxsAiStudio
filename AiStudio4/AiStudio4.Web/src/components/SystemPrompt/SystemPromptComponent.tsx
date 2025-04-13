@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-// Extensive themeable properties for ThemeManager
+// Simplified themeable properties for ThemeManager
 export const themeableProps = {
   backgroundColor: {
     cssVar: '--systemprompt-bg',
@@ -21,71 +21,24 @@ export const themeableProps = {
     description: 'Border color',
     default: '#4a5568',
   },
-  borderRadius: {
-    cssVar: '--systemprompt-border-radius',
-    description: 'Border radius',
-    default: '8px',
+  accentColor: {
+    cssVar: '--systemprompt-accent-color',
+    description: 'Accent color for highlights and active elements',
+    default: '#3b82f6',
   },
-  fontFamily: {
-    cssVar: '--systemprompt-font-family',
-    description: 'Font family',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--systemprompt-font-size',
-    description: 'Font size',
-    default: '0.875rem',
-  },
-  boxShadow: {
-    cssVar: '--systemprompt-box-shadow',
-    description: 'Box shadow',
-    default: '0 4px 12px rgba(0,0,0,0.3)',
-  },
-  pillActiveBg: {
-    cssVar: '--systemprompt-pill-active-bg',
-    description: 'Active prompt pill background',
-    default: '#2563eb33',
-  },
-  pillInactiveBg: {
-    cssVar: '--systemprompt-pill-inactive-bg',
-    description: 'Inactive prompt pill background',
-    default: '#4a556822',
-  },
+  // Additional properties needed for this component's unique features
   popupBackground: {
     cssVar: '--systemprompt-popup-bg',
     description: 'Popup background color',
     default: '#1a202c',
-  },
-  popupBorderColor: {
-    cssVar: '--systemprompt-popup-border-color',
-    description: 'Popup border color',
-    default: '#4a5568',
   },
   editBackground: {
     cssVar: '--systemprompt-edit-bg',
     description: 'Edit textarea background',
     default: '#2d3748',
   },
-  editTextColor: {
-    cssVar: '--systemprompt-edit-text-color',
-    description: 'Edit textarea text color',
-    default: '#e2e8f0',
-  },
-  // Arbitrary style overrides
   style: {
-    description: 'Arbitrary CSS style for root container',
-    default: {},
-  },
-  popupStyle: {
-    description: 'Arbitrary CSS style for popup panel',
-    default: {},
-  },
-  pillStyle: {
-    description: 'Arbitrary CSS style for prompt pills',
-    default: {},
-  },
-  editAreaStyle: {
-    description: 'Arbitrary CSS style for edit textarea',
+    description: 'Arbitrary CSS style for SystemPromptComponent root',
     default: {},
   },
 };
@@ -343,10 +296,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 backgroundColor: 'var(--systemprompt-bg, #2d3748)',
                 color: 'var(--systemprompt-text-color, #e2e8f0)',
                 borderColor: 'var(--systemprompt-border-color, #4a5568)',
-                borderRadius: 'var(--systemprompt-border-radius, 8px)',
-                fontFamily: 'var(--systemprompt-font-family, inherit)',
-                fontSize: 'var(--systemprompt-font-size, 0.875rem)',
-                boxShadow: 'var(--systemprompt-box-shadow, 0 4px 12px rgba(0,0,0,0.3))',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                 ...(window?.theme?.SystemPromptComponent?.style || {})
             }}
         >
@@ -392,11 +343,11 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                 ...portalStyle,
                                 // Use direct theme values instead of CSS variables for portal content
                                 // since portals are outside the component hierarchy and won't inherit CSS variables
-                                backgroundColor: window?.theme?.SystemPromptComponent?.popupBackground || '#1a202c',
-                                borderColor: window?.theme?.SystemPromptComponent?.popupBorderColor || '#4a5568',
-                                borderRadius: window?.theme?.SystemPromptComponent?.borderRadius || '8px',
-                                boxShadow: window?.theme?.SystemPromptComponent?.boxShadow || '0 4px 12px rgba(0,0,0,0.3)',
-                                ...(window?.theme?.SystemPromptComponent?.popupStyle || {})
+                                backgroundColor: 'var(--systemprompt-popup-bg, #1a202c)',
+                                borderColor: 'var(--systemprompt-border-color, #4a5568)',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                ...(window?.theme?.SystemPromptComponent?.style || {})
                             }}
                             className="fixed z-50 p-4 border shadow-xl SystemPromptComponent"
                         >
@@ -434,10 +385,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                         onChange={(e) => setPromptContent(e.target.value)}
                                         style={{
                                             backgroundColor: 'var(--systemprompt-edit-bg, #2d3748)',
-                                            color: 'var(--systemprompt-edit-text-color, #e2e8f0)',
-                                            fontFamily: 'var(--systemprompt-font-family, inherit)',
-                                            fontSize: 'var(--systemprompt-font-size, 0.875rem)',
-                                            ...(window?.theme?.SystemPromptComponent?.editAreaStyle || {})
+                                            color: 'var(--systemprompt-text-color, #e2e8f0)',
+                                            ...(window?.theme?.SystemPromptComponent?.style || {})
                                         }}
                                         className="min-h-[100px] max-h-[300px] h-[300px] overflow-y-auto mb-2"
                                         placeholder="Enter your system prompt here..."
@@ -479,8 +428,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                                 size="sm"
                                                 onClick={() => handleSelectPrompt(prompt)}
                                                 style={{
-                                                    backgroundColor: currentPrompt?.guid === prompt.guid ? 'var(--systemprompt-pill-active-bg, #2563eb33)' : 'var(--systemprompt-pill-inactive-bg, #4a556822)',
-                                                    ...(window?.theme?.SystemPromptComponent?.pillStyle || {})
+                                                    backgroundColor: currentPrompt?.guid === prompt.guid ? 'var(--systemprompt-accent-color, #3b82f6)33' : 'var(--systemprompt-bg, #2d3748)',
+                                                    ...(window?.theme?.SystemPromptComponent?.style || {})
                                                 }}
                                                 className={cn(
                                                     "h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0",

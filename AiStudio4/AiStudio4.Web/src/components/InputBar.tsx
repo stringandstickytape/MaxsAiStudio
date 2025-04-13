@@ -326,10 +326,8 @@ export function InputBar({
                 backgroundColor: "var(--inputbar-bg, #1f2937)",
                 color: "var(--inputbar-text-color, #e2e8f0)",
                 borderColor: "var(--inputbar-border-color, #4a5568)",
-                borderRadius: "var(--inputbar-border-radius, 8px)",
-                fontFamily: "var(--inputbar-font-family, inherit)",
-                fontSize: "var(--inputbar-font-size, 0.875rem)",
-                boxShadow: "var(--inputbar-box-shadow, 0 4px 12px rgba(0,0,0,0.3))",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >
@@ -359,10 +357,8 @@ export function InputBar({
                             showLineCount={true}
                             style={{
                                 backgroundColor: 'var(--inputbar-edit-bg, #2d3748)',
-                                color: 'var(--inputbar-edit-text-color, #e2e8f0)',
-                                fontFamily: 'var(--inputbar-font-family, inherit)',
-                                fontSize: 'var(--inputbar-font-size, 0.875rem)',
-                                ...(window?.theme?.InputBar?.editAreaStyle || {})
+                                color: 'var(--inputbar-text-color, #e2e8f0)',
+                                ...(window?.theme?.InputBar?.style || {})
                             }}
                         />
                     </div>
@@ -387,11 +383,11 @@ export function InputBar({
                             disabled={isLoading || disabled} // Reflect outer disabled state
                             maxFiles={5}
                             style={{
-                                backgroundColor: 'var(--inputbar-button-bg)',
-                                borderColor: 'var(--inputbar-button-border)',
-                                color: 'var(--inputbar-button-icon-color)',
-                                opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
-                                ...(window?.theme?.InputBar?.buttonStyle || {})
+                                backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                                borderColor: 'var(--inputbar-border-color, #4a5568)',
+                                color: 'var(--inputbar-text-color, #e2e8f0)',
+                                opacity: (isLoading || disabled) ? 0.5 : 1,
+                                ...(window?.theme?.InputBar?.style || {})
                             }}
                         />
 
@@ -402,11 +398,11 @@ export function InputBar({
                             aria-label="User prompts"
                             disabled={isLoading || disabled} // Reflect outer disabled state
                             style={{
-                                backgroundColor: 'var(--inputbar-button-bg)',
-                                borderColor: 'var(--inputbar-button-border)',
-                                color: 'var(--inputbar-button-icon-color)',
-                                opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
-                                ...(window?.theme?.InputBar?.buttonStyle || {})
+                                backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                                borderColor: 'var(--inputbar-border-color, #4a5568)',
+                                color: 'var(--inputbar-text-color, #e2e8f0)',
+                                opacity: (isLoading || disabled) ? 0.5 : 1,
+                                ...(window?.theme?.InputBar?.style || {})
                             }}
                         >
                             <BookMarked className="h-5 w-5" />
@@ -420,11 +416,11 @@ export function InputBar({
                                 aria-label="Voice input"
                                 disabled={isLoading || disabled} // Reflect outer disabled state
                                 style={{
-                                    backgroundColor: 'var(--inputbar-button-bg)',
-                                    borderColor: 'var(--inputbar-button-border)',
-                                    color: 'var(--inputbar-button-icon-color)',
-                                    opacity: (isLoading || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
-                                    ...(window?.theme?.InputBar?.buttonStyle || {})
+                                    backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                                    borderColor: 'var(--inputbar-border-color, #4a5568)',
+                                    color: 'var(--inputbar-text-color, #e2e8f0)',
+                                    opacity: (isLoading || disabled) ? 0.5 : 1,
+                                    ...(window?.theme?.InputBar?.style || {})
                                 }}
                             >
                                 <Mic className="h-5 w-5" />
@@ -440,11 +436,11 @@ export function InputBar({
                                 disabled={isCancelling || disabled} // Reflect outer disabled state
                                 title={!useWebSocketStore.getState().isConnected && !isLoading ? 'WebSocket disconnected. Click to reconnect.' : ''}
                                 style={{
-                                    backgroundColor: isLoading ? '#dc2626' : 'var(--inputbar-button-bg)',
-                                    borderColor: !useWebSocketStore.getState().isConnected && !isLoading ? 'red' : 'var(--inputbar-button-border)',
-                                    color: 'var(--inputbar-button-icon-color)',
-                                    opacity: (isCancelling || disabled) ? 'var(--inputbar-button-disabled-opacity)' : 1,
-                                    ...(window?.theme?.InputBar?.buttonStyle || {})
+                                    backgroundColor: isLoading ? '#dc2626' : 'var(--inputbar-button-bg, #2d3748)',
+                                    borderColor: !useWebSocketStore.getState().isConnected && !isLoading ? 'red' : 'var(--inputbar-border-color, #4a5568)',
+                                    color: 'var(--inputbar-text-color, #e2e8f0)',
+                                    opacity: (isCancelling || disabled) ? 0.5 : 1,
+                                    ...(window?.theme?.InputBar?.style || {})
                                 }}
                             >
                                 {isLoading ? (
@@ -511,7 +507,7 @@ window.appendToPrompt = text => {
     return true;
 };
 
-// Expose extensive themeable properties for ThemeManager
+// Expose simplified themeable properties for ThemeManager
 export const themeableProps = {
   backgroundColor: {
     cssVar: '--inputbar-bg',
@@ -528,102 +524,24 @@ export const themeableProps = {
     description: 'Input bar border color',
     default: '#4a5568',
   },
-  borderRadius: {
-    cssVar: '--inputbar-border-radius',
-    description: 'Input bar border radius',
-    default: '8px',
+  accentColor: {
+    cssVar: '--inputbar-accent-color',
+    description: 'Input bar accent color for highlights and active elements',
+    default: '#3b82f6',
   },
-  fontFamily: {
-    cssVar: '--inputbar-font-family',
-    description: 'Input bar font family',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--inputbar-font-size',
-    description: 'Input bar font size',
-    default: '0.875rem',
-  },
-  boxShadow: {
-    cssVar: '--inputbar-box-shadow',
-    description: 'Input bar box shadow',
-    default: '0 4px 12px rgba(0,0,0,0.3)',
-  },
-  popupBackground: {
-    cssVar: '--inputbar-popup-bg',
-    description: 'Popup background color',
-    default: '#1a202c',
-  },
-  popupBorderColor: {
-    cssVar: '--inputbar-popup-border-color',
-    description: 'Popup border color',
-    default: '#4a5568',
-  },
+  // Additional properties needed for this component's unique features
   editBackground: {
     cssVar: '--inputbar-edit-bg',
     description: 'Textarea background color',
     default: '#2d3748',
   },
-  editTextColor: {
-    cssVar: '--inputbar-edit-text-color',
-    description: 'Textarea text color',
-    default: '#e2e8f0',
-  },
-  pillActiveBg: {
-    cssVar: '--inputbar-pill-active-bg',
-    description: 'Active pill background color',
-    default: '#2563eb33',
-  },
-  pillInactiveBg: {
-    cssVar: '--inputbar-pill-inactive-bg',
-    description: 'Inactive pill background color',
-    default: '#4a556822',
-  },
-
-  // Button theming for InputBar buttons (send, voice, user prompt, attach)
   buttonBackground: {
     cssVar: '--inputbar-button-bg',
     description: 'Input bar button background color',
     default: '#2d3748',
   },
-  buttonHoverBackground: {
-    cssVar: '--inputbar-button-hover-bg',
-    description: 'Input bar button hover background color',
-    default: '#4a5568',
-  },
-  buttonBorderColor: {
-    cssVar: '--inputbar-button-border',
-    description: 'Input bar button border color',
-    default: '#4a5568',
-  },
-  buttonIconColor: {
-    cssVar: '--inputbar-button-icon-color',
-    description: 'Input bar button icon color',
-    default: '#e2e8f0',
-  },
-  buttonDisabledOpacity: {
-    cssVar: '--inputbar-button-disabled-opacity',
-    description: 'Input bar button disabled opacity',
-    default: '0.5',
-  },
-
   style: {
     description: 'Arbitrary CSS style for InputBar root',
-    default: {},
-  },
-  popupStyle: {
-    description: 'Arbitrary CSS style for popups',
-    default: {},
-  },
-  pillStyle: {
-    description: 'Arbitrary CSS style for pills/buttons',
-    default: {},
-  },
-  editAreaStyle: {
-    description: 'Arbitrary CSS style for textarea',
-    default: {},
-  },
-  buttonStyle: {
-    description: 'Arbitrary CSS style override for InputBar buttons',
     default: {},
   },
 };
