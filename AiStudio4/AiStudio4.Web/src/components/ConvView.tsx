@@ -48,6 +48,36 @@ export const themeableProps = {
     cssVar: '--ai-message-background',
     description: 'Background for assistant messages (supports gradients, images, etc.)',
     default: '#1f2937', // gray-800
+  },
+  userMessageBorderColor: {
+    cssVar: '--user-message-border-color',
+    description: 'Border color for user messages',
+    default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
+  },
+  aiMessageBorderColor: {
+    cssVar: '--ai-message-border-color',
+    description: 'Border color for assistant messages',
+    default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
+  },
+  userMessageBorderWidth: {
+    cssVar: '--user-message-border-width',
+    description: 'Border width for user messages',
+    default: '0px',
+  },
+  aiMessageBorderWidth: {
+    cssVar: '--ai-message-border-width',
+    description: 'Border width for assistant messages',
+    default: '0px',
+  },
+  userMessageBorderStyle: {
+    cssVar: '--user-message-border-style',
+    description: 'Border style for user messages',
+    default: 'solid',
+  },
+  aiMessageBorderStyle: {
+    cssVar: '--ai-message-border-style',
+    description: 'Border style for assistant messages',
+    default: 'solid',
   }
 };
 
@@ -306,6 +336,15 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                     : 'var(--ai-message-background, #1f2937)',
                                 color: 'var(--convview-text-color, #ffffff)',
                                 borderRadius: 'var(--convview-border-radius, 0.5rem)',
+                                borderColor: message.source === 'user'
+                                    ? 'var(--user-message-border-color, rgba(55, 65, 81, 0.3))'
+                                    : 'var(--ai-message-border-color, rgba(55, 65, 81, 0.3))',
+                                borderWidth: message.source === 'user'
+                                    ? 'var(--user-message-border-width, 0px)'
+                                    : 'var(--ai-message-border-width, 0px)',
+                                borderStyle: message.source === 'user'
+                                    ? 'var(--user-message-border-style, solid)'
+                                    : 'var(--ai-message-border-style, solid)',
                                 ...(window?.theme?.ConvView?.style || {})
                             }}>
                             {editingMessageId === message.id ? (
@@ -478,6 +517,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                         background: 'var(--ai-message-background, #1f2937)',
                         color: 'var(--convview-text-color, #ffffff)',
                         borderRadius: '0.5rem',
+                        borderColor: 'var(--ai-message-border-color, rgba(55, 65, 81, 0.3))',
+                        borderWidth: 'var(--ai-message-border-width, 0px)',
+                        borderStyle: 'var(--ai-message-border-style, solid)',
                         ...(window?.theme?.ConvView?.style || {})
                     }}>
                         {(isCancelling || isCancel) && (
