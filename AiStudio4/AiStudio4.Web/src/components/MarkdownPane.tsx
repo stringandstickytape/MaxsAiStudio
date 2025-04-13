@@ -250,39 +250,80 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                         )}
                         {launchButton}
                         {language === 'theme' && (
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        console.log('[Theme Debug] Starting theme application from code block');
-                                        console.log('[Theme Debug] Theme content:', content);
+                            <>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            console.log('[Theme Debug] Starting theme application from code block');
+                                            console.log('[Theme Debug] Theme content:', content);
 
-                                        // Apply theme visually
-                                        const parsedContent = JSON.parse(content);
-                                        console.log('[Theme Debug] Parsed content:', parsedContent);
-                                        
-                                        // Apply theme visually
-                                        window.applyLLMTheme(parsedContent);
-                                        
-                                        // Add theme to zustand store
-                                        if (window.addThemeToStore) {
-                                            window.addThemeToStore({
-                                                name: `Theme from code block ${new Date().toLocaleTimeString()}`,
-                                                description: 'Theme applied from markdown code block',
-                                                themeJson: parsedContent
-                                            });
+                                            // Apply theme visually
+                                            const parsedContent = JSON.parse(content);
+                                            console.log('[Theme Debug] Parsed content:', parsedContent);
+                                            
+                                            // Apply theme visually
+                                            window.applyLLMTheme(parsedContent);
+                                            
+                                            // Add theme to zustand store
+                                            if (window.addThemeToStore) {
+                                                window.addThemeToStore({
+                                                    name: `Theme from code block ${new Date().toLocaleTimeString()}`,
+                                                    description: 'Theme applied from markdown code block',
+                                                    themeJson: parsedContent
+                                                });
+                                            }
+                                        } catch (e) {
+                                            console.error('[Theme Debug] Error processing theme:', e);
                                         }
-                                    } catch (e) {
-                                        console.error('[Theme Debug] Error processing theme:', e);
-                                    }
-                                }}
-                                className="px-2 py-1 rounded transition-colors"
-                                style={{
-                                    background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
-                                    color: 'var(--markdownpane-codeheader-bg, #181c20)',
-                                }}
-                            >
-                                Use Theme
-                            </button>
+                                    }}
+                                    className="px-2 py-1 rounded transition-colors mr-2"
+                                    style={{
+                                        background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                        color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                                    }}
+                                >
+                                    Use Theme
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            console.log('[Theme Debug] Starting theme installation from code block');
+                                            console.log('[Theme Debug] Theme content:', content);
+
+                                            // Parse the theme content
+                                            const parsedContent = JSON.parse(content);
+                                            console.log('[Theme Debug] Parsed content:', parsedContent);
+                                            
+                                            // Create a theme name with timestamp
+                                            const themeName = `Theme from code block ${new Date().toLocaleTimeString()}`;
+                                            
+                                            // Install the theme to the library
+                                            if (window.createTheme) {
+                                                await window.createTheme({
+                                                    name: themeName,
+                                                    description: 'Theme installed from markdown code block',
+                                                    themeJson: parsedContent,
+                                                    previewColors: Object.values(parsedContent)
+                                                        .filter(value => typeof value === 'string' && value.startsWith('#'))
+                                                        .slice(0, 5)
+                                                });
+                                                console.log('[Theme Debug] Theme installed successfully');
+                                            } else {
+                                                console.error('[Theme Debug] createTheme function not available on window');
+                                            }
+                                        } catch (e) {
+                                            console.error('[Theme Debug] Error installing theme:', e);
+                                        }
+                                    }}
+                                    className="px-2 py-1 rounded transition-colors"
+                                    style={{
+                                        background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                        color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                                    }}
+                                >
+                                    Install Theme
+                                </button>
+                            </>
                         )}
                         <button
                             onClick={() => navigator.clipboard.writeText(content)}
