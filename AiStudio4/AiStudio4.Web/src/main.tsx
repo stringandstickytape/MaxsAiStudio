@@ -3,17 +3,18 @@ import './index.css';
 import App from './App.tsx';
 import ThemeManager from './lib/ThemeManager';
 import { useThemeStore, debugThemeStore, applyRandomTheme, addThemeToStore } from './stores/useThemeStore';
+import { useThemeManagement } from './hooks/useThemeManagement';
 
 (async () => {
   await ThemeManager.discoverThemes();
   console.log('Theme schema:', ThemeManager.getSchema());
 
   try {
-    // Load themes and active theme from server
-    const { loadThemes, loadActiveTheme } = useThemeStore.getState();
+    // Create a temporary hook instance to access the theme management functions
+    const { refreshThemes, loadActiveTheme } = useThemeManagement();
     
     // First load all themes from the server
-    await loadThemes();
+    await refreshThemes();
     
     // Then load and apply the active theme
     await loadActiveTheme();
@@ -27,7 +28,7 @@ import { useThemeStore, debugThemeStore, applyRandomTheme, addThemeToStore } fro
     createRoot(document.getElementById('root')!).render(<App />);
   } catch (error) {
     console.error('Failed to initialize themes:', error);
-    // Application will crash if no themes are available from the server
-    throw new Error('Failed to load themes from server. Application cannot start.');
+    // Render the app anyway, as we can still function without themes
+    createRoot(document.getElementById('root')!).render(<App />);
   }
 })();

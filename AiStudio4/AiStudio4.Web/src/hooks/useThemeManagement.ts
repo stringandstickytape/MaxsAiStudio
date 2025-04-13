@@ -4,6 +4,27 @@ import { useCallback } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Theme } from '@/types/theme';
 import { v4 as uuidv4 } from 'uuid';
+import { createResourceHook } from './useResourceFactory';
+import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
+import ThemeManager from '@/lib/ThemeManager';
+
+const useThemeResource = createResourceHook<Theme>({
+  endpoints: {
+    fetch: '/api/themes/getAll',
+    create: '/api/themes/add',
+    update: '/api/themes/update',
+    delete: '/api/themes/delete'
+  },
+  storeActions: {
+    setItems: themes => useThemeStore.getState().setThemes(themes)
+  },
+  options: {
+    idField: 'guid',
+    generateId: true,
+    transformFetchResponse: data => data.themes || [],
+    transformItemResponse: data => data.theme
+  }
+});
 
 /**
  * Custom hook for managing themes in the application.
@@ -11,160 +32,138 @@ import { v4 as uuidv4 } from 'uuid';
  * as well as access to theme state and error handling.
  */
 export function useThemeManagement() {
-  const { 
-    themes, 
-    activeThemeId, 
-    isLoading, 
-    error,
-    addTheme,
-    updateTheme,
-    removeTheme,
-    setActiveTheme,
-    applyTheme,
-    applyRandomTheme,
-    setError,
-    loadThemes,
-    saveTheme,
-    deleteThemeFromServer,
-    setActiveThemeOnServer,
-    loadActiveTheme
-  } = useThemeStore();
+  const {
+    isLoading: themesLoading,
+    error: themesError,
+    fetchItems: fetchThemes,
+    createItem: addTheme,
+    updateItem: updateTheme,
+    deleteItem: deleteTheme,
+    clearError: clearThemesError
+  } = useThemeResource();
+
+  const { executeApiCall } = useApiCallState();
+  const { themes, activeThemeId, setActiveThemeId, setThemes } = useThemeStore();
 
   /**
-   * Creates a new theme with the provided data.
-   * Generates a unique guid and timestamps if not provided.
-   * @param themeData Partial theme data to create the theme.
-   * @returns The ID of the newly created theme.
+   * Refreshes the themes list from the server
    */
-  const createTheme = useCallback((themeData: Partial<Theme>) => {
-    try {
-      const now = new Date().toISOString();
-      const newThemeData: Partial<Theme> = {
-        ...themeData,
-        guid: themeData.guid || uuidv4(),
-        created: themeData.created || now,
-        lastModified: themeData.lastModified || now
-      };
-      
-      const themeId = addTheme(newThemeData);
-      return themeId;
-    } catch (err: any) {
-      setError(err?.message || 'Failed to create theme');
-      throw err;
-    }
-  }, [addTheme, setError]);
-
-  /**
-   * Deletes a theme by its ID.
-   * @param themeId The ID of the theme to delete.
-   */
-  const deleteTheme = useCallback((themeId: string) => {
-    try {
-      removeTheme(themeId);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to delete theme');
-      throw err;
-    }
-  }, [removeTheme, setError]);
-
-  /**
-   * Activates a theme by its ID.
-   * @param themeId The ID of the theme to activate.
-   */
-  const activateTheme = useCallback((themeId: string) => {
-    try {
-      setActiveTheme(themeId);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to activate theme');
-      throw err;
-    }
-  }, [setActiveTheme, setError]);
-
-  /**
-   * Applies a theme by its ID.
-   * @param themeId The ID of the theme to apply.
-   */
-  const applyThemeById = useCallback((themeId: string) => {
-    try {
-      applyTheme(themeId);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to apply theme');
-      throw err;
-    }
-  }, [applyTheme, setError]);
-
-  /**
-   * Applies a random theme from the available themes.
-   */
-  const applyRandom = useCallback(() => {
-    try {
-      applyRandomTheme();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to apply random theme');
-      throw err;
-    }
-  }, [applyRandomTheme, setError]);
+  const refreshThemes = useCallback(async () => {
+    return await fetchThemes();
+  }, [fetchThemes]);
 
   /**
    * Updates a theme's name.
    * @param themeId The ID of the theme to update.
    * @param name The new name for the theme.
    */
-  const updateThemeName = useCallback((themeId: string, name: string) => {
-    try {
-      updateTheme(themeId, { name });
-    } catch (err: any) {
-      setError(err?.message || 'Failed to update theme name');
-      throw err;
+  const updateThemeName = useCallback(async (themeId: string, name: string) => {
+    const theme = themes.find(t => t.guid === themeId);
+    if (!theme) {
+      throw new Error(`Theme with ID ${themeId} not found`);
     }
-  }, [updateTheme, setError]);
+    
+    return await updateTheme({
+      ...theme,
+      name,
+      lastModified: new Date().toISOString()
+    });
+  }, [themes, updateTheme]);
 
   /**
-   * Clears the current error state.
+   * Activates a theme by its ID and applies it.
+   * @param themeId The ID of the theme to activate.
    */
-  const clearError = useCallback(() => {
-    setError(null);
-  }, [setError]);
+  const activateTheme = useCallback(async (themeId: string) => {
+    return executeApiCall(async () => {
+      const response = await createApiRequest('/api/themes/setActive', 'POST')({ themeId });
+      if (response.success) {
+        setActiveThemeId(themeId);
+        applyTheme(themeId);
+        return true;
+      } else {
+        throw new Error(response.error || 'Failed to set active theme');
+      }
+    });
+  }, [executeApiCall, setActiveThemeId]);
 
   /**
-   * Refreshes the themes list from the server
+   * Applies a theme by its ID without setting it as active.
+   * @param themeId The ID of the theme to apply.
    */
-  const refreshThemes = useCallback(async () => {
-    try {
-      await loadThemes();
+  const applyTheme = useCallback((themeId: string) => {
+    const theme = themes.find(t => t.guid === themeId);
+    if (theme) {
+      ThemeManager.applyLLMTheme(theme.themeJson);
       return true;
-    } catch (err: any) {
-      setError(err?.message || 'Failed to refresh themes');
-      return false;
+    } else {
+      throw new Error(`Theme with ID ${themeId} not found`);
     }
-  }, [loadThemes, setError]);
+  }, [themes]);
 
   /**
-   * Loads the active theme from the server
+   * Applies a random theme from the available themes.
    */
-  const loadActive = useCallback(async () => {
-    try {
-      await loadActiveTheme();
-      return true;
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load active theme');
-      return false;
+  const applyRandomTheme = useCallback(() => {
+    if (themes.length === 0) {
+      throw new Error('No themes available to apply');
     }
-  }, [loadActiveTheme, setError]);
+    const randomIndex = Math.floor(Math.random() * themes.length);
+    const randomTheme = themes[randomIndex];
+    
+    ThemeManager.applyLLMTheme(randomTheme.themeJson);
+    return randomTheme.guid;
+  }, [themes]);
+
+  /**
+   * Loads the active theme from the server and applies it
+   */
+  const loadActiveTheme = useCallback(async () => {
+    return executeApiCall(async () => {
+      const response = await createApiRequest('/api/themes/getActive', 'POST')({});
+      if (response.success) {
+        const { themeId } = response;
+        if (themeId) {
+          setActiveThemeId(themeId);
+          applyTheme(themeId);
+        }
+        return themeId;
+      } else {
+        throw new Error(response.error || 'Failed to load active theme');
+      }
+    });
+  }, [executeApiCall, setActiveThemeId, applyTheme]);
+
+  /**
+   * Creates a new theme with the provided data.
+   * @param themeData Partial theme data to create the theme.
+   */
+  const createTheme = useCallback(async (themeData: Partial<Theme>) => {
+    const now = new Date().toISOString();
+    const newThemeData: Partial<Theme> = {
+      ...themeData,
+      guid: themeData.guid || uuidv4(),
+      created: themeData.created || now,
+      lastModified: themeData.lastModified || now
+    };
+    
+    return await addTheme(newThemeData as Theme);
+  }, [addTheme]);
 
   return {
     themes,
     activeThemeId,
-    isLoading,
-    error,
+    isLoading: themesLoading,
+    error: themesError,
     createTheme,
+    updateTheme,
     deleteTheme,
     activateTheme,
-    applyTheme: applyThemeById,
-    applyRandomTheme: applyRandom,
+    applyTheme,
+    applyRandomTheme,
     updateThemeName,
-    clearError,
+    clearError: clearThemesError,
     refreshThemes,
-    loadActiveTheme: loadActive
+    loadActiveTheme
   };
 }
