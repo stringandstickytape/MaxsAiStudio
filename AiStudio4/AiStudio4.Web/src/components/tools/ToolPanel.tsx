@@ -367,7 +367,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                           onClick={() => handleSelectTool(tool.guid)}
                           className={`w-full ${isActive ? 
                             'bg-blue-600 hover:bg-blue-700 text-white' : 
-                            'bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600'
+                            'bg-gray-700 hover:bg-gray-600 border-gray-600'
                           }`}
                         >
                           {isActive ? (

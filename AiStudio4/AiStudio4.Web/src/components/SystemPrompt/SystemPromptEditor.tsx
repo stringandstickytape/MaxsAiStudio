@@ -268,7 +268,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                   type="button"
                   onClick={addTag}
                   variant="outline"
-                  className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+                  className="bg-gray-700 hover:bg-gray-600 border-gray-600"
                   disabled={isProcessing}
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add
@@ -280,7 +280,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                   <Badge
                     key={tag}
                     variant="outline"
-                    className="py-1 px-2 bg-gray-700 text-gray-200 border-gray-600 flex items-center gap-1"
+                    className="py-1 px-2 bg-gray-700  border-gray-600 flex items-center gap-1"
                   >
                     {tag}
                     <Button

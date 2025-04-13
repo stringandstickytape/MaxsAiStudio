@@ -93,7 +93,7 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full mt-1 bg-gray-700/60 border-gray-600 text-gray-200 hover:bg-gray-600 hover:text-white flex items-center justify-center"
+                className="w-full mt-1 bg-gray-700/60 border-gray-600 hover:bg-gray-600 hover:text-white flex items-center justify-center"
                 onClick={handleManageTools}
               >
                 <span className="mr-1">Manage Tools</span>

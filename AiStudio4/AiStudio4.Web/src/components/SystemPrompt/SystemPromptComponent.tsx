@@ -32,6 +32,11 @@ export const themeableProps = {
     description: 'Popup background color',
     default: '#1a202c',
   },
+  popupTextColor: {
+    cssVar: '--systemprompt-popup-text-color',
+    description: 'Popup text color',
+    default: '#e2e8f0',
+  },
   editBackground: {
     cssVar: '--systemprompt-edit-bg',
     description: 'Edit textarea background',
@@ -279,7 +284,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
 
     if (loading && !currentPrompt) {
         return (
-            <div className="flex items-center justify-center h-8 text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-8 text-sm">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
                 Loading prompts...
             </div>
@@ -308,7 +313,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 )}
                 onClick={() => setIsHovered(true)}
             >
-                <span className="text-gray-300 text-sm truncate block w-full">System Prompt: {currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
+                <span className="text-sm truncate block w-full">System Prompt: {currentPrompt ? currentPrompt.title : 'System Prompt'}</span>
             </div>
 
 
@@ -327,12 +332,12 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 >
                     <div className="flex items-center justify-between" onClick={!expanded ? toggleExpand : undefined}>
                         <div className="flex items-center">
-                            <span className="text-gray-300 text-sm truncate">{getPromptDisplayText()}</span>
+                            <span className="text-sm truncate">{getPromptDisplayText()}</span>
                         </div>
                         {expanded ? (
-                            <ChevronUp className="h-4 w-4 text-gray-400 cursor-pointer" onClick={toggleExpand} />
+                            <ChevronUp className="h-4 w-4 cursor-pointer" onClick={toggleExpand} />
                         ) : (
-                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                            <ChevronDown className="h-4 w-4 " />
                         )}
                     </div>
 
@@ -344,6 +349,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                 // Use direct theme values instead of CSS variables for portal content
                                 // since portals are outside the component hierarchy and won't inherit CSS variables
                                 backgroundColor: 'var(--systemprompt-popup-bg, #1a202c)',
+                                color: 'var(--systemprompt-popup-text-color, #e2e8f0)',
                                 borderColor: 'var(--systemprompt-border-color, #4a5568)',
                                 borderRadius: '8px',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -353,8 +359,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                         >
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center">
-                                    <MessageSquare className="h-4 w-4 text-gray-400 mr-2" />
-                                    <span className="text-gray-200 font-medium">
+                                    <MessageSquare className="h-4 w-4  mr-2" />
+                                    <span className="font-medium">
                                         {currentPrompt ? currentPrompt.title : 'System Prompt'}
                                     </span>
                                 </div>
@@ -363,7 +369,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                         variant="ghost"
                                         size="icon"
                                         onClick={toggleEdit}
-                                        className="h-7 w-7 text-gray-400 hover:text-gray-100"
+                                        className="h-7 w-7  "
                                     >
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -371,7 +377,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                         variant="ghost"
                                         size="icon"
                                         onClick={toggleExpand}
-                                        className="h-7 w-7 text-gray-400 hover:text-gray-100"
+                                        className="h-7 w-7  "
                                     >
                                         <ChevronUp className="h-4 w-4" />
                                     </Button>
@@ -400,7 +406,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                                 if (currentPrompt) setPromptContent(currentPrompt.content);
                                                 setEditMode(false);
                                             }}
-                                            className="text-xs h-8 text-gray-200 border-gray-600"
+                                            className="text-xs h-8 border-gray-600"
                                         >
                                             Cancel
                                         </Button>
@@ -415,7 +421,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                 </>
                             ) : (
                                 <>
-                                    <pre className="text-gray-200 font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto mb-3">
+                                    <pre className="font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto mb-3">
                                         {currentPrompt?.content || 'No system prompt content'}
                                     </pre>
 
@@ -434,8 +440,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                                 className={cn(
                                                     "h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0",
                                                     currentPrompt?.guid === prompt.guid
-                                                        ? "border-blue-700/30 text-blue-200 hover:bg-blue-600/40 hover:text-blue-100"
-                                                        : "border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100"
+                                                        ? "border-blue-700/30 hover:bg-blue-600/40 hover:text-blue-100"
+                                                        : "border-gray-700/20 hover:bg-gray-600/30 "
                                                 )}
                                             >
                                                 {prompt.title}
@@ -449,7 +455,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                             size="sm"
                                             variant="outline"
                                             onClick={handleOpenLibrary}
-                                            className="text-xs h-8 text-gray-200 border-gray-600 bg-gray-700 hover:bg-gray-600"
+                                            className="text-xs h-8 border-gray-600 bg-gray-700 hover:bg-gray-600"
                                         >
                                             Manage Prompts
                                         </Button>
