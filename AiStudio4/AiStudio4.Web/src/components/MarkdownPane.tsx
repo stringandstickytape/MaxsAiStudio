@@ -307,10 +307,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                                         .filter(value => typeof value === 'string' && value.startsWith('#'))
                                                         .slice(0, 5)
                                                 });
-                                                console.log('[Theme Debug] Theme installed successfully');
-                                                alert('Theme installed successfully!');
                                             } else {
-                                                console.error('[Theme Debug] createTheme function not available on window');
+                                                console.error('createTheme function not available on window');
                                                 // Try to import the function directly as a fallback
                                                 try {
                                                     const { useThemeManagement } = await import('@/hooks/useThemeManagement');
@@ -325,14 +323,11 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                                                 .filter(value => typeof value === 'string' && value.startsWith('#'))
                                                                 .slice(0, 5)
                                                         });
-                                                        console.log('[Theme Debug] Theme installed successfully via fallback');
-                                                        alert('Theme installed successfully!');
                                                     } else {
                                                         throw new Error('createTheme function not available');
                                                     }
                                                 } catch (importError) {
-                                                    console.error('[Theme Debug] Failed to import useThemeManagement:', importError);
-                                                    alert('Failed to install theme. Please try again later.');
+                                                    console.error('Failed to import useThemeManagement:', importError);
                                                 }
                                             }
                                         } catch (e) {
