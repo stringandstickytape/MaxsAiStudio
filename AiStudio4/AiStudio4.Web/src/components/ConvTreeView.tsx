@@ -228,11 +228,18 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
             userNodeColor: window?.theme?.ConvTreeView?.userNodeColor
         });
 
-        // Get theme values from CSS variables
+        // Get theme values from CSS variables, prioritizing containerRef.current
         const getThemeColor = (varName: string, fallback: string) => {
-            // Try to get the CSS variable from the document
-            const computedStyle = getComputedStyle(document.documentElement);
-            return computedStyle.getPropertyValue(varName) || fallback;
+            // Try to get the CSS variable from the ConvTreeView container first
+            let value = '';
+            if (containerRef.current) {
+                value = getComputedStyle(containerRef.current).getPropertyValue(varName);
+            }
+            // Fallback to :root if not found or empty
+            if (!value || value.trim() === '') {
+                value = getComputedStyle(document.documentElement).getPropertyValue(varName);
+            }
+            return value && value.trim() !== '' ? value : fallback;
         };
 
         // Theme colors for tree elements
@@ -450,12 +457,14 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                     const modelGuid = d.data.costInfo.modelGuid;
 
                     // Get just the model name without the 'Model:' prefix
-                    modelInfo = getModelFriendlyName(modelGuid);
+                    const modelName = getModelFriendlyName(modelGuid);
 
-                    // Fallback if modelInfo is empty
-                    if (!modelInfo || modelInfo === 'Unknown Model') {
+                    // Fallback if modelName is empty
+                    if (!modelName || modelName === 'Unknown Model') {
                         // Try to extract a simple model identifier from the GUID
                         modelInfo = modelGuid.split('-')[0] || 'AI';
+                    } else {
+                        modelInfo = modelName;
                     }
                 }
 
