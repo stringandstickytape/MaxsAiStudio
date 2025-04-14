@@ -94,7 +94,7 @@ namespace AiStudio4.Core.Tools
                                       },
                                       ""oldContent"": {
                                         ""type"": ""string"",
-                                        ""description"": ""The lines to be removed or replaced in a 'modifyFile' operation. Should include significant context. Ignored for other change types.""
+                                        ""description"": ""The lines to be removed or replaced in a 'modifyFile' operation. Should include significant context. Ignored, and should be left blank, for all other change types.""
                                       },
                                       ""newContent"": {
                                         ""type"": ""string"",
@@ -106,7 +106,10 @@ namespace AiStudio4.Core.Tools
                                       }
                                     },
                                     ""required"": [
-                                      ""change_type""
+                                      ""change_type"",
+                                      ""oldContent"",
+                                      ""newContent"",
+                                      ""description"",
                                       // Note: oldContent/newContent requirements depend on change_type, validated later
                                     ]
                                   }

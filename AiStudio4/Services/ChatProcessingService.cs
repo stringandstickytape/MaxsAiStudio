@@ -64,23 +64,20 @@ namespace AiStudio4.Services
                 Action streamingCompleteCallback = () =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = "" }); // Send empty content on complete
 
-                // Old event handler setup - REMOVED
-                // EventHandler<string> streamingHandler = (s, text) =>
-                //    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
-                // EventHandler<string> completeHandler = (s, text) =>
-                //    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = text });
-
-                // _chatService.StreamingTextReceived += streamingHandler;
-                // _chatService.StreamingComplete += completeHandler;
-
                 try
                 {
+                    // Check for cancellation before starting main processing
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException(cancellationToken);
                     var message = (string)requestObject["message"];
                         
                     var matches =Regex.Matches(message, @"\[pull:(.*?)\]");
 
                     foreach (Match match in matches)
                     {
+                        // Check for cancellation during slow HTML extraction
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException(cancellationToken);
                         var url = match.Groups[1].Value;
                         var extractedText = await HtmlTextExtractor.ExtractTextFromUrlAsync(url);
                         if (extractedText != "")
@@ -94,6 +91,9 @@ namespace AiStudio4.Services
                     {
                         foreach (var attachment in requestObject["attachments"])
                         {
+                            // Check for cancellation during attachment parsing
+                            if (cancellationToken.IsCancellationRequested)
+                                throw new OperationCanceledException(cancellationToken);
                             attachments.Add(new Attachment
                             {
                                 Id = (string)attachment["id"],
@@ -109,6 +109,9 @@ namespace AiStudio4.Services
                         }
                     }
 
+                    // Check for cancellation before loading conversation
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException(cancellationToken);
                     v4BranchedConv? conv = await _convStorage.LoadConv((string)requestObject["convId"]);
 
                     var chatRequest = new ChatRequest
@@ -176,6 +179,9 @@ namespace AiStudio4.Services
 
 
                     chatRequest.BranchedConv = conv;
+
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException(cancellationToken);
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
 
