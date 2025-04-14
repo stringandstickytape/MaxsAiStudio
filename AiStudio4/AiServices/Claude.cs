@@ -154,7 +154,7 @@ namespace AiStudio4.AiServices
 
             var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
-            if (forceNoTools)
+            if (!forceNoTools)
             {
                 await AddToolsToRequestAsync(req, options.ToolIds);
             }
