@@ -516,28 +516,54 @@ namespace AiStudio4.AiServices
             int? cacheCreationInputTokens = null;
             int? cacheReadInputTokens = null;
 
-            while (true)
+            try
             {
-                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                if (bytesRead == 0) break;
-
-                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
-                decoder.GetChars(buffer, 0, bytesRead, chars, 0);
-
-                foreach (char c in chars)
+                while (true)
                 {
-                    if (c == '\n')
+                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                    if (bytesRead == 0) break;
+                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytesRead)];
+                    decoder.GetChars(buffer, 0, bytesRead, chars, 0);
+                    foreach (char c in chars)
                     {
-                        ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens,
-                            ref cacheCreationInputTokens, ref cacheReadInputTokens);
-                        lineBuilder.Clear();
-                    }
-                    else
-                    {
-                        lineBuilder.Append(c);
+                        if (c == '\n')
+                        {
+                            ProcessLine(lineBuilder.ToString(), responseBuilder, ref inputTokens, ref outputTokens,
+                                ref cacheCreationInputTokens, ref cacheReadInputTokens);
+                            lineBuilder.Clear();
+                        }
+                        else
+                        {
+                            lineBuilder.Append(c);
+                        }
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Process any remaining data in the line builder before returning
+                if (lineBuilder.Length > 0)
+                {
+                    var line = lineBuilder.ToString();
+                    if (!line.StartsWith("data: "))
+                        line = "data: " + line;
+                    ProcessLine(line, responseBuilder, ref inputTokens, ref outputTokens,
+                        ref cacheCreationInputTokens, ref cacheReadInputTokens);
+                }
+
+                responseBuilder.AppendLine("\n\n<Cancelled>\n");
+
+                // Return partial results on cancellation
+                return new StreamProcessingResult
+                {
+                    ResponseText = responseBuilder.ToString(),
+                    InputTokens = this.inputTokens,
+                    OutputTokens = this.outputTokens,
+                    CacheCreationInputTokens = this.cacheCreationInputTokens,
+                    CacheReadInputTokens = this.cacheReadInputTokens,
+                };
+            }
+
 
             if (lineBuilder.Length > 0)
             {

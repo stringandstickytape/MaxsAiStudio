@@ -240,10 +240,10 @@ namespace AiStudio4.AiServices
         }
 
         private async Task<AiResponse> HandleStreamingChatCompletion(
-            List<ChatMessage> messages, 
-            ChatCompletionOptions options, 
+            List<ChatMessage> messages,
+            ChatCompletionOptions options,
             CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
+            Action<string> onStreamingUpdate,
             Action onStreamingComplete)
         {
             StringBuilder responseBuilder = new StringBuilder();
@@ -258,7 +258,6 @@ namespace AiStudio4.AiServices
 
                 await foreach (StreamingChatCompletionUpdate update in completionUpdates.WithCancellation(cancellationToken))
                 {
-
                     // Handle content updates (text)
                     if (update.ContentUpdate != null && update.ContentUpdate.Count > 0 && !string.IsNullOrEmpty(update.ContentUpdate[0].Text))
                     {
@@ -283,7 +282,7 @@ namespace AiStudio4.AiServices
                                     ResponseText = ""
                                 };
                                 ToolResponseSet.Tools.Add(toolResponseItem);
-                                
+
                                 // Clear the response builder when a tool is chosen
                                 //responseBuilder.Clear();
                             }
@@ -301,7 +300,7 @@ namespace AiStudio4.AiServices
                                     if (lastToolResponse != null)
                                     {
                                         lastToolResponse.ResponseText += argumentUpdate;
-                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != '\t' && x != ' ' && x != '\r' && x != '\n'))
+                                        if (lastToolResponse.ResponseText.Length > 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != '\t' && x != ' ' && x != '\r' && x != '\n'))
                                         {
                                             // request cancellation on cancellationtoken
 
@@ -314,9 +313,7 @@ namespace AiStudio4.AiServices
                                                 TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                                                 ChosenTool = chosenTool,
                                                 ToolResponseSet = ToolResponseSet
-
                                             };
-
                                         }
                                     }
                                 }
@@ -352,8 +349,33 @@ namespace AiStudio4.AiServices
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                     ChosenTool = chosenTool,
-                    ToolResponseSet = ToolResponseSet
-                    
+                    ToolResponseSet = ToolResponseSet,
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                // Return partial results when cancellation occurs
+                onStreamingComplete?.Invoke(); // Still invoke completion callback
+
+                // Trim any tool response text
+                if (ToolResponseSet.Tools.Count > 0 && !string.IsNullOrEmpty(chosenTool))
+                {
+                    var lastToolResponse = ToolResponseSet.Tools.LastOrDefault(t => t.ToolName == chosenTool);
+                    if (lastToolResponse != null)
+                    {
+                        lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
+                    }
+                }
+
+                responseBuilder.AppendLine("\n\n<Cancelled>\n");
+
+                return new AiResponse
+                {
+                    ResponseText = responseBuilder.ToString().TrimEnd(),
+                    Success = true, // Still consider it a success, just partial
+                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                    ChosenTool = chosenTool,
+                    ToolResponseSet = ToolResponseSet,
                 };
             }
             catch (Exception ex)
