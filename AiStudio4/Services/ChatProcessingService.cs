@@ -63,7 +63,9 @@ namespace AiStudio4.Services
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
                 Action streamingCompleteCallback = () =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = "" }); // Send empty content on complete
-
+                bool isFirstMessageInConv = false;
+                ChatRequest chatRequest = null;
+                v4BranchedConv? conv = null;
                 try
                 {
                     // Check for cancellation before starting main processing
@@ -112,9 +114,9 @@ namespace AiStudio4.Services
                     // Check for cancellation before loading conversation
                     if (cancellationToken.IsCancellationRequested)
                         throw new OperationCanceledException(cancellationToken);
-                    v4BranchedConv? conv = await _convStorage.LoadConv((string)requestObject["convId"]);
+                    conv = await _convStorage.LoadConv((string)requestObject["convId"]);
 
-                    var chatRequest = new ChatRequest
+                    chatRequest = new ChatRequest
                     {
                         ClientId = clientId,
                         MessageId = (string)requestObject["newMessageId"],
@@ -133,7 +135,7 @@ namespace AiStudio4.Services
                     System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
                     
                     // Check if this is the first non-system message in the conversation
-                    bool isFirstMessageInConv = conv.Messages.Count <= 1 ||
+                    isFirstMessageInConv = conv.Messages.Count <= 1 ||
                         (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
 
                     var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
@@ -185,7 +187,22 @@ namespace AiStudio4.Services
 
                     var response = await _chatService.ProcessChatRequest(chatRequest);
 
-                    if (isFirstMessageInConv)
+
+
+                    // Save the conversation state *before* returning the response, 
+                    // but potentially before the background summary task completes.
+                    await _convStorage.SaveConv(conv);
+
+                    return JsonConvert.SerializeObject(new { success = true, response = response });
+                }
+                finally
+                {
+                    // Remove old event unsubscribing
+                    // _chatService.StreamingTextReceived -= streamingHandler;
+                    // _chatService.StreamingComplete -= completeHandler;
+                    _cancellationService.RemoveTokenSource(clientId, cancellationToken);
+
+                    if (isFirstMessageInConv && conv != null && chatRequest != null)
                     {
                         // Run summary generation in the background using a proper DI scope
                         _ = Task.Run(async () =>
@@ -210,7 +227,7 @@ namespace AiStudio4.Services
                                             // Use captured request/response excerpts
                                             string userMessageExcerpt = chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message;
                                             string aiResponseExcerpt = conv.Messages.Last().UserMessage.Length > 250 ? conv.Messages.Last().UserMessage.Substring(0, 250) : conv.Messages.Last().UserMessage;
-                                            var summaryPrompt = $"Generate a concise 6 - 10 word summary of this conversation.  Produce NO OTHER OUTPUT WHATSOEVER.  \n\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}";
+                                            var summaryPrompt = $"Generate a concise 6 - 10 word summary of the following content.  Produce NO OTHER OUTPUT WHATSOEVER.  \n\n```txt\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}\n```\n";
 
                                             // Use scoped chat service
                                             var summaryResponse = await scopedChatService.ProcessSimpleChatRequest(summaryPrompt); // Pass necessary model/provider info if needed by ProcessSimpleChatRequest
@@ -261,19 +278,6 @@ namespace AiStudio4.Services
                             }
                         });
                     }
-
-                    // Save the conversation state *before* returning the response, 
-                    // but potentially before the background summary task completes.
-                    await _convStorage.SaveConv(conv);
-
-                    return JsonConvert.SerializeObject(new { success = true, response = response });
-                }
-                finally
-                {
-                    // Remove old event unsubscribing
-                    // _chatService.StreamingTextReceived -= streamingHandler;
-                    // _chatService.StreamingComplete -= completeHandler;
-                    _cancellationService.RemoveTokenSource(clientId, cancellationToken);
                 }
             }
             catch (Exception ex)
