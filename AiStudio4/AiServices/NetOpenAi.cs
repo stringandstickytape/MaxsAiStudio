@@ -45,7 +45,7 @@ namespace AiStudio4.AiServices
 
         private void InitializeOpenAIClients(string model)
         {
-            var cred = new ApiKeyCredential(ApiKey);
+            var cred = new ApiKeyCredential(ApiKey ?? "ollama");
 
             _openAIClient = new OpenAIClient(cred, new OpenAIClientOptions { Endpoint =  new Uri(ApiUrl) });
             

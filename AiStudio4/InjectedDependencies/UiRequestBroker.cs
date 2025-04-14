@@ -522,7 +522,7 @@ namespace AiStudio4.InjectedDependencies
         {
             try
             {
-                var prompts = await _systemPromptService.GetAllSystemPromptsAsync();
+                var prompts = (await _systemPromptService.GetAllSystemPromptsAsync()).OrderBy(x => x.Title);
                 return JsonConvert.SerializeObject(new { success = true, prompts });
             }
             catch (Exception ex)
