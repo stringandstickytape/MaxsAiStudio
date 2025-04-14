@@ -6,6 +6,7 @@ import { Message } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { getModelFriendlyName } from '@/utils/modelUtils';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 interface TreeViewProps {
   convId: string;
@@ -53,9 +54,12 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         }
     };
 
+    // Subscribe to activeThemeId to trigger redraw on theme change
+    const activeThemeId = useThemeStore(state => state.activeThemeId);
+
     useEffect(() => {
         setUpdateKey((prev) => prev + 1);
-    }, [convId]);
+    }, [convId, activeThemeId]);
 
 
     const hierarchicalData = useMemo(() => {
@@ -498,8 +502,8 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         };
 
 
-    // Add window.theme as a dependency to re-render when theme changes
-    }, [hierarchicalData, convId, window?.theme]);
+    // Add window.theme and activeThemeId as dependencies to re-render when theme changes
+    }, [hierarchicalData, convId, window?.theme, activeThemeId]);
 
     // Auto-focus on latest message when a new message is added
     useEffect(() => {
