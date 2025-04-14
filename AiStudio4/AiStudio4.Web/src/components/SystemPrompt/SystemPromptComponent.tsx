@@ -66,7 +66,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     const { togglePanel } = usePanelStore();
     const { prompts, defaultPromptId, convPrompts, setConvPrompt } = useSystemPromptStore();
 
-    const { updateSystemPrompt, setConvSystemPrompt, isLoading: loading } = useSystemPromptManagement();
+    const { updateSystemPrompt, setConvSystemPrompt, setDefaultSystemPrompt, isLoading: loading } = useSystemPromptManagement();
 
     const [expanded, setExpanded] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -75,6 +75,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     const [portalReady, setPortalReady] = useState(false);
     const [currentPrompt, setCurrentPrompt] = useState<SystemPrompt | null>(null);
     const [portalStyle, setPortalStyle] = useState<React.CSSProperties>({});
+    const [isProcessing, setIsProcessing] = useState(false);
     const promptRef = useRef<HTMLDivElement>(null);
     const portalContentRef = useRef<HTMLDivElement>(null);
 
@@ -433,6 +434,40 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleSelectPrompt(prompt)}
+                                                onMouseDown={async (e) => {
+                                                    if (e.button === 1 && !isProcessing) { // Middle click
+                                                        e.preventDefault();
+                                                        setIsProcessing(true);
+                                                        const effectiveConvId = convId || storeConvId;
+                                                        if (effectiveConvId) {
+                                                            console.debug('[SystemPromptComponent] Middle-click detected on prompt pill:', prompt.guid, prompt.title);
+                                                            await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
+                                                            setConvPrompt(effectiveConvId, prompt.guid);
+                                                        }
+                                                        try {
+                                                            // Add debug logs for setDefaultSystemPrompt existence and type before calling
+                                                            console.debug('[SystemPromptComponent] setDefaultSystemPrompt:', setDefaultSystemPrompt, typeof setDefaultSystemPrompt);
+                                                            if (!setDefaultSystemPrompt) {
+                                                                console.error('[SystemPromptComponent] setDefaultSystemPrompt is undefined!');
+                                                            } else if (typeof setDefaultSystemPrompt !== 'function') {
+                                                                console.error('[SystemPromptComponent] setDefaultSystemPrompt is not a function:', setDefaultSystemPrompt);
+                                                            } else {
+                                                                console.debug('[SystemPromptComponent] Calling setDefaultSystemPrompt:', prompt.guid);
+                                                                const result = await setDefaultSystemPrompt(prompt.guid);
+                                                                console.debug('[SystemPromptComponent] setDefaultSystemPrompt result:', result);
+                                                            }
+                                                        } catch (err) {
+                                                            // fallback: try direct
+                                                            if (typeof setDefaultSystemPrompt === 'function') {
+                                                                setDefaultSystemPrompt(prompt.guid);
+                                                            }
+                                                        }
+                                                        setExpanded(false);
+                                                        setEditMode(false);
+                                                        setIsProcessing(false);
+                                                    }
+                                                }}
+                                                disabled={isProcessing}
                                                 style={{
                                                     backgroundColor: currentPrompt?.guid === prompt.guid ? 'var(--systemprompt-accent-color, #3b82f6)33' : 'var(--systemprompt-bg, #2d3748)',
                                                     ...(window?.theme?.SystemPromptComponent?.style || {})
