@@ -203,8 +203,8 @@ namespace AiStudio4.Services
                                         {
                                             // Use captured request/response excerpts
                                             string userMessageExcerpt = chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message;
-                                            string aiResponseExcerpt = response.ResponseText.Length > 250 ? response.ResponseText.Substring(0, 250) : response.ResponseText;
-                                            var summaryPrompt = $"Generate a concise 6 - 10 word summary of this conv:\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}";
+                                            string aiResponseExcerpt = conv.Messages.Last().UserMessage.Length > 250 ? conv.Messages.Last().UserMessage.Substring(0, 250) : conv.Messages.Last().UserMessage;
+                                            var summaryPrompt = $"Generate a concise 6 - 10 word summary of this conversation.  Produce NO OTHER OUTPUT WHATSOEVER.  \n\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}";
 
                                             // Use scoped chat service
                                             var summaryResponse = await scopedChatService.ProcessSimpleChatRequest(summaryPrompt); // Pass necessary model/provider info if needed by ProcessSimpleChatRequest
