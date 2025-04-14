@@ -1,4 +1,4 @@
-// AiStudio4.Core\Tools\CodeDiffTool.cs
+﻿// AiStudio4.Core\Tools\CodeDiffTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
