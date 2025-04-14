@@ -9,7 +9,7 @@ namespace AiStudio4.Services.Interfaces
     public interface IAiService
     {
         // New method that uses the options pattern
-        Task<AiResponse> FetchResponse(AiRequestOptions options);
+        Task<AiResponse> FetchResponse(AiRequestOptions options, bool forceNoTools = false);
         
         // Legacy method for backward compatibility - to be deprecated
         Task<AiResponse> FetchResponse(ServiceProvider serviceProvider,

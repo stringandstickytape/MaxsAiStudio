@@ -28,7 +28,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         {
             }
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
 // Clear any previously generated images
             _generatedImages.Clear();
@@ -46,7 +46,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
             // Add tools if specified
+            if (!forceNoTools)
+            {
                 await AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            }
 
             // Construct the messages array
             var contentsArray = new JArray();

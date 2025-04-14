@@ -231,10 +231,18 @@ export function InputBar({
         // If we're trying to cancel a current request
         if (isLoading && currentRequest) {
             setIsCancelling(true);
-            cancelMessage({
-                convId: currentRequest.convId,
-                messageId: currentRequest.messageId
-            });
+            (async () => {
+                const result = await cancelMessage({
+                    convId: currentRequest.convId,
+                    messageId: currentRequest.messageId
+                });
+                if (result) {
+                    window.dispatchEvent(new CustomEvent('request:cancelled'));
+                } else {
+                    // Optionally show a toast or error message here
+                    console.error('Cancellation failed.');
+                }
+            })();
             return;
         }
 

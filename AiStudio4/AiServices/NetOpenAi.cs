@@ -55,7 +55,7 @@ namespace AiStudio4.AiServices
             _embeddingClient = _openAIClient.GetEmbeddingClient("text-embedding-3-small"); // Default embedding model
         }
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
@@ -93,7 +93,10 @@ namespace AiStudio4.AiServices
                 };
 
                 // Add tools if specified or if using MCP service tools
-                await AddToolsToChatOptions(chatOptions, options.ToolIds);
+                if (!forceNoTools)
+                {
+                    await AddToolsToChatOptions(chatOptions, options.ToolIds);
+                }
 
                 // Process embeddings if needed
                 if (options.AddEmbeddings)
@@ -298,7 +301,7 @@ namespace AiStudio4.AiServices
                                     if (lastToolResponse != null)
                                     {
                                         lastToolResponse.ResponseText += argumentUpdate;
-                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != '\r' && x != '\n'))
+                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != ' ' && x != '\r' && x != '\n'))
                                         {
                                             // request cancellation on cancellationtoken
 

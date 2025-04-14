@@ -29,7 +29,7 @@ namespace AiStudio4.AiServices
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         }
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
             deepseekBodge = ApiUrl.Contains("deepseek");
@@ -65,7 +65,10 @@ namespace AiStudio4.AiServices
             requestPayload["messages"] = messagesArray;
 
             // Add tools into the request if any tool IDs were specified.
-            AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            if (!forceNoTools)
+            {
+                AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            }
 
             if (options.AddEmbeddings)
             {

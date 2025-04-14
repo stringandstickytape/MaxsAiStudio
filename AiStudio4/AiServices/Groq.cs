@@ -17,7 +17,7 @@ namespace AiStudio4.AiServices
         {
         }
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 

@@ -63,10 +63,10 @@ namespace AiStudio4.AiServices
         }
 
         // New implementation using the options pattern
-        public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options)
+        public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options, bool forceNoTools = false)
         {
             // Default implementation that calls the legacy method to be overridden by derived classes
-            return await FetchResponseInternal(options);
+            return await FetchResponseInternal(options, forceNoTools);
         }
 
         // Legacy method for backward compatibility
@@ -98,7 +98,7 @@ namespace AiStudio4.AiServices
         }
         
         // Internal method to be implemented by derived classes
-        protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options);
+        protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false);
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
             LinearConv conv,

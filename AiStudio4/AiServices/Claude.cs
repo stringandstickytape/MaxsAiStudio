@@ -141,7 +141,7 @@ namespace AiStudio4.AiServices
         }
 
         // Override the FetchResponseInternal method to implement Claude-specific logic
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
@@ -154,10 +154,13 @@ namespace AiStudio4.AiServices
 
             var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
 
+            if (forceNoTools)
+            {
                 await AddToolsToRequestAsync(req, options.ToolIds);
+            }
 
-                if (req["tools"] != null)
-                    req["tool_choice"] = new JObject { ["type"] = "any" };
+            if (req["tools"] != null)
+                req["tool_choice"] = new JObject { ["type"] = "any" };
 
             if (options.AddEmbeddings)
                 await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);

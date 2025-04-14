@@ -167,7 +167,14 @@ namespace AiStudio4.Core.Tools
             // --- 1. Parse and Validate Input Structure ---
             try
             {
-                parameters = JObject.Parse(toolParameters);
+                try
+                {
+                    parameters = JObject.Parse(toolParameters);
+                }
+                catch(Exception e)
+                {
+                    parameters = JObject.Parse(toolParameters+"}");
+                }
                 changeset = parameters["changeset"] as JObject;
 
                 if (changeset == null)

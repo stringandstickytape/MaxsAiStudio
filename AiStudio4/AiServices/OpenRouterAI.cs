@@ -25,7 +25,7 @@ namespace AiStudio4.AiServices
             client.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/stringandstickytape/MaxsAiStudio/");
             client.DefaultRequestHeaders.Add("X-Title", "MaxsAiStudio");
         }
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
             
@@ -36,9 +36,12 @@ namespace AiStudio4.AiServices
             }
             
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
-            
+
             // Add tools into the request if any tool IDs were specified
-            AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            if (!forceNoTools)
+            {
+                AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            }
             // Add system message
             ((JArray)requestPayload["messages"]).Add(new JObject
             {

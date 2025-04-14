@@ -102,7 +102,7 @@ namespace AiStudio4.Services
                     UseStreaming = false
                 };
                 
-                var response = await aiService.FetchResponse(requestOptions);
+                var response = await aiService.FetchResponse(requestOptions, true);
                 
                 return new SimpleChatResponse
                 {

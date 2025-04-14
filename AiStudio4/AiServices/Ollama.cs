@@ -16,7 +16,7 @@ namespace AiStudio4.AiServices
         {
         }
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options)
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
             
@@ -54,7 +54,7 @@ namespace AiStudio4.AiServices
                 requestPayload["images"] = images;
             }
 
-            if (options.ToolIds?.Any() == true)
+            if (options.ToolIds?.Any() == true  && !forceNoTools)
             {
                 await AddToolsToRequestAsync(requestPayload, options.ToolIds);
             }

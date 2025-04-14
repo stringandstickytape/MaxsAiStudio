@@ -101,7 +101,7 @@ namespace AiStudio4.Services
                     UseStreaming = false
                 };
                 
-                var response = await aiService.FetchResponse(requestOptions);
+                var response = await aiService.FetchResponse(requestOptions, true);
                 
                 _logger.LogInformation("Secondary AI request completed in {Time}ms", (DateTime.UtcNow - startTime).TotalMilliseconds);
                 return new SecondaryAiResponse
