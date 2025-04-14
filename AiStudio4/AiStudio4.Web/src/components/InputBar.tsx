@@ -1,4 +1,5 @@
-﻿import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
+﻿// AiStudio4.Web\src\components\InputBar.tsx
+import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/stores/useModalStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,6 +24,13 @@ import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { Server } from 'lucide-react'; // Added Server icon
 import { webSocketService } from '@/services/websocket/WebSocketService';
+
+// Add file header comment for clarity and traceability.
+/*
+ * InputBar.tsx
+ * React component for user input, attachments, and controls in AI Studio Web.
+ * Handles message sending, cancellation, and UI interactions.
+ */
 
 interface InputBarProps {
     selectedModel: string;
@@ -57,12 +65,9 @@ export function InputBar({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
-
-
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
     const [localInputText, setLocalInputText] = useState('');
-
 
     const {
         attachments,
@@ -95,16 +100,11 @@ export function InputBar({
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
 
-
-
-
     useEffect(() => {
         if (onAttachmentChange) {
             onAttachmentChange(attachments);
         }
     }, [attachments, onAttachmentChange]);
-
-
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -129,7 +129,6 @@ export function InputBar({
     const handleTextAreaKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         setCursorPosition(e.currentTarget.selectionStart);
     };
-
 
     useEffect(() => {
         setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
@@ -231,6 +230,8 @@ export function InputBar({
         // If we're trying to cancel a current request
         if (isLoading && currentRequest) {
             setIsCancelling(true);
+            // --- Immediately clear stream and ignore tokens ---
+            window.dispatchEvent(new CustomEvent('stream:ignore'));
             (async () => {
                 const result = await cancelMessage({
                     convId: currentRequest.convId,
@@ -255,6 +256,8 @@ export function InputBar({
 
         // Normal sending flow
         if (!isLoading) {
+            // --- Allow stream tokens again on new send ---
+            window.dispatchEvent(new CustomEvent('stream:allow'));
             console.log("hs3");
             // Enable auto-scrolling when sending a message
             window.scrollChatToBottom && window.scrollChatToBottom();
@@ -461,7 +464,7 @@ export function InputBar({
                     </div>
                 </div>
 
-                {/* Bottom Bar: Model Status, Tools */}
+                {/* Bottom Bar: Model Status, Tools, Servers */}
                 <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5"> {/* Added flex-wrap and gap-y */}
                     {/* Model Status */}
                     <div className="flex items-center mr-3 pr-3 border-r border-gray-700/50">
@@ -485,7 +488,7 @@ export function InputBar({
                                         activeTools.forEach(toolId => removeActiveTool(toolId));
                                     }
                                 }}
-                            className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
+                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
                                 disabled={disabled} // Reflect outer disabled state
                             >
                                 <Wrench className="h-3 w-3 mr-1" />
@@ -496,13 +499,19 @@ export function InputBar({
                                     </span>
                                 )}
                             </Button>
-
-                        
-                    </div>
-
-
+                            {/* Server Icon Button */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.dispatchEvent(new CustomEvent('open-server-list'))}
+                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                                disabled={disabled}
+                            >
+                                <Server className="h-3 w-3 mr-1" />
+                                <span>Servers</span>
+                            </Button>
+                        </div>
                     </div> {/* Close Tools & Servers Wrapper */}
-
                 </div>
             </div>
         </div>
