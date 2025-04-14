@@ -301,7 +301,7 @@ namespace AiStudio4.AiServices
                                     if (lastToolResponse != null)
                                     {
                                         lastToolResponse.ResponseText += argumentUpdate;
-                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != ' ' && x != '\r' && x != '\n'))
+                                        if (lastToolResponse.ResponseText.Length> 20 && !lastToolResponse.ResponseText.Substring(lastToolResponse.ResponseText.Length - 20, 20).Any(x => x != '\t' && x != ' ' && x != '\r' && x != '\n'))
                                         {
                                             // request cancellation on cancellationtoken
 
