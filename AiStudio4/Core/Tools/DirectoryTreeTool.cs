@@ -152,8 +152,10 @@ Returns a structured view of the directory tree with files and subdirectories. D
 
             try
             {
+                var files = Directory.GetFiles(searchPath).Where(x => !x.EndsWith("cs"));
+
                 // Add all files in the current directory
-                fileList.AddRange(Directory.GetFiles(searchPath));
+                fileList.AddRange(files);
 
                 // If we haven't reached the maximum depth, continue recursively
                 if (searchDepth > 0)
@@ -162,11 +164,14 @@ Returns a structured view of the directory tree with files and subdirectories. D
                     {
                         var lastDirectory = directory.Split("\\").Last();
 
-                        if (lastDirectory != "build" &&
-                            lastDirectory != "bin" &&
-                            lastDirectory != "obj" &&
-                            lastDirectory != "node_modules" &&
-                            lastDirectory != "dist")
+                        if (lastDirectory.ToLower() != "build" &&
+                            lastDirectory.ToLower() != "bin" &&
+                            lastDirectory.ToLower() != "obj" &&
+                            lastDirectory.ToLower() != "node_modules" &&
+                            lastDirectory.ToLower() != "dist" &&
+                            lastDirectory.ToLower() != ".vs" &&
+                            lastDirectory.ToLower() != "PhysicalDeletes" &&
+                            lastDirectory.ToLower() != "logs")
                         {
 
                             // Recursively get files from subdirectories with a decremented depth

@@ -1,11 +1,13 @@
 ﻿using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq; // Needed for JArray parsing
 using SharedClasses.Git;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -89,7 +91,8 @@ namespace AiStudio4.Core.Tools
                 // If the initial depth wasn't 0, then < 0 means we exceeded it.
                 // If initial depth was 0, we never decrement, so this condition isn't strictly needed unless we change depth handling.
                 // Let's assume initial depth > 0 implies limited search.
-                if (!parameters.ContainsKey("depth") || Convert.ToInt32(parameters["depth"]) > 0) return;
+                if (!parameters.ContainsKey("depth") || Convert.ToInt32(parameters["depth"]) > 0)
+                    return;
             }
             // Simplified depth check: If depth was specified > 0 initially, and remainingDepth becomes negative, stop.
             int initialDepth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
@@ -111,9 +114,13 @@ namespace AiStudio4.Core.Tools
                         continue;
                     }
 
+                    //if (filePath.EndsWith("cs") || filePath.EndsWith("dll") || filePath.EndsWith("xml") || filePath.StartsWith("jquery") || filePath.EndsWith("map") || filePath.EndsWith("7z") || filePath.EndsWith("png"))
+                    //    continue;
+
                     // Search within the file
                     try
                     {
+                        Debug.WriteLine("Searchtool checking " + filePath);
                         // Avoid reading huge files entirely into memory
                         using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
                         {
@@ -376,7 +383,7 @@ namespace AiStudio4.Core.Tools
                 }
                 else
                 {
-                    return Task.FromResult(CreateResult(true, true, "No files found containing the specified search terms."));
+                    return Task.FromResult(CreateResult(true, true, $"No files found containing the specified search terms of {string.Join("/", searchTerms)}"));
                 }
             }
             // Keep outer catch block for general errors during processing

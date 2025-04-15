@@ -67,11 +67,16 @@ namespace AiStudio4.Core.Tools
             try
             {
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
+
                 var pathsObject = parameters["paths"];
                 List<string> pathsToRead = new List<string>();
 
                 if (pathsObject is string singlePath)
                 {
+                    if (singlePath.StartsWith("[")) singlePath = singlePath.Substring(1);
+                    if (singlePath.StartsWith("\"")) singlePath = singlePath.Substring(1);
+                    if (singlePath.EndsWith("]")) singlePath = singlePath.Substring(0, singlePath.Length - 2);
+                    singlePath = singlePath.Replace("\\\\", "\\");
                     pathsToRead.Add(singlePath);
                 }
                 else if (pathsObject is JArray pathArray)
@@ -83,8 +88,15 @@ namespace AiStudio4.Core.Tools
                     throw new ArgumentException("Invalid format for 'paths' parameter. Expected string or array of strings.");
                 }
 
-                foreach (var relativePath in pathsToRead)
+                foreach (var relativePathL in pathsToRead)
                 {
+                    var relativePath = relativePathL;
+                    //if (relativePath.EndsWith("cs"))
+                    //    continue;
+
+                    if (relativePath.StartsWith("\"")) relativePath = relativePath.Substring(1);
+                    if (relativePath.EndsWith("\"")) relativePath = relativePath.Substring(0, relativePath.Length - 2);
+
                     // Security check: Ensure the path is within the project root
                     var fullPath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
 

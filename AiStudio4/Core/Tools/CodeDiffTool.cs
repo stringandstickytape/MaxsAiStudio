@@ -337,16 +337,7 @@ namespace AiStudio4.Core.Tools
                 }
                 else if (createChange != null)
                 {
-                    // Ensure it doesn't exist (race condition check, though validation tries to prevent create+delete etc.)
-                    if (File.Exists(filePath))
-                    {
-                        fileResult = (false, $"Failed: Attempted to create file '{filePath}' which already exists (possible race or validation gap).");
-                        _logger.LogError("Create operation failed for '{FilePath}' because it already exists.", filePath);
-                    }
-                    else
-                    {
-                        fileResult = await HandleCreateFileAsync(filePath, createChange);
-                    }
+                    fileResult = await HandleCreateFileAsync(filePath, createChange);
                 }
                 else if (modifyChanges.Any())
                 {
