@@ -3,7 +3,7 @@ import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X, ArrowDown, Save } from 'lucide-react'; // Use Save (floppy disk) icon for Save As
+import { Clipboard, Pencil, Check, X, ArrowDown, Save, ArrowUp } from 'lucide-react'; // Use Save (floppy disk) and ArrowUp icons for Save Conversation Up To Here
 import { LoadingTimer } from './LoadingTimer';
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -468,6 +468,45 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 title="Save message as file"
                             >
                                 <Save size={16} />
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    // Save conversation up to and including this message
+                                    try {
+                                        const { saveCodeBlockAsFile } = await import('@/services/api/apiClient');
+                                        // Find the index of this message in messageChain
+                                        const idx = messageChain.findIndex(m => m.id === message.id);
+                                        if (idx >= 0) {
+                                            // Get all messages up to and including this one
+                                            const upToMessages = messageChain.slice(0, idx + 1);
+                                            // Format: include author/source and content for each message
+                                            const conversationText = upToMessages.map(m => {
+                                                const author = m.source === 'user' ? 'User' : (m.source === 'ai' ? 'AI' : (m.source || 'Unknown'));
+                                                const timestamp = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+                                                return `---\n${author}${timestamp ? ` [${timestamp}]` : ''}:\n${m.content}\n`;
+                                            }).join('\n');
+                                            let suggestedFilename = `conversation.txt`;
+                                            await saveCodeBlockAsFile({ content: conversationText, suggestedFilename });
+                                        }
+                                    } catch (e) {
+                                        console.error('Save Conversation As failed:', e);
+                                    }
+                                }}
+                                className="ConvView p-1.5 rounded-full transition-all duration-200"
+                                style={{
+                                    color: 'var(--convview-text-color, #9ca3af)',
+                                    backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0))',
+                                    ':hover': {
+                                        color: 'var(--convview-text-color, #ffffff)',
+                                        backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0.8))'
+                                    }
+                                }}
+                                title="Save conversation up to here as file"
+                            >
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
+                                    <Save size={14} />
+                                    <ArrowUp size={12} style={{ marginLeft: 1, marginTop: 2 }} />
+                                </span>
                             </button>
                         </div>
 
