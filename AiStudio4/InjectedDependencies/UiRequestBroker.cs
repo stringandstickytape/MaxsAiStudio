@@ -162,7 +162,6 @@ namespace AiStudio4.InjectedDependencies
                     "themes/delete" => await HandleDeleteThemeRequest(requestObject),
                     "themes/setActive" => await HandleSetActiveThemeRequest(requestObject),
                     "themes/getActive" => await HandleGetActiveThemeRequest(clientId, requestObject),
-                    "saveBuiltInToolExtraProperties" => await HandleSaveBuiltInToolExtraPropertiesRequest(requestObject),
                     _ => throw new NotImplementedException()
                 }; ;
             }
