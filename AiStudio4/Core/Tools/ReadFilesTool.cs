@@ -31,6 +31,9 @@ namespace AiStudio4.Core.Tools
             {
                 Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef05", // Fixed GUID for ReadFile
                 Name = "ReadFiles",
+                ExtraProperties = new Dictionary<string, string> {
+                    { "ExcludedFileExtensions (CSV)", "" }, //".cs" }
+                },
                 Description = "Read the contents of one or multiple files.",
                 Schema = @"{
   ""name"": ""ReadFiles"",
@@ -63,6 +66,12 @@ namespace AiStudio4.Core.Tools
         {
             _logger.LogInformation("ReadFile tool called");
             var resultBuilder = new StringBuilder();
+
+            // Get excluded extensions from tool definition (ExtraProperties)
+            var toolDef = GetToolDefinition();
+            var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : ".cs";
+            var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
 
             try
             {
@@ -99,6 +108,14 @@ namespace AiStudio4.Core.Tools
 
                     // Security check: Ensure the path is within the project root
                     var fullPath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
+
+                    // Skip files with excluded extensions
+                    var fileExt = Path.GetExtension(fullPath).ToLowerInvariant();
+                    if (excludedExtensions.Contains(fileExt))
+                    {
+                        resultBuilder.AppendLine($"---Skipped {relativePath}: Excluded file extension '{fileExt}'.---");
+                        continue;
+                    }
 
                     if (!fullPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {

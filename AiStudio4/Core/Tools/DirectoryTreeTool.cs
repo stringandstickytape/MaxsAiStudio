@@ -64,7 +64,11 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                ExtraProperties = new Dictionary<string, string> {
+                    { "ExcludedFileExtensions (CSV)", "" }, //".cs" },
+                    { "ExcludedDirectories (CSV)", "" }, //"build,bin,obj,node_modules,dist,.vs,PhysicalDeletes,logs" }
+                }
             };
         }
 
@@ -150,9 +154,18 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 return fileList;
             }
 
+            // Get excluded extensions and directories from Tool definition (ExtraProperties)
+            var toolDef = new DirectoryTreeTool(null, null).GetToolDefinition();
+            var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
+            var excludedDirsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : string.Empty;
+            var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
+            var excludedDirs = excludedDirsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(d => d.Trim().ToLowerInvariant()).Where(d => !string.IsNullOrEmpty(d)).ToList();
+
             try
             {
-                var files = Directory.GetFiles(searchPath).Where(x => !x.EndsWith("cs"));
+                var files = Directory.GetFiles(searchPath).Where(x => !excludedExtensions.Contains(Path.GetExtension(x).ToLowerInvariant()));
 
                 // Add all files in the current directory
                 fileList.AddRange(files);
@@ -162,24 +175,16 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 {
                     foreach (var directory in Directory.GetDirectories(searchPath))
                     {
-                        var lastDirectory = directory.Split("\\").Last();
+                        var lastDirectory = directory.Split("\\").Last().ToLowerInvariant();
 
-                        if (lastDirectory.ToLower() != "build" &&
-                            lastDirectory.ToLower() != "bin" &&
-                            lastDirectory.ToLower() != "obj" &&
-                            lastDirectory.ToLower() != "node_modules" &&
-                            lastDirectory.ToLower() != "dist" &&
-                            lastDirectory.ToLower() != ".vs" &&
-                            lastDirectory.ToLower() != "PhysicalDeletes" &&
-                            lastDirectory.ToLower() != "logs")
+                        if (!excludedDirs.Contains(lastDirectory))
                         {
-
                             // Recursively get files from subdirectories with a decremented depth
                             fileList.AddRange(GetFilesRecursively(directory, searchDepth - 1));
                         }
                         else
                         {
-
+                            // Directory is excluded
                         }
                     }
                 }

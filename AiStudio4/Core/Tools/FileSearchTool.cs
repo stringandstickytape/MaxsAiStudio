@@ -74,7 +74,11 @@ namespace AiStudio4.Core.Tools
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty, // Or specify if relevant, e.g., "text"
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                ExtraProperties = new Dictionary<string, string> {
+                    { "ExcludedFileExtensions (CSV)", "" }, //".cs,.dll,.xml,.map,.7z,.png" },
+                    { "ExcludedFilePrefixes (CSV)", "" }, //"jquery" }
+                }
             };
         }
 
@@ -105,6 +109,15 @@ namespace AiStudio4.Core.Tools
             // --- Process Files in Current Directory ---
             try
             {
+                // Get excluded extensions and prefixes from Tool definition (ExtraProperties)
+                var toolDef = GetToolDefinition();
+                var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
+                var excludedPrefixesCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFilePrefixes (CSV)", out var preCsv) ? preCsv : string.Empty;
+                var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
+                var excludedPrefixes = excludedPrefixesCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(p => p.Trim().ToLowerInvariant()).Where(p => !string.IsNullOrEmpty(p)).ToList();
+
                 foreach (var filePath in Directory.EnumerateFiles(currentPath))
                 {
                     // Check if file is ignored by .gitignore
@@ -114,7 +127,13 @@ namespace AiStudio4.Core.Tools
                         continue;
                     }
 
-                    if (filePath.EndsWith("cs") || filePath.EndsWith("dll") || filePath.EndsWith("xml") || filePath.StartsWith("jquery") || filePath.EndsWith("map") || filePath.EndsWith("7z") || filePath.EndsWith("png"))
+                    var fileName = Path.GetFileName(filePath).ToLowerInvariant();
+                    var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
+                    // Exclude by extension
+                    if (excludedExtensions.Contains(fileExt))
+                        continue;
+                    // Exclude by prefix
+                    if (excludedPrefixes.Any(prefix => fileName.StartsWith(prefix)))
                         continue;
 
                     // Search within the file

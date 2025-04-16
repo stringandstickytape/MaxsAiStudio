@@ -19,9 +19,12 @@ namespace AiStudio4.Core.Tools
         protected string _projectRoot;
         protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
-            UpdateProjectRoot();
+            _logger = logger;
+            _generalSettingsService = generalSettingsService;
+            if (_generalSettingsService != null)
+            {
+                UpdateProjectRoot();
+            }
         }
 
         public void UpdateProjectRoot()

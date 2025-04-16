@@ -58,3 +58,36 @@ z    *   **Dialogs:**
 *   **Real-time Communication:** WebSockets are used for frontend-backend interaction.
 *   **Settings Management:** Centralized handling of user/application settings.
 *   **Tool Abstraction:** Tools are managed and executed through dedicated services.
+
+---
+
+## Tool Configurability via ExtraProperties
+
+Many built-in tools in AiStudio4 expose additional configuration or metadata through the `ExtraProperties` dictionary on their `Tool` definition. This allows for flexible, tool-specific customization without changing the core schema or requiring code changes for every new property.
+
+**Pattern:**
+- Each tool's `GetToolDefinition()` can add arbitrary key-value pairs to `ExtraProperties`.
+- These properties are typically used for UI hints, filtering, or runtime logic.
+- Properties are usually documented as "PropertyName (CSV)" for lists, or with clear naming for single values.
+
+**Examples:**
+
+- **FileSearchTool:**
+    - `ExcludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs,.dll,.xml`) that should be excluded from search results.
+    - `ExcludedFilePrefixes (CSV)`: A comma-separated list of filename prefixes (e.g., `jquery`) to exclude.
+    - These are parsed at runtime and used to filter files, replacing hardcoded logic.
+- **ThinkTool:**
+    - Demonstrates use of `ExtraProperties` for arbitrary metadata (e.g., `TestProperty`).
+- **DirectoryTreeTool:**
+    - `ExcludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs`) that should be excluded from the directory tree.
+    - `ExcludedDirectories (CSV)`: A comma-separated list of directory names (e.g., `bin,obj,node_modules`) to exclude from traversal.
+    - These are parsed at runtime and used to filter files and directories, replacing hardcoded logic.
+
+**Benefits:**
+- Enables per-tool customization without code changes.
+- Facilitates UI discovery of tool-specific options.
+- Supports future extensibility for new tool behaviors.
+
+**Best Practice:**
+- When adding new filtering or configuration logic to a tool, prefer using `ExtraProperties` with clear, documented keys.
+- Use CSV format for lists, and document expected value types in the property name or tool documentation.
