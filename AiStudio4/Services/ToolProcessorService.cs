@@ -58,7 +58,7 @@ namespace AiStudio4.Services
                 {
                     var delayTime = _minimumRequestInterval - timeSinceLastRequest;
                     _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle (inside lock)");
-                    // Note: Task.Delay cannot be awaited inside a lock. 
+                    // Note: Task.Delay cannot be awaited inside a lock.
                     // If significant delays are common, consider a different rate-limiting approach (e.g., SemaphoreSlim or async lock).
                     // For short delays, Thread.Sleep might be acceptable, but blocks the thread.
                     // Choosing Thread.Sleep for simplicity assuming delays are infrequent/short.
@@ -140,13 +140,16 @@ namespace AiStudio4.Services
                         else
                         {
                             // Process built-in tools first
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText);
-                            
+                            // Retrieve the Tool object to get user-edited ExtraProperties
+                            var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+                            var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps);
+
                             if (builtinToolResult.WasProcessed)
                             {
                                 response.ResponseText += $"\n\n{toolResponse.ToolName}\n\n";
-                                var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
-                                
+                                // tool already retrieved above
+
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
@@ -173,7 +176,7 @@ namespace AiStudio4.Services
                                 {
                                     shouldStopProcessing = true;
                                 }
-                                
+
                                 // Add any attachments from the built-in tool
                                 if (builtinToolResult.Attachments != null && builtinToolResult.Attachments.Any())
                                 {
@@ -184,8 +187,6 @@ namespace AiStudio4.Services
                             {
                                 // Handle non-MCP, non-built-in tools or tools where the server definition is missing/disabled
                                 _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or recognized built-in tool.", toolResponse.ToolName);
-
-                                var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
                                 toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
 
@@ -206,7 +207,7 @@ namespace AiStudio4.Services
                     collatedResponse.AppendLine(toolResultMessageContent);
                 }
 
-          
+
 
                 if (shouldStopProcessing)
                 {
@@ -217,7 +218,7 @@ namespace AiStudio4.Services
             // Prepare tool request and result information
             StringBuilder toolRequestInfo = new StringBuilder();
             string toolResultInfo = collatedResponse.ToString();
-            
+
             if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
             {
                 // Collect all tool names for the ToolRequested property

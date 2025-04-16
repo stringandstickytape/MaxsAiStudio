@@ -3,6 +3,7 @@ using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
@@ -39,11 +40,12 @@ namespace AiStudio4.Core.Tools
         public abstract Tool GetToolDefinition();
 
         /// <summary>
-        /// Processes a tool call with the given parameters
+        /// Processes a tool call with the given parameters and extra properties
         /// </summary>
         /// <param name="toolParameters">The parameters passed to the tool</param>
+        /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
         /// <returns>Result of the tool processing</returns>
-        public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters);
+        public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties);
 
         /// <summary>
         /// Creates a standard result for a tool execution

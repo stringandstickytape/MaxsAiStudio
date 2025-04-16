@@ -73,7 +73,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a RetrieveTextFromUrl tool call
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("RetrieveTextFromUrl tool called");
             var resultBuilder = new StringBuilder();
@@ -113,7 +113,7 @@ namespace AiStudio4.Core.Tools
                         continue;
                     }
 
-                    if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || 
+                    if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
                         (uri.Scheme != "http" && uri.Scheme != "https"))
                     {
                         resultBuilder.AppendLine($"---Error retrieving {url}: Invalid URL format. Only HTTP and HTTPS are supported.---");

@@ -68,7 +68,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a RunDuckDuckGoSearch tool call
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("RunDuckDuckGoSearch tool called");
             var resultBuilder = new StringBuilder();
@@ -178,14 +178,14 @@ namespace AiStudio4.Core.Tools
                 {
                     int startIndex = duckDuckGoUrl.IndexOf("uddg=") + 5;
                     int endIndex = duckDuckGoUrl.IndexOf("&", startIndex);
-                    
+
                     if (endIndex == -1) // If there are no more parameters
                         endIndex = duckDuckGoUrl.Length;
-                    
+
                     string encodedUrl = duckDuckGoUrl.Substring(startIndex, endIndex - startIndex);
                     return HttpUtility.UrlDecode(encodedUrl);
                 }
-                
+
                 // If the URL doesn't follow the expected pattern, return it as is
                 return duckDuckGoUrl;
             }

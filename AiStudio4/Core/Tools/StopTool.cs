@@ -3,6 +3,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic; // Added for Dictionary
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
@@ -49,7 +50,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a Stop tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("'Stop' tool called, signalling processing termination");
             string resultMessage = "Stop tool called without parameters.";

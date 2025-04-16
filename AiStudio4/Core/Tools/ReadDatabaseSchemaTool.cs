@@ -57,7 +57,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a ReadSchemaDetails tool call
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("ReadSchemaDetails tool called");
             var resultBuilder = new StringBuilder();

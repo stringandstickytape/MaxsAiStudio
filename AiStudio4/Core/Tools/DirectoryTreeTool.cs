@@ -17,6 +17,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class DirectoryTreeTool : BaseToolImplementation
     {
+        private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
         public DirectoryTreeTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
         }
@@ -75,10 +76,11 @@ Returns a structured view of the directory tree with files and subdirectories. D
         /// <summary>
         /// Processes a DirectoryTree tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
             {
+                _extraProperties = extraProperties;
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
                 // Extract parameters with defaults
@@ -107,7 +109,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
             }
         }
 
-        public static string GetDirectoryTree(int depth, bool includeFiltered, string searchPath, string projectRoot)
+        public string GetDirectoryTree(int depth, bool includeFiltered, string searchPath, string projectRoot)
         {
             // Get files recursively
             var files = GetFilesRecursively(searchPath, depth);
@@ -144,7 +146,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
         /// <summary>
         /// Recursively fetches a list of files from the specified path up to the given depth.
         /// </summary>
-        private static List<string> GetFilesRecursively(string searchPath, int searchDepth)
+        private List<string> GetFilesRecursively(string searchPath, int searchDepth)
         {
             var fileList = new List<string>();
 
@@ -155,9 +157,8 @@ Returns a structured view of the directory tree with files and subdirectories. D
             }
 
             // Get excluded extensions and directories from Tool definition (ExtraProperties)
-            var toolDef = new DirectoryTreeTool(null, null).GetToolDefinition();
-            var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
-            var excludedDirsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : string.Empty;
+            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
+            var excludedDirsCsv = _extraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : string.Empty;
             var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
             var excludedDirs = excludedDirsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)

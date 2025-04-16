@@ -59,7 +59,7 @@ It will not obtain new information or make any changes to the repository, but ju
         /// <summary>
         /// Processes a Think tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             // Think tool doesn't need special processing beyond logging
             var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);

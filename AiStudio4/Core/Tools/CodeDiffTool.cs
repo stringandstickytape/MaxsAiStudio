@@ -148,7 +148,7 @@ namespace AiStudio4.Core.Tools
         /// 4. Within each file path's task, determines the net operation and executes changes sequentially.
         /// 5. Aggregates results and reports status.
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _validationErrorMessages.Clear();
             var overallSuccess = true;

@@ -20,6 +20,8 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class FileSearchTool : BaseToolImplementation
     {
+        private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
+
 
         public FileSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
@@ -109,10 +111,9 @@ namespace AiStudio4.Core.Tools
             // --- Process Files in Current Directory ---
             try
             {
-                // Get excluded extensions and prefixes from Tool definition (ExtraProperties)
-                var toolDef = GetToolDefinition();
-                var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
-                var excludedPrefixesCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFilePrefixes (CSV)", out var preCsv) ? preCsv : string.Empty;
+
+                var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
+                var excludedPrefixesCsv = _extraProperties.TryGetValue("ExcludedFilePrefixes (CSV)", out var preCsv) ? preCsv : string.Empty;
                 var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
                 var excludedPrefixes = excludedPrefixesCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
@@ -174,7 +175,7 @@ namespace AiStudio4.Core.Tools
                                 //{
                                 //    int groupStart = matchingLineNumbers[0];
                                 //    int groupEnd = matchingLineNumbers[0];
-                                //    
+                                //
                                 //    for (int i = 1; i < matchingLineNumbers.Count; i++)
                                 //    {
                                 //        // If this line is consecutive to the previous one, extend the group
@@ -295,8 +296,10 @@ namespace AiStudio4.Core.Tools
         private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
         // Override ProcessAsync to store parameters before calling the recursive function
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
+            _extraProperties = extraProperties;
+
             try
             {
                 parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();

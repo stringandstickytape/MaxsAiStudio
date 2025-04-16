@@ -17,6 +17,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ReadFilesTool : BaseToolImplementation
     {
+        private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
         public ReadFilesTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
         {
@@ -62,14 +63,17 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a ReadFile tool call
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
+            _extraProperties = extraProperties;
             _logger.LogInformation("ReadFile tool called");
             var resultBuilder = new StringBuilder();
 
-            // Get excluded extensions from tool definition (ExtraProperties)
+            // If user-edited extraProperties are provided, override defaults for excluded extensions
             var toolDef = GetToolDefinition();
-            var excludedExtensionsCsv = toolDef.ExtraProperties != null && toolDef.ExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : ".cs";
+
+
+            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : ".cs";
             var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
 

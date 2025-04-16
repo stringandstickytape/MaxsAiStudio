@@ -82,7 +82,10 @@ namespace AiStudio4.Services
         /// <summary>
         /// Processes a built-in tool call
         /// </summary>
-        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters)
+        /// <param name="toolName">The name of the tool</param>
+        /// <param name="toolParameters">Parameters for the tool</param>
+        /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
+        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null)
         {
             // Default result assumes the tool is not built-in or doesn't need special processing
             var result = new BuiltinToolResult
@@ -97,7 +100,7 @@ namespace AiStudio4.Services
                 if (_tools.TryGetValue(toolName, out var tool))
                 {
                     // Let the tool implementation handle the processing
-                    return await tool.ProcessAsync(toolParameters);
+                    return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
                 }
                 
                 // Tool not found in our dictionary

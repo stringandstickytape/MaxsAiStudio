@@ -3,6 +3,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
@@ -50,7 +51,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes an infoRequest tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
             {

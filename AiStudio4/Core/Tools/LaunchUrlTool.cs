@@ -51,7 +51,7 @@ namespace AiStudio4.Core.Tools
             ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "Development" }, 
+                Categories = new List<string> { "Development" },
                 OutputFileType = "",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
@@ -61,7 +61,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a LaunchUrl tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);
             var urls = parameters?["urls"]?.ToObject<List<string>>() ?? new List<string>();

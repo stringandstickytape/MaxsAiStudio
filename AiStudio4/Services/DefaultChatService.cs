@@ -371,13 +371,13 @@ namespace AiStudio4.Services
 
             systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
 
-            if (systemPromptContent.Contains("ProjectDirectoryTree"))
-            {
-                var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _generalSettingsService.CurrentSettings.ProjectPath, _generalSettingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
-                systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
-
-                    _generalSettingsService.CurrentSettings.ProjectPath);
-            }
+            //if (systemPromptContent.Contains("ProjectDirectoryTree"))
+            //{
+            //    var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _generalSettingsService.CurrentSettings.ProjectPath, _generalSettingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
+            //    systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
+            //
+            //        _generalSettingsService.CurrentSettings.ProjectPath);
+            //}
 
             return systemPromptContent;
         }

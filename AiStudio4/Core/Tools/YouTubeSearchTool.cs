@@ -78,7 +78,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a YouTubeSearch tool call. Handles single or multiple concatenated JSON objects.
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("YouTubeSearch tool called with parameters: {Parameters}", toolParameters);
             var overallResultBuilder = new StringBuilder();
