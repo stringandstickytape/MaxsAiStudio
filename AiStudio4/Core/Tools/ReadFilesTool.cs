@@ -73,7 +73,9 @@ namespace AiStudio4.Core.Tools
             var toolDef = GetToolDefinition();
 
 
-            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : ".cs";
+            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv :
+                _extraProperties.TryGetValue("excludedFileExtensions (CSV)", out var extCsv2) ? extCsv2 : 
+                ".cs";
             var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
 
