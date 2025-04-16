@@ -61,8 +61,8 @@ namespace SharedClasses.Git
                     ignored = !isNegation;
                 }
             }
-            if (ignored)
-                Debug.WriteLine(path);
+            //if (ignored)
+            //    Debug.WriteLine(path);
             return ignored;
         }
     }
