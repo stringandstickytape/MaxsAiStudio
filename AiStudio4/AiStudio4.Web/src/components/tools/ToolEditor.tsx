@@ -19,7 +19,9 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   
   const { addTool, updateTool, validateToolSchema, isLoading: isApiLoading } = useToolsManagement();
 
-  
+  // Extra properties (string key-value pairs, keys fixed per tool)
+  const [extraProperties, setExtraProperties] = useState<Record<string, string>>(tool?.extraProperties || {});
+
   const [name, setName] = useState(tool?.name || '');
   const [description, setDescription] = useState(tool?.description || '');
   const [schema, setSchema] = useState(
@@ -90,6 +92,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         filetype,
         categories: selectedCategories,
         lastModified: new Date().toISOString(),
+        extraProperties: extraProperties,
       };
 
       if (tool) {
@@ -230,6 +233,29 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
         </div>
       </div>
 
+      {/* Extra Properties Section */}
+      {Object.keys(extraProperties).length > 0 && (
+        <div>
+          <Label>Extra Properties</Label>
+          <div className="space-y-2 mt-2">
+            {Object.entries(extraProperties).map(([key, value]) => (
+              <div key={key} className="flex items-center gap-2">
+                <Label className="w-48" htmlFor={`extra-${key}`}>{key}</Label>
+                <Input
+                  id={`extra-${key}`}
+                  value={value}
+                  onChange={e => {
+                    setExtraProperties(prev => ({ ...prev, [key]: e.target.value }));
+                  }}
+                  className="input-base flex-1"
+                  disabled={isLoading}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end space-x-3 pt-4">
         <Button variant="outline" onClick={handleValidateSchema} disabled={isLoading} className="btn-secondary">
           {isLoading ? 'Validating...' : 'Validate'}
@@ -285,4 +311,3 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
     </div>
   );
 }
-

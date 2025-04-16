@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,6 +12,9 @@ namespace AiStudio4.Core.Models
         public string Guid { get; set; } = System.Guid.NewGuid().ToString();
         public string Name { get; set; }
         public string Description { get; set; }
+
+        // Extra dynamic properties (string key-value pairs)
+        public Dictionary<string, string> ExtraProperties { get; set; } = new Dictionary<string, string>();
 
         public string SchemaName { get { return _schemaName; } }
         private string _schemaName;

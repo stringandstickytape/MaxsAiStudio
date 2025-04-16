@@ -35,7 +35,7 @@ export const dispatchWebSocketEvent = (eventType: WebSocketEventType, detail: Pa
   });
 
   window.dispatchEvent(event);
-  console.debug(`WebSocket Event Dispatched: ${eventType}`, fullDetail);
+  //console.debug(`WebSocket Event Dispatched: ${eventType}`, fullDetail);
 };
 
 

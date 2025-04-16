@@ -3,6 +3,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
@@ -48,7 +49,10 @@ It will not obtain new information or make any changes to the repository, but ju
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "",
                 Filetype = string.Empty,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                ExtraProperties = new Dictionary<string, string> {
+                    { "TestProperty", "TestValue" }
+                }
             };
         }
 

@@ -1,4 +1,4 @@
-
+﻿
 
 export interface Tool {
   guid: string;
@@ -9,7 +9,9 @@ export interface Tool {
   categories: string[];
   lastModified: string;
   isBuiltIn: boolean;
-  filetype: string; 
+  filetype: string;
+  // Extra dynamic properties (string key-value pairs)
+  extraProperties: Record<string, string>;
 }
 
 export interface ToolCategory {
@@ -17,4 +19,3 @@ export interface ToolCategory {
   name: string;
   priority: number;
 }
-

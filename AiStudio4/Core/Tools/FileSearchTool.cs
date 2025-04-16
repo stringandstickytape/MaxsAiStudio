@@ -114,8 +114,8 @@ namespace AiStudio4.Core.Tools
                         continue;
                     }
 
-                    //if (filePath.EndsWith("cs") || filePath.EndsWith("dll") || filePath.EndsWith("xml") || filePath.StartsWith("jquery") || filePath.EndsWith("map") || filePath.EndsWith("7z") || filePath.EndsWith("png"))
-                    //    continue;
+                    if (filePath.EndsWith("cs") || filePath.EndsWith("dll") || filePath.EndsWith("xml") || filePath.StartsWith("jquery") || filePath.EndsWith("map") || filePath.EndsWith("7z") || filePath.EndsWith("png"))
+                        continue;
 
                     // Search within the file
                     try
