@@ -17,16 +17,18 @@ namespace AiStudio4.Services
     {
         private readonly ILogger<BuiltinToolService> _logger;
         private readonly Dictionary<string, ITool> _tools;
+        private readonly IBuiltInToolExtraPropertiesService _extraPropertiesService;
 
         /// <summary>
         /// Initializes a new instance of the BuiltinToolService class.
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="availableTools">The collection of available tools injected by DI.</param>
-        public BuiltinToolService(ILogger<BuiltinToolService> logger, IEnumerable<ITool> availableTools)
+        public BuiltinToolService(ILogger<BuiltinToolService> logger, IEnumerable<ITool> availableTools, IBuiltInToolExtraPropertiesService extraPropertiesService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tools = new Dictionary<string, ITool>(StringComparer.OrdinalIgnoreCase);
+            _extraPropertiesService = extraPropertiesService ?? throw new ArgumentNullException(nameof(extraPropertiesService));
 
             if (availableTools == null)
             {
@@ -68,7 +70,22 @@ namespace AiStudio4.Services
         /// </summary>
         public List<Tool> GetBuiltinTools()
         {
-            return _tools.Values.Select(t => t.GetToolDefinition()).ToList();
+            var toolDefs = _tools.Values.Select(t => t.GetToolDefinition()).ToList();
+            foreach (var tool in toolDefs)
+            {
+                // Load persisted extra properties for this tool
+                var persisted = _extraPropertiesService.GetExtraProperties(tool.Name);
+                if (persisted != null && persisted.Count > 0)
+                {
+                    tool.ExtraProperties = new Dictionary<string, string>(persisted);
+                }
+            }
+            return toolDefs;
+        }
+
+        public void SaveBuiltInToolExtraProperties(string toolName, Dictionary<string, string> extraProperties)
+        {
+            _extraPropertiesService.SaveExtraProperties(toolName, extraProperties);
         }
 
         public void UpdateProjectRoot()

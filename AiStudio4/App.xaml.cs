@@ -78,6 +78,7 @@ namespace AiStudio4
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
             services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
             services.AddSingleton<IProjectHistoryService, ProjectHistoryService>();
+            services.AddSingleton<IBuiltInToolExtraPropertiesService, BuiltInToolExtraPropertiesService>();
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
             services.AddSingleton<WebSocketServer>();

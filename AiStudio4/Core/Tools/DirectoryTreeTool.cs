@@ -157,9 +157,9 @@ Returns a structured view of the directory tree with files and subdirectories. D
             }
 
             // Get excluded extensions and directories from Tool definition (ExtraProperties)
-            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
-            var excludedDirsCsv = _extraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : string.Empty;
-            var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : _extraProperties.TryGetValue("excludedFileExtensions (CSV)", out var extCsv2) ? extCsv2 : string.Empty;
+            var excludedDirsCsv = _extraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : _extraProperties.TryGetValue("excludedDirectories (CSV)", out var dirCsv2) ? dirCsv2 : string.Empty;
+            var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)  
                 .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
             var excludedDirs = excludedDirsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(d => d.Trim().ToLowerInvariant()).Where(d => !string.IsNullOrEmpty(d)).ToList();

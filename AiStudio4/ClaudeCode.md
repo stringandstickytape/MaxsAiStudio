@@ -69,6 +69,7 @@ Many built-in tools in AiStudio4 expose additional configuration or metadata thr
 - Each tool's `GetToolDefinition()` can add arbitrary key-value pairs to `ExtraProperties`.
 - These properties are typically used for UI hints, filtering, or runtime logic.
 - Properties are usually documented as "PropertyName (CSV)" for lists, or with clear naming for single values.
+- **Built-in tool extra properties are now persisted across sessions using `IBuiltInToolExtraPropertiesService` and stored in `%APPDATA%/AiStudio4/builtinToolExtraProps.json`. The service is injected into `BuiltinToolService`, which loads and saves extra properties for each built-in tool by name.**
 
 **Examples:**
 

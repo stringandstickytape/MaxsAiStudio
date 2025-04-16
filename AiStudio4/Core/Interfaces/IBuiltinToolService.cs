@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 using System.Collections.Generic;
 
 namespace AiStudio4.Core.Interfaces
@@ -15,5 +15,6 @@ namespace AiStudio4.Core.Interfaces
         /// <returns>Result indicating if the tool was processed and if further processing should continue</returns>
         Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties);
         void UpdateProjectRoot();
+        void SaveBuiltInToolExtraProperties(string toolName, Dictionary<string, string> extraProperties);
     }
 }
