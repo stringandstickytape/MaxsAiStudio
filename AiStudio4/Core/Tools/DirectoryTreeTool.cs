@@ -67,8 +67,8 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow,
                 ExtraProperties = new Dictionary<string, string> {
-                    { "ExcludedFileExtensions (CSV)", "" }, //".cs" },
-                    { "ExcludedDirectories (CSV)", "" }, //"build,bin,obj,node_modules,dist,.vs,PhysicalDeletes,logs" }
+                    { "excludedFileExtensions (CSV)", "" }, //".cs" },
+                    { "excludedDirectories (CSV)", "" }, //"build,bin,obj,node_modules,dist,.vs,PhysicalDeletes,logs" }
                 }
             };
         }

@@ -49,10 +49,7 @@ It will not obtain new information or make any changes to the repository, but ju
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "",
                 Filetype = string.Empty,
-                LastModified = DateTime.UtcNow,
-                ExtraProperties = new Dictionary<string, string> {
-                    { "TestProperty", "TestValue" }
-                }
+                LastModified = DateTime.UtcNow
             };
         }
 

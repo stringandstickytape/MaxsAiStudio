@@ -78,8 +78,8 @@ namespace AiStudio4.Core.Tools
                 Filetype = string.Empty, // Or specify if relevant, e.g., "text"
                 LastModified = DateTime.UtcNow,
                 ExtraProperties = new Dictionary<string, string> {
-                    { "ExcludedFileExtensions (CSV)", "" }, //".cs,.dll,.xml,.map,.7z,.png" },
-                    { "ExcludedFilePrefixes (CSV)", "" }, //"jquery" }
+                    { "excludedFileExtensions (CSV)", "" }, //".cs,.dll,.xml,.map,.7z,.png" },
+                    { "excludedFilePrefixes (CSV)", "" }, //"jquery" }
                 }
             };
         }

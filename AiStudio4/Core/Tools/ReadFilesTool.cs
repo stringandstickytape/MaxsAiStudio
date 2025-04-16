@@ -33,7 +33,7 @@ namespace AiStudio4.Core.Tools
                 Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef05", // Fixed GUID for ReadFile
                 Name = "ReadFiles",
                 ExtraProperties = new Dictionary<string, string> {
-                    { "ExcludedFileExtensions (CSV)", "" }, //".cs" }
+                    { "excludedFileExtensions (CSV)", "" }, //".cs" }
                 },
                 Description = "Read the contents of one or multiple files.",
                 Schema = @"{

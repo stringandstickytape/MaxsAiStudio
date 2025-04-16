@@ -17,6 +17,7 @@ namespace AiStudio4.InjectedDependencies
 {
     public class UiRequestBroker
     {
+        private readonly IBuiltInToolExtraPropertiesService _builtInToolExtraPropertiesService;
         private readonly IConfiguration _configuration;
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IAppearanceSettingsService _appearanceSettingsService;
@@ -50,9 +51,11 @@ namespace AiStudio4.InjectedDependencies
             IChatService chatService,
             ClientRequestCancellationService cancellationService,
             IMcpService mcpService,
-            IThemeService themeService
+            IThemeService themeService,
+            IBuiltInToolExtraPropertiesService builtInToolExtraPropertiesService
             )
         {
+            _builtInToolExtraPropertiesService = builtInToolExtraPropertiesService;
             _configuration = configuration;
             _generalSettingsService = generalSettingsService;
             _appearanceSettingsService = appearanceSettingsService;
@@ -261,7 +264,9 @@ namespace AiStudio4.InjectedDependencies
                 var tool = requestObject.ToObject<Core.Models.Tool>();
                 if (tool == null || string.IsNullOrEmpty(tool.Guid)) 
                     return SerializeError("Invalid tool data or missing tool ID");
-                
+
+                _builtInToolExtraPropertiesService.SaveExtraProperties(tool.Name, tool.ExtraProperties);
+
                 var result = await _toolService.UpdateToolAsync(tool);
                 return JsonConvert.SerializeObject(new { success = true, tool = result });
             }

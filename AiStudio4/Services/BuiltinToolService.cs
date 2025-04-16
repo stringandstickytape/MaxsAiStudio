@@ -74,7 +74,8 @@ namespace AiStudio4.Services
             foreach (var tool in toolDefs)
             {
                 // Load persisted extra properties for this tool
-                var persisted = _extraPropertiesService.GetExtraProperties(tool.Name);
+                var lower = $"{tool.Name.Substring(0, 1).ToLower()}{tool.Name.Substring(1)}";
+                var persisted = _extraPropertiesService.GetExtraProperties(lower);
                 if (persisted != null && persisted.Count > 0)
                 {
                     tool.ExtraProperties = new Dictionary<string, string>(persisted);
