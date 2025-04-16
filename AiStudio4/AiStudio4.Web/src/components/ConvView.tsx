@@ -3,7 +3,7 @@ import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X, ArrowDown, Download } from 'lucide-react'; // Added Download icon for Save As
+import { Clipboard, Pencil, Check, X, ArrowDown, Save } from 'lucide-react'; // Use Save (floppy disk) icon for Save As
 import { LoadingTimer } from './LoadingTimer';
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -467,7 +467,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 }}
                                 title="Save message as file"
                             >
-                                <Download size={16} />
+                                <Save size={16} />
                             </button>
                         </div>
 
