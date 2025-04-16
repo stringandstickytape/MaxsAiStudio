@@ -86,10 +86,15 @@ namespace AiStudio4.AiServices
                     messages.Add(chatMessage);
                 }
 
+                float temp = 0.2f;
+
+                if (ApiModel == "o3" || ApiModel == "o4-mini")
+                    temp = 1f;
+
                 // Configure chat completion options
                 ChatCompletionOptions chatOptions = new ChatCompletionOptions
                 {
-                   Temperature = 0.2f
+                   Temperature = temp
                 };
 
                 // Add tools if specified or if using MCP service tools
