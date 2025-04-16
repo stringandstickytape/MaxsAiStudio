@@ -355,6 +355,27 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                             Copy
                         </button>
                         {showRenderedOrRawButton}
+                        <button
+                            onClick={async () => {
+                                // Suggest a filename based on language if possible
+                                let ext = language ? `.${language}` : '.txt';
+                                let suggestedFilename = `codeblock${ext}`;
+                                try {
+                                    // Dynamically import to avoid circular deps
+                                    const { saveCodeBlockAsFile } = await import('@/services/api/apiClient');
+                                    await saveCodeBlockAsFile({ content, suggestedFilename });
+                                } catch (e) {
+                                    console.error('Save As failed:', e);
+                                }
+                            }}
+                            className="px-2 py-1 rounded transition-colors"
+                            style={{
+                                background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                                color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                            }}
+                        >
+                            Save As
+                        </button>
                     </div>
                 </div>
             ), [language, content, isVisualStudio, isCollapsed, toggleCollapse]);

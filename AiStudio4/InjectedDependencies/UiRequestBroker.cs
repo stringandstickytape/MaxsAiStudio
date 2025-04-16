@@ -90,9 +90,14 @@ namespace AiStudio4.InjectedDependencies
             }
             try
             {
+                //if (requestType == "saveCodeBlockAsFile")
+                //{
+                //    return await HandleSaveCodeBlockAsFileRequest(requestObject);
+                //}
                 return requestType switch
                 {
-                    "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
+                    "saveCodeBlockAsFile" => await HandleSaveCodeBlockAsFileRequest(requestObject),
+                   "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList }),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _generalSettingsService.CurrentSettings.ServiceProviders }),
                     "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
@@ -996,6 +1001,40 @@ namespace AiStudio4.InjectedDependencies
                 return SerializeError($"Error deleting MCP server: {ex.Message}");
             }
         }
+        private async Task<string> HandleSaveCodeBlockAsFileRequest(JObject requestObject)
+        {
+            try
+            {
+                string content = requestObject["content"]?.ToString();
+                string suggestedFilename = requestObject["suggestedFilename"]?.ToString() ?? "codeblock.txt";
+                if (string.IsNullOrEmpty(content))
+                    return SerializeError("Content cannot be empty");
+
+                // Use SaveFileDialog to prompt user for save location
+                var dialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = suggestedFilename,
+                    Filter = "All files (*.*)|*.*",
+                    Title = "Save Code Block As File"
+                };
+                bool? result = dialog.ShowDialog();
+                if (result == true)
+                {
+                    string filePath = dialog.FileName;
+                    await System.IO.File.WriteAllTextAsync(filePath, content);
+                    return JsonConvert.SerializeObject(new { success = true, filePath });
+                }
+                else
+                {
+                    return JsonConvert.SerializeObject(new { success = false, error = "Save cancelled by user" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error saving code block as file: {ex.Message}");
+            }
+        }
+ 
 
         private async Task<string> HandleGetMcpServerToolsRequest(JObject requestObject)
         {

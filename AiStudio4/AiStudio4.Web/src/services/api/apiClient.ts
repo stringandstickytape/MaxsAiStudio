@@ -87,3 +87,13 @@ export async function cancelRequest(params: { convId: string; messageId: string 
     throw error;
   }
 }
+
+export async function saveCodeBlockAsFile(params: { content: string; suggestedFilename: string }) {
+  try {
+    const response = await apiClient.post('/api/saveCodeBlockAsFile', params);
+    return response.data;
+  } catch (error) {
+    console.error('Error saving code block as file:', error);
+    throw error;
+  }
+}
