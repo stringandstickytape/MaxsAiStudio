@@ -3,7 +3,7 @@ import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
-import { Clipboard, Pencil, Check, X, ArrowDown } from 'lucide-react'; // Changed ArrowCircleDown to ArrowDown
+import { Clipboard, Pencil, Check, X, ArrowDown, Download } from 'lucide-react'; // Added Download icon for Save As
 import { LoadingTimer } from './LoadingTimer';
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -445,6 +445,29 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 title="Edit raw message"
                             >
                                 <Pencil size={16} />
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    let suggestedFilename = `message.txt`;
+                                    try {
+                                        const { saveCodeBlockAsFile } = await import('@/services/api/apiClient');
+                                        await saveCodeBlockAsFile({ content: message.content, suggestedFilename });
+                                    } catch (e) {
+                                        console.error('Save As failed:', e);
+                                    }
+                                }}
+                                className="ConvView p-1.5 rounded-full transition-all duration-200"
+                                style={{
+                                    color: 'var(--convview-text-color, #9ca3af)',
+                                    backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0))',
+                                    ':hover': {
+                                        color: 'var(--convview-text-color, #ffffff)',
+                                        backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0.8))'
+                                    }
+                                }}
+                                title="Save message as file"
+                            >
+                                <Download size={16} />
                             </button>
                         </div>
 
