@@ -162,6 +162,7 @@ namespace AiStudio4.InjectedDependencies
                     "mcpServers/add" => await HandleAddMcpServerRequest(requestObject),
                     "mcpServers/update" => await HandleUpdateMcpServerRequest(requestObject),
                     "mcpServers/delete" => await HandleDeleteMcpServerRequest(requestObject),
+                    "mcpServers/setEnabled" => await HandleSetMcpServerEnabledRequest(requestObject),
                     "mcpServers/getTools" => await HandleGetMcpServerToolsRequest(requestObject),
                     "themes/getAll" => await HandleGetAllThemesRequest(clientId, requestObject),
                     "themes/getById" => await HandleGetThemeByIdRequest(clientId, requestObject),
@@ -1001,6 +1002,40 @@ namespace AiStudio4.InjectedDependencies
                 return SerializeError($"Error deleting MCP server: {ex.Message}");
             }
         }
+
+        // NEW: Enable/disable MCP server
+        private async Task<string> HandleSetMcpServerEnabledRequest(JObject requestObject)
+        {
+            try
+            {
+                string serverId = requestObject["serverId"]?.ToString();
+                bool? isEnabled = requestObject["isEnabled"]?.Value<bool?>();
+
+                if (string.IsNullOrEmpty(serverId))
+                    return SerializeError("Server ID cannot be empty");
+                if (isEnabled == null)
+                    return SerializeError("isEnabled flag must be provided");
+
+                await _mcpService.InitializeAsync(); // Ensure service initialized
+                var server = await _mcpService.GetServerDefinitionByIdAsync(serverId);
+                if (server == null)
+                    return SerializeError($"MCP server with ID {serverId} not found");
+
+                // Only proceed if change is necessary
+                if (server.IsEnabled != isEnabled.Value)
+                {
+                    server.IsEnabled = isEnabled.Value;
+                    server = await _mcpService.UpdateServerDefinitionAsync(server);
+                }
+
+                return JsonConvert.SerializeObject(new { success = true, server });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting MCP server enabled state: {ex.Message}");
+            }
+        }
+
         private async Task<string> HandleSaveCodeBlockAsFileRequest(JObject requestObject)
         {
             try

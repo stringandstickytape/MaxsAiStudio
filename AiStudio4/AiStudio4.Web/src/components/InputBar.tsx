@@ -24,6 +24,7 @@ import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { Server } from 'lucide-react'; // Added Server icon
 import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Import MCP server store
 
 // Add file header comment for clarity and traceability.
 /*
@@ -86,6 +87,9 @@ export function InputBar({
     const { activeTools: activeToolsFromStore, removeActiveTool } = useToolStore();
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
+    // MCP server store for enabled count badge
+    const { enabledCount, fetchServers } = useMcpServerStore();
+
     const handleRemoveTool = (toolId: string) => {
         removeActiveTool(toolId);
     };
@@ -105,6 +109,11 @@ export function InputBar({
             onAttachmentChange(attachments);
         }
     }, [attachments, onAttachmentChange]);
+
+    // Fetch MCP servers once on mount to populate enabled count badge
+    useEffect(() => {
+        fetchServers();
+    }, [fetchServers]);
 
     const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -504,11 +513,16 @@ export function InputBar({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => window.dispatchEvent(new CustomEvent('open-server-list'))}
-                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
                                 disabled={disabled}
                             >
                                 <Server className="h-3 w-3 mr-1" />
                                 <span>Servers</span>
+                                {enabledCount > 0 && (
+                                    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Number of enabled MCP servers">
+                                        {enabledCount}
+                                    </span>
+                                )}
                             </Button>
                         </div>
                     </div> {/* Close Tools & Servers Wrapper */}
