@@ -100,7 +100,7 @@ namespace AiStudio4.AiServices
                 var opResp = await client.GetAsync(opUrl, options.CancellationToken);
                 string opRespContent = await opResp.Content.ReadAsStringAsync();
                 opResult = JsonConvert.DeserializeObject<JObject>(opRespContent);
-                if (opResult["done"]?.ToObject<bool>() == true)
+                if (opResult!=null && opResult["done"]?.ToObject<bool>() == true)
                     break;
             }
 
