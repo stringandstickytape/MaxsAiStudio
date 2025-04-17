@@ -8,6 +8,7 @@ import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
 import { ToolDialog } from './components/tools/ToolDialog';
 import SettingsDialog from './components/modals/SettingsDialog';
 import { ThemeLibrary } from './components/ThemeLibrary';
+import { ServerDialog } from './components/servers/ServerDialog';
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -177,6 +178,7 @@ function App() {
       <UserPromptDialog />
       <ToolDialog />
       <SettingsDialog />
+      <ServerDialog />
       {/* Theme Library Modal */}
       {openModalId === 'theme' && <ThemeLibrary open={true} onOpenChange={(open) => {
         if (!open) closeModal();
