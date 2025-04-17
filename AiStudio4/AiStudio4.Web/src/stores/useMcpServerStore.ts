@@ -1,6 +1,6 @@
 ﻿// AiStudio4.Web/src/stores/useMcpServerStore.ts
 import { create } from 'zustand';
-import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 
 export interface McpServerDefinition {
   id: string;
@@ -22,7 +22,7 @@ export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
 
   async fetchServers() {
     try {
-      const response = await webSocketService.request('mcpServers/getAll', {});
+      const response = await createApiRequest('/api/mcpServers/getAll', 'POST')({});
       if (response?.success) {
         const servers: McpServerDefinition[] = response.servers ?? [];
         set({
@@ -37,7 +37,7 @@ export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
 
   async setServerEnabled(id, enabled) {
     try {
-      const response = await webSocketService.request('mcpServers/setEnabled', {
+      const response = await createApiRequest('/api/mcpServers/setEnabled', 'POST')({
         serverId: id,
         isEnabled: enabled,
       });
