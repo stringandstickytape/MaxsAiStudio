@@ -47,7 +47,7 @@ namespace AiStudio4.AiServices
         {
             var cred = new ApiKeyCredential(ApiKey ?? "ollama");
 
-            _openAIClient = new OpenAIClient(cred, new OpenAIClientOptions { Endpoint =  new Uri(ApiUrl) });
+            _openAIClient = new OpenAIClient(cred, new OpenAIClientOptions { Endpoint =  new Uri(ApiUrl) , NetworkTimeout = TimeSpan.FromMinutes(10)});
             
             _chatClient = _openAIClient.GetChatClient(model);
             _audioClient = _openAIClient.GetAudioClient("whisper-1"); // Default audio model
