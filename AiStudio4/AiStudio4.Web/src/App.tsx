@@ -1,19 +1,21 @@
-﻿import { NavigationContainer } from './components/navigation/NavigationContainer';
+﻿// AiStudio4.Web/src/App.tsx
+import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
-import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog';
-import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog';
-import { ToolDialog } from './components/tools/ToolDialog';
-import SettingsDialog from './components/modals/SettingsDialog';
-import { ThemeLibrary } from './components/ThemeLibrary';
-import { ServerDialog } from './components/servers/ServerDialog';
+// import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
+// import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
+import { ToolDialog } from './components/tools/ToolDialog'; // Keep for now (uses own state)
+// import SettingsDialog from './components/modals/SettingsDialog'; // Replaced by ModalManager
+// import { ThemeLibrary } from './components/ThemeLibrary'; // Replaced by ModalManager
+import { ServerDialog } from './components/servers/ServerDialog'; // Keep for now (uses own state)
+import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
-import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
+import { useModalStore } from '@/stores/useModalStore';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -172,17 +174,21 @@ function App() {
         <ChatSpace />
       </NavigationContainer>
 
-      
-      {/* Modals */}
-      <SystemPromptDialog />
-      <UserPromptDialog />
+      {/* Centralized Modal Management */}
+      <ModalManager />
+
+      {/* Modals still using their own state management */}
       <ToolDialog />
-      <SettingsDialog />
       <ServerDialog />
-      {/* Theme Library Modal */}
-      {openModalId === 'theme' && <ThemeLibrary open={true} onOpenChange={(open) => {
-        if (!open) closeModal();
-      }} />}
+
+      {/* Old direct modal rendering (commented out/removed) */}
+      {/* <SystemPromptDialog /> */}
+      {/* <UserPromptDialog /> */}
+      {/* <SettingsDialog /> */}
+      {/* <ServerDialog /> */}
+      {/* {openModalId === 'theme' && <ThemeLibrary open={true} onOpenChange={(open) => { */}
+      {/*   if (!open) closeModal(); */}
+      {/* }} />} */}
     </FontSizeProvider>
   );
 }
