@@ -474,131 +474,14 @@ namespace AiStudio4.Core.Tools
 
         private async Task<(bool Success, string Message)> HandleCreateFileAsync(string filePath, JObject change)
         {
-            string initialContent = change["newContent"]?.ToString() ?? ""; // Allow empty file creation
-            string changeDesc = change["description"]?.ToString() ?? "Create file";
-            // File path validity / security checked during validation phase
-
-            try
-            {
-                // Double check existence (race condition mitigation) - already handled in ProcessSingleFileSequentiallyAsync caller logic
-                // if (File.Exists(filePath))...
-
-                // Ensure target directory exists
-                string targetDir = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-                {
-                    Directory.CreateDirectory(targetDir);
-                    _logger.LogInformation("Created directory '{DirectoryPath}' for create operation.", targetDir);
-                }
-
-                // Ask AI to finalize/format the content
-                string prompt = $"You are a file content creation assistant. Create the content for the file '{Path.GetFileName(filePath)}'. Description: {changeDesc}. Initial content provided below.\n" +
-                                $"Ensure the final content is well-formatted and complete. Respond ONLY with the final, complete file content.\n" +
-                                $"---\n" +
-                                $"{initialContent}";
-
-                var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
-
-                if (!aiResponse.Success) // Allow empty response if successful AI call intended it
-                {
-                    string errorMsg = $"Create Failed: Secondary AI failed to generate content for '{filePath}'. Error: {aiResponse.Error ?? "Unknown AI Error"}. Response: {aiResponse.Response ?? "<null>"}";
-                    _logger.LogError("Secondary AI failed for create file '{FilePath}'. Error: {Error}. Response: {Response}", filePath, aiResponse.Error, aiResponse.Response);
-                    return (false, $"Failed: AI content generation failed. {aiResponse.Error ?? "See Logs"}");
-                }
-
-                string finalContent = aiResponse.Response ?? ""; // Use empty string if AI response is null but Success=true
-                                                                 // Basic check for accidental AI markers
-                if (finalContent.StartsWith(SuccessMarker) || finalContent.StartsWith(ErrorMarker))
-                {
-                    _logger.LogWarning("AI response for file creation contained unexpected marker. Content: {Content}", finalContent);
-                }
-
-                finalContent = RemoveBacktickQuotingIfPresent(finalContent);
-                await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
-                _logger.LogInformation("Created file '{FilePath}' with AI-processed content.", filePath);
-                return (true, "Success: File created.");
-            }
-            catch (IOException ioEx)
-            {
-                _logger.LogError(ioEx, "IO Error creating file '{FilePath}'", filePath);
-                return (false, $"Failed: IO Error. {ioEx.Message}");
-            }
-            catch (UnauthorizedAccessException uaEx)
-            {
-                _logger.LogError(uaEx, "Permissions error creating file '{FilePath}'", filePath);
-                return (false, $"Failed: Permissions error. {uaEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error creating file '{FilePath}'", filePath);
-                return (false, $"Failed: Unexpected error. {ex.Message}");
-            }
+            // Delegate to the combined handler
+            return await HandleReplaceOrCreateFileAsync(filePath, change, "create");
         }
 
         private async Task<(bool Success, string Message)> HandleReplaceFileAsync(string filePath, JObject change)
         {
-            string initialContent = change["newContent"]?.ToString();
-            string changeDesc = change["description"]?.ToString() ?? "Replace file content";
-            // File path validity / security checked during validation phase
-
-            if (initialContent == null) // Should be caught by validation
-            {
-                _logger.LogError("Replace Failed: 'newContent' is missing for replace operation on '{FilePath}' (Validation Gap?).", filePath);
-                return (false, "Failed: New content missing.");
-            }
-
-            try
-            {
-                // Ensure target directory exists (maybe replacing a deleted file path)
-                string targetDir = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-                {
-                    Directory.CreateDirectory(targetDir);
-                    _logger.LogInformation("Created directory '{DirectoryPath}' for replace operation.", targetDir);
-                }
-
-                // Ask AI to finalize/format the content
-                string prompt = $"You are a file content replacement assistant. Replace the entire content for the file '{Path.GetFileName(filePath)}'. Description: {changeDesc}. New content provided below.\n" +
-                                $"Ensure the final content is well-formatted and complete. Respond ONLY with the final, complete file content.\n" +
-                                $"---\n" +
-                                $"{initialContent}";
-
-                var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
-
-                if (!aiResponse.Success) // Allow empty response if successful AI call intended it
-                {
-                    string errorMsg = $"Replace Failed: Secondary AI failed to generate content for '{filePath}'. Error: {aiResponse.Error ?? "Unknown AI Error"}. Response: {aiResponse.Response ?? "<null>"}";
-                    _logger.LogError("Secondary AI failed for replace file '{FilePath}'. Error: {Error}. Response: {Response}", filePath, aiResponse.Error, aiResponse.Response);
-                    return (false, $"Failed: AI content generation failed. {aiResponse.Error ?? "See Logs"}");
-                }
-
-                string finalContent = aiResponse.Response ?? ""; // Use empty string if AI response is null but Success=true
-                if (finalContent.StartsWith(SuccessMarker) || finalContent.StartsWith(ErrorMarker))
-                {
-                    _logger.LogWarning("AI response for file replacement contained unexpected marker. Content: {Content}", finalContent);
-                }
-
-                finalContent = RemoveBacktickQuotingIfPresent(finalContent);
-
-                await File.WriteAllTextAsync(filePath, finalContent, Encoding.UTF8);
-                _logger.LogInformation("Replaced file '{FilePath}' with AI-processed content.", filePath);
-                return (true, "Success: File replaced.");
-            }
-            catch (IOException ioEx)
-            {
-                _logger.LogError(ioEx, "IO Error writing file '{FilePath}'", filePath);
-                return (false, $"Failed: IO Error. {ioEx.Message}");
-            }
-            catch (UnauthorizedAccessException uaEx)
-            {
-                _logger.LogError(uaEx, "Permissions error writing file '{FilePath}'", filePath);
-                return (false, $"Failed: Permissions error. {uaEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error replacing file '{FilePath}'", filePath);
-                return (false, $"Failed: Unexpected error. {ex.Message}");
-            }
+            // Delegate to the combined handler
+            return await HandleReplaceOrCreateFileAsync(filePath, change, "replace");
         }
 
         private async Task<(bool Success, string Message)> HandleModifyFileAsync(string filePath, List<JObject> changes) // Takes list of modify changes for this file
@@ -727,6 +610,61 @@ namespace AiStudio4.Core.Tools
                 return content; // Return content within backticks
             }
             return content; // Return original content if not quoted
+        }
+
+        /// <summary>
+        /// Combined handler for both creating new files and replacing existing files.
+        /// Directly writes the content without using AI processing.
+        /// </summary>
+        private async Task<(bool Success, string Message)> HandleReplaceOrCreateFileAsync(string filePath, JObject change, string operationType)
+        {
+            string content = change["newContent"]?.ToString();
+            string changeDesc = change["description"]?.ToString() ?? $"{operationType} file content";
+            bool isCreate = operationType == "create";
+            
+            // For replace operations, content is required (should be caught by validation)
+            if (!isCreate && content == null)
+            {
+                _logger.LogError("Operation Failed: 'newContent' is missing for {0} operation on '{1}' (Validation Gap?).", operationType, filePath);
+                return (false, "Failed: New content missing.");
+            }
+            
+            // For create operations, allow empty string as default
+            content = content ?? "";
+
+            try
+            {
+                // Ensure target directory exists
+                string targetDir = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                    _logger.LogInformation("Created directory '{0}' for {1} operation.", targetDir, operationType);
+                }
+
+                // Clean up content if it has markdown formatting
+                content = RemoveBacktickQuotingIfPresent(content);
+                
+                // Write the file directly
+                await File.WriteAllTextAsync(filePath, content, Encoding.UTF8);
+                _logger.LogInformation("{0} file '{1}' with direct content writing.", isCreate ? "Created" : "Replaced", filePath);
+                return (true, $"Success: File {(isCreate ? "created" : "replaced")}.");
+            }
+            catch (IOException ioEx)
+            {
+                _logger.LogError(ioEx, "IO Error {0} file '{1}'", operationType, filePath);
+                return (false, $"Failed: IO Error. {ioEx.Message}");
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                _logger.LogError(uaEx, "Permissions error {0} file '{1}'", operationType, filePath);
+                return (false, $"Failed: Permissions error. {uaEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error {0} file '{1}'", operationType, filePath);
+                return (false, $"Failed: Unexpected error. {ex.Message}");
+            }
         }
 
 
