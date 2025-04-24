@@ -15,7 +15,11 @@ namespace AiStudio4.Core.Tools
     {
     protected readonly ILogger _logger; // Logger for diagnostic information
         protected readonly IGeneralSettingsService _generalSettingsService;
-
+        
+        /// <summary>
+        /// Optional callback for sending status updates during tool execution
+        /// </summary>
+        protected Action<string> _statusUpdateCallback;
 
         protected string _projectRoot;
         protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService)
@@ -26,6 +30,7 @@ namespace AiStudio4.Core.Tools
             {
                 UpdateProjectRoot();
             }
+            _statusUpdateCallback = null; // Initialize to null (no status updates by default)
         }
 
         public void UpdateProjectRoot()
@@ -46,6 +51,33 @@ namespace AiStudio4.Core.Tools
         /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
         /// <returns>Result of the tool processing</returns>
         public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties);
+
+        /// <summary>
+        /// Sets the status update callback for this tool instance
+        /// </summary>
+        /// <param name="statusUpdateCallback">Callback action that takes a status message string</param>
+        public void SetStatusUpdateCallback(Action<string> statusUpdateCallback)
+        {
+            _statusUpdateCallback = statusUpdateCallback;
+        }
+
+        /// <summary>
+        /// Sends a status update if a callback is registered
+        /// </summary>
+        /// <param name="statusMessage">The status message to send</param>
+        protected void SendStatusUpdate(string statusMessage)
+        {
+            try
+            {
+                // Only send if callback is registered
+                _statusUpdateCallback?.Invoke(statusMessage);
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw - status updates should never break tool execution
+                _logger.LogWarning(ex, "Failed to send status update: {Message}", statusMessage);
+            }
+        }
 
         /// <summary>
         /// Creates a standard result for a tool execution

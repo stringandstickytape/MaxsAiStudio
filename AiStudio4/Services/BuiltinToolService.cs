@@ -103,7 +103,7 @@ namespace AiStudio4.Services
         /// <param name="toolName">The name of the tool</param>
         /// <param name="toolParameters">Parameters for the tool</param>
         /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
-        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null)
+        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null,  Action<string> statusUpdateCallback = null)
         {
             // Default result assumes the tool is not built-in or doesn't need special processing
             var result = new BuiltinToolResult

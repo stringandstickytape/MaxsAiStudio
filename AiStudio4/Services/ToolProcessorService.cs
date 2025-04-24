@@ -104,6 +104,7 @@ namespace AiStudio4.Services
                 {
                     string toolResultMessageContent = "";
                     string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
+                    string clientIdForTool = clientId; // Store client ID for tool status updates
 
                     try
                     {
@@ -156,7 +157,26 @@ namespace AiStudio4.Services
                             // Retrieve the Tool object to get user-edited ExtraProperties
                             var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
                             var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps);
+                            
+                            // Create a status update callback for this tool
+                            Action<string> statusUpdateCallback = null;
+                            if (!string.IsNullOrEmpty(clientIdForTool))
+                            {
+                                statusUpdateCallback = async (statusMessage) =>
+                                {
+                                    try
+                                    {
+                                        await _webSocketNotificationService.NotifyStatusMessage(clientIdForTool, statusMessage);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogWarning(ex, "Failed to send tool status update for {ToolName}", toolResponse.ToolName);
+                                    }
+                                };
+                            }
+                            
+                            // Pass the extraProps to the tool processor
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, statusUpdateCallback);
 
                             if (builtinToolResult.WasProcessed)
                             {

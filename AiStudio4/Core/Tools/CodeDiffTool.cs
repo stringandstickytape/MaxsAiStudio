@@ -155,6 +155,9 @@ namespace AiStudio4.Core.Tools
             var resultsSummary = new StringBuilder();
             var aggregatedErrors = new StringBuilder(); // For errors during parallel execution
             
+            // Send initial status update
+            SendStatusUpdate("Starting CodeDiff tool execution...");
+            
             // Preprocess the input to handle multiple tool calls merged into one
             toolParameters = PreprocessMultipleChangesets(toolParameters);
             
@@ -215,6 +218,7 @@ namespace AiStudio4.Core.Tools
             if (!overallSuccess)
             {
                 _logger.LogError("CodeDiff request validation failed:\n{Errors}", _validationErrorMessages.ToString());
+                SendStatusUpdate("Validation failed. See error details.");
                 MessageBox.Show(_validationErrorMessages.ToString(), "CodeDiff Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Clipboard.SetText(_validationErrorMessages.ToString());
                 return CreateResult(false, false, $"Validation failed: {_validationErrorMessages.ToString()}");
@@ -222,6 +226,7 @@ namespace AiStudio4.Core.Tools
 
             // --- 3. Process Each Unique File Path Concurrently ---
             _logger.LogInformation("Validation successful. Starting parallel file processing (MaxConcurrency={MaxConcurrency}) for {UniqueFileCount} unique files in changeset '{Description}'.", MaxConcurrency, changesByPath.Count, changesetDescription);
+            SendStatusUpdate($"Validation successful. Processing {changesByPath.Count} files...");
             resultsSummary.AppendLine($"Changeset '{changesetDescription}' processing results:");
 
             var fileProcessingTasks = new List<Task>();
@@ -243,6 +248,7 @@ namespace AiStudio4.Core.Tools
 
             // --- 4. Aggregate Results and Finalize ---
             overallSuccess = errorBag.IsEmpty; // Overall success means no errors were added during execution
+            SendStatusUpdate("File processing completed. Finalizing results...");
 
             // Aggregate results and errors *after* all tasks complete
             foreach (var result in resultsBag.OrderBy(r => r)) // Order for consistent output
@@ -261,6 +267,16 @@ namespace AiStudio4.Core.Tools
             }
 
             _logger.LogInformation("CodeDiff processing finished. Overall Execution Success: {Success}. Summary:\n{Summary}", overallSuccess, resultsSummary.ToString());
+
+            // Send final status update
+            if (overallSuccess)
+            {
+                SendStatusUpdate("CodeDiff completed successfully.");
+            }
+            else
+            {
+                SendStatusUpdate("CodeDiff completed with errors. See details.");
+            }
 
             // Show message box if any errors occurred during execution
             if (!overallSuccess)
@@ -303,6 +319,9 @@ namespace AiStudio4.Core.Tools
             await semaphore.WaitAsync();
             try
             {
+                // Send status update for this file
+                SendStatusUpdate($"Processing file: {Path.GetFileName(filePath)}");
+
                 // --- Determine Net Operation ---
                 // Prioritize: Delete > Rename > Replace > Create > Modify
                 JObject deleteChange = allChangesForFile.LastOrDefault(c => c["change_type"]?.ToString() == "deleteFile");
@@ -325,18 +344,23 @@ namespace AiStudio4.Core.Tools
                 // --- Execute Prioritized Action ---
                 if (deleteChange != null)
                 {
+                    SendStatusUpdate($"Deleting file: {Path.GetFileName(filePath)}");
                     fileResult = await HandleDeleteFileAsync(filePath, deleteChange);
                 }
                 else if (renameChange != null)
                 {
+                    string newPath = renameChange["newContent"]?.ToString() ?? "unknown";
+                    SendStatusUpdate($"Renaming file: {Path.GetFileName(filePath)} to {Path.GetFileName(newPath)}");
                     fileResult = await HandleRenameFileAsync(filePath, renameChange);
                 }
                 else if (replaceChange != null)
                 {
+                    SendStatusUpdate($"Replacing file: {Path.GetFileName(filePath)}");
                     fileResult = await HandleReplaceFileAsync(filePath, replaceChange);
                 }
                 else if (createChange != null)
                 {
+                    SendStatusUpdate($"Creating file: {Path.GetFileName(filePath)}");
                     fileResult = await HandleCreateFileAsync(filePath, createChange);
                 }
                 else if (modifyChanges.Any())
@@ -349,6 +373,7 @@ namespace AiStudio4.Core.Tools
                     }
                     else
                     {
+                        SendStatusUpdate($"Modifying file: {Path.GetFileName(filePath)} ({modifyChanges.Count} changes)");
                         fileResult = await HandleModifyFileAsync(filePath, modifyChanges); // Pass all modify changes
                     }
                 }
@@ -541,6 +566,7 @@ namespace AiStudio4.Core.Tools
             // --- Send to AI and Process Response ---
             try
             {
+                SendStatusUpdate($"Processing modifications with AI for: {Path.GetFileName(filePath)}");
                 var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
 
                 if (!aiResponse.Success) // Allow empty response if successful AI call intended it
