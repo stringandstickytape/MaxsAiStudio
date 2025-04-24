@@ -117,6 +117,8 @@ namespace AiStudio4.Services
                 // Look up the tool in our dictionary
                 if (_tools.TryGetValue(toolName, out var tool))
                 {
+                    ((BaseToolImplementation)tool).SetStatusUpdateCallback(statusUpdateCallback);
+
                     // Let the tool implementation handle the processing
                     return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
                 }
