@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { useToolStore } from '@/stores/useToolStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+// Removed Dialog import
 import { Plus, Search, Edit, Trash2, Copy, Download, X, Check, CheckSquare, Square, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ToolEditor } from './ToolEditor';
+// Removed ToolEditor import as it's now used in ToolEditorModal
 import { Tool } from '@/types/toolTypes';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
+import { useModalStore } from '@/stores/useModalStore';
+import { useConfirmationDialog } from '@/hooks/useConfirmationDialog';
 
 interface ToolPanelProps {
   isOpen?: boolean;
@@ -49,10 +51,10 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [currentTool, setCurrentTool] = useState<Tool | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const { openModal } = useModalStore();
+  const { confirm } = useConfirmationDialog();
 
   useEffect(() => {
     if (isOpen) {
@@ -77,17 +79,31 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   }, [isOpen]);
 
   const handleAddTool = () => {
-    setCurrentTool(null);
-    setIsEditorOpen(true);
+    openModal('toolEditor', {
+      tool: null,
+      categories,
+      onClose: () => {}
+    });
   };
 
   const handleEditTool = (tool: Tool) => {
-    setCurrentTool(tool);
-    setIsEditorOpen(true);
+    openModal('toolEditor', {
+      tool,
+      categories,
+      onClose: () => {}
+    });
   };
 
   const handleDeleteTool = async (toolId: string) => {
-    if (window.confirm('Are you sure you want to delete this tool?')) {
+    const confirmed = await confirm({
+      title: 'Delete Tool',
+      description: 'Are you sure you want to delete this tool? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      danger: true
+    });
+    
+    if (confirmed) {
       try {
         setIsDeleting(true);
         await deleteTool(toolId);
@@ -161,7 +177,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     const handleCategoryDoubleClick = (categoryId: string | null) => {
       let toolsToSelect: Tool[] = [];
       if (categoryId === null) {
-        // Select all tools if \"All Tools\" is double-clicked
+        // Select all tools if "All Tools" is double-clicked
         toolsToSelect = tools;
       } else {
         // Select tools belonging to the specific category
@@ -395,14 +411,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
       <div className="flex justify-between items-center mt-4">
         {/* Removed 'Currently selected' label from here */}
         {/* Buttons moved to the top */} 
-      <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{currentTool ? 'Edit Tool' : 'Create Tool'}</DialogTitle>
-          </DialogHeader>
-          <ToolEditor tool={currentTool} onClose={() => setIsEditorOpen(false)} categories={categories} />
-        </DialogContent>
-      </Dialog>
+      {/* Tool Editor Dialog removed - now handled by ToolEditorModal */}
           </div>
     </div>
   );

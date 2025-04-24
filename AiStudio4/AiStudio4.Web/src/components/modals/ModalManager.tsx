@@ -6,6 +6,8 @@ import { SettingsModal } from './SettingsModal';
 import { SystemPromptModal } from './SystemPromptModal';
 import { UserPromptModal } from './UserPromptModal';
 import { ToolModal } from './ToolModal';
+import { ToolEditorModal } from './ToolEditorModal';
+import { ServerModal } from './ServerModal';
 import { ThemeModal } from './ThemeModal';
 import { ConfirmationModal } from './ConfirmationModal';
 import { FormModal } from './FormModal';
@@ -19,6 +21,8 @@ export function ModalManager() {
       <SystemPromptModal />
       <UserPromptModal />
       <ToolModal />
+      <ToolEditorModal />
+      <ServerModal />
       <ThemeModal />
       <ConfirmationModal />
       <FormModal />

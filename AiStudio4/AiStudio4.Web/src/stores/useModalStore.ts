@@ -6,7 +6,13 @@ export interface ModalRegistry {
   settings: {};
   systemPrompt: { convId?: string; editPromptId?: string; createNew?: boolean };
   userPrompt: {};
-  tool: {}; // Placeholder for tool modal props
+  tool: {}; // Tool library modal props
+  toolEditor: { // New tool editor modal props
+    tool: any | null;
+    categories: any[];
+    onClose: () => void;
+  };
+  server: {}; // Server management modal props
   theme: {};
   confirmation: {
     title: string;
