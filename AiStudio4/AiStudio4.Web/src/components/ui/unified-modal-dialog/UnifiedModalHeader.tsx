@@ -7,12 +7,66 @@ import { modalVariants } from './variants';
 
 export interface UnifiedModalHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+// Define themeable properties for the UnifiedModalHeader component
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--unifiedmodalheader-bg',
+    description: 'Background color of the modal header',
+    default: 'transparent',
+  },
+  textColor: {
+    cssVar: '--unifiedmodalheader-text-color',
+    description: 'Text color of the modal header',
+    default: 'var(--foreground)',
+  },
+  borderColor: {
+    cssVar: '--unifiedmodalheader-border-color',
+    description: 'Border color of the modal header',
+    default: 'var(--border)',
+  },
+  fontSize: {
+    cssVar: '--unifiedmodalheader-font-size',
+    description: 'Font size of the modal header',
+    default: '1.25rem',
+  },
+  fontWeight: {
+    cssVar: '--unifiedmodalheader-font-weight',
+    description: 'Font weight of the modal header',
+    default: '600',
+  },
+  padding: {
+    cssVar: '--unifiedmodalheader-padding',
+    description: 'Padding of the modal header',
+    default: 'inherit',
+  },
+  // Arbitrary style overrides
+  style: {
+    description: 'Arbitrary CSS style for the modal header',
+    default: {},
+  },
+};
+
 export const UnifiedModalHeader: React.FC<UnifiedModalHeaderProps> = ({ className, children, ...props }) => {
   const { variant = 'default' } = useUnifiedModalContext();
   const variantConfig = modalVariants[variant];
+  
+  // Get theme style overrides from window.theme if available
+  const themeStyle = window?.theme?.UnifiedModalHeader?.style || {};
 
   return (
-    <div className={cn(variantConfig.headerClassName, className)} {...props}>
+    <div 
+      className={cn('UnifiedModalHeader', variantConfig.headerClassName, className)} 
+      style={{
+        backgroundColor: 'var(--unifiedmodalheader-bg, transparent)',
+        color: 'var(--unifiedmodalheader-text-color, var(--foreground))',
+        borderColor: 'var(--unifiedmodalheader-border-color, var(--border))',
+        fontSize: 'var(--unifiedmodalheader-font-size, 1.25rem)',
+        fontWeight: 'var(--unifiedmodalheader-font-weight, 600)',
+        padding: 'var(--unifiedmodalheader-padding, inherit)',
+        ...themeStyle
+      }}
+      {...props}
+    >
       {children}
     </div>
   );

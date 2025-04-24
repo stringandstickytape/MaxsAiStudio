@@ -400,7 +400,59 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                             ) : (
                                 <MarkdownPane message={message.content} />
                             )}
+                            {(message.costInfo?.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
+                                <div className="ConvView text-small pt-1" style={{
+                                    color: 'var(--convview-text-color, #9ca3af)'
+                                }}>
+                                    <div className="ConvView flex flex-wrap items-center gap-x-4 text-[0.75rem]">
+                                        {/* Timestamp and duration info */}
+                                        {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
+                                            <div className="flex items-center gap-x-2">
+                                                {typeof message.timestamp === 'number' && message.timestamp > 0 && (
+                                                    <span title={new Date(message.timestamp).toLocaleString()}>
+                                                        Time: {formatTimestamp(message.timestamp)}
+                                                    </span>
+                                                )}
+                                                {typeof message.durationMs === 'number' && message.durationMs > 0 && (
+                                                    <span title={`Response took ${message.durationMs}ms`}>
+                                                        Duration: {formatDuration(message)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
 
+                                        {message.tokenUsage && (
+                                            <div className="flex items-center gap-x-2">
+                                            </div>
+                                        )}
+                                        {message.costInfo && (
+                                            <div className="flex items-center gap-x-2">
+                                                <span>
+                                                    Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
+                                                </span>
+                                                {(message.costInfo.tokenUsage.cacheCreationInputTokens > 0 ||
+                                                    message.costInfo.tokenUsage.cacheReadInputTokens > 0) && (
+                                                        <span>
+                                                            (Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
+                                                            {message.costInfo.tokenUsage.cacheReadInputTokens} read)
+                                                        </span>
+                                                    )}
+                                                <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
+                                                <span className="text-gray-500">
+                                                    (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
+                                                    {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
+                                                </span>
+                                                {message.costInfo.modelGuid && (
+                                                    <span className="ml-1 text-gray-400 text-xs font-medium bg-gray-700 px-2 py-0.5 rounded-full">
+                                                        {formatModelDisplay(message.costInfo.modelGuid)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                            }
                         </div>
 
                         {/* Display message attachments */}
@@ -511,60 +563,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                         </div>
 
 
-                        {(message.costInfo?.tokenUsage || message.costInfo || message.timestamp || message.durationMs) && (
-                            <div className="ConvView text-small mt-2 border-t pt-1" style={{
-                                borderColor: 'var(--convview-border-color, rgba(55, 65, 81, 0.3))',
-                                color: 'var(--convview-text-color, #9ca3af)'
-                            }}>
-                                <div className="ConvView flex flex-wrap items-center gap-x-4">
-                                    {/* Timestamp and duration info */}
-                                    {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
-                                        <div className="flex items-center gap-x-2">
-                                            {typeof message.timestamp === 'number' && message.timestamp > 0 && (
-                                                <span title={new Date(message.timestamp).toLocaleString()}>
-                                                    Time: {formatTimestamp(message.timestamp)}
-                                                </span>
-                                            )}
-                                            {typeof message.durationMs === 'number' && message.durationMs > 0 && (
-                                                <span title={`Response took ${message.durationMs}ms`}>
-                                                    Duration: {formatDuration(message)}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
 
-                                    {message.tokenUsage && (
-                                        <div className="flex items-center gap-x-2">
-                                        </div>
-                                    )}
-                                    {message.costInfo && (
-                                        <div className="flex items-center gap-x-2">
-                                            <span>
-                                                Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
-                                            </span>
-                                            {(message.costInfo.tokenUsage.cacheCreationInputTokens > 0 ||
-                                                message.costInfo.tokenUsage.cacheReadInputTokens > 0) && (
-                                                    <span>
-                                                        (Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
-                                                        {message.costInfo.tokenUsage.cacheReadInputTokens} read)
-                                                    </span>
-                                                )}
-                                            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)}</span>
-                                            <span className="text-gray-500">
-                                                (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
-                                                {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
-                                            </span>
-                                            {message.costInfo.modelGuid && (
-                                                <span className="ml-1 text-gray-400 text-xs font-medium bg-gray-700 px-2 py-0.5 rounded-full">
-                                                    {formatModelDisplay(message.costInfo.modelGuid)}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                        }
                     </div>
                 );
             })}
@@ -575,7 +574,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 <div key="streaming-message"
                         className="ConvView w-full group flex flex-col relative mb-4">
                         
-                    <div className="ConvView message-container px-4 py-3 shadow-md w-full break-words" style={{
+                    <div className="ConvView message-container px-4 py-1 shadow-md w-full break-words" style={{
                         background: 'var(--ai-message-background, #1f2937)',
                         color: 'var(--convview-text-color, #ffffff)',
                         borderRadius: '0.5rem',

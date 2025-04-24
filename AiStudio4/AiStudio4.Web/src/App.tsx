@@ -6,10 +6,10 @@ import { FontSizeProvider } from './components/FontSizeProvider';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 // import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
 // import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
-import { ToolDialog } from './components/tools/ToolDialog'; // Keep for now (uses own state)
+import { ToolDialog } from './components/tools/ToolDialog'; // Bridge component for legacy event handling
 // import SettingsDialog from './components/modals/SettingsDialog'; // Replaced by ModalManager
 // import { ThemeLibrary } from './components/ThemeLibrary'; // Replaced by ModalManager
-import { ServerDialog } from './components/servers/ServerDialog'; // Keep for now (uses own state)
+import { ServerDialog } from './components/servers/ServerDialog'; // Bridge component for legacy event handling
 import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -177,7 +177,7 @@ function App() {
       {/* Centralized Modal Management */}
       <ModalManager />
 
-      {/* Modals still using their own state management */}
+      {/* Bridge components for legacy event handling */}
       <ToolDialog />
       <ServerDialog />
 

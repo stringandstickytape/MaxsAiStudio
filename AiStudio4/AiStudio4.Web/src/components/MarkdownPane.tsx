@@ -434,7 +434,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 </div>
             );
         },
-        p: ({ children }: any) => <p className="my-4 whitespace-pre-wrap ">{children}</p>,
+        p: ({ children }: any) => <p className="my-1 whitespace-pre-wrap ">{children}</p>,
         h1: ({ children }: any) => <h1 className="text-3xl font-bold my-6">{children}</h1>,
         h2: ({ children }: any) => <h2 className="text-2xl font-bold my-5">{children}</h2>,
         h3: ({ children }: any) => <h3 className="text-xl font-bold ">{children}</h3>,
