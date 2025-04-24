@@ -1,4 +1,5 @@
-﻿export type PanelPosition = 'left' | 'right' | 'top' | 'bottom';
+﻿// AiStudio4.Web/src/types/ui.ts
+export type PanelPosition = 'left' | 'right' | 'top' | 'bottom';
 
 export interface PanelState {
   id: string;
@@ -8,4 +9,3 @@ export interface PanelState {
   zIndex: number;
   title: string;
 }
-export type ModalId = 'settings' | 'systemPrompt' | 'userPrompt' | 'tool' | 'theme' | string;

@@ -236,7 +236,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         const getThemeColor = (varName: string, fallback: string) => {
             // Try to get the CSS variable from the ConvTreeView container first
             let value = '';
-            if (containerRef.current) {
+            if (containerRef.current && document.body.contains(containerRef.current)) {
                 value = getComputedStyle(containerRef.current).getPropertyValue(varName);
             }
             // Fallback to :root if not found or empty

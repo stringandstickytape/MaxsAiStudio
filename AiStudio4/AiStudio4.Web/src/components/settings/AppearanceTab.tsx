@@ -6,21 +6,11 @@ import { useAppearanceManagement } from '@/hooks/useAppearanceManagement';
 import { RefreshCw } from 'lucide-react';
 import { fontSizeUtils } from '@/stores/useAppearanceStore';
 import { useModalStore } from '@/stores/useModalStore';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { useConfirmationDialog } from '@/hooks/useConfirmationDialog';
 
 export function AppearanceTab() {
-    const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
+    const { confirm } = useConfirmationDialog();
     const { error } = useAppearanceManagement();
 
     const showSuccessMessage = (message: string) => {
@@ -28,12 +18,20 @@ export function AppearanceTab() {
         setTimeout(() => setSuccessMessage(null), 3000);
     };
 
-    const handleReset = async () => {
+    const handleResetClick = async () => {
+        const confirmed = await confirm({
+            title: 'Reset Appearance Settings?',
+            description: 'This will reset all appearance settings to their default values. This action cannot be undone.',
+            confirmLabel: 'Reset',
+            cancelLabel: 'Cancel',
+            danger: true,
+        });
         
-        await fontSizeUtils.set(16);
-        await fontSizeUtils.saveSettings();
-        setResetDialogOpen(false);
-        showSuccessMessage('Settings reset to defaults');
+        if (confirmed) {
+            await fontSizeUtils.set(16);
+            await fontSizeUtils.saveSettings();
+            showSuccessMessage('Settings reset to defaults');
+        }
     };
 
     return (
@@ -46,11 +44,9 @@ export function AppearanceTab() {
                 <CardContent>
                     <FontSizeControl
                         onChange={() => {
-                            
                             setSuccessMessage(null);
                         }}
                         onSave={() => {
-                            
                             fontSizeUtils.saveSettings();
                             showSuccessMessage('Font size saved successfully');
                         }}
@@ -70,7 +66,7 @@ export function AppearanceTab() {
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button 
                                 onClick={() => {
-                                    useModalStore.getState().openModal('theme');
+                                    useModalStore.getState().openModal('theme', {});
                                 }}
                                 className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
                             >
@@ -101,31 +97,13 @@ export function AppearanceTab() {
                 </div>
                 <Button
                     variant="outline"
-                    onClick={() => setResetDialogOpen(true)}
+                    onClick={handleResetClick}
                     className="btn-secondary flex items-center gap-1"
                 >
                     <RefreshCw className="h-4 w-4" />
                     <span>Reset to Defaults</span>
                 </Button>
             </div>
-
-
-            <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-                <AlertDialogContent className="bg-gray-800 border-gray-700 text-gray-100">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Reset Appearance Settings?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-400">
-                            This will reset all appearance settings to their default values. This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="btn-secondary">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleReset} className="btn-danger">
-                            Reset
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

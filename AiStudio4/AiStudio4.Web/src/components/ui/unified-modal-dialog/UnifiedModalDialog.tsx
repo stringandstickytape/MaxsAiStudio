@@ -1,6 +1,6 @@
 ﻿// AiStudio4.Web/src/components/ui/unified-modal-dialog/UnifiedModalDialog.tsx
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react'; // Added useRef
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -93,6 +93,8 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
     none: '',
   }[animation];
 
+  // Radix Dialog handles basic focus management (initial focus, return focus).
+  // FocusTrap enhances this by ensuring focus stays *within* the modal.
   return (
     <DialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>
       <DialogPrimitive.Portal>
@@ -104,13 +106,15 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
           )}
           style={{ animationDuration: `${animationDuration ?? 150}ms` }}
         />
+        {/* Use DialogPrimitive's built-in focus management instead of FocusTrap */}
         <div className={cn('fixed inset-0 z-50 flex overflow-auto', positionClass)}>
           <DialogPrimitive.Content
             id={id}
             onInteractOutside={handleInteractOutside}
             onEscapeKeyDown={handleEscapeKeyDown}
             aria-label={ariaLabel}
-            aria-describedby={ariaDescribedBy}
+            aria-describedby={ariaDescribedBy ?? (id ? `${id}-description` : undefined)} // Auto-generate describedby if id exists
+            aria-modal="true" // Explicitly mark as modal
             className={cn(
               'relative z-50 flex flex-col border bg-background text-foreground shadow-lg',
               'm-4', // Add some margin to prevent touching edges unless fullScreen
@@ -126,8 +130,6 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
             style={{ animationDuration: `${animationDuration ?? 150}ms` }}
           >
             <UnifiedModalProvider value={contextValue}>
-              {/* Apply contentClassName to the children wrapper if needed, or expect children to handle their own padding/layout */} 
-              {/* The UnifiedModalContent component already handles its specific classNames */} 
               {children}
             </UnifiedModalProvider>
             {showCloseButton && (
