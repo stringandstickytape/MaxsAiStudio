@@ -32,5 +32,12 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="clientId">The ID of the client to notify</param>
         /// <param name="transcriptionText">The transcribed text to send</param>
         Task NotifyTranscription(string transcriptionText);
+
+        /// <summary>
+        /// Notifies a client about a status message
+        /// </summary>
+        /// <param name="clientId">The ID of the client to notify</param>
+        /// <param name="message">The status message to send</param>
+        Task NotifyStatusMessage(string clientId, string message);
     }
 }

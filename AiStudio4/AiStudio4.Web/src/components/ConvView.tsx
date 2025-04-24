@@ -5,6 +5,7 @@ import { LiveStreamToken } from '@/components/LiveStreamToken';
 import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown, Save, ArrowUp } from 'lucide-react'; // Use Save (floppy disk) and ArrowUp icons for Save Conversation Up To Here
 import { LoadingTimer } from './LoadingTimer';
+import { StatusMessage } from './StatusMessage';
 import { useEffect, useMemo, useState } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -594,6 +595,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                             )}
                             <div className="overflow-hidden">  
                                 <LoadingTimer />
+
                             </div>
                         <div className="w-full mb-4">
                             {streamTokens.length > 0 ? (
@@ -614,10 +616,11 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                                 </div>
                             ) : null}
                         </div>
-                    </div>
+                        </div>
+
                 </div>
             )}
-            {/* Removed: <ScrollToBottom /> */}
+                <StatusMessage />
             </StickToBottom.Content>
             <ScrollToBottom />
         </StickToBottom>

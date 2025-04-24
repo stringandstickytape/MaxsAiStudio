@@ -1,6 +1,7 @@
-
+﻿
 import { useEffect, useState } from 'react';
 import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useStatusMessageStore } from '@/stores/useStatusMessageStore';
 
 interface UseWebSocketOptions {
   autoConnect?: boolean;
@@ -34,11 +35,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     Object.entries(subscriptions).forEach(([messageType, handler]) => {
       webSocketService.subscribe(messageType, handler);
     });
-    
+
+    // Status message handler
+    const { setMessage } = useStatusMessageStore.getState();
+      const handleStatusMessage = (data: any) => {
+          console.log("handleStatusMessage setting message to " + data?.message);
+      setMessage(data?.message || '');
+    };
+    webSocketService.subscribe('status', handleStatusMessage);
+
     return () => {
       Object.entries(subscriptions).forEach(([messageType, handler]) => {
         webSocketService.unsubscribe(messageType, handler);
       });
+      webSocketService.unsubscribe('status', handleStatusMessage);
     };
   }, [subscriptions]);
 

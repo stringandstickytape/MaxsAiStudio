@@ -259,7 +259,7 @@ namespace AiStudio4.Services
 
 
 
-                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken);
+                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
 
                     await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {

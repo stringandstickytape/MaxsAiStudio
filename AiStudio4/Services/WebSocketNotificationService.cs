@@ -143,5 +143,30 @@ namespace AiStudio4.Services
                 throw new WebSocketNotificationException("Failed to send transcription update", ex);
             }
         }
+
+        public async Task NotifyStatusMessage(string clientId, string message)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
+
+                var messageObj = new
+                {
+                    messageType = "status",
+                    content = new
+                    {
+                        message = message
+                    }
+                };
+
+                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(messageObj));
+                _logger.LogDebug("Sent status message to client {ClientId}: {Message}", clientId, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send status message to client {ClientId}", clientId);
+                throw new WebSocketNotificationException("Failed to send status message", ex);
+            }
+        }
     }
 }

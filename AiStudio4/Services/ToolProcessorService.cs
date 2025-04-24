@@ -30,13 +30,15 @@ namespace AiStudio4.Services
         private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
         private DateTime _lastRequestTime = DateTime.MinValue;
         private readonly object _rateLimitLock = new object(); // Lock object for thread safety
+        private readonly IWebSocketNotificationService _webSocketNotificationService;
 
-        public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService)
+        public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService, IWebSocketNotificationService webSocketNotificationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
             _mcpService = mcpService ?? throw new ArgumentNullException(nameof(mcpService));
             _builtinToolService = builtinToolService ?? throw new ArgumentNullException(nameof(builtinToolService));
+            _webSocketNotificationService = webSocketNotificationService ?? throw new ArgumentNullException(nameof(webSocketNotificationService));
         }
 
         /// <summary>
@@ -46,8 +48,19 @@ namespace AiStudio4.Services
         /// <param name="conv">The current conversation state</param>
         /// <param name="collatedResponse">Builder to accumulate tool execution outputs</param>
         /// <returns>Tool execution result with success status and updated content</returns>
-        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default)
+        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default, string clientId = null)
         {
+            try
+            {
+                // Send "Tools being processed" message at the start
+                if (!string.IsNullOrEmpty(clientId))
+                    await _webSocketNotificationService.NotifyStatusMessage(clientId, "Tools being processed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send status message at tool processing start");
+            }
+
             // Rate limiting with lock for thread safety
             lock (_rateLimitLock)
             {
@@ -231,6 +244,17 @@ namespace AiStudio4.Services
             }
 
             var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
+
+            try
+            {
+                // Always send empty message when done, regardless of success or failure
+                if (!string.IsNullOrEmpty(clientId))
+                    await _webSocketNotificationService.NotifyStatusMessage(clientId, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send status message at tool processing end");
+            }
 
             return new ToolExecutionResult
             {
