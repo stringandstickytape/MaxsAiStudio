@@ -54,6 +54,7 @@ namespace AiStudio4.Core.Tools
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("'Stop' tool called, signalling processing termination");
+            SendStatusUpdate("Processing Stop tool...");
             string resultMessage = "Stop tool called without parameters.";
 
             // Optionally parse the parameters to extract the message
@@ -74,6 +75,7 @@ namespace AiStudio4.Core.Tools
                 resultMessage = "Stop tool called (parameters could not be parsed)";
             }
 
+            SendStatusUpdate("Stop tool completed. Ending conversation.");
             return Task.FromResult(CreateResult(true, false, resultMessage));
         }
     }

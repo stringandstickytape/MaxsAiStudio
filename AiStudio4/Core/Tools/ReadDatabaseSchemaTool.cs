@@ -61,6 +61,7 @@ namespace AiStudio4.Core.Tools
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("ReadSchemaDetails tool called");
+            SendStatusUpdate("Starting ReadDatabaseSchema tool execution...");
             var resultBuilder = new StringBuilder();
 
             try
@@ -68,33 +69,41 @@ namespace AiStudio4.Core.Tools
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(toolParameters);
                 string detailType = parameters["detailType"].ToLower();
                 string filter = parameters.ContainsKey("filter") ? parameters["filter"] : null;
+                
+                SendStatusUpdate($"Reading database schema for type: {detailType}{(filter != null ? $", filter: {filter}" : "")}");
 
                 // Connection string for SQL Server using Windows Authentication
                 string connectionString = @"Data Source=localhost;Initial Catalog=SHEFFIELD;Integrated Security=True;TrustServerCertificate=True";
 
                 using (var connection = new SqlConnection(connectionString))
                 {
+                    SendStatusUpdate("Connecting to database...");
                     await connection.OpenAsync();
 
                     if (detailType == "table")
                     {
+                        SendStatusUpdate("Retrieving table details...");
                         await GetTableDetailsAsync(connection, filter, resultBuilder);
                     }
                     else if (detailType == "column")
                     {
+                        SendStatusUpdate("Retrieving column details...");
                         await GetColumnDetailsAsync(connection, filter, resultBuilder);
                     }
                     else
                     {
+                        SendStatusUpdate($"Error: Invalid detailType '{detailType}'.");
                         resultBuilder.AppendLine($"Error: Invalid detailType '{detailType}'. Use 'table' or 'column'.");
                     }
                 }
 
+                SendStatusUpdate("Database schema retrieved successfully.");
                 return CreateResult(true, true, resultBuilder.ToString());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing ReadSchemaDetails tool");
+                SendStatusUpdate($"Error processing ReadDatabaseSchema tool: {ex.Message}");
                 return CreateResult(true, true, $"Error processing ReadSchemaDetails tool: {ex.Message}");
             }
         }

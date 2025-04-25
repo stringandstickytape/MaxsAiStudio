@@ -60,11 +60,13 @@ It will not obtain new information or make any changes to the repository, but ju
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             // Think tool doesn't need special processing beyond logging
+            SendStatusUpdate("Processing Think tool...");
             var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);
 
             var thought = parameters?["thought"]?.ToString() ?? "";
 
             _logger.LogInformation("Think tool called with parameters: {Parameters}", thought);
+            SendStatusUpdate("Think tool completed.");
             return Task.FromResult(CreateResult(true, false, thought));
         }
     }

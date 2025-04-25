@@ -64,6 +64,7 @@ namespace AiStudio4.Core.Tools
         /// </summary>
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
+            SendStatusUpdate("Starting LaunchUrl tool execution...");
             var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);
             var urls = parameters?["urls"]?.ToObject<List<string>>() ?? new List<string>();
             var results = new StringBuilder();
@@ -72,8 +73,11 @@ namespace AiStudio4.Core.Tools
             if (!urls.Any())
             {
                 _logger.LogWarning("LaunchUrlTool called with no URLs.");
+                SendStatusUpdate("Error: No URLs provided.");
                 return Task.FromResult(CreateResult(false, false, "No URLs provided."));
             }
+            
+            SendStatusUpdate($"Launching {urls.Count} URL(s)...");
 
             foreach (var url in urls)
             {
@@ -88,6 +92,7 @@ namespace AiStudio4.Core.Tools
                 try
                 {
                     _logger.LogInformation("Launching URL: {Url}", url);
+                    SendStatusUpdate($"Launching URL: {url}");
                     // Use Process.Start with UseShellExecute = true for cross-platform compatibility
                     // and to open in the default browser.
                     Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
@@ -96,12 +101,14 @@ namespace AiStudio4.Core.Tools
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error launching URL: {Url}", url);
+                    SendStatusUpdate($"Error launching URL: {url}");
                     results.AppendLine($"Failed to launch: {url}. Error: {ex.Message}");
                     overallSuccess = false;
                 }
             }
 
             _logger.LogInformation("LaunchUrl tool finished processing {Count} URLs.", urls.Count);
+            SendStatusUpdate(overallSuccess ? "All URLs launched successfully." : "Completed with some errors. See details.");
             return Task.FromResult(CreateResult(overallSuccess, false, results.ToString()));
         }
     }

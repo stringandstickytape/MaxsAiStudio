@@ -57,14 +57,17 @@ namespace AiStudio4.Core.Tools
             try
             {
                 _logger.LogInformation("infoRequest tool called with parameters: {Parameters}", toolParameters);
+                SendStatusUpdate("Processing information request...");
                 var parameters = JsonConvert.DeserializeObject<dynamic>(toolParameters);
                 string message = parameters?.message;
 
+                SendStatusUpdate("Information request sent to user.");
                 return Task.FromResult(CreateResult(true, false, message));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing infoRequest tool");
+                SendStatusUpdate($"Error processing information request: {ex.Message}");
                 return Task.FromResult(CreateResult(true, true, "Error processing information request: " + ex.Message));
             }
         }

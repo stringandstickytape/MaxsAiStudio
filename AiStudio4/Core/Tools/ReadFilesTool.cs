@@ -68,6 +68,7 @@ namespace AiStudio4.Core.Tools
         {
             _extraProperties = extraProperties;
             _logger.LogInformation("ReadFile tool called");
+            SendStatusUpdate("Starting ReadFiles tool execution...");
             var resultBuilder = new StringBuilder();
 
             // If user-edited extraProperties are provided, override defaults for excluded extensions
@@ -120,6 +121,7 @@ namespace AiStudio4.Core.Tools
                     var fileExt = Path.GetExtension(fullPath).ToLowerInvariant();
                     if (excludedExtensions.Contains(fileExt))
                     {
+                        SendStatusUpdate($"Skipping file with excluded extension: {Path.GetFileName(relativePath)}");
                         resultBuilder.AppendLine($"---Skipped {relativePath}: Excluded file extension '{fileExt}'.---");
                         continue;
                     }
@@ -127,6 +129,7 @@ namespace AiStudio4.Core.Tools
                     if (!fullPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {
                         _logger.LogWarning($"Attempted to read file outside the project root: {relativePath} (Resolved: {fullPath})");
+                        SendStatusUpdate($"Error: Path is outside the allowed directory: {Path.GetFileName(relativePath)}");
                         resultBuilder.AppendLine($"---Error reading {relativePath}: Access denied - Path is outside the allowed directory.---");
                         continue; // Skip this file
                     }
@@ -135,28 +138,33 @@ namespace AiStudio4.Core.Tools
                     {
                         if (File.Exists(fullPath))
                         {
+                            SendStatusUpdate($"Reading file: {Path.GetFileName(fullPath)}");
                             var content = await File.ReadAllTextAsync(fullPath);
                             resultBuilder.AppendLine($"--- File: {relativePath} ---");
                             resultBuilder.AppendLine(content);
                         }
                         else
                         {
+                            SendStatusUpdate($"Error: File not found: {Path.GetFileName(fullPath)}");
                             resultBuilder.AppendLine($"---Error reading {relativePath}: File not found. Did you get the directory wrong?");
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"Error reading file: {fullPath}");
+                        SendStatusUpdate($"Error reading file: {Path.GetFileName(fullPath)}");
                         resultBuilder.AppendLine($"---Error reading {relativePath}: {ex.Message}---");
                     }
                     resultBuilder.AppendLine(); // Add a separator between files
                 }
 
+                SendStatusUpdate("ReadFiles tool completed successfully.");
                 return CreateResult(true, true, resultBuilder.ToString());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing ReadFile tool");
+                SendStatusUpdate($"Error processing ReadFiles tool: {ex.Message}");
                 return CreateResult(true, true, $"Error processing ReadFile tool: {ex.Message}");
             }
         }

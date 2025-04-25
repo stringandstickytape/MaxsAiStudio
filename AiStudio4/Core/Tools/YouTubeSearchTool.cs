@@ -82,6 +82,7 @@ namespace AiStudio4.Core.Tools
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("YouTubeSearch tool called with parameters: {Parameters}", toolParameters);
+            SendStatusUpdate("Starting YouTubeSearch tool execution...");
             var overallResultBuilder = new StringBuilder();
             var serializer = new JsonSerializer();
             bool anySuccess = false;
@@ -99,6 +100,7 @@ namespace AiStudio4.Core.Tools
                         {
                             requestIndex++;
                             _logger.LogInformation("Processing search request #{Index}", requestIndex);
+                            SendStatusUpdate($"Processing search request #{requestIndex}...");
                             try
                             {
                                 var parameters = serializer.Deserialize<Dictionary<string, object>>(jsonReader);
@@ -136,16 +138,19 @@ namespace AiStudio4.Core.Tools
                     if (requestIndex == 0) // Handle case where input was empty or not valid JSON at all
                     {
                          _logger.LogWarning("No valid JSON objects found in the input parameters.");
+                         SendStatusUpdate("Error: No valid JSON search requests found in input.");
                          return CreateResult(true, false, "Error: Input did not contain any valid JSON search requests.");
                     }
                 }
 
                 // Return combined result
+                SendStatusUpdate(allSuccess ? "YouTube search completed successfully." : "YouTube search completed with some errors.");
                 return CreateResult(true, allSuccess && anySuccess, overallResultBuilder.ToString().TrimEnd());
             }
             catch (Exception ex) // Catch errors during the reader setup or initial read
             {
                 _logger.LogError(ex, "An unexpected error occurred while processing multiple YouTube search requests.");
+                SendStatusUpdate($"Error processing YouTubeSearch tool: {ex.Message}");
                 return CreateResult(true, false, $"Error: An unexpected error occurred while parsing search requests. {ex.Message}");
             }
         }
@@ -164,6 +169,7 @@ namespace AiStudio4.Core.Tools
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 _logger.LogWarning("YouTube API Key is not configured.");
+                SendStatusUpdate("Error: YouTube API Key is not configured.");
                 return "## Error: YouTube API Key is not configured. Please set it in the File -> Secrets menu.";
             }
             // --- End API Key check ---
@@ -195,6 +201,7 @@ namespace AiStudio4.Core.Tools
             }
 
             // Perform the search (throws HttpRequestException on failure)
+            SendStatusUpdate($"Searching YouTube for: {query}...");
             var searchResult = await SearchYouTube(query, maxResults, type);
 
             // Format results as a Markdown list

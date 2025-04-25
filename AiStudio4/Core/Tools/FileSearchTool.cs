@@ -303,6 +303,7 @@ namespace AiStudio4.Core.Tools
 
             try
             {
+                SendStatusUpdate("Starting FileSearch tool execution...");
                 parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
                 // Now call the main logic which uses this.parameters
@@ -343,13 +344,26 @@ namespace AiStudio4.Core.Tools
                 }
 
                 // --- Validation (as before) ---
-                if (string.IsNullOrWhiteSpace(path)) return Task.FromResult(CreateResult(true, true, "Error: 'path' parameter is required."));
-                if (searchTerms.Length == 0 || searchTerms.All(string.IsNullOrWhiteSpace)) return Task.FromResult(CreateResult(true, true, "Error: 'search_terms' parameter must contain at least one non-empty term."));
+                if (string.IsNullOrWhiteSpace(path)) {
+                    SendStatusUpdate("Error: 'path' parameter is required.");
+                    return Task.FromResult(CreateResult(true, true, "Error: 'path' parameter is required."));
+                }
+                if (searchTerms.Length == 0 || searchTerms.All(string.IsNullOrWhiteSpace)) {
+                    SendStatusUpdate("Error: 'search_terms' parameter must contain at least one non-empty term.");
+                    return Task.FromResult(CreateResult(true, true, "Error: 'search_terms' parameter must contain at least one non-empty term."));
+                }
                 var validSearchTerms = searchTerms.Where(st => !string.IsNullOrWhiteSpace(st)).ToArray();
                 var searchPath = Path.GetFullPath(Path.Combine(_projectRoot, path));
-                if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase)) return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
-                if (!Directory.Exists(searchPath)) return Task.FromResult(CreateResult(true, true, $"Error: Directory not found: {searchPath}"));
-
+                if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase)) {
+                    SendStatusUpdate("Error: Path is outside the allowed directory.");
+                    return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
+                }
+                if (!Directory.Exists(searchPath)) {
+                    SendStatusUpdate($"Error: Directory not found: {searchPath}");
+                    return Task.FromResult(CreateResult(true, true, $"Error: Directory not found: {searchPath}"));
+                }
+                
+                SendStatusUpdate($"Searching for terms: {string.Join(", ", validSearchTerms)} in {Path.GetFileName(searchPath)}...");
 
                 // --- GitIgnore Setup (as before) ---
                 GitIgnoreFilterManager gitIgnoreFilterManager = null;
@@ -393,6 +407,7 @@ namespace AiStudio4.Core.Tools
 
 
                 // --- Perform Search ---
+                SendStatusUpdate($"Beginning file search with depth: {depth}...");
                 SearchFilesRecursively(searchPath, searchPath, depth, validSearchTerms, gitIgnoreFilterManager, matchingFiles);
 
 
@@ -402,10 +417,12 @@ namespace AiStudio4.Core.Tools
                     // The results are now already formatted with context
                     string resultText = $"Found matches in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
                                         string.Join("\n", matchingFiles);
+                    SendStatusUpdate($"Search completed. Found matches in {matchingFiles.Count} files.");
                     return Task.FromResult(CreateResult(true, true, resultText));
                 }
                 else
                 {
+                    SendStatusUpdate("Search completed. No matches found.");
                     return Task.FromResult(CreateResult(true, true, $"No files found containing the specified search terms of {string.Join("/", searchTerms)}"));
                 }
             }
@@ -413,6 +430,7 @@ namespace AiStudio4.Core.Tools
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing FileSearch tool");
+                SendStatusUpdate($"Error processing FileSearch tool: {ex.Message}");
                 return Task.FromResult(CreateResult(true, true, $"Error processing FileSearch tool: {ex.Message}"));
             }
         }

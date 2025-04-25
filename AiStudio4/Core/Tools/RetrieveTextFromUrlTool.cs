@@ -77,6 +77,7 @@ namespace AiStudio4.Core.Tools
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("RetrieveTextFromUrl tool called");
+            SendStatusUpdate("Starting RetrieveTextFromUrl tool execution...");
             var resultBuilder = new StringBuilder();
 
             try
@@ -89,6 +90,7 @@ namespace AiStudio4.Core.Tools
                 if (parameters.TryGetValue("timeout", out var timeoutObj) && timeoutObj is int timeout)
                 {
                     _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+                    SendStatusUpdate($"Setting timeout to {timeout} seconds.");
                 }
 
                 // Handle both single URL and array of URLs
@@ -106,10 +108,12 @@ namespace AiStudio4.Core.Tools
                 }
 
                 // Process each URL
+                SendStatusUpdate($"Processing {urlsToRetrieve.Count} URL(s)...");
                 foreach (var url in urlsToRetrieve)
                 {
                     if (string.IsNullOrWhiteSpace(url))
                     {
+                        SendStatusUpdate("Error: Empty URL provided.");
                         resultBuilder.AppendLine("---Error: Empty URL provided---");
                         continue;
                     }
@@ -117,6 +121,7 @@ namespace AiStudio4.Core.Tools
                     if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
                         (uri.Scheme != "http" && uri.Scheme != "https"))
                     {
+                        SendStatusUpdate($"Error: Invalid URL format: {url}");
                         resultBuilder.AppendLine($"---Error retrieving {url}: Invalid URL format. Only HTTP and HTTPS are supported.---");
                         continue;
                     }
@@ -124,9 +129,11 @@ namespace AiStudio4.Core.Tools
                     try
                     {
                         // Fetch the content
+                        SendStatusUpdate($"Fetching content from: {url}");
                         string htmlContent = await _httpClient.GetStringAsync(url);
 
                         // Extract text from HTML
+                        SendStatusUpdate("Extracting text from HTML content...");
                         string textContent = ExtractTextFromHtml(htmlContent);
 
                         // Add to results
@@ -136,27 +143,32 @@ namespace AiStudio4.Core.Tools
                     catch (HttpRequestException ex)
                     {
                         _logger.LogError(ex, $"HTTP request error for URL: {url}");
+                        SendStatusUpdate($"HTTP request error for URL: {url}");
                         resultBuilder.AppendLine($"---Error retrieving {url}: {ex.Message}---");
                     }
                     catch (TaskCanceledException ex)
                     {
                         _logger.LogError(ex, $"Request timed out for URL: {url}");
+                        SendStatusUpdate($"Request timed out for URL: {url}");
                         resultBuilder.AppendLine($"---Error retrieving {url}: Request timed out---");
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"Error processing URL: {url}");
+                        SendStatusUpdate($"Error processing URL: {url}");
                         resultBuilder.AppendLine($"---Error retrieving {url}: {ex.Message}---");
                     }
 
                     resultBuilder.AppendLine(); // Add a separator between URLs
                 }
 
+                SendStatusUpdate("Text retrieval completed successfully.");
                 return CreateResult(true, true, resultBuilder.ToString());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing RetrieveTextFromUrl tool");
+                SendStatusUpdate($"Error processing RetrieveTextFromUrl tool: {ex.Message}");
                 return CreateResult(true, true, $"Error processing RetrieveTextFromUrl tool: {ex.Message}");
             }
         }

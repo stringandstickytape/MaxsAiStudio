@@ -72,6 +72,7 @@ namespace AiStudio4.Core.Tools
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("RunDuckDuckGoSearch tool called");
+            SendStatusUpdate("Starting RunDuckDuckGoSearch tool execution...");
             var resultBuilder = new StringBuilder();
 
             try
@@ -84,25 +85,31 @@ namespace AiStudio4.Core.Tools
                 {
                     maxResults = maxResultsValue;
                 }
+                
+                SendStatusUpdate($"Searching DuckDuckGo for: {query} (max results: {maxResults})...");
 
                 // Encode the query for URL
                 string encodedQuery = HttpUtility.UrlEncode(query);
                 string searchUrl = $"https://html.duckduckgo.com/html?q={encodedQuery}";
 
                 // Fetch the search results
+                SendStatusUpdate("Fetching search results from DuckDuckGo...");
                 string htmlContent = await _httpClient.GetStringAsync(searchUrl);
 
                 // Parse and format the results
+                SendStatusUpdate("Parsing search results...");
                 string formattedResults = ParseDuckDuckGoResults(htmlContent, maxResults);
 
                 resultBuilder.AppendLine($"--- DuckDuckGo Search Results for: {query} ---\n");
                 resultBuilder.AppendLine(formattedResults);
 
+                SendStatusUpdate("Search completed successfully.");
                 return CreateResult(true, true, resultBuilder.ToString());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing RunDuckDuckGoSearch tool");
+                SendStatusUpdate($"Error processing RunDuckDuckGoSearch tool: {ex.Message}");
                 return CreateResult(true, true, $"Error processing RunDuckDuckGoSearch tool: {ex.Message}");
             }
         }

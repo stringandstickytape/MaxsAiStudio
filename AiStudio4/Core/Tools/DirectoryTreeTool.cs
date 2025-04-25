@@ -81,6 +81,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
         {
             try
             {
+                SendStatusUpdate("Starting DirectoryTree tool execution...");
                 _extraProperties = extraProperties;
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
@@ -96,16 +97,21 @@ Returns a structured view of the directory tree with files and subdirectories. D
                     searchPath = Path.GetFullPath(Path.Combine(_projectRoot, path));
                     if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {
+                        SendStatusUpdate("Error: Path is outside the allowed directory.");
                         return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
                     }
                 }
+                
+                SendStatusUpdate($"Generating directory tree for: {Path.GetFileName(searchPath)}...");
 
                 string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, _projectRoot);
+                SendStatusUpdate("Directory tree generated successfully.");
                 return Task.FromResult(CreateResult(true, true, prettyPrintedResult));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing DirectoryTree tool");
+                SendStatusUpdate($"Error processing DirectoryTree tool: {ex.Message}");
                 return Task.FromResult(CreateResult(true, true, $"Error processing DirectoryTree tool: {ex.Message}"));
             }
         }
