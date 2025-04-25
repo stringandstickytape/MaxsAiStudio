@@ -26,6 +26,7 @@ import { Server } from 'lucide-react'; // Added Server icon
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Import MCP server store
 import { StatusMessage } from './StatusMessage';
+import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 
 // Add file header comment for clarity and traceability.
 /*
@@ -355,12 +356,26 @@ export function InputBar({
 
 
             <div className="flex flex-col h-full">
-                {/* System Prompt - Moved to be first child */}
-                <div className="mb-2 rounded-lg flex-shrink-0">
+                {/* System Prompt and Jump to End Checkbox */}
+                <div className="mb-2 rounded-lg flex-shrink-0 flex justify-between items-center">
                     <SystemPromptComponent
                         convId={activeConvId || undefined}
                         onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}
                     />
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="jump-to-end"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                checked={useJumpToEndStore(state => state.jumpToEndEnabled)}
+                                onChange={(e) => useJumpToEndStore.getState().setJumpToEndEnabled(e.target.checked)}
+                            />
+                            <label htmlFor="jump-to-end" className="text-sm font-medium text-gray-300">
+                                Jump to End
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 {/* Middle Section (Textarea, Attachments, Buttons) - Now second child */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2"> {/* Added mb-2 for spacing */}

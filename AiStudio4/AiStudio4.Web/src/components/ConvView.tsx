@@ -6,13 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Clipboard, Pencil, Check, X, ArrowDown, Save, ArrowUp } from 'lucide-react'; // Use Save (floppy disk) and ArrowUp icons for Save Conversation Up To Here
 import { LoadingTimer } from './LoadingTimer';
 import { StatusMessage } from './StatusMessage';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { formatModelDisplay } from '@/utils/modelUtils';
 import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
-import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'; // Added import
+import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 
 // Define themeable properties for the ConvView component
 export const themeableProps = {
@@ -151,6 +151,25 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     // Get necessary state and actions from stores
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
+    const { jumpToEndEnabled } = useJumpToEndStore();
+    
+    // Create a ref for the scroll container
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    const isScrollingProgrammatically = useRef(false);
+    
+    // Function to scroll to the bottom of the container
+    const scrollToBottom = useCallback(() => {
+        if (scrollContainerRef.current) {
+            isScrollingProgrammatically.current = true;
+            const { scrollHeight, clientHeight } = scrollContainerRef.current;
+            scrollContainerRef.current.scrollTop = scrollHeight - clientHeight;
+            // Reset the flag after scrolling is complete
+            setTimeout(() => {
+                isScrollingProgrammatically.current = false;
+            }, 100);
+        }
+    }, []);
     
     // Debug selected message ID changes
     useEffect(() => {
@@ -177,6 +196,59 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             });
         }
     }, [activeConvId, slctdMsgId, convs]);
+    
+    // Handle scroll events to detect user scrolling
+    useEffect(() => {
+        const handleScroll = () => {
+            if (isScrollingProgrammatically.current) return;
+            
+            // If the user is scrolling manually, disable jump to end
+            const { jumpToEndEnabled, setJumpToEndEnabled } = useJumpToEndStore.getState();
+            if (jumpToEndEnabled) {
+                setJumpToEndEnabled(false);
+            }
+        };
+        
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+        }
+        
+        return () => {
+            if (container) {
+                container.removeEventListener('scroll', handleScroll);
+            }
+        };
+    }, []);
+    
+    // Listen for jump-to-end events
+    useEffect(() => {
+        const handleJumpToEnd = () => {
+            if (jumpToEndEnabled) {
+                scrollToBottom();
+            }
+        };
+        
+        window.addEventListener('jump-to-end', handleJumpToEnd);
+        return () => {
+            window.removeEventListener('jump-to-end', handleJumpToEnd);
+        };
+    }, [jumpToEndEnabled, scrollToBottom]);
+    
+    // Scroll to bottom when new messages arrive if jumpToEndEnabled is true
+    useEffect(() => {
+        if (streamTokens.length > 0 && jumpToEndEnabled) {
+            scrollToBottom();
+        }
+    }, [streamTokens, jumpToEndEnabled, scrollToBottom]);
+    
+    // Make scrollToBottom available globally
+    useEffect(() => {
+        window.scrollChatToBottom = scrollToBottom;
+        return () => {
+            window.scrollChatToBottom = undefined;
+        };
+    }, [scrollToBottom]);
     
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
@@ -244,30 +316,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
     // Removed: ScrollToBottom component definition
 
-    // Define ScrollToBottom button component using the context
-    const ScrollToBottom = () => {
-        const { isAtBottom, scrollToBottom } = useStickToBottomContext();
-        return (
-            !isAtBottom && (
-                <button
-                    className="ConvView absolute bottom-1 left-1/2 -translate-x-1/2 px-4 py-2 text-xs font-medium rounded-full flex items-center gap-2 shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500"
-                    onClick={() => scrollToBottom()}
-                    title="Scroll to bottom"
-                    style={{
-                        backgroundColor: 'var(--convview-bg, rgba(31, 41, 55, 0.7))',
-                        color: 'var(--convview-text-color, #ffffff)',
-                        ':hover': {
-                            backgroundColor: 'var(--convview-accent-color, rgba(55, 65, 81, 0.9))'
-                        }
-                    }}
-                >
-                    <ArrowDown size={16} className="flex-shrink-0" />
-                    <span>Scroll to bottom</span>
-                </button>
-            )
-        );
-    }
-
     if (!activeConvId) return null;
     if (!messageChain.length) {
         return null;
@@ -278,11 +326,15 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const hasMoreToLoad = visibleCount < messageChain.length;
 
     return (
-        <StickToBottom className="ConvView h-full relative overflow-y-auto" resize="smooth" initial="smooth" style={{
-            backgroundColor: 'var(--convview-bg, transparent)',
-            ...(window?.theme?.ConvView?.style || {})
-        }}>
-            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
+        <div 
+            ref={scrollContainerRef}
+            className="ConvView h-full relative overflow-y-auto" 
+            style={{
+                backgroundColor: 'var(--convview-bg, transparent)',
+                ...(window?.theme?.ConvView?.style || {})
+            }}
+        >
+            <div className="ConvView flex flex-col gap-4 p-4">
 
             {hasMoreToLoad && (
                 <button
@@ -617,9 +669,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 </div>
             )}
                 
-            </StickToBottom.Content>
-            
-            <ScrollToBottom />
-        </StickToBottom>
+            </div>
+        </div>
     );
 };

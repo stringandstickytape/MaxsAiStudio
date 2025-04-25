@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
+import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 
 // AiStudio4.Web\src\hooks\useStreamTokens.ts
 export function useStreamTokens() {
@@ -59,6 +60,11 @@ export function useStreamTokens() {
         }
         if (streamTokens.length > 0) {
             setLastStreamedContent(streamTokens.join(''));
+            
+            // Check if jump to end is enabled and dispatch event
+            if (useJumpToEndStore.getState().jumpToEndEnabled) {
+                window.dispatchEvent(new CustomEvent('jump-to-end'));
+            }
         }
         if (wasCancellingRef.current && !isCancelling && streamTokens.length > 0) {
             const event = new CustomEvent('stream:finalized', {
