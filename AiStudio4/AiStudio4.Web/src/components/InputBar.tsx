@@ -25,6 +25,7 @@ import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptCom
 import { Server } from 'lucide-react'; // Added Server icon
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Import MCP server store
+import { StatusMessage } from './StatusMessage';
 
 // Add file header comment for clarity and traceability.
 /*
@@ -351,6 +352,8 @@ export function InputBar({
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >
+
+
             <div className="flex flex-col h-full">
                 {/* System Prompt - Moved to be first child */}
                 <div className="mb-2 rounded-lg flex-shrink-0">
@@ -361,6 +364,8 @@ export function InputBar({
                 </div>
                 {/* Middle Section (Textarea, Attachments, Buttons) - Now second child */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2"> {/* Added mb-2 for spacing */}
+
+                    
                     {/* Textarea Column - Made flex-col */}
                     <div className="relative flex-1 flex flex-col">
                         {/* Textarea - Made flex-1 to grow */}
@@ -517,13 +522,14 @@ export function InputBar({
                                 disabled={disabled}
                             >
                                 <Server className="h-3 w-3 mr-1" />
-                                <span>Servers</span>
+                                <span>MCP Servers</span>
                                 {enabledCount > 0 && (
                                     <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Number of enabled MCP servers">
                                         {enabledCount}
                                     </span>
                                 )}
                             </Button>
+                            <StatusMessage />
                         </div>
                     </div> {/* Close Tools & Servers Wrapper */}
                 </div>

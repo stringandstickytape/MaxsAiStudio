@@ -58,16 +58,6 @@ namespace AiStudio4.Services
         /// <returns>Tool execution result with success status and updated content</returns>
         public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default, string clientId = null)
         {
-            try
-            {
-                // Send "Tools being processed" message at the start
-                await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send status message at tool processing start");
-            }
-
             // Rate limiting with lock for thread safety
             lock (_rateLimitLock)
             {
@@ -103,6 +93,7 @@ namespace AiStudio4.Services
             }
             else
             {
+                await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
                 _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
                 bool shouldStopProcessing = false;
                 var toolResultMessages = new List<LinearConvMessage>();

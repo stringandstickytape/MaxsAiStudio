@@ -264,7 +264,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 {
                     var jsonResponse = JsonConvert.DeserializeObject<JObject>(fullResponse.ToString());
 
-                    if (jsonResponse["args"] != null)
+                    if (jsonResponse != null && jsonResponse["args"] != null)
                     {
                         Debug.WriteLine("Args are not null");
 

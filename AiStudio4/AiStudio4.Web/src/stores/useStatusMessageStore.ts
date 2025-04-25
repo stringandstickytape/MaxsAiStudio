@@ -3,10 +3,15 @@ import { create } from 'zustand';
 
 interface StatusMessageState {
   message: string;
+  lastUpdated: number | null;
   setMessage: (message: string) => void;
 }
 
 export const useStatusMessageStore = create<StatusMessageState>((set) => ({
   message: '',
-  setMessage: (message) => set({ message }),
+  lastUpdated: null,
+  setMessage: (message) => set({ 
+    message, 
+    lastUpdated: message ? Date.now() : null
+  }),
 }));

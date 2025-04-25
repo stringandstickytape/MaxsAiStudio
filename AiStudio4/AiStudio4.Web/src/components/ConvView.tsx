@@ -616,8 +616,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
                 </div>
             )}
-                <StatusMessage />
+                
             </StickToBottom.Content>
+            
             <ScrollToBottom />
         </StickToBottom>
     );
