@@ -79,10 +79,9 @@ namespace AiStudio4.Services
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 // Create a simple chat request
-                var systemPrompt = await _systemPromptService.GetDefaultSystemPromptAsync();
                 var conv = new LinearConv(DateTime.Now)
                 {
-                    systemprompt = systemPrompt?.Content ?? "You are a helpful assistant.",
+                    systemprompt = "You are a helpful assistant.",
                     messages = new List<LinearConvMessage>
                     {
                         new LinearConvMessage
