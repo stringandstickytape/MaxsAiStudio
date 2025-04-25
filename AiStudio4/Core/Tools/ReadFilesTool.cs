@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace AiStudio4.Core.Tools
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
-        public ReadFilesTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
+        public ReadFilesTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

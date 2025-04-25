@@ -1,4 +1,5 @@
 ﻿// C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\Core\Tools\LaunchUrlTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class LaunchUrlTool : BaseToolImplementation
     {
-        public LaunchUrlTool(ILogger<LaunchUrlTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
+        public LaunchUrlTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -22,7 +23,7 @@ namespace AiStudio4.Core.Tools
     {
         private readonly HttpClient _httpClient;
 
-        public RetrieveTextFromUrlTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
+        public RetrieveTextFromUrlTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
             _httpClient = new HttpClient();
             // Set reasonable default timeout

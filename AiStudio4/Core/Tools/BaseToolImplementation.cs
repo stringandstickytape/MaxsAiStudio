@@ -18,17 +18,12 @@ namespace AiStudio4.Core.Tools
         protected readonly IStatusMessageService _statusMessageService;
         
         /// <summary>
-        /// Optional callback for sending status updates during tool execution
-        /// </summary>
-        protected Action<string> _statusUpdateCallback;
-        
-        /// <summary>
         /// Client ID for sending status messages directly via StatusMessageService
         /// </summary>
         protected string _clientId;
 
         protected string _projectRoot;
-        protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService = null)
+        protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
         {
             _logger = logger;
             _generalSettingsService = generalSettingsService;
@@ -37,7 +32,6 @@ namespace AiStudio4.Core.Tools
             {
                 UpdateProjectRoot();
             }
-            _statusUpdateCallback = null; // Initialize to null (no status updates by default)
             _clientId = null; // Initialize to null (no client ID by default)
         }
 
@@ -61,15 +55,6 @@ namespace AiStudio4.Core.Tools
         public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties);
 
         /// <summary>
-        /// Sets the status update callback for this tool instance
-        /// </summary>
-        /// <param name="statusUpdateCallback">Callback action that takes a status message string</param>
-        public void SetStatusUpdateCallback(Action<string> statusUpdateCallback)
-        {
-            _statusUpdateCallback = statusUpdateCallback;
-        }
-        
-        /// <summary>
         /// Sets the client ID for sending status messages directly via StatusMessageService
         /// </summary>
         /// <param name="clientId">The client ID to send status messages to</param>
@@ -79,20 +64,21 @@ namespace AiStudio4.Core.Tools
         }
 
         /// <summary>
-        /// Sends a status update using the registered callback or StatusMessageService if available
+        /// Sends a status update using StatusMessageService if available
         /// </summary>
         /// <param name="statusMessage">The status message to send</param>
         protected async void SendStatusUpdate(string statusMessage)
         {
             try
             {
-                // Try to send via callback first (legacy approach)
-                _statusUpdateCallback?.Invoke(statusMessage);
-                
-                // Also try to send via StatusMessageService if available and clientId is set
+                // Send via StatusMessageService if available and clientId is set
                 if (_statusMessageService != null && !string.IsNullOrEmpty(_clientId))
                 {
                     await _statusMessageService.SendStatusMessageAsync(_clientId, statusMessage);
+                }
+                else
+                {
+                    _logger.LogDebug("Status update not sent - missing StatusMessageService or clientId: {Message}", statusMessage);
                 }
             }
             catch (Exception ex)

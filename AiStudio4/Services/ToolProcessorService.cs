@@ -165,26 +165,9 @@ namespace AiStudio4.Services
                             // Retrieve the Tool object to get user-edited ExtraProperties
                             var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
                             var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
-                            
-                            // Create a status update callback for this tool
-                            Action<string> statusUpdateCallback = null;
-                            if (!string.IsNullOrEmpty(clientIdForTool))
-                            {
-                                statusUpdateCallback = async (statusMessage) =>
-                                {
-                                    try
-                                    {
-                                        await _statusMessageService.SendStatusMessageAsync(clientIdForTool, statusMessage);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _logger.LogWarning(ex, "Failed to send tool status update for {ToolName}", toolResponse.ToolName);
-                                    }
-                                };
-                            }
-                            
+                                                       
                             // Pass the extraProps to the tool processor
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, statusUpdateCallback, clientId);
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, clientId);
 
                             if (builtinToolResult.WasProcessed)
                             {

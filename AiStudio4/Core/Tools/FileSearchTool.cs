@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace AiStudio4.Core.Tools
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
 
-        public FileSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService) : base(logger, generalSettingsService)
+        public FileSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

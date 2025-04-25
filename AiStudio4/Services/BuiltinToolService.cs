@@ -85,7 +85,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null, Action<string> statusUpdateCallback = null, string clientId = null)
+        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null, string clientId = null)
         {
             try
             {
@@ -99,12 +99,6 @@ namespace AiStudio4.Services
                 // If the tool is a BaseToolImplementation, set up status updates
                 if (tool is BaseToolImplementation baseToolImpl)
                 {
-                    // Set the status update callback if provided
-                    if (statusUpdateCallback != null)
-                    {
-                        baseToolImpl.SetStatusUpdateCallback(statusUpdateCallback);
-                    }
-                    
                     // Set the client ID if provided
                     if (!string.IsNullOrEmpty(clientId))
                     {

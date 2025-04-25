@@ -23,7 +23,7 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="statusUpdateCallback">Optional callback for status updates</param>
         /// <param name="clientId">Optional client ID for status messages</param>
         /// <returns>The result of processing the tool</returns>
-        Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null, Action<string> statusUpdateCallback = null, string clientId = null);
+        Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null, string clientId = null);
         void UpdateProjectRoot();
         void SaveBuiltInToolExtraProperties(string toolName, Dictionary<string, string> extraProperties);
     }
