@@ -19,6 +19,7 @@ namespace AiStudio4.Services
 {
     public class ChatProcessingService
     {
+        private readonly IStatusMessageService _statusMessageService;
         private readonly IConvStorage _convStorage;
         private readonly IChatService _chatService;
         private readonly IWebSocketNotificationService _notificationService;
@@ -28,6 +29,7 @@ namespace AiStudio4.Services
         private readonly ISystemPromptService _systemPromptService;
         private readonly ClientRequestCancellationService _cancellationService;
         private readonly IServiceProvider _serviceProvider; // Added for scoping
+        
 
         public ChatProcessingService(
             IConvStorage convStorage,
@@ -38,8 +40,10 @@ namespace AiStudio4.Services
             IToolService toolService,
             ISystemPromptService systemPromptService,
             ClientRequestCancellationService cancellationService,
-            IServiceProvider serviceProvider) // Added IServiceProvider
+            IServiceProvider serviceProvider,
+            IStatusMessageService statusMessageService) // Added IServiceProvider
         {
+            _statusMessageService = statusMessageService;
             _convStorage = convStorage;
             _chatService = chatService;
             _notificationService = notificationService;
@@ -55,6 +59,8 @@ namespace AiStudio4.Services
         {
             try
             {
+                await _statusMessageService.SendStatusMessageAsync(clientId, "Preparing request...");
+
                 // Get cancellation token from the service
                 var cancellationToken = _cancellationService.AddTokenSource(clientId);
 
@@ -87,6 +93,9 @@ namespace AiStudio4.Services
                             message = message.Replace(match.Value, $"\n{BacktickHelper.ThreeTicks}{url}\n{extractedText}\n{BacktickHelper.ThreeTicks}\n");
                         }
                     }
+
+                    await _statusMessageService.SendStatusMessageAsync(clientId, "Parsing attachments...");
+
                     // Parse attachments if present
                     var attachments = new List<Attachment>();
                     if (requestObject["attachments"] != null && requestObject["attachments"].Type != JTokenType.Null)
@@ -114,6 +123,9 @@ namespace AiStudio4.Services
                     // Check for cancellation before loading conversation
                     if (cancellationToken.IsCancellationRequested)
                         throw new OperationCanceledException(cancellationToken);
+
+                    await _statusMessageService.SendStatusMessageAsync(clientId, $"Loading conversation {(string)requestObject["convId"]}...");
+
                     conv = await _convStorage.LoadConv((string)requestObject["convId"]);
 
                     chatRequest = new ChatRequest
@@ -185,6 +197,8 @@ namespace AiStudio4.Services
                     if (cancellationToken.IsCancellationRequested)
                         throw new OperationCanceledException(cancellationToken);
 
+                    
+
                     var response = await _chatService.ProcessChatRequest(chatRequest);
 
 
@@ -197,6 +211,8 @@ namespace AiStudio4.Services
                 }
                 finally
                 {
+                    await _statusMessageService.ClearStatusMessageAsync(clientId);
+
                     // Remove old event unsubscribing
                     // _chatService.StreamingTextReceived -= streamingHandler;
                     // _chatService.StreamingComplete -= completeHandler;

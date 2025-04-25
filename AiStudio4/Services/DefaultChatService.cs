@@ -26,12 +26,13 @@ namespace AiStudio4.Services
         private readonly IToolProcessorService _toolProcessorService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly IGeneralSettingsService _generalSettingsService;
+        private readonly IStatusMessageService _statusMessageService;
 
         // Events removed
         // public event EventHandler<string> StreamingTextReceived;
         // public event EventHandler<string> StreamingComplete;
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
         {
             _logger = logger;
             _toolService = toolService;
@@ -40,6 +41,7 @@ namespace AiStudio4.Services
             _toolProcessorService = toolProcessorService;
             _notificationService = notificationService;
             _generalSettingsService = generalSettingsService;
+            _statusMessageService = statusMessageService;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -128,6 +130,8 @@ namespace AiStudio4.Services
         {
             try
             {
+                await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Processing request...");
+
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
                 var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
@@ -152,6 +156,8 @@ namespace AiStudio4.Services
                 // --- Tool Use Loop ---
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
+                    if(currentIteration != 0)
+                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Looping...");
                     // Check for cancellation at the start of each loop iteration
                     if (request.CancellationToken.IsCancellationRequested)
                     {
@@ -229,7 +235,11 @@ namespace AiStudio4.Services
                         OnStreamingComplete = request.OnStreamingComplete
                     };
 
+                    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
+
                     response = await aiService.FetchResponse(requestOptions);
+
+                    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Response received...");
 
                     // Accumulate cost
                     //if (response.CostInfo != null)

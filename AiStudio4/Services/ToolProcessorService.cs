@@ -61,8 +61,7 @@ namespace AiStudio4.Services
             try
             {
                 // Send "Tools being processed" message at the start
-                if (!string.IsNullOrEmpty(clientId))
-                    await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
+                await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
             }
             catch (Exception ex)
             {
@@ -255,17 +254,6 @@ namespace AiStudio4.Services
             }
 
             var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
-
-            try
-            {
-                // Always send empty message when done, regardless of success or failure
-                if (!string.IsNullOrEmpty(clientId))
-                    await _statusMessageService.ClearStatusMessageAsync(clientId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send status message at tool processing end");
-            }
 
             return new ToolExecutionResult
             {
