@@ -3,7 +3,7 @@ import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/stores/useModalStore';
 import { v4 as uuidv4 } from 'uuid';
-import { Mic, Send, BookMarked, X, Wrench } from 'lucide-react';
+import { Mic, Send, BookMarked, X, Wrench, ArrowDownToLine } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
 import { Attachment } from '@/types/attachment';
@@ -363,18 +363,31 @@ export function InputBar({
                         onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}
                     />
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                id="jump-to-end"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                checked={useJumpToEndStore(state => state.jumpToEndEnabled)}
-                                onChange={(e) => useJumpToEndStore.getState().setJumpToEndEnabled(e.target.checked)}
-                            />
-                            <label htmlFor="jump-to-end" className="text-sm font-medium text-gray-300">
-                                Jump to End
-                            </label>
-                        </div>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center">
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={useJumpToEndStore(state => state.jumpToEndEnabled)}
+                                            onClick={() => useJumpToEndStore.getState().setJumpToEndEnabled(!useJumpToEndStore.getState().jumpToEndEnabled)}
+                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${useJumpToEndStore(state => state.jumpToEndEnabled) ? 'bg-blue-600' : 'bg-gray-600'}`}
+                                        >
+                                            <span className="sr-only">Auto-scroll to end</span>
+                                            <span
+                                                aria-hidden="true"
+                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${useJumpToEndStore(state => state.jumpToEndEnabled) ? 'translate-x-5' : 'translate-x-0'}`}
+                                            />
+                                        </button>
+                                        <ArrowDownToLine size={16} className="ml-2 text-gray-300" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">
+                                    <p>Auto-scroll to end</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </div>
                 {/* Middle Section (Textarea, Attachments, Buttons) - Now second child */}
