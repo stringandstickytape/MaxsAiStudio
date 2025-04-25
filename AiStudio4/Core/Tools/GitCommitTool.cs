@@ -33,32 +33,32 @@ namespace AiStudio4.Core.Tools
                 Name = "GitCommit",
                 Description = "Commits a specified set of files to the git repository with a provided commit message. Only files within the project root may be committed. No other git operations are permitted.",
                 Schema = @"{
-  \"name\": \"GitCommit\",
-  \"description\": \"Commits a specified set of files to the git repository with a provided commit message. Only files within the project root may be committed. No other git operations are permitted.\",
-  \"input_schema\": {
-    \"type\": \"object\",
-    \"properties\": {
-      \"commit\": {
-        \"type\": \"object\",
-        \"description\": \"The commit operation parameters.\",
-        \"properties\": {
-          \"message\": {
-            \"type\": \"string\",
-            \"description\": \"The commit message to use. Must be non-empty.\"
+  ""name"": ""GitCommit"",
+  ""description"": ""Commits a specified set of files to the git repository with a provided commit message. Only files within the project root may be committed. No other git operations are permitted."",
+  ""input_schema"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""commit"": {
+        ""type"": ""object"",
+        ""description"": ""The commit operation parameters."",
+        ""properties"": {
+          ""message"": {
+            ""type"": ""string"",
+            ""description"": ""The commit message to use. Must be non-empty.""
           },
-          \"files\": {
-            \"type\": \"array\",
-            \"description\": \"An array of absolute file paths to commit. Each must be within the project root.\",
-            \"items\": {
-              \"type\": \"string\"
+          ""files"": {
+            ""type"": ""array"",
+            ""description"": ""An array of absolute file paths to commit. Each must be within the project root."",
+            ""items"": {
+              ""type"": ""string""
             },
-            \"minItems\": 1
+            ""minItems"": 1
           }
         },
-        \"required\": [\"message\", \"files\"]
+        ""required"": [""message"", ""files""]
       }
     },
-    \"required\": [\"commit\"]
+    ""required"": [""commit""]
   }
 }",
                 Categories = new List<string> { "MaxCode" },
@@ -118,7 +118,7 @@ namespace AiStudio4.Core.Tools
                             string normalizedPath;
                             try
                             {
-                                normalizedPath = Path.GetFullPath(filePath);
+                                normalizedPath = Path.Combine(_projectRoot, filePath);
                             }
                             catch (Exception ex)
                             {
