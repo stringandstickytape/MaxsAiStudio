@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
@@ -15,12 +14,14 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 
+// AiStudio4.Web/src/components/ChatSpace.tsx
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { streamTokens } = useStreamTokens();
   const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const promptOverrideRef = useRef(false);
 
   const { activeTools } = useToolStore();
   const { activeConvId, convs, slctdMsgId } = useConvStore();
@@ -34,6 +35,10 @@ export function ChatSpace() {
   });
 
   useEffect(() => {
+    if (promptOverrideRef.current) {
+      promptOverrideRef.current = false;
+      return;
+    }
     if (activeConvId && slctdMsgId && convs[activeConvId]) {
       const conv = convs[activeConvId];
       
@@ -50,6 +55,18 @@ export function ChatSpace() {
       }
     }
   }, [activeConvId, slctdMsgId, convs]);
+
+  // Listen for set-prompt event and update inputValue directly, with override flag
+  useEffect(() => {
+    const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
+      promptOverrideRef.current = true;
+      setInputValue(event.detail.text);
+    };
+    window.addEventListener('set-prompt', handleSetPrompt as EventListener);
+    return () => {
+      window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -143,4 +160,3 @@ export function ChatSpace() {
     </>
   );
 }
-
