@@ -30,14 +30,22 @@ namespace AiStudio4.Services
         private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
         private DateTime _lastRequestTime = DateTime.MinValue;
         private readonly object _rateLimitLock = new object(); // Lock object for thread safety
+        private readonly IStatusMessageService _statusMessageService;
         private readonly IWebSocketNotificationService _webSocketNotificationService;
 
-        public ToolProcessorService(ILogger<ToolProcessorService> logger, IToolService toolService, IMcpService mcpService, IBuiltinToolService builtinToolService, IWebSocketNotificationService webSocketNotificationService)
+        public ToolProcessorService(
+            ILogger<ToolProcessorService> logger, 
+            IToolService toolService, 
+            IMcpService mcpService, 
+            IBuiltinToolService builtinToolService, 
+            IStatusMessageService statusMessageService,
+            IWebSocketNotificationService webSocketNotificationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
             _mcpService = mcpService ?? throw new ArgumentNullException(nameof(mcpService));
             _builtinToolService = builtinToolService ?? throw new ArgumentNullException(nameof(builtinToolService));
+            _statusMessageService = statusMessageService ?? throw new ArgumentNullException(nameof(statusMessageService));
             _webSocketNotificationService = webSocketNotificationService ?? throw new ArgumentNullException(nameof(webSocketNotificationService));
         }
 
@@ -54,7 +62,7 @@ namespace AiStudio4.Services
             {
                 // Send "Tools being processed" message at the start
                 if (!string.IsNullOrEmpty(clientId))
-                    await _webSocketNotificationService.NotifyStatusMessage(clientId, "Tools being processed");
+                    await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
             }
             catch (Exception ex)
             {
@@ -166,7 +174,7 @@ namespace AiStudio4.Services
                                 {
                                     try
                                     {
-                                        await _webSocketNotificationService.NotifyStatusMessage(clientIdForTool, statusMessage);
+                                        await _statusMessageService.SendStatusMessageAsync(clientIdForTool, statusMessage);
                                     }
                                     catch (Exception ex)
                                     {
@@ -176,7 +184,7 @@ namespace AiStudio4.Services
                             }
                             
                             // Pass the extraProps to the tool processor
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, statusUpdateCallback);
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, statusUpdateCallback, clientId);
 
                             if (builtinToolResult.WasProcessed)
                             {
@@ -269,7 +277,7 @@ namespace AiStudio4.Services
             {
                 // Always send empty message when done, regardless of success or failure
                 if (!string.IsNullOrEmpty(clientId))
-                    await _webSocketNotificationService.NotifyStatusMessage(clientId, "");
+                    await _statusMessageService.ClearStatusMessageAsync(clientId);
             }
             catch (Exception ex)
             {

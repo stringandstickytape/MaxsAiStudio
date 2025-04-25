@@ -15,22 +15,30 @@ namespace AiStudio4.Core.Tools
     {
     protected readonly ILogger _logger; // Logger for diagnostic information
         protected readonly IGeneralSettingsService _generalSettingsService;
+        protected readonly IStatusMessageService _statusMessageService;
         
         /// <summary>
         /// Optional callback for sending status updates during tool execution
         /// </summary>
         protected Action<string> _statusUpdateCallback;
+        
+        /// <summary>
+        /// Client ID for sending status messages directly via StatusMessageService
+        /// </summary>
+        protected string _clientId;
 
         protected string _projectRoot;
-        protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService)
+        protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService = null)
         {
             _logger = logger;
             _generalSettingsService = generalSettingsService;
+            _statusMessageService = statusMessageService;
             if (_generalSettingsService != null)
             {
                 UpdateProjectRoot();
             }
             _statusUpdateCallback = null; // Initialize to null (no status updates by default)
+            _clientId = null; // Initialize to null (no client ID by default)
         }
 
         public void UpdateProjectRoot()
@@ -60,17 +68,32 @@ namespace AiStudio4.Core.Tools
         {
             _statusUpdateCallback = statusUpdateCallback;
         }
+        
+        /// <summary>
+        /// Sets the client ID for sending status messages directly via StatusMessageService
+        /// </summary>
+        /// <param name="clientId">The client ID to send status messages to</param>
+        public void SetClientId(string clientId)
+        {
+            _clientId = clientId;
+        }
 
         /// <summary>
-        /// Sends a status update if a callback is registered
+        /// Sends a status update using the registered callback or StatusMessageService if available
         /// </summary>
         /// <param name="statusMessage">The status message to send</param>
-        protected void SendStatusUpdate(string statusMessage)
+        protected async void SendStatusUpdate(string statusMessage)
         {
             try
             {
-                // Only send if callback is registered
+                // Try to send via callback first (legacy approach)
                 _statusUpdateCallback?.Invoke(statusMessage);
+                
+                // Also try to send via StatusMessageService if available and clientId is set
+                if (_statusMessageService != null && !string.IsNullOrEmpty(_clientId))
+                {
+                    await _statusMessageService.SendStatusMessageAsync(_clientId, statusMessage);
+                }
             }
             catch (Exception ex)
             {

@@ -1,36 +1,4 @@
 ﻿// ClaudeCode.md
-
-## 2024-06: StatusMessage Feature Implementation
-
-### Overview
-A StatusMessage component was added to the frontend to display real-time tool processing status, backed by a Zustand store. The backend was extended to send status messages via WebSocket during tool processing.
-
-### Frontend Changes
-- **Component:** `StatusMessage.tsx` displays the current status message if present.
-- **Store:** `useStatusMessageStore.ts` (Zustand) manages the status message state.
-- **WebSocket Integration:** `useWebSocket.ts` subscribes to 'status' messages and updates the store.
-- **ConvView Integration:** `ConvView.tsx` renders `StatusMessage` below `LoadingTimer`.
-
-### Backend Changes
-- **WebSocketNotificationService:** Added `NotifyStatusMessage` method to send status updates to clients.
-- **IWebSocketNotificationService:** Interface updated to include `NotifyStatusMessage`.
-- **ToolProcessorService:** Sends a status message at the start ("Tools being processed") and an empty message at the end of tool processing.
-
-### Rationale
-This feature provides users with clear feedback on the status of tool operations, improving transparency and UX. The implementation leverages existing WebSocket infrastructure and follows established state management and UI patterns.
-
-### Files Affected
-- `AiStudio4.Web/src/components/StatusMessage.tsx`
-- `AiStudio4.Web/src/stores/useStatusMessageStore.ts`
-- `AiStudio4.Web/src/hooks/useWebSocket.ts`
-- `AiStudio4.Web/src/components/ConvView.tsx`
-- `Core/Interfaces/IWebSocketNotificationService.cs`
-- `Services/WebSocketNotificationService.cs`
-- `Services/ToolProcessorService.cs`
-
-### Design Reference
-See `Docs/Feature Designs/StatusMessage.md` for the original design document.
-
 # ClaudeCode.md - AiStudio4 Architectural Overview
 
 ## Core Architecture

@@ -2,6 +2,7 @@
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,66 +17,53 @@ namespace AiStudio4.Services
     public class BuiltinToolService : IBuiltinToolService
     {
         private readonly ILogger<BuiltinToolService> _logger;
-        private readonly Dictionary<string, ITool> _tools;
-        private readonly IBuiltInToolExtraPropertiesService _extraPropertiesService;
+        private readonly IGeneralSettingsService _generalSettingsService;
+        private readonly IBuiltInToolExtraPropertiesService _builtInToolExtraPropertiesService;
+        private readonly IStatusMessageService _statusMessageService;
+        private readonly List<ITool> _builtinTools;
 
-        /// <summary>
-        /// Initializes a new instance of the BuiltinToolService class.
-        /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="availableTools">The collection of available tools injected by DI.</param>
-        public BuiltinToolService(ILogger<BuiltinToolService> logger, IEnumerable<ITool> availableTools, IBuiltInToolExtraPropertiesService extraPropertiesService)
+        public BuiltinToolService(
+            ILogger<BuiltinToolService> logger,
+            IGeneralSettingsService generalSettingsService,
+            IBuiltInToolExtraPropertiesService builtInToolExtraPropertiesService,
+            IStatusMessageService statusMessageService,
+            IEnumerable<ITool> builtinTools)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _tools = new Dictionary<string, ITool>(StringComparer.OrdinalIgnoreCase);
-            _extraPropertiesService = extraPropertiesService ?? throw new ArgumentNullException(nameof(extraPropertiesService));
+            _logger = logger;
+            _generalSettingsService = generalSettingsService;
+            _builtInToolExtraPropertiesService = builtInToolExtraPropertiesService;
+            _statusMessageService = statusMessageService;
+            _builtinTools = builtinTools.ToList();
 
-            if (availableTools == null)
-            {
-                _logger.LogWarning("No tools were injected into BuiltinToolService.");
-                return;
-            }
-
-            foreach (var tool in availableTools)
-            {
-                if (tool == null) continue; // Should not happen with standard DI containers
-
-                try
-                {
-                    var definition = tool.GetToolDefinition();
-                    if (definition == null || string.IsNullOrWhiteSpace(definition.Name))
-                    {
-                        _logger.LogWarning("Tool of type {ToolType} provided an invalid definition (null or missing name).", tool.GetType().FullName);
-                        continue;
-                    }
-
-                    if (!_tools.TryAdd(definition.Name, tool))
-                    {
-                        // Log a warning if a tool with the same name already exists.
-                        // The first one registered wins in this case.
-                        _logger.LogWarning("Duplicate tool name detected: '{ToolName}'. Tool of type {ToolType} was ignored.", definition.Name, tool.GetType().FullName);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error getting tool definition for type {ToolType}. Tool will be skipped.", tool.GetType().FullName);
-                }
-            }
-
-            _logger.LogInformation("BuiltinToolService initialized with {ToolCount} tools.", _tools.Count);
+            // Load extra properties for all built-in tools
+            LoadExtraProperties();
         }
 
-        /// <summary>
-        /// Gets the list of built-in tools definitions.
-        /// </summary>
+        private void LoadExtraProperties()
+        {
+            foreach (var tool in _builtinTools)
+            {
+                var def = tool.GetToolDefinition();
+                if (def != null && !string.IsNullOrWhiteSpace(def.Name))
+                {
+                    var lower = $"{def.Name.Substring(0, 1).ToLower()}{def.Name.Substring(1)}";
+                    var persisted = _builtInToolExtraPropertiesService.GetExtraProperties(lower);
+                    if (persisted != null && persisted.Count > 0)
+                    {
+                        def.ExtraProperties = new Dictionary<string, string>(persisted);
+                    }
+                }
+            }
+        }
+
         public List<Tool> GetBuiltinTools()
         {
-            var toolDefs = _tools.Values.Select(t => t.GetToolDefinition()).ToList();
+            var toolDefs = _builtinTools.Select(t => t.GetToolDefinition()).ToList();
             foreach (var tool in toolDefs)
             {
                 // Load persisted extra properties for this tool
                 var lower = $"{tool.Name.Substring(0, 1).ToLower()}{tool.Name.Substring(1)}";
-                var persisted = _extraPropertiesService.GetExtraProperties(lower);
+                var persisted = _builtInToolExtraPropertiesService.GetExtraProperties(lower);
                 if (persisted != null && persisted.Count > 0)
                 {
                     tool.ExtraProperties = new Dictionary<string, string>(persisted);
@@ -86,53 +74,56 @@ namespace AiStudio4.Services
 
         public void SaveBuiltInToolExtraProperties(string toolName, Dictionary<string, string> extraProperties)
         {
-            _extraPropertiesService.SaveExtraProperties(toolName, extraProperties);
+            _builtInToolExtraPropertiesService.SaveExtraProperties(toolName, extraProperties);
         }
 
         public void UpdateProjectRoot()
         {
-            foreach(var tool in _tools)
+            foreach(var tool in _builtinTools)
             {
-                tool.Value.UpdateProjectRoot();
+                tool.UpdateProjectRoot();
             }
         }
 
-        /// <summary>
-        /// Processes a built-in tool call
-        /// </summary>
-        /// <param name="toolName">The name of the tool</param>
-        /// <param name="toolParameters">Parameters for the tool</param>
-        /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
-        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null,  Action<string> statusUpdateCallback = null)
+        public async Task<BuiltinToolResult> ProcessBuiltinToolAsync(string toolName, string toolParameters, Dictionary<string, string> extraProperties = null, Action<string> statusUpdateCallback = null, string clientId = null)
         {
-            // Default result assumes the tool is not built-in or doesn't need special processing
-            var result = new BuiltinToolResult
-            {
-                WasProcessed = false,
-                ContinueProcessing = true
-            };
-
             try
             {
-                // Look up the tool in our dictionary
-                if (_tools.TryGetValue(toolName, out var tool))
+                var tool = _builtinTools.FirstOrDefault(t => t.GetToolDefinition().Name == toolName);
+                if (tool == null)
                 {
-                    ((BaseToolImplementation)tool).SetStatusUpdateCallback(statusUpdateCallback);
-
-                    // Let the tool implementation handle the processing
-                    return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
+                    _logger.LogWarning("Tool {ToolName} not found", toolName);
+                    return new BuiltinToolResult { WasProcessed = false, ContinueProcessing = true };
                 }
-                
-                // Tool not found in our dictionary
-                _logger.LogWarning("Tool '{ToolName}' not found in built-in tools", toolName);
+
+                // If the tool is a BaseToolImplementation, set up status updates
+                if (tool is BaseToolImplementation baseToolImpl)
+                {
+                    // Set the status update callback if provided
+                    if (statusUpdateCallback != null)
+                    {
+                        baseToolImpl.SetStatusUpdateCallback(statusUpdateCallback);
+                    }
+                    
+                    // Set the client ID if provided
+                    if (!string.IsNullOrEmpty(clientId))
+                    {
+                        baseToolImpl.SetClientId(clientId);
+                    }
+                }
+
+                return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing built-in tool {ToolName}", toolName);
-                result.ResultMessage = $"Error processing built-in tool: {ex.Message}";
+                return new BuiltinToolResult
+                {
+                    WasProcessed = false,
+                    ContinueProcessing = true,
+                    ResultMessage = $"Error processing built-in tool: {ex.Message}"
+                };
             }
-            
-            return result;
         }
     }
 }
