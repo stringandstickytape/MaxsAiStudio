@@ -55,6 +55,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useConvStore } from '@/stores/useConvStore';
+import { useToolStore } from '@/stores/useToolStore';
 
 interface SystemPromptComponentProps {
     convId?: string;
@@ -274,6 +275,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         try {
             await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
             setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
+            // Synchronize active tools
+            useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
 
             // Close the popup after selecting a prompt
             setExpanded(false);

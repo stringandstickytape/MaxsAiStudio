@@ -33,8 +33,8 @@ export function SystemPromptModal() {
           initialEditPromptId={props.editPromptId}
           initialShowEditor={props.createNew}
           onApplyPrompt={(prompt) => {
-            // Logic to apply prompt (needs implementation/callback)
-            console.log('Apply system prompt:', prompt);
+            // Synchronize active tools on modal apply
+            require('@/stores/useToolStore').useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
             closeModal();
           }}
           onEditorClosed={closeModal} // Close modal when editor part closes
