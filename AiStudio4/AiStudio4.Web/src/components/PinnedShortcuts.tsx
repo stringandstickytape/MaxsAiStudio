@@ -1,31 +1,17 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useCommandStore } from '@/stores/useCommandStore';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+﻿// AiStudio4.Web\src\components\PinnedShortcuts.tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
-import * as LobehubIcons from '@lobehub/icons';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { useCommandStore } from '@/stores/useCommandStore';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import IconSelector from './IconSelector';
-import { Separator } from './ui/separator';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { PinnedShortcutButton } from './PinnedShortcutButton';
+import { PinnedShortcutRow } from './PinnedShortcutRow';
+import { PinnedShortcutDropdown } from './PinnedShortcutDropdown';
+import { RenameShortcutDialog } from './RenameShortcutDialog';
+import { PinnedCommand } from './pinnedShortcutsUtils';
+import { IconSet } from './IconSelector';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -34,76 +20,6 @@ interface PinnedShortcutsProps {
     autoFit?: boolean;
     maxRows?: number;
 }
-
-const getIconForCommand = (commandId: string, iconName?: string, iconSet?: string) => {
-    const iconProps = { className: "h-7 w-7" };
-
-    if (iconName) {
-        try {
-            if (iconSet !== 'lucide' && iconSet !== 'lobehub') {
-                // default icon
-                iconSet = 'lucide';
-                iconName = 'Pin';
-            }
-
-            // If we have a specific icon name, try to use it
-            if (iconSet === 'lucide') {
-                // For Lucide icons, we can dynamically import them
-                if (LucideIcons && typeof LucideIcons === 'object') {
-                    const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
-                    if (LucideIcon) {
-                        // Add slightly bigger left margin for lucide icons
-                        return <LucideIcon {...iconProps} className="h-7 w-7 ml-1" />;
-                    }
-                }
-            } else if (iconSet === 'lobehub') {
-                // For Lobehub icons
-                if (LobehubIcons && typeof LobehubIcons === 'object') {
-                    const icon = LobehubIcons[iconName as keyof typeof LobehubIcons];
-                    if (icon && icon.Avatar) {
-                        return React.createElement(icon.Avatar, { size: 24 });
-                    }
-                }
-            }
-            
-        } catch (error) {
-            console.error('Error rendering icon:', error);
-            return <Command {...iconProps} />;
-        }
-    }
-
-    // Fallback to inferring icon from command ID
-    return commandId.includes('new') ? <Plus {...iconProps} /> :
-           commandId.includes('settings') ? <Settings {...iconProps} /> :
-           commandId.includes('clear') || commandId.includes('reset') ? <RefreshCw {...iconProps} /> :
-           commandId.includes('tree') ? <GitBranch {...iconProps} /> :
-           commandId.includes('voice') ? <Mic {...iconProps} /> :
-           <Command {...iconProps} />;
-}
-
-const getCategoryBorderColor = (section?: string) => {
-        switch(section) {
-            case 'conv': return 'border-blue-500/70';
-            case 'model': return 'border-purple-500/70';
-            case 'view': return 'border-green-500/70';
-            case 'settings': return 'border-yellow-500/70';
-            case 'utility': return 'border-orange-500/70';
-            case 'appearance': return 'border-pink-500/70';
-            default: return 'border-gray-700/40';
-        }
-    };
-
-    const getCategoryBackgroundColor = (section?: string) => {
-        switch(section) {
-            case 'conv': return 'bg-blue-900/20';
-            case 'model': return 'bg-purple-900/20';
-            case 'view': return 'bg-green-900/20';
-            case 'settings': return 'bg-yellow-900/20';
-            case 'utility': return 'bg-orange-900/20';
-            case 'appearance': return 'bg-pink-900/20';
-            default: return 'bg-gray-800/60';
-        }
-    };
 
 export function PinnedShortcuts({
     orientation = 'horizontal',
@@ -128,11 +44,8 @@ export function PinnedShortcuts({
     const clientId = localStorage.getItem('clientId');
 
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
     const prevPinnedCommandsRef = useRef<string>('');
-
     const wsConnectedRef = useRef<boolean>(false);
-
     const containerRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -140,12 +53,25 @@ export function PinnedShortcuts({
     const [rowCount, setRowCount] = useState(1);
     const [itemsPerRow, setItemsPerRow] = useState(maxShown);
 
+    // Dialog state
+    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+    const [commandToRename, setCommandToRename] = useState<PinnedCommand | null>(null);
+    const [newCommandName, setNewCommandName] = useState('');
+    const [selectedIconName, setSelectedIconName] = useState<string | undefined>();
+    const [selectedIconSet, setSelectedIconSet] = useState<IconSet>('lucide');
+    
+    // Track user modifications
+    const [userModified, setUserModified] = useState(false);
+    const isModified = usePinnedCommandsStore(state => state.isModified);
+
+    // Initial load of pinned commands
     useEffect(() => {
         if (clientId) {
             fetchPinnedCommands();
         }
     }, [fetchPinnedCommands, clientId]);
 
+    // WebSocket reconnection handler
     useEffect(() => {
         const handleWebSocketConnected = () => {
             if (wsConnectedRef.current && initialLoadComplete) {
@@ -162,10 +88,10 @@ export function PinnedShortcuts({
         };
     }, [fetchPinnedCommands, initialLoadComplete]);
 
+    // Track initial load completion
     useEffect(() => {
         if (!loading && pinnedCommands.length > 0) {
             const currentCommandsString = JSON.stringify(pinnedCommands);
-
             prevPinnedCommandsRef.current = currentCommandsString;
 
             if (!initialLoadComplete) {
@@ -175,10 +101,7 @@ export function PinnedShortcuts({
         }
     }, [loading, pinnedCommands, initialLoadComplete]);
 
-    const [userModified, setUserModified] = useState(false);
-
-    const isModified = usePinnedCommandsStore(state => state.isModified);
-
+    // Auto-save changes
     useEffect(() => {
         if (loading || !initialLoadComplete || !isModified) {
             return;
@@ -192,6 +115,7 @@ export function PinnedShortcuts({
         return () => clearTimeout(saveTimer);
     }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, isModified]);
 
+    // Calculate visible buttons based on container width
     useEffect(() => {
         if (!autoFit || orientation === 'vertical' || !containerRef.current || !buttonRef.current) {
             return;
@@ -199,12 +123,10 @@ export function PinnedShortcuts({
 
         const calculateVisibleButtons = () => {
             const containerWidth = containerRef.current?.clientWidth || 0;
-            const buttonWidth = 100 + 8;
-            const dropdownWidth = 30;
+            const buttonWidth = 100 + 8; // Button width + gap
 
             const availableWidth = containerWidth;
             const maxButtonsPerRow = Math.floor(availableWidth / buttonWidth);
-
 
             const effectiveRows = Math.min(maxRows, Math.ceil(pinnedCommands.length / maxButtonsPerRow));
             const newItemsPerRow = maxButtonsPerRow;
@@ -237,38 +159,64 @@ export function PinnedShortcuts({
         };
     }, [autoFit, orientation, pinnedCommands.length, visibleCount, itemsPerRow, rowCount, maxRows]);
 
+    // Handle drag and drop reordering
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
 
         const items = Array.from(pinnedCommands);
-
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
 
         const reorderedIds = items.map((cmd) => cmd.id);
-
         reorderPinnedCommands(reorderedIds);
-
         setUserModified(true);
-
-
     };
 
-    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-    const [commandToRename, setCommandToRename] = useState<PinnedCommand | null>(null);
-    const [newCommandName, setNewCommandName] = useState('');
-    const [selectedIconName, setSelectedIconName] = useState<string | undefined>();
-    const [selectedIconSet, setSelectedIconSet] = useState<'lucide'>('lucide');
+    // Handle command click
+    const handleCommandClick = (commandId: string) => {
+        useCommandStore.getState().executeCommand(commandId);
+    };
+
+    // Handle pin/unpin command
+    const handlePinCommand = (commandId: string, isCurrentlyPinned: boolean) => {
+        setUserModified(true);
+
+        if (isCurrentlyPinned) {
+            removePinnedCommand(commandId);
+            savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
+        } else {
+            const command = useCommandStore.getState().getCommandById(commandId);
+            if (command) {
+                let iconName = undefined;
+                if (command.icon && typeof command.icon === 'object') {
+                    const iconType = command.icon.type?.name || command.icon.type?.displayName;
+                    if (iconType) {
+                        iconName = iconType;
+                    }
+                }
+
+                addPinnedCommand({
+                    id: command.id,
+                    name: command.name,
+                    iconName,
+                    iconSet: 'lucide',
+                    section: command.section,
+                });
+            }
+        }
+    };
     
+    // Handle rename command
     const handleRenameCommand = (command: PinnedCommand) => {
         setCommandToRename(command);
         setNewCommandName(command.name);
         setSelectedIconName(command.iconName);
         // Ensure we always have a valid icon set, defaulting to 'lucide' if undefined
-        setSelectedIconSet((command.iconSet as 'lucide') || 'lucide');
+        setSelectedIconSet((command.iconSet as IconSet) || 'lucide');
         setRenameDialogOpen(true);
     };
     
+    // Handle rename confirmation
     const handleRenameConfirm = () => {
         if (!commandToRename || !newCommandName.trim()) {
             setRenameDialogOpen(false);
@@ -299,56 +247,24 @@ export function PinnedShortcuts({
         setRenameDialogOpen(false);
     };
     
+    // Handle rename cancellation
     const handleRenameCancel = () => {
         setRenameDialogOpen(false);
     };
     
-    const handleIconSelect = (iconName: string, iconSet: 'lucide') => {
+    // Handle icon selection
+    const handleIconSelect = (iconName: string, iconSet: IconSet) => {
         setSelectedIconName(iconName);
         setSelectedIconSet(iconSet);
     };
-    
 
-    const handleCommandClick = (commandId: string) => {
-        useCommandStore.getState().executeCommand(commandId);
-    };
-
-    const handlePinCommand = (commandId: string, isCurrentlyPinned: boolean) => {
-        setUserModified(true);
-
-        if (isCurrentlyPinned) {
-            removePinnedCommand(commandId);
-
-            savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
-        } else {
-            const command = useCommandStore.getState().getCommandById(commandId);
-            if (command) {
-                let iconName = undefined;
-                if (command.icon && typeof command.icon === 'object') {
-                    const iconType = command.icon.type?.name || command.icon.type?.displayName;
-                    if (iconType) {
-                        iconName = iconType;
-                    }
-                }
-
-                addPinnedCommand({
-                    id: command.id,
-                    name: command.name,
-                    iconName,
-                    iconSet: 'lucide',
-                    section: command.section,
-                });
-            }
-        }
-    };
-
+    // Calculate visible and hidden commands
     const effectiveVisibleCount = autoFit && orientation === 'horizontal' ? visibleCount : maxShown;
-
     const visibleCommands = pinnedCommands.slice(0, effectiveVisibleCount);
     const hiddenCommands = pinnedCommands.slice(effectiveVisibleCount);
     const hasMoreCommands = pinnedCommands.length > effectiveVisibleCount;
 
-
+    // Create command rows for multi-row layout
     const commandRows: typeof pinnedCommands[] = [];
     if (orientation === 'horizontal' && autoFit && rowCount > 1) {
         for (let i = 0; i < rowCount; i++) {
@@ -360,6 +276,7 @@ export function PinnedShortcuts({
         commandRows.push(visibleCommands);
     }
 
+    // Empty state
     if (pinnedCommands.length === 0) {
         return (
             <div
@@ -377,6 +294,7 @@ export function PinnedShortcuts({
         );
     }
 
+    // Log errors
     if (error) {
         console.error('Error with pinned commands:', error);
     }
@@ -393,105 +311,23 @@ export function PinnedShortcuts({
                     )}
                     style={window?.theme?.PinnedShortcuts?.style || {}}
                 >
+                    {/* Multi-row layout */}
                     {orientation === 'horizontal' && autoFit && rowCount > 1 ? (
-
                         commandRows.map((rowCommands, rowIndex) => (
-                            <div key={`row-${rowIndex}`} className="flex flex-row items-center justify-center gap-1 w-full">
-                                <Droppable
-                                    droppableId={`pinned-commands-row-${rowIndex}`}
-                                    direction="horizontal"
-                                    isCombineEnabled={false}
-                                    isDropDisabled={false}
-                                    ignoreContainerClipping={false}
-                                >
-                                    {(provided) => (
-                                        <div
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                            className="flex items-center gap-2 flex-row"
-                                        >
-                                            {rowCommands.map((command, index) => {
-
-                                                const globalIndex = rowIndex * itemsPerRow + index;
-                                                return (
-                                                    <Draggable key={command.id} draggableId={command.id} index={globalIndex}>
-                                                        {(provided, snapshot) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.draggableProps}
-                                                                className={cn('flex flex-col items-center group', snapshot.isDragging && 'opacity-70 z-50')}
-                                                            >
-                                                                <div
-                                                                    {...provided.dragHandleProps}
-                                                                    className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
-                                                                >
-                                                                    <div className="w-12 flex items-center justify-center">
-                                                                        <div className="h-[3px] w-8 bg-current rounded-full"></div>
-                                                                    </div>
-                                                                </div>
-                                                                <Tooltip key={command.id} delayDuration={300}>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button
-                                                                            ref={command.id === visibleCommands[0]?.id ? buttonRef : null}
-                                                                            variant="ghost"
-                                                                            onClick={() => handleCommandClick(command.id)}
-                                                                            onContextMenu={(e) => {
-                                                                                e.preventDefault();
-                                                                                handlePinCommand(command.id, true);
-                                                                            }}
-                                                                            onAuxClick={(e) => {
-                                                                                // Handle middle-click (button 1)
-                                                                                if (e.button === 1) {
-                                                                                    e.preventDefault();
-                                                                                    handleRenameCommand(command);
-                                                                                }
-                                                                            }}
-                                                                            className={`PinnedShortcuts h-[36px] w-[100px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
-                                                                            style={{
-                                                                                '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
-                                                                                border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
-                                                                                color: 'var(--pinnedshortcuts-text-color, #e5e7eb)',
-                                                                                fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
-                                                                                fontFamily: 'var(--pinnedshortcuts-font-family, inherit)',
-                                                                                ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
-                                                                            }}
-                                                                        >
-                                                                            {command.iconName && (
-                                                                                <span className="m-0.5 flex-shrink-0">
-                                                                                    {getIconForCommand(command.id, command.iconName, command.iconSet)}
-                                                                                </span>
-                                                                            )}
-                                                                            <span className="text-xs flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2"
-                                                                                  style={{
-                                                                                      fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
-                                                                                  }}>
-                                                                                {command.name}
-                                                                            </span>
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent side="bottom">
-                                                                        <p>{command.name}</p>
-                                                                        <p className="text-xs text-gray-400">
-                                                                            Category: {command.section || 'Unknown'}
-                                                                        </p>
-                                                                        <p className="text-xs text-gray-400">
-                                                                            Drag handle above button to reorder · Right-click to unpin · Middle-click to rename
-                                                                        </p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                );
-                                            })}
-                                            {provided.placeholder}
-                                        </div>
-                                    )}
-                                </Droppable>
-                            </div>
+                            <PinnedShortcutRow
+                                key={`row-${rowIndex}`}
+                                rowCommands={rowCommands}
+                                rowIndex={rowIndex}
+                                itemsPerRow={itemsPerRow}
+                                orientation={orientation}
+                                onCommandClick={handleCommandClick}
+                                onPinCommand={handlePinCommand}
+                                onRenameCommand={handleRenameCommand}
+                                buttonRef={buttonRef}
+                            />
                         ))
                     ) : (
-
+                        /* Single row/column layout */
                         <Droppable
                             droppableId="pinned-commands"
                             direction={orientation === 'vertical' ? 'vertical' : 'horizontal'}
@@ -506,166 +342,50 @@ export function PinnedShortcuts({
                                     className={cn('flex items-center justify-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row w-full')}
                                 >
                                     {visibleCommands.map((command, index) => (
-                                        <Draggable key={command.id} draggableId={command.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    className={cn('flex flex-col items-center group', snapshot.isDragging && 'opacity-70 z-50')}
-                                                >
-                                                    <div
-                                                        {...provided.dragHandleProps}
-                                                        className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <div className="w-12 flex items-center justify-center">
-                                                            <div className="h-[3px] w-8 bg-current rounded-full"></div>
-                                                        </div>
-                                                    </div>
-                                                    <Tooltip key={command.id} delayDuration={300}>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                ref={command.id === visibleCommands[0]?.id ? buttonRef : null}
-                                                                variant="ghost"
-                                                                onClick={() => handleCommandClick(command.id)}
-                                                                onContextMenu={(e) => {
-                                                                    e.preventDefault();
-                                                                    handlePinCommand(command.id, true);
-                                                                }}
-                                                                onAuxClick={(e) => {
-                                                                    // Handle middle-click (button 1)
-                                                                    if (e.button === 1) {
-                                                                        e.preventDefault();
-                                                                        handleRenameCommand(command);
-                                                                    }
-                                                                }}
-                                                                className={`PinnedShortcuts h-[72px] w-[80px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
-                                                                style={{
-                                                                    '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
-                                                                    border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
-                                                                    color: 'var(--pinnedshortcuts-text-color, #e5e7eb)',
-                                                                    fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
-                                                                    fontFamily: 'var(--pinnedshortcuts-font-family, inherit)',
-                                                                    ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
-                                                                }}
-                                                            >
-                                                                {command.iconName && (
-                                                                    <span className="mr-0.5 flex-shrink-0">
-                                                                        {getIconForCommand(command.id, command.iconName, command.iconSet)}
-                                                                    </span>
-                                                                )}
-                                                                <span className="text-xs flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2"
-                                                                      style={{
-                                                                          fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
-                                                                      }}>
-                                                                    {command.name}
-                                                                </span>
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
-                                                            <p>{command.name}</p>
-                                                            <p className="text-xs text-gray-400">
-                                                                Category: {command.section || 'Unknown'}
-                                                            </p>
-                                                            <p className="text-xs text-gray-400">
-                                                                Drag handle above button to reorder · Right-click to unpin · Middle-click to rename
-                                                            </p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </div>
-                                            )}
-                                        </Draggable>
+                                        <PinnedShortcutButton
+                                            key={command.id}
+                                            command={command}
+                                            index={index}
+                                            orientation={orientation}
+                                            onCommandClick={handleCommandClick}
+                                            onPinCommand={handlePinCommand}
+                                            onRenameCommand={handleRenameCommand}
+                                            isButtonRef={command.id === visibleCommands[0]?.id}
+                                            buttonRef={buttonRef}
+                                        />
                                     ))}
                                     {provided.placeholder}
                                 </div>
-
                             )}
-                        </Droppable>)}
+                        </Droppable>
+                    )}
 
+                    {/* Dropdown for overflow commands */}
                     {hasMoreCommands && (
-                        <DropdownMenu>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6 p-0 rounded-md bg-gray-800/60 hover:bg-gray-700 border border-gray-700/50 text-gray-300 hover:text-gray-100"
-                                        >
-                                            <ChevronDown className="h-3 w-3" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent side={orientation === 'vertical' ? 'right' : 'bottom'}>
-                                    <p>More commands ({pinnedCommands.length - effectiveVisibleCount})</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            <DropdownMenuContent align="end" className="w-48 max-h-[50vh] overflow-y-auto">
-                                <DropdownMenuGroup>
-                                    {hiddenCommands.map((command) => (
-                                        <DropdownMenuItem
-                                            key={command.id}
-                                            onClick={() => handleCommandClick(command.id)}
-                                            onContextMenu={(e) => {
-                                                e.preventDefault();
-                                                handlePinCommand(command.id, true);
-                                            }}
-                                            className="flex items-center gap-1 text-xs whitespace-normal"
-                                        >
-                                            <span>{command.name}</span>
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <PinnedShortcutDropdown
+                            hiddenCommands={hiddenCommands}
+                            orientation={orientation}
+                            onCommandClick={handleCommandClick}
+                            onPinCommand={handlePinCommand}
+                            visibleCount={effectiveVisibleCount}
+                            totalCount={pinnedCommands.length}
+                        />
                     )}
                 </div>
                 
                 {/* Rename Dialog */}
-                <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-                    <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                            <DialogTitle>Edit Shortcut</DialogTitle>
-                            <DialogDescription>
-                                Customize the name and icon for your shortcut.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                                <label htmlFor="shortcut-name" className="text-sm font-medium">Name</label>
-                                <Input
-                                    id="shortcut-name"
-                                    value={newCommandName}
-                                    onChange={(e) => setNewCommandName(e.target.value)}
-                                    placeholder="Shortcut name"
-                                    className="col-span-3"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleRenameConfirm();
-                                        } else if (e.key === 'Escape') {
-                                            handleRenameCancel();
-                                        }
-                                    }}
-                                />
-                            </div>
-                            
-                            <Separator className="my-2" />
-                            
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Icon</label>
-                                <IconSelector 
-                                    onSelect={handleIconSelect}
-                                    selectedIconName={selectedIconName}
-                                    selectedIconSet={selectedIconSet}
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={handleRenameCancel}>Cancel</Button>
-                            <Button onClick={handleRenameConfirm}>Save</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <RenameShortcutDialog
+                    open={renameDialogOpen}
+                    onOpenChange={setRenameDialogOpen}
+                    commandToRename={commandToRename}
+                    newCommandName={newCommandName}
+                    setNewCommandName={setNewCommandName}
+                    selectedIconName={selectedIconName}
+                    selectedIconSet={selectedIconSet}
+                    onIconSelect={handleIconSelect}
+                    onConfirm={handleRenameConfirm}
+                    onCancel={handleRenameCancel}
+                />
             </DragDropContext>
         </TooltipProvider>
     );
