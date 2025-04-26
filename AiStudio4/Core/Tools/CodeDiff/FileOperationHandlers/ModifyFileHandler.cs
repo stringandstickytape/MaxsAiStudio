@@ -106,6 +106,9 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             // If programmatic modification failed or threw an exception, fall back to AI-based approach
             SendStatusUpdate($"Programmatic modification unsuccessful for: {Path.GetFileName(filePath)}. Falling back to AI-based approach.");
             
+            // Save debug information for the merge failure
+            programmaticModifier.SaveMergeFailureDebugInfo(filePath, originalContent, changes, failureReason);
+            
             // --- Prepare AI Request ---
             // Filter only necessary fields for the AI prompt to avoid clutter
             var modificationsForPrompt = changes.Select(ch => new JObject
