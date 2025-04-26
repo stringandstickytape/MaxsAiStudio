@@ -566,7 +566,7 @@ namespace AiStudio4.Core.Tools
             // --- Send to AI and Process Response ---
             try
             {
-                SendStatusUpdate($"Processing modifications with AI for: {Path.GetFileName(filePath)}");
+                SendStatusUpdate($"Processing with Secondary AI for: {Path.GetFileName(filePath)}");
                 var aiResponse = await _secondaryAiService.ProcessRequestAsync(prompt);
 
                 if (!aiResponse.Success) // Allow empty response if successful AI call intended it

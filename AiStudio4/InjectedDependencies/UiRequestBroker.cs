@@ -74,6 +74,83 @@ namespace AiStudio4.InjectedDependencies
             _themeService = themeService;
         }
 
+        // Handles clipboard image requests (API endpoint)
+        public async Task<string> HandleClipboardImageRequest(string clientId, string requestData)
+        {
+            // Implementation will go here (STA thread, clipboard check, image extraction)
+            try
+            {
+                // Call helper method to get clipboard image as attachment
+                var attachment = await GetClipboardImageAttachmentAsync();
+                if (attachment == null)
+                {
+                    return SerializeError("No image found in clipboard.");
+                }
+                return JsonConvert.SerializeObject(new { success = true, attachment });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Failed to get clipboard image: {ex.Message}");
+            }
+        }
+
+        // Helper: Extracts image from clipboard and returns as attachment object
+        private async Task<object> GetClipboardImageAttachmentAsync()
+        {
+            // Clipboard access must be on STA thread
+            System.Drawing.Bitmap bitmap = null;
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                var thread = new System.Threading.Thread(() =>
+                {
+                    if (System.Windows.Clipboard.ContainsImage())
+                    {
+                        var source = System.Windows.Clipboard.GetImage();
+                        if (source != null)
+                        {
+                            using (var ms = new System.IO.MemoryStream())
+                            {
+                                var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(source));
+                                encoder.Save(ms);
+                                ms.Position = 0;
+                                bitmap = new System.Drawing.Bitmap(ms);
+                            }
+                        }
+                    }
+                });
+                thread.SetApartmentState(System.Threading.ApartmentState.STA);
+                thread.Start();
+                thread.Join();
+            });
+
+            if (bitmap == null)
+                return null;
+
+            // Convert bitmap to PNG byte[]
+            byte[] pngBytes;
+            using (var ms = new System.IO.MemoryStream())
+            {
+                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                pngBytes = ms.ToArray();
+            }
+
+            // Prepare attachment object
+            var attachment = new
+            {
+                id = Guid.NewGuid().ToString(),
+                name = "clipboard-image.png",
+                type = "image/png",
+                size = pngBytes.Length,
+                content = Convert.ToBase64String(pngBytes),
+                width = bitmap.Width,
+                height = bitmap.Height,
+                lastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+            bitmap.Dispose();
+            return attachment;
+        }
+
         public async Task<string> HandleRequestAsync(string clientId, string requestType, string requestData)
         {
             if (!requestData.StartsWith("{"))
@@ -98,7 +175,7 @@ namespace AiStudio4.InjectedDependencies
                 {
                     "saveCodeBlockAsFile" => await HandleSaveCodeBlockAsFileRequest(requestObject),
                    "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
-                    "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList }),
+                    "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList } ),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _generalSettingsService.CurrentSettings.ServiceProviders }),
                     "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),

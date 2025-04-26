@@ -117,7 +117,17 @@ namespace AiStudio4.InjectedDependencies
             app.MapGet("/api/{requestType}/{action}", HandleApiRequest);
             app.MapPut("/api/{requestType}/{action}", HandleApiRequest);
 
-
+            // Clipboard image endpoint
+            app.MapPost("/api/clipboardImage", async context =>
+            {
+                var clientId = context.Request.Headers["X-Client-Id"].ToString();
+                using var reader = new StreamReader(context.Request.Body);
+                var requestData = await reader.ReadToEndAsync();
+                var response = await _uiRequestBroker.HandleClipboardImageRequest(clientId, requestData);
+                context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(response);
+            });
 
             // Add OPTIONS handler for CORS preflight requests
             app.MapMethods("/api/{requestType}", new[] { "OPTIONS" }, context =>

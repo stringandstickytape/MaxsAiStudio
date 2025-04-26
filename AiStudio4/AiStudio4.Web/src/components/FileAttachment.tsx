@@ -1,8 +1,9 @@
-﻿import React, { useRef, useState } from 'react';
+﻿// AiStudio4.Web\src\components\FileAttachment.tsx
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, X, Upload } from 'lucide-react';
+import { Paperclip, X, Upload, ClipboardPen } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DEFAULT_ATTACHMENT_OPTIONS } from '@/utils/attachmentUtils';
+import { DEFAULT_ATTACHMENT_OPTIONS, base64ToArrayBuffer } from '@/utils/attachmentUtils';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -131,6 +132,36 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     <DropdownMenuItem onClick={handleAttachFileClick}>
                         <Upload className="mr-2 h-4 w-4" />
                         <span>Attach file</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={async () => {
+                        // Show loading indicator (optional)
+                        try {
+                            const resp = await fetch('/api/clipboardImage', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: '{}'
+                            });
+                            const data = await resp.json();
+                            if (data.success && data.attachment) {
+                                // Convert base64 to ArrayBuffer for content
+                                const arrBuf = base64ToArrayBuffer(data.attachment.content);
+                                const file = new File([
+                                    arrBuf
+                                ], data.attachment.name || 'clipboard-image.png', {
+                                    type: data.attachment.type || 'image/png',
+                                    lastModified: data.attachment.lastModified || Date.now()
+                                });
+                                // Pass as array for addAttachments
+                                onFilesSelected([file]);
+                            } else {
+                                alert(data.error || 'No image found in clipboard.');
+                            }
+                        } catch (err) {
+                            alert('Failed to get image from clipboard.');
+                        }
+                    }}>
+                        <ClipboardPen className="mr-2 h-4 w-4" />
+                        <span>Image from Clipboard</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
