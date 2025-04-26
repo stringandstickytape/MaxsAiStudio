@@ -155,6 +155,18 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     
+    // Get the setJumpToEndEnabled function from the store
+    const setJumpToEndEnabled = useJumpToEndStore(state => state.setJumpToEndEnabled);
+    
+    // Define handlers for wheel and scroll events to toggle jumpToEndEnabled
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        setJumpToEndEnabled(false);
+    }, [setJumpToEndEnabled]);
+    
+    const handleScroll = useCallback((e: React.UIEvent) => {
+        setJumpToEndEnabled(false);
+    }, [setJumpToEndEnabled]);
+    
     // Debug selected message ID changes
     useEffect(() => {
         console.debug('🔍 ConvView - Selected message changed:', { 
@@ -292,6 +304,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 backgroundColor: 'var(--convview-bg, transparent)',
                 ...(window?.theme?.ConvView?.style || {})
             }}
+            onWheel={handleWheel}
+            onScroll={handleScroll}
         >
             <div className="ConvView flex flex-col gap-4 p-4">
 
