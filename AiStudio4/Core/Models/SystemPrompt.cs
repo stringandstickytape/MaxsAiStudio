@@ -14,5 +14,6 @@ namespace AiStudio4.Core.Models
         public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
         public List<string> Tags { get; set; } = new List<string>();
         public List<string> AssociatedTools { get; set; } = new List<string>(); // Tool GUIDs
+        public string AssociatedUserPromptId { get; set; } = string.Empty; // Associated User Prompt GUID
     }
 }

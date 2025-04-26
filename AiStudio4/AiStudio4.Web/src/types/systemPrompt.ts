@@ -8,6 +8,7 @@
   modifiedDate: string;
   tags: string[];
   associatedTools: string[]; // Tool GUIDs
+  associatedUserPromptId?: string; // Associated User Prompt GUID
 }
 
 export interface SystemPromptFormValues {
@@ -17,4 +18,5 @@ export interface SystemPromptFormValues {
   tags: string[];
   isDefault?: boolean;
   associatedTools: string[]; // Tool GUIDs
+  associatedUserPromptId?: string; // Associated User Prompt GUID
 }

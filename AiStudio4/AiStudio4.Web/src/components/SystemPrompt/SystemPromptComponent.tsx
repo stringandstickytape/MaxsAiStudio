@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 
 // Simplified themeable properties for ThemeManager
 export const themeableProps = {
@@ -67,7 +68,8 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
     const { togglePanel } = usePanelStore();
     const { prompts, defaultPromptId, convPrompts, setConvPrompt } = useSystemPromptStore();
 
-    const { updateSystemPrompt, setConvSystemPrompt, setDefaultSystemPrompt, isLoading: loading } = useSystemPromptManagement();
+    const { updateSystemPrompt, setConvSystemPrompt, setDefaultSystemPrompt, getAssociatedUserPrompt, isLoading: loading } = useSystemPromptManagement();
+    const { prompts: userPrompts, insertUserPrompt } = useUserPromptManagement();
 
     const [expanded, setExpanded] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -277,6 +279,18 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
             // Synchronize active tools
             useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
+            
+            // Handle associated user prompt if one exists
+            if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {
+                // Find the user prompt in the local store instead of making an API call
+                const userPrompt = userPrompts.find(up => up.guid === prompt.associatedUserPromptId);
+                if (userPrompt) {
+                    console.log('Activating associated user prompt:', userPrompt.title);
+                    insertUserPrompt(userPrompt);
+                } else {
+                    console.warn('Associated user prompt not found in local store:', prompt.associatedUserPromptId);
+                }
+            }
 
             // Close the popup after selecting a prompt
             setExpanded(false);

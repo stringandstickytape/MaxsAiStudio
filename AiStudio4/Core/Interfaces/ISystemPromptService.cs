@@ -1,4 +1,4 @@
-using AiStudio4.Core.Models;
+﻿using AiStudio4.Core.Models;
 
 namespace AiStudio4.Core.Interfaces
 {
@@ -14,7 +14,11 @@ namespace AiStudio4.Core.Interfaces
         Task<SystemPrompt> GetConvSystemPromptAsync(string convId);
         Task<bool> SetConvSystemPromptAsync(string convId, string promptId);
         Task<bool> ClearConvSystemPromptAsync(string convId);
-        Task InitializeAsync(); // Add this line
-
+        Task InitializeAsync();
+        
+        // User prompt association methods
+        Task<bool> SetAssociatedUserPromptAsync(string systemPromptId, string userPromptId);
+        Task<bool> ClearAssociatedUserPromptAsync(string systemPromptId);
+        Task<UserPrompt> GetAssociatedUserPromptAsync(string systemPromptId);
     }
 }

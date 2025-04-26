@@ -197,12 +197,30 @@ export function useSystemPromptManagement() {
         () => executeApiCall(() =>
             createApiRequest('/api/exportSystemPrompts', 'POST')({}).then(data => data.json)),
         [executeApiCall]);
+        
+    // User prompt association methods
+    const setAssociatedUserPrompt = useCallback(
+        (systemPromptId, userPromptId) => executeApiCall(() =>
+            createApiRequest('/api/setAssociatedUserPrompt', 'POST')({ systemPromptId, userPromptId }).then(() => true)),
+        [executeApiCall]);
+        
+    const clearAssociatedUserPrompt = useCallback(
+        (systemPromptId) => executeApiCall(() =>
+            createApiRequest('/api/clearAssociatedUserPrompt', 'POST')({ systemPromptId }).then(() => true)),
+        [executeApiCall]);
+        
+    const getAssociatedUserPrompt = useCallback(
+        (systemPromptId) => executeApiCall(() =>
+            createApiRequest('/api/getAssociatedUserPrompt', 'POST')({ systemPromptId }).then(data => data.userPrompt)),
+        [executeApiCall]);
 
     return {
         prompts, defaultPromptId, currentPrompt, isLoading, error,
         fetchSystemPrompts, setConvSystemPrompt, createSystemPrompt,
         updateSystemPrompt, deleteSystemPrompt: deletePrompt,
         setDefaultSystemPrompt, getSystemPromptById,
-        importSystemPrompts, exportSystemPrompts, clearError
+        importSystemPrompts, exportSystemPrompts, clearError,
+        // User prompt association methods
+        setAssociatedUserPrompt, clearAssociatedUserPrompt, getAssociatedUserPrompt
     };
 }

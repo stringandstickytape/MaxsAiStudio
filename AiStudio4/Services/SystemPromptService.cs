@@ -19,12 +19,14 @@ namespace AiStudio4.Services
         private readonly string _promptsPath;
         private readonly string _convPromptsPath;
         private readonly ILogger<SystemPromptService> _logger;
+        private readonly IUserPromptService _userPromptService;
         private readonly object _lockObject = new object();
         private bool _isInitialized = false;
 
-        public SystemPromptService(ILogger<SystemPromptService> logger)
+        public SystemPromptService(ILogger<SystemPromptService> logger, IUserPromptService userPromptService)
         {
             _logger = logger;
+            _userPromptService = userPromptService;
             _promptsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
@@ -280,6 +282,73 @@ namespace AiStudio4.Services
 
                 return Task.FromResult(true);
             }, $"clearing system prompt for conv {convId}");
+        }
+        
+        public Task<bool> SetAssociatedUserPromptAsync(string systemPromptId, string userPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                // Verify the system prompt exists
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null)
+                {
+                    return false;
+                }
+                
+                // Handle 'none' value as clearing the association
+                if (userPromptId == "none")
+                {
+                    systemPrompt.AssociatedUserPromptId = string.Empty;
+                    await SavePromptAsync(systemPrompt);
+                    return true;
+                }
+                
+                // Verify the user prompt exists
+                var userPrompt = await _userPromptService.GetUserPromptByIdAsync(userPromptId);
+                if (userPrompt == null)
+                {
+                    return false;
+                }
+                
+                // Set the association
+                systemPrompt.AssociatedUserPromptId = userPromptId;
+                await SavePromptAsync(systemPrompt);
+                
+                return true;
+            }, $"setting associated user prompt {userPromptId} for system prompt {systemPromptId}");
+        }
+        
+        public Task<bool> ClearAssociatedUserPromptAsync(string systemPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null)
+                {
+                    return false;
+                }
+                
+                systemPrompt.AssociatedUserPromptId = string.Empty;
+                await SavePromptAsync(systemPrompt);
+                
+                return true;
+            }, $"clearing associated user prompt for system prompt {systemPromptId}");
+        }
+        
+        public Task<UserPrompt> GetAssociatedUserPromptAsync(string systemPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<UserPrompt>(async () =>
+            {
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null || 
+                    string.IsNullOrEmpty(systemPrompt.AssociatedUserPromptId) ||
+                    systemPrompt.AssociatedUserPromptId == "none")
+                {
+                    return null;
+                }
+                
+                return await _userPromptService.GetUserPromptByIdAsync(systemPrompt.AssociatedUserPromptId);
+            }, $"getting associated user prompt for system prompt {systemPromptId}");
         }
 
         private async Task SavePromptAsync(SystemPrompt prompt)

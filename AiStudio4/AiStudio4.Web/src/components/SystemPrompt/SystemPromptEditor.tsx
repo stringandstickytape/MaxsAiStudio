@@ -12,6 +12,8 @@ import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
+import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SystemPromptEditorProps {
   initialPrompt?: SystemPrompt | null;
@@ -30,6 +32,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
   const [error, setLocalError] = useState<string | null>(null);
 
   const { tools } = useToolsManagement();
+  const { prompts: userPrompts, fetchUserPrompts } = useUserPromptManagement();
 
   const form = useForm<SystemPromptFormValues>({
     defaultValues: initialPrompt
@@ -40,6 +43,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           tags: initialPrompt.tags,
           isDefault: initialPrompt.isDefault,
           associatedTools: initialPrompt.associatedTools || [],
+          associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
         }
       : {
           title: '',
@@ -48,8 +52,14 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           tags: [],
           isDefault: false,
           associatedTools: [],
+          associatedUserPromptId: 'none',
         },
   });
+
+  useEffect(() => {
+    // Fetch user prompts when component mounts
+    fetchUserPrompts();
+  }, [fetchUserPrompts]);
 
   useEffect(() => {
     if (initialPrompt) {
@@ -60,6 +70,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         tags: initialPrompt.tags,
         isDefault: initialPrompt.isDefault,
         associatedTools: initialPrompt.associatedTools || [],
+        associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
       });
       setIsCreating(false);
     } else {
@@ -70,6 +81,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         tags: [],
         isDefault: false,
         associatedTools: [],
+        associatedUserPromptId: 'none',
       });
       setIsCreating(true);
     }
@@ -359,6 +371,41 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
               </FormDescription>
             </div>
 
+            {/* User Prompt Association */}
+            <div className="mt-4">
+              <FormLabel className="form-label">Associated User Prompt</FormLabel>
+              <FormField
+                control={form.control}
+                name="associatedUserPromptId"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isProcessing}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full bg-gray-800 border-gray-700">
+                          <SelectValue placeholder="Select a user prompt" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="none">None</SelectItem>
+                        {userPrompts.map((prompt) => (
+                          <SelectItem key={prompt.guid} value={prompt.guid}>
+                            {prompt.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="form-description">
+                      Select a user prompt to associate with this system prompt. When this system prompt is activated, the associated user prompt will also be activated.
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />  
+            </div>
+
             <div className="flex-none mt-4 space-x-3 flex">
               <Button
                 type="button"
@@ -402,5 +449,4 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
     </div>
   );
 }
-
 
