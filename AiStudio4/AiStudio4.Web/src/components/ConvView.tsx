@@ -151,26 +151,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     // Get necessary state and actions from stores
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
-    const { jumpToEndEnabled, setJumpToEndEnabled } = useJumpToEndStore();
     
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const isScrollingProgrammatically = useRef(false);
-    const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    
-    // Function to scroll to the bottom of the container
-    const scrollToBottom = useCallback(() => {
-        if (scrollContainerRef.current) {
-            isScrollingProgrammatically.current = true;
-            const { scrollHeight, clientHeight } = scrollContainerRef.current;
-            scrollContainerRef.current.scrollTop = scrollHeight - clientHeight;
-            // Reset the flag after scrolling is complete
-            // Use requestAnimationFrame to ensure the flag is reset after the scroll event potentially fires
-            requestAnimationFrame(() => {
-                isScrollingProgrammatically.current = false;
-            });
-        }
-    }, []);
     
     // Debug selected message ID changes
     useEffect(() => {
@@ -198,68 +181,25 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         }
     }, [activeConvId, slctdMsgId, convs]);
     
-    // Handle scroll events to detect user scrolling and manage jump-to-end state
+    // Simple function to scroll to bottom
+    const scrollToBottom = useCallback(() => {
+        if (scrollContainerRef.current) {
+            const { scrollHeight, clientHeight } = scrollContainerRef.current;
+            scrollContainerRef.current.scrollTop = scrollHeight - clientHeight;
+        }
+    }, []);
+
+
+
+
+
+    // Always scroll to bottom when new stream tokens arrive
     useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        const handleScroll = () => {
-            if (isScrollingProgrammatically.current) return; // Ignore programmatic scrolls
-
-            const { scrollTop, scrollHeight, clientHeight } = container;
-            const isAtBottom = scrollHeight - scrollTop - clientHeight < 10; // Check if near the bottom (within 10px)
-
-            // Clear any existing timeout
-            if (userScrollTimeoutRef.current) {
-                clearTimeout(userScrollTimeoutRef.current);
-            }
-
-            // Set a timeout to detect when user stops scrolling
-            userScrollTimeoutRef.current = setTimeout(() => {
-                // If user scrolled up and is not near the bottom, disable jump-to-end
-                if (jumpToEndEnabled && !isAtBottom) {
-                    console.log("User scrolled up, disabling jump-to-end");
-                    setJumpToEndEnabled(false);
-                }
-                // If jump-to-end is disabled and user scrolls back to the bottom, re-enable it
-                else if (!jumpToEndEnabled && isAtBottom) {
-                    console.log("User scrolled to bottom, enabling jump-to-end");
-                    setJumpToEndEnabled(true);
-                }
-            }, 150); // Adjust timeout duration as needed (e.g., 150ms)
-        };
-        
-        container.addEventListener('scroll', handleScroll, { passive: true });
-        
-        return () => {
-            container.removeEventListener('scroll', handleScroll);
-            if (userScrollTimeoutRef.current) {
-                clearTimeout(userScrollTimeoutRef.current);
-            }
-        };
-    }, [jumpToEndEnabled, setJumpToEndEnabled]); // Add dependencies
-    
-    // Listen for jump-to-end events (e.g., from InputBar send)
-    useEffect(() => {
-        const handleJumpToEnd = () => {
-            if (jumpToEndEnabled) {
-                scrollToBottom();
-            }
-        };
-        
-        window.addEventListener('jump-to-end', handleJumpToEnd);
-        return () => {
-            window.removeEventListener('jump-to-end', handleJumpToEnd);
-        };
-    }, [jumpToEndEnabled, scrollToBottom]);
-    
-    // Scroll to bottom when new stream tokens arrive if jumpToEndEnabled is true
-    useEffect(() => {
-        // Only scroll if jumpToEndEnabled is true and there are new tokens or streaming just started
-        if (jumpToEndEnabled && (streamTokens.length > 0 || isStreaming)) {
+        if (streamTokens.length > 0 || isStreaming) {
             scrollToBottom();
         }
-    }, [streamTokens, isStreaming, jumpToEndEnabled, scrollToBottom]);
+    }, [streamTokens, isStreaming, scrollToBottom]);
+
     
     // Make scrollToBottom available globally
     useEffect(() => {

@@ -368,11 +368,19 @@ export function InputBar({
                                 <TooltipTrigger asChild>
                                     <div 
                                         className="flex items-center cursor-pointer" 
-                                        onClick={() => useJumpToEndStore.getState().setJumpToEndEnabled(!useJumpToEndStore.getState().jumpToEndEnabled)}
+                                        onClick={() => {
+                                            const newState = !useJumpToEndStore.getState().jumpToEndEnabled;
+                                            console.log(`[JumpToEnd] Button clicked, setting to: ${newState}`);
+                                            useJumpToEndStore.getState().setJumpToEndEnabled(newState);
+                                        }}
                                     >
                                         <ArrowDownToLine 
                                             size={16} 
-                                            className={`ml-2 ${useJumpToEndStore(state => state.jumpToEndEnabled) ? 'text-blue-400' : 'text-gray-300'}`} 
+                                            className={`ml-2 ${useJumpToEndStore(state => {
+                                                const enabled = state.jumpToEndEnabled;
+                                                console.log(`[JumpToEnd] Icon rendering, current state: ${enabled}`);
+                                                return enabled;
+                                            }) ? 'text-blue-400' : 'text-gray-300'}`} 
                                         />
                                     </div>
                                 </TooltipTrigger>

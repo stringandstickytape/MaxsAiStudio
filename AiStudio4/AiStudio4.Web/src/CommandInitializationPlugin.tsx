@@ -9,6 +9,7 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { SystemPrompt } from '@/types/systemPrompt';
 
+
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
   const { prompts: userPrompts } = useUserPromptStore();
