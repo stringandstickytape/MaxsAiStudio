@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+﻿import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { UserPrompt } from '@/types/userPrompt';
@@ -75,6 +75,15 @@ export function useUserPromptManagement() {
         .then(data => data.json)),
     [executeApiCall]);
 
+  // Add method to insert user prompt into input bar
+  const insertUserPrompt = useCallback((prompt: UserPrompt) => {
+    if (prompt && window.setPrompt) {
+      window.setPrompt(prompt.content);
+      return true;
+    }
+    return false;
+  }, []);
+
   return {
     prompts, 
     favoritePromptIds, 
@@ -89,6 +98,7 @@ export function useUserPromptManagement() {
     getUserPromptById, 
     importUserPrompts, 
     exportUserPrompts, 
-    clearError: userPromptResource.clearError
+    clearError: userPromptResource.clearError,
+    insertUserPrompt
   };
 }
