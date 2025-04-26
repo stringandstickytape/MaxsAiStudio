@@ -14,7 +14,8 @@ using System.Threading.Tasks;
 namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
 {
     /// <summary>
-    /// Handles file modification operations using a secondary AI service
+    /// Handles file modification operations, first attempting programmatic modification
+    /// before falling back to using a secondary AI service
     /// </summary>
     public class ModifyFileHandler : BaseFileOperationHandler
     {
@@ -42,6 +43,7 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
 
         /// <summary>
         /// Handles multiple modification operations for a single file
+        /// First attempts programmatic modification, then falls back to AI if needed
         /// </summary>
         public async Task<FileOperationResult> HandleModifyFileAsync(string filePath, List<JObject> changes)
         {
@@ -72,6 +74,38 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
                 return new FileOperationResult(false, $"Failed: Unexpected error reading file. {ex.Message}");
             }
 
+            // Only proceed if there are valid modifications to apply
+            if (!changes.Any())
+            {
+                _logger.LogWarning("Modify operation for '{FilePath}' called with no valid modification details.", filePath);
+                return new FileOperationResult(true, "Success: No modifications to apply."); // Or false if this state is unexpected
+            }
+            
+            // NEW: First try programmatic modification
+            var programmaticModifier = new ProgrammaticModifier(_logger, _statusMessageService, _clientId);
+            SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
+            
+            try
+            {
+                if (programmaticModifier.TryApplyModifications(filePath, originalContent, changes, out string modifiedContent))
+                {
+                    // If successful, write the modified content and return success
+                    await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
+                    _logger.LogInformation("Programmatically modified file '{FilePath}' with {Count} change(s).", filePath, changes.Count);
+                    SendStatusUpdate($"Successfully applied {changes.Count} modification(s) programmatically to {Path.GetFileName(filePath)}");
+                    return new FileOperationResult(true, $"Success: Applied {changes.Count} modification(s) programmatically.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error during programmatic modification attempt for '{FilePath}'. Falling back to AI.", filePath);
+                SendStatusUpdate($"Error during programmatic modification: {ex.Message}. Falling back to AI.");
+                // Continue to AI-based approach
+            }
+            
+            // If programmatic modification failed or threw an exception, fall back to AI-based approach
+            SendStatusUpdate($"Programmatic modification unsuccessful for: {Path.GetFileName(filePath)}. Falling back to AI-based approach.");
+            
             // --- Prepare AI Request ---
             // Filter only necessary fields for the AI prompt to avoid clutter
             var modificationsForPrompt = changes.Select(ch => new JObject
@@ -82,13 +116,6 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
                 ["newContent"] = ch["newContent"], // The replacement/addition
                 ["description"] = ch["description"] // Optional context for AI
             }).ToList();
-
-            // Only proceed if there are valid modifications to apply
-            if (!modificationsForPrompt.Any())
-            {
-                _logger.LogWarning("Modify operation for '{FilePath}' called with no valid modification details.", filePath);
-                return new FileOperationResult(true, "Success: No modifications to apply."); // Or false if this state is unexpected
-            }
 
             var modificationsJson = new JArray(modificationsForPrompt).ToString(Formatting.None); // Compact JSON for prompt
 
