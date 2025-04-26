@@ -6,12 +6,15 @@ import { useModalStore } from '@/stores/useModalStore';
 import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
 import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
 import { useCommandStore } from '@/stores/useCommandStore';
+import { useToolStore } from '@/stores/useToolStore';
+import { SystemPrompt } from '@/types/systemPrompt';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
   const { prompts: userPrompts } = useUserPromptStore();
   const { togglePanel } = usePanelStore();
   const { openModal } = useModalStore();
+  const { setActiveTools } = useToolStore();
   
   useEffect(() => {
     if (systemPrompts.length > 0) {
@@ -48,6 +51,41 @@ export function CommandInitializationPlugin() {
       window.removeEventListener('user-prompts-updated', handleUserPromptsUpdate);
     };
   }, [systemPrompts.length, userPrompts.length]);
+  
+  // Handle system prompt selection and apply associated tools and user prompt
+  useEffect(() => {
+    const handleSystemPromptSelected = (event: CustomEvent<{ promptId: string }>) => {
+      const promptId = event.detail.promptId;
+      const selectedPrompt = systemPrompts.find(p => p.guid === promptId);
+      
+      if (selectedPrompt) {
+        // Apply associated tools if available
+        if (selectedPrompt.associatedTools && selectedPrompt.associatedTools.length > 0) {
+          setActiveTools(selectedPrompt.associatedTools);
+          console.log(`Applied ${selectedPrompt.associatedTools.length} tools from system prompt: ${selectedPrompt.title}`);
+        }
+        
+        // Apply associated user prompt if available
+        if (selectedPrompt.associatedUserPromptId) {
+          const userPrompt = userPrompts.find(p => p.guid === selectedPrompt.associatedUserPromptId);
+          if (userPrompt && userPrompt.content) {
+            // Use the global function to set the prompt content
+            if (window.setPrompt) {
+              window.setPrompt(userPrompt.content);
+              console.log(`Applied associated user prompt: ${userPrompt.title}`);
+            }
+          }
+        }
+      }
+    };
+    
+    // Listen for system prompt selection events
+    window.addEventListener('system-prompt-selected', handleSystemPromptSelected as EventListener);
+    
+    return () => {
+      window.removeEventListener('system-prompt-selected', handleSystemPromptSelected as EventListener);
+    };
+  }, [systemPrompts, userPrompts, setActiveTools]);
   
   
   useEffect(() => {

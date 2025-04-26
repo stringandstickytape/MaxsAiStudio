@@ -277,6 +277,11 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         try {
             await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
             setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
+            // Dispatch event for system prompt selection
+            window.dispatchEvent(new CustomEvent('system-prompt-selected', { 
+                detail: { promptId: prompt.guid } 
+            }));
+            
             // Synchronize active tools
             useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
             
