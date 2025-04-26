@@ -40,13 +40,20 @@ const getIconForCommand = (commandId: string, iconName?: string, iconSet?: strin
 
     if (iconName) {
         try {
+            if (iconSet !== 'lucide' && iconSet !== 'lobehub') {
+                // default icon
+                iconSet = 'lucide';
+                iconName = 'Pin';
+            }
+
             // If we have a specific icon name, try to use it
             if (iconSet === 'lucide') {
                 // For Lucide icons, we can dynamically import them
                 if (LucideIcons && typeof LucideIcons === 'object') {
                     const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
                     if (LucideIcon) {
-                        return <LucideIcon {...iconProps} />;
+                        // Add slightly bigger left margin for lucide icons
+                        return <LucideIcon {...iconProps} className="h-7 w-7 ml-1" />;
                     }
                 }
             } else if (iconSet === 'lobehub') {
@@ -54,20 +61,11 @@ const getIconForCommand = (commandId: string, iconName?: string, iconSet?: strin
                 if (LobehubIcons && typeof LobehubIcons === 'object') {
                     const icon = LobehubIcons[iconName as keyof typeof LobehubIcons];
                     if (icon && icon.Avatar) {
-                        return React.createElement(icon.Avatar, { size: 28 });
+                        return React.createElement(icon.Avatar, { size: 24 });
                     }
                 }
             }
             
-            // Fallback to basic mapping for backward compatibility
-            const iconMap: Record<string, JSX.Element> = {
-                'Plus': <Plus {...iconProps} />,
-                'Settings': <Settings {...iconProps} />,
-                'RefreshCw': <RefreshCw {...iconProps} />,
-                'GitBranch': <GitBranch {...iconProps} />,
-                'Mic': <Mic {...iconProps} />
-            };
-            return iconMap[iconName] || <Command {...iconProps} />;
         } catch (error) {
             console.error('Error rendering icon:', error);
             return <Command {...iconProps} />;
