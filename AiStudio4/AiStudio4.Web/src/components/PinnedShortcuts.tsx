@@ -36,7 +36,7 @@ interface PinnedShortcutsProps {
 }
 
 const getIconForCommand = (commandId: string, iconName?: string, iconSet?: string) => {
-    const iconProps = { className: "h-3.5 w-3.5" };
+    const iconProps = { className: "h-7 w-7" };
 
     if (iconName) {
         try {
@@ -54,7 +54,7 @@ const getIconForCommand = (commandId: string, iconName?: string, iconSet?: strin
                 if (LobehubIcons && typeof LobehubIcons === 'object') {
                     const icon = LobehubIcons[iconName as keyof typeof LobehubIcons];
                     if (icon && icon.Avatar) {
-                        return React.createElement(icon.Avatar, { size: 14 });
+                        return React.createElement(icon.Avatar, { size: 28 });
                     }
                 }
             }
@@ -201,7 +201,7 @@ export function PinnedShortcuts({
 
         const calculateVisibleButtons = () => {
             const containerWidth = containerRef.current?.clientWidth || 0;
-            const buttonWidth = 160 + 8;
+            const buttonWidth = 100 + 8;
             const dropdownWidth = 30;
 
             const availableWidth = containerWidth;
@@ -448,7 +448,7 @@ export function PinnedShortcuts({
                                                                                     handleRenameCommand(command);
                                                                                 }
                                                                             }}
-                                                                            className={`PinnedShortcuts h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
+                                                                            className={`PinnedShortcuts h-[36px] w-[100px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
                                                                             style={{
                                                                                 '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
                                                                                 border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
@@ -459,11 +459,11 @@ export function PinnedShortcuts({
                                                                             }}
                                                                         >
                                                                             {command.iconName && (
-                                                                                <span className="mr-1">
+                                                                                <span className="m-0.5 flex-shrink-0">
                                                                                     {getIconForCommand(command.id, command.iconName, command.iconSet)}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
+                                                                            <span className="text-xs flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2"
                                                                                   style={{
                                                                                       fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
                                                                                   }}>
@@ -540,7 +540,7 @@ export function PinnedShortcuts({
                                                                         handleRenameCommand(command);
                                                                     }
                                                                 }}
-                                                                className={`PinnedShortcuts h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
+                                                                className={`PinnedShortcuts h-[72px] w-[80px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
                                                                 style={{
                                                                     '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
                                                                     border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
@@ -551,11 +551,11 @@ export function PinnedShortcuts({
                                                                 }}
                                                             >
                                                                 {command.iconName && (
-                                                                    <span className="mr-1">
+                                                                    <span className="mr-0.5 flex-shrink-0">
                                                                         {getIconForCommand(command.id, command.iconName, command.iconSet)}
                                                                     </span>
                                                                 )}
-                                                                <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
+                                                                <span className="text-xs flex-1 text-left leading-tight break-words whitespace-normal overflow-hidden line-clamp-2"
                                                                       style={{
                                                                           fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
                                                                       }}>
