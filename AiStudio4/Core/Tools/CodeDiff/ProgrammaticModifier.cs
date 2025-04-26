@@ -41,6 +41,9 @@ namespace AiStudio4.Core.Tools.CodeDiff
             modifiedContent = originalContent;
             failureReason = null;
             
+            // Normalize the original content line endings for comparison
+            string normalizedOriginalContent = NormalizeLineEndings(originalContent);
+            
             foreach (var change in changes)
             {
                 string oldContent = change["oldContent"]?.ToString();
@@ -52,8 +55,11 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     continue;
                 }
                 
-                // Check if oldContent exists exactly once in the current content
-                int occurrences = CountOccurrences(modifiedContent, oldContent);
+                // Normalize the oldContent line endings for comparison
+                string normalizedOldContent = NormalizeLineEndings(oldContent);
+                
+                // Check if normalized oldContent exists exactly once in the normalized current content
+                int occurrences = CountOccurrences(normalizedOriginalContent, normalizedOldContent);
                 
                 if (occurrences == 0)
                 {
@@ -69,8 +75,26 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     return false;
                 }
                 
-                // Apply the change
-                modifiedContent = modifiedContent.Replace(oldContent, newContent);
+                // Find the actual oldContent in the original text with proper line endings
+                int startIndex = FindNormalizedStringPosition(modifiedContent, normalizedOriginalContent, normalizedOldContent);
+                if (startIndex >= 0)
+                {
+                    int endIndex = startIndex + GetActualLength(modifiedContent, startIndex, oldContent.Length);
+                    string actualOldContent = modifiedContent.Substring(startIndex, endIndex - startIndex);
+                    
+                    // Apply the change preserving the original line endings
+                    modifiedContent = modifiedContent.Remove(startIndex, endIndex - startIndex);
+                    modifiedContent = modifiedContent.Insert(startIndex, newContent);
+                    
+                    // Update normalized content for next iteration
+                    normalizedOriginalContent = NormalizeLineEndings(modifiedContent);
+                }
+                else
+                {
+                    // Fallback to simple replace if position finding fails
+                    modifiedContent = modifiedContent.Replace(oldContent, newContent);
+                    normalizedOriginalContent = NormalizeLineEndings(modifiedContent);
+                }
                 
                 // Log successful change
                 _logger.LogInformation("Successfully applied programmatic change to file '{FilePath}'.", filePath);
@@ -94,6 +118,74 @@ namespace AiStudio4.Core.Tools.CodeDiff
             }
             
             return count;
+        }
+        
+        /// <summary>
+        /// Normalizes line endings to \n for consistent comparison
+        /// </summary>
+        private string NormalizeLineEndings(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+                
+            // First replace all \r\n with \n, then replace any remaining \r with \n
+            return text.Replace("\r\n", "\n").Replace('\r', '\n');
+        }
+        
+        /// <summary>
+        /// Finds the position of a normalized string within the original text
+        /// </summary>
+        private int FindNormalizedStringPosition(string originalText, string normalizedText, string normalizedPattern)
+        {
+            int normalizedIndex = normalizedText.IndexOf(normalizedPattern, StringComparison.Ordinal);
+            if (normalizedIndex < 0)
+                return -1;
+                
+            // Count characters in the original text up to the normalized position
+            int originalIndex = 0;
+            int normalizedPos = 0;
+            
+            while (normalizedPos < normalizedIndex && originalIndex < originalText.Length)
+            {
+                // Skip \r in original text when counting positions
+                if (originalText[originalIndex] == '\r' && originalIndex + 1 < originalText.Length && originalText[originalIndex + 1] == '\n')
+                {
+                    originalIndex++; // Skip the \r
+                }
+                else
+                {
+                    normalizedPos++;
+                }
+                originalIndex++;
+            }
+            
+            return originalIndex;
+        }
+        
+        /// <summary>
+        /// Gets the actual length of a string in the original text accounting for line ending differences
+        /// </summary>
+        private int GetActualLength(string originalText, int startIndex, int normalizedLength)
+        {
+            int endIndex = startIndex;
+            int charsProcessed = 0;
+            
+            while (charsProcessed < normalizedLength && endIndex < originalText.Length)
+            {
+                if (originalText[endIndex] == '\r' && endIndex + 1 < originalText.Length && originalText[endIndex + 1] == '\n')
+                {
+                    // Count \r\n as one character for normalized length
+                    endIndex += 2;
+                    charsProcessed++;
+                }
+                else
+                {
+                    endIndex++;
+                    charsProcessed++;
+                }
+            }
+            
+            return endIndex - startIndex;
         }
 
         /// <summary>
