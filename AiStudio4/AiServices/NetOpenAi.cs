@@ -149,34 +149,38 @@ namespace AiStudio4.AiServices
         {
             List<ChatMessageContentPart> contentParts = new List<ChatMessageContentPart>();
 
-            // Handle text content
+            // Handle multiple attachments (images only, as OpenAI supports only images for now)
+            if (message.attachments != null && message.attachments.Any())
+            {
+                foreach (var attachment in message.attachments)
+                {
+                    if (!string.IsNullOrEmpty(attachment.Type) && attachment.Type.StartsWith("image/"))
+                    {
+                        try
+                        {
+                            byte[] imageData = Convert.FromBase64String(attachment.Content);
+                            contentParts.Add(ChatMessageContentPart.CreateImagePart(
+                                BinaryData.FromBytes(imageData), attachment.Type));
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log or handle invalid base64/image data
+                            System.Diagnostics.Debug.WriteLine($"Failed to add image attachment: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        // Only image attachments are supported by OpenAI as of 2024
+                        System.Diagnostics.Debug.WriteLine($"Skipping unsupported attachment type: {attachment.Type}");
+                    }
+                }
+            }
+
+            // Handle text content (always add after images, to match Claude logic)
             if (!string.IsNullOrEmpty(message.content))
             {
                 contentParts.Add(ChatMessageContentPart.CreateTextPart(message.content));
             }
-
-            // Handle legacy single image
-            //if (!string.IsNullOrEmpty(message.base64image))
-            //{
-            //    byte[] imageData = Convert.FromBase64String(message.base64image);
-            //    contentParts.Add(ChatMessageContentPart.CreateInputImagePart(
-            //        BinaryData.FromBytes(imageData)));
-            //}
-            //
-            //// Handle multiple attachments
-            //if (message.attachments != null && message.attachments.Any())
-            //{
-            //    foreach (var attachment in message.attachments)
-            //    {
-            //        if (attachment.Type.StartsWith("image/"))
-            //        {
-            //            byte[] imageData = Convert.FromBase64String(attachment.Content);
-            //            contentParts.Add(ChatMessageContentPart.CreateInputImagePart(
-            //                BinaryData.FromBytes(imageData)));
-            //        }
-            //        // Additional attachment types could be handled here
-            //    }
-            //}
 
             // Create appropriate message type based on role
             switch (message.role.ToLower())
