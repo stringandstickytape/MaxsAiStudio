@@ -1,5 +1,4 @@
-
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { SystemPrompt } from '@/types/systemPrompt';
 
 interface SystemPromptStore {
@@ -89,4 +88,3 @@ export const debugSystemPromptStore = () => {
 };
 
 (window as any).debugSystemPromptStore = debugSystemPromptStore;
-

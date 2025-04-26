@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
@@ -11,6 +11,7 @@ import { X, Plus, Save, Check } from 'lucide-react';
 import { SystemPrompt, SystemPromptFormValues } from '@/types/systemPrompt';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
+import { useToolsManagement } from '@/hooks/useToolsManagement';
 
 interface SystemPromptEditorProps {
   initialPrompt?: SystemPrompt | null;
@@ -28,6 +29,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
   const [newTag, setNewTag] = useState('');
   const [error, setLocalError] = useState<string | null>(null);
 
+  const { tools } = useToolsManagement();
+
   const form = useForm<SystemPromptFormValues>({
     defaultValues: initialPrompt
       ? {
@@ -36,6 +39,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           description: initialPrompt.description,
           tags: initialPrompt.tags,
           isDefault: initialPrompt.isDefault,
+          associatedTools: initialPrompt.associatedTools || [],
         }
       : {
           title: '',
@@ -43,6 +47,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           description: '',
           tags: [],
           isDefault: false,
+          associatedTools: [],
         },
   });
 
@@ -54,6 +59,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         description: initialPrompt.description,
         tags: initialPrompt.tags,
         isDefault: initialPrompt.isDefault,
+        associatedTools: initialPrompt.associatedTools || [],
       });
       setIsCreating(false);
     } else {
@@ -63,6 +69,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         description: '',
         tags: [],
         isDefault: false,
+        associatedTools: [],
       });
       setIsCreating(true);
     }
@@ -323,6 +330,34 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 </FormItem>
               )}
             />
+
+            {/* Tool Association Multi-Select */}
+            <div>
+              <FormLabel className="form-label">Associated Tools</FormLabel>
+              <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                {tools.map((tool) => (
+                  <label key={tool.guid} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.watch('associatedTools').includes(tool.guid)}
+                      onChange={(e) => {
+                        const current = form.getValues('associatedTools') || [];
+                        if (e.target.checked) {
+                          form.setValue('associatedTools', [...current, tool.guid]);
+                        } else {
+                          form.setValue('associatedTools', current.filter((id) => id !== tool.guid));
+                        }
+                      }}
+                      disabled={isProcessing}
+                    />
+                    <span className="text-sm text-gray-200">{tool.name}</span>
+                  </label>
+                ))}
+              </div>
+              <FormDescription className="form-description">
+                Select one or more tools to associate with this system prompt. These tools will be activated when the prompt is used.
+              </FormDescription>
+            </div>
 
             <div className="flex-none mt-4 space-x-3 flex">
               <Button

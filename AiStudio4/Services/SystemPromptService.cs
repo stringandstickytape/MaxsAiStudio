@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -60,7 +60,8 @@ namespace AiStudio4.Services
                     Content = "You are a helpful assistant. Answer as concisely as possible.",
                     Description = "Standard helpful assistant prompt",
                     IsDefault = true,
-                    Tags = new List<string> { "general", "default" }
+                    Tags = new List<string> { "general", "default" },
+                    AssociatedTools = new List<string>() // No default tools
                 };
 
                 await CreateSystemPromptAsync(defaultPrompt);

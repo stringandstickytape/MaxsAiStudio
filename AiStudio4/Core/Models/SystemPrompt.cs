@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
@@ -13,5 +13,6 @@ namespace AiStudio4.Core.Models
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
         public List<string> Tags { get; set; } = new List<string>();
+        public List<string> AssociatedTools { get; set; } = new List<string>(); // Tool GUIDs
     }
 }

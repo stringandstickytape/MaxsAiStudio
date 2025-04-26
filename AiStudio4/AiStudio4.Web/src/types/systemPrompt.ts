@@ -1,6 +1,4 @@
-
-
-export interface SystemPrompt {
+﻿export interface SystemPrompt {
   guid: string;
   title: string;
   content: string;
@@ -9,6 +7,7 @@ export interface SystemPrompt {
   createdDate: string;
   modifiedDate: string;
   tags: string[];
+  associatedTools: string[]; // Tool GUIDs
 }
 
 export interface SystemPromptFormValues {
@@ -17,4 +16,5 @@ export interface SystemPromptFormValues {
   description: string;
   tags: string[];
   isDefault?: boolean;
+  associatedTools: string[]; // Tool GUIDs
 }
