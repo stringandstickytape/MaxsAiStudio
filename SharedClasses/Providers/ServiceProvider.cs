@@ -10,6 +10,7 @@ namespace SharedClasses.Providers
 
         public string FriendlyName { get; set; }
         public string ServiceName { get; set; }
+        public string IconName { get; set; }
 
         // create a guid
         public string Guid { get; set; }

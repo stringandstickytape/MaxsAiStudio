@@ -1,9 +1,10 @@
-export interface ServiceProvider {
+﻿export interface ServiceProvider {
   guid: string;
   url: string;
   apiKey: string;
   friendlyName: string;
   serviceName: string;
+  iconName?: string;
 }
 
 export interface Model {

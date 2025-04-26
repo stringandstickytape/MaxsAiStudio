@@ -1,5 +1,4 @@
-
-import React from 'react';
+﻿import React from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
 
@@ -28,6 +27,14 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
       colSpan: 1,
     },
     {
+      name: 'iconName',
+      label: 'Icon Name',
+      type: 'text',
+      placeholder: 'e.g., Anthropic',
+      description: 'Provider icon name (e.g., Anthropic, OpenAI, Google)',
+      colSpan: 1,
+    },
+    {
       name: 'url',
       label: 'API URL',
       type: 'text',
@@ -51,6 +58,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     apiKey: '',
     friendlyName: '',
     serviceName: '',
+    iconName: '',
   };
 
   return (
@@ -64,5 +72,3 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     />
   );
 };
-
-

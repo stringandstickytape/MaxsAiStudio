@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import * as LobehubIcons from '@lobehub/icons';
 
 interface ServiceProviderManagementProps {
   providers: ServiceProvider[];
@@ -142,7 +143,12 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
               />
               <div className="p-3 flex flex-col flex-1">
                 <div className="flex items-start pr-6">
-                  <CardTitle className="text-gray-100 text-lg flex items-center gap-1 truncate">
+                  <CardTitle className="text-gray-100 text-lg flex items-center gap-2 truncate">
+                    {provider.iconName && LobehubIcons[provider.iconName] ? (
+                      <div className="flex items-center justify-center w-6 h-6">
+                        {React.createElement(LobehubIcons[provider.iconName].Avatar, { size: 24 })}
+                      </div>
+                    ) : null}
                     {provider.friendlyName}
                   </CardTitle>
                 </div>
