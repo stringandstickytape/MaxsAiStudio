@@ -1,10 +1,11 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import * as LobehubIcons from '@lobehub/icons';
 import {
     Dialog,
     DialogContent,
@@ -46,6 +47,14 @@ const getIconForCommand = (commandId: string, iconName?: string, iconSet?: strin
                     const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
                     if (LucideIcon) {
                         return <LucideIcon {...iconProps} />;
+                    }
+                }
+            } else if (iconSet === 'lobehub') {
+                // For Lobehub icons
+                if (LobehubIcons && typeof LobehubIcons === 'object') {
+                    const icon = LobehubIcons[iconName as keyof typeof LobehubIcons];
+                    if (icon && icon.Avatar) {
+                        return React.createElement(icon.Avatar, { size: 14 });
                     }
                 }
             }

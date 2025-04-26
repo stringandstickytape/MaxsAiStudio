@@ -1,4 +1,4 @@
-
+﻿// AiStudio4.Web\src\stores\usePinnedCommandsStore.ts
 import { create } from 'zustand';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 
@@ -6,6 +6,7 @@ export interface PinnedCommand {
   id: string;
   name: string;
   iconName?: string;
+  iconSet?: 'lucide' | 'lobehub';
   section: string;
 }
 
@@ -157,4 +158,3 @@ export const debugPinnedCommands = () => {
 
 
 (window as any).debugPinnedCommands = debugPinnedCommands;
-
