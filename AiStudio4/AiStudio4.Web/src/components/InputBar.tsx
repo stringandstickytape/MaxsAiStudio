@@ -372,6 +372,11 @@ export function InputBar({
                                             const newState = !useJumpToEndStore.getState().jumpToEndEnabled;
                                             console.log(`[JumpToEnd] Button clicked, setting to: ${newState}`);
                                             useJumpToEndStore.getState().setJumpToEndEnabled(newState);
+                                            
+                                            // If enabling jump-to-end, immediately scroll to bottom
+                                            if (newState && window.scrollChatToBottom) {
+                                                window.scrollChatToBottom();
+                                            }
                                         }}
                                     >
                                         <ArrowDownToLine 
