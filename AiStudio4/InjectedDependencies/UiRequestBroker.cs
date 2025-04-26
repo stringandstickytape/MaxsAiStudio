@@ -1,4 +1,7 @@
 ﻿// AiStudio4/InjectedDependencies/UiRequestBroker.cs
+using System.Diagnostics;
+using System.Text;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,6 +18,8 @@ using System.Windows;
 
 namespace AiStudio4.InjectedDependencies
 {
+
+
     public class UiRequestBroker
     {
         private readonly IBuiltInToolExtraPropertiesService _builtInToolExtraPropertiesService;
@@ -174,7 +179,8 @@ namespace AiStudio4.InjectedDependencies
                 return requestType switch
                 {
                     "saveCodeBlockAsFile" => await HandleSaveCodeBlockAsFileRequest(requestObject),
-                   "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
+                    "gitDiff" => await HandleGitDiffRequest(),
+                    "getAllHistoricalConvTrees" => await _chatManager.HandleGetAllHistoricalConvTreesRequest(clientId, requestObject),
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList } ),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _generalSettingsService.CurrentSettings.ServiceProviders }),
                     "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
@@ -1339,5 +1345,68 @@ namespace AiStudio4.InjectedDependencies
         }
         #endregion
 
+        private async Task<string> HandleGitDiffRequest()
+        {
+            try
+            {
+                var projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
+                if (string.IsNullOrWhiteSpace(projectPath) || !Directory.Exists(projectPath))
+                {
+                    return SerializeError("Project path not set or does not exist.");
+                }
+                if (!Directory.Exists(Path.Combine(projectPath, ".git")))
+                {
+                    return SerializeError("Not a git repository.");
+                }
+                
+                var diffOutput = RunGitCommand("diff HEAD", projectPath);
+                var newFiles = RunGitCommand("ls-files --others --exclude-standard", projectPath);
+                var sb = new StringBuilder();
+                sb.AppendLine("=== GIT DIFF ===\n");
+                sb.AppendLine(diffOutput);
+                sb.AppendLine("\n=== NEW FILES ===\n");
+                sb.AppendLine(newFiles);
+                
+                // Convert to base64 for transmission
+                var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+                var base64Content = Convert.ToBase64String(bytes);
+                
+                // Return as attachment object
+                return JsonConvert.SerializeObject(new { 
+                    success = true, 
+                    attachment = new {
+                        id = Guid.NewGuid().ToString(),
+                        name = "git-diff.txt",
+                        type = "text/plain",
+                        size = bytes.Length,
+                        content = base64Content,
+                        lastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error generating git diff: {ex.Message}");
+            }
+        }
+        
+        private string RunGitCommand(string args, string workingDir)
+        {
+            var psi = new ProcessStartInfo("git", args)
+            {
+                WorkingDirectory = workingDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var proc = Process.Start(psi);
+            var output = proc.StandardOutput.ReadToEnd();
+            var error = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
+            if (proc.ExitCode != 0)
+                throw new Exception($"Git error: {error}");
+            return output;
+        }
     }
 }

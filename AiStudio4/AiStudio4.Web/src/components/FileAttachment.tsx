@@ -163,6 +163,39 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                         <ClipboardPen className="mr-2 h-4 w-4" />
                         <span>Image from Clipboard</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={async () => {
+                        // Git Diff option
+                        try {
+                            // Optionally show loading indicator here
+                            const resp = await fetch('/api/gitDiff', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    data: '{}'
+                                })
+                            });
+                            const data = await resp.json();
+                            if (data.success && data.attachment) {
+                                // Convert base64 to ArrayBuffer for content
+                                const arrBuf = base64ToArrayBuffer(data.attachment.content);
+                                const file = new File([
+                                    arrBuf
+                                ], data.attachment.name || 'git-diff.txt', {
+                                    type: data.attachment.type || 'text/plain',
+                                    lastModified: data.attachment.lastModified || Date.now()
+                                });
+                                // Pass as array for addAttachments
+                                onFilesSelected([file]);
+                            } else {
+                                alert(data.error || 'Failed to get git diff.');
+                            }
+                        } catch (err) {
+                            alert('Failed to get git diff.');
+                        }
+                    }}>
+                        <Paperclip className="mr-2 h-4 w-4" />
+                        <span>Git Diff</span>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
