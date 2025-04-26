@@ -4,6 +4,15 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
 import {
     DropdownMenu,
@@ -84,6 +93,8 @@ export function PinnedShortcuts({
         removePinnedCommand,
         reorderPinnedCommands,
         savePinnedCommands,
+        setPinnedCommands,
+        setIsModified,
     } = usePinnedCommandsStore();
 
     const clientId = localStorage.getItem('clientId');
@@ -215,6 +226,46 @@ export function PinnedShortcuts({
 
     };
 
+    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+    const [commandToRename, setCommandToRename] = useState<PinnedCommand | null>(null);
+    const [newCommandName, setNewCommandName] = useState('');
+    
+    const handleRenameCommand = (command: PinnedCommand) => {
+        setCommandToRename(command);
+        setNewCommandName(command.name);
+        setRenameDialogOpen(true);
+    };
+    
+    const handleRenameConfirm = () => {
+        if (!commandToRename || !newCommandName.trim()) {
+            setRenameDialogOpen(false);
+            return;
+        }
+        
+        // Update the command name in the store
+        const updatedCommands = pinnedCommands.map(cmd => {
+            if (cmd.id === commandToRename.id) {
+                return { ...cmd, name: newCommandName.trim() };
+            }
+            return cmd;
+        });
+        
+        // Set the updated commands and mark as modified
+        setPinnedCommands(updatedCommands);
+        setIsModified(true);
+        
+        // Save the changes to the server
+        savePinnedCommands().catch(err => console.error('Error saving renamed command:', err));
+        
+        // Close the dialog
+        setRenameDialogOpen(false);
+    };
+    
+    const handleRenameCancel = () => {
+        setRenameDialogOpen(false);
+    };
+    
+
     const handleCommandClick = (commandId: string) => {
         useCommandStore.getState().executeCommand(commandId);
     };
@@ -344,6 +395,13 @@ export function PinnedShortcuts({
                                                                                 e.preventDefault();
                                                                                 handlePinCommand(command.id, true);
                                                                             }}
+                                                                            onAuxClick={(e) => {
+                                                                                // Handle middle-click (button 1)
+                                                                                if (e.button === 1) {
+                                                                                    e.preventDefault();
+                                                                                    handleRenameCommand(command);
+                                                                                }
+                                                                            }}
                                                                             className={`PinnedShortcuts h-auto min-h-[20px] max-h-[36px] w-[160px] px-0 py-0 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
                                                                             style={{
                                                                                 '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
@@ -368,7 +426,7 @@ export function PinnedShortcuts({
                                                                             Category: {command.section || 'Unknown'}
                                                                         </p>
                                                                         <p className="text-xs text-gray-400">
-                                                                            Drag handle above button to reorder · Right-click to unpin
+                                                                            Drag handle above button to reorder · Right-click to unpin · Middle-click to rename
                                                                         </p>
                                                                     </TooltipContent>
                                                                 </Tooltip>
@@ -424,6 +482,13 @@ export function PinnedShortcuts({
                                                                     e.preventDefault();
                                                                     handlePinCommand(command.id, true);
                                                                 }}
+                                                                onAuxClick={(e) => {
+                                                                    // Handle middle-click (button 1)
+                                                                    if (e.button === 1) {
+                                                                        e.preventDefault();
+                                                                        handleRenameCommand(command);
+                                                                    }
+                                                                }}
                                                                 className={`PinnedShortcuts h-auto min-h-[32px] max-h-[36px] w-[160px] px-0.5 py-0.5 rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
                                                                 style={{
                                                                     '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
@@ -448,7 +513,7 @@ export function PinnedShortcuts({
                                                                 Category: {command.section || 'Unknown'}
                                                             </p>
                                                             <p className="text-xs text-gray-400">
-                                                                Drag handle above button to reorder · Right-click to unpin
+                                                                Drag handle above button to reorder · Right-click to unpin · Middle-click to rename
                                                             </p>
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -500,6 +565,39 @@ export function PinnedShortcuts({
                         </DropdownMenu>
                     )}
                 </div>
+                
+                {/* Rename Dialog */}
+                <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Rename Shortcut</DialogTitle>
+                            <DialogDescription>
+                                Enter a new name for the shortcut.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <Input
+                                id="shortcut-name"
+                                value={newCommandName}
+                                onChange={(e) => setNewCommandName(e.target.value)}
+                                placeholder="Shortcut name"
+                                className="col-span-3"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleRenameConfirm();
+                                    } else if (e.key === 'Escape') {
+                                        handleRenameCancel();
+                                    }
+                                }}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={handleRenameCancel}>Cancel</Button>
+                            <Button onClick={handleRenameConfirm}>Save</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </DragDropContext>
         </TooltipProvider>
     );
