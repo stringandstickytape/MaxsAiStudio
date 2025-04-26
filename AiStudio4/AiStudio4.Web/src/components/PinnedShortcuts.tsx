@@ -4,6 +4,7 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Pin, Command, ChevronDown, Plus, Settings, RefreshCw, GitBranch, Mic } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -22,6 +23,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import IconSelector from './IconSelector';
+import { Separator } from './ui/separator';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -31,10 +34,20 @@ interface PinnedShortcutsProps {
     maxRows?: number;
 }
 
-const getIconForCommand = (commandId: string, iconName?: string) => {
+const getIconForCommand = (commandId: string, iconName?: string, iconSet?: string) => {
     const iconProps = { className: "h-3.5 w-3.5" };
 
     if (iconName) {
+        // If we have a specific icon name, try to use it
+        if (iconSet === 'lucide') {
+            // For Lucide icons, we can dynamically import them
+            const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
+            if (LucideIcon) {
+                return <LucideIcon {...iconProps} />;
+            }
+        }
+        
+        // Fallback to basic mapping for backward compatibility
         const iconMap: Record<string, JSX.Element> = {
             'Plus': <Plus {...iconProps} />,
             'Settings': <Settings {...iconProps} />,
@@ -45,6 +58,7 @@ const getIconForCommand = (commandId: string, iconName?: string) => {
         return iconMap[iconName] || <Command {...iconProps} />;
     }
 
+    // Fallback to inferring icon from command ID
     return commandId.includes('new') ? <Plus {...iconProps} /> :
            commandId.includes('settings') ? <Settings {...iconProps} /> :
            commandId.includes('clear') || commandId.includes('reset') ? <RefreshCw {...iconProps} /> :
@@ -229,10 +243,14 @@ export function PinnedShortcuts({
     const [renameDialogOpen, setRenameDialogOpen] = useState(false);
     const [commandToRename, setCommandToRename] = useState<PinnedCommand | null>(null);
     const [newCommandName, setNewCommandName] = useState('');
+    const [selectedIconName, setSelectedIconName] = useState<string | undefined>();
+    const [selectedIconSet, setSelectedIconSet] = useState<'lucide'>('lucide');
     
     const handleRenameCommand = (command: PinnedCommand) => {
         setCommandToRename(command);
         setNewCommandName(command.name);
+        setSelectedIconName(command.iconName);
+        setSelectedIconSet(command.iconSet as 'lucide' | 'lobehub' || 'lucide');
         setRenameDialogOpen(true);
     };
     
@@ -242,10 +260,15 @@ export function PinnedShortcuts({
             return;
         }
         
-        // Update the command name in the store
+        // Update the command name and icon in the store
         const updatedCommands = pinnedCommands.map(cmd => {
             if (cmd.id === commandToRename.id) {
-                return { ...cmd, name: newCommandName.trim() };
+                return { 
+                    ...cmd, 
+                    name: newCommandName.trim(),
+                    iconName: selectedIconName,
+                    iconSet: selectedIconSet
+                };
             }
             return cmd;
         });
@@ -263,6 +286,11 @@ export function PinnedShortcuts({
     
     const handleRenameCancel = () => {
         setRenameDialogOpen(false);
+    };
+    
+    const handleIconSelect = (iconName: string, iconSet: 'lucide') => {
+        setSelectedIconName(iconName);
+        setSelectedIconSet(iconSet);
     };
     
 
@@ -292,6 +320,7 @@ export function PinnedShortcuts({
                     id: command.id,
                     name: command.name,
                     iconName,
+                    iconSet: 'lucide',
                     section: command.section,
                 });
             }
@@ -412,6 +441,11 @@ export function PinnedShortcuts({
                                                                                 ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
                                                                             }}
                                                                         >
+                                                                            {command.iconName && (
+                                                                                <span className="mr-1">
+                                                                                    {getIconForCommand(command.id, command.iconName, command.iconSet)}
+                                                                                </span>
+                                                                            )}
                                                                             <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
                                                                                   style={{
                                                                                       fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
@@ -499,6 +533,11 @@ export function PinnedShortcuts({
                                                                     ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})
                                                                 }}
                                                             >
+                                                                {command.iconName && (
+                                                                    <span className="mr-1">
+                                                                        {getIconForCommand(command.id, command.iconName, command.iconSet)}
+                                                                    </span>
+                                                                )}
                                                                 <span className="text-xs flex-1 text-center leading-tight break-words whitespace-nowrap overflow-hidden"
                                                                       style={{
                                                                           fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
@@ -568,29 +607,43 @@ export function PinnedShortcuts({
                 
                 {/* Rename Dialog */}
                 <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Rename Shortcut</DialogTitle>
+                            <DialogTitle>Edit Shortcut</DialogTitle>
                             <DialogDescription>
-                                Enter a new name for the shortcut.
+                                Customize the name and icon for your shortcut.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
-                            <Input
-                                id="shortcut-name"
-                                value={newCommandName}
-                                onChange={(e) => setNewCommandName(e.target.value)}
-                                placeholder="Shortcut name"
-                                className="col-span-3"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleRenameConfirm();
-                                    } else if (e.key === 'Escape') {
-                                        handleRenameCancel();
-                                    }
-                                }}
-                            />
+                            <div className="space-y-2">
+                                <label htmlFor="shortcut-name" className="text-sm font-medium">Name</label>
+                                <Input
+                                    id="shortcut-name"
+                                    value={newCommandName}
+                                    onChange={(e) => setNewCommandName(e.target.value)}
+                                    placeholder="Shortcut name"
+                                    className="col-span-3"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleRenameConfirm();
+                                        } else if (e.key === 'Escape') {
+                                            handleRenameCancel();
+                                        }
+                                    }}
+                                />
+                            </div>
+                            
+                            <Separator className="my-2" />
+                            
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Icon</label>
+                                <IconSelector 
+                                    onSelect={handleIconSelect}
+                                    selectedIconName={selectedIconName}
+                                    selectedIconSet={selectedIconSet}
+                                />
+                            </div>
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={handleRenameCancel}>Cancel</Button>

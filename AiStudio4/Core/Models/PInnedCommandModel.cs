@@ -23,6 +23,11 @@ namespace AiStudio4.Core.Models
         public string IconName { get; set; }
 
         /// <summary>
+        /// The icon set this icon belongs to (e.g., "lucide")
+        /// </summary>
+        public string IconSet { get; set; }
+
+        /// <summary>
         /// Section or category this command belongs to
         /// </summary>
         public string Section { get; set; }
