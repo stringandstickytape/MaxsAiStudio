@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,7 @@ import { SystemPromptCard } from './SystemPromptCard';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
+import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 
 interface SystemPromptLibraryProps {
@@ -24,6 +24,7 @@ interface SystemPromptLibraryProps {
 export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId, initialShowEditor, onEditorClosed }: SystemPromptLibraryProps) {
   
   const { prompts, defaultPromptId, convPrompts, setPrompts, setCurrentPrompt } = useSystemPromptStore();
+  const { setActiveTools } = useToolStore();
 
     
 
@@ -76,18 +77,16 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
   };
 
   const handleApplyPrompt = async (prompt: SystemPrompt) => {
-    
+    // Set current prompt in store
     setCurrentPrompt(prompt);
+    // Synchronize active tools with associatedTools
+    setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
 
-    
-    
     if (onApplyPrompt) {
       onApplyPrompt(prompt);
       return; 
     }
 
-    
-    
     const effectiveConvId = convId || storeConvId;
     if (effectiveConvId) {
       try {
@@ -275,5 +274,3 @@ function PromptList({ prompts, defaultPromptId, onEdit, onApply, isLoading }: Pr
     </ScrollArea>
   );
 }
-
-
