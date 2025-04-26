@@ -1,8 +1,14 @@
 ﻿import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, X } from 'lucide-react';
+import { Paperclip, X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_ATTACHMENT_OPTIONS } from '@/utils/attachmentUtils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface FileAttachmentProps {
     onFilesSelected: (files: FileList | File[]) => void;
@@ -25,7 +31,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    const handleButtonClick = () => {
+    const handleAttachFileClick = () => {
         if (localStorage.getItem('isVisualStudio') === 'true') {
             window.chrome?.webview?.postMessage({
                 type: 'send',
@@ -105,20 +111,29 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 </div>
             )}
 
-            {/* Attachment button */}
-            <Button
-                variant="outline"
-                size="icon"
-                type="button"
-                onClick={handleButtonClick}
-                disabled={disabled}
-                className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
-                aria-label="Attach file"
-                title="Attach file"
-                style={style}
-            >
-                <Paperclip className="h-5 w-5" />
-            </Button>
+            {/* Attachment dropdown menu */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        disabled={disabled}
+                        className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
+                        aria-label="Attachment options"
+                        title="Attachment options"
+                        style={style}
+                    >
+                        <Paperclip className="h-5 w-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handleAttachFileClick}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        <span>Attach file</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     );
 };
