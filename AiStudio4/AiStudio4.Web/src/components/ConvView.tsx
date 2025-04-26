@@ -205,9 +205,10 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
 
 
-    // Always scroll to bottom when new stream tokens arrive
+    // Scroll to bottom when new stream tokens arrive, but only if jumpToEndEnabled is true
     useEffect(() => {
-        if (streamTokens.length > 0 || isStreaming) {
+        const jumpToEndEnabled = useJumpToEndStore.getState().jumpToEndEnabled;
+        if ((streamTokens.length > 0 || isStreaming) && jumpToEndEnabled) {
             scrollToBottom();
         }
     }, [streamTokens, isStreaming, scrollToBottom]);
