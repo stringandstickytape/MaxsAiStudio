@@ -57,6 +57,7 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useConvStore } from '@/stores/useConvStore';
 import { useToolStore } from '@/stores/useToolStore';
+import { useSystemPromptSelection } from '@/hooks/useSystemPromptSelection';
 
 interface SystemPromptComponentProps {
     convId?: string;
@@ -70,6 +71,7 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
 
     const { updateSystemPrompt, setConvSystemPrompt, setDefaultSystemPrompt, getAssociatedUserPrompt, isLoading: loading } = useSystemPromptManagement();
     const { prompts: userPrompts, insertUserPrompt } = useUserPromptManagement();
+    const { selectSystemPrompt } = useSystemPromptSelection();
 
     const [expanded, setExpanded] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -275,28 +277,9 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
         if (!effectiveConvId) return; // Cannot set without a conversation
 
         try {
-            await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
-            setConvPrompt(effectiveConvId, prompt.guid); // Update Zustand store immediately
-            // Dispatch event for system prompt selection
-            window.dispatchEvent(new CustomEvent('system-prompt-selected', { 
-                detail: { promptId: prompt.guid } 
-            }));
+            // Use the centralized hook for selecting system prompts
+            await selectSystemPrompt(prompt, { convId: effectiveConvId });
             
-            // Synchronize active tools
-            useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
-            
-            // Handle associated user prompt if one exists
-            if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {
-                // Find the user prompt in the local store instead of making an API call
-                const userPrompt = userPrompts.find(up => up.guid === prompt.associatedUserPromptId);
-                if (userPrompt) {
-                    console.log('Activating associated user prompt:', userPrompt.title);
-                    insertUserPrompt(userPrompt);
-                } else {
-                    console.warn('Associated user prompt not found in local store:', prompt.associatedUserPromptId);
-                }
-            }
-
             // Close the popup after selecting a prompt
             setExpanded(false);
             setEditMode(false);
@@ -460,33 +443,25 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                                     if (e.button === 1 && !isProcessing) { // Middle click
                                                         e.preventDefault();
                                                         setIsProcessing(true);
-                                                        const effectiveConvId = convId || storeConvId;
-                                                        if (effectiveConvId) {
-                                                            console.debug('[SystemPromptComponent] Middle-click detected on prompt pill:', prompt.guid, prompt.title);
-                                                            await setConvSystemPrompt({ convId: effectiveConvId, promptId: prompt.guid });
-                                                            setConvPrompt(effectiveConvId, prompt.guid);
-                                                        }
                                                         try {
-                                                            // Add debug logs for setDefaultSystemPrompt existence and type before calling
-                                                            console.debug('[SystemPromptComponent] setDefaultSystemPrompt:', setDefaultSystemPrompt, typeof setDefaultSystemPrompt);
-                                                            if (!setDefaultSystemPrompt) {
-                                                                console.error('[SystemPromptComponent] setDefaultSystemPrompt is undefined!');
-                                                            } else if (typeof setDefaultSystemPrompt !== 'function') {
-                                                                console.error('[SystemPromptComponent] setDefaultSystemPrompt is not a function:', setDefaultSystemPrompt);
-                                                            } else {
-                                                                console.debug('[SystemPromptComponent] Calling setDefaultSystemPrompt:', prompt.guid);
-                                                                const result = await setDefaultSystemPrompt(prompt.guid);
-                                                                console.debug('[SystemPromptComponent] setDefaultSystemPrompt result:', result);
+                                                            const effectiveConvId = convId || storeConvId;
+                                                            if (effectiveConvId) {
+                                                                console.debug('[SystemPromptComponent] Middle-click detected on prompt pill:', prompt.guid, prompt.title);
+                                                                
+                                                                // Use the centralized hook for selecting system prompts with setAsDefault option
+                                                                await selectSystemPrompt(prompt, { 
+                                                                    convId: effectiveConvId,
+                                                                    setAsDefault: true
+                                                                });
+                                                                
+                                                                setExpanded(false);
+                                                                setEditMode(false);
                                                             }
                                                         } catch (err) {
-                                                            // fallback: try direct
-                                                            if (typeof setDefaultSystemPrompt === 'function') {
-                                                                setDefaultSystemPrompt(prompt.guid);
-                                                            }
+                                                            console.error('[SystemPromptComponent] Error handling middle-click:', err);
+                                                        } finally {
+                                                            setIsProcessing(false);
                                                         }
-                                                        setExpanded(false);
-                                                        setEditMode(false);
-                                                        setIsProcessing(false);
                                                     }
                                                 }}
                                                 disabled={isProcessing}

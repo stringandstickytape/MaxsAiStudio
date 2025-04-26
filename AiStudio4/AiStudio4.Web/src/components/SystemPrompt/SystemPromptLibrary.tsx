@@ -12,6 +12,7 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
+import { useSystemPromptSelection } from '@/hooks/useSystemPromptSelection';
 
 interface SystemPromptLibraryProps {
   onApplyPrompt?: (prompt: SystemPrompt) => void;
@@ -25,13 +26,9 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
   
   const { prompts, defaultPromptId, convPrompts, setPrompts, setCurrentPrompt } = useSystemPromptStore();
   const { setActiveTools } = useToolStore();
-
-    
-
   const { activeConvId: storeConvId } = useConvStore();
-
-  
-  const { prompts: serverPrompts, isLoading, setConvSystemPrompt } = useSystemPromptManagement();
+  const { prompts: serverPrompts, isLoading } = useSystemPromptManagement();
+  const { selectSystemPrompt } = useSystemPromptSelection();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(initialShowEditor || false);
@@ -77,23 +74,20 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
   };
 
   const handleApplyPrompt = async (prompt: SystemPrompt) => {
-    // Set current prompt in store
+    // Set current prompt in store for UI purposes
     setCurrentPrompt(prompt);
-    // Synchronize active tools with associatedTools
-    setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
-
+    
+    // If there's a custom handler, use it instead of default behavior
     if (onApplyPrompt) {
       onApplyPrompt(prompt);
       return; 
     }
 
+    // Otherwise use our centralized hook to handle all side effects
     const effectiveConvId = convId || storeConvId;
     if (effectiveConvId) {
       try {
-        await setConvSystemPrompt({
-          convId: effectiveConvId,
-          promptId: prompt.guid,
-        });
+        await selectSystemPrompt(prompt, { convId: effectiveConvId });
         console.log(`Set conv ${effectiveConvId} system prompt to ${prompt.guid}`);
       } catch (error) {
         console.error('Failed to set conv system prompt:', error);

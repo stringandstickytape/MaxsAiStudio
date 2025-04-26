@@ -1,9 +1,9 @@
-
-import React from 'react';
+﻿import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
+import { selectSystemPromptStandalone } from '@/hooks/useSystemPromptSelection';
 
 import { useModalStore } from '@/stores/useModalStore';
 
@@ -85,6 +85,15 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
     useCommandStore.getState().unregisterGroup('system-prompts-list');
 
     const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
+    
+    // Create a function that will select the system prompt using our standalone function
+    const selectPromptFromCommand = async (prompt) => {
+        const { activeConvId } = useConvStore.getState();
+        
+        if (activeConvId) {
+            await selectSystemPromptStandalone(prompt, { convId: activeConvId });
+        }
+    };
 
     const promptCommands = prompts.map((prompt) => {
         
@@ -107,6 +116,10 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
                 className: prompt.guid === defaultPromptId ? 'text-blue-500' : undefined,
             }),
             execute: () => {
+                // First select the prompt using our hook to ensure tools and user prompts are loaded
+                selectPromptFromCommand(prompt);
+                
+                // Then open the modal if needed
                 setCurrentPrompt(prompt);
                 useModalStore.getState().openModal('systemPrompt');
             },
