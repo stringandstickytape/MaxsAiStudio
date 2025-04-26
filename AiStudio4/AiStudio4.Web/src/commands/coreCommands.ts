@@ -110,14 +110,6 @@ export function initializeCoreCommands(handlers: {
         handlers.toggleSidebar,
       ],
       [
-        'toggle-settings',
-        'Settings Panel Toggle',
-        shortcut(','),
-        ['settings', 'options', 'preferences', 'configure', 'setup', 'customize', 'adjust', 'toggle'],
-        React.createElement(Settings, { size: 16 }),
-        handlers.toggleSettings,
-      ],
-      [
         'open-new-window',
         'Open New Window',
         '',
