@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AiStudio4.Core.Tools.CodeDiff
 {
@@ -33,10 +34,12 @@ namespace AiStudio4.Core.Tools.CodeDiff
         /// <param name="originalContent">Original content of the file</param>
         /// <param name="changes">List of changes to apply</param>
         /// <param name="modifiedContent">Output parameter that will contain the modified content if successful</param>
+        /// <param name="failureReason">Output parameter that will contain the reason for failure if unsuccessful</param>
         /// <returns>True if all changes were applied successfully, false otherwise</returns>
-        public bool TryApplyModifications(string filePath, string originalContent, List<JObject> changes, out string modifiedContent)
+        public bool TryApplyModifications(string filePath, string originalContent, List<JObject> changes, out string modifiedContent, out string failureReason)
         {
             modifiedContent = originalContent;
+            failureReason = null;
             
             foreach (var change in changes)
             {
@@ -54,12 +57,14 @@ namespace AiStudio4.Core.Tools.CodeDiff
                 
                 if (occurrences == 0)
                 {
+                    failureReason = $"Cannot find oldContent in file. Change index: {changes.IndexOf(change)}";
                     _logger.LogWarning("Cannot find oldContent in file '{FilePath}'. Falling back to AI.", filePath);
                     return false;
                 }
                 
                 if (occurrences > 1)
                 {
+                    failureReason = $"Multiple matches ({occurrences}) for oldContent in file. Change index: {changes.IndexOf(change)}";
                     _logger.LogWarning("Multiple matches ({Count}) for oldContent in file '{FilePath}'. Falling back to AI.", occurrences, filePath);
                     return false;
                 }
@@ -89,6 +94,49 @@ namespace AiStudio4.Core.Tools.CodeDiff
             }
             
             return count;
+        }
+
+        /// <summary>
+        /// Saves debug information when automatic merging fails
+        /// </summary>
+        /// <param name="filePath">Path to the file being modified</param>
+        /// <param name="originalContent">Original content of the file</param>
+        /// <param name="changes">List of changes that were attempted</param>
+        /// <param name="failureReason">The reason why the automatic merge failed</param>
+        public void SaveMergeFailureDebugInfo(string filePath, string originalContent, List<JObject> changes, string failureReason)
+        {
+            try
+            {
+                // Create debug directory if it doesn't exist
+                string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DebugLogs", "MergeFailures");
+                Directory.CreateDirectory(debugDir);
+                
+                // Create a unique filename based on timestamp and file being modified
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                string filename = Path.GetFileName(filePath);
+                string debugFilePath = Path.Combine(debugDir, $"merge_failure_{timestamp}_{filename}.json");
+                
+                // Create debug data object
+                var debugData = new
+                {
+                    Timestamp = DateTime.Now,
+                    FilePath = filePath,
+                    FailureReason = failureReason,
+                    Changes = changes,
+                    OriginalContent = originalContent
+                };
+                
+                // Serialize to JSON and save to file
+                string json = JsonConvert.SerializeObject(debugData, Formatting.Indented);
+                File.WriteAllText(debugFilePath, json, Encoding.UTF8);
+                
+                _logger.LogInformation("Saved merge failure debug info to {DebugFilePath}", debugFilePath);
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw - debug info saving should never break tool execution
+                _logger.LogWarning(ex, "Failed to save merge failure debug info for {FilePath}", filePath);
+            }
         }
 
         /// <summary>

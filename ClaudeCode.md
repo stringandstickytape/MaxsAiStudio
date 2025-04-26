@@ -59,6 +59,7 @@ This file contains key insights and documentation for the MaxsAiTool project.
 - Built-in tools for common operations
 - Extensible tool framework
 - Tool execution in AI context
+- Debug file generation for CodeDiff merge failures
 
 ### Jump to End Functionality
 

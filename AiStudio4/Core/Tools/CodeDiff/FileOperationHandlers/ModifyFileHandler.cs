@@ -84,10 +84,10 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             // NEW: First try programmatic modification
             var programmaticModifier = new ProgrammaticModifier(_logger, _statusMessageService, _clientId);
             SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
-            
+            string failureReason = "";
             try
             {
-                if (programmaticModifier.TryApplyModifications(filePath, originalContent, changes, out string modifiedContent))
+                if (programmaticModifier.TryApplyModifications(filePath, originalContent, changes, out string modifiedContent, out failureReason))
                 {
                     // If successful, write the modified content and return success
                     await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
