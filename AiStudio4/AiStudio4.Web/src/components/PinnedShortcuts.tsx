@@ -38,24 +38,31 @@ const getIconForCommand = (commandId: string, iconName?: string, iconSet?: strin
     const iconProps = { className: "h-3.5 w-3.5" };
 
     if (iconName) {
-        // If we have a specific icon name, try to use it
-        if (iconSet === 'lucide') {
-            // For Lucide icons, we can dynamically import them
-            const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
-            if (LucideIcon) {
-                return <LucideIcon {...iconProps} />;
+        try {
+            // If we have a specific icon name, try to use it
+            if (iconSet === 'lucide') {
+                // For Lucide icons, we can dynamically import them
+                if (LucideIcons && typeof LucideIcons === 'object') {
+                    const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
+                    if (LucideIcon) {
+                        return <LucideIcon {...iconProps} />;
+                    }
+                }
             }
+            
+            // Fallback to basic mapping for backward compatibility
+            const iconMap: Record<string, JSX.Element> = {
+                'Plus': <Plus {...iconProps} />,
+                'Settings': <Settings {...iconProps} />,
+                'RefreshCw': <RefreshCw {...iconProps} />,
+                'GitBranch': <GitBranch {...iconProps} />,
+                'Mic': <Mic {...iconProps} />
+            };
+            return iconMap[iconName] || <Command {...iconProps} />;
+        } catch (error) {
+            console.error('Error rendering icon:', error);
+            return <Command {...iconProps} />;
         }
-        
-        // Fallback to basic mapping for backward compatibility
-        const iconMap: Record<string, JSX.Element> = {
-            'Plus': <Plus {...iconProps} />,
-            'Settings': <Settings {...iconProps} />,
-            'RefreshCw': <RefreshCw {...iconProps} />,
-            'GitBranch': <GitBranch {...iconProps} />,
-            'Mic': <Mic {...iconProps} />
-        };
-        return iconMap[iconName] || <Command {...iconProps} />;
     }
 
     // Fallback to inferring icon from command ID
@@ -250,7 +257,8 @@ export function PinnedShortcuts({
         setCommandToRename(command);
         setNewCommandName(command.name);
         setSelectedIconName(command.iconName);
-        setSelectedIconSet(command.iconSet as 'lucide' | 'lobehub' || 'lucide');
+        // Ensure we always have a valid icon set, defaulting to 'lucide' if undefined
+        setSelectedIconSet((command.iconSet as 'lucide') || 'lucide');
         setRenameDialogOpen(true);
     };
     
