@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using System.Windows;
 using System.IO;
 using AiStudio4.InjectedDependencies;
+using AiStudio4.InjectedDependencies.RequestHandlers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using WebSocketSharp;
@@ -87,7 +88,25 @@ namespace AiStudio4
             services.AddSingleton<ChatProcessingService>();
             services.AddSingleton<MessageHistoryService>();
             services.AddSingleton<ChatManager>();
+            
+            // Register request handlers
+            services.AddSingleton<ClipboardImageRequestHandler>();
+            services.AddTransient<IRequestHandler, ToolRequestHandler>();
+            services.AddTransient<IRequestHandler, SystemPromptRequestHandler>();
+            services.AddTransient<IRequestHandler, UserPromptRequestHandler>();
+            services.AddTransient<IRequestHandler, ThemeRequestHandler>();
+            services.AddTransient<IRequestHandler, McpRequestHandler>();
+            services.AddTransient<IRequestHandler, AppearanceRequestHandler>();
+            services.AddTransient<IRequestHandler, PinnedCommandRequestHandler>();
+            services.AddTransient<IRequestHandler, ChatRequestHandler>();
+            services.AddTransient<IRequestHandler, ModelRequestHandler>();
+            services.AddTransient<IRequestHandler, MiscRequestHandler>();
+            services.AddTransient<IRequestHandler, ConfigRequestHandler>();
+            
+            // Register request router and broker
+            services.AddSingleton<UiRequestRouter>();
             services.AddSingleton<UiRequestBroker>();
+            
             services.AddSingleton<FileServer>();
             services.AddSingleton<WebServer>();
             services.AddSingleton<WindowManager>();
