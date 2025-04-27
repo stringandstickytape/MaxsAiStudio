@@ -152,6 +152,8 @@ namespace AiStudio4.Core.Tools
 
                             // First, read the file and find matching lines
                             while ((line = reader.ReadLine()) != null)
+                                   // First, read the file and find matching lines
+                            while ((line = reader.ReadLine()) != null)
                             {
                                 lineNumber++;
                                 fileLines.Add((lineNumber, line));
@@ -169,67 +171,16 @@ namespace AiStudio4.Core.Tools
                                 var matchDetails = new StringBuilder();
                                 matchDetails.AppendLine(filePath);
 
-                                // Group consecutive matching lines to avoid redundant context
-                                //List<(int Start, int End)> matchGroups = new List<(int Start, int End)>();
-                                //
-                                //if (matchingLineNumbers.Count > 0)
-                                //{
-                                //    int groupStart = matchingLineNumbers[0];
-                                //    int groupEnd = matchingLineNumbers[0];
-                                //
-                                //    for (int i = 1; i < matchingLineNumbers.Count; i++)
-                                //    {
-                                //        // If this line is consecutive to the previous one, extend the group
-                                //        if (matchingLineNumbers[i] == groupEnd + 1)
-                                //        {
-                                //            groupEnd = matchingLineNumbers[i];
-                                //        }
-                                //        // Otherwise, finalize the current group and start a new one
-                                //        else
-                                //        {
-                                //            matchGroups.Add((groupStart, groupEnd));
-                                //            groupStart = matchingLineNumbers[i];
-                                //            groupEnd = matchingLineNumbers[i];
-                                //        }
-                                //    }
-                                //    // Add the last group
-                                //    matchGroups.Add((groupStart, groupEnd));
-                                //}
-                                //
-                                //// Process each group of consecutive matches
-                                //int maxContextsPerFile = 5;
-                                //foreach (var (groupStart, groupEnd) in matchGroups.Take(maxContextsPerFile))
-                                //{
-                                //    // Get context line
-                                //    int contextStart = Math.Max(1, groupStart);
-                                //    int contextEnd = Math.Min(fileLines.Count, groupEnd);
-                                //
-                                //    if (groupStart == groupEnd)
-                                //    {
-                                //        matchDetails.AppendLine($"  Match at line {groupStart}:");
-                                //    }
-                                //    else
-                                //    {
-                                //        matchDetails.AppendLine($"  Matches at lines {groupStart}-{groupEnd}:");
-                                //    }
-                                //
-                                //    // Display context with line numbers
-                                //    for (int i = contextStart - 1; i < contextEnd; i++)
-                                //    {
-                                //        // Handle potential index out of bounds if fileLines is smaller than contextEnd (safety check)
-                                //        if (i < 0 || i >= fileLines.Count) continue;
-                                //        var (lineNum, content) = fileLines[i];
-                                //        string prefix = matchingLineNumbers.Contains(lineNum) ? "* " : "  ";
-                                //        matchDetails.AppendLine($"{lineNum,4} {prefix}{content}");
-                                //    }
-                                //    matchDetails.AppendLine();
-                                //}
-                                //
-                                //// Add the "and more" message if there were more matches than shown
-                                //if (matchGroups.Count > maxContextsPerFile)
-                                //{
-                                    matchDetails.AppendLine($"- {matchingLineNumbers.Count} matches");
-                                //}
+                                // Output only first 10 matching lines with line number and pipe prefix
+                                int maxMatchesToShow = 10;
+                                int matchesShown = 0;
+                                foreach (var lineNum in matchingLineNumbers)
+                                {
+                                    if (matchesShown >= maxMatchesToShow) break;
+                                    var content = fileLines[lineNum - 1].Content;
+                                    matchDetails.AppendLine($"{lineNum}|{content}");
+                                    matchesShown++;
+                                }
 
                                 results.Add(matchDetails.ToString());
                             }
@@ -238,8 +189,7 @@ namespace AiStudio4.Core.Tools
                     catch (IOException ioEx)
                     {
                         _logger.LogWarning(ioEx, "IO Error reading file {FilePath}. Skipping.", filePath);
-                    }
-                    catch (UnauthorizedAccessException uaEx)
+                    }                    catch (UnauthorizedAccessException uaEx)
                     {
                         _logger.LogWarning(uaEx, "Access denied reading file {FilePath}. Skipping.", filePath);
                     }
