@@ -20,7 +20,7 @@ namespace AiStudio4.Core.Tools
     public class ReadPartialFilesTool : BaseToolImplementation
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
-        private const int MaxLineCount = 100;
+        private const int MaxLineCount = 500;
 
         public ReadPartialFilesTool(ILogger<ReadPartialFilesTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
@@ -38,10 +38,10 @@ namespace AiStudio4.Core.Tools
                 ExtraProperties = new Dictionary<string, string> {
                     { "excludedFileExtensions (CSV)", "" },
                 },
-                Description = "Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 100).",
+                Description = "Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 500).",
                 Schema = @"{
   ""name"": ""ReadPartialFiles"",
-  ""description"": ""Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 100). Returns the specified lines for each file. Failed reads for individual files won't stop the entire operation. Only works within allowed directories."",
+  ""description"": ""Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 500). Returns the specified lines for each file. Failed reads for individual files won't stop the entire operation. Only works within allowed directories."",
   ""input_schema"": {
     ""properties"": {
       ""requests"": {
@@ -51,11 +51,11 @@ namespace AiStudio4.Core.Tools
           ""properties"": {
             ""path"": { ""type"": ""string"", ""description"": ""absolute path to the file to read"" },
             ""start_line"": { ""type"": ""integer"", ""minimum"": 1, ""description"": ""1-based line number to start reading from"" },
-            ""line_count"": { ""type"": ""integer"", ""minimum"": 1, ""maximum"": 100, ""description"": ""number of lines to read (max 100)"" }
+            ""line_count"": { ""type"": ""integer"", ""minimum"": 1, ""maximum"": 500, ""description"": ""number of lines to read (max 500)"" }
           },
           ""required"": [""path"", ""start_line"", ""line_count""]
         },
-        ""description"": ""List of file read requests, each with path, start_line, and line_count (max 100)""
+        ""description"": ""List of file read requests, each with path, start_line, and line_count (max 500)""
       }
     },
     ""required"": [""requests""],
