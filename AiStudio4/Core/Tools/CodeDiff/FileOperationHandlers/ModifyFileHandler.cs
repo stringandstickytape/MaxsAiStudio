@@ -85,27 +85,31 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             var programmaticModifier = new ProgrammaticModifier(_logger, _statusMessageService, _clientId);
 
             programmaticModifier.SaveMergeDebugInfo(filePath, originalContent, changes, "");
-            
-            SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
+
             string failureReason = "";
-            try
+
+            if (false) // temporarily disabled, do not remove
             {
-                if (programmaticModifier.TryApplyModifications(filePath, originalContent, changes, out string modifiedContent, out failureReason))
+                SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
+                
+                try
                 {
-                    // If successful, write the modified content and return success
-                    await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
-                    _logger.LogInformation("Programmatically modified file '{FilePath}' with {Count} change(s).", filePath, changes.Count);
-                    SendStatusUpdate($"Successfully applied {changes.Count} modification(s) programmatically to {Path.GetFileName(filePath)}");
-                    return new FileOperationResult(true, $"Success: Applied {changes.Count} modification(s) programmatically.");
+                    if (programmaticModifier.TryApplyModifications(filePath, originalContent, changes, out string modifiedContent, out failureReason))
+                    {
+                        // If successful, write the modified content and return success
+                        await File.WriteAllTextAsync(filePath, modifiedContent, Encoding.UTF8);
+                        _logger.LogInformation("Programmatically modified file '{FilePath}' with {Count} change(s).", filePath, changes.Count);
+                        SendStatusUpdate($"Successfully applied {changes.Count} modification(s) programmatically to {Path.GetFileName(filePath)}");
+                        return new FileOperationResult(true, $"Success: Applied {changes.Count} modification(s) programmatically.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error during programmatic modification attempt for '{FilePath}'. Falling back to AI.", filePath);
+                    SendStatusUpdate($"Error during programmatic modification: {ex.Message}. Falling back to AI.");
+                    // Continue to AI-based approach
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error during programmatic modification attempt for '{FilePath}'. Falling back to AI.", filePath);
-                SendStatusUpdate($"Error during programmatic modification: {ex.Message}. Falling back to AI.");
-                // Continue to AI-based approach
-            }
-            
             // If programmatic modification failed or threw an exception, fall back to AI-based approach
             SendStatusUpdate($"Programmatic modification unsuccessful for: {Path.GetFileName(filePath)}. Falling back to AI-based approach.");
             
