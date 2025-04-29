@@ -88,8 +88,8 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
 
             string failureReason = "";
 
-            if (false) // temporarily disabled, do not remove
-            {
+            //if (false) // temporarily disabled, do not remove
+            //{
                 SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
                 
                 try
@@ -109,7 +109,7 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
                     SendStatusUpdate($"Error during programmatic modification: {ex.Message}. Falling back to AI.");
                     // Continue to AI-based approach
                 }
-            }
+            //}
             // If programmatic modification failed or threw an exception, fall back to AI-based approach
             SendStatusUpdate($"Programmatic modification unsuccessful for: {Path.GetFileName(filePath)}. Falling back to AI-based approach.");
             
