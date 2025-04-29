@@ -1,5 +1,4 @@
-﻿// AiStudio4.Core\Tools\CodeDiff\FileOperationHandlers\ModifyFileHandler.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools.CodeDiff.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -9,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
@@ -181,6 +181,110 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             {
                 _logger.LogError(ex, "Unexpected error during AI call or writing modified file '{FilePath}'", filePath);
                 return new FileOperationResult(false, $"Failed: Unexpected error during AI processing/write. {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Attempts to reapply a previously failed merge operation from a merge failure JSON file
+        /// </summary>
+        /// <param name="mergeFailureJsonPath">Path to the merge_failure_{timestamp}_{filename}.json file</param>
+        /// <param name="logger">Logger instance for logging operations</param>
+        /// <param name="statusMessageService">Status message service for sending updates</param>
+        /// <param name="clientId">Client ID for status updates</param>
+        /// <param name="secondaryAiService">Secondary AI service for processing if needed</param>
+        /// <returns>A FileOperationResult indicating success or failure</returns>
+        public static async Task<FileOperationResult> ReapplyMergeFailureAsync(
+            string mergeFailureJsonPath,
+            ILogger logger,
+            IStatusMessageService statusMessageService,
+            string clientId,
+            ISecondaryAiService secondaryAiService)
+        {
+            if (!File.Exists(mergeFailureJsonPath))
+            {
+                logger.LogError("Merge failure file not found: {Path}", mergeFailureJsonPath);
+                return new FileOperationResult(false, $"Failed: Merge failure file not found: {mergeFailureJsonPath}");
+            }
+
+            try
+            {
+                // Read and parse the merge failure JSON file
+                string jsonContent = await File.ReadAllTextAsync(mergeFailureJsonPath);
+                JObject mergeFailureData = JObject.Parse(jsonContent);
+
+                // Extract the original file path from the merge failure data
+                string originalFilePath = mergeFailureData["filePath"]?.ToString();
+                if (string.IsNullOrEmpty(originalFilePath))
+                {
+                    logger.LogError("Invalid merge failure file: Missing file path");
+                    return new FileOperationResult(false, "Failed: Invalid merge failure file: Missing file path");
+                }
+
+                // Extract the original content and changes
+                string originalContent = mergeFailureData["originalContent"]?.ToString();
+                JArray changesArray = mergeFailureData["changes"] as JArray;
+
+                if (string.IsNullOrEmpty(originalContent) || changesArray == null || !changesArray.Any())
+                {
+                    logger.LogError("Invalid merge failure file: Missing content or changes");
+                    return new FileOperationResult(false, "Failed: Invalid merge failure file: Missing content or changes");
+                }
+
+                // Convert JArray to List<JObject>
+                List<JObject> changes = changesArray.Select(c => c as JObject).Where(c => c != null).ToList();
+
+                // Check if the original file still exists
+                if (!File.Exists(originalFilePath))
+                {
+                    logger.LogError("Original file no longer exists: {Path}", originalFilePath);
+                    return new FileOperationResult(false, $"Failed: Original file no longer exists: {originalFilePath}");
+                }
+
+                // Create a ModifyFileHandler instance and apply the changes
+                var handler = new ModifyFileHandler(logger, statusMessageService, clientId, secondaryAiService);
+                return await handler.HandleModifyFileAsync(originalFilePath, changes);
+            }
+            catch (JsonException jsonEx)
+            {
+                logger.LogError(jsonEx, "Error parsing merge failure JSON: {Path}", mergeFailureJsonPath);
+                return new FileOperationResult(false, $"Failed: Error parsing merge failure JSON: {jsonEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unexpected error reapplying merge failure: {Path}", mergeFailureJsonPath);
+                return new FileOperationResult(false, $"Failed: Unexpected error reapplying merge failure: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Finds the most recent merge failure file for a given file path
+        /// </summary>
+        /// <param name="originalFilePath">The original file path that had a merge failure</param>
+        /// <returns>Path to the most recent merge failure file, or null if none found</returns>
+        public static string FindMostRecentMergeFailureFile(string originalFilePath)
+        {
+            try
+            {
+                string fileName = Path.GetFileName(originalFilePath);
+                string directory = Path.GetDirectoryName(originalFilePath);
+
+                if (string.IsNullOrEmpty(directory))
+                {
+                    directory = Directory.GetCurrentDirectory();
+                }
+
+                // Pattern for merge failure files: merge_failure_{timestamp}_{filename}.json
+                string pattern = $"merge_failure_.*_{Regex.Escape(fileName)}\\.json";
+                var mergeFailureFiles = Directory.GetFiles(directory)
+                    .Where(f => Regex.IsMatch(Path.GetFileName(f), pattern))
+                    .OrderByDescending(f => File.GetLastWriteTime(f))
+                    .ToList();
+
+                return mergeFailureFiles.FirstOrDefault();
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

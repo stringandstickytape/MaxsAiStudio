@@ -1,8 +1,12 @@
 ﻿// AiStudio4/MainWindow.xaml.cs
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
+using AiStudio4.Core.Tools.CodeDiff.Models;
 using AiStudio4.Dialogs; // Added for WpfInputDialog
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32; // Added for OpenFolderDialog
 using System;
 using System.Text;
@@ -343,6 +347,60 @@ public partial class WebViewWindow : Window
                 {
                     MessageBox.Show("Unable to transcribe file.");
                 }
+            }
+        }
+    }
+
+    private async void TestReapplyMergeMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        // Create OpenFileDialog to browse for merge failure JSON files
+        var openFileDialog = new OpenFileDialog
+        {
+            Title = "Select Merge Failure JSON File",
+            Filter = "JSON Files|*.json|All Files|*.*",
+            FilterIndex = 1,
+            InitialDirectory = _generalSettingsService.CurrentSettings.ProjectPath ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            string mergeFailureJsonPath = openFileDialog.FileName;
+            
+            try
+            {
+                // Get required services from DI
+                var app = Application.Current as App;
+                var logger = app.Services.GetService(typeof(ILogger<ModifyFileHandler>)) as ILogger;
+                var statusMessageService = app.Services.GetService(typeof(IStatusMessageService)) as IStatusMessageService;
+                var secondaryAiService = app.Services.GetService(typeof(ISecondaryAiService)) as ISecondaryAiService;
+                
+                if (logger == null || statusMessageService == null || secondaryAiService == null)
+                {
+                    MessageBox.Show("Required services not available", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Generate a client ID for status messages
+                string clientId = Guid.NewGuid().ToString();
+
+                // Call the static method to reapply the merge failure
+                var result = await AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers.ModifyFileHandler.ReapplyMergeFailureAsync(
+                    mergeFailureJsonPath,
+                    logger,
+                    statusMessageService,
+                    clientId,
+                    secondaryAiService);
+
+                // Show the result
+                MessageBox.Show(
+                    result.Success ? "Merge successfully reapplied!" : $"Failed to reapply merge: {result.Message}",
+                    result.Success ? "Success" : "Error",
+                    MessageBoxButton.OK,
+                    result.Success ? MessageBoxImage.Information : MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reapplying merge: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
