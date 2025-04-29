@@ -195,7 +195,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
         /// <param name="originalContent">Original content of the file</param>
         /// <param name="changes">List of changes that were attempted</param>
         /// <param name="failureReason">The reason why the automatic merge failed</param>
-        public void SaveMergeFailureDebugInfo(string filePath, string originalContent, List<JObject> changes, string failureReason)
+        public void SaveMergeDebugInfo(string filePath, string originalContent, List<JObject> changes, string failureReason)
         {
             try
             {

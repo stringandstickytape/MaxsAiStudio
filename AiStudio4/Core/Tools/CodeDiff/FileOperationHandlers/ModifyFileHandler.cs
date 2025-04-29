@@ -80,9 +80,12 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
                 _logger.LogWarning("Modify operation for '{FilePath}' called with no valid modification details.", filePath);
                 return new FileOperationResult(true, "Success: No modifications to apply."); // Or false if this state is unexpected
             }
-            
+
             // NEW: First try programmatic modification
             var programmaticModifier = new ProgrammaticModifier(_logger, _statusMessageService, _clientId);
+
+            programmaticModifier.SaveMergeDebugInfo(filePath, originalContent, changes, "");
+            
             SendStatusUpdate($"Attempting programmatic modification for: {Path.GetFileName(filePath)}");
             string failureReason = "";
             try
@@ -107,7 +110,7 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             SendStatusUpdate($"Programmatic modification unsuccessful for: {Path.GetFileName(filePath)}. Falling back to AI-based approach.");
             
             // Save debug information for the merge failure
-            programmaticModifier.SaveMergeFailureDebugInfo(filePath, originalContent, changes, failureReason);
+            programmaticModifier.SaveMergeDebugInfo(filePath, originalContent, changes, failureReason);
             
             // --- Prepare AI Request ---
             // Filter only necessary fields for the AI prompt to avoid clutter
