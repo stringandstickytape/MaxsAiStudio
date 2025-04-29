@@ -13,6 +13,7 @@ import { formatModelDisplay } from '@/utils/modelUtils';
 import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
+import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 
 // Define themeable properties for the ConvView component
 export const themeableProps = {
@@ -152,8 +153,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     
-    // Get the setJumpToEndEnabled function from the store
-    const setJumpToEndEnabled = useJumpToEndStore(state => state.setJumpToEndEnabled);
+    // Get the jumpToEndEnabled state and setJumpToEndEnabled function from the store
+    const { jumpToEndEnabled, setJumpToEndEnabled } = useJumpToEndStore();
     
     // Debug selected message ID changes
     useEffect(() => {
@@ -181,15 +182,38 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         }
     }, [activeConvId, slctdMsgId, convs]);
     
-    // Log stream token changes but don't auto-scroll
+    // Get the stickToBottom context for programmatic scrolling
+    const stickToBottomRef = useRef<{ scrollToBottom: () => Promise<boolean> } | null>(null);
+    
+    // Use a debounced version of streamTokens to reduce re-renders
+    const [debouncedScrollTrigger, setDebouncedScrollTrigger] = useState(0);
+    
+    // Trigger scroll on token changes, but debounced to improve performance
     useEffect(() => {
-        const jumpToEndEnabled = useJumpToEndStore.getState().jumpToEndEnabled;
-        console.log('🔍 ConvView - Stream tokens changed:', { 
-            tokenCount: streamTokens.length, 
-            isStreaming, 
-            jumpToEndEnabled 
-        });
-    }, [streamTokens, isStreaming]);
+        if (streamTokens.length > 0 && jumpToEndEnabled) {
+            // Only update the scroll trigger occasionally to avoid overwhelming the browser
+            const timeoutId = setTimeout(() => {
+                setDebouncedScrollTrigger(prev => prev + 1);
+            }, 300); // Adjust this value based on performance testing
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [streamTokens, jumpToEndEnabled]);
+    
+    // Handle the actual scrolling based on the debounced trigger
+    useEffect(() => {
+        if (jumpToEndEnabled && stickToBottomRef.current) {
+            stickToBottomRef.current.scrollToBottom();
+        }
+    }, [debouncedScrollTrigger, jumpToEndEnabled]);
+    
+    // Update the StickToBottom component when the user toggles the jumpToEndEnabled setting
+    useEffect(() => {
+        // When jumpToEndEnabled changes to true, scroll to bottom
+        if (jumpToEndEnabled && stickToBottomRef.current) {
+            stickToBottomRef.current.scrollToBottom();
+        }
+    }, [jumpToEndEnabled]);
     
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
@@ -250,7 +274,6 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         
         window.addEventListener('stream:clear', handleClearStream);
         return () => {
-            console.log("stream:clear");
             window.removeEventListener('stream:clear', handleClearStream);
         };
     }, [streamTokens]);
@@ -266,15 +289,76 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const visibleMessages = messageChain.slice(-visibleCount);
     const hasMoreToLoad = visibleCount < messageChain.length;
 
+    // Create ScrollToBottom component that uses useStickToBottomContext
+    const ScrollToBottom = () => {
+        const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+        
+        // Use a ref to track the last isAtBottom value to reduce state updates
+        const lastIsAtBottomRef = useRef(isAtBottom);
+        
+        // Update jumpToEndEnabled when user manually scrolls, but with debouncing
+        useEffect(() => {
+            // Skip frequent updates during streaming to improve performance
+            if (isStreaming && streamTokens.length > 0 && lastIsAtBottomRef.current === isAtBottom) {
+                return;
+            }
+            
+            // Update the ref
+            lastIsAtBottomRef.current = isAtBottom;
+            
+            // Use a timeout to debounce the state updates
+            const timeoutId = setTimeout(() => {
+                // When we detect we're at the bottom, update jumpToEndEnabled to true
+                if (isAtBottom && !jumpToEndEnabled) {
+                    setJumpToEndEnabled(true);
+                }
+                // When we detect we're not at the bottom, update jumpToEndEnabled to false
+                else if (!isAtBottom && jumpToEndEnabled) {
+                    setJumpToEndEnabled(false);
+                }
+            }, 200);
+            
+            return () => clearTimeout(timeoutId);
+        }, [isAtBottom, jumpToEndEnabled, setJumpToEndEnabled, isStreaming, streamTokens.length]);
+        
+        // Memoize the button to prevent unnecessary re-renders
+        const scrollButton = useMemo(() => {
+            if (isAtBottom) return null;
+            
+            return (
+                <button
+                    className="absolute i-ph-arrow-circle-down-fill text-4xl rounded-lg left-[50%] translate-x-[-50%] bottom-4 z-10 p-2 bg-gray-800/80 hover:bg-gray-700/80 transition-all duration-200"
+                    onClick={() => {
+                        scrollToBottom();
+                        // When user clicks to scroll to bottom, also enable auto-scrolling
+                        setJumpToEndEnabled(true);
+                    }}
+                    style={{
+                        color: 'var(--convview-accent-color, #2563eb)',
+                    }}
+                >
+                    <ArrowDown size={24} />
+                </button>
+            );
+        }, [isAtBottom, scrollToBottom, setJumpToEndEnabled]);
+        
+        return scrollButton;
+    };
+    
     return (
-        <div 
+        <StickToBottom 
             className="ConvView h-full relative overflow-y-auto" 
+            resize="smooth" 
+            initial="smooth"
+            ref={stickToBottomRef}
             style={{
                 backgroundColor: 'var(--convview-bg, transparent)',
                 ...(window?.theme?.ConvView?.style || {})
             }}
+            // Add throttle option to reduce ResizeObserver frequency during streaming
+            throttle={isStreaming ? 100 : 0}
         >
-            <div className="ConvView flex flex-col gap-4 p-4">
+            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
 
             {hasMoreToLoad && (
                 <button
@@ -587,12 +671,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                             )}
                         <div className="w-full mb-4">
                             {streamTokens.length > 0 ? (
-
                                 <div className="streaming-content">
-                                    {streamTokens.map((token, index) => (
-                                        <LiveStreamToken key={index} token={token} />
-                                    ))}
-                                        
+                                    {/* Render all tokens as a single string instead of individual components */}
+                                    <span className="whitespace-pre-wrap">{streamTokens.join('')}</span>
                                 </div>
                             ) : isStreaming ? (
                                 <div className="streaming-content">
@@ -609,7 +690,9 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 </div>
             )}
                 
-            </div>
-        </div>
+            </StickToBottom.Content>
+            
+            <ScrollToBottom />
+        </StickToBottom>
     );
 };

@@ -376,9 +376,7 @@ export function InputBar({
                                         <ArrowDownToLine 
                                             size={16} 
                                             className={`ml-2 ${useJumpToEndStore(state => {
-                                                const enabled = state.jumpToEndEnabled;
-                                                console.log(`[JumpToEnd] Icon rendering, current state: ${enabled}`);
-                                                return enabled;
+                                                return state.jumpToEndEnabled;
                                             }) ? 'text-blue-400' : 'text-gray-300'}`} 
                                         />
                                     </div>
