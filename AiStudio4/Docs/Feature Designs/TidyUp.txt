@@ -1,4 +1,4 @@
-**Code Smells & Inconsistencies Found:**
+﻿**Code Smells & Inconsistencies Found:**
 
 1.  **Inconsistent State Management Access:**
     *   Direct `Store.getState()` calls used in `CommandInitializer.tsx`, `settingsCommands.ts`, `appearanceCommands.ts`, `coreCommands.ts`, `systemPromptCommands.ts`, `themeCommands.ts`, `toolCommands.ts`, `userPromptCommands.ts`, `voiceInputCommand.ts` instead of hooks within React components.
@@ -34,10 +34,9 @@
 
 7.  **API Call Consistency:**
     *   Mix of direct `fetch` (`coreCommands.ts`), `apiClient` (`settingsCommands.ts`, stores), and `createApiRequest` utility (`useResourceFactory`, hooks).
-    *   **Recommendation:** Standardize on using `apiClient` and the `createApiRequest` utility for all backend interactions.
-
-8.  **Type Safety:**
-    *   Use of `any` in `GenericForm.tsx` and potentially elsewhere.
+    *   **Recommendation:** Standard    *   **Recommendation:** Standardize on using `apiClient` and the `createApiRequest` utility for all backend interactions.
+    *   **Status (2025-04-29):** Step 7 API call consistency migration is complete. All direct fetch calls have been replaced. The codebase now uses createApiRequest for hooks/components and apiClient for shared logic/utilities, as designed.
+ `any` in `GenericForm.tsx` and potentially elsewhere.
     *   **Recommendation:** Replace `any` with specific types where possible.
 
 9.  **Code Duplication:**

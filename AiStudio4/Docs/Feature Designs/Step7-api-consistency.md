@@ -105,11 +105,20 @@ These should be migrated to `createApiRequest` or `apiClient` unless there is a 
 
 **Action Items:**
 - [x] Inventory all API call sites
-- [~] Replace with `createApiRequest` or `apiClient` (in progress)
+- [x] Replace with `createApiRequest` or `apiClient` (all direct `fetch` calls migrated as of 2025-04-29)
 - [x] Refactor error handling
 - [x] Document any exceptions
-- [ ] Complete migration of remaining direct `fetch` calls
+- [x] Complete migration of remaining direct `fetch` calls
 
 ---
+
+**Step 7 Status: Complete**
+
+All direct `fetch` calls have been migrated to use `createApiRequest` or, where appropriate, `apiClient`. The codebase now follows the intended API call consistency pattern:
+- `createApiRequest` is used in hooks and components for all standard REST calls.
+- `apiClient` is used in shared logic and utility functions (e.g., for dynamic imports or advanced cases).
+- No legacy or direct `fetch` patterns remain in the codebase.
+
+If new API endpoints are added, follow the patterns described above. Any exceptions should be documented inline and in this file.
 
 *This design is part of the TidyUp refactor plan, Step 7: API Call Consistency.*
