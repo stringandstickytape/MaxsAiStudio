@@ -96,14 +96,15 @@ For React components:
 2. Use selectors to optimize rendering
 3. Split complex components to minimize state dependencies
 
-### 3.3 Global State Elimination
+### 3.3 Global State Management
 
-To eliminate global state:
+To improve global state management while preserving necessary window events:
 
-1. Replace `window.dispatchEvent` with store actions
+1. **Preserve window events** for external code integration
 2. Create dedicated stores for cross-cutting concerns
 3. Use React Context for deeply nested component communication
 4. Move `localStorage` persistence into Zustand middleware
+5. Document window events to improve maintainability
 
 ## 4. Implementation Plan
 
@@ -243,60 +244,63 @@ export function useSystemPromptActions() {
 }
 ```
 
-### 4.3 Phase 3: Global State Elimination
+### 4.3 Phase 3: Global State Management
 
-#### Step 1: Create Event Bus Store
+#### Step 1: Document Window Events
 
-Replace window events with a dedicated event bus store:
+Create a central registry of window events to improve maintainability:
 
 ```typescript
-// src/stores/useEventBusStore.ts
-import { create } from 'zustand';
+// src/services/windowEvents.ts
 
-type EventHandler = (data: any) => void;
-
-interface EventBusState {
-  listeners: Record<string, EventHandler[]>;
-  emit: (event: string, data: any) => void;
-  on: (event: string, handler: EventHandler) => () => void;
-  off: (event: string, handler: EventHandler) => void;
-}
-
-export const useEventBusStore = create<EventBusState>((set, get) => ({
-  listeners: {},
+/**
+ * Registry of window events used throughout the application.
+ * This helps document the events and their purposes.
+ */
+export const WindowEvents = {
+  // System prompt events
+  SYSTEM_PROMPT_SELECTED: 'system-prompt-selected',
+  SYSTEM_PROMPT_UPDATED: 'system-prompts-updated',
+  OPEN_SYSTEM_PROMPT_LIBRARY: 'open-system-prompt-library',
   
-  emit: (event, data) => {
-    const { listeners } = get();
-    if (listeners[event]) {
-      listeners[event].forEach(handler => handler(data));
-    }
+  // User prompt events
+  USER_PROMPT_UPDATED: 'user-prompts-updated',
+  
+  // Command events
+  COMMAND_SETTINGS_TAB: 'command:settings-tab',
+  COMMAND_EDIT_MODEL: 'command:edit-model',
+  COMMAND_EDIT_PROVIDER: 'command:edit-provider',
+  
+  // Add other events as needed...
+};
+
+/**
+ * Helper functions for working with window events
+ */
+export const windowEventService = {
+  /**
+   * Emit a window event
+   */
+  emit: (eventName: string, data?: any) => {
+    const event = new CustomEvent(eventName, { detail: data });
+    window.dispatchEvent(event);
+    console.log(`Emitted ${eventName} with data:`, data);
   },
   
-  on: (event, handler) => {
-    set(state => ({
-      listeners: {
-        ...state.listeners,
-        [event]: [...(state.listeners[event] || []), handler],
-      },
-    }));
-    
-    return () => get().off(event, handler);
-  },
-  
-  off: (event, handler) => {
-    set(state => ({
-      listeners: {
-        ...state.listeners,
-        [event]: (state.listeners[event] || []).filter(h => h !== handler),
-      },
-    }));
-  },
-}));
+  /**
+   * Listen to a window event
+   */
+  on: (eventName: string, handler: (data: any) => void) => {
+    const wrappedHandler = (e: CustomEvent) => handler(e.detail);
+    window.addEventListener(eventName, wrappedHandler as EventListener);
+    return () => window.removeEventListener(eventName, wrappedHandler as EventListener);
+  }
+};
 ```
 
-#### Step 2: Replace Window Events
+#### Step 2: Use Window Event Service
 
-Replace window events with the event bus:
+Refactor code to use the window event service for better consistency:
 
 ```typescript
 // Before
@@ -304,12 +308,11 @@ window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
 window.addEventListener('system-prompt-selected', handleSystemPromptSelected);
 
 // After
-import { useEventBusStore } from '@/stores/useEventBusStore';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
-useEventBusStore.getState().emit('open-system-prompt-library', {});
-
-const unsubscribe = useEventBusStore.getState().on(
-  'system-prompt-selected', 
+windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY);
+const unsubscribe = windowEventService.on(
+  WindowEvents.SYSTEM_PROMPT_SELECTED, 
   handleSystemPromptSelected
 );
 // Remember to call unsubscribe when component unmounts
@@ -365,10 +368,10 @@ To minimize disruption, we'll implement these changes incrementally:
 
 1. Create the command registry service first
 2. Refactor one command file at a time
-3. Create the event bus store
+3. Create the window event service and documentation
 4. Refactor one component at a time
 5. Add persistence middleware to stores
-6. Remove global state access
+6. Standardize global state access patterns
 
 This approach allows us to validate each change before moving to the next, reducing the risk of regressions.
 
@@ -377,11 +380,12 @@ This approach allows us to validate each change before moving to the next, reduc
 - **Improved Testability**: Components and logic will be easier to test in isolation
 - **Better Performance**: Optimized rendering with proper hook usage
 - **Enhanced Maintainability**: Consistent patterns make the codebase easier to understand
-- **Reduced Bugs**: Eliminating global state reduces the chance of unexpected interactions
+- **Better Documentation**: Window events are centrally documented
+- **Reduced Bugs**: Standardized state access patterns reduce the chance of unexpected interactions
 - **Easier Onboarding**: New developers will find the codebase more approachable
 
 ## 8. Conclusion
 
-This refactoring plan addresses the inconsistent state management in the AiStudio4 web application. By implementing these changes, we'll create a more maintainable, testable, and performant application that follows React and Zustand best practices.
+This refactoring plan addresses the inconsistent state management in the AiStudio4 web application while preserving necessary window events for external code integration. By implementing these changes, we'll create a more maintainable, testable, and performant application that follows React and Zustand best practices.
 
-The plan is designed to be implemented incrementally, allowing for validation at each step and minimizing disruption to ongoing development.
+The plan is designed to be implemented incrementally, allowing for validation at each step and minimizing disruption to ongoing development. The approach balances modern React state management with the practical needs of the existing architecture.
