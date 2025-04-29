@@ -1,22 +1,20 @@
-﻿
-iimport { v4 as uuidv4 } from 'uuid';
+﻿// AiStudio4.Web/src/commands/coreCommands.ts
+import { v4 as uuidv4 } from 'uuid';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { createApiRequest } from '@/utils/apiUtils';
+
 export function initializeCoreCommands(handlers: {
   toggleSidebar: () => void;
   toggleConvTree: () => void;
   toggleSettings: () => void;
   openNewWindow: () => void;
 }) {
-  
   const { createConv } = useConvStore.getState();
-
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
-
   const { registerGroup } = useCommandStore.getState();
 
   registerGroup({
@@ -68,8 +66,6 @@ export function initializeCoreCommands(handlers: {
         React.createElement(Terminal, { size: 16 }),
         async () => {
           try {
-            const response        async () => {
-          try {
             const exitApplication = createApiRequest('/api/exitApplication', 'POST');
             const data = await exitApplication({ clientId: window.localStorage.getItem('clientId') });
             if (!data.success) {
@@ -78,7 +74,9 @@ export function initializeCoreCommands(handlers: {
           } catch (error) {
             console.error('Error sending exit application request:', error);
           }
-        }, icon, fn]) => ({
+        },
+      ],
+    ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
       id,
       name,
       description,
@@ -122,4 +120,3 @@ export function initializeCoreCommands(handlers: {
     })),
   });
 }
-
