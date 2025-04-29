@@ -1,6 +1,7 @@
 ﻿// AiStudio4.Web\src\stores\usePinnedCommandsStore.ts
 import { create } from 'zustand';
 import { webSocketService } from '@/services/websocket/WebSocketService';
+import { createApiRequest } from '@/utils/apiUtils';
 
 export interface PinnedCommand {
   id: string;
@@ -78,16 +79,12 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
     setError(null);
 
     try {
-      const response = await fetch('/api/pinnedCommands/get', {
-        method: 'POST',
+      const pinnedCommandsGet = createApiRequest('/api/pinnedCommands/get', 'POST');
+      const data = await pinnedCommandsGet({}, {
         headers: {
-          'Content-Type': 'application/json',
-            'X-Client-Id': webSocketService.getClientId() || '',
+          'X-Client-Id': webSocketService.getClientId() || '',
         },
-        body: JSON.stringify({}),
       });
-
-      const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch pinned commands');
@@ -109,16 +106,12 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
     setError(null);
 
     try {
-      const response = await fetch('/api/pinnedCommands/save', {
-        method: 'POST',
+      const pinnedCommandsSave = createApiRequest('/api/pinnedCommands/save', 'POST');
+      const data = await pinnedCommandsSave({ pinnedCommands }, {
         headers: {
-          'Content-Type': 'application/json',
-            'X-Client-Id': webSocketService.getClientId() || '',
+          'X-Client-Id': webSocketService.getClientId() || '',
         },
-        body: JSON.stringify({ pinnedCommands }),
       });
-
-      const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to save pinned commands');

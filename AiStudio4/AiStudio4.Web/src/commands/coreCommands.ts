@@ -1,10 +1,10 @@
-
-import { v4 as uuidv4 } from 'uuid';
+﻿
+iimport { v4 as uuidv4 } from 'uuid';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
-
+import { createApiRequest } from '@/utils/apiUtils';
 export function initializeCoreCommands(handlers: {
   toggleSidebar: () => void;
   toggleConvTree: () => void;
@@ -68,23 +68,17 @@ export function initializeCoreCommands(handlers: {
         React.createElement(Terminal, { size: 16 }),
         async () => {
           try {
-            const response = await fetch('/api/exitApplication', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ clientId: window.localStorage.getItem('clientId') })
-            });
-            const data = await response.json();
+            const response        async () => {
+          try {
+            const exitApplication = createApiRequest('/api/exitApplication', 'POST');
+            const data = await exitApplication({ clientId: window.localStorage.getItem('clientId') });
             if (!data.success) {
               console.error('Failed to exit application:', data.error);
             }
           } catch (error) {
             console.error('Error sending exit application request:', error);
           }
-        },
-      ],
-    ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({
+        }, icon, fn]) => ({
       id,
       name,
       description,

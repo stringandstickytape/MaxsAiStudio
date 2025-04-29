@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Paperclip, X, Upload, ClipboardPen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_ATTACHMENT_OPTIONS, base64ToArrayBuffer } from '@/utils/attachmentUtils';
+import { createApiRequest } from '@/utils/apiUtils';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -136,12 +137,8 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     <DropdownMenuItem onClick={async () => {
                         // Show loading indicator (optional)
                         try {
-                            const resp = await fetch('/api/clipboardImage', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: '{}'
-                            });
-                            const data = await resp.json();
+                            const clipboardImageRequest = createApiRequest('/api/clipboardImage', 'POST');
+                            const data = await clipboardImageRequest({});
                             if (data.success && data.attachment) {
                                 // Convert base64 to ArrayBuffer for content
                                 const arrBuf = base64ToArrayBuffer(data.attachment.content);
@@ -167,14 +164,8 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                         // Git Diff option
                         try {
                             // Optionally show loading indicator here
-                            const resp = await fetch('/api/gitDiff', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    data: '{}'
-                                })
-                            });
-                            const data = await resp.json();
+                            const gitDiffRequest = createApiRequest('/api/gitDiff', 'POST');
+                            const data = await gitDiffRequest({ data: '{}' });
                             if (data.success && data.attachment) {
                                 // Convert base64 to ArrayBuffer for content
                                 const arrBuf = base64ToArrayBuffer(data.attachment.content);
