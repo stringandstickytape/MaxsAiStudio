@@ -152,38 +152,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     const { isCancelling: isCancel } = useWebSocketStore();
     const { activeConvId, slctdMsgId, convs, editingMessageId, editMessage, cancelEditMessage, updateMessage } = useConvStore();
     
-    // Create a ref for the scroll container
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    
-    // Create a ref to track programmatic scrolling with timestamp
-    const programmaticScrollTimeRef = useRef<number | null>(null);
-    
     // Get the setJumpToEndEnabled function from the store
     const setJumpToEndEnabled = useJumpToEndStore(state => state.setJumpToEndEnabled);
-    
-    // Define handlers for wheel and scroll events to toggle jumpToEndEnabled
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        // Wheel events are always user-initiated
-        console.log('🔍 ConvView - User wheel event detected, disabling jump-to-end');
-        setJumpToEndEnabled(false);
-    }, [setJumpToEndEnabled]);
-    
-    const handleScroll = useCallback((e: React.UIEvent) => {
-        // Check if this is within the programmatic scroll time window
-        const now = Date.now();
-        const lastProgrammaticScroll = programmaticScrollTimeRef.current;
-        
-        if (lastProgrammaticScroll && now - lastProgrammaticScroll < 500) {
-            console.log('🔍 ConvView - Programmatic scroll event ignored', {
-                timeSinceProgScroll: now - lastProgrammaticScroll
-            });
-            return;
-        }
-        
-        // If we're here, this is a user-initiated scroll
-        console.log('🔍 ConvView - User scroll event detected, disabling jump-to-end');
-        setJumpToEndEnabled(false);
-    }, [setJumpToEndEnabled]);
     
     // Debug selected message ID changes
     useEffect(() => {
@@ -211,23 +181,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         }
     }, [activeConvId, slctdMsgId, convs]);
     
-    // Simple function to scroll to bottom
-    const scrollToBottom = useCallback(() => {
-        if (scrollContainerRef.current) {
-            // Record the timestamp of this programmatic scroll
-            programmaticScrollTimeRef.current = Date.now();
-            console.log('🔍 ConvView - Programmatic scroll started at', programmaticScrollTimeRef.current);
-            
-            const { scrollHeight, clientHeight } = scrollContainerRef.current;
-            scrollContainerRef.current.scrollTop = scrollHeight - clientHeight;
-        }
-    }, []);
-
-
-
-
-
-    // Scroll to bottom when new stream tokens arrive, but only if jumpToEndEnabled is true
+    // Log stream token changes but don't auto-scroll
     useEffect(() => {
         const jumpToEndEnabled = useJumpToEndStore.getState().jumpToEndEnabled;
         console.log('🔍 ConvView - Stream tokens changed:', { 
@@ -235,21 +189,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             isStreaming, 
             jumpToEndEnabled 
         });
-        
-        if ((streamTokens.length > 0 || isStreaming) && jumpToEndEnabled) {
-            console.log('🔍 ConvView - Auto-scrolling due to new tokens');
-            scrollToBottom();
-        }
-    }, [streamTokens, isStreaming, scrollToBottom]);
-
-    
-    // Make scrollToBottom available globally
-    useEffect(() => {
-        window.scrollChatToBottom = scrollToBottom;
-        return () => {
-            window.scrollChatToBottom = undefined;
-        };
-    }, [scrollToBottom]);
+    }, [streamTokens, isStreaming]);
     
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
@@ -328,14 +268,11 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
 
     return (
         <div 
-            ref={scrollContainerRef}
             className="ConvView h-full relative overflow-y-auto" 
             style={{
                 backgroundColor: 'var(--convview-bg, transparent)',
                 ...(window?.theme?.ConvView?.style || {})
             }}
-            onWheel={handleWheel}
-            onScroll={handleScroll}
         >
             <div className="ConvView flex flex-col gap-4 p-4">
 

@@ -48,7 +48,6 @@ interface InputBarProps {
 
 declare global {
     interface Window {
-        scrollChatToBottom?: () => void;
         getScrollButtonState?: () => boolean;
         appendToPrompt?: (text: string) => boolean;
         setPrompt?: (text: string) => boolean;
@@ -270,8 +269,7 @@ export function InputBar({
             // --- Allow stream tokens again on new send ---
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
             console.log("hs3");
-            // Enable auto-scrolling when sending a message
-            window.scrollChatToBottom && window.scrollChatToBottom();
+            // Auto-scrolling removed
 
             const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
@@ -372,10 +370,7 @@ export function InputBar({
                                             console.log(`[JumpToEnd] Button clicked, setting to: ${newState}`);
                                             useJumpToEndStore.getState().setJumpToEndEnabled(newState);
                                             
-                                            // If enabling jump-to-end, immediately scroll to bottom
-                                            if (newState && window.scrollChatToBottom) {
-                                                window.scrollChatToBottom();
-                                            }
+                                            // Auto-scrolling removed when enabling jump-to-end
                                         }}
                                     >
                                         <ArrowDownToLine 
