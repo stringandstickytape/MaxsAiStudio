@@ -150,6 +150,7 @@ namespace AiStudio4.Core.Tools
                                 {
                                     if (matchesShown >= maxMatchesToShow) break;
                                     var content = fileLines[lineNum - 1].Content;
+                                    if (content.Length > 200) content = content.Substring(0, 200);
                                     matchDetails.AppendLine($"{lineNum}|{content}");
                                     matchesShown++;
                                 }
